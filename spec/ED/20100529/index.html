@@ -1,0 +1,532 @@
+<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>
+<html lang="en" dir="ltr">
+<head>
+<title>JSON-LD - Linked Data Expression in JSON</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+
+
+<style>
+.diff { font-weight:bold; color:#0a3; }
+</style>
+<link href="http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css" rel="stylesheet" type="text/css" charset="utf-8"><link href="http://www.w3.org/StyleSheets/TR/w3c-unofficial" rel="stylesheet" type="text/css" charset="utf-8"></head><body style="display: inherit; "><div class="head"><p></p><h1 class="title" id="title">JSON-LD - Linked Data Expression in JSON</h1><h2 id="subtitle">A Context-based JSON Serialization for Linked Data</h2><h2 id="unofficial-draft-30-may-2010">Unofficial Draft 30 May 2010</h2><dl><dt>Editor:</dt><dd><a href="http://digitalbazaar.com/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar, Inc.</a></dd><dt>Authors:</dt><dd><a href="http://webbackplane.com/">Mark Birbeck</a>, <a href="http://webbackplane.com/">Backplane Ltd.</a></dd><dd><a href="http://digitalbazaar.com/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar, Inc.</a></dd></dl><p class="copyright">This document is licensed under a <a class="subfoot" href="http://creativecommons.org/licenses/by/3.0/" rel="license">Creative Commons Attribution 3.0 License</a>.</p><hr></div>
+<div id="abstract" class="introductory section"><h2>Abstract</h2>
+<p>
+Developers that embed structured data in their Web pages can choose among
+a number of languages such as RDFa [<a class="bibref" rel="biblioentry" href="#bib-RDFA-CORE">RDFA-CORE</a>], Microformats [<a class="bibref" rel="biblioentry" href="#bib-MICROFORMATS">MICROFORMATS</a>] 
+and Microdata [<a class="bibref" rel="biblioentry" href="#bib-MICRODATA">MICRODATA</a>]. Each of these structured data languages, while
+incompatible at the syntax level, can be easily mapped to RDF. JSON has 
+proven to be a highly useful object serialization and messaging replacement 
+for SOAP. In an attempt to harmonize the representation of Link Data in JSON, 
+this specification outlines a common JSON representation format for 
+Linked Data that can be used to represent objects specified via RDFa, 
+Microformats and Microdata.
+</p>
+</div><div id="sotd" class="introductory section"><h2>Status of This Document</h2><p>This document is merely a public working draft of a potential specification. It has no official standing of any kind and does not represent the support or consensus of any standards organisation.</p></div><div id="toc" class="section"><h2 class="introductory">Table of Contents</h2><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno">1. </span>How to Read this Document</a></li><li class="tocline"><a href="#introduction" class="tocxref"><span class="secno">2. </span>Introduction</a></li><li class="tocline"><a href="#design-goals" class="tocxref"><span class="secno">3. </span>Design Goals</a></li><li class="tocline"><a href="#design-rationale" class="tocxref"><span class="secno">4. </span>Design Rationale</a><ul class="toc"><li class="tocline"><a href="#map-terms-to-iris" class="tocxref"><span class="secno">4.1 </span>Map Terms to IRIs</a></li><li class="tocline"><a href="#the-default-context" class="tocxref"><span class="secno">4.2 </span>The Default Context</a></li><li class="tocline"><a href="#mashing-up-vocabularies" class="tocxref"><span class="secno">4.3 </span>Mashing Up Vocabularies</a></li><li class="tocline"><a href="#an-example-of-a-default-context" class="tocxref"><span class="secno">4.4 </span>An Example of a Default Context</a></li><li class="tocline"><a href="#markup-examples" class="tocxref"><span class="secno">4.5 </span>Markup Examples</a><ul class="toc"><li class="tocline"><a href="#rdfa" class="tocxref"><span class="secno">4.5.1 </span>RDFa</a></li><li class="tocline"><a href="#microformats" class="tocxref"><span class="secno">4.5.2 </span>Microformats</a></li><li class="tocline"><a href="#microdata" class="tocxref"><span class="secno">4.5.3 </span>Microdata</a></li></ul></li></ul></li><li class="tocline"><a href="#markup-of-rdf-concepts" class="tocxref"><span class="secno">5. </span>Markup of RDF Concepts</a><ul class="toc"><li class="tocline"><a href="#iris" class="tocxref"><span class="secno">5.1 </span>IRIs</a></li><li class="tocline"><a href="#identifying-the-subject" class="tocxref"><span class="secno">5.2 </span>Identifying the Subject</a></li><li class="tocline"><a href="#specifying-the-type" class="tocxref"><span class="secno">5.3 </span>Specifying the Type</a></li><li class="tocline"><a href="#plain-literals" class="tocxref"><span class="secno">5.4 </span>Plain Literals</a></li><li class="tocline"><a href="#language-specification-in-plain-literals" class="tocxref"><span class="secno">5.5 </span>Language Specification in Plain Literals</a></li><li class="tocline"><a href="#typed-literals" class="tocxref"><span class="secno">5.6 </span>Typed Literals</a></li><li class="tocline"><a href="#multiple-objects-for-a-single-property" class="tocxref"><span class="secno">5.7 </span>Multiple Objects for a Single Property</a></li><li class="tocline"><a href="#multiple-typed-literals-for-a-single-property" class="tocxref"><span class="secno">5.8 </span>Multiple Typed Literals for a Single Property</a></li><li class="tocline"><a href="#blank-nodes" class="tocxref"><span class="secno">5.9 </span>Blank Nodes</a></li><li class="tocline"><a href="#escape-character" class="tocxref"><span class="secno">5.10 </span>Escape Character</a></li><li class="tocline"><a href="#automatic-typing" class="tocxref"><span class="secno">5.11 </span>Automatic Typing</a></li></ul></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno">A. </span>Acknowledgements</a></li><li class="tocline"><a href="#references" class="tocxref"><span class="secno">B. </span>References</a><ul class="toc"><li class="tocline"><a href="#normative-references" class="tocxref"><span class="secno">B.1 </span>Normative references</a></li><li class="tocline"><a href="#informative-references" class="tocxref"><span class="secno">B.2 </span>Informative references</a></li></ul></li></ul></div>
+
+<div id="how-to-read-this-document" class="section">
+<!--OddPage--><h2><span class="secno">1. </span>How to Read this Document</h2>
+
+<p>
+This document is a detailed specification for a serialization of JSON for Linked
+data. The document is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Developers that want to encode Microformats, RDFa, or Microdata in a
+  way that is cross-language compatible via JSON.</li>
+  <li>Developers that want to understand the encoding possibilities.</li>
+</ul>
+
+<p>
+To understand this specification you must first be familiar with JSON, 
+which is detailed in [<a class="bibref" rel="biblioentry" href="#bib-RFC4627">RFC4627</a>].</p>
+
+</div>
+
+<div id="sotd" class="section">
+<p>This document is an experimental work in progress.</p>
+<!-- <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p> -->
+</div>
+
+<div id="introduction" class="section">
+<!--OddPage--><h2><span class="secno">2. </span>Introduction</h2>
+
+<p class="issue">Need to write introduction...</p>
+
+</div>
+
+<div id="design-goals" class="section">
+<!--OddPage--><h2><span class="secno">3. </span>Design Goals</h2>
+
+<p>
+A number of design considerations were explored during the creation of this 
+markup language:
+</p>
+
+<dl>
+ <dt>Simplicity</dt>
+ <dd>Developers don't need to know RDF in order to use the basic functionality
+ provided by JSON-LD.</dd>
+ <dt>Compatibility</dt>
+ <dd>The JSON-LD markup should be 100% compatible with JSON.</dd>
+ <dt>Expressiveness</dt>
+ <dd>All major RDF concepts must be expressible via the JSON-LD syntax.</dd>
+ <dt>Terseness</dt>
+ <dd>The JSON-LD syntax must be very terse and human readable.</dd>
+</dl>
+</div>
+
+<div id="design-rationale" class="section">
+<!--OddPage--><h2><span class="secno">4. </span>Design Rationale</h2>
+
+<p>The following section outlines the rationale behind the JSON-LD markup
+language.
+</p>
+
+<div id="map-terms-to-iris" class="section">
+<h3><span class="secno">4.1 </span>Map Terms to IRIs</h3>
+
+<p>Establishing a mechanism to map JSON values to IRIs will
+help in the mapping of JSON objects to RDF. This does not mean that JSON-LD must
+be restrictive in declaring a set of terms, rather, experimentation and 
+innovation should be supported as part of the core design of JSON-LD. There are, 
+however, a number of very small design criterial that can ensure that developers 
+will generate good RDF data that will create value for the greater 
+semantic web community and JSON/REST-based Web Services community.
+</p>
+
+<p>We will be using the following JSON object as the example for this section:
+</p>
+
+<pre class="example">{"a" : "Person",
+ "name" : "Manu Sporny",
+ "homepage" : "http://manu.sporny.org/"}</pre>
+</div><div id="the-default-context" class="section">
+<h3><span class="secno">4.2 </span>The Default Context</h3>
+
+<p>A default context is used in RDFa to allow developers to use keywords
+as aliases for IRIs. So, for instance, the keyword <strong>name</strong>
+above could refer to the IRI <em>http://xmlns.com/foaf/0.1/name</em>.
+The semantic web, just like the document-based web, uses IRIs for
+unambiguous identification. The idea is that these terms mean something, 
+which you will eventually want to query. The semantic web specifies this via 
+<em>Vocabulary Documents</em>. The IRI <em>http://xmlns.com/foaf/0.1/</em> specifies
+a Vocabulary Document, and <strong>name</strong> is a term in that 
+vocabulary. Paste the two items together and you have an unambiguous identifier
+for a term.
+</p>
+
+<p>Developers, and machines, would be able to use this IRI (plugging it
+directly into a web browser, for instance) to go to the term and get a 
+definition of what the term means. Much
+like we can use WordNet today to see the 
+<a href="http://wordnetweb.princeton.edu/perl/webwn?s=definition">definition</a>
+of words in the English language. Machines need the same sort of 
+dictionary of terms, and URIs provide a way to ensure that these terms
+are unambiguous.
+</p>
+
+<p>Non-prefixed terms should have term mappings declared in the default
+context so that they may be expanded later.</p>
+            
+<p>If a set of terms, like <strong>Person</strong>, 
+<strong>name</strong>, and <strong>homepage</strong>,
+are pre-defined in the default context, and that context is used to resolve the
+names in JSON objects, machines could automatically expand the terms to 
+something meaningful and unambiguous, like this:</p>
+
+<pre class="example">{"<span class="diff">http://www.w3.org/1999/02/22-rdf-syntax-ns#type</span>" : "<span class="diff">http://xmlns.com/foaf/0.1/Person</span>",
+ "<span class="diff">http://xmlns.com/foaf/0.1/name</span>" : "Manu Sporny",
+ "<span class="diff">http://xmlns.com/foaf/0.1/homepage</span>" : "<span class="diff">&lt;</span>http://manu.sporny.org<span class="diff">&gt;</span>"}</pre>
+
+<p class="note">In order to differentiate between plain text and IRIs, the
+<strong>&lt;</strong> and <strong>&gt;</strong> are used around IRIs.</p>
+
+<p>Doing this would mean that JSON would start to become unambiguously
+machine-readable, play well with the semantic web, and basic markup wouldn't 
+be that much more complex than basic JSON markup. A win, all around.</p>
+</div>
+
+<div id="mashing-up-vocabularies" class="section">
+<h3><span class="secno">4.3 </span>Mashing Up Vocabularies</h3>
+
+<p>Developers would also benefit by allowing other vocabularies to be used
+automatically with their JSON API. There are over 200 
+Vocabulary Documents that are available for use on the Web today. Some
+of these vocabularies are:
+</p>
+
+<ul>
+   <li>XSD - for specifying basic types like strings, integers, dates and times.</li>
+   <li>Dublin Core - for describing creative works.</li>
+   <li>FOAF - for describing social networks.</li>
+   <li>Calendar - for specifying events.</li>
+   <li>SIOC - for describing discussions on blogs and websites.</li>
+   <li>CCrel - for describing Creative Commons and other types of licenses.</li>
+   <li>GEO - for describing geographic location.</li>
+   <li>VCard - for describing organizations and people.</li>
+   <li>DOAP - for describing projects.</li>
+</ul>
+
+<p>A JSON-LD Web Service could define these as <em>prefix</em>es in their 
+default context beside the <em>terms</em> that are already defined. Using
+this feature, developers could also do markup like this:</p>
+
+<pre class="example">{"<span class="diff">rdf:type</span>" : "<span class="diff">foaf:Person</span>",
+ "<span class="diff">foaf:name</span>" : "Manu Sporny",
+ "<span class="diff">foaf:homepage</span>" : "http://manu.sporny.org/"<span class="diff">,
+ "sioc:avatar" : "&lt;http://twitter.com/account/profile_image/manusporny&gt;"</span>}</pre>
+
+<p>Developers could also be allowed to specify their own Vocabulary documents 
+by modifying the default context, like so:</p>
+
+<pre class="example">[<span class="diff">{"a" : "Context",
+   "myvocab" : "http://example.org/myvocab#"}
+ },</span>
+ {"a" : "foaf:Person",
+ "foaf:name" : "Manu Sporny",
+ "foaf:homepage" : "&lt;http://manu.sporny.org/&gt;",
+ "sioc:avatar" : "&lt;http://twitter.com/account/profile_image/manusporny&gt;"<span class="diff">,
+ "myvocab:credits" : 500</span>}
+]</pre>
+
+<p>This mechanism is a short-hand for RDF, and if defined, will give
+developers an unambiguous way to map any JSON value to RDF. </p><p>
+</p></div>
+
+<div id="an-example-of-a-default-context" class="section">
+<h3><span class="secno">4.4 </span>An Example of a Default Context</h3>
+
+<p>To be clear, the JSON-LD aware Web Service could define a default
+context like the following:</p>
+
+<pre class="example">{"a" : "Context",
+ "__vocab__" : "http://example.org/default-vocab#",
+ "xsd" : "http://www.w3.org/2001/XMLSchema#",
+ "dc" : "http://purl.org/dc/terms/",
+ "foaf" : "http://xmlns.com/foaf/0.1/",
+ "sioc" : "http://rdfs.org/sioc/ns#",
+ "cc" : "http://creativecommons.org/ns#",
+ "geo" : "http://www.w3.org/2003/01/geo/wgs84_pos#",
+ "vcard" : "http://www.w3.org/2006/vcard/ns#",
+ "cal" : "http://www.w3.org/2002/12/cal/ical#",
+ "doap" : "http://usefulinc.com/ns/doap#",
+ "Person" : "http://xmlns.com/foaf/0.1/Person",
+ "name" : "http://xmlns.com/foaf/0.1/name",
+ "homepage" : "http://xmlns.com/foaf/0.1/homepage"
+}</pre>
+
+<p>The <strong>__vocab__</strong> prefix is a special prefix that states 
+that any term that doesn't resolve to a term or a prefix should be 
+appended to the <strong>__vocab__</strong> IRI. This is done to ensure that 
+terms can be transformed to an IRI at all times.
+</p>
+</div>
+
+<div id="markup-examples" class="section">
+<h3><span class="secno">4.5 </span>Markup Examples</h3>
+
+<p class="issue">Write some introductory stuff about the Markup Examples.</p>
+
+<div id="rdfa" class="section">
+<h4><span class="secno">4.5.1 </span>RDFa</h4>
+
+<pre class="example">&lt;div <span class="diff">prefix="foaf: http://xmlns.com/foaf/0.1/"</span>&gt;
+   &lt;ul&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name" </span>&gt;Bob&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/eve/" property="foaf:name" </span>&gt;Eve&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/manu/" property="foaf:name" </span>&gt;Manu&lt;/a&gt;
+      &lt;/li&gt;
+   &lt;/ul&gt;
+&lt;/div&gt;</pre>
+
+<p>Representation:</p>
+
+<pre class="example">{{ 
+   "a" : "Context",
+   "foaf" : "http://xmlns.com/foaf/0.1/"
+ },
+ {
+    "@" : "_:bnode1",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/bob/&gt;",
+    "foaf:name" : "Bob"
+ },
+ {
+    "@" : "_:bnode2",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/eve/&gt;",
+    "foaf:name" : "Eve"
+ },
+ {
+    "@" : "_:bnode2",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/manu/&gt;",
+    "foaf:name" : "Manu"
+ }
+}</pre>
+
+</div>
+
+<div id="microformats" class="section">
+<h4><span class="secno">4.5.2 </span>Microformats</h4>
+
+<pre class="example">&lt;div class="vcard"&gt;
+ &lt;a class="url fn" href="http://tantek.com/"&gt;Tantek Çelik&lt;/a&gt;
+&lt;/div&gt;</pre>
+
+<p>Representation:</p>
+
+<pre class="example">{{ 
+   "a" : "Context",
+   "vcard" : "http://microformats.org/profile/hcard#vcard"
+   "url" : "http://microformats.org/profile/hcard#url"
+   "fn" : "http://microformats.org/profile/hcard#fn"
+ },
+ {
+    "@" : "_:bnode1",
+    "a" : "vcard",
+    "url" : "&lt;http://tantek.com/&gt;",
+    "fn" : "Tantek Çelik"
+ }
+}</pre>
+
+</div>
+
+<div id="microdata" class="section">
+<h4><span class="secno">4.5.3 </span>Microdata</h4>
+
+<pre class="example">&lt;dl itemscope
+    itemtype="http://purl.org/vocab/frbr/core#Work"
+    itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N"&gt;
+ &lt;dt&gt;Title&lt;/dt&gt;
+ &lt;dd&gt;&lt;cite itemprop="http://purl.org/dc/terms/title"&gt;Just a Geek&lt;/cite&gt;&lt;/dd&gt;
+ &lt;dt&gt;By&lt;/dt&gt;
+ &lt;dd&gt;&lt;span itemprop="http://purl.org/dc/terms/creator"&gt;Wil Wheaton&lt;/span&gt;&lt;/dd&gt;
+ &lt;dt&gt;Format&lt;/dt&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596007683.BOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK"&gt;
+  Print
+ &lt;/dd&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596802189.EBOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK"&gt;
+  Ebook
+ &lt;/dd&gt;
+&lt;/dl&gt;</pre>
+
+<p>Representation:</p>
+
+<pre class="example">{{ 
+   "a" : "Context",
+   "__vocab__" : "http://www.w3.org/1999/xhtml/microdata#",
+   "frbr" : "http://purl.org/vocab/frbr/core#",
+   "dc" : "http://purl.org/dc/terms/"
+ },
+ {
+    "a" : "frbr:Work",
+    "@" : "&lt;http://purl.oreilly.com/works/45U8QJGZSQKDH8N&gt;",
+    "dc:title" : "Just a Geek",
+    "dc:creator" : "Whil Wheaton",
+    "frbr:realization" : ["&lt;http://purl.oreilly.com/products/9780596007683.BOOK&gt;", "&lt;http://purl.oreilly.com/products/9780596802189.EBOOK&gt;"]
+ },
+ {
+    "a" : "frbr:Expression",
+    "@" : "&lt;http://purl.oreilly.com/products/9780596007683.BOOK&gt;",
+    "dc:type" : "http://purl.oreilly.com/product-types/BOOK"
+ },
+ {
+    "a" : "frbr:Expression",
+    "@" : "&lt;http://purl.oreilly.com/products/9780596802189.EBOOK&gt;",
+    "dc:type" : "&lt;http://purl.oreilly.com/product-types/EBOOK&gt;"
+ }
+}</pre>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div id="markup-of-rdf-concepts" class="section">
+<!--OddPage--><h2><span class="secno">5. </span>Markup of RDF Concepts</h2>
+
+<p class="issue">Need to write introduction to RDF Concepts section</p>
+
+<div id="iris" class="section">
+<h3><span class="secno">5.1 </span>IRIs</h3>
+
+<pre class="example">{
+...
+ "foaf:homepage" : "<span class="diff">&lt;</span>http://manu.sporny.org<span class="diff">&gt;</span>",
+...
+}</pre>
+
+</div>
+
+<div id="identifying-the-subject" class="section">
+<h3><span class="secno">5.2 </span>Identifying the Subject</h3>
+
+<pre class="example">{
+...
+ "<span class="diff">@</span>" : "<span class="diff">&lt;http://example.org/people#joebob&gt;</span>",
+...
+}</pre>
+
+</div>
+
+<div id="specifying-the-type" class="section">
+<h3><span class="secno">5.3 </span>Specifying the Type</h3>
+
+<pre class="example">{
+...
+ "<span class="diff">a</span>" : "<span class="diff">&lt;http://xmlns.com/foaf/0.1/Person&gt;</span>",
+...
+}</pre>
+
+</div>
+
+<div id="plain-literals" class="section">
+<h3><span class="secno">5.4 </span>Plain Literals</h3>
+
+<pre class="example">{
+...
+ "foaf:name" : "<span class="diff">Mark Birbeck</span>",
+...
+}</pre>
+
+</div>
+
+<div id="language-specification-in-plain-literals" class="section">
+<h3><span class="secno">5.5 </span>Language Specification in Plain Literals</h3>
+
+<pre class="example">{
+...
+ "foaf:name" : "<span class="diff">花澄@ja</span>",
+...
+}</pre>
+
+</div>
+
+<div id="typed-literals" class="section">
+<h3><span class="secno">5.6 </span>Typed Literals</h3>
+
+<pre class="example">{
+...
+ "dc:modified" : "<span class="diff">2010-05-29T14:17:39+02:00^^xsd:dateTime</span>",
+...
+}</pre>
+
+</div>
+
+<div id="multiple-objects-for-a-single-property" class="section">
+<h3><span class="secno">5.7 </span>Multiple Objects for a Single Property</h3>
+
+<pre class="example">{
+...
+ "foaf:nick" : <span class="diff">["stu", "groknar", "radface"]</span>,
+...
+}</pre>
+
+</div>
+
+<div id="multiple-typed-literals-for-a-single-property" class="section">
+<h3><span class="secno">5.8 </span>Multiple Typed Literals for a Single Property</h3>
+
+<pre class="example">{
+...
+ "dc:modified" : <span class="diff">["2010-05-29T14:17:39+02:00^^xsd:dateTime", "2010-05-30T09:21:28-04:00^^xsd:dateTime"</span>],
+...
+}</pre>
+
+</div>
+
+<div id="blank-nodes" class="section">
+<h3><span class="secno">5.9 </span>Blank Nodes</h3>
+
+<pre class="example">{
+...
+ "@" : "<span class="diff">_:foo</span>",
+...
+}</pre>
+
+</div>
+
+<div id="escape-character" class="section">
+<h3><span class="secno">5.10 </span>Escape Character</h3>
+
+<p>Special characters in property values <em class="rfc2119" title="must">must</em> be escaped in order to not be 
+interpreted as IRIs, language tags, or TypedLiterals.</p>
+
+<p>The special characters in JSON-LD are: <code>&lt;</code>, <code>&gt;</code>,
+<code>@</code> and <code>^</code>.</p>
+
+<pre class="example">{
+...
+ "example:code" : <span class="diff">"\\&lt;foobar\\^\\^2\\&gt;"</span>,
+...
+}</pre>
+
+</div>
+
+<div id="automatic-typing" class="section">
+<h3><span class="secno">5.11 </span>Automatic Typing</h3>
+
+<pre class="example">{
+...
+ // This value is automatically converted to having a type of xsd:decimal
+ "measure:cups" : <span class="diff">5.3</span>,
+ // This value is automatically converted to having a type of xsd:integer
+ "chem:protons" : <span class="diff">12</span>,
+ // This value is automatically converted to having a type of xsd:boolean
+ "sensor:active" : <span class="diff">true</span>,
+...
+}</pre>
+
+</div>
+
+
+</div>
+
+<div class="appendix section" id="acknowledgements">
+<!--OddPage--><h2><span class="secno">A. </span>Acknowledgements</h2>
+
+<p>The editor would like to thank Mark Birbeck, who provided a great deal of the
+rationale and reasoning behind the JSON-LD work via his work on RDFj, and
+Ian Davis, who created RDF/JSON.</p>
+</div>
+
+
+
+
+<div id="references" class="appendix section"><!--OddPage--><h2><span class="secno">B. </span>References</h2><div id="normative-references" class="section"><h3><span class="secno">B.1 </span>Normative references</h3><dl class="bibliography"><dt id="bib-RFC4627">[RFC4627]</dt><dd>D. Crockford <a href="http://www.ietf.org/rfc/rfc4627.txt">The application/json Media Type for JavaScript Object Notation (JSON)</a> July 2006. Internet RFC 4627. URL: <a href="http://www.ietf.org/rfc/rfc4627.txt">http://www.ietf.org/rfc/rfc4627.txt</a>
+</dd></dl></div><div id="informative-references" class="section"><h3><span class="secno">B.2 </span>Informative references</h3><dl class="bibliography"><dt id="bib-MICRODATA">[MICRODATA]</dt><dd>Ian Hickson; et al. <a href="http://www.w3.org/TR/microdata/"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href="http://www.w3.org/TR/microdata/">http://www.w3.org/TR/microdata/</a> 
+</dd><dt id="bib-MICROFORMATS">[MICROFORMATS]</dt><dd><a href="http://microformats.org"><cite>Microformats</cite></a>. URL: <a href="http://microformats.org">http://microformats.org</a> 
+</dd><dt id="bib-RDFA-CORE">[RDFA-CORE]</dt><dd>Shane McCarron; et al. <a href="http://www.w3.org/TR/2010/WD-rdfa-core-20100422"><cite>RDFa Core 1.1: Syntax and processing rules for embedding RDF through attributes.</cite></a>22 April 2010. W3C Working Draft. URL: <a href="http://www.w3.org/TR/2010/WD-rdfa-core-20100422">http://www.w3.org/TR/2010/WD-rdfa-core-20100422</a> 
+</dd></dl></div></div></body></html>
