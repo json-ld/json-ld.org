@@ -1,5 +1,5 @@
 <?php
-print """"
+print <<< htmlcode
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd"> 
 <html version="XHTML+RDFa 1.0" xmlns="http://www.w3.org/1999/xhtml"
@@ -13,7 +13,7 @@ print """"
    <head> 
       <meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
       <title>JSON-LD - Specifications</title> 
-      <link href="site.css" rel="stylesheet" type="text/css" /> 
+      <link href="../site.css" rel="stylesheet" type="text/css" /> 
       <link rel="shortcut icon" href="favicon.ico" /> 
       <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
    </head> 
@@ -27,14 +27,29 @@ print """"
          </div> 
 
          <div id="content"> 
+            <div><a href="../">JSON-LD</a> &gt; Specifications</div>
             <div id="info"> 
-               <h1>Latest Specification</h1> 
-               <p></p>
+               <h1>Specifications</h1> 
+               <p>The following specifications are sorted in most recent to
+               least recent order:</p>
+               <ul style="margin-left: 1em">
+                 <li><a href="latest/">latest</a></li>
+
+htmlcode;
+
+$editorsDrafts = scandir('ED', 1);
+
+foreach($editorsDrafts as $draft)
+{
+   if($draft != "." and $draft != "..")
+   {
+     print("                 <li><a href=\"ED/$draft/\">$draft</a></li>");
+   }
+}
+
+print <<< htmlcode
+               </ul>
             </div>
-"""";
-
-
-print """"
          </div>
  
          <div id="footer"> 
@@ -48,6 +63,8 @@ print """"
       </div> 
    </body> 
 </html>
-"""";
+
+htmlcode;
+
 ?>
 
