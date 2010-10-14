@@ -372,7 +372,8 @@ semantic web community and JSON/REST-based Web Services community.
 }
 -->
 </pre>
-</section
+</section>
+</section>
 
 <section>
 <h3>The Default Context</h3>
@@ -527,6 +528,177 @@ that any term that doesn't resolve to a term or a prefix should be
 appended to the <code>__vocab__</code> IRI. This is done to ensure that 
 terms can be transformed to an IRI at all times.
 </p>
+</section>
+
+<section>
+<h2>Markup Examples</h2>
+
+<p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
+express semantic data marked up in other languages such as RDFa, Microformats,
+and Microdata. These sections are merely provided as proof that JSON-LD is
+very flexible in what it can express across different Linked Data approaches.
+</p>
+
+<section>
+<h3>RDFa</h3>
+
+<p>The following example describes three people with their respective names and
+homepages.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<div ****prefix="foaf: http://xmlns.com/foaf/0.1/"****>
+   <ul>
+      <li ****typeof="foaf:Person"****>
+        <a ****rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name" ****>Bob</a>
+      </li>
+      <li ****typeof="foaf:Person"****>
+        <a ****rel="foaf:homepage" href="http://example.com/eve/" property="foaf:name" ****>Eve</a>
+      </li>
+      <li ****typeof="foaf:Person"****>
+        <a ****rel="foaf:homepage" href="http://example.com/manu/" property="foaf:name" ****>Manu</a>
+      </li>
+   </ul>
+</div>
+-->
+</pre>
+
+<p>An example JSON-LD implementation is described below, however, there are
+other ways to mark-up this information such that the context is not
+repeated.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[
+ {
+   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
+   "@": "_:bnode1",
+   "a": "foaf:Person",
+   "foaf:homepage": "<http://example.com/bob/>",
+   "foaf:name": "Bob"
+ },
+ {
+   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
+   "@": "_:bnode2",
+   "a": "foaf:Person",
+   "foaf:homepage": "<http://example.com/eve/>",
+   "foaf:name": "Eve"
+ },
+ {
+   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
+   "@": "_:bnode3",
+   "a": "foaf:Person",
+   "foaf:homepage": "<http://example.com/manu/>",
+   "foaf:name": "Manu"
+ }
+]
+-->
+</pre>
+
+</section>
+
+<section>
+<h3>Microformats</h3>
+
+<p>The following example uses a simple Microformats hCard example to express
+how the Microformat is represented in JSON-LD.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<div class="vcard">
+ <a class="url fn" href="http://tantek.com/">Tantek Çelik</a>
+</div>
+-->
+</pre>
+
+<p>The representation of the hCard expresses the Microformat terms in the
+context and uses them directly for the <code>url</code> and <code>fn</code>
+properties. Also note that the Microformat to JSON-LD processor has 
+generated the proper URL type for <code>http://tantek.com</code>.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "#": 
+  {
+    "vcard": "http://microformats.org/profile/hcard#vcard"
+    "url": "http://microformats.org/profile/hcard#url"
+    "fn": "http://microformats.org/profile/hcard#fn"
+  },
+  "@": "_:bnode1",
+  "a": "vcard",
+  "url": "<http://tantek.com/>",
+  "fn": "Tantek Çelik"
+}
+-->
+</pre>
+
+</section>
+
+<section>
+<h3>Microdata</h3>
+
+<p>The Microdata example below expresses book information as a Microdata Work
+item.
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<dl itemscope
+    itemtype="http://purl.org/vocab/frbr/core#Work"
+    itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N">
+ <dt>Title</dt>
+ <dd><cite itemprop="http://purl.org/dc/terms/title">Just a Geek</cite></dd>
+ <dt>By</dt>
+ <dd><span itemprop="http://purl.org/dc/terms/creator">Wil Wheaton</span></dd>
+ <dt>Format</dt>
+ <dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596007683.BOOK">
+  <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK">
+  Print
+ </dd>
+ <dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596802189.EBOOK">
+  <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK">
+  Ebook
+ </dd>
+</dl>
+-->
+</pre>
+
+<p>Note that the JSON-LD representation of the Microdata information stays
+true to the desires of the Microdata community to avoid contexts and
+instead refer to items by their full IRI.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[
+  {
+    "@": "<http://purl.oreilly.com/works/45U8QJGZSQKDH8N>",
+    "a": "http://purl.org/vocab/frbr/core#Work",
+    "http://purl.org/dc/terms/title": "Just a Geek",
+    "http://purl.org/dc/terms/creator": "Whil Wheaton",
+    "http://purl.org/vocab/frbr/core#realization": 
+      ["<http://purl.oreilly.com/products/9780596007683.BOOK>", "<http://purl.oreilly.com/products/9780596802189.EBOOK>"]
+  },
+  {
+    "@": "<http://purl.oreilly.com/products/9780596007683.BOOK>",
+    "a": "<http://purl.org/vocab/frbr/core#Expression>",
+    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/BOOK>"
+  },
+  {
+    "@": "<http://purl.oreilly.com/products/9780596802189.EBOOK>",
+    "a": "http://purl.org/vocab/frbr/core#Expression",
+    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/EBOOK>"
+  }
+]
+-->
+</pre>
+</section>
 </section>
 
 <section>
@@ -714,184 +886,6 @@ key-value pair in the associative array, using the newly created
 </section>
 
 <section>
-<h2>Markup Examples</h2>
-
-<p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
-express semantic data marked up in other languages such as RDFa, Microformats,
-and Microdata. These sections are merely provided as proof that JSON-LD is
-very flexible in what it can express across different Linked Data approaches.
-</p>
-
-<section>
-<h3>RDFa</h3>
-
-<p>The following example describes three people with their respective names and
-homepages.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<div ****prefix="foaf: http://xmlns.com/foaf/0.1/"****>
-   <ul>
-      <li ****typeof="foaf:Person"****>
-        <a ****rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name" ****>Bob</a>
-      </li>
-      <li ****typeof="foaf:Person"****>
-        <a ****rel="foaf:homepage" href="http://example.com/eve/" property="foaf:name" ****>Eve</a>
-      </li>
-      <li ****typeof="foaf:Person"****>
-        <a ****rel="foaf:homepage" href="http://example.com/manu/" property="foaf:name" ****>Manu</a>
-      </li>
-   </ul>
-</div>
--->
-</pre>
-
-<p>An example JSON-LD implementation is described below, however, there are
-other ways to mark-up this information such that the context is not
-repeated.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[
- {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
-   "@": "_:bnode1",
-   "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/bob/>",
-   "foaf:name": "Bob"
- },
- {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
-   "@": "_:bnode2",
-   "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/eve/>",
-   "foaf:name": "Eve"
- },
- {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
-   "@": "_:bnode3",
-   "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/manu/>",
-   "foaf:name": "Manu"
- }
-]
--->
-</pre>
-
-</section>
-
-<section>
-<h3>Microformats</h3>
-
-<p>The following example uses a simple Microformats hCard example to express
-how the Microformat is represented in JSON-LD.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<div class="vcard">
- <a class="url fn" href="http://tantek.com/">Tantek Çelik</a>
-</div>
--->
-</pre>
-
-<p>The representation of the hCard expresses the Microformat terms in the
-context and uses them directly for the <code>url</code> and <code>fn</code>
-properties. Also note that the Microformat to JSON-LD processor has 
-generated the proper URL type for <code>http://tantek.com</code>.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "#": 
-  {
-    "vcard": "http://microformats.org/profile/hcard#vcard"
-    "url": "http://microformats.org/profile/hcard#url"
-    "fn": "http://microformats.org/profile/hcard#fn"
-  },
-  "@": "_:bnode1",
-  "a": "vcard",
-  "url": "<http://tantek.com/>",
-  "fn": "Tantek Çelik"
-}
--->
-</pre>
-
-</section>
-
-<section>
-<h3>Microdata</h3>
-
-<p>The Microdata example below expresses book information as a Microdata Work
-item.
-</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<dl itemscope
-    itemtype="http://purl.org/vocab/frbr/core#Work"
-    itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N">
- <dt>Title</dt>
- <dd><cite itemprop="http://purl.org/dc/terms/title">Just a Geek</cite></dd>
- <dt>By</dt>
- <dd><span itemprop="http://purl.org/dc/terms/creator">Wil Wheaton</span></dd>
- <dt>Format</dt>
- <dd itemprop="http://purl.org/vocab/frbr/core#realization"
-     itemscope
-     itemtype="http://purl.org/vocab/frbr/core#Expression"
-     itemid="http://purl.oreilly.com/products/9780596007683.BOOK">
-  <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK">
-  Print
- </dd>
- <dd itemprop="http://purl.org/vocab/frbr/core#realization"
-     itemscope
-     itemtype="http://purl.org/vocab/frbr/core#Expression"
-     itemid="http://purl.oreilly.com/products/9780596802189.EBOOK">
-  <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK">
-  Ebook
- </dd>
-</dl>
--->
-</pre>
-
-<p>Note that the JSON-LD representation of the Microdata information stays
-true to the desires of the Microdata community to avoid contexts and
-instead refer to items by their full IRI.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[
-  {
-    "@": "<http://purl.oreilly.com/works/45U8QJGZSQKDH8N>",
-    "a": "http://purl.org/vocab/frbr/core#Work",
-    "http://purl.org/dc/terms/title": "Just a Geek",
-    "http://purl.org/dc/terms/creator": "Whil Wheaton",
-    "http://purl.org/vocab/frbr/core#realization": 
-      ["<http://purl.oreilly.com/products/9780596007683.BOOK>", "<http://purl.oreilly.com/products/9780596802189.EBOOK>"]
-  },
-  {
-    "@": "<http://purl.oreilly.com/products/9780596007683.BOOK>",
-    "a": "<http://purl.org/vocab/frbr/core#Expression>",
-    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/BOOK>"
-  },
-  {
-    "@": "<http://purl.oreilly.com/products/9780596802189.EBOOK>",
-    "a": "http://purl.org/vocab/frbr/core#Expression",
-    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/EBOOK>"
-  }
-]
--->
-</pre>
-
-</section>
-
-</section>
-
-</section>
-
-</section>
-
-
-<section>
 <h1>Markup of RDF Concepts</h1>
 
 <p>JSON-LD is designed to ensure that most Linked Data concepts can be marked up
@@ -1075,13 +1069,13 @@ MAY express each property as an array.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 <http://example.org/people#joebob> 
-   <http://xmlns.com/foaf/0.1/>
+   <http://xmlns.com/foaf/0.1/nick>
       "stu" .
 <http://example.org/people#joebob> 
-   <http://xmlns.com/foaf/0.1/>
+   <http://xmlns.com/foaf/0.1/nick>
       "groknar" .
 <http://example.org/people#joebob> 
-   <http://xmlns.com/foaf/0.1/>
+   <http://xmlns.com/foaf/0.1/nick>
       "radface" .
 -->
 </pre>
@@ -1253,6 +1247,7 @@ single graph:</p>
 -->
 </pre>
 
+</section>
 </section>
 
 <section class="appendix">
