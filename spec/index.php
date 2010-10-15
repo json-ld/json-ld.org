@@ -32,7 +32,7 @@ print <<< htmlcode
                <h1>Specifications</h1> 
                <p>The following specifications are sorted in most recent to
                least recent order:</p>
-               <ul style="margin-left: 1em">
+               <ul>
                  <li><a href="latest/">latest</a></li>
 
 htmlcode;
