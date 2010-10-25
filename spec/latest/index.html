@@ -150,7 +150,7 @@
 
           // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
           // and its maturity status
-          previousPublishDate:  "2010-08-23",
+          previousPublishDate:  "2010-10-14",
           previousMaturity:  "ED",
 
           // if there a publicly available Editor's Draft, this is the link
@@ -201,7 +201,7 @@
           wgPatentURI:  "",
           maxTocLevel: 3,
           preProcess: [ preProc ],
-          //alternateFormats: [ {uri: "diff-20100823.html", label: "diff to previous version"} ],
+          //alternateFormats: [ {uri: "diff-20101014.html", label: "diff to previous version"} ],
       };
 
       function updateExample(doc, content) {
@@ -529,7 +529,8 @@ previously accepting only JSON data:</p>
 {
   "#": 
   {
-    "__vocab__": "http://example.org/default-vocab#",
+    "#vocab": "http://example.org/default-vocab#",
+    "#base": "http://example.org/baseurl/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dc": "http://purl.org/dc/terms/",
     "foaf": "http://xmlns.com/foaf/0.1/",
@@ -547,10 +548,15 @@ previously accepting only JSON data:</p>
 -->
 </pre>
 
-<p>The <code>__vocab__</code> prefix is a special prefix that states 
+<p>The <code>#vocab</code> string is a special keyword that states 
 that any term that doesn't resolve to a term or a prefix should be 
-appended to the <code>__vocab__</code> IRI. This is done to ensure that 
+appended to the <code>#vocab</code> IRI. This is done to ensure that 
 terms can be transformed to an IRI at all times.
+</p>
+
+<p>The <code>#base</code> string is a special keyword that states 
+that any relative IRI MUST be appended to the string specified by
+<code>#base</code>.
 </p>
 </section>
 </section>
@@ -778,6 +784,28 @@ the <tref>active context</tref> stack, <tref>current subject</tref>,
 <tref>list of unprocessed items</tref>.
 </ul>
 
+<h4>Processing Tokens and Keywords</h4>
+<ul>
+<li><code>#</code> - Used to set the active context.</li>
+<li><code>#base</code> - Used to set the base IRI for all object IRIs affected 
+by the active context.</li>
+<li><code>#vocab</code> - Used to set the base IRI for all property IRIs
+affected by the active context.</li>
+<li><code>#types</code> - Used to specify type coercion.
+<div class="issue">The #types keyword assumes 
+<a href="#type-coercion">Type Coercion</a>, which is an 
+experimental feature.</div></li>
+<li><code>&lt;</code> and <code>&gt;</code> - Used to express IRIs in
+JSON values.</li>
+<li><code>:</code> - The separator for CURIEs when used in JSON keys or
+JSON values.</li>
+<li><code>@</code> - Sets the active subjects.</li>
+<li><code>a</code> - Used to set the rdf:type of the active subjects.</li>
+<li><code>\</code> - Used as an escape character to escape all the special
+tokens and keywords.</li>
+<li><code>^^</code> - Used to express the data type for Typed Literals.</li>
+</ul>
+
 <p>The algorithm below is designed for streaming (SAX-based) implementations.
 Implementers will find that non-streaming (document-based) implementations will
 be much easier to implement as full access to the JSON object model eliminates 
@@ -920,6 +948,16 @@ of a context. Since RDF is also an important sub-community of the Linked
 Data movement, it is important that all RDF concepts are well-represented
 in this specification. This section details how each RDF concept can be
 expressed in JSON-LD.</p>
+
+<p class="issue">The current specification relies on microsyntaxes to 
+express things like IRIs, typed literals and CURIEs. There is a small amount
+of debate on whether or not to use full-blown JSON objects containing things
+like "value" and "datatype". The original authors of the JSON-LD specification
+feel that microsyntaxes allow a much simpler, less error-prone structure in 
+the JSON-LD objects. Proponents of the verbose mechanism assert that there
+would be less chance of data markup issues concerning proper escaping and 
+that the objects, while more verbose, would be easier to work with within
+JavaScript environments. Feedback on this issue would be appreciated.</p>
 
 <section>
 <h2>IRIs</h2>
@@ -1213,6 +1251,44 @@ integers and boolean values, JSON-LD utilizes that information to create
 </section>
 
 <section>
+<h1>Best Practices</h1>
+
+<p>The nature of Web programming allows one to use basic technologies, such as
+JSON-LD, across a variety of systems and environments. This section attempts to
+describe some of those environments and the way in which JSON-LD can be 
+integrated in order to help alleviate certain development headaches.
+</p>
+
+<section>
+<h2>JavaScript</h2>
+
+<p class="issue">It is expected that JSON-LD will be used quite a bit in 
+JavaScript environments, however, features like IRIs requiring angled
+brackets in JSON-LD means that using JSON-LD directly in JavaScript is going
+to be annoying without a middleware layer such as a simple library that 
+strips JSON-LD markup before JavaScript uses it. One could say that JSON-LD
+is a good fit for the RDFa API, which would enable a triple-store in the 
+browser, but some don't want to require that level of functionality just to use 
+JSON-LD. The group is still discussing the best way to proceed, so input
+on how JSON-LD could more easily be utilized in JavaScript environments
+would be very much appreciated.
+</p>
+</section>
+
+<section>
+<h2>Schema-less Databases</h2>
+
+<p class="issue">Databases such as CouchDB and MongoDB allow the creation of
+schema-less data stores. RDF is a type of schema-less data model and thus
+lends itself to databases such as CouchDB and MongoDB. Both of these databases
+can use JSON-LD as their storage format. The group needs feedback from 
+CouchDB and MongoDB experts regarding the usefulness of JSON-LD in those
+environments.</p>
+</section>
+
+</section>
+
+<section>
 <h1>Advanced Concepts</h1>
 
 <p class="issue">There are a few advanced concepts where it is not clear whether
@@ -1221,6 +1297,122 @@ to support each concept. The entire section on Advanced Concepts should be
 taken with a grain of salt; it is merely a list of possibilities where all
 of the benefits and drawbacks have not been explored.
 </p>
+
+<section>
+<h2>Type Coercion</h2>
+
+<p>JSON-LD supports the coercion of types to ensure that the zero-edit goal of
+JSON-LD can be accomplished. Type coercion allows someone deploying JSON-LD to
+coerce and incoming or outgoing types to the proper RDF type based on a
+mapping of type IRIs to RDF types. Using type conversion, one may convert
+simple JSON data to properly typed RDF data.</p>
+
+<p>The example below demonstrates how a JSON-LD author can coerce values to 
+plain literals, typed literals and IRIs.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "#": 
+  {  
+     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+     "xsd": "http://www.w3.org/2001/XMLSchema#",
+     "name": "http://xmlns.com/foaf/0.1/name",
+     "age": "http://xmlns.com/foaf/0.1/age",
+     "homepage": "http://xmlns.com/foaf/0.1/homepage",
+****     "#types":
+     {
+        "name": "rdf:PlainLiteral",
+        "age": "xsd:integer",
+        "homepage": "xsd:anyURI",
+     }****
+  },
+  "name": ****"<John Smith>"****,
+  "age": ****"41"****,
+  "homepage": ****"http://example.org/home/"****
+}
+-->
+</pre>
+
+<p>The example above would generate the following triples:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+_:bnode1
+   <http://xmlns.com/foaf/0.1/name>
+      "<John Smith>" .
+_:bnode1
+   <http://xmlns.com/foaf/0.1/age>
+      "41"^^http://www.w3.org/2001/XMLSchema#integer .
+_:bnode1
+   <http://xmlns.com/foaf/0.1/homepage>
+      <http://example.org/home/> .
+-->
+</pre>
+
+</section>
+
+<section>
+<h2>JSON-LD Profiles</h2>
+
+<p>One of the more powerful features of RDFa 1.1 Core is the ability to specify 
+a collection of prefixes and terms that can be re-used by a processor to simplfy
+markup. JSON-LD provides a similar mechanism called JSON-LD Profiles, which is 
+the inclusion of a context external to the JSON-LD document.</p>
+
+<p>The example below demonstrates how one may specify an external JSON-LD
+Profile. Assume the following profile exists at this imaginary URL:
+<code>http://example.org/profiles/contacts</code>.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "#": 
+  {
+     "xsd": "http://www.w3.org/2001/XMLSchema#",
+     "name": "http://xmlns.com/foaf/0.1/name",
+     "age": "http://xmlns.com/foaf/0.1/age",
+     "homepage": "http://xmlns.com/foaf/0.1/homepage",
+     "#types":
+     {
+        "age": "xsd:integer",
+        "homepage": "xsd:anyURI",
+     }
+  }
+}
+-->
+</pre>
+
+<p>The profile listed above can be used in the following way:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "#": { "#profile": "http://example.org/profiles/contacts" },
+  "name": "John Smith",
+  "age": "41",
+  "homepage": "http://example.org/home/"
+}
+-->
+</pre>
+
+<p>The example above would generate the following triples:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+_:bnode1
+   <http://xmlns.com/foaf/0.1/name>
+      "John Smith" .
+_:bnode1
+   <http://xmlns.com/foaf/0.1/age>
+      "41"^^http://www.w3.org/2001/XMLSchema#integer .
+_:bnode1
+   <http://xmlns.com/foaf/0.1/homepage>
+      <http://example.org/home/> .
+-->
+</pre>
+
+</section>
 
 <section>
 <h2>Disjoint Graphs</h2>
@@ -1280,7 +1472,9 @@ single graph:</p>
 <p>The editor would like to thank Mark Birbeck, who provided a great deal of the
 rationale and reasoning behind the JSON-LD work via his work on RDFj, 
 Dave Longley who reviewed and provided feedback on the overall 
-specification and contexts, and Ian Davis, who created RDF/JSON.</p>
+specification and contexts, and Ian Davis, who created RDF/JSON. Thanks also
+to Bradley P. Allen and Richard Cyganiak for their input on the 
+specification.</p>
 </section>
 
 </body>
