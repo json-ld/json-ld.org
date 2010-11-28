@@ -185,7 +185,7 @@
           ],
           
           // name of the WG
-          wg:           "RDFa Next Working Group",
+          wg:           "RDFa Working Group",
           
           // URI of the public WG page
           wgURI:        "",
@@ -201,7 +201,7 @@
           wgPatentURI:  "",
           maxTocLevel: 3,
           preProcess: [ preProc ],
-          //alternateFormats: [ {uri: "diff-20101014.html", label: "diff to previous version"} ],
+          //alternateFormats: [ {uri: "diff-20101024.html", label: "diff to previous version"} ],
       };
 
       function updateExample(doc, content) {
@@ -436,7 +436,7 @@ something meaningful and unambiguous, like this:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****http://www.w3.org/1999/02/22-rdf-syntax-ns#type****": "****http://xmlns.com/foaf/0.1/Person****",
+  "****http://www.w3.org/1999/02/22-rdf-syntax-ns#type****": "****<http://xmlns.com/foaf/0.1/Person>****",
   "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
   "****http://xmlns.com/foaf/0.1/homepage****": "****<****http://manu.sporny.org****>****"
 }
@@ -479,7 +479,7 @@ this feature, developers could also express markup like this:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****rdf:type****": "****foaf:Person****",
+  "****rdf:type****": "****<foaf:Person>****",
   "****foaf:name****": "Manu Sporny",
   "****foaf:homepage****": "<http://manu.sporny.org/>"****,
   "sioc:avatar": "<http://twitter.com/account/profile_image/manusporny>"****
@@ -494,7 +494,7 @@ default context in-line using the <code>#</code> character, like so:</p>
 <!--
 {
   ****"#": { "myvocab": "http://example.org/myvocab#" }****,
-  "a": "foaf:Person",
+  "a": "<foaf:Person>",
   "foaf:name": "Manu Sporny",
   "foaf:homepage": "<http://manu.sporny.org/>",
   "sioc:avatar": "<http://twitter.com/account/profile_image/manusporny>"****,
@@ -504,7 +504,8 @@ default context in-line using the <code>#</code> character, like so:</p>
 -->
 </pre>
 
-<p>Think of the <code>#</code> character as a "hashtable", which maps one
+<p>Think of the <code>#</code> character as a "<strong>hash</strong>table", 
+which maps one
 string to another string. In the example above, the <code>myvocab</code>
 string is replaced with "<code>http://example.org/myvocab#</code>" when it
 is detected above. In the example above, "<code>myvocab:credits</code>" would
@@ -791,10 +792,7 @@ the <tref>active context</tref> stack, <tref>current subject</tref>,
 by the active context.</li>
 <li><code>#vocab</code> - Used to set the base IRI for all property IRIs
 affected by the active context.</li>
-<li><code>#types</code> - Used to specify type coercion.
-<div class="issue">The #types keyword assumes 
-<a href="#type-coercion">Type Coercion</a>, which is an 
-experimental feature.</div></li>
+<li><code>#types</code> - Used to specify type coercion.</li>
 <li><code>&lt;</code> and <code>&gt;</code> - Used to express IRIs in
 JSON values.</li>
 <li><code>:</code> - The separator for CURIEs when used in JSON keys or
@@ -981,10 +979,49 @@ text string with the <code>&lt;</code> and <code>&gt;</code> characters.
 <code>http://manu.sporny.org</code>.
 </p>
 
-<p>Wrapping IRIs with the  <code>&lt;</code> and <code>&gt;</code> 
-characters are only necessary when IRIs are specified as objects. At no other
-point do you need to wrap an IRI. You do not need to wrap IRIs when declaring 
-a property, declaring a CURIE, or describing key-value pairs in a context.</p>
+<p>As a general rule, all CURIEs and IRIs MAY be wrapped in <code>&lt;</code> 
+and <code>&gt;</code> characters. This is to ensure that there is a simple, 
+consistent rule that can be followed when authoring JSON-LD data. There 
+are, however, several instances where angle brackets MAY be omitted, 
+without introducing ambiguity, to ease authoring burden. These instances 
+are:
+
+<ul>
+<li>When specifying the subject IRI using <code>@</code>.</li>
+<li>When specifying the RDF type IRI using <code>a</code>.</li>
+<li>Any CURIE in the key portion of a JSON associative array.</li>
+</ul>
+
+Wrapping IRIs with the <code>&lt;</code> and <code>&gt;</code> 
+characters are only mandatory when IRIs are specified as values in the
+JSON key-value pairs.</p>
+
+<p>To further illustrate, the following example omissions of the 
+<code>&lt;</code> and <code>&gt;</code> characters are allowed:
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@": "****<****http://manu.sporny.org/about#manu****>****",
+  // CURIE/IRI when specifying the subject can be minimized.
+  "@": "http://manu.sporny.org/about#manu",
+...
+  "a": "****<****foaf:Person****>****",
+  // CURIE/IRI when specifying the type of an object can be minimized.
+  "a": "foaf:Person",
+...
+  "****<****foaf:homepage****>****": "<http://manu.sporny.org>",
+  // CURIE/IRI when specifying a property can be minimized.
+  "foaf:homepage": "<http://manu.sporny.org>",
+...
+}
+-->
+</pre>
+
+<p>At all other times, CURIEs and IRIs MUST be wrapped with the 
+<code>&lt;</code> and <code>&gt;</code> characters.</p>
 
 </section>
 
@@ -1005,9 +1042,22 @@ create the (subject, predicate, object) tuple, also known as a triple.</p>
 -->
 </pre>
 
-<p>The example above would set the subject to 
-<code>&lt;http://example.org/people#joebob&gt;</code>.
+<p>The example above would set the subject to the IRI 
+<code>http://example.org/people#joebob</code>.
 </p>
+
+<p>Note that subject do not need to be wrapped in angle brackets. The following
+example is valid JSON-LD markup:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@": "http://example.org/people#joebob",
+...
+}
+-->
+</pre>
 
 </section>
 
@@ -1037,6 +1087,20 @@ key. Specifying the type in this way will generate a triple of the form
 <http://example.org/people#joebob> 
    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
       <http://xmlns.com/foaf/0.1/Person> .
+-->
+</pre>
+
+<p>Note that the type IRI does not need to be wrapped in angle brackets. 
+The following example is valid JSON-LD markup:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@": "http://example.org/people#joebob",
+  "a": "http://xmlns.com/foaf/0.1/Person",
+...
+}
 -->
 </pre>
 
@@ -1203,14 +1267,26 @@ named blank node.
 
 </section>
 
+</section>
+
+<section>
+<h1>Advanced Features</h1>
+
+<p>JSON-LD has a number of features that provide functionality above and beyond
+the core functionality provided by RDF. The following sections outline the
+features that are specific to JSON-LD.
+</p>
+
 <section>
 <h2>Escape Character</h2>
 
 <p>Special characters in property values MUST be escaped in order to not be 
 interpreted as CURIEs, IRIs, language tags, or TypedLiterals.</p>
 
-<p>The special characters in JSON-LD are: <code>&lt;</code>, <code>&gt;</code>,
-<code>@</code>, <code>#</code>, <code>:</code> and <code>^</code>.</p>
+<p>The special characters that need to be escaped in property values are: 
+<code>&lt;</code> (at the beginning of a string), 
+<code>&gt;</code> (at the end of a string), <code>@</code>, 
+and <code>^</code>.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1247,56 +1323,6 @@ integers and boolean values, JSON-LD utilizes that information to create
 </pre>
 
 </section>
-
-</section>
-
-<section>
-<h1>Best Practices</h1>
-
-<p>The nature of Web programming allows one to use basic technologies, such as
-JSON-LD, across a variety of systems and environments. This section attempts to
-describe some of those environments and the way in which JSON-LD can be 
-integrated in order to help alleviate certain development headaches.
-</p>
-
-<section>
-<h2>JavaScript</h2>
-
-<p class="issue">It is expected that JSON-LD will be used quite a bit in 
-JavaScript environments, however, features like IRIs requiring angled
-brackets in JSON-LD means that using JSON-LD directly in JavaScript is going
-to be annoying without a middleware layer such as a simple library that 
-strips JSON-LD markup before JavaScript uses it. One could say that JSON-LD
-is a good fit for the RDFa API, which would enable a triple-store in the 
-browser, but some don't want to require that level of functionality just to use 
-JSON-LD. The group is still discussing the best way to proceed, so input
-on how JSON-LD could more easily be utilized in JavaScript environments
-would be very much appreciated.
-</p>
-</section>
-
-<section>
-<h2>Schema-less Databases</h2>
-
-<p class="issue">Databases such as CouchDB and MongoDB allow the creation of
-schema-less data stores. RDF is a type of schema-less data model and thus
-lends itself to databases such as CouchDB and MongoDB. Both of these databases
-can use JSON-LD as their storage format. The group needs feedback from 
-CouchDB and MongoDB experts regarding the usefulness of JSON-LD in those
-environments.</p>
-</section>
-
-</section>
-
-<section>
-<h1>Advanced Concepts</h1>
-
-<p class="issue">There are a few advanced concepts where it is not clear whether
-or not the JSON-LD specification is going to support the complexity necessary
-to support each concept. The entire section on Advanced Concepts should be
-taken with a grain of salt; it is merely a list of possibilities where all
-of the benefits and drawbacks have not been explored.
-</p>
 
 <section>
 <h2>Type Coercion</h2>
@@ -1352,15 +1378,65 @@ _:bnode1
 
 </section>
 
+</section>
+
 <section>
-<h2>JSON-LD Profiles</h2>
+<h1>Best Practices</h1>
+
+<p>The nature of Web programming allows one to use basic technologies, such as
+JSON-LD, across a variety of systems and environments. This section attempts to
+describe some of those environments and the way in which JSON-LD can be 
+integrated in order to help alleviate certain development headaches.
+</p>
+
+<section>
+<h2>JavaScript</h2>
+
+<p class="issue">It is expected that JSON-LD will be used quite a bit in 
+JavaScript environments, however, features like IRIs requiring angled
+brackets in JSON-LD means that using JSON-LD directly in JavaScript is going
+to be annoying without a middleware layer such as a simple library that 
+strips JSON-LD markup before JavaScript uses it. One could say that JSON-LD
+is a good fit for the RDFa API, which would enable a triple-store in the 
+browser, but some don't want to require that level of functionality just to use 
+JSON-LD. The group is still discussing the best way to proceed, so input
+on how JSON-LD could more easily be utilized in JavaScript environments
+would be very much appreciated.
+</p>
+</section>
+
+<section>
+<h2>Schema-less Databases</h2>
+
+<p class="issue">Databases such as CouchDB and MongoDB allow the creation of
+schema-less data stores. RDF is a type of schema-less data model and thus
+lends itself to databases such as CouchDB and MongoDB. Both of these databases
+can use JSON-LD as their storage format. The group needs feedback from 
+CouchDB and MongoDB experts regarding the usefulness of JSON-LD in those
+environments.</p>
+</section>
+
+</section>
+
+<section>
+<h1>Advanced Concepts</h1>
+
+<p class="issue">There are a few advanced concepts where it is not clear whether
+or not the JSON-LD specification is going to support the complexity necessary
+to support each concept. The entire section on Advanced Concepts should be
+taken with a grain of salt; it is merely a list of possibilities where all
+of the benefits and drawbacks have not been explored.
+</p>
+
+<section>
+<h2>Vocabulary Profiles</h2>
 
 <p>One of the more powerful features of RDFa 1.1 Core is the ability to specify 
 a collection of prefixes and terms that can be re-used by a processor to simplfy
-markup. JSON-LD provides a similar mechanism called JSON-LD Profiles, which is 
+markup. JSON-LD provides a similar mechanism called Vocabulary Profiles, which is 
 the inclusion of a context external to the JSON-LD document.</p>
 
-<p>The example below demonstrates how one may specify an external JSON-LD
+<p>The example below demonstrates how one may specify an external Vocabulary
 Profile. Assume the following profile exists at this imaginary URL:
 <code>http://example.org/profiles/contacts</code>.</p>
 
@@ -1464,6 +1540,198 @@ single graph:</p>
 </pre>
 
 </section>
+
+<section>
+<h2>The JSON-LD API</h2>
+
+<p>This API provides a clean mechanism that enables developers to convert 
+JSON-LD data into a format that is easier to work with in various programming
+languages.
+</p>
+
+<dl title="[NoInterfaceObject] interface JSONLDParser" class="idl">
+
+  <dt>object toObject()</dt>
+  <dd>Parses JSON-LD text into an object that allows at least attribute-based
+  or key-based access to the data. If the contents are a disjoint graph, an
+  array of objects are returned. If there are any errors, <code>null</code> 
+  is returned.
+  <dl class="parameters">
+     <dt>DOMString jsonld</dt>
+     <dd>The JSON-LD string to parse into the return object.</dd>
+     <dt>object map</dt>
+     <dd>The map from IRIs to attribute names for the resulting object. Any
+     term mapping that is not mentioned in the map will not be available in the 
+     resulting object. You MAY map <code>rdf:type</code> using the 
+     <code>a</code> key or the <code>rdf:type</code> IRI. You MAY map the 
+     subject by using the <code>@</code> key.
+     </dd>
+     <dt>object optional? options</dt>
+     <dd>An associative-array of processing options to enable or disable when 
+     processing the JSON-LD string. A conforming JSON-LD processor MUST support 
+     the following options:
+     <dl>
+       <dt>indexBySubject</dt>
+       <dd>If set to true, the returned object will be indexed by subject.</dd>
+       <dt>preserveDatatypes</dt>
+       <dd>If set to true, preserves the datatype for object literals.</dd>
+       <dt>preserveLanguage</dt>
+       <dd>If set to true, preserves the languages for object literals.</dd>
+     </dl>
+     <dt>JSONLDParserCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given JSON-LD string.</dd>
+  </dl>
+  </dd>
+
+  <dt>RDFGraph toRDFGraph()</dt>
+  <dd>Parses JSON-LD and transforms the data into an RDFGraph, which is 
+  compatible with the RDFa API specification. This method will return
+  <code>null</code> if there are any errors, or if the RDFa API is not
+  available for use.
+  <dl class="parameters">
+     <dt>DOMString jsonld</dt>
+     <dd>The JSON-LD string to parse into the RDFGraph.</dd>
+     <dt>JSONLDParserCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given JSON-LD string.</dd>
+  </dl>
+  </dd>
+  
+</dl>
+
+<p>The JSONLDParserCallback is called whenever a processing error occurs on
+input data.</p>
+
+<dl title="[NoInterfaceObject Callback] interface JSONLDParserCallback" 
+    class="idl">
+
+  <dt>void error()</dt>
+  <dd>This callback is invoked whenever an error occurs during processing.
+  <dl class="parameters">
+     <dt>DOMString error</dt>
+     <dd>A descriptive error string returned by the processor.</dd>
+  </dl>
+  </dd>
+</dl>
+
+<p>The following example demonstrates how to convert JSON-LD to a JSON object
+that is directly usable in a programming environment:
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+// retrieve JSON-LD from a Web Service
+var jsonldString = fetchPerson();
+
+// This map, usually defined once per script, defines how to map incoming 
+// JSON-LD to JavaScript objects
+var myMap = { "http://xmlns.com/foaf/0.1/name" : "name",
+              "http://xmlns.com/foaf/0.1/age" : "age",
+              "http://xmlns.com/foaf/0.1/homepage" : "homepage" };
+
+// Map the JSON-LD to a language-native object
+var person = jsonld.toObject(jsonldString, myMap);
+
+// Use the language-native object
+alert(person.name + " is " + person.age + " years old. " +
+      "Their homepage is: " + person.homepage);
+-->
+</pre>
+
+<p>A JSON-LD Serializer is also available to map a language-native object
+to JSON-LD.
+
+<dl title="[NoInterfaceObject] interface JSONLDSerializer" class="idl">
+
+  <dt>DOMString normalize()</dt>
+  <dd>Serializes a language-native object into a normalized JSON-LD string.
+  Normalization is important when performing things like equality comparison
+  and digital signature creation and verification.
+  <dl class="parameters">
+     <dt>object obj</dt>
+     <dd>An associative array of key-value pairs that should be converted
+     to a JSON-LD string. It is assumed that a map already exists for the
+     data.</dd>
+  </dl>
+  </dd>
+</dl>
+
+<h3>The Normalization Algorithm</h3>
+
+<p class="issue">This algorithm is very rough, untested, and probably contains
+many bugs. Use at your own risk. It will change in the coming months.</p>
+
+<p>The JSON-LD normalization algorithm is as follows:
+
+<ol class="algorithm">
+<li>Remove the <code>#</code> key and preserve it as the 
+<tdef>transformation map</tdef> while running this algorithm.</li>
+<li>For each key
+ <ol class="algorithm">
+  <li>If the key is a CURIE, expand the CURIE to an IRI using the
+      <tref>transformation map</tref>.</li>
+  <li>If the transformed key is an IRI, ensure that it is surrounded by 
+      angle brackets.</li>
+ </ol>
+</li>
+<li>For each value
+ <ol class="algorithm">
+  <li>If the value should be type coerced per the 
+      <tref>transformation map</tref>, ensure that it is transformed to the
+      new value.</li>
+  <li>If the value is a CURIE, expand the CURIE to an IRI using the
+      <tref>transformation map</tref>.</li>
+  <li>If the value is a Typed Literal and the type is a CURIE,
+      expand it to an IRI using the <tref>transformation map</tref>.</li>
+  <li>If the final value is an IRI, ensure that it is surrounded by angle 
+      brackets.</li>
+ </ol>
+<li>Output each sorted key-value pair without any extraneous whitespace. If 
+the value is an associative array, perform this algorithm, starting
+at step #1, recursively on the sub-tree.</li>
+</li>
+</ol>
+
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+var myObj = { "#" : { 
+                "xsd" : "http://www.w3.org/2001/XMLSchema#",
+                "name" : "http://xmlns.com/foaf/0.1/name",
+                "age" : "http://xmlns.com/foaf/0.1/age",
+                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
+                "#types": {
+                   "age" : "xsd:nonNegativeInteger",
+                   "homepage" : "xsd:anyURI" 
+                }
+              },
+              "name" : "Joe Jackson",
+              "age" : 42,
+              "homepage" : "http://example.org/people/joe" };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+-->
+</pre>
+
+<p>After the code in the example above has executed, the 
+<strong>jsonldText</strong> value will be (line-breaks added for 
+readability):</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{"<http://xmlns.com/foaf/0.1/age>":"42^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>",
+"<http://xmlns.com/foaf/0.1/homepage>":"<http://example.org/people/joe>",
+"<http://xmlns.com/foaf/0.1/name>":"Joe Jackson"}
+-->
+</pre>
+
+</section>
+
+</section>
+
 </section>
 
 <section class="appendix">
