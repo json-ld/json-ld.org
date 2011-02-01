@@ -1303,16 +1303,22 @@ and <code>^</code>.</p>
 <section>
 <h2>Automatic Typing</h2>
 
-<p>Since JSON is capable of expressing typed information such as decimals, 
-integers and boolean values, JSON-LD utilizes that information to create 
-<a href="#typed-literals">Typed Literals</a>.</p>
+<p>Since JSON is capable of expressing typed information such as doubles, 
+integers, and boolean values. As demonstrated below, JSON-LD utilizes that 
+information to create <a href="#typed-literals">Typed Literals</a>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  // This value is automatically converted to having a type of xsd:decimal
+  // The following two values are automatically converted to a type of xsd:double
+  // and both values are equivalent to each other.
   "measure:cups": ****5.3****,
+  "measure:cups": ****5.3e0****,
+  // The following value is automatically converted to a type of xsd:double as well
+  "space:astronomicUnits": ****6.5e73****,
+  // The following value should never be converted to a language-native type
+  "measure:stones": ****"4.8^^<xsd:decimal>"****,
   // This value is automatically converted to having a type of xsd:integer
   "chem:protons": ****12****,
   // This value is automatically converted to having a type of xsd:boolean
@@ -1321,6 +1327,24 @@ integers and boolean values, JSON-LD utilizes that information to create
 }
  -->
 </pre>
+
+<p class="note">When dealing with a number of modern programming languages,
+including JavaScript ECMA-262, there is no distinction between 
+<strong>xsd:decimal</strong> and <strong>xsd:double</strong> values. That is, 
+the number <code>5.3</code> and the number 
+<code>5.3e0</code> are treated as if they were the same. When converting from 
+JSON-LD to a language-native format and back, datatype information is lost in a 
+number of these languages. Thus, one could say that <code>5.3</code> is a 
+<strong>xsd:decimal</strong> and <code>5.3e0</code> is an 
+<strong>xsd:double</strong> in JSON-LD, but when both values are 
+converted to a language-native format the datatype difference between the two 
+is lost because the machine-level representation will almost always be a 
+<strong>double</strong>. 
+Implementers should be aware of this potential round-tripping issue between 
+<strong>xsd:decimal</strong> and <strong>xsd:double</strong>. Specifically
+objects with a datatype of <strong>xsd:decimal</strong> MUST NOT be converted
+to a language native type.
+</p>
 
 </section>
 
