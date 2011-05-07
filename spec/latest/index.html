@@ -19,7 +19,9 @@
                     berjon.biblio["MICRODATA"] = "Ian Hickson; et al. <a href=\"http://www.w3.org/TR/microdata/\"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/microdata/\">http://www.w3.org/TR/microdata/</a> ";
                     berjon.biblio["HTML-RDFA"] = "Manu Sporny; et al. <a href=\"http://www.w3.org/TR/rdfa-in-html/\"><cite>HTML+RDFa</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/rdfa-in-html/\">http://www.w3.org/TR/rdfa-in-html/</a> ";
                     berjon.biblio["BCP47"] = "A. Phillips, M. Davis. <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\"><cite>Tags for Identifying Languages</cite></a> September 2009. IETF Best Current Practice. URL: <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\">http://tools.ietf.org/rfc/bcp/bcp47.txt</a>";
-                    
+                    berjon.biblio["RDF-API"] = "Manu Sporny, Benjamin Adrian, Nathan Rixham; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\"><cite>RDF API</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\">http://www.w3.org/2010/02/rdfa/sources/rdf-api/</a>";
+                    berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
+
                     // process the document before anything else is done
                     var refs = document.querySelectorAll('adef') ;
                     for (var i = 0; i < refs.length; i++) {
@@ -274,21 +276,22 @@ enhances the functionality and interoperability of the Web.
 <section>
 <h1>Introduction</h1>
 
-<p class="issue">Write the introduction once all of the technical details
-are hammered out. Explain why JSON-LD is designed as a light-weight mechanism
-to express RDFa, Microformats and Microdata. It is primarily intended as
-a way to express Linked Data in Javascript environments as well as a way to pass
-Linked Data to and from Web services. It is designed to be as simple as 
-possible, utilizing the large number of JSON parsers (and understanding) that
-is out there already. It is designed to be able to express key-value pairs,
-RDF data, Microformats data, and Microdata (that is, every data model
-currently in use) using one unified format. It does not require anyone to change
-their JSON, but easily add meaning by adding context in a way that is 
-out-of-band - it is designed to not disturb already deployed systems running
-on JSON, but provide a smooth migration path from JSON to JSON with added
+JSON-LD is designed as a light-weight syntax that can be used to express 
+Linked Data. It is primarily intended to be a way to express Linked Data 
+in Javascript and other Web-based programming environments. It is also 
+useful when building interoperable Web Services and when storing Linked 
+Data in JSON-based document storage engines. It is practical and designed 
+to be as simple as possible, utilizing the large number of JSON parsers 
+and existing code that is in use today. It is designed to be able to 
+express key-value pairs, RDF data, Microformats data, and Microdata.
+That is, it supports every major Web-based structured data model in use 
+today. It does not require anyone to change their JSON, but easily add 
+meaning by adding context in a way that is out-of-band. The syntax is 
+designed to not disturb already deployed systems running on JSON, but 
+provide a smooth migration path from JSON to JSON with added
 semantics. Finally, the format is intended to be fast to parse, fast to 
 generate, stream-based and document-based processing compatible, and require
-a tiny memory footprint in order to operate.
+a very small memory footprint in order to operate.
 </p>
 
 <section>
@@ -320,8 +323,8 @@ this specification:</p>
 
 <ul>
 <li>All comments and discussion takes place on the public mailing list:
-<a href="http://groups.google.com/group/json-ld">json-ld@googlegroups.com
-</a></li>
+<a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
+</li>
 
 <li>Specification bugs and issues should be reported in the 
 <a href="http://github.com/digitalbazaar/json-ld/issues">issue tracker</a>.</li>
@@ -362,12 +365,17 @@ markup language:
  <dd>All major RDF concepts must be expressible via the JSON-LD syntax.</dd>
  <dt>Terseness</dt>
  <dd>The JSON-LD syntax must be very terse and human readable.</dd>
- <dt>Zero Edits</dt>
+ <dt>Zero Edits, most of the time</dt>
  <dd>JSON-LD provides a mechanism that allows developers to specify 
  context in a way that is out-of-band. This allows organizations that have
  already deployed large JSON-based infrastructure to add meaning to their
  JSON in a way that is not disruptive to their day-to-day operations and is
- transparent to their current customers.</dd>
+ transparent to their current customers. At times, mapping JSON to 
+ RDF can become difficult - in these instances, rather than having JSON-LD
+ support esoteric markup, we chose not to support the use case and
+ support a simplified syntax instead. So, while we strive for Zero Edits,
+ it was not always possible without adding great complexity to the language.
+ </dd>
  <dt>Streaming</dt>
  <dd>The format supports both document-based and stream-based processing.</dd>
 </dl>
@@ -380,7 +388,7 @@ markup language:
 help in the mapping of JSON objects to RDF. This does not mean that JSON-LD must
 be restrictive in declaring a set of terms, rather, experimentation and 
 innovation should be supported as part of the core design of JSON-LD. There are, 
-however, a number of very small design criterial that can ensure that developers 
+however, a number of very small design criteria that can ensure that developers 
 will generate good RDF data that will create value for the greater 
 semantic web community and JSON/REST-based Web Services community.
 </p>
@@ -394,57 +402,61 @@ semantic web community and JSON/REST-based Web Services community.
   "a": "Person",
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/"
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
 }
 -->
 </pre>
 </section>
 
 <section>
-<h3>The Default Context</h3>
+<h3>The JSON-LD Context</h3>
 
-<p>A default context is used in RDFa to allow developers to use keywords
-as aliases for IRIs. So, for instance, the keyword <strong>name</strong>
-above could refer to the IRI <em>http://xmlns.com/foaf/0.1/name</em>.
-The semantic web, just like the document-based web, uses IRIs for
+<p>A context is used in RDFa to allow developers to use aliases for 
+IRIs. The semantic web, just like the document-based web, uses IRIs for
 unambiguous identification. The idea is that these terms mean something, 
 which you will eventually want to query. The semantic web specifies this via 
-<em>Vocabulary Documents</em>. The IRI <em>http://xmlns.com/foaf/0.1/</em> specifies
-a Vocabulary Document, and <strong>name</strong> is a term in that 
-vocabulary. Paste the two items together and you have an unambiguous identifier
-for a term.
+<em>Vocabulary Documents</em>. The IRI <em>http://xmlns.com/foaf/0.1/</em> 
+specifies a Vocabulary Document, and <strong>name</strong> is a term in 
+that vocabulary. Join the two items together and you have an unambiguous 
+identifier for a vocabulary term. The Compact URI Expression, or short-form,
+is <code>foaf:name</code> and the expanded-form is
+<code>http://xmlns.com/foaf/0.1/name</code>. This vocabulary term identifies
+the given name for something, for example - a person's name.
 </p>
 
 <p>Developers, and machines, would be able to use this IRI (plugging it
 directly into a web browser, for instance) to go to the term and get a 
-definition of what the term means. Much
-like we can use WordNet today to see the 
+definition of what the term means. Much like we can use WordNet today to 
+see the 
 <a href="http://wordnetweb.princeton.edu/perl/webwn?s=definition">definition</a>
 of words in the English language. Machines need the same sort of 
 dictionary of terms, and URIs provide a way to ensure that these terms
 are unambiguous.
 </p>
 
-<p>Non-prefixed terms should have term mappings declared in the default
-context so that they may be expanded later.</p>
+<p>The context provides a collection of vocabulary terms that can be used
+for a JSON object.</p>
+</section>
+
+<section>
+<h3>Unambiguous Identifiers for JSON</h3>
             
 <p>If a set of terms, like <strong>Person</strong>, 
 <strong>name</strong>, and <strong>homepage</strong>,
-are pre-defined in the default context, and that context is used to resolve the
+are defined in a context, and that context is used to resolve the
 names in JSON objects, machines could automatically expand the terms to 
 something meaningful and unambiguous, like this:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****http://www.w3.org/1999/02/22-rdf-syntax-ns#type****": "****<http://xmlns.com/foaf/0.1/Person>****",
+  "****http://www.w3.org/1999/02/22-rdf-syntax-ns#type****": "****http://xmlns.com/foaf/0.1/Person****",
   "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
-  "****http://xmlns.com/foaf/0.1/homepage****": "****<****http://manu.sporny.org****>****"
+  "****http://xmlns.com/foaf/0.1/homepage****": "http://manu.sporny.org"
+  "****http://rdfs.org/sioc/ns#avatar****": "http://twitter.com/account/profile_image/manusporny"
 }
  -->
 </pre>
-
-<p class="note">In order to differentiate between plain text and IRIs, the
-<strong>&lt;</strong> and <strong>&gt;</strong> are used around IRIs.</p>
 
 <p>Doing this would mean that JSON would start to become unambiguously
 machine-readable, play well with the semantic web, and basic markup wouldn't 
@@ -461,6 +473,8 @@ of these vocabularies are:
 </p>
 
 <ul>
+   <li>RDF - for describing information about objects on the semantic web.</li>
+   <li>RDFS - for expressing things like labels and comments.</li>
    <li>XSD - for specifying basic types like strings, integers, dates and times.</li>
    <li>Dublin Core - for describing creative works.</li>
    <li>FOAF - for describing social networks.</li>
@@ -472,66 +486,70 @@ of these vocabularies are:
    <li>DOAP - for describing projects.</li>
 </ul>
 
-<p>A JSON-LD Web Service could define these as <em>prefix</em>es in their 
-default context beside the <em>terms</em> that are already defined. Using
-this feature, developers could also express markup like this:</p>
+<p>Since these vocabularies are very popular, they are pre-defined in
+something called the <tref>default context</tref>, which is a set of
+vocabulary prefixes that are pre-loaded in all JSON-LD processors. The
+contents of the <tref>default context</tref> are provided later in this 
+document. Using the <tref>default context</tref> allows developers to 
+express data unambiguously, like so:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****rdf:type****": "****<foaf:Person>****",
+  "****rdf:type****": "****foaf:Person****",
   "****foaf:name****": "Manu Sporny",
-  "****foaf:homepage****": "<http://manu.sporny.org/>"****,
-  "sioc:avatar": "<http://twitter.com/account/profile_image/manusporny>"****
+  "****foaf:homepage****": "http://manu.sporny.org/",
+  "****sioc:avatar****": "http://twitter.com/account/profile_image/manusporny"
 }
 -->
 </pre>
 
 <p>Developers can also specify their own Vocabulary documents by modifying the 
-default context in-line using the <code>#</code> character, like so:</p>
+default context in-line using the <code>@context</code> keyword, like so:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"#": { "myvocab": "http://example.org/myvocab#" }****,
-  "a": "<foaf:Person>",
+  ****"@context": { "myvocab": "http://example.org/myvocab#" }****,
+  "a": "foaf:Person",
   "foaf:name": "Manu Sporny",
-  "foaf:homepage": "<http://manu.sporny.org/>",
-  "sioc:avatar": "<http://twitter.com/account/profile_image/manusporny>"****,
-  "myvocab:credits": 500****
+  "foaf:homepage": "http://manu.sporny.org/",
+  "sioc:avatar": "http://twitter.com/account/profile_image/manusporny"****,
+  "myvocab:personality": "friendly"****
 }
 
 -->
 </pre>
 
-<p>Think of the <code>#</code> character as a "<strong>hash</strong>table", 
-which maps one
-string to another string. In the example above, the <code>myvocab</code>
-string is replaced with "<code>http://example.org/myvocab#</code>" when it
-is detected above. In the example above, "<code>myvocab:credits</code>" would
-expand to "<code>http://example.org/myvocab#credits</code>".</p>
+<p>The <code>@context</code> keyword is used to change how the JSON-LD
+processor evaluates key-value pairs. In this case, it was used to
+map one string ('myvocab') to another string, which is interpreted as
+a IRI. In the example above, the <code>myvocab</code> string is replaced 
+with "<code>http://example.org/myvocab#</code>" when it
+is detected. In the example above, "<code>myvocab:personality</code>" would
+expand to "<code>http://example.org/myvocab#personality</code>".</p>
 
-<p>This mechanism is a short-hand for RDF, and if defined, will give
+<p>This mechanism is a short-hand for RDF, called a CURIE, and provides
 developers an unambiguous way to map any JSON value to RDF.<p>
 
 </section>
 
 <section>
-<h3>An Example of a Default Context</h3>
+<h3>An Example of a Context</h3>
 
 <p>JSON-LD strives to ensure that developers don't have to change the JSON
 that is going into and being returned from their Web applications. A JSON-LD 
-aware Web Service MAY define a default context. For example, the
+aware Web Service MAY define a known context. For example, the
 following default context could apply to all incoming Web Service calls
 previously accepting only JSON data:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": 
+  "@context": 
   {
-    "#vocab": "http://example.org/default-vocab#",
-    "#base": "http://example.org/baseurl/",
+    "@vocab": "http://example.org/default-vocab#",
+    "@base": "http://example.org/baseurl/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dc": "http://purl.org/dc/terms/",
     "foaf": "http://xmlns.com/foaf/0.1/",
@@ -544,21 +562,36 @@ previously accepting only JSON data:</p>
     "Person": "http://xmlns.com/foaf/0.1/Person",
     "name": "http://xmlns.com/foaf/0.1/name",
     "homepage": "http://xmlns.com/foaf/0.1/homepage"
+    "@coerce": 
+    {
+      "xsd:anyURI": ["foaf:homepage", "foaf:member"],
+      "xsd:integer": "foaf:age"
+    }
   }
 }
 -->
 </pre>
 
-<p>The <code>#vocab</code> string is a special keyword that states 
+<p>The <code>@vocab</code> string is a special keyword that states 
 that any term that doesn't resolve to a term or a prefix should be 
-appended to the <code>#vocab</code> IRI. This is done to ensure that 
+appended to the <code>@vocab</code> IRI. This is done to ensure that 
 terms can be transformed to an IRI at all times.
 </p>
 
-<p>The <code>#base</code> string is a special keyword that states 
+<p>The <code>@base</code> string is a special keyword that states 
 that any relative IRI MUST be appended to the string specified by
-<code>#base</code>.
+<code>@base</code>.
 </p>
+
+<p>The <code>@coerce</code> keyword is used to specify type coersion
+rules for the data. For each key in the map, the key is the type to
+be coerced to and the value is the vocabulary term to be coerced.
+Type coersion for the key <code>xsd:anyURI</code> asserts that all 
+vocabulary terms listed should undergo coercion to an IRI, including
+<code>@base</code> processing for relative IRIs and CURIE processing
+for compact URI Expressions like <code>foaf:homepage</code>.
+</p>
+
 </section>
 </section>
 
@@ -603,24 +636,21 @@ repeated.</p>
 <!--
 [
  {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
    "@": "_:bnode1",
    "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/bob/>",
+   "foaf:homepage": "http://example.com/bob/",
    "foaf:name": "Bob"
  },
  {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
    "@": "_:bnode2",
    "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/eve/>",
+   "foaf:homepage": "http://example.com/eve/",
    "foaf:name": "Eve"
  },
  {
-   "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
    "@": "_:bnode3",
    "a": "foaf:Person",
-   "foaf:homepage": "<http://example.com/manu/>",
+   "foaf:homepage": "http://example.com/manu/",
    "foaf:name": "Manu"
  }
 ]
@@ -651,15 +681,16 @@ generated the proper URL type for <code>http://tantek.com</code>.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": 
+  "@context": 
   {
-    "vcard": "http://microformats.org/profile/hcard#vcard"
-    "url": "http://microformats.org/profile/hcard#url"
-    "fn": "http://microformats.org/profile/hcard#fn"
+    "vcard": "http://microformats.org/profile/hcard#vcard",
+    "url": "http://microformats.org/profile/hcard#url",
+    "fn": "http://microformats.org/profile/hcard#fn",
+    "@coerce": { "xsd:anyURI": "url" }
   },
   "@": "_:bnode1",
   "a": "vcard",
-  "url": "<http://tantek.com/>",
+  "url": "http://tantek.com/",
   "fn": "Tantek Çelik"
 }
 -->
@@ -710,22 +741,22 @@ instead refer to items by their full IRI.</p>
 <!--
 [
   {
-    "@": "<http://purl.oreilly.com/works/45U8QJGZSQKDH8N>",
+    "@": "http://purl.oreilly.com/works/45U8QJGZSQKDH8N",
     "a": "http://purl.org/vocab/frbr/core#Work",
     "http://purl.org/dc/terms/title": "Just a Geek",
     "http://purl.org/dc/terms/creator": "Whil Wheaton",
     "http://purl.org/vocab/frbr/core#realization": 
-      ["<http://purl.oreilly.com/products/9780596007683.BOOK>", "<http://purl.oreilly.com/products/9780596802189.EBOOK>"]
+      ["http://purl.oreilly.com/products/9780596007683.BOOK", "http://purl.oreilly.com/products/9780596802189.EBOOK"]
   },
   {
-    "@": "<http://purl.oreilly.com/products/9780596007683.BOOK>",
-    "a": "<http://purl.org/vocab/frbr/core#Expression>",
-    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/BOOK>"
-  },
-  {
-    "@": "<http://purl.oreilly.com/products/9780596802189.EBOOK>",
+    "@": "http://purl.oreilly.com/products/9780596007683.BOOK",
     "a": "http://purl.org/vocab/frbr/core#Expression",
-    "http://purl.org/dc/terms/type": "<http://purl.oreilly.com/product-types/EBOOK>"
+    "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/BOOK"
+  },
+  {
+    "@": "http://purl.oreilly.com/products/9780596802189.EBOOK",
+    "a": "http://purl.org/vocab/frbr/core#Expression",
+    "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/EBOOK"
   }
 ]
 -->
@@ -772,7 +803,7 @@ CURIEs while the processing algorithm is running. The
 <tref>active context</tref> is the top-most item on the 
 <tref>active context</tref> stack.</li>
 <li><tdef>local context</tdef> - a context that is specified at the JSON
-associative-array level, specified via the <code>#</code> key.</li>
+associative-array level, specified via the <code>@context</code> keyword.</li>
 <li><tdef>list of incomplete triples</tdef> - A list of triples that have
 yet to have their subject set.</li>
 <li><tdef>list of unprocessed items</tdef> - A list of objects that cannot be
@@ -787,21 +818,20 @@ the <tref>active context</tref> stack, <tref>current subject</tref>,
 
 <h4>Processing Tokens and Keywords</h4>
 <ul>
-<li><code>#</code> - Used to set the active context.</li>
-<li><code>#base</code> - Used to set the base IRI for all object IRIs affected 
+<li><code>@context</code> - Used to set the active context.</li>
+<li><code>@base</code> - Used to set the base IRI for all object IRIs affected 
 by the active context.</li>
-<li><code>#vocab</code> - Used to set the base IRI for all property IRIs
+<li><code>@vocab</code> - Used to set the base IRI for all property IRIs
 affected by the active context.</li>
-<li><code>#types</code> - Used to specify type coercion.</li>
-<li><code>&lt;</code> and <code>&gt;</code> - Used to express IRIs in
-JSON values.</li>
+<li><code>@coerce</code> - Used to specify type coercion rules.</li>
+<li><code>@literal</code> - Used to specify a literal value.</li>
+<li><code>@iri</code> - Used to specify an IRI value.</li>
+<li><code>@language</code> - Used to specify the language for a literal.</li>
+<li><code>@datatype</code> - Used to specify the datatype for a literal.</li>
 <li><code>:</code> - The separator for CURIEs when used in JSON keys or
 JSON values.</li>
 <li><code>@</code> - Sets the active subjects.</li>
 <li><code>a</code> - Used to set the rdf:type of the active subjects.</li>
-<li><code>\</code> - Used as an escape character to escape all the special
-tokens and keywords.</li>
-<li><code>^^</code> - Used to express the data type for Typed Literals.</li>
 </ul>
 
 <p>The algorithm below is designed for streaming (SAX-based) implementations.
@@ -812,9 +842,8 @@ JSON-LD processor MUST implement a processing algorithm that results in the
 same <tref>default graph</tref> that the following algorithm generates:</p>
 
 <ol class="algorithm">
-<li id="processing-step-default-context">If a <tref>default context</tref> is 
-supplied to the
-processing algorithm, push it onto the <tref>active context</tref> stack.</li>
+<li id="processing-step-default-context">Push the <tref>default context</tref> 
+onto the <tref>active context</tref> stack.</li>
 
 <li id="processing-step-associative">If an associative array is 
 detected, create a new
@@ -827,14 +856,20 @@ key-value pair in the associative array, using the newly created
 
   <ol class="algorithm">
 
-    <li>If a <code>#</code> key is found, the processor
+    <li>If a <code>@context</code> keyword is found, the processor
     merges each key-value pair in the <tref>local context</tref> into the
     <tref>active context</tref>, overwriting
-    any duplicate values in the <tref>active context</tref>. 
+    any duplicate values in the <tref>active context</tref>. If the 
+    <code>@coerce</code> key is found, the processor
+    merges each key-value pair in the <tref>local context</tref>'s
+    <code>@coerce</code> mapping into the <tref>active context</tref>'s
+    <code>@coerce</code> mapping, overwriting any duplicate values in 
+    the <tref>active context</tref>'s <code>@coerce</code> mapping.
     Process each object in the <tref>list of unprocessed items</tref>, 
     starting at <a href="#processing-subject">Step 2.2</a>.</li>
 
-    <li id="processing-associative">If the <tref>local context</tref> has not been detected, the current
+    <li id="processing-associative">If the <tref>local context</tref> has not 
+    been detected, the current
     key-value pair is placed into the <tref>list of unprocessed items</tref>
     and processing proceeds to the next key-value pair. Otherwise, if the
     <tref>local context</tref> is known perform the following steps:</li>
@@ -843,7 +878,8 @@ key-value pair in the associative array, using the newly created
 
       <li id="processing-subject">If a <code>@</code> key is found, the 
       processor sets the <tref>active subject</tref> to the value after 
-      <a href="#markup-of-rdf-concepts">Object Processing</a> has been performed.
+      <a href="#markup-of-rdf-concepts">Object Processing</a> has been 
+      performed.
 
       <ol class="algorithm">
         <li>If the <tref>inherited subject</tref> and 
@@ -865,8 +901,8 @@ key-value pair in the associative array, using the newly created
       to <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>.
       </li>
 
-      <li>If a key that is not <code>#</code>, 
-      <code>@</code>, or <code>a</code> is found, set the 
+      <li>If a key that is not <code>@context</code>, 
+      <code>@</code>, or <code>a</code>, set the 
       <tref>active property</tref> by performing 
       <a href="#markup-of-rdf-concepts">Property Processing</a> on the key.
       </li>
@@ -939,89 +975,99 @@ key-value pair in the associative array, using the newly created
 <section>
 <h1>Markup of RDF Concepts</h1>
 
-<p>JSON-LD is designed to ensure that most Linked Data concepts can be marked up
-in a way that is simple to understand and author by Web developers. In many
+<p>JSON-LD is designed to ensure that most Linked Data concepts can be marked 
+up in a way that is simple to understand and author by Web developers. In many
 cases, Javascript objects can become Linked Data with the simple addition
 of a context. Since RDF is also an important sub-community of the Linked
 Data movement, it is important that all RDF concepts are well-represented
 in this specification. This section details how each RDF concept can be
 expressed in JSON-LD.</p>
 
-<p class="issue">The current specification relies on microsyntaxes to 
-express things like IRIs, typed literals and CURIEs. There is a small amount
-of debate on whether or not to use full-blown JSON objects containing things
-like "value" and "datatype". The original authors of the JSON-LD specification
-feel that microsyntaxes allow a much simpler, less error-prone structure in 
-the JSON-LD objects. Proponents of the verbose mechanism assert that there
-would be less chance of data markup issues concerning proper escaping and 
-that the objects, while more verbose, would be easier to work with within
-JavaScript environments. Feedback on this issue would be appreciated.</p>
-
 <section>
 <h2>IRIs</h2>
 
 <p>Expressing IRIs are fundamental to Linked Data as that is how most subjects
-and many objects are identified. IRIs can be expressed by wrapping a
-text string with the <code>&lt;</code> and <code>&gt;</code> characters.
+and many objects are identified. IRIs can be expressed in a variety of
+different ways in JSON-LD.</p>
+
+<ol>
+  <li>In general, an IRI is generated if it is in the key position in 
+    an associative array. There are special rules for processing keys in
+    <code>@context</code> and when dealing with keys that start with the
+    <code>@</code> character.</li>
+  <li>An IRI is generated for the value specified using <code>@</code>, if
+    it is a string.</li>
+  <li>An IRI is generated for the value specified using <code>a</code>.</li>
+  <li>An IRI is generated for the value specified using the <code>@iri</code> 
+    keyword.</li>
+  <li>An IRI is generated when there are <code>@coerce</code> rules in 
+    effect for <code>xsd:anyURI</code> for a particular vocabulary term.</li>
+</ol>
+
+<p>An example of IRI generation for a key outside of a <code>@context</code>:
 </p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "foaf:homepage": "****<****http://manu.sporny.org****>****",
+  "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
 ...
 }
 -->
 </pre>
 
-<p>The example above would set the object to an IRI with the value of
-<code>http://manu.sporny.org</code>.
-</p>
+<p>In the example above, the key 
+<code>http://xmlns.com/foaf/0.1/name</code> is interpreted as an IRI, as 
+opposed to being interpreted as a string..</p>
 
-<p>As a general rule, all CURIEs and IRIs MAY be wrapped in <code>&lt;</code> 
-and <code>&gt;</code> characters. This is to ensure that there is a simple, 
-consistent rule that can be followed when authoring JSON-LD data. There 
-are, however, several instances where angle brackets MAY be omitted, 
-without introducing ambiguity, to ease authoring burden. These instances 
-are:
-
-<ul>
-<li>When specifying the subject IRI using <code>@</code>.</li>
-<li>When specifying the RDF type IRI using <code>a</code>.</li>
-<li>Any CURIE in the key portion of a JSON associative array.</li>
-</ul>
-
-Wrapping IRIs with the <code>&lt;</code> and <code>&gt;</code> 
-characters are only mandatory when IRIs are specified as values in the
-JSON key-value pairs.</p>
-
-<p>To further illustrate, the following example omissions of the 
-<code>&lt;</code> and <code>&gt;</code> characters are allowed:
-</p>
+<p>CURIE expansion also occurs for keys in JSON-LD:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "@": "****<****http://manu.sporny.org/about#manu****>****",
-  // CURIE/IRI when specifying the subject can be minimized.
-  "@": "http://manu.sporny.org/about#manu",
-...
-  "a": "****<****foaf:Person****>****",
-  // CURIE/IRI when specifying the type of an object can be minimized.
-  "a": "foaf:Person",
-...
-  "****<****foaf:homepage****>****": "<http://manu.sporny.org>",
-  // CURIE/IRI when specifying a property can be minimized.
-  "foaf:homepage": "<http://manu.sporny.org>",
+  "****foaf:name****": "Manu Sporny",
 ...
 }
 -->
 </pre>
 
-<p>At all other times, CURIEs and IRIs MUST be wrapped with the 
-<code>&lt;</code> and <code>&gt;</code> characters.</p>
+<p><code>foaf:name</code> above will automatically expand out to the IRI
+<code>http://xmlns.com/foaf/0.1/name</code>.</p>
+
+<p>An IRI is generated when a value is associated with a key using 
+the <code>@iri</code> keyword:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "foaf:homepage": { "****@iri****": "http://manu.sporny.org" }
+...
+}
+-->
+</pre>
+
+<p>If type coercion rules are specified in the <code>@context</code> for
+a particular vocabulary term, an IRI is generated:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{****
+  "@context": 
+  { 
+    "@coerce": 
+    {
+      "xsd:anyURI": "foaf:homepage"
+    } 
+  }****
+...
+  "foaf:homepage": "http://manu.sporny.org",
+...
+}
+-->
+</pre>
 
 </section>
 
@@ -1030,13 +1076,13 @@ JSON key-value pairs.</p>
 
 <p>A subject is declared using the <code>@</code> key. The subject is the
 first piece of information needed by the JSON-LD processor in order to
-create the (subject, predicate, object) tuple, also known as a triple.</p>
+create the (subject, property, object) tuple, also known as a triple.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "****@****": "****<http://example.org/people#joebob>****",
+  "****@****": "****http://example.org/people#joebob****",
 ...
 }
 -->
@@ -1045,19 +1091,6 @@ create the (subject, predicate, object) tuple, also known as a triple.</p>
 <p>The example above would set the subject to the IRI 
 <code>http://example.org/people#joebob</code>.
 </p>
-
-<p>Note that subject do not need to be wrapped in angle brackets. The following
-example is valid JSON-LD markup:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@": "http://example.org/people#joebob",
-...
-}
--->
-</pre>
 
 </section>
 
@@ -1072,8 +1105,8 @@ key. Specifying the type in this way will generate a triple of the form
 <!--
 {
 ...
-  "@": "<http://example.org/people#joebob>",
-  "****a****": "****<http://xmlns.com/foaf/0.1/Person>****",
+  "@": "http://example.org/people#joebob",
+  "****a****": "****http://xmlns.com/foaf/0.1/Person****",
 ...
 }
 -->
@@ -1087,20 +1120,6 @@ key. Specifying the type in this way will generate a triple of the form
 <http://example.org/people#joebob> 
    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
       <http://xmlns.com/foaf/0.1/Person> .
--->
-</pre>
-
-<p>Note that the type IRI does not need to be wrapped in angle brackets. 
-The following example is valid JSON-LD markup:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@": "http://example.org/people#joebob",
-  "a": "http://xmlns.com/foaf/0.1/Person",
-...
-}
 -->
 </pre>
 
@@ -1127,22 +1146,23 @@ expressed using regular JSON strings.</p>
 <section>
 <h2>Language Specification in Plain Literals</h2>
 
-<p>JSON-LD attempts to make sure that it is easy to express triples in other
-languages while simultaneously ensuring that hefty data structures 
-aren't required to accomplish simple language markup. When the 
-<code>@</code> symbol is used in a literal, the JSON-LD processor tags
-the literal text with the language tag that follows the <code>@</code>
-symbol.
-</p>
+<p>JSON-LD makes an assumption that plain literals with associated
+language encoding information is not very common when used in
+JavaScript and Web Services. Thus, it takes a little more
+effort to express plain literals in a specified language.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "foaf:name": "****花澄@ja****",
+  "foaf:name": ****
+  {
+    "@literal": "花澄",
+    "@language": "ja"
+  }****
 ...
 }
- -->
+-->
 </pre>
 
 <p>The example above would generate a plain literal for <em>花澄</em> and
@@ -1154,20 +1174,50 @@ generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 <section>
 <h2>Typed Literals</h2>
 
-<p>Literals may also be typed in JSON-LD by using the <code>^^</code>
-sequence at the end of the text string.</p>
+<p>Literals may also be typed in JSON-LD in two ways:</p>
+
+<ol>
+  <li>By utilizing the <code>@coerce</code> keyword.</li>
+  <li>By utilizing the expanded form for specifying objects.</li>
+</ol>
+
+<p>The first example uses the <code>@coerce</code> keyword to express a
+typed literal:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{****
+  "@context": 
+  { 
+    "@coerce": 
+    {
+      "xsd:dateTime": "dc:modified"
+    }
+  }****
+...
+  "dc:modified": "2010-05-29T14:17:39+02:00",
+...
+}
+-->
+</pre>
+
+<p>The second example uses the expanded form for specifying objects:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "dc:modified": "****2010-05-29T14:17:39+02:00^^xsd:dateTime****",
+  "dc:modified": ****
+  {
+    "@literal": "2010-05-29T14:17:39+02:00",
+    "@datatype": "xsd:dateTime"
+  }****
 ...
 }
- -->
+-->
 </pre>
 
-<p>The example above would generate an object with the value of
+<p>Both examples above would generate an object with the literal value of
 <code>2010-05-29T14:17:39+02:00</code> and the datatype of
 <code>http://www.w3.org/2001/XMLSchema#dateTime</code>.</p>
 
@@ -1184,11 +1234,11 @@ MAY express each property as an array.</p>
 <!--
 {
 ...
-  "@": "<http://example.org/people#joebob>",
-  "foaf:nick": ****["stu", "groknar", "radface"]****,
+  "@": "http://example.org/people#joebob",
+  "foaf:nick": ****["joe", "bob", "jaybee"]****,
 ...
 }
- -->
+-->
 </pre>
 
 <p>The markup shown above would generate the following triples:</p>
@@ -1197,13 +1247,13 @@ MAY express each property as an array.</p>
 <!--
 <http://example.org/people#joebob> 
    <http://xmlns.com/foaf/0.1/nick>
-      "stu" .
+      "joe" .
 <http://example.org/people#joebob> 
    <http://xmlns.com/foaf/0.1/nick>
-      "groknar" .
+      "bob" .
 <http://example.org/people#joebob> 
    <http://xmlns.com/foaf/0.1/nick>
-      "radface" .
+      "jaybee" .
 -->
 </pre>
 
@@ -1212,18 +1262,28 @@ MAY express each property as an array.</p>
 <section>
 <h2>Multiple Typed Literals for a Single Property</h2>
 
-<p>Multiple typed literals are expressed very much in the same way as 
-multiple properties:</p>
+<p>Multiple typed literals may also be expressed using the expanded
+form for objects:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "@": "<http://example.org/articles/8>",
-  "dcterms:modified": ****["2010-05-29T14:17:39+02:00^^xsd:dateTime", "2010-05-30T09:21:28-04:00^^xsd:dateTime"****],
+  "@": "http://example.org/articles/8",
+  "dcterms:modified": ****
+  [
+    {
+      "@literal": "2010-05-29T14:17:39+02:00",
+      "@datatype": "xsd:dateTime"
+    },
+    {
+      "@literal": "2010-05-30T09:21:28-04:00",
+      "@datatype": "xsd:dateTime"
+    }
+  ]****
 ...
 }
- -->
+-->
 </pre>
 
 <p>The markup shown above would generate the following triples:</p>
@@ -1247,8 +1307,8 @@ multiple properties:</p>
 <p>At times, it becomes necessary to be able to express information without
 being able to specify the subject. Typically, this is where blank nodes come
 into play. In JSON-LD, blank node identifiers are automatically created if a 
-subject is not specified using the <code>@</code> key. However, authors may
-name blank nodes by using the special <code>_</code> CURIE prefix.</p>
+subject is not specified using the <code>@</code> keyword. However, authors 
+may name blank nodes by using the special <code>_</code> CURIE prefix.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1278,29 +1338,6 @@ features that are specific to JSON-LD.
 </p>
 
 <section>
-<h2>Escape Character</h2>
-
-<p>Special characters in property values MUST be escaped in order to not be 
-interpreted as CURIEs, IRIs, language tags, or TypedLiterals.</p>
-
-<p>The special characters that need to be escaped in property values are: 
-<code>&lt;</code> (at the beginning of a string), 
-<code>&gt;</code> (at the end of a string), <code>@</code>, 
-and <code>^</code>.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "example:code": ****"\\<foobar\\^\\^2\\>"****,
-...
-}
- -->
-</pre>
-
-</section>
-
-<section>
 <h2>Automatic Typing</h2>
 
 <p>Since JSON is capable of expressing typed information such as doubles, 
@@ -1318,14 +1355,14 @@ information to create <a href="#typed-literals">Typed Literals</a>:</p>
   // The following value is automatically converted to a type of xsd:double as well
   "space:astronomicUnits": ****6.5e73****,
   // The following value should never be converted to a language-native type
-  "measure:stones": ****"4.8^^<xsd:decimal>"****,
+  "measure:stones": ****{ "@literal": "4.8", "@datatype": "xsd:decimal" }****,
   // This value is automatically converted to having a type of xsd:integer
   "chem:protons": ****12****,
   // This value is automatically converted to having a type of xsd:boolean
   "sensor:active": ****true****,
 ...
 }
- -->
+-->
 </pre>
 
 <p class="note">When dealing with a number of modern programming languages,
@@ -1363,21 +1400,20 @@ plain literals, typed literals and IRIs.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": 
+  "@context": 
   {  
      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
      "xsd": "http://www.w3.org/2001/XMLSchema#",
      "name": "http://xmlns.com/foaf/0.1/name",
      "age": "http://xmlns.com/foaf/0.1/age",
      "homepage": "http://xmlns.com/foaf/0.1/homepage",
-****     "#types":
+****     "@type":
      {
-        "name": "rdf:PlainLiteral",
-        "age": "xsd:integer",
-        "homepage": "xsd:anyURI",
+        "xsd:integer": "age",
+        "xsd:anyURI": "homepage",
      }****
   },
-  "name": ****"<John Smith>"****,
+  "name": "John Smith",
   "age": ****"41"****,
   "homepage": ****"http://example.org/home/"****
 }
@@ -1390,7 +1426,7 @@ plain literals, typed literals and IRIs.</p>
 <!--
 _:bnode1
    <http://xmlns.com/foaf/0.1/name>
-      "<John Smith>" .
+      "John Smith" .
 _:bnode1
    <http://xmlns.com/foaf/0.1/age>
       "41"^^http://www.w3.org/2001/XMLSchema#integer .
@@ -1417,15 +1453,15 @@ integrated in order to help alleviate certain development headaches.
 <h2>JavaScript</h2>
 
 <p class="issue">It is expected that JSON-LD will be used quite a bit in 
-JavaScript environments, however, features like IRIs requiring angled
-brackets in JSON-LD means that using JSON-LD directly in JavaScript is going
-to be annoying without a middleware layer such as a simple library that 
-strips JSON-LD markup before JavaScript uses it. One could say that JSON-LD
-is a good fit for the RDFa API, which would enable a triple-store in the 
-browser, but some don't want to require that level of functionality just to use 
-JSON-LD. The group is still discussing the best way to proceed, so input
-on how JSON-LD could more easily be utilized in JavaScript environments
-would be very much appreciated.
+JavaScript environments, however, features like the expanded form for
+object values mean that using JSON-LD directly in JavaScript may be 
+annoying without a middleware layer such as a simple library that 
+converts JSON-LD markup before JavaScript uses it. One could say that JSON-LD
+is a good fit for the RDF API, which enables a variety of RDF-based
+Web Applications, but some don't want to require that level of functionality 
+just to use JSON-LD. The group is still discussing the best way to proceed, 
+so input on how JSON-LD could more easily be utilized in JavaScript 
+environments would be very much appreciated.
 </p>
 </section>
 
@@ -1445,11 +1481,11 @@ environments.</p>
 <section>
 <h1>Advanced Concepts</h1>
 
-<p class="issue">There are a few advanced concepts where it is not clear whether
-or not the JSON-LD specification is going to support the complexity necessary
-to support each concept. The entire section on Advanced Concepts should be
-taken with a grain of salt; it is merely a list of possibilities where all
-of the benefits and drawbacks have not been explored.
+<p class="issue">There are a few advanced concepts where it is not clear 
+whether or not the JSON-LD specification is going to support the complexity 
+necessary to support each concept. The entire section on Advanced Concepts 
+should be considered as discussion points; it is merely a list of 
+possibilities where all of the benefits and drawbacks have not been explored.
 </p>
 
 <section>
@@ -1467,7 +1503,7 @@ Profile. Assume the following profile exists at this imaginary URL:
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": 
+  "@context": 
   {
      "xsd": "http://www.w3.org/2001/XMLSchema#",
      "name": "http://xmlns.com/foaf/0.1/name",
@@ -1488,7 +1524,7 @@ Profile. Assume the following profile exists at this imaginary URL:
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": { "#profile": "http://example.org/profiles/contacts" },
+  "@profile": "http://example.org/profiles/contacts",
   "name": "John Smith",
   "age": "41",
   "homepage": "http://example.org/home/"
@@ -1547,19 +1583,35 @@ single graph:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "#": { "foaf": "http://xmlns.com/foaf/0.1/" },
   "@": 
   [
     {
-      "@": "<http://example.org/people#john>",
+      "@": "http://example.org/people#john",
       "a": "foaf:Person"
     },
     {
-      "@": "<http://example.org/people#jane>",
+      "@": "http://example.org/people#jane",
       "a": "foaf:Person"
     }
   ]
 }
+-->
+</pre>
+
+<p>A disjoint graph could also be expressed like so:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[
+  {
+    "@": "http://example.org/people#john",
+    "a": "foaf:Person"
+  },
+  {
+    "@": "http://example.org/people#jane",
+    "a": "foaf:Person"
+  }
+]
 -->
 </pre>
 
@@ -1573,46 +1625,31 @@ JSON-LD data into a format that is easier to work with in various programming
 languages.
 </p>
 
-<dl title="[NoInterfaceObject] interface JSONLDParser" class="idl">
+<dl title="[NoInterfaceObject] interface JSONLDProcessor" class="idl">
 
-  <dt>object toObject()</dt>
-  <dd>Parses JSON-LD text into an object that allows at least attribute-based
-  or key-based access to the data. If the contents are a disjoint graph, an
-  array of objects are returned. If there are any errors, <code>null</code> 
-  is returned.
+  <dt>object toProjection()</dt>
+  <dd>Parses JSON-LD text into an RDF API Projection object as specified
+    by the RDF API specification [[!RDF-API]].
+    If there are any errors, <code>null</code> is returned.
   <dl class="parameters">
      <dt>DOMString jsonld</dt>
-     <dd>The JSON-LD string to parse into the return object.</dd>
-     <dt>object map</dt>
-     <dd>The map from IRIs to attribute names for the resulting object. Any
-     term mapping that is not mentioned in the map will not be available in the 
-     resulting object. You MAY map <code>rdf:type</code> using the 
-     <code>a</code> key or the <code>rdf:type</code> IRI. You MAY map the 
-     subject by using the <code>@</code> key.
-     </dd>
-     <dt>object optional? options</dt>
-     <dd>An associative-array of processing options to enable or disable when 
-     processing the JSON-LD string. A conforming JSON-LD processor MUST support 
-     the following options:
-     <dl>
-       <dt>indexBySubject</dt>
-       <dd>If set to true, the returned object will be indexed by subject.</dd>
-       <dt>preserveDatatypes</dt>
-       <dd>If set to true, preserves the datatype for object literals.</dd>
-       <dt>preserveLanguage</dt>
-       <dd>If set to true, preserves the languages for object literals.</dd>
-     </dl>
+     <dd>The JSON-LD string to parse into the Projection.</dd>
+     <dt>object? template</dt>
+     <dd>The Projection template to use when building the Projection.</dd>
+     <dt>DOMString? subject</dt>
+     <dd>The subject to use when building the Projection.</dd>
      <dt>JSONLDParserCallback optional? callback</dt>
      <dd>A callback that is called whenever a processing error occurs on
      the given JSON-LD string.</dd>
   </dl>
   </dd>
 
-  <dt>RDFGraph toRDFGraph()</dt>
-  <dd>Parses JSON-LD and transforms the data into an RDFGraph, which is 
-  compatible with the RDFa API specification. This method will return
-  <code>null</code> if there are any errors, or if the RDFa API is not
-  available for use.
+  <dt>Graph toGraph()</dt>
+  <dd>Parses JSON-LD and transforms the data into an Graph, which is 
+  compatible with the RDF Interfaces API specification [[!RDF-INTERFACES]]. 
+  This method will 
+  return <code>null</code> if there are any errors, or if the RDF Interfaces 
+  API is not available for use.
   <dl class="parameters">
      <dt>DOMString jsonld</dt>
      <dd>The JSON-LD string to parse into the RDFGraph.</dd>
@@ -1621,13 +1658,13 @@ languages.
      the given JSON-LD string.</dd>
   </dl>
   </dd>
-  
+
 </dl>
 
 <p>The JSONLDParserCallback is called whenever a processing error occurs on
 input data.</p>
 
-<dl title="[NoInterfaceObject Callback] interface JSONLDParserCallback" 
+<dl title="[NoInterfaceObject Callback] interface JSONLDProcessorCallback" 
     class="idl">
 
   <dt>void error()</dt>
@@ -1639,7 +1676,7 @@ input data.</p>
   </dd>
 </dl>
 
-<p>The following example demonstrates how to convert JSON-LD to a JSON object
+<p>The following example demonstrates how to convert JSON-LD to a projection
 that is directly usable in a programming environment:
 </p>
 
@@ -1650,12 +1687,12 @@ var jsonldString = fetchPerson();
 
 // This map, usually defined once per script, defines how to map incoming 
 // JSON-LD to JavaScript objects
-var myMap = { "http://xmlns.com/foaf/0.1/name" : "name",
-              "http://xmlns.com/foaf/0.1/age" : "age",
-              "http://xmlns.com/foaf/0.1/homepage" : "homepage" };
+var myTemplate = { "http://xmlns.com/foaf/0.1/name" : "name",
+                   "http://xmlns.com/foaf/0.1/age" : "age",
+                  "http://xmlns.com/foaf/0.1/homepage" : "homepage" };
 
 // Map the JSON-LD to a language-native object
-var person = jsonld.toObject(jsonldString, myMap);
+var person = jsonld.toProjection(jsonldString, myTemplate);
 
 // Use the language-native object
 alert(person.name + " is " + person.age + " years old. " +
@@ -1686,49 +1723,57 @@ to JSON-LD.
 <p class="issue">This algorithm is very rough, untested, and probably contains
 many bugs. Use at your own risk. It will change in the coming months.</p>
 
-<p>The JSON-LD normalization algorithm is as follows:
+<p>The JSON-LD normalization algorithm is as follows:</p>
 
 <ol class="algorithm">
-<li>Remove the <code>#</code> key and preserve it as the 
-<tdef>transformation map</tdef> while running this algorithm.</li>
-<li>For each key
- <ol class="algorithm">
-  <li>If the key is a CURIE, expand the CURIE to an IRI using the
-      <tref>transformation map</tref>.</li>
-  <li>If the transformed key is an IRI, ensure that it is surrounded by 
-      angle brackets.</li>
- </ol>
-</li>
-<li>For each value
- <ol class="algorithm">
-  <li>If the value should be type coerced per the 
-      <tref>transformation map</tref>, ensure that it is transformed to the
-      new value.</li>
-  <li>If the value is a CURIE, expand the CURIE to an IRI using the
-      <tref>transformation map</tref>.</li>
-  <li>If the value is a Typed Literal and the type is a CURIE,
-      expand it to an IRI using the <tref>transformation map</tref>.</li>
-  <li>If the final value is an IRI, ensure that it is surrounded by angle 
-      brackets.</li>
- </ol>
-<li>Output each sorted key-value pair without any extraneous whitespace. If 
-the value is an associative array, perform this algorithm, starting
-at step #1, recursively on the sub-tree.</li>
-</li>
+  <li>Remove the <code>@context</code> key and preserve it as the 
+  <tdef>transformation map</tdef> while running this algorithm.</li>
+  <li>For each key
+   <ol class="algorithm">
+    <li>If the key is a CURIE, expand the CURIE to an IRI using the
+        <tref>transformation map</tref>.</li>
+   </ol>
+  </li>
+  <li>For each value
+   <ol class="algorithm">
+    <li>If the value should be type coerced per the 
+        <tref>transformation map</tref>, ensure that it is transformed to the
+        new value.</li>
+    <li>If the value is a CURIE, expand the CURIE to an IRI using the
+        <tref>transformation map</tref>.</li>
+    <li>If the value is a Typed Literal and the type is a CURIE,
+        expand it to an IRI using the <tref>transformation map</tref>.</li>
+    <li>When generating the final value, use expanded object value form to
+      store all IRIs, typed literals and plain literals with language
+      information.</li>
+   </ol>
+  <li>Output each sorted key-value pair without any extraneous whitespace. If 
+  the value is an associative array, perform this algorithm, starting
+  at step #1, recursively on the sub-tree. There should be no nesting in
+  the outputted JSON data. That is, the top-most element should be an
+  array. Each item in the array contains a single subject with a 
+  corresponding array of properties in UTF-8 sort order. Any related 
+  objects that are complex objects themselves should be given a top-level 
+  object in the top-level array.</li>
+  </li>
 </ol>
 
-</p>
+<p class="issue">Note that normalizing named blank nodes is impossible at
+present since one would have to specify a blank node naming algorithm. For
+the time being, you cannot normalize graphs that contain named blank
+nodes. However, normalizing graphs that contain non-named blank nodes 
+is supported.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-var myObj = { "#" : { 
+var myObj = { "@context" : { 
                 "xsd" : "http://www.w3.org/2001/XMLSchema#",
                 "name" : "http://xmlns.com/foaf/0.1/name",
                 "age" : "http://xmlns.com/foaf/0.1/age",
                 "homepage" : "http://xmlns.com/foaf/0.1/homepage",
-                "#types": {
-                   "age" : "xsd:nonNegativeInteger",
-                   "homepage" : "xsd:anyURI" 
+                "@type": {
+                   "xsd:nonNegativeInteger": "age",
+                   "xsd:anyURI": "homepage"
                 }
               },
               "name" : "Joe Jackson",
@@ -1746,9 +1791,9 @@ readability):</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-{"<http://xmlns.com/foaf/0.1/age>":"42^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>",
-"<http://xmlns.com/foaf/0.1/homepage>":"<http://example.org/people/joe>",
-"<http://xmlns.com/foaf/0.1/name>":"Joe Jackson"}
+[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
+"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
+"http://xmlns.com/foaf/0.1/name":"Joe Jackson"}]
 -->
 </pre>
 
@@ -1780,14 +1825,55 @@ to the lossy nature of <strong>xsd:double</strong> values.</p>
 </section>
 
 <section class="appendix">
+<h1>The Default Context</h1>
+
+<p>The <tdef>default context</tdef> is provided to ensure that there are a
+reasonable set of prefixes and terms available to all JSON-LD developers.
+Mappings specified by the default context SHOULD NOT be overwritten by
+JSON-LD authors. All JSON-LD processors MUST load the following context 
+in as the intial context before processing JSON-LD text.</p>
+
+<pre>
+{
+  "@context":
+  {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "cal": "http://www.w3.org/2002/12/cal/ical#",
+    "vcard": "http://www.w3.org/2006/vcard/ns# ",
+    "geo": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "cc": "http://creativecommons.org/ns#",
+    "sioc": "http://rdfs.org/sioc/ns#",
+    "doap": "http://usefulinc.com/ns/doap#",
+    "com": "http://purl.org/commerce#",
+    "ps": "http://purl.org/payswarm#",
+    "gr": "http://purl.org/goodrelations/v1#",
+    "sig": "http://purl.org/signature#",
+    "ccard": "http://purl.org/commerce/creditcard#"
+    "@coerce": 
+    {
+      "xsd:anyURI": ["foaf:homepage", "foaf:member"],
+      "xsd:integer": "foaf:age"
+    }
+  }
+}
+</pre>
+</section>
+
+
+<section class="appendix">
 <h1>Acknowledgements</h1>
 
 <p>The editor would like to thank Mark Birbeck, who provided a great deal of the
 rationale and reasoning behind the JSON-LD work via his work on RDFj, 
-Dave Longley who reviewed and provided feedback on the overall 
-specification and contexts, and Ian Davis, who created RDF/JSON. Thanks also
-to Bradley P. Allen and Richard Cyganiak for their input on the 
-specification.</p>
+Dave Longley who reviewed, provided feedback, and performed several
+implementation on the specification, and Ian Davis, who created RDF/JSON. 
+Thanks also to Nathan Rixham, Bradley P. Allen and Richard Cyganiak for their 
+input on the specification.</p>
 </section>
 
 </body>
