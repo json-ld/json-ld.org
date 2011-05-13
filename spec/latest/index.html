@@ -1407,7 +1407,7 @@ plain literals, typed literals and IRIs.</p>
      "name": "http://xmlns.com/foaf/0.1/name",
      "age": "http://xmlns.com/foaf/0.1/age",
      "homepage": "http://xmlns.com/foaf/0.1/homepage",
-****     "@type":
+****     "@coerce":
      {
         "xsd:integer": "age",
         "xsd:anyURI": "homepage",
@@ -1474,6 +1474,15 @@ lends itself to databases such as CouchDB and MongoDB. Both of these databases
 can use JSON-LD as their storage format. The group needs feedback from 
 CouchDB and MongoDB experts regarding the usefulness of JSON-LD in those
 environments.</p>
+
+<p class="issue">MongoDB does not allow the '.' character to be used in
+key names. This prevents developers from storing IRIs as keys, which also
+prevents storage of the data in normalized form. While this issue can
+be avoided by using CURIEs for key values, it is not known if this
+mechanism is enough to allow JSON-LD to be used in MongoDB in a way that
+is useful to developers.
+</p>
+
 </section>
 
 </section>
@@ -1771,13 +1780,13 @@ var myObj = { "@context" : {
                 "name" : "http://xmlns.com/foaf/0.1/name",
                 "age" : "http://xmlns.com/foaf/0.1/age",
                 "homepage" : "http://xmlns.com/foaf/0.1/homepage",
-                "@type": {
+                "@coerce": {
                    "xsd:nonNegativeInteger": "age",
                    "xsd:anyURI": "homepage"
                 }
               },
               "name" : "Joe Jackson",
-              "age" : 42,
+              "age" : "42",
               "homepage" : "http://example.org/people/joe" };
 
 // Map the language-native object to JSON-LD
@@ -1817,6 +1826,36 @@ following snippet of code:</p>
 <p class="note">When data needs to be normalized, JSON-LD authors should
 not use values that are going to undergo automatic conversion. This is due
 to the lossy nature of <strong>xsd:double</strong> values.</p>
+
+<p class="issue">Round-tripping data can be problematic if we mix and
+match @coerce rules with JSON-native datatypes, like integers. Consider the 
+following code example:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+var myObj = { "@context" : { 
+                "number" : "http://example.com/vocab#number",
+                "@coerce": {
+                   "xsd:nonNegativeInteger": "number"
+                }
+              },
+              "number" : 42 };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+
+// Convert the normalized object back to a JavaScript object
+var myObj2 = jsonld.parse(jsonldText);
+-->
+</pre>
+
+<p class="issue">At this point, myObj2 and myObj will have different
+values for the "number" value. myObj will be the number 42, while
+myObj2 will be the string "42". This type of data round-tripping
+error can bite developers. We are currently wondering if having a
+"coerce validation" phase in the parsing/normalization phases would be a 
+good idea. It would prevent data round-tripping issues like the
+one mentioned above.</p>
 
 </section>
 
