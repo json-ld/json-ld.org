@@ -152,8 +152,9 @@
 
           // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
           // and its maturity status
-          previousPublishDate:  "2010-10-14",
-          previousMaturity:  "ED",
+          previousPublishDate:  "2011-05-07",
+          previousMaturity:     "ED",
+          previousDiffURI:      "http://json-ld.org/spec/ED/20100529/index.html",
 
           // if there a publicly available Editor's Draft, this is the link
           edDraftURI:           "http://json-ld.org/spec/latest/",
@@ -276,6 +277,7 @@ enhances the functionality and interoperability of the Web.
 <section>
 <h1>Introduction</h1>
 
+<p>
 JSON-LD is designed as a light-weight syntax that can be used to express 
 Linked Data. It is primarily intended to be a way to express Linked Data 
 in Javascript and other Web-based programming environments. It is also 
@@ -294,6 +296,13 @@ generate, stream-based and document-based processing compatible, and require
 a very small memory footprint in order to operate.
 </p>
 
+<p>
+  JSON, as specified in [[!RFC4627]], is a simple language for representing objects on the web.
+  Linked Data is a way of describing content across different documents, or web resources. Web
+  resources are described using <tref>IRI</tref>s, and typically are dereferencable entities that may be used
+  to find more information, creating a "web of knowledge". JSON-LD is intended to be a simple
+  publishing method for expressing linked data in JSON.
+</p>
 <section>
 <h2>How to Read this Document</h2>
 
@@ -312,7 +321,7 @@ data. The document is primarily intended for the following audiences:
 
 <p>
 To understand this specification you must first be familiar with JSON, 
-which is detailed in [[!RFC4627]] and [[!RDF-CONCEPTS]].</p>
+which is detailed in [[!RFC4627]] and RDF as described in [[!RDF-CONCEPTS]].</p>
 </section>
 
 <section>
@@ -327,9 +336,9 @@ this specification:</p>
 </li>
 
 <li>Specification bugs and issues should be reported in the 
-<a href="http://github.com/digitalbazaar/json-ld/issues">issue tracker</a>.</li>
+<a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
 
-<li><a href="http://github.com/digitalbazaar/json-ld">Source code</a> for the 
+<li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the 
 specification can be found on Github.</li>
 
 <li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a> 
@@ -384,6 +393,12 @@ markup language:
 <section>
 <h2>Map Terms to IRIs</h2>
 
+<p>
+  An Internationalized Resource Identifier (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>)
+  as described in [[!RFC3987]], is a mechanism for representing unique identifiers on the web. In Linked Data,
+  IRIs (or URI references) are commonly used for describing entities and properties.
+</p>
+
 <p>Establishing a mechanism to map JSON values to IRIs will
 help in the mapping of JSON objects to RDF. This does not mean that JSON-LD must
 be restrictive in declaring a set of terms, rather, experimentation and 
@@ -411,11 +426,21 @@ semantic web community and JSON/REST-based Web Services community.
 <section>
 <h3>The JSON-LD Context</h3>
 
-<p>A context is used in RDFa to allow developers to use aliases for 
-IRIs. The semantic web, just like the document-based web, uses IRIs for
+<p>A context is used to allow developers to use aliases for 
+<tref>IRI</tref>s. The semantic web, just like the document-based web, uses IRIs for
 unambiguous identification. The idea is that these terms mean something, 
-which you will eventually want to query. The semantic web specifies this via 
-<em>Vocabulary Documents</em>. The IRI <em>http://xmlns.com/foaf/0.1/</em> 
+which you will eventually want to query. A context allows the expression of a number of
+terms which map directly to <tref>IRI</tref>s. For example, the term <code>name</code>
+may map directly to the IRI <code>http://xmlns.com/foaf/0.1/name</code>. This allows
+JSON-LD documents to be constructed using common JSON syntax of using simple name/value
+pairs.
+</p>
+<p>
+To reduce the number of different terms that must be defined, JSON-LD also allows terms
+to be used to expand Compact URIs (<abbr title="Compact URI">CURIE</abbr>).
+The semantic web specifies this via <em>Vocabulary Documents</em>, in which a prefix is
+associated with a document, and a suffix is used to create an IRI based on this vocabulary.
+For example, the IRI <em>http://xmlns.com/foaf/0.1/</em> 
 specifies a Vocabulary Document, and <strong>name</strong> is a term in 
 that vocabulary. Join the two items together and you have an unambiguous 
 identifier for a vocabulary term. The Compact URI Expression, or short-form,
@@ -505,7 +530,7 @@ express data unambiguously, like so:</p>
 </pre>
 
 <p>Developers can also specify their own Vocabulary documents by modifying the 
-default context in-line using the <code>@context</code> keyword, like so:</p>
+<tref>active context</tref> in-line using the <code>@context</code> keyword, like so:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -524,7 +549,7 @@ default context in-line using the <code>@context</code> keyword, like so:</p>
 <p>The <code>@context</code> keyword is used to change how the JSON-LD
 processor evaluates key-value pairs. In this case, it was used to
 map one string ('myvocab') to another string, which is interpreted as
-a IRI. In the example above, the <code>myvocab</code> string is replaced 
+a <tref>IRI</tref>. In the example above, the <code>myvocab</code> string is replaced 
 with "<code>http://example.org/myvocab#</code>" when it
 is detected. In the example above, "<code>myvocab:personality</code>" would
 expand to "<code>http://example.org/myvocab#personality</code>".</p>
@@ -540,7 +565,7 @@ developers an unambiguous way to map any JSON value to RDF.<p>
 <p>JSON-LD strives to ensure that developers don't have to change the JSON
 that is going into and being returned from their Web applications. A JSON-LD 
 aware Web Service MAY define a known context. For example, the
-following default context could apply to all incoming Web Service calls
+following <tref>default context</tref> could apply to all incoming Web Service calls
 previously accepting only JSON data:</p>
 
 <pre class="example" data-transform="updateExample">
@@ -564,7 +589,7 @@ previously accepting only JSON data:</p>
     "homepage": "http://xmlns.com/foaf/0.1/homepage"
     "@coerce": 
     {
-      "xsd:anyURI": ["foaf:homepage", "foaf:member"],
+      "xsd:anyURI": ["rdf:type", "rdf:rest", "foaf:homepage", "foaf:member"],
       "xsd:integer": "foaf:age"
     }
   }
@@ -583,13 +608,13 @@ that any relative IRI MUST be appended to the string specified by
 <code>@base</code>.
 </p>
 
-<p>The <code>@coerce</code> keyword is used to specify type coersion
+<p>The <code>@coerce</code> keyword is used to specify type coercion
 rules for the data. For each key in the map, the key is the type to
 be coerced to and the value is the vocabulary term to be coerced.
-Type coersion for the key <code>xsd:anyURI</code> asserts that all 
+Type coercion for the key <code>xsd:anyURI</code> asserts that all 
 vocabulary terms listed should undergo coercion to an IRI, including
 <code>@base</code> processing for relative IRIs and CURIE processing
-for compact URI Expressions like <code>foaf:homepage</code>.
+for compact URI Expressions such as <code>foaf:homepage</code>.
 </p>
 
 </section>
@@ -765,214 +790,6 @@ instead refer to items by their full IRI.</p>
 </section>
 
 <section>
-<h3>The JSON-LD Processing Algorithm</h3>
-
-<p>
-The processing algorithm described in this section is provided in
-order to demonstrate how one might implement a JSON-LD processor. 
-Conformant implementations are only required to produce the same type and
-number of triples during the output process and are not required to 
-implement the algorithm exactly as described.
-</p>
-
-<p class="issue">The Processing Algorithm is a work in progress, there are
-still major bugs in the algorithm and it's difficult to follow. It's provided
-only to very early implementers to give them an idea of how to implement a
-processor.</p>
-
-<h4>Processing Algorithm Terms</h4>
-<ul>
-<li><tdef>default context</tdef> - a context that is specified to the
-JSON-LD processing algorithm before processing begins.</li>
-<li><tdef>default graph</tdef> - the destination graph for all triples
-generated by JSON-LD markup.</li>
-<li><tdef>active subject</tdef> - the currently active subject that the
-processor should use when generating triples.</li>
-<li><tdef>inherited subject</tdef> - a subject that was detected at a
-higher level of processing to be used to generate a triple once a 
-<tref>current subject</tref> is discovered or generated.</li>
-<li><tdef>active property</tdef> - the currently active property that the
-processor should use when generating triples.</li>
-<li><tdef>inherited property</tdef> - a property that was detected at a
-higher level of processing to be used to generate a triple once a 
-<tref>current subject</tref> is discovered or generated.</li>
-<li><tdef>active object</tdef> - the currently active object that the
-processor should use when generating triples.</li>
-<li><tdef>active context</tdef> - a context that is used to resolve
-CURIEs while the processing algorithm is running. The 
-<tref>active context</tref> is the top-most item on the 
-<tref>active context</tref> stack.</li>
-<li><tdef>local context</tdef> - a context that is specified at the JSON
-associative-array level, specified via the <code>@context</code> keyword.</li>
-<li><tdef>list of incomplete triples</tdef> - A list of triples that have
-yet to have their subject set.</li>
-<li><tdef>list of unprocessed items</tdef> - A list of objects that cannot be
-processed until a <tref>local context</tref> is detected or the end of the
-current associative-array is detected.</li>
-<li><tdef>processor state</tdef> - the processor state, which includes
-the <tref>active context</tref> stack, <tref>current subject</tref>, 
-<tref>current property</tref>,
-<tref>list of incomplete triples</tref>, and the 
-<tref>list of unprocessed items</tref>.
-</ul>
-
-<h4>Processing Tokens and Keywords</h4>
-<ul>
-<li><code>@context</code> - Used to set the active context.</li>
-<li><code>@base</code> - Used to set the base IRI for all object IRIs affected 
-by the active context.</li>
-<li><code>@vocab</code> - Used to set the base IRI for all property IRIs
-affected by the active context.</li>
-<li><code>@coerce</code> - Used to specify type coercion rules.</li>
-<li><code>@literal</code> - Used to specify a literal value.</li>
-<li><code>@iri</code> - Used to specify an IRI value.</li>
-<li><code>@language</code> - Used to specify the language for a literal.</li>
-<li><code>@datatype</code> - Used to specify the datatype for a literal.</li>
-<li><code>:</code> - The separator for CURIEs when used in JSON keys or
-JSON values.</li>
-<li><code>@</code> - Sets the active subjects.</li>
-<li><code>a</code> - Used to set the rdf:type of the active subjects.</li>
-</ul>
-
-<p>The algorithm below is designed for streaming (SAX-based) implementations.
-Implementers will find that non-streaming (document-based) implementations will
-be much easier to implement as full access to the JSON object model eliminates 
-some of the steps that are necessary for streaming implementations. A conforming
-JSON-LD processor MUST implement a processing algorithm that results in the 
-same <tref>default graph</tref> that the following algorithm generates:</p>
-
-<ol class="algorithm">
-<li id="processing-step-default-context">Push the <tref>default context</tref> 
-onto the <tref>active context</tref> stack.</li>
-
-<li id="processing-step-associative">If an associative array is 
-detected, create a new
-<tref>processor state</tref>. Copy the <tref>current context</tref> stack to
-the newly created <tref>processor state</tref>. Push the 
-<tref>active context</tref> onto the newly created 
-<tref>processor state</tref>'s <tref>active context</tref> stack. For each 
-key-value pair in the associative array, using the newly created
-<tref>processor state</tref> do the following:
-
-  <ol class="algorithm">
-
-    <li>If a <code>@context</code> keyword is found, the processor
-    merges each key-value pair in the <tref>local context</tref> into the
-    <tref>active context</tref>, overwriting
-    any duplicate values in the <tref>active context</tref>. If the 
-    <code>@coerce</code> key is found, the processor
-    merges each key-value pair in the <tref>local context</tref>'s
-    <code>@coerce</code> mapping into the <tref>active context</tref>'s
-    <code>@coerce</code> mapping, overwriting any duplicate values in 
-    the <tref>active context</tref>'s <code>@coerce</code> mapping.
-    Process each object in the <tref>list of unprocessed items</tref>, 
-    starting at <a href="#processing-subject">Step 2.2</a>.</li>
-
-    <li id="processing-associative">If the <tref>local context</tref> has not 
-    been detected, the current
-    key-value pair is placed into the <tref>list of unprocessed items</tref>
-    and processing proceeds to the next key-value pair. Otherwise, if the
-    <tref>local context</tref> is known perform the following steps:</li>
-
-    <ol class="algorithm">
-
-      <li id="processing-subject">If a <code>@</code> key is found, the 
-      processor sets the <tref>active subject</tref> to the value after 
-      <a href="#markup-of-rdf-concepts">Object Processing</a> has been 
-      performed.
-
-      <ol class="algorithm">
-        <li>If the <tref>inherited subject</tref> and 
-        <tref>inherited property</tref> values are specified, generate a triple
-        using the <tref>inherited subject</tref> for the subject, the
-        <tref>inherited property</tref> for the property, and the 
-        <tref>active subject</tref> for the object.
-        </li>
- 
-        <li>If there are any triples in the 
-        <tref>list of incomplete triples</tref>, complete each triple using the 
-        <tref>active subject</tref> as the subject for each triple.
-        </li>
-      </ol>
-
-      </li>
-
-      <li>If an <code>a</code> key is found, set the <tref>active property</tref> 
-      to <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>.
-      </li>
-
-      <li>If a key that is not <code>@context</code>, 
-      <code>@</code>, or <code>a</code>, set the 
-      <tref>active property</tref> by performing 
-      <a href="#markup-of-rdf-concepts">Property Processing</a> on the key.
-      </li>
-
-      <li>If the value is not an array, set the 
-      <tref>active object</tref> by performing 
-      <a href="#markup-of-rdf-concepts">Object Processing</a> on the value. 
-      Generate a triple representing the <tref>active subject</tref>, the
-      <tref>active property</tref> and the <tref>active object</tref>.</li>
-
-      <li>If the value is an associative array, then
-      process the value starting at 
-      <a href="#processing-step-associative">Step 2</a>.</li>
-
-      <li>If the value is a regular array, then process the value 
-      starting at 
-      <a href="#processing-step-array">Step 3</a> ensuring that
-      the <tref>active subject</tref> and the <tref>active property</tref>
-      are copied to a newly created <tref>processor state</tref>.</li>
-
-      <li>If the end of the associative array is detected, and a
-      <tref>active subject</tref> was not discovered, then:
-      
-      <ol class="algorithm">
-        <li>Generate a <tref>blank node identifier</tref> and set it as the 
-        <tref>active subject</tref>.</li>
-
-        <li>Complete any previously incomplete triples by running all substeps 
-        of <a href="#processing-subject">Step 2.2.1</a>.
-        </li>
-      </ol>
-
-      <li>If the end of the associative array is detected, and a
-      <tref>local context</tref> was not discovered, then assume that the
-      <tref>active context</tref> is unmodified and run all substeps of
-      <a href="#processing-associative">Step 2.2</a>
-      on the <tref>list of unprocessed items</tref>.
-     </ol>
-    </ol>
-  </li>
-
-  <li id="processing-step-array">If a regular array is detected, 
-  process each value in the array by doing the following:
-
-    <ol class="algorithm">
-      <li>If the value is an associative array, processes per 
-      <a href="#processing-step-associative">Step 2</a>, ensuring to set
-      the <tref>inherited subject</tref> to the <tref>active subject</tref>
-      and the <tref>inherited property</tref> to the <tref>active property</tref>
-      in the newly created <tref>processor state</tref>.</li>
-
-      <li>If the value is not an array, set the <tref>active object</tref> 
-      by performing <a href="#markup-of-rdf-concepts">Object Processing</a> on 
-      the value. Generate a triple representing the <tref>active subject</tref>, 
-      the <tref>active property</tref> and the <tref>active object</tref> and 
-      place it into the <tref>default graph</tref>.</li>
-
-      <li>If the value is a regular array, should we support RDF 
-      List/Sequence Processing? 
-      <div class="issue">If the value is a regular array, should we support 
-      RDF List/Sequence generation of triples? For example, would implementing
-      this be worth the more complex processing rules: "ex:orderedItems" : 
-      [["one", "two", "three"]]</div></li>
-    </ol>
-  </li>
-</ol>
-
-</section>
-
-<section>
 <h1>Markup of RDF Concepts</h1>
 
 <p>JSON-LD is designed to ensure that most Linked Data concepts can be marked 
@@ -1020,6 +837,18 @@ different ways in JSON-LD.</p>
 <p>In the example above, the key 
 <code>http://xmlns.com/foaf/0.1/name</code> is interpreted as an IRI, as 
 opposed to being interpreted as a string..</p>
+
+<p>Term expansion occurs for IRIs if a term is defined within the <tref>active context</tref>:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "****@context****": {"****name****": "****http://xmlns.com/foaf/0.1/name****"},
+...
+  "****name****": "Manu Sporny",
+...
+}
+-->
+</pre>
 
 <p>CURIE expansion also occurs for keys in JSON-LD:</p>
 
@@ -1128,7 +957,7 @@ key. Specifying the type in this way will generate a triple of the form
 <section>
 <h2>Plain Literals</h2>
 
-<p>Regular text strings are called "plain literals" in RDF and are easily
+<p>Regular text strings are called a <tdef>plain literal</tdef> in RDF and are easily
 expressed using regular JSON strings.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -1146,7 +975,7 @@ expressed using regular JSON strings.</p>
 <section>
 <h2>Language Specification in Plain Literals</h2>
 
-<p>JSON-LD makes an assumption that plain literals with associated
+<p>JSON-LD makes an assumption that <tref>plain literal</tref>s with associated
 language encoding information is not very common when used in
 JavaScript and Web Services. Thus, it takes a little more
 effort to express plain literals in a specified language.</p>
@@ -1165,7 +994,7 @@ effort to express plain literals in a specified language.</p>
 -->
 </pre>
 
-<p>The example above would generate a plain literal for <em>花澄</em> and
+<p>The example above would generate a <tref>plain literal</tref> for <em>花澄</em> and
 associate the <code>ja</code> language tag with the triple that is
 generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 
@@ -1174,11 +1003,15 @@ generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 <section>
 <h2>Typed Literals</h2>
 
-<p>Literals may also be typed in JSON-LD in two ways:</p>
+<p>
+  A <tdef>typed literal</tdef> is indicated by attaching a IRI to the end of a <tref>plain literal</tref>, and this
+  IRI indicates the literal's datatype. Literals may be typed in JSON-LD in three ways:
+</p>
 
 <ol>
   <li>By utilizing the <code>@coerce</code> keyword.</li>
   <li>By utilizing the expanded form for specifying objects.</li>
+  <li>By using a native JSON datatype.</li>
 </ol>
 
 <p>The first example uses the <code>@coerce</code> keyword to express a
@@ -1262,7 +1095,7 @@ MAY express each property as an array.</p>
 <section>
 <h2>Multiple Typed Literals for a Single Property</h2>
 
-<p>Multiple typed literals may also be expressed using the expanded
+<p>Multiple <tref>typed literal</tref>s may also be expressed using the expanded
 form for objects:</p>
 
 <pre class="example" data-transform="updateExample">
@@ -1326,7 +1159,6 @@ named blank node.
 </p>
 
 </section>
-
 </section>
 
 <section>
@@ -1342,7 +1174,7 @@ features that are specific to JSON-LD.
 
 <p>Since JSON is capable of expressing typed information such as doubles, 
 integers, and boolean values. As demonstrated below, JSON-LD utilizes that 
-information to create <a href="#typed-literals">Typed Literals</a>:</p>
+information to create <tref>typed literal</tref>s:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1395,7 +1227,7 @@ mapping of type IRIs to RDF types. Using type conversion, one may convert
 simple JSON data to properly typed RDF data.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to 
-plain literals, typed literals and IRIs.</p>
+<tref>plain literal</tref>s, <tref>typed literal</tref>s and IRIs.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1437,7 +1269,383 @@ _:bnode1
 </pre>
 
 </section>
+</section>
 
+<section>
+<h3>The JSON-LD Processing Algorithm</h3>
+<p>
+  The JSON-LD Processing Model describes processing rules for extracting RDF
+  from a JSON-LD document. Note that many uses of JSON-LD may not require generation of RDF.
+</p>
+
+<p>
+The processing algorithm described in this section is provided in
+order to demonstrate how one might implement a JSON-LD processor. 
+Conformant implementations are only required to produce the same type and
+number of triples during the output process and are not required to 
+implement the algorithm exactly as described.
+</p>
+
+<p class="issue">The Processing Algorithm is a work in progress.</p>
+
+<section class="informative">
+  <h4>Overview</h4>
+  <p>
+    JSON-LD is intended to have an easy to parse grammar that closely models existing
+    practice in using JSON for describing object representations. This allows the use
+    of existing libraries for parsing JSON in a document-oriented fashion, or can allow
+    for stream-based parsing similar to SAX.
+  </p>
+  <p>
+    As with other grammars used for describing linked data, a key concept is that of
+    a <em>resource</em>. Resources may be of three basic types: <em>IRI</em>s, for describing
+    externally named entities, <em>BNodes</em>, resources for which an external name does not
+    exist, or is not known, and Literals, which describe terminal entities such as strings,
+    dates and other representations having a lexical representation possibly including
+    an explicit language or datatype.
+  </p>
+  <p>
+    Data described with JSON-LD may be considered to be the representation of a graph made
+    up of <em>subject</em> and <em>object</em> resources related via a <em>predicate</em> resource.
+    However, specific implementations may choose to operate on the document as a normal
+    JSON description of objects having attributes.
+  </p>
+</section>
+
+<section>
+  <h4>Processing Algorithm Terms</h4>
+  <dl>
+    <dt><tdef>default context</tdef></dt>
+    <dd>
+      a context that is specified to the JSON-LD processing algorithm
+      before processing begins.
+    </dd>
+    <dt><tdef>default graph</tdef></dt>
+    <dd>
+      the destination graph for all triples generated by JSON-LD markup.
+    </dd>
+    <dt><tdef>active subject</tdef></dt>
+    <dd>
+      the currently active subject that the processor should use when
+      generating triples.
+    </dd>
+    <dt><tdef>active property</tdef></dt>
+    <dd>
+      the currently active property that the processor should use when
+      generating triples.
+    </dd>
+    <dt><tdef>active object</tdef></dt>
+    <dd>
+      the currently active object that the processor should use when
+      generating triples.
+    </dd>
+    <dt><tdef>active context</tdef></dt>
+    <dd>
+      a context that is used to resolve CURIEs while the processing
+      algorithm is running. The <tref>active context</tref> is the context contained within the
+      <tref>processor state</tref>.
+    </dd>
+    <dt><tdef>local context</tdef></dt>
+    <dd>
+      a context that is specified at the JSON associative-array level,
+      specified via the <code>@context</code> keyword.
+    </dd>
+    <dt><tdef>processor state</tdef></dt>
+    <dd>
+      the <tref>processor state</tref>, which includes the <tref>active
+      context</tref>, <tref>current subject</tref>, and <tref>current property</tref>. The <tref>processor
+      state</tref> is managed as a stack with elements from the previous <tref>processor state</tref>
+      copied into a new <tref>processor state</tref> when entering a new associative array.
+    </dd>
+  </dl>
+</section>
+
+<section>
+  <h4>Processing Tokens and Keywords</h4>
+  <dl>
+  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
+  <dt><code>@base</code></dt><dd>Used to set the base IRI for all object IRIs affected  by the <tref>active context</tref>.</dd>
+  <dt><code>@profile</code></dt><dd>A reference to a remote context description used to set the <tref>local context</tref>.</dd>
+  <dt><code>@vocab</code></dt><dd>Used to set the base IRI for all property IRIs affected by the <tref>active context</tref>.</dd>
+  <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
+  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
+  <dt><code>@iri</code></dt><dd>Used to specify an IRI value.</dd>
+  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
+  <dt><code>:</code></dt><dd>The separator for CURIEs when used in JSON keys or JSON values.</dd>
+  <dt><code>@</code></dt><dd>Sets the active subjects.</dd>
+  <dt><code>a</code></dt><dd>Used to set the rdf:type of the active subjects. This token may be conferred as syntactic sugar for rdf:type.</dd>
+  </dl>
+  <p class="issue">Use <code>@source</code> instead of <code>@</code>?</p>
+  <p class="issue">Use <code>@type</code> instead of <code>a</code>? Note that both are just semantic sugar for <code>rdf:type</code>.</p>
+</section>
+
+<section>
+  <h4>Context</h4>
+  <p>
+    Processing of JSON-LD is managed recursively using a process described in <a href="sequence">Sequence</a>.
+    During processing, each rule is applied using information provided by the <tref>active context</tref>.
+    Processing begins by pushing a new <tref>processor state</tref> onto the <tref>processor state</tref> stack and
+    initializing the <tref>active context</tref> with the <tref>default context</tref>. If a <tref>local context</tref> is encountered,
+    information from the <tref>local context</tref> is merged into the <tref>active context</tref>.
+  </p>
+  <p class="issue">Should the document URL be used as the default for <code>@base</code> in the <tref>default context</tref>?</p>
+  <p>
+    The <tref>active context</tref> is used for expanding keys and values of an associative array (or elements
+    of a list (see <span a="#list-processing">List Processing</span>)).
+  </p>
+  <p>
+    A <tref>local context</tref> is identified within an associative array having a key of <code>@context</code> with an associative
+    array value. When processing a <tref>local context</tref>, special rules apply:
+  </p>
+  <ul>
+    <li>The key <code>@base</code> MUST have a value of a simple string with the lexical
+    form of IRI and is saved in the <tref>active context</tref> to perform term mapping as described in <a
+    href="#iri-processing">IRI Processing</a>.</li>
+    <li>The key <code>@vocab</code> MUST have a value of a simple string with the lexical
+    form of IRI and is saved in the <tref>active context</tref> to perform term mapping as described in <a
+    href="#iri-processing">IRI Processing</a>.</li>
+    <li>The key <code>@coerce</code> MUST have a value of an associative array. Processing
+      of the associative array is described <a href="#coerce">below</a></li>
+    <li>Otherwise, the key MUST have the lexical form of
+      <cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>
+      and MUST have the value of a simple string with the lexical form of IRI.
+      Merge each key-value pair into the <tref>active context</tref>, overwriting
+      any duplicate values.
+    </li>
+  </ul>
+  <p>A <tref>local context</tref> may also be loaded from an external document using the <code>@profile</code>
+    key as described in <a href="#vocabulary-profiles">Vocabulary Profiles</a>.
+  </p>
+  <section>
+    <h5>Coerce</h5>
+    <p>
+      Map each key-value pair in the <tref>local context</tref>'s
+      <code>@coerce</code> mapping into the <tref>active context</tref>'s
+      <code>@coerce</code> mapping, overwriting any duplicate values in 
+      the <tref>active context</tref>'s <code>@coerce</code> mapping.
+      The <code>@coerce</code> mapping has a either of a single CURIE or of an
+      array of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
+      map all CURIE values to array form and replace with the union of the value from
+      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an array
+      with a single CURIE, the processor MAY represent this as a string value.
+    </p>
+  </section>
+</section>
+
+<section>
+  <h4>Chaining</h4>
+  <p>
+    Object <tdef>chaining</tdef> is a JSON-LD feature that allows an author to use the definition
+    of JSON-LD objects as <tref>property</tref> values. This is a commonly used mechanism for
+    creating a parent-child relationship between objects.
+  </p>
+  <p>The example shows an two objects related by a property from the first object:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "foaf:name": "Manu Sporny",
+    "****foaf:knows****": {
+      "****a****": "****foaf:Person****",
+      "****foaf:name****": "****Gregg Kellogg****",
+    }
+  ...
+  }
+  -->
+  </pre>
+  
+  <p>
+    An object definition may be used anyplace a value is legal in JSON-LD.
+  </p>
+</section>
+
+<section>
+  <h4>IRI Processing</h4>
+  <p>Keys and some values are evaluated to produce an IRI. This section defines an algorithm for
+    transforming a value representing an IRI into an actual IRI.</p>
+  <p>IRIs may be represented as an explicit string, or as a CURIE, as a value relative to <code>@base</code>
+    or <code>@vocab</code>.</p>
+  <p>
+    CURIEs are defined more formally in [[RDFA-CORE]] <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">section 6 &quot;CURIE Syntax Definition&quot;</a></cite>.
+    Generally, a CURIE is composed of a <em>prefix</em> and a <em>suffix</em> separated by a ':'. In
+    JSON-LD, either the prefix may be the empty string, denoting the <tdef>default prefix</tdef>.
+  </p>
+  <p>The procedure for generating an IRI is:
+    <ol class="algorithm">
+      <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
+      <li>If the prefix is a '_', generate a named BNode using the suffix as the name.</li>
+      <li>If the <tref>active context</tref> contains a mapping for <em>prefix</em>, generate an IRI
+        by prepending the mapped prefix to the (possibly empty) suffix. Note that an empty
+        suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
+      <li>If the IRI being processed is for a property (i.e., a key value in an associative array, or a
+        value in a <code>@coerce</code> mapping) and the active context has a <code>@vocab</code> mapping,
+        join the mapped value to the suffix using the method described in [[!RFC3987]].</li>
+      <li>If the IRI being processed is for a subject or object (i.e., not a property) and the active context has a <code>@base</code> mapping,
+        join the mapped value to the suffix using the method described in [[!RFC3987]].</li>
+      <li>Otherwise, use the value directly as an IRI.</li>
+    </ol>
+  </p>
+  </section>
+</section>
+
+</section>
+
+<section>
+  <h3>Sequence</h3>
+
+  <p>
+    The algorithm below is designed for in-memory implementations with random access to associative
+    array elements. For a description of a streaming implementation, see <a
+    href="streaming-processors">Appendix B</a>.
+  </p>
+  <p>
+    A conforming JSON-LD processor MUST implement a
+    processing algorithm that results in the same <tref>default graph</tref> that the following
+    algorithm generates:
+  </p>
+
+  <ol class="algorithm">
+    <li id="processing-step-default-context">
+      Create a new <tref>processor state</tref> with with the <tref>active context</tref> set to the
+      <tref>default context</tref> and <tref>active subject</tref> and <tref>active property</tref>
+      initialized to NULL.
+    </li>
+
+    <li id="processing-step-associative">
+      If an associative array is detected, perform the following steps:
+      <ol class="algorithm">
+        <li>
+          If the associative array has a <code>@context</code> key, process the local context as
+          described in <a href="context">Context</a>.
+        </li>
+        <li>
+          If the associative array has an <code>@iri</code> key, set the <tref>active object</tref> by
+          performing <a href="#iri-processing">IRI Processing</a> on the associated value. Generate a
+          triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+          <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
+        </li>
+        <li>
+          If the associative array has a <code>@literal</code> key, set the <tref>active object</tref>
+          to a literal value as follows:
+          <ul>
+            <li>
+              as a <tref>typed literal</tref> if the associative array contains a <code>@datatype</code> key
+              after performing <a href="#iri-processing">IRI Processing</a> on the specified<code>@datatype</code>.
+            </li>
+            <li>
+              otherwise, as a <tref>plain literal</tref>. If the associative array contains
+              a <code>@language</code> key, use it's value to set the language of the plain literal.
+            </li>
+          </ul>
+          Generate a triple representing the <tref>active subject</tref>, the <tref>active
+          property</tref> and the <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
+        </li>
+        <li>If the associative array has a <code>@</code> key:
+          <ol class="algorithm">
+            <li>
+              If the value is a string, set the <tref>active object</tref> to the result of performing
+              <a href="#iri-processing">IRI Processing</a>. Generate a
+              triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+              <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
+            </li>
+            <li>
+              Create a new <tref>processor state</tref> using copies of the <tref>active context</tref>,
+              <tref>active subject</tref> and <tref>active property</tref> and process the value
+              starting at <a href="#processing-step-associative">Step 2</a>, set the <tref>active
+              subject</tref> to the result and proceed using the previous <tref>processor state</tref>.
+            </li>
+          </ol>
+        </li>
+        <li>
+          If the associative array does not have a <code>@</code> key, set the <tref>active
+          object</tref> to newly generated <tref>blank node identifier</tref>. Generate a triple
+          representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+          <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
+          object</tref>.
+        </li>
+        <li>
+          For each key in the associative array that has not already been processed, perform
+          the following steps:
+          <ol class="algorithm">
+            <li>If the key is <code>a</code>, set the <tref>active property</tref> 
+            to <code>rdf:type</code>.
+            </li>
+            <li>Otherwise, set the <tref>active property</tref> to the result of performing
+            <a href="#iri-processing">IRI Processing</a> on the key.</li>
+            <li>
+              Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+              <tref>active subject</tref> and <tref>active property</tref> and process the value
+              starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
+              previous <tref>processor state</tref>.
+            </li>
+          </ol>
+        </li>
+        <li>
+          Return the <tref>active object</tref> to the calling location.
+        </li>
+      </ol>
+    </li>
+
+    <li>
+      If a regular array is detected, process each value in the array by doing the following
+      returning the result of processing the last value in the array:
+
+      <ol class="algorithm">
+        <li>
+          If the value is a regular array, generate an RDF List by linking
+          each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
+          using the following sequence:
+          <ol>
+            <li>
+              If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
+              and <code>rdf:nil</code>.
+            </li>
+            <li>
+              Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+              and a newly generated BNode identified as <em>first bnode</em>.
+            </li>
+            <li>
+              For each element other than the last element in the list:
+              <ol>
+                <li>Create a processor state using the active context, <em>first bnode</em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+                <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest bnode</em>, otherwise use <code>rdf:nil</code>.</li>
+                <li>Generate a new triple using <em>first bnode</em>, <code>rdf:rest</code> and <em>rest bnode</em>.</li>
+                <li>Set <em>first bnode</em> to <em>rest bnode</em>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>
+          Otherwise, create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+          <tref>active subject</tref> and <tref>active property</tref> and process the value
+          starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
+          previous <tref>processor state</tref>.
+        </li>
+      </ol>
+    </li>
+    
+    <li>
+      If a string is detected, generate a triple using the <tref>active subject</tref>, <tref>active object</tref>
+      and a <tref>plain literal</tref> value created from the string.
+    </li>
+    
+    <li>
+      If a number is detected, generate a <tref>typed literal</tref> using a string representation of
+      the value with datatype set to either <code>xsd:integer</code> or
+      <code>xsd:double</code>, depending on if the value contains a
+      fractional and/or an exponential component. Generate a triple using the <tref>active
+      subject</tref>, <tref>active object</tref> and the generated typed literal.
+    </li>
+    
+    <li>
+      Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
+      generate a triple using the <tref>active subject</tref>, <tref>active object</tref>
+      and a <tref>typed literal</tref> value created from the string representation of the
+      value with datatype set to <code>xsd:boolean</code>.
+    </li>
+  </ol>
 </section>
 
 <section>
@@ -1750,12 +1958,13 @@ many bugs. Use at your own risk. It will change in the coming months.</p>
         new value.</li>
     <li>If the value is a CURIE, expand the CURIE to an IRI using the
         <tref>transformation map</tref>.</li>
-    <li>If the value is a Typed Literal and the type is a CURIE,
+    <li>If the value is a <tref>typed literal</tref> and the type is a CURIE,
         expand it to an IRI using the <tref>transformation map</tref>.</li>
     <li>When generating the final value, use expanded object value form to
-      store all IRIs, typed literals and plain literals with language
+      store all IRIs, typed literals and <tref>plain literal</tref>s with language
       information.</li>
    </ol>
+  </li>
   <li>Output each sorted key-value pair without any extraneous whitespace. If 
   the value is an associative array, perform this algorithm, starting
   at step #1, recursively on the sub-tree. There should be no nesting in
@@ -1868,7 +2077,7 @@ one mentioned above.</p>
 
 <p>The <tdef>default context</tdef> is provided to ensure that there are a
 reasonable set of prefixes and terms available to all JSON-LD developers.
-Mappings specified by the default context SHOULD NOT be overwritten by
+Mappings specified by the <tref>default context</tref> SHOULD NOT be overwritten by
 JSON-LD authors. All JSON-LD processors MUST load the following context 
 in as the intial context before processing JSON-LD text.</p>
 
@@ -1896,14 +2105,13 @@ in as the intial context before processing JSON-LD text.</p>
     "ccard": "http://purl.org/commerce/creditcard#"
     "@coerce": 
     {
-      "xsd:anyURI": ["foaf:homepage", "foaf:member"],
+      "xsd:anyURI": ["rdf:type", "rdf:rest", "foaf:homepage", "foaf:member"],
       "xsd:integer": "foaf:age"
     }
   }
 }
 </pre>
 </section>
-
 
 <section class="appendix">
 <h1>Acknowledgements</h1>
