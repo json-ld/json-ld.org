@@ -1,0 +1,10286 @@
+<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>
+<html lang="en" dir="ltr">
+<head>
+<title>JSON-LD - Linked Data Expression in JSON</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+
+
+<style>
+.diff { font-weight:bold; color:#0a3; }
+</style>
+<style type="text/css">
+/*****************************************************************
+ * ReSpec CSS
+ * Robin Berjon (robin at berjon dot com)
+ * v0.05 - 2009-07-31
+ *****************************************************************/
+
+
+/* --- INLINES --- */
+em.rfc2119 { 
+    text-transform:     lowercase;
+    font-variant:       small-caps;
+    font-style:         normal;
+    color:              #900;
+}
+
+h1 acronym, h2 acronym, h3 acronym, h4 acronym, h5 acronym, h6 acronym, a acronym,
+h1 abbr, h2 abbr, h3 abbr, h4 abbr, h5 abbr, h6 abbr, a abbr {
+    border: none;
+}
+
+dfn {
+    font-weight:    bold;
+}
+
+a.internalDFN {
+    color:  inherit;
+    border-bottom:  1px solid #99c;
+    text-decoration:    none;
+}
+
+a.externalDFN {
+    color:  inherit;
+    border-bottom:  medium dotted #ccc;
+    text-decoration:    none;
+}
+
+a.bibref {
+    text-decoration:    none;
+}
+
+code {
+    color:  #ff4500;
+}
+
+
+/* --- WEB IDL --- */
+pre.idl {
+    border-top: 1px solid #90b8de;
+    border-bottom: 1px solid #90b8de;
+    padding:    1em;
+    line-height:    120%;
+}
+
+pre.idl::before {
+    content:    "WebIDL";
+    display:    block;
+    width:      150px;
+    background: #90b8de;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+.idlType {
+    color:  #ff4500;
+    font-weight:    bold;
+    text-decoration:    none;
+}
+
+/*.idlModule*/
+/*.idlModuleID*/
+/*.idlInterface*/
+.idlInterfaceID {
+    font-weight:    bold;
+    color:  #005a9c;
+}
+
+.idlSuperclass {
+    font-style: italic;
+    color:  #005a9c;
+}
+
+/*.idlAttribute*/
+.idlAttrType, .idlFieldType {
+    color:  #005a9c;
+}
+.idlAttrName, .idlFieldName {
+    color:  #ff4500;
+}
+.idlAttrName a, .idlFieldName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlMethod*/
+.idlMethType {
+    color:  #005a9c;
+}
+.idlMethName {
+    color:  #ff4500;
+}
+.idlMethName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlParam*/
+.idlParamType {
+    color:  #005a9c;
+}
+.idlParamName {
+    font-style: italic;
+}
+
+.extAttr {
+    color:  #666;
+}
+
+/*.idlConst*/
+.idlConstType {
+    color:  #005a9c;
+}
+.idlConstName {
+    color:  #ff4500;
+}
+.idlConstName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlException*/
+.idlExceptionID {
+    font-weight:    bold;
+    color:  #c00;
+}
+
+.idlTypedefID, .idlTypedefType {
+    color:  #005a9c;
+}
+
+.idlRaises, .idlRaises a.idlType, .idlRaises a.idlType code, .excName a, .excName a code {
+    color:  #c00;
+    font-weight:    normal;
+}
+
+.excName a {
+    font-family:    monospace;
+}
+
+.idlRaises a.idlType, .excName a.idlType {
+    border-bottom:  1px dotted #c00;
+}
+
+.excGetSetTrue, .excGetSetFalse, .prmNullTrue, .prmNullFalse, .prmOptTrue, .prmOptFalse {
+    width:  45px;
+    text-align: center;
+}
+.excGetSetTrue, .prmNullTrue, .prmOptTrue { color:  #0c0; }
+.excGetSetFalse, .prmNullFalse, .prmOptFalse { color:  #c00; }
+
+.idlImplements a {
+    font-weight:    bold;
+}
+
+dl.attributes, dl.methods, dl.constants, dl.fields {
+    margin-left:    2em;
+}
+
+.attributes dt, .methods dt, .constants dt, .fields dt {
+    font-weight:    normal;
+}
+
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code {
+    font-weight:    bold;
+    color:  #000;
+    font-family:    monospace;
+}
+
+.attributes dt code, .fields dt code {
+    background:  #ffffd2;
+}
+
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code {
+    color:  #005a9c;
+    background:  transparent;
+    font-family:    inherit;
+    font-weight:    normal;
+    font-style: italic;
+}
+
+.methods dt code {
+    background:  #d9e6f8;
+}
+
+.constants dt code {
+    background:  #ddffd2;
+}
+
+.attributes dd, .methods dd, .constants dd, .fields dd {
+    margin-bottom:  1em;
+}
+
+table.parameters, table.exceptions {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    margin: 0.5em 0;
+    width:  100%;
+}
+table.parameters { border-bottom:  1px solid #90b8de; }
+table.exceptions { border-bottom:  1px solid #deb890; }
+
+.parameters th, .exceptions th {
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+    font-family:    initial;
+    font-weight:    normal;
+    text-shadow:    #666 1px 1px 0;
+}
+.parameters th { background: #90b8de; }
+.exceptions th { background: #deb890; }
+
+.parameters td, .exceptions td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+    vertical-align: top;
+}
+
+.parameters tr:first-child td, .exceptions tr:first-child td {
+    border-top: none;
+}
+
+.parameters td.prmName, .exceptions td.excName, .exceptions td.excCodeName {
+    width:  100px;
+}
+
+.parameters td.prmType {
+    width:  120px;
+}
+
+table.exceptions table {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    width:  100%;
+}
+
+/* --- TOC --- */
+.toc a {
+    text-decoration:    none;
+}
+
+a .secno {
+    color:  #000;
+}
+
+/* --- TABLE --- */
+table.simple {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    border-bottom:  3px solid #005a9c;
+}
+
+.simple th {
+    background: #005a9c;
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+}
+
+.simple th[scope="row"] {
+    background: inherit;
+    color:  inherit;
+    border-top: 1px solid #ddd;
+}
+
+.simple td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+}
+
+.simple tr:nth-child(even) {
+    background: #f0f6ff;
+}
+
+/* --- DL --- */
+.section dd > p:first-child {
+    margin-top: 0;
+}
+
+.section dd > p:last-child {
+    margin-bottom: 0;
+}
+
+.section dd {
+    margin-bottom:  1em;
+}
+
+.section dl.attrs dd, .section dl.eldef dd {
+    margin-bottom:  0;
+}
+
+/* --- EXAMPLES --- */
+pre.example {
+    border-top: 1px solid #ff4500;
+    border-bottom: 1px solid #ff4500;
+    padding:    1em;
+    margin-top: 1em;
+}
+
+pre.example::before {
+    content:    "Example";
+    display:    block;
+    width:      150px;
+    background: #ff4500;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+/* --- EDITORIAL NOTES --- */
+.issue {
+    padding:    1em;
+    margin: 1em 0em 0em;
+    border: 1px solid #f00;
+    background: #ffc;
+}
+
+.issue::before {
+    content:    "Issue";
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #f00;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+.note {
+    margin: 1em 0em 0em;
+    padding:    1em;
+    border: 2px solid #cff6d9;
+    background: #e2fff0;
+}
+
+.note::before {
+    content:    "Note";
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #cff6d9;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+/* --- Best Practices --- */
+div.practice {
+    border: solid #bebebe 1px;
+    margin: 2em 1em 1em 2em;
+}
+
+span.practicelab {
+    margin: 1.5em 0.5em 1em 1em;
+    font-weight: bold;
+    font-style: italic;
+}
+
+span.practicelab   { background: #dfffff; }
+
+span.practicelab {
+    position: relative;
+    padding: 0 0.5em;
+    top: -1.5em;
+}
+
+p.practicedesc {
+    margin: 1.5em 0.5em 1em 1em;
+}
+
+@media screen {
+    p.practicedesc {
+        position: relative;
+        top: -2em;
+        padding: 0;
+        margin: 1.5em 0.5em -1em 1em;
+}
+
+/* --- SYNTAX HIGHLIGHTING --- */
+pre.sh_sourceCode {
+  background-color: white;
+  color: black;
+  font-style: normal;
+  font-weight: normal;
+}
+
+pre.sh_sourceCode .sh_keyword { color: #005a9c; font-weight: bold; }           /* language keywords */
+pre.sh_sourceCode .sh_type { color: #666; }                            /* basic types */
+pre.sh_sourceCode .sh_usertype { color: teal; }                             /* user defined types */
+pre.sh_sourceCode .sh_string { color: red; font-family: monospace; }        /* strings and chars */
+pre.sh_sourceCode .sh_regexp { color: orange; font-family: monospace; }     /* regular expressions */
+pre.sh_sourceCode .sh_specialchar { color: 	#ffc0cb; font-family: monospace; }  /* e.g., \n, \t, \\ */
+pre.sh_sourceCode .sh_comment { color: #A52A2A; font-style: italic; }         /* comments */
+pre.sh_sourceCode .sh_number { color: purple; }                             /* literal numbers */
+pre.sh_sourceCode .sh_preproc { color: #00008B; font-weight: bold; }       /* e.g., #include, import */
+pre.sh_sourceCode .sh_symbol { color: blue; }                            /* e.g., *, + */
+pre.sh_sourceCode .sh_function { color: black; font-weight: bold; }         /* function calls and declarations */
+pre.sh_sourceCode .sh_cbracket { color: red; }                              /* block brackets (e.g., {, }) */
+pre.sh_sourceCode .sh_todo { font-weight: bold; background-color: #00FFFF; }   /* TODO and FIXME */
+
+/* Predefined variables and functions (for instance glsl) */
+pre.sh_sourceCode .sh_predef_var { color: #00008B; }
+pre.sh_sourceCode .sh_predef_func { color: #00008B; font-weight: bold; }
+
+/* for OOP */
+pre.sh_sourceCode .sh_classname { color: teal; }
+
+/* line numbers (not yet implemented) */
+pre.sh_sourceCode .sh_linenum { display: none; }
+
+/* Internet related */
+pre.sh_sourceCode .sh_url { color: blue; text-decoration: underline; font-family: monospace; }
+
+/* for ChangeLog and Log files */
+pre.sh_sourceCode .sh_date { color: blue; font-weight: bold; }
+pre.sh_sourceCode .sh_time, pre.sh_sourceCode .sh_file { color: #00008B; font-weight: bold; }
+pre.sh_sourceCode .sh_ip, pre.sh_sourceCode .sh_name { color: #006400; }
+
+/* for Prolog, Perl... */
+pre.sh_sourceCode .sh_variable { color: #006400; }
+
+/* for LaTeX */
+pre.sh_sourceCode .sh_italics { color: #006400; font-style: italic; }
+pre.sh_sourceCode .sh_bold { color: #006400; font-weight: bold; }
+pre.sh_sourceCode .sh_underline { color: #006400; text-decoration: underline; }
+pre.sh_sourceCode .sh_fixed { color: green; font-family: monospace; }
+pre.sh_sourceCode .sh_argument { color: #006400; }
+pre.sh_sourceCode .sh_optionalargument { color: purple; }
+pre.sh_sourceCode .sh_math { color: orange; }
+pre.sh_sourceCode .sh_bibtex { color: blue; }
+
+/* for diffs */
+pre.sh_sourceCode .sh_oldfile { color: orange; }
+pre.sh_sourceCode .sh_newfile { color: #006400; }
+pre.sh_sourceCode .sh_difflines { color: blue; }
+
+/* for css */
+pre.sh_sourceCode .sh_selector { color: purple; }
+pre.sh_sourceCode .sh_property { color: blue; }
+pre.sh_sourceCode .sh_value { color: #006400; font-style: italic; }
+
+/* other */
+pre.sh_sourceCode .sh_section { color: black; font-weight: bold; }
+pre.sh_sourceCode .sh_paren { color: red; }
+pre.sh_sourceCode .sh_attribute { color: #006400; }
+
+</style><link href="http://www.w3.org/StyleSheets/TR/w3c-unofficial" rel="stylesheet" type="text/css" charset="utf-8"><style type='text/css'>
+.diff-old-a {
+  font-size: smaller;
+  color: red;
+}
+
+.diff-new { background-color: yellow; }
+.diff-chg { background-color: lime; }
+.diff-new:before,
+.diff-new:after
+    { content: "\2191" }
+.diff-chg:before, .diff-chg:after
+    { content: "\2195" }
+.diff-old { text-decoration: line-through; background-color: #FBB; }
+.diff-old:before,
+.diff-old:after
+    { content: "\2193" }
+:focus { border: thin red solid}
+</style>
+</head>
+<body style="display: inherit; ">
+<div class="head">
+<p>
+</p>
+<h1 class="title" id="title">
+JSON-LD
+-
+Linked
+Data
+Expression
+in
+JSON
+</h1>
+<h2 id="subtitle">
+A
+Context-based
+JSON
+Serialization
+for
+Linked
+Data
+</h2>
+<h2 id="unofficial-draft-15-june-2011">
+Unofficial
+Draft
+<del class="diff-old">30
+May
+2010
+</del>
+<ins class="diff-chg">15
+June
+2011
+</ins>
+</h2>
+<dl>
+<dt>
+<del class="diff-old">Editor:
+</del>
+<ins class="diff-chg">Editors:
+</ins>
+</dt>
+<dd>
+<a href="http://digitalbazaar.com/">
+Manu
+Sporny
+</a>,
+<a href="http://digitalbazaar.com/">
+Digital
+Bazaar,
+Inc.
+</a>
+</dd>
+<dd>
+<a href="http://greggkellogg.net/">
+<ins class="diff-new">Gregg
+Kellogg
+</ins></a>,<ins class="diff-new">
+Kellogg
+Associates
+</ins></dd>
+<dt>
+Authors:
+</dt>
+<dd>
+<a href="http://webbackplane.com/">
+Mark
+Birbeck
+</a>,
+<a href="http://webbackplane.com/">
+Backplane
+Ltd.
+</a>
+</dd>
+<dd>
+<a href="http://digitalbazaar.com/">
+Manu
+Sporny
+</a>,
+<a href="http://digitalbazaar.com/">
+Digital
+Bazaar,
+Inc.
+</a>
+</dd>
+</dl>
+<p class="copyright">
+This
+document
+is
+licensed
+under
+a
+<a class="subfoot" href="http://creativecommons.org/licenses/by/3.0/" rel="license">
+Creative
+Commons
+Attribution
+3.0
+License
+</a>.
+</p>
+<hr>
+</div>
+<div id="abstract" class="introductory section">
+<h2>
+Abstract
+</h2>
+<p>
+Developers
+that
+embed
+structured
+data
+in
+their
+Web
+pages
+can
+choose
+among
+a
+number
+of
+languages
+such
+as
+RDFa
+[
+<cite>
+<a class="bibref" rel="biblioentry" href="#bib-RDFA-CORE">
+RDFA-CORE
+</a>
+</cite>
+],
+Microformats
+[
+<cite>
+<a class="bibref" rel="biblioentry" href="#bib-MICROFORMATS">
+MICROFORMATS
+</a>
+</cite>
+]
+and
+Microdata
+[
+<cite>
+<a class="bibref" rel="biblioentry" href="#bib-MICRODATA">
+MICRODATA
+</a>
+</cite>
+].
+Each
+of
+these
+structured
+data
+languages,
+while
+incompatible
+at
+the
+syntax
+level,
+can
+be
+easily
+mapped
+to
+RDF.
+JSON
+has
+proven
+to
+be
+a
+highly
+useful
+object
+serialization
+and
+messaging
+<del class="diff-old">replacement
+for
+SOAP.
+</del>
+<ins class="diff-chg">format.
+</ins>
+In
+an
+attempt
+to
+harmonize
+the
+representation
+of
+<del class="diff-old">Link
+</del>
+<ins class="diff-chg">Linked
+</ins>
+Data
+in
+JSON,
+this
+specification
+outlines
+a
+common
+JSON
+representation
+format
+for
+Linked
+Data
+that
+can
+be
+used
+to
+represent
+objects
+specified
+via
+RDFa,
+Microformats
+and
+Microdata.
+</p>
+</div>
+<div id="sotd" class="introductory section">
+<h2>
+Status
+of
+This
+Document
+</h2>
+<p>
+This
+document
+is
+merely
+a
+public
+working
+draft
+of
+a
+potential
+specification.
+It
+has
+no
+official
+standing
+of
+any
+kind
+and
+does
+not
+represent
+the
+support
+or
+consensus
+of
+any
+standards
+organisation.
+</p>
+<p>
+<ins class="diff-chg">This
+document
+is
+an
+experimental
+work
+in
+progress.
+</ins></p>
+</div>
+<div id="toc" class="section">
+<h2 class="introductory">
+Table
+of
+Contents
+</h2>
+<ul class="toc">
+<li class="tocline">
+<a href="#introduction" class="tocxref">
+<span class="secno">
+1.
+</span>
+<ins class="diff-new">Introduction
+</ins></a><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno"><ins class="diff-new">
+1.1
+</ins></span>
+How
+to
+Read
+this
+Document
+</a>
+</li>
+<li class="tocline">
+<a href="#contributing" class="tocxref">
+<span class="secno">
+<del class="diff-old">2.
+</del>
+<ins class="diff-chg">1.2
+</ins>
+</span>
+<del class="diff-old">Introduction
+</del>
+<ins class="diff-chg">Contributing
+</ins>
+</a>
+</li>
+</ul>
+</li>
+<li class="tocline">
+<a href="#design-goals-and-rationale" class="tocxref">
+<span class="secno">
+<del class="diff-old">3.
+</del>
+<ins class="diff-chg">2.
+</ins>
+</span>
+Design
+Goals
+<ins class="diff-new">and
+Rationale
+</ins>
+</a>
+<ul class="toc">
+<li class="tocline">
+<a href="#goals" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.
+</del>
+<ins class="diff-chg">2.1
+</ins>
+</span>
+<del class="diff-old">Design
+Rationale
+</del>
+<ins class="diff-chg">Goals
+</ins>
+</a>
+</li>
+<li class="tocline">
+<a href="#map-terms-to-iris" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.1
+</del>
+<ins class="diff-chg">2.2
+</ins>
+</span>
+Map
+Terms
+to
+IRIs
+</a>
+</li>
+<li class="tocline">
+<a href="#the-json-ld-context" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.2
+</del>
+<ins class="diff-chg">2.3
+</ins>
+</span>
+The
+<del class="diff-old">Default
+</del>
+<ins class="diff-chg">JSON-LD
+</ins>
+Context
+</a>
+</li>
+<li class="tocline">
+<a href="#unambiguous-identifiers-for-json" class="tocxref">
+<span class="secno">
+<ins class="diff-new">2.4
+</ins></span><ins class="diff-new">
+Unambiguous
+Identifiers
+for
+JSON
+</ins></a></li><li class="tocline">
+<a href="#mashing-up-vocabularies" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.3
+</del>
+<ins class="diff-chg">2.5
+</ins>
+</span>
+Mashing
+Up
+Vocabularies
+</a>
+</li>
+<li class="tocline">
+<a href="#an-example-of-a-context" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.4
+</del>
+<ins class="diff-chg">2.6
+</ins>
+</span>
+An
+Example
+of
+a
+<del class="diff-old">Default
+</del>
+Context
+</a>
+</li>
+</ul>
+</li>
+<li class="tocline">
+<a href="#markup-examples" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.5
+</del>
+<ins class="diff-chg">3.
+</ins>
+</span>
+Markup
+Examples
+</a>
+<ul class="toc">
+<li class="tocline">
+<a href="#rdfa" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.5.1
+</del>
+<ins class="diff-chg">3.1
+</ins>
+</span>
+RDFa
+</a>
+</li>
+<li class="tocline">
+<a href="#microformats" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.5.2
+</del>
+<ins class="diff-chg">3.2
+</ins>
+</span>
+Microformats
+</a>
+</li>
+<li class="tocline">
+<a href="#microdata" class="tocxref">
+<span class="secno">
+<del class="diff-old">4.5.3
+</del>
+<ins class="diff-chg">3.3
+</ins>
+</span>
+Microdata
+</a>
+</li>
+</ul>
+</li>
+<li class="tocline">
+<a href="#markup-of-rdf-concepts" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.
+</del>
+<ins class="diff-chg">4.
+</ins>
+</span>
+Markup
+of
+RDF
+Concepts
+</a>
+<ul class="toc">
+<li class="tocline">
+<a href="#iris" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.1
+</del>
+<ins class="diff-chg">4.1
+</ins>
+</span>
+IRIs
+</a>
+</li>
+<li class="tocline">
+<a href="#identifying-the-subject" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.2
+</del>
+<ins class="diff-chg">4.2
+</ins>
+</span>
+Identifying
+the
+Subject
+</a>
+</li>
+<li class="tocline">
+<a href="#specifying-the-type" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.3
+</del>
+<ins class="diff-chg">4.3
+</ins>
+</span>
+Specifying
+the
+Type
+</a>
+</li>
+<li class="tocline">
+<a href="#plain-literals" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.4
+</del>
+<ins class="diff-chg">4.4
+</ins>
+</span>
+Plain
+Literals
+</a>
+</li>
+<li class="tocline">
+<a href="#language-specification-in-plain-literals" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.5
+</del>
+<ins class="diff-chg">4.5
+</ins>
+</span>
+Language
+Specification
+in
+Plain
+Literals
+</a>
+</li>
+<li class="tocline">
+<a href="#typed-literals" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.6
+</del>
+<ins class="diff-chg">4.6
+</ins>
+</span>
+Typed
+Literals
+</a>
+</li>
+<li class="tocline">
+<a href="#multiple-objects-for-a-single-property" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.7
+</del>
+<ins class="diff-chg">4.7
+</ins>
+</span>
+Multiple
+Objects
+for
+a
+Single
+Property
+</a>
+</li>
+<li class="tocline">
+<a href="#multiple-typed-literals-for-a-single-property" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.8
+</del>
+<ins class="diff-chg">4.8
+</ins>
+</span>
+Multiple
+Typed
+Literals
+for
+a
+Single
+Property
+</a>
+</li>
+<li class="tocline">
+<a href="#blank-nodes" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.9
+</del>
+<ins class="diff-chg">4.9
+</ins>
+</span>
+Blank
+Nodes
+</a>
+</li>
+</ul>
+</li>
+<li class="tocline">
+<a href="#advanced-features" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.10
+</del>
+<ins class="diff-chg">5.
+</ins>
+</span>
+<del class="diff-old">Escape
+Character
+</del>
+<ins class="diff-chg">Advanced
+Features
+</ins>
+</a>
+<ul class="toc">
+<li class="tocline">
+<a href="#automatic-typing" class="tocxref">
+<span class="secno">
+<del class="diff-old">5.11
+</del>
+<ins class="diff-chg">5.1
+</ins>
+</span>
+Automatic
+Typing
+</a>
+</li>
+<li class="tocline">
+<a href="#type-coercion" class="tocxref">
+<span class="secno">
+<ins class="diff-new">5.2
+</ins></span><ins class="diff-new">
+Type
+Coercion
+</ins></a></li>
+</ul>
+</li>
+<li class="tocline">
+<a href="#the-json-ld-processing-algorithm" class="tocxref">
+<span class="secno">
+<ins class="diff-chg">6.
+</ins></span><ins class="diff-chg">
+The
+JSON-LD
+Processing
+Algorithm
+</ins></a><ul class="toc"><li class="tocline"><a href="#overview" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.1
+</ins></span><ins class="diff-chg">
+Overview
+</ins></a></li><li class="tocline"><a href="#processing-algorithm-terms" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.2
+</ins></span><ins class="diff-chg">
+Processing
+Algorithm
+Terms
+</ins></a></li><li class="tocline"><a href="#processing-tokens-and-keywords" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.3
+</ins></span><ins class="diff-chg">
+Processing
+Tokens
+and
+Keywords
+</ins></a></li><li class="tocline"><a href="#context" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.4
+</ins></span><ins class="diff-chg">
+Context
+</ins></a><ul class="toc"><li class="tocline"><a href="#coerce" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.4.1
+</ins></span><ins class="diff-chg">
+Coerce
+</ins></a></li></ul></li><li class="tocline"><a href="#chaining" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.5
+</ins></span><ins class="diff-chg">
+Chaining
+</ins></a></li><li class="tocline"><a href="#iri-processing" class="tocxref"><span class="secno"><ins class="diff-chg">
+6.6
+</ins></span><ins class="diff-chg">
+IRI
+Processing
+</ins></a></li></ul></li><li class="tocline"><a href="#sequence" class="tocxref"><span class="secno"><ins class="diff-chg">
+7.
+</ins></span><ins class="diff-chg">
+Sequence
+</ins></a></li><li class="tocline"><a href="#best-practices" class="tocxref"><span class="secno"><ins class="diff-chg">
+8.
+</ins></span><ins class="diff-chg">
+Best
+Practices
+</ins></a><ul class="toc"><li class="tocline"><a href="#javascript" class="tocxref"><span class="secno"><ins class="diff-chg">
+8.1
+</ins></span><ins class="diff-chg">
+JavaScript
+</ins></a></li><li class="tocline"><a href="#schema-less-databases" class="tocxref"><span class="secno"><ins class="diff-chg">
+8.2
+</ins></span><ins class="diff-chg">
+Schema-less
+Databases
+</ins></a></li></ul></li><li class="tocline"><a href="#advanced-concepts" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.
+</ins></span><ins class="diff-chg">
+Advanced
+Concepts
+</ins></a><ul class="toc"><li class="tocline"><a href="#vocabulary-profiles" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.1
+</ins></span><ins class="diff-chg">
+Vocabulary
+Profiles
+</ins></a></li><li class="tocline"><a href="#disjoint-graphs" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.2
+</ins></span><ins class="diff-chg">
+Disjoint
+Graphs
+</ins></a></li><li class="tocline"><a href="#the-json-ld-api" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.3
+</ins></span><ins class="diff-chg">
+The
+JSON-LD
+API
+</ins></a><ul class="toc"><li class="tocline"><a href="#methods" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.3.1
+</ins></span><ins class="diff-chg">
+Methods
+</ins></a></li><li class="tocline"><a href="#methods-1" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.3.2
+</ins></span><ins class="diff-chg">
+Methods
+</ins></a></li><li class="tocline"><a href="#methods-2" class="tocxref"><span class="secno"><ins class="diff-chg">
+9.3.3
+</ins></span><ins class="diff-chg">
+Methods
+</ins></a></li></ul></li></ul></li><li class="tocline"><a href="#the-default-context" class="tocxref">
+<span class="secno">
+A.
+</span>
+<ins class="diff-new">The
+Default
+Context
+</ins></a></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno"><ins class="diff-new">
+B.
+</ins></span>
+Acknowledgements
+</a>
+</li>
+<li class="tocline">
+<a href="#references" class="tocxref">
+<span class="secno">
+<del class="diff-old">B.
+</del>
+<ins class="diff-chg">C.
+</ins>
+</span>
+References
+</a>
+<ul class="toc">
+<li class="tocline">
+<a href="#normative-references" class="tocxref">
+<span class="secno">
+<del class="diff-old">B.1
+</del>
+<ins class="diff-chg">C.1
+</ins>
+</span>
+Normative
+references
+</a>
+</li>
+<li class="tocline">
+<a href="#informative-references" class="tocxref">
+<span class="secno">
+<del class="diff-old">B.2
+</del>
+<ins class="diff-chg">C.2
+</ins>
+</span>
+Informative
+references
+</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="introduction" class="section">
+<h2>
+<span class="secno">
+1.
+</span>
+<ins class="diff-new">Introduction
+</ins></h2><p><ins class="diff-new">
+JSON-LD
+is
+designed
+as
+a
+light-weight
+syntax
+that
+can
+be
+used
+to
+express
+Linked
+Data.
+It
+is
+primarily
+intended
+to
+be
+a
+way
+to
+express
+Linked
+Data
+in
+Javascript
+and
+other
+Web-based
+programming
+environments.
+It
+is
+also
+useful
+when
+building
+interoperable
+Web
+Services
+and
+when
+storing
+Linked
+Data
+in
+JSON-based
+document
+storage
+engines.
+It
+is
+practical
+and
+designed
+to
+be
+as
+simple
+as
+possible,
+utilizing
+the
+large
+number
+of
+JSON
+parsers
+and
+existing
+code
+that
+is
+in
+use
+today.
+It
+is
+designed
+to
+be
+able
+to
+express
+key-value
+pairs,
+RDF
+data,
+Microformats
+data,
+and
+Microdata.
+That
+is,
+it
+supports
+every
+major
+Web-based
+structured
+data
+model
+in
+use
+today.
+It
+does
+not
+require
+anyone
+to
+change
+their
+JSON,
+but
+easily
+add
+meaning
+by
+adding
+context
+in
+a
+way
+that
+is
+out-of-band.
+The
+syntax
+is
+designed
+to
+not
+disturb
+already
+deployed
+systems
+running
+on
+JSON,
+but
+provide
+a
+smooth
+migration
+path
+from
+JSON
+to
+JSON
+with
+added
+semantics.
+Finally,
+the
+format
+is
+intended
+to
+be
+fast
+to
+parse,
+fast
+to
+generate,
+stream-based
+and
+document-based
+processing
+compatible,
+and
+require
+a
+very
+small
+memory
+footprint
+in
+order
+to
+operate.
+</ins></p><p><ins class="diff-new">
+JSON,
+as
+specified
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RFC4627"><ins class="diff-new">
+RFC4627
+</ins></a></cite><ins class="diff-new">
+],
+is
+a
+simple
+language
+for
+representing
+objects
+on
+the
+web.
+Linked
+Data
+is
+a
+way
+of
+describing
+content
+across
+different
+documents,
+or
+web
+resources.
+Web
+resources
+are
+described
+using
+</ins><a class="tref internalDFN" title="IRI" href="#dfn-iri"><ins class="diff-new">
+IRI
+</ins></a><ins class="diff-new">
+s,
+and
+typically
+are
+dereferencable
+entities
+that
+may
+be
+used
+to
+find
+more
+information,
+creating
+a
+"web
+of
+knowledge".
+JSON-LD
+is
+intended
+to
+be
+a
+simple
+publishing
+method
+for
+expressing
+linked
+data
+in
+JSON.
+</ins></p><div id="how-to-read-this-document" class="section"><h3><span class="secno"><ins class="diff-new">
+1.1
+</ins></span>
+How
+to
+Read
+this
+Document
+</h3>
+<p>
+This
+document
+is
+a
+detailed
+specification
+for
+a
+serialization
+of
+JSON
+for
+Linked
+data.
+The
+document
+is
+primarily
+intended
+for
+the
+following
+audiences:
+</p>
+<ul>
+<li>
+<del class="diff-old">Developers
+</del>
+<ins class="diff-chg">Web
+developers
+that
+want
+to
+understand
+the
+design
+decisions
+and
+language
+syntax
+for
+JSON-LD.
+</ins></li><li><ins class="diff-chg">
+Software
+developers
+</ins>
+that
+want
+to
+encode
+Microformats,
+RDFa,
+or
+Microdata
+in
+a
+way
+that
+is
+cross-language
+compatible
+via
+JSON.
+</li>
+<li>
+<del class="diff-old">Developers
+</del>
+<ins class="diff-chg">Software
+developers
+</ins>
+that
+want
+to
+<del class="diff-old">understand
+the
+encoding
+possibilities.
+</del>
+<ins class="diff-chg">write
+processors
+for
+JSON-LD.
+</ins>
+</li>
+</ul>
+<p>
+To
+understand
+this
+specification
+you
+must
+first
+be
+familiar
+with
+JSON,
+which
+is
+detailed
+in
+[
+<cite>
+<a class="bibref" rel="biblioentry" href="#bib-RFC4627">
+RFC4627
+</a>
+</cite>
+<ins class="diff-new">]
+and
+RDF
+as
+described
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS"><ins class="diff-new">
+RDF-CONCEPTS
+</ins></a></cite>
+].
+</p>
+</div>
+<div id="contributing" class="section">
+<h3>
+<span class="secno">
+<ins class="diff-chg">1.2
+</ins></span><ins class="diff-chg">
+Contributing
+</ins></h3>
+<p>
+<del class="diff-old">This
+document
+is
+an
+experimental
+work
+</del>
+<ins class="diff-chg">There
+are
+a
+number
+of
+ways
+that
+one
+may
+participate
+</ins>
+in
+<del class="diff-old">progress.
+</del>
+<ins class="diff-chg">the
+development
+of
+this
+specification:
+</ins>
+</p>
+<ul>
+<li>
+<ins class="diff-new">All
+comments
+and
+discussion
+takes
+place
+on
+the
+public
+mailing
+list:
+</ins><a href="http://lists.w3.org/Archives/Public/public-linked-json/"><ins class="diff-new">
+public-linked-json@w3.org
+</ins></a></li><li><ins class="diff-new">
+Specification
+bugs
+and
+issues
+should
+be
+reported
+in
+the
+</ins><a href="https://github.com/json-ld/json-ld.org/issues"><ins class="diff-new">
+issue
+tracker
+</ins></a>.</li><li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec"><ins class="diff-new">
+Source
+code
+</ins></a><ins class="diff-new">
+for
+the
+specification
+can
+be
+found
+on
+Github.
+</ins></li><li><ins class="diff-new">
+The
+</ins><a href="http://webchat.freenode.net/?channels=#json-ld"><ins class="diff-new">
+#json-ld
+</ins></a><ins class="diff-new">
+IRC
+channel
+is
+available
+for
+real-time
+discussion
+on
+irc.freenode.net.
+</ins></li></ul>
+</div>
+</div>
+<div id="design-goals-and-rationale" class="section">
+<h2>
+<span class="secno">
+2.
+</span>
+<del class="diff-old">Introduction
+</del>
+<ins class="diff-chg">Design
+Goals
+and
+Rationale
+</ins>
+</h2>
+<del class="diff-old">Need
+to
+write
+introduction...
+</del>
+<p>
+<ins class="diff-chg">The
+following
+section
+outlines
+the
+design
+goals
+and
+rationale
+behind
+the
+JSON-LD
+markup
+language.
+</ins>
+</p>
+<div id="goals" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">3.
+</del>
+<ins class="diff-chg">2.1
+</ins>
+</span>
+<del class="diff-old">Design
+</del>
+Goals
+</h3>
+<p>
+A
+number
+of
+design
+considerations
+were
+explored
+during
+the
+creation
+of
+this
+markup
+language:
+</p>
+<dl>
+<dt>
+Simplicity
+</dt>
+<dd>
+Developers
+don't
+need
+to
+know
+RDF
+in
+order
+to
+use
+the
+basic
+functionality
+provided
+by
+JSON-LD.
+</dd>
+<dt>
+Compatibility
+</dt>
+<dd>
+The
+JSON-LD
+markup
+should
+be
+100%
+compatible
+with
+JSON.
+</dd>
+<dt>
+Expressiveness
+</dt>
+<dd>
+All
+major
+RDF
+concepts
+must
+be
+expressible
+via
+the
+JSON-LD
+syntax.
+</dd>
+<dt>
+Terseness
+</dt>
+<dd>
+The
+JSON-LD
+syntax
+must
+be
+very
+terse
+and
+human
+readable.
+</dd>
+<del class="diff-old">4.
+Design
+Rationale
+The
+following
+section
+outlines
+the
+rationale
+behind
+</del>
+<dt>
+<ins class="diff-chg">Zero
+Edits,
+most
+of
+</ins>
+the
+<ins class="diff-new">time
+</ins></dt><dd>
+JSON-LD
+<del class="diff-old">markup
+</del>
+<ins class="diff-chg">provides
+a
+mechanism
+that
+allows
+developers
+to
+specify
+context
+in
+a
+way
+that
+is
+out-of-band.
+This
+allows
+organizations
+that
+have
+already
+deployed
+large
+JSON-based
+infrastructure
+to
+add
+meaning
+to
+their
+JSON
+in
+a
+way
+that
+is
+not
+disruptive
+to
+their
+day-to-day
+operations
+and
+is
+transparent
+to
+their
+current
+customers.
+At
+times,
+mapping
+JSON
+to
+RDF
+can
+become
+difficult
+-
+in
+these
+instances,
+rather
+than
+having
+JSON-LD
+support
+esoteric
+markup,
+we
+chose
+not
+to
+support
+the
+use
+case
+and
+support
+a
+simplified
+syntax
+instead.
+So,
+while
+we
+strive
+for
+Zero
+Edits,
+it
+was
+not
+always
+possible
+without
+adding
+great
+complexity
+to
+the
+</ins>
+language.
+</dd>
+<dt>
+<ins class="diff-chg">Streaming
+</ins></dt><dd><ins class="diff-chg">
+The
+format
+supports
+both
+document-based
+and
+stream-based
+processing.
+</ins></dd></dl></div>
+<div id="map-terms-to-iris" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.1
+</del>
+<ins class="diff-chg">2.2
+</ins>
+</span>
+Map
+Terms
+to
+IRIs
+</h3>
+<p>
+<ins class="diff-new">An
+Internationalized
+Resource
+Identifier
+(
+</ins><dfn title="IRI" id="dfn-iri"><abbr title="Internationalized Resource Identifier"><ins class="diff-new">
+IRI
+</ins></abbr></dfn><ins class="diff-new">
+)
+as
+described
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RFC3987"><ins class="diff-new">
+RFC3987
+</ins></a></cite><ins class="diff-new">
+],
+is
+a
+mechanism
+for
+representing
+unique
+identifiers
+on
+the
+web.
+In
+Linked
+Data,
+IRIs
+(or
+URI
+references)
+are
+commonly
+used
+for
+describing
+entities
+and
+properties.
+</ins></p><p>
+Establishing
+a
+mechanism
+to
+map
+JSON
+values
+to
+IRIs
+will
+help
+in
+the
+mapping
+of
+JSON
+objects
+to
+RDF.
+This
+does
+not
+mean
+that
+JSON-LD
+must
+be
+restrictive
+in
+declaring
+a
+set
+of
+terms,
+rather,
+experimentation
+and
+innovation
+should
+be
+supported
+as
+part
+of
+the
+core
+design
+of
+JSON-LD.
+There
+are,
+however,
+a
+number
+of
+very
+small
+design
+<del class="diff-old">criterial
+</del>
+<ins class="diff-chg">criteria
+</ins>
+that
+can
+ensure
+that
+developers
+will
+generate
+good
+RDF
+data
+that
+will
+create
+value
+for
+the
+greater
+semantic
+web
+community
+and
+JSON/REST-based
+Web
+Services
+community.
+</p>
+<p>
+We
+will
+be
+using
+the
+following
+JSON
+object
+as
+the
+example
+for
+this
+section:
+</p>
+<del class="diff-old">{"a" : "Person",
+ "name" : "Manu Sporny",
+"homepage"
+:
+"http://manu.sporny.org/"}
+</del>
+<pre class="example">{
+<ins class="diff-chg">  "a": "Person",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+</ins>
+</pre>
+</div>
+<div id="the-json-ld-context" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.2
+</del>
+<ins class="diff-chg">2.3
+</ins>
+</span>
+The
+<del class="diff-old">Default
+</del>
+<ins class="diff-chg">JSON-LD
+</ins>
+Context
+</h3>
+<p>
+A
+<del class="diff-old">default
+</del>
+context
+is
+used
+<del class="diff-old">in
+RDFa
+</del>
+to
+allow
+developers
+to
+use
+<del class="diff-old">keywords
+as
+</del>
+aliases
+for
+<del class="diff-old">IRIs.
+So,
+for
+instance,
+the
+keyword
+name
+above
+could
+refer
+to
+the
+</del>
+<a class="tref internalDFN" title="IRI" href="#dfn-iri">
+IRI
+<del class="diff-old">http://xmlns.com/foaf/0.1/name
+.
+</del>
+</a>
+<ins class="diff-chg">s.
+</ins>
+The
+semantic
+web,
+just
+like
+the
+document-based
+web,
+uses
+IRIs
+for
+unambiguous
+identification.
+The
+idea
+is
+that
+these
+terms
+mean
+something,
+which
+you
+will
+eventually
+want
+to
+query.
+<ins class="diff-new">A
+context
+allows
+the
+expression
+of
+a
+number
+of
+terms
+which
+map
+directly
+to
+</ins><a class="tref internalDFN" title="IRI" href="#dfn-iri"><ins class="diff-new">
+IRI
+</ins></a><ins class="diff-new">
+s.
+For
+example,
+the
+term
+</ins><code><ins class="diff-new">
+name
+</ins></code><ins class="diff-new">
+may
+map
+directly
+to
+the
+IRI
+</ins><code><ins class="diff-new">
+http://xmlns.com/foaf/0.1/name
+</ins></code>.<ins class="diff-new">
+This
+allows
+JSON-LD
+documents
+to
+be
+constructed
+using
+common
+JSON
+syntax
+of
+using
+simple
+name/value
+pairs.
+</ins></p><p><ins class="diff-new">
+To
+reduce
+the
+number
+of
+different
+terms
+that
+must
+be
+defined,
+JSON-LD
+also
+allows
+terms
+to
+be
+used
+to
+expand
+Compact
+URIs
+(
+</ins><abbr title="Compact URI"><ins class="diff-new">
+CURIE
+</ins></abbr><ins class="diff-new">
+).
+</ins>
+The
+semantic
+web
+specifies
+this
+via
+<em>
+Vocabulary
+Documents
+<del class="diff-old">.
+The
+</del>
+</em>,
+<ins class="diff-chg">in
+which
+a
+prefix
+is
+associated
+with
+a
+document,
+and
+a
+suffix
+is
+used
+to
+create
+an
+IRI
+based
+on
+this
+vocabulary.
+For
+example,
+the
+</ins>
+IRI
+<em>
+http://xmlns.com/foaf/0.1/
+</em>
+specifies
+a
+Vocabulary
+Document,
+and
+<strong>
+name
+</strong>
+is
+a
+term
+in
+that
+vocabulary.
+<del class="diff-old">Paste
+</del>
+<ins class="diff-chg">Join
+</ins>
+the
+two
+items
+together
+and
+you
+have
+an
+unambiguous
+identifier
+for
+a
+<ins class="diff-new">vocabulary
+</ins>
+term.
+<ins class="diff-new">The
+Compact
+URI
+Expression,
+or
+short-form,
+is
+</ins><code><ins class="diff-new">
+foaf:name
+</ins></code><ins class="diff-new">
+and
+the
+expanded-form
+is
+</ins><code><ins class="diff-new">
+http://xmlns.com/foaf/0.1/name
+</ins></code>.<ins class="diff-new">
+This
+vocabulary
+term
+identifies
+the
+given
+name
+for
+something,
+for
+example
+-
+a
+person's
+name.
+</ins>
+</p>
+<p>
+Developers,
+and
+machines,
+would
+be
+able
+to
+use
+this
+IRI
+(plugging
+it
+directly
+into
+a
+web
+browser,
+for
+instance)
+to
+go
+to
+the
+term
+and
+get
+a
+definition
+of
+what
+the
+term
+means.
+Much
+like
+we
+can
+use
+WordNet
+today
+to
+see
+the
+<a href="http://wordnetweb.princeton.edu/perl/webwn?s=definition">
+definition
+</a>
+of
+words
+in
+the
+English
+language.
+Machines
+need
+the
+same
+sort
+of
+dictionary
+of
+terms,
+and
+URIs
+provide
+a
+way
+to
+ensure
+that
+these
+terms
+are
+unambiguous.
+</p>
+<p>
+<del class="diff-old">Non-prefixed
+terms
+should
+have
+term
+mappings
+declared
+in
+the
+default
+</del>
+<ins class="diff-chg">The
+</ins>
+context
+<del class="diff-old">so
+</del>
+<ins class="diff-chg">provides
+a
+collection
+of
+vocabulary
+terms
+</ins>
+that
+<del class="diff-old">they
+may
+</del>
+<ins class="diff-chg">can
+</ins>
+be
+<del class="diff-old">expanded
+later.
+</del>
+<ins class="diff-chg">used
+for
+a
+JSON
+object.
+</ins>
+</p>
+</div>
+<div id="unambiguous-identifiers-for-json" class="section">
+<h3>
+<span class="secno">
+<ins class="diff-new">2.4
+</ins></span><ins class="diff-new">
+Unambiguous
+Identifiers
+for
+JSON
+</ins></h3>
+<p>
+If
+a
+set
+of
+terms,
+like
+<strong>
+Person
+</strong>,
+<strong>
+name
+</strong>,
+and
+<strong>
+homepage
+</strong>,
+are
+<del class="diff-old">pre-defined
+</del>
+<ins class="diff-chg">defined
+</ins>
+in
+<del class="diff-old">the
+default
+</del>
+<ins class="diff-chg">a
+</ins>
+context,
+and
+that
+context
+is
+used
+to
+resolve
+the
+names
+in
+JSON
+objects,
+machines
+could
+automatically
+expand
+the
+terms
+to
+something
+meaningful
+and
+unambiguous,
+like
+this:
+</p>
+<del class="diff-old">",
+ "" : "Manu Sporny",
+"
+http://xmlns.com/foaf/0.1/homepage
+"
+:
+"
+&lt;
+http://manu.sporny.org
+&gt;
+"}
+</del>
+<pre class="example">{
+<ins class="diff-chg">  "<span class="diff">http://www.w3.org/1999/02/22-rdf-syntax-ns#type</span>": "<span class="diff">http://xmlns.com/foaf/0.1/Person</span>",
+  "<span class="diff">http://xmlns.com/foaf/0.1/name</span>": "Manu Sporny",
+  "<span class="diff">http://xmlns.com/foaf/0.1/homepage</span>": "http://manu.sporny.org"
+  "<span class="diff">http://rdfs.org/sioc/ns#avatar</span>": "http://twitter.com/account/profile_image/manusporny"
+}
+</ins>
+</pre>
+<del class="diff-old">In
+order
+to
+differentiate
+between
+plain
+text
+and
+IRIs,
+the
+&lt;
+and
+&gt;
+are
+used
+around
+IRIs.
+</del>
+<p>
+Doing
+this
+would
+mean
+that
+JSON
+would
+start
+to
+become
+unambiguously
+machine-readable,
+play
+well
+with
+the
+semantic
+web,
+and
+basic
+markup
+wouldn't
+be
+that
+much
+more
+complex
+than
+basic
+JSON
+markup.
+A
+win,
+all
+around.
+</p>
+</div>
+<div id="mashing-up-vocabularies" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.3
+</del>
+<ins class="diff-chg">2.5
+</ins>
+</span>
+Mashing
+Up
+Vocabularies
+</h3>
+<p>
+Developers
+would
+also
+benefit
+by
+allowing
+other
+vocabularies
+to
+be
+used
+automatically
+with
+their
+JSON
+API.
+There
+are
+over
+200
+Vocabulary
+Documents
+that
+are
+available
+for
+use
+on
+the
+Web
+today.
+Some
+of
+these
+vocabularies
+are:
+</p>
+<ul>
+<li>
+<ins class="diff-new">RDF
+-
+for
+describing
+information
+about
+objects
+on
+the
+semantic
+web.
+</ins></li><li><ins class="diff-new">
+RDFS
+-
+for
+expressing
+things
+like
+labels
+and
+comments.
+</ins></li><li>
+XSD
+-
+for
+specifying
+basic
+types
+like
+strings,
+integers,
+dates
+and
+times.
+</li>
+<li>
+Dublin
+Core
+-
+for
+describing
+creative
+works.
+</li>
+<li>
+FOAF
+-
+for
+describing
+social
+networks.
+</li>
+<li>
+Calendar
+-
+for
+specifying
+events.
+</li>
+<li>
+SIOC
+-
+for
+describing
+discussions
+on
+blogs
+and
+websites.
+</li>
+<li>
+CCrel
+-
+for
+describing
+Creative
+Commons
+and
+other
+types
+of
+licenses.
+</li>
+<li>
+GEO
+-
+for
+describing
+geographic
+location.
+</li>
+<li>
+VCard
+-
+for
+describing
+organizations
+and
+people.
+</li>
+<li>
+DOAP
+-
+for
+describing
+projects.
+</li>
+</ul>
+<p>
+<del class="diff-old">A
+JSON-LD
+Web
+Service
+could
+define
+</del>
+<ins class="diff-chg">Since
+</ins>
+these
+<del class="diff-old">as
+prefix
+es
+</del>
+<ins class="diff-chg">vocabularies
+are
+very
+popular,
+they
+are
+pre-defined
+</ins>
+in
+<del class="diff-old">their
+</del>
+<ins class="diff-chg">something
+called
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1">
+default
+context
+<del class="diff-old">beside
+the
+terms
+</del>
+</a>,
+<ins class="diff-chg">which
+is
+a
+set
+of
+vocabulary
+prefixes
+</ins>
+that
+are
+<del class="diff-old">already
+defined.
+Using
+</del>
+<ins class="diff-chg">pre-loaded
+in
+all
+JSON-LD
+processors.
+The
+contents
+of
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-chg">
+default
+context
+</ins></a><ins class="diff-chg">
+are
+provided
+later
+in
+</ins>
+this
+<del class="diff-old">feature,
+</del>
+<ins class="diff-chg">document.
+Using
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-chg">
+default
+context
+</ins></a><ins class="diff-chg">
+allows
+</ins>
+developers
+<del class="diff-old">could
+also
+do
+markup
+</del>
+<ins class="diff-chg">to
+express
+data
+unambiguously,
+</ins>
+like
+<del class="diff-old">this:
+</del>
+<ins class="diff-chg">so:
+</ins>
+</p>
+<del class="diff-old">",
+ "" : "Manu Sporny",
+ ",
+"sioc:avatar"
+:
+"&lt;http://twitter.com/account/profile_image/manusporny&gt;"
+</del>
+<pre class="example">{
+<ins class="diff-chg">  "<span class="diff">rdf:type</span>": "<span class="diff">foaf:Person</span>",
+  "<span class="diff">foaf:name</span>": "Manu Sporny",
+  "<span class="diff">foaf:homepage</span>": "http://manu.sporny.org/",
+  "<span class="diff">sioc:avatar</span>": "http://twitter.com/account/profile_image/manusporny"
+</ins>
+}
+</pre>
+<p>
+Developers
+<del class="diff-old">could
+</del>
+<ins class="diff-chg">can
+</ins>
+also
+<del class="diff-old">be
+allowed
+to
+</del>
+specify
+their
+own
+Vocabulary
+documents
+by
+modifying
+the
+<del class="diff-old">default
+context,
+</del>
+<a class="tref internalDFN" title="active_context" href="#dfn-active_context">
+<ins class="diff-chg">active
+context
+</ins></a><ins class="diff-chg">
+in-line
+using
+the
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+keyword,
+</ins>
+like
+so:
+</p>
+<del class="diff-old">{"a" : "Context",
+   "myvocab" : "http://example.org/myvocab#"}
+ },
+ {"a" : "foaf:Person",
+ "foaf:name" : "Manu Sporny",
+ "foaf:homepage" : "&lt;http://manu.sporny.org/&gt;",
+ "sioc:avatar" : "&lt;http://twitter.com/account/profile_image/manusporny&gt;",
+ "myvocab:credits" : 500}
+]
+</del>
+<pre class="example">{
+  <span class="diff">"@context": { "myvocab": "http://example.org/myvocab#" }</span>,
+<ins class="diff-chg">  "a": "foaf:Person",
+  "foaf:name": "Manu Sporny",
+  "foaf:homepage": "http://manu.sporny.org/",
+  "sioc:avatar": "http://twitter.com/account/profile_image/manusporny"<span class="diff">,
+  "myvocab:personality": "friendly"</span>
+}
+</ins>
+</pre>
+<p>
+<ins class="diff-new">The
+</ins><code><ins class="diff-new">
+@context
+</ins></code><ins class="diff-new">
+keyword
+is
+used
+to
+change
+how
+the
+JSON-LD
+processor
+evaluates
+key-value
+pairs.
+In
+this
+case,
+it
+was
+used
+to
+map
+one
+string
+('myvocab')
+to
+another
+string,
+which
+is
+interpreted
+as
+a
+</ins><a class="tref internalDFN" title="IRI" href="#dfn-iri"><ins class="diff-new">
+IRI
+</ins></a>.<ins class="diff-new">
+In
+the
+example
+above,
+the
+</ins><code><ins class="diff-new">
+myvocab
+</ins></code><ins class="diff-new">
+string
+is
+replaced
+with
+"
+</ins><code><ins class="diff-new">
+http://example.org/myvocab#
+</ins></code><ins class="diff-new">
+"
+when
+it
+is
+detected.
+In
+the
+example
+above,
+"
+</ins><code><ins class="diff-new">
+myvocab:personality
+</ins></code><ins class="diff-new">
+"
+would
+expand
+to
+"
+</ins><code><ins class="diff-new">
+http://example.org/myvocab#personality
+</ins></code><ins class="diff-new">
+".
+</ins></p><p>
+This
+mechanism
+is
+a
+short-hand
+for
+RDF,
+<ins class="diff-new">called
+a
+CURIE,
+</ins>
+and
+<del class="diff-old">if
+defined,
+will
+give
+</del>
+<ins class="diff-chg">provides
+</ins>
+developers
+an
+unambiguous
+way
+to
+map
+any
+JSON
+value
+to
+RDF.
+</p>
+<p>
+</p>
+</div>
+<div id="an-example-of-a-context" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.4
+</del>
+<ins class="diff-chg">2.6
+</ins>
+</span>
+An
+Example
+of
+a
+<del class="diff-old">Default
+</del>
+Context
+</h3>
+<p>
+<del class="diff-old">To
+be
+clear,
+</del>
+<ins class="diff-chg">JSON-LD
+strives
+to
+ensure
+that
+developers
+don't
+have
+to
+change
+</ins>
+the
+<ins class="diff-new">JSON
+that
+is
+going
+into
+and
+being
+returned
+from
+their
+Web
+applications.
+A
+</ins>
+JSON-LD
+aware
+Web
+Service
+<del class="diff-old">could
+</del>
+<em class="rfc2119" title="may">
+<ins class="diff-chg">may
+</ins></em>
+define
+a
+<ins class="diff-new">known
+context.
+For
+example,
+the
+following
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1">
+default
+context
+<del class="diff-old">like
+the
+following:
+</del>
+</a>
+<ins class="diff-chg">could
+apply
+to
+all
+incoming
+Web
+Service
+calls
+previously
+accepting
+only
+JSON
+data:
+</ins>
+</p>
+<del class="diff-old">{"a" : "Context",
+ "__vocab__" : "http://example.org/default-vocab#",
+ "xsd" : "http://www.w3.org/2001/XMLSchema#",
+ "dc" : "http://purl.org/dc/terms/",
+ "foaf" : "http://xmlns.com/foaf/0.1/",
+ "sioc" : "http://rdfs.org/sioc/ns#",
+ "cc" : "http://creativecommons.org/ns#",
+ "geo" : "http://www.w3.org/2003/01/geo/wgs84_pos#",
+ "vcard" : "http://www.w3.org/2006/vcard/ns#",
+ "cal" : "http://www.w3.org/2002/12/cal/ical#",
+ "doap" : "http://usefulinc.com/ns/doap#",
+ "Person" : "http://xmlns.com/foaf/0.1/Person",
+ "name" : "http://xmlns.com/foaf/0.1/name",
+ "homepage" : "http://xmlns.com/foaf/0.1/homepage"
+</del>
+<pre class="example">{
+<ins class="diff-chg">  "@context": 
+  {
+    "@vocab": "http://example.org/default-vocab#",
+    "@base": "http://example.org/baseurl/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dc": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "sioc": "http://rdfs.org/sioc/ns#",
+    "cc": "http://creativecommons.org/ns#",
+    "geo": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "cal": "http://www.w3.org/2002/12/cal/ical#",
+    "doap": "http://usefulinc.com/ns/doap#",
+    "Person": "http://xmlns.com/foaf/0.1/Person",
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": "http://xmlns.com/foaf/0.1/homepage"
+    "@coerce": 
+    {
+      "xsd:anyURI": ["rdf:type", "rdf:rest", "foaf:homepage", "foaf:member"],
+      "xsd:integer": "foaf:age"
+    }
+  }
+</ins>
+}
+</pre>
+<p>
+The
+<del class="diff-old">__vocab__
+prefix
+</del>
+<code>
+<ins class="diff-chg">@vocab
+</ins></code><ins class="diff-chg">
+string
+</ins>
+is
+a
+special
+<del class="diff-old">prefix
+</del>
+<ins class="diff-chg">keyword
+</ins>
+that
+states
+that
+any
+term
+that
+doesn't
+resolve
+to
+a
+term
+or
+a
+prefix
+should
+be
+appended
+to
+the
+<del class="diff-old">__vocab__
+</del>
+<code>
+<ins class="diff-chg">@vocab
+</ins></code>
+IRI.
+This
+is
+done
+to
+ensure
+that
+terms
+can
+be
+transformed
+to
+an
+IRI
+at
+all
+times.
+</p>
+<p>
+<ins class="diff-new">The
+</ins><code><ins class="diff-new">
+@base
+</ins></code><ins class="diff-new">
+string
+is
+a
+special
+keyword
+that
+states
+that
+any
+relative
+IRI
+</ins><em class="rfc2119" title="must"><ins class="diff-new">
+must
+</ins></em><ins class="diff-new">
+be
+appended
+to
+the
+string
+specified
+by
+</ins><code><ins class="diff-new">
+@base
+</ins></code>.</p><p><ins class="diff-new">
+The
+</ins><code><ins class="diff-new">
+@coerce
+</ins></code><ins class="diff-new">
+keyword
+is
+used
+to
+specify
+type
+coercion
+rules
+for
+the
+data.
+For
+each
+key
+in
+the
+map,
+the
+key
+is
+the
+type
+to
+be
+coerced
+to
+and
+the
+value
+is
+the
+vocabulary
+term
+to
+be
+coerced.
+Type
+coercion
+for
+the
+key
+</ins><code><ins class="diff-new">
+xsd:anyURI
+</ins></code><ins class="diff-new">
+asserts
+that
+all
+vocabulary
+terms
+listed
+should
+undergo
+coercion
+to
+an
+IRI,
+including
+</ins><code><ins class="diff-new">
+@base
+</ins></code><ins class="diff-new">
+processing
+for
+relative
+IRIs
+and
+CURIE
+processing
+for
+compact
+URI
+Expressions
+such
+as
+</ins><code><ins class="diff-new">
+foaf:homepage
+</ins></code>.</p></div>
+</div>
+<div id="markup-examples" class="section">
+<h2>
+<span class="secno">
+<del class="diff-old">4.5
+</del>
+<ins class="diff-chg">3.
+</ins>
+</span>
+Markup
+Examples
+<del class="diff-old">Write
+some
+introductory
+stuff
+about
+the
+Markup
+Examples.
+</del>
+</h2>
+<p>
+<ins class="diff-chg">The
+JSON-LD
+markup
+examples
+below
+demonstrate
+how
+JSON-LD
+can
+be
+used
+to
+express
+semantic
+data
+marked
+up
+in
+other
+languages
+such
+as
+RDFa,
+Microformats,
+and
+Microdata.
+These
+sections
+are
+merely
+provided
+as
+proof
+that
+JSON-LD
+is
+very
+flexible
+in
+what
+it
+can
+express
+across
+different
+Linked
+Data
+approaches.
+</ins>
+</p>
+<div id="rdfa" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.5.1
+</del>
+<ins class="diff-chg">3.1
+</ins>
+</span>
+RDFa
+<del class="diff-old">&gt;
+   &lt;ul&gt;
+      &lt;li &gt;
+        &lt;a &gt;Bob&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li &gt;
+        &lt;a &gt;Eve&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li &gt;
+        &lt;a &gt;Manu&lt;/a&gt;
+      &lt;/li&gt;
+   &lt;/ul&gt;
+</del>
+</h3>
+<p>
+<ins class="diff-chg">The
+following
+example
+describes
+three
+people
+with
+their
+respective
+names
+and
+homepages.
+</ins></p><pre class="example">&lt;div <span class="diff">prefix="foaf: http://xmlns.com/foaf/0.1/"</span>&gt;
+<ins class="diff-chg">
+   &lt;ul&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name" </span>&gt;Bob&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/eve/" property="foaf:name" </span>&gt;Eve&lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li <span class="diff">typeof="foaf:Person"</span>&gt;
+        &lt;a <span class="diff">rel="foaf:homepage" href="http://example.com/manu/" property="foaf:name" </span>&gt;Manu&lt;/a&gt;
+      &lt;/li&gt;
+   &lt;/ul&gt;
+</ins>
+&lt;/div&gt;
+</pre>
+<p>
+<del class="diff-old">Representation:
+</del>
+<ins class="diff-chg">An
+example
+JSON-LD
+implementation
+is
+described
+below,
+however,
+there
+are
+other
+ways
+to
+mark-up
+this
+information
+such
+that
+the
+context
+is
+not
+repeated.
+</ins>
+</p>
+<del class="diff-old">{{ 
+   "a" : "Context",
+   "foaf" : "http://xmlns.com/foaf/0.1/"
+ },
+ {
+    "@" : "_:bnode1",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/bob/&gt;",
+    "foaf:name" : "Bob"
+ },
+ {
+    "@" : "_:bnode2",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/eve/&gt;",
+    "foaf:name" : "Eve"
+ },
+ {
+    "@" : "_:bnode2",
+    "a" : "foaf:Person",
+    "foaf:homepage" : "&lt;http://example.com/manu/&gt;",
+    "foaf:name" : "Manu"
+ }
+}
+</del>
+<pre class="example">[
+<ins class="diff-chg"> {
+   "@": "_:bnode1",
+   "a": "foaf:Person",
+   "foaf:homepage": "http://example.com/bob/",
+   "foaf:name": "Bob"
+ },
+ {
+   "@": "_:bnode2",
+   "a": "foaf:Person",
+   "foaf:homepage": "http://example.com/eve/",
+   "foaf:name": "Eve"
+ },
+ {
+   "@": "_:bnode3",
+   "a": "foaf:Person",
+   "foaf:homepage": "http://example.com/manu/",
+   "foaf:name": "Manu"
+ }
+]
+</ins>
+</pre>
+</div>
+<div id="microformats" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.5.2
+</del>
+<ins class="diff-chg">3.2
+</ins>
+</span>
+Microformats
+<del class="diff-old">&lt;div class="vcard"&gt;
+ &lt;a class="url fn" href="http://tantek.com/"&gt;Tantek Çelik&lt;/a&gt;
+</del>
+</h3>
+<p>
+<ins class="diff-chg">The
+following
+example
+uses
+a
+simple
+Microformats
+hCard
+example
+to
+express
+how
+the
+Microformat
+is
+represented
+in
+JSON-LD.
+</ins></p><pre class="example">&lt;div class="vcard"&gt;
+<ins class="diff-chg">
+ &lt;a class="url fn" href="http://tantek.com/"&gt;Tantek �elik&lt;/a&gt;
+</ins>
+&lt;/div&gt;
+</pre>
+<p>
+<del class="diff-old">Representation:
+</del>
+<ins class="diff-chg">The
+representation
+of
+the
+hCard
+expresses
+the
+Microformat
+terms
+in
+the
+context
+and
+uses
+them
+directly
+for
+the
+</ins><code><ins class="diff-chg">
+url
+</ins></code><ins class="diff-chg">
+and
+</ins><code><ins class="diff-chg">
+fn
+</ins></code><ins class="diff-chg">
+properties.
+Also
+note
+that
+the
+Microformat
+to
+JSON-LD
+processor
+has
+generated
+the
+proper
+URL
+type
+for
+</ins><code><ins class="diff-chg">
+http://tantek.com
+</ins></code>.
+</p>
+<del class="diff-old">{{ 
+   "a" : "Context",
+   "vcard" : "http://microformats.org/profile/hcard#vcard"
+   "url" : "http://microformats.org/profile/hcard#url"
+   "fn" : "http://microformats.org/profile/hcard#fn"
+ },
+ {
+    "@" : "_:bnode1",
+    "a" : "vcard",
+    "url" : "&lt;http://tantek.com/&gt;",
+    "fn" : "Tantek Çelik"
+ }
+</del>
+<pre class="example">{
+<ins class="diff-chg">  "@context": 
+  {
+    "vcard": "http://microformats.org/profile/hcard#vcard",
+    "url": "http://microformats.org/profile/hcard#url",
+    "fn": "http://microformats.org/profile/hcard#fn",
+    "@coerce": { "xsd:anyURI": "url" }
+  },
+  "@": "_:bnode1",
+  "a": "vcard",
+  "url": "http://tantek.com/",
+  "fn": "Tantek �elik"
+</ins>
+}
+</pre>
+</div>
+<div id="microdata" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">4.5.3
+</del>
+<ins class="diff-chg">3.3
+</ins>
+</span>
+Microdata
+<del class="diff-old">&lt;dl itemscope
+    itemtype="http://purl.org/vocab/frbr/core#Work"
+    itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N"&gt;
+ &lt;dt&gt;Title&lt;/dt&gt;
+ &lt;dd&gt;&lt;cite itemprop="http://purl.org/dc/terms/title"&gt;Just a Geek&lt;/cite&gt;&lt;/dd&gt;
+ &lt;dt&gt;By&lt;/dt&gt;
+ &lt;dd&gt;&lt;span itemprop="http://purl.org/dc/terms/creator"&gt;Wil Wheaton&lt;/span&gt;&lt;/dd&gt;
+ &lt;dt&gt;Format&lt;/dt&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596007683.BOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK"&gt;
+  Print
+ &lt;/dd&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596802189.EBOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK"&gt;
+  Ebook
+ &lt;/dd&gt;
+</del>
+</h3>
+<p>
+<ins class="diff-chg">The
+Microdata
+example
+below
+expresses
+book
+information
+as
+a
+Microdata
+Work
+item.
+</ins></p><pre class="example">&lt;dl itemscope
+<ins class="diff-chg">
+    itemtype="http://purl.org/vocab/frbr/core#Work"
+    itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N"&gt;
+ &lt;dt&gt;Title&lt;/dt&gt;
+ &lt;dd&gt;&lt;cite itemprop="http://purl.org/dc/terms/title"&gt;Just a Geek&lt;/cite&gt;&lt;/dd&gt;
+ &lt;dt&gt;By&lt;/dt&gt;
+ &lt;dd&gt;&lt;span itemprop="http://purl.org/dc/terms/creator"&gt;Wil Wheaton&lt;/span&gt;&lt;/dd&gt;
+ &lt;dt&gt;Format&lt;/dt&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596007683.BOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK"&gt;
+  Print
+ &lt;/dd&gt;
+ &lt;dd itemprop="http://purl.org/vocab/frbr/core#realization"
+     itemscope
+     itemtype="http://purl.org/vocab/frbr/core#Expression"
+     itemid="http://purl.oreilly.com/products/9780596802189.EBOOK"&gt;
+  &lt;link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK"&gt;
+  Ebook
+ &lt;/dd&gt;
+</ins>
+&lt;/dl&gt;
+</pre>
+<p>
+<del class="diff-old">Representation:
+</del>
+<ins class="diff-chg">Note
+that
+the
+JSON-LD
+representation
+of
+the
+Microdata
+information
+stays
+true
+to
+the
+desires
+of
+the
+Microdata
+community
+to
+avoid
+contexts
+and
+instead
+refer
+to
+items
+by
+their
+full
+IRI.
+</ins>
+</p>
+<del class="diff-old">{{ 
+   "a" : "Context",
+   "__vocab__" : "http://www.w3.org/1999/xhtml/microdata#",
+   "frbr" : "http://purl.org/vocab/frbr/core#",
+   "dc" : "http://purl.org/dc/terms/"
+ },
+ {
+    "a" : "frbr:Work",
+    "@" : "&lt;http://purl.oreilly.com/works/45U8QJGZSQKDH8N&gt;",
+    "dc:title" : "Just a Geek",
+    "dc:creator" : "Whil Wheaton",
+    "frbr:realization" : ["&lt;http://purl.oreilly.com/products/9780596007683.BOOK&gt;", "&lt;http://purl.oreilly.com/products/9780596802189.EBOOK&gt;"]
+ },
+ {
+    "a" : "frbr:Expression",
+    "@" : "&lt;http://purl.oreilly.com/products/9780596007683.BOOK&gt;",
+    "dc:type" : "http://purl.oreilly.com/product-types/BOOK"
+ },
+ {
+    "a" : "frbr:Expression",
+    "@" : "&lt;http://purl.oreilly.com/products/9780596802189.EBOOK&gt;",
+    "dc:type" : "&lt;http://purl.oreilly.com/product-types/EBOOK&gt;"
+ }
+}
+</del>
+<pre class="example">[
+<ins class="diff-chg">  {
+    "@": "http://purl.oreilly.com/works/45U8QJGZSQKDH8N",
+    "a": "http://purl.org/vocab/frbr/core#Work",
+    "http://purl.org/dc/terms/title": "Just a Geek",
+    "http://purl.org/dc/terms/creator": "Whil Wheaton",
+    "http://purl.org/vocab/frbr/core#realization": 
+      ["http://purl.oreilly.com/products/9780596007683.BOOK", "http://purl.oreilly.com/products/9780596802189.EBOOK"]
+  },
+  {
+    "@": "http://purl.oreilly.com/products/9780596007683.BOOK",
+    "a": "http://purl.org/vocab/frbr/core#Expression",
+    "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/BOOK"
+  },
+  {
+    "@": "http://purl.oreilly.com/products/9780596802189.EBOOK",
+    "a": "http://purl.org/vocab/frbr/core#Expression",
+    "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/EBOOK"
+  }
+]
+</ins>
+</pre>
+</div>
+</div>
+<div id="markup-of-rdf-concepts" class="section">
+<h2>
+<span class="secno">
+<del class="diff-old">5.
+</del>
+<ins class="diff-chg">4.
+</ins>
+</span>
+Markup
+of
+RDF
+Concepts
+</h2>
+<del class="diff-old">Need
+</del>
+<p>
+<ins class="diff-chg">JSON-LD
+is
+designed
+</ins>
+to
+<del class="diff-old">write
+introduction
+</del>
+<ins class="diff-chg">ensure
+that
+most
+Linked
+Data
+concepts
+can
+be
+marked
+up
+in
+a
+way
+that
+is
+simple
+</ins>
+to
+<ins class="diff-new">understand
+and
+author
+by
+Web
+developers.
+In
+many
+cases,
+Javascript
+objects
+can
+become
+Linked
+Data
+with
+the
+simple
+addition
+of
+a
+context.
+Since
+</ins>
+RDF
+<del class="diff-old">Concepts
+</del>
+<ins class="diff-chg">is
+also
+an
+important
+sub-community
+of
+the
+Linked
+Data
+movement,
+it
+is
+important
+that
+all
+RDF
+concepts
+are
+well-represented
+in
+this
+specification.
+This
+</ins>
+section
+<ins class="diff-new">details
+how
+each
+RDF
+concept
+can
+be
+expressed
+in
+JSON-LD.
+</ins>
+</p>
+<div id="iris" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.1
+</del>
+<ins class="diff-chg">4.1
+</ins>
+</span>
+IRIs
+</h3>
+<del class="diff-old">{
+...
+ "foaf:homepage" : "",
+...
+</del>
+<p>
+<ins class="diff-chg">Expressing
+IRIs
+are
+fundamental
+to
+Linked
+Data
+as
+that
+is
+how
+most
+subjects
+and
+many
+objects
+are
+identified.
+IRIs
+can
+be
+expressed
+in
+a
+variety
+of
+different
+ways
+in
+JSON-LD.
+</ins></p><ol><li><ins class="diff-chg">
+In
+general,
+an
+IRI
+is
+generated
+if
+it
+is
+in
+the
+key
+position
+in
+an
+associative
+array.
+There
+are
+special
+rules
+for
+processing
+keys
+in
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+and
+when
+dealing
+with
+keys
+that
+start
+with
+the
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+character.
+</ins></li><li><ins class="diff-chg">
+An
+IRI
+is
+generated
+for
+the
+value
+specified
+using
+</ins><code><ins class="diff-chg">
+@
+</ins></code>,<ins class="diff-chg">
+if
+it
+is
+a
+string.
+</ins></li><li><ins class="diff-chg">
+An
+IRI
+is
+generated
+for
+the
+value
+specified
+using
+</ins><code><ins class="diff-chg">
+a
+</ins></code>.</li><li><ins class="diff-chg">
+An
+IRI
+is
+generated
+for
+the
+value
+specified
+using
+the
+</ins><code><ins class="diff-chg">
+@iri
+</ins></code><ins class="diff-chg">
+keyword.
+</ins></li><li><ins class="diff-chg">
+An
+IRI
+is
+generated
+when
+there
+are
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+rules
+in
+effect
+for
+</ins><code><ins class="diff-chg">
+xsd:anyURI
+</ins></code><ins class="diff-chg">
+for
+a
+particular
+vocabulary
+term.
+</ins></li></ol><p><ins class="diff-chg">
+An
+example
+of
+IRI
+generation
+for
+a
+key
+outside
+of
+a
+</ins><code><ins class="diff-chg">
+@context
+</ins></code>:</p><pre class="example">{
+<ins class="diff-chg">
+...
+  "<span class="diff">http://xmlns.com/foaf/0.1/name</span>": "Manu Sporny",
+...
+}
+</ins></pre><p><ins class="diff-chg">
+In
+the
+example
+above,
+the
+key
+</ins><code><ins class="diff-chg">
+http://xmlns.com/foaf/0.1/name
+</ins></code><ins class="diff-chg">
+is
+interpreted
+as
+an
+IRI,
+as
+opposed
+to
+being
+interpreted
+as
+a
+string..
+</ins></p><p><ins class="diff-chg">
+Term
+expansion
+occurs
+for
+IRIs
+if
+a
+term
+is
+defined
+within
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>:</p><pre class="example">{
+<ins class="diff-chg">
+  "<span class="diff">@context</span>": {"<span class="diff">name</span>": "<span class="diff">http://xmlns.com/foaf/0.1/name</span>"},
+...
+  "<span class="diff">name</span>": "Manu Sporny",
+...
+}
+</ins></pre><p><ins class="diff-chg">
+CURIE
+expansion
+also
+occurs
+for
+keys
+in
+JSON-LD:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "<span class="diff">foaf:name</span>": "Manu Sporny",
+...
+}
+</ins></pre><p><code><ins class="diff-chg">
+foaf:name
+</ins></code><ins class="diff-chg">
+above
+will
+automatically
+expand
+out
+to
+the
+IRI
+</ins><code><ins class="diff-chg">
+http://xmlns.com/foaf/0.1/name
+</ins></code>.</p><p><ins class="diff-chg">
+An
+IRI
+is
+generated
+when
+a
+value
+is
+associated
+with
+a
+key
+using
+the
+</ins><code><ins class="diff-chg">
+@iri
+</ins></code><ins class="diff-chg">
+keyword:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "foaf:homepage": { "<span class="diff">@iri</span>": "http://manu.sporny.org" }
+...
+}
+</ins></pre><p><ins class="diff-chg">
+If
+type
+coercion
+rules
+are
+specified
+in
+the
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+for
+a
+particular
+vocabulary
+term,
+an
+IRI
+is
+generated:
+</ins></p><pre class="example">{<span class="diff">
+<ins class="diff-chg">
+  "@context": 
+  { 
+    "@coerce": 
+    {
+      "xsd:anyURI": "foaf:homepage"
+    } 
+  }</span>
+...
+  "foaf:homepage": "http://manu.sporny.org",
+...
+</ins>
+}
+</pre>
+</div>
+<div id="identifying-the-subject" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.2
+</del>
+<ins class="diff-chg">4.2
+</ins>
+</span>
+Identifying
+the
+Subject
+</h3>
+<del class="diff-old">{
+...
+ "",
+...
+</del>
+<p>
+<ins class="diff-chg">A
+subject
+is
+declared
+using
+the
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+key.
+The
+subject
+is
+the
+first
+piece
+of
+information
+needed
+by
+the
+JSON-LD
+processor
+in
+order
+to
+create
+the
+(subject,
+property,
+object)
+tuple,
+also
+known
+as
+a
+triple.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "<span class="diff">@</span>": "<span class="diff">http://example.org/people#joebob</span>",
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+example
+above
+would
+set
+the
+subject
+to
+the
+IRI
+</ins><code><ins class="diff-new">
+http://example.org/people#joebob
+</ins></code>.</p>
+</div>
+<div id="specifying-the-type" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.3
+</del>
+<ins class="diff-chg">4.3
+</ins>
+</span>
+Specifying
+the
+Type
+</h3>
+<del class="diff-old">{
+...
+ "",
+...
+</del>
+<p>
+<ins class="diff-chg">The
+type
+of
+a
+particular
+subject
+can
+be
+specified
+using
+the
+</ins><code><ins class="diff-chg">
+a
+</ins></code><ins class="diff-chg">
+key.
+Specifying
+the
+type
+in
+this
+way
+will
+generate
+a
+triple
+of
+the
+form
+(subject,
+type,
+type-url).
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "@": "http://example.org/people#joebob",
+  "<span class="diff">a</span>": "<span class="diff">http://xmlns.com/foaf/0.1/Person</span>",
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+example
+above
+would
+generate
+the
+following
+triple
+(in
+N-Triples
+notation):
+</ins></p><pre class="example">&lt;http://example.org/people#joebob&gt; 
+<ins class="diff-new">
+   &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;
+&lt;http://xmlns.com/foaf/0.1/Person&gt;
+.
+</ins></pre>
+</div>
+<div id="plain-literals" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.4
+</del>
+<ins class="diff-chg">4.4
+</ins>
+</span>
+Plain
+Literals
+</h3>
+<del class="diff-old">{
+...
+ "foaf:name" : "",
+...
+</del>
+<p>
+<ins class="diff-chg">Regular
+text
+strings
+are
+called
+a
+</ins><dfn title="plain_literal" id="dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></dfn><ins class="diff-chg">
+in
+RDF
+and
+are
+easily
+expressed
+using
+regular
+JSON
+strings.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "foaf:name": "<span class="diff">Mark Birbeck</span>",
+...
+</ins>
+}
+</pre>
+</div>
+<div id="language-specification-in-plain-literals" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.5
+</del>
+<ins class="diff-chg">4.5
+</ins>
+</span>
+Language
+Specification
+in
+Plain
+Literals
+</h3>
+<del class="diff-old">{
+...
+ "foaf:name" : "",
+...
+</del>
+<p>
+<ins class="diff-chg">JSON-LD
+makes
+an
+assumption
+that
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></a><ins class="diff-chg">
+s
+with
+associated
+language
+encoding
+information
+is
+not
+very
+common
+when
+used
+in
+JavaScript
+and
+Web
+Services.
+Thus,
+it
+takes
+a
+little
+more
+effort
+to
+express
+plain
+literals
+in
+a
+specified
+language.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "foaf:name": <span class="diff">
+  {
+    "@literal": "&#33457;&#28548;",
+    "@language": "ja"
+  }</span>
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+example
+above
+would
+generate
+a
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-new">
+plain
+literal
+</ins></a><ins class="diff-new">
+for
+</ins><em><ins class="diff-new">
+&#33457;&#28548;
+</ins></em><ins class="diff-new">
+and
+associate
+the
+</ins><code><ins class="diff-new">
+ja
+</ins></code><ins class="diff-new">
+language
+tag
+with
+the
+triple
+that
+is
+generated.
+Languages
+</ins><em class="rfc2119" title="must"><ins class="diff-new">
+must
+</ins></em><ins class="diff-new">
+be
+expressed
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-BCP47"><ins class="diff-new">
+BCP47
+</ins></a></cite><ins class="diff-new">
+]
+format.
+</ins></p>
+</div>
+<div id="typed-literals" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.6
+</del>
+<ins class="diff-chg">4.6
+</ins>
+</span>
+Typed
+Literals
+</h3>
+<del class="diff-old">{
+...
+ "dc:modified" : "",
+...
+</del>
+<p>
+<ins class="diff-chg">A
+</ins><dfn title="typed_literal" id="dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></dfn><ins class="diff-chg">
+is
+indicated
+by
+attaching
+a
+IRI
+to
+the
+end
+of
+a
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></a>,<ins class="diff-chg">
+and
+this
+IRI
+indicates
+the
+literal's
+datatype.
+Literals
+may
+be
+typed
+in
+JSON-LD
+in
+three
+ways:
+</ins></p><ol><li><ins class="diff-chg">
+By
+utilizing
+the
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+keyword.
+</ins></li><li><ins class="diff-chg">
+By
+utilizing
+the
+expanded
+form
+for
+specifying
+objects.
+</ins></li><li><ins class="diff-chg">
+By
+using
+a
+native
+JSON
+datatype.
+</ins></li></ol><p><ins class="diff-chg">
+The
+first
+example
+uses
+the
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+keyword
+to
+express
+a
+typed
+literal:
+</ins></p><pre class="example">{<span class="diff">
+<ins class="diff-chg">
+  "@context": 
+  { 
+    "@coerce": 
+    {
+      "xsd:dateTime": "dc:modified"
+    }
+  }</span>
+...
+  "dc:modified": "2010-05-29T14:17:39+02:00",
+...
+}
+</ins></pre><p><ins class="diff-chg">
+The
+second
+example
+uses
+the
+expanded
+form
+for
+specifying
+objects:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "dc:modified": <span class="diff">
+  {
+    "@literal": "2010-05-29T14:17:39+02:00",
+    "@datatype": "xsd:dateTime"
+  }</span>
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">Both
+examples
+above
+would
+generate
+an
+object
+with
+the
+literal
+value
+of
+</ins><code><ins class="diff-new">
+2010-05-29T14:17:39+02:00
+</ins></code><ins class="diff-new">
+and
+the
+datatype
+of
+</ins><code><ins class="diff-new">
+http://www.w3.org/2001/XMLSchema#dateTime
+</ins></code>.</p>
+</div>
+<div id="multiple-objects-for-a-single-property" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.7
+</del>
+<ins class="diff-chg">4.7
+</ins>
+</span>
+Multiple
+Objects
+for
+a
+Single
+Property
+</h3>
+<del class="diff-old">{
+...
+ "foaf:nick" : ,
+...
+</del>
+<p>
+<ins class="diff-chg">A
+JSON-LD
+author
+can
+express
+multiple
+triples
+in
+a
+compact
+way
+by
+using
+arrays.
+If
+a
+subject
+has
+multiple
+values
+for
+the
+same
+property,
+the
+author
+</ins><em class="rfc2119" title="may"><ins class="diff-chg">
+may
+</ins></em><ins class="diff-chg">
+express
+each
+property
+as
+an
+array.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "@": "http://example.org/people#joebob",
+  "foaf:nick": <span class="diff">["joe", "bob", "jaybee"]</span>,
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+markup
+shown
+above
+would
+generate
+the
+following
+triples:
+</ins></p><pre class="example">&lt;http://example.org/people#joebob&gt; 
+<ins class="diff-new">
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      "joe" .
+&lt;http://example.org/people#joebob&gt; 
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      "bob" .
+&lt;http://example.org/people#joebob&gt; 
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+"jaybee"
+.
+</ins></pre>
+</div>
+<div id="multiple-typed-literals-for-a-single-property" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.8
+</del>
+<ins class="diff-chg">4.8
+</ins>
+</span>
+Multiple
+Typed
+Literals
+for
+a
+Single
+Property
+</h3>
+<del class="diff-old">{
+...
+ "dc:modified" : ],
+...
+</del>
+<p>
+<ins class="diff-chg">Multiple
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></a><ins class="diff-chg">
+s
+may
+also
+be
+expressed
+using
+the
+expanded
+form
+for
+objects:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "@": "http://example.org/articles/8",
+  "dcterms:modified": <span class="diff">
+  [
+    {
+      "@literal": "2010-05-29T14:17:39+02:00",
+      "@datatype": "xsd:dateTime"
+    },
+    {
+      "@literal": "2010-05-30T09:21:28-04:00",
+      "@datatype": "xsd:dateTime"
+    }
+  ]</span>
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+markup
+shown
+above
+would
+generate
+the
+following
+triples:
+</ins></p><pre class="example">&lt;http://example.org/articles/8&gt; 
+<ins class="diff-new">
+   &lt;http://purl.org/dc/terms/modified&gt;
+      "2010-05-29T14:17:39+02:00"^^http://www.w3.org/2001/XMLSchema#dateTime .
+&lt;http://example.org/articles/8&gt; 
+   &lt;http://purl.org/dc/terms/modified&gt;
+"2010-05-30T09:21:28-04:00"^^http://www.w3.org/2001/XMLSchema#dateTime
+.
+</ins></pre>
+</div>
+<div id="blank-nodes" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.9
+</del>
+<ins class="diff-chg">4.9
+</ins>
+</span>
+Blank
+Nodes
+</h3>
+<del class="diff-old">{
+...
+ "@" : "",
+...
+</del>
+<p>
+<ins class="diff-chg">At
+times,
+it
+becomes
+necessary
+to
+be
+able
+to
+express
+information
+without
+being
+able
+to
+specify
+the
+subject.
+Typically,
+this
+is
+where
+blank
+nodes
+come
+into
+play.
+In
+JSON-LD,
+blank
+node
+identifiers
+are
+automatically
+created
+if
+a
+subject
+is
+not
+specified
+using
+the
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+keyword.
+However,
+authors
+may
+name
+blank
+nodes
+by
+using
+the
+special
+</ins><code><ins class="diff-chg">
+_
+</ins></code><ins class="diff-chg">
+CURIE
+prefix.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  "@": "<span class="diff">_:foo</span>",
+...
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+example
+above
+would
+set
+the
+subject
+to
+</ins><code><ins class="diff-new">
+_:foo
+</ins></code>,<ins class="diff-new">
+which
+can
+then
+be
+used
+later
+on
+in
+the
+JSON-LD
+markup
+to
+refer
+back
+to
+the
+named
+blank
+node.
+</ins></p>
+</div>
+</div>
+<div id="advanced-features" class="section">
+<h2>
+<span class="secno">
+<ins class="diff-chg">5.
+</ins></span><ins class="diff-chg">
+Advanced
+Features
+</ins></h2><p><ins class="diff-chg">
+JSON-LD
+has
+a
+number
+of
+features
+that
+provide
+functionality
+above
+and
+beyond
+the
+core
+functionality
+provided
+by
+RDF.
+The
+following
+sections
+outline
+the
+features
+that
+are
+specific
+to
+JSON-LD.
+</ins></p><div id="automatic-typing" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.10
+</del>
+<ins class="diff-chg">5.1
+</ins>
+</span>
+<del class="diff-old">Escape
+Character
+</del>
+<ins class="diff-chg">Automatic
+Typing
+</ins>
+</h3>
+<p>
+<del class="diff-old">Special
+characters
+</del>
+<ins class="diff-chg">Since
+JSON
+is
+capable
+of
+expressing
+typed
+information
+such
+as
+doubles,
+integers,
+and
+boolean
+values.
+As
+demonstrated
+below,
+JSON-LD
+utilizes
+that
+information
+to
+create
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></a><ins class="diff-chg">
+s:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+...
+  // The following two values are automatically converted to a type of xsd:double
+  // and both values are equivalent to each other.
+  "measure:cups": <span class="diff">5.3</span>,
+  "measure:cups": <span class="diff">5.3e0</span>,
+  // The following value is automatically converted to a type of xsd:double as well
+  "space:astronomicUnits": <span class="diff">6.5e73</span>,
+  // The following value should never be converted to a language-native type
+  "measure:stones": <span class="diff">{ "@literal": "4.8", "@datatype": "xsd:decimal" }</span>,
+  // This value is automatically converted to having a type of xsd:integer
+  "chem:protons": <span class="diff">12</span>,
+  // This value is automatically converted to having a type of xsd:boolean
+  "sensor:active": <span class="diff">true</span>,
+...
+}
+</ins></pre><p class="note"><ins class="diff-chg">
+When
+dealing
+with
+a
+number
+of
+modern
+programming
+languages,
+including
+JavaScript
+ECMA-262,
+there
+is
+no
+distinction
+between
+</ins><strong><ins class="diff-chg">
+xsd:decimal
+</ins></strong><ins class="diff-chg">
+and
+</ins><strong><ins class="diff-chg">
+xsd:double
+</ins></strong><ins class="diff-chg">
+values.
+That
+is,
+the
+number
+</ins><code><ins class="diff-chg">
+5.3
+</ins></code><ins class="diff-chg">
+and
+the
+number
+</ins><code><ins class="diff-chg">
+5.3e0
+</ins></code><ins class="diff-chg">
+are
+treated
+as
+if
+they
+were
+the
+same.
+When
+converting
+from
+JSON-LD
+to
+a
+language-native
+format
+and
+back,
+datatype
+information
+is
+lost
+</ins>
+in
+<del class="diff-old">property
+</del>
+<ins class="diff-chg">a
+number
+of
+these
+languages.
+Thus,
+one
+could
+say
+that
+</ins><code><ins class="diff-chg">
+5.3
+</ins></code><ins class="diff-chg">
+is
+a
+</ins><strong><ins class="diff-chg">
+xsd:decimal
+</ins></strong><ins class="diff-chg">
+and
+</ins><code><ins class="diff-chg">
+5.3e0
+</ins></code><ins class="diff-chg">
+is
+an
+</ins><strong><ins class="diff-chg">
+xsd:double
+</ins></strong><ins class="diff-chg">
+in
+JSON-LD,
+but
+when
+both
+</ins>
+values
+<ins class="diff-chg">are
+converted
+to
+a
+language-native
+format
+the
+datatype
+difference
+between
+the
+two
+is
+lost
+because
+the
+machine-level
+representation
+will
+almost
+always
+be
+a
+</ins><strong><ins class="diff-chg">
+double
+</ins></strong>.<ins class="diff-chg">
+Implementers
+should
+be
+aware
+of
+this
+potential
+round-tripping
+issue
+between
+</ins><strong><ins class="diff-chg">
+xsd:decimal
+</ins></strong><ins class="diff-chg">
+and
+</ins><strong><ins class="diff-chg">
+xsd:double
+</ins></strong>.<ins class="diff-chg">
+Specifically
+objects
+with
+a
+datatype
+of
+</ins><strong><ins class="diff-chg">
+xsd:decimal
+</ins></strong><em class="rfc2119" title="must not">
+must
+<ins class="diff-new">not
+</ins>
+</em>
+be
+<del class="diff-old">escaped
+</del>
+<ins class="diff-chg">converted
+to
+a
+language
+native
+type.
+</ins></p></div><div id="type-coercion" class="section"><h3><span class="secno"><ins class="diff-chg">
+5.2
+</ins></span><ins class="diff-chg">
+Type
+Coercion
+</ins></h3><p><ins class="diff-chg">
+JSON-LD
+supports
+the
+coercion
+of
+types
+to
+ensure
+that
+the
+zero-edit
+goal
+of
+JSON-LD
+can
+be
+accomplished.
+Type
+coercion
+allows
+someone
+deploying
+JSON-LD
+to
+coerce
+and
+incoming
+or
+outgoing
+types
+to
+the
+proper
+RDF
+type
+based
+on
+a
+mapping
+of
+type
+IRIs
+to
+RDF
+types.
+Using
+type
+conversion,
+one
+may
+convert
+simple
+JSON
+data
+to
+properly
+typed
+RDF
+data.
+</ins></p><p><ins class="diff-chg">
+The
+example
+below
+demonstrates
+how
+a
+JSON-LD
+author
+can
+coerce
+values
+to
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></a><ins class="diff-chg">
+s,
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></a><ins class="diff-chg">
+s
+and
+IRIs.
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+  "@context": 
+  {  
+     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+     "xsd": "http://www.w3.org/2001/XMLSchema#",
+     "name": "http://xmlns.com/foaf/0.1/name",
+     "age": "http://xmlns.com/foaf/0.1/age",
+     "homepage": "http://xmlns.com/foaf/0.1/homepage",
+</ins><span class="diff">     "@coerce":
+<ins class="diff-chg">
+     {
+        "xsd:integer": "age",
+        "xsd:anyURI": "homepage",
+     }</span>
+  },
+  "name": "John Smith",
+  "age": <span class="diff">"41"</span>,
+  "homepage": <span class="diff">"http://example.org/home/"</span>
+}
+</ins></pre><p><ins class="diff-chg">
+The
+example
+above
+would
+generate
+the
+following
+triples:
+</ins></p><pre class="example">_:bnode1
+<ins class="diff-chg">
+   &lt;http://xmlns.com/foaf/0.1/name&gt;
+      "John Smith" .
+_:bnode1
+   &lt;http://xmlns.com/foaf/0.1/age&gt;
+      "41"^^http://www.w3.org/2001/XMLSchema#integer .
+_:bnode1
+   &lt;http://xmlns.com/foaf/0.1/homepage&gt;
+&lt;http://example.org/home/&gt;
+.
+</ins></pre></div></div><div id="the-json-ld-processing-algorithm" class="section"><h2><span class="secno"><ins class="diff-chg">
+6.
+</ins></span><ins class="diff-chg">
+The
+JSON-LD
+Processing
+Algorithm
+</ins></h2><p><ins class="diff-chg">
+The
+JSON-LD
+Processing
+Model
+describes
+processing
+rules
+for
+extracting
+RDF
+from
+a
+JSON-LD
+document.
+Note
+that
+many
+uses
+of
+JSON-LD
+may
+not
+require
+generation
+of
+RDF.
+</ins></p><p><ins class="diff-chg">
+The
+processing
+algorithm
+described
+in
+this
+section
+is
+provided
+</ins>
+in
+order
+to
+<ins class="diff-new">demonstrate
+how
+one
+might
+implement
+a
+JSON-LD
+processor.
+Conformant
+implementations
+are
+only
+required
+to
+produce
+the
+same
+type
+and
+number
+of
+triples
+during
+the
+output
+process
+and
+are
+</ins>
+not
+<ins class="diff-new">required
+to
+implement
+the
+algorithm
+exactly
+as
+described.
+</ins></p><p class="issue"><ins class="diff-new">
+The
+Processing
+Algorithm
+is
+a
+work
+in
+progress.
+</ins></p><div class="informative section" id="overview"><h3><span class="secno"><ins class="diff-new">
+6.1
+</ins></span><ins class="diff-new">
+Overview
+</ins></h3><p><em><ins class="diff-new">
+This
+section
+is
+non-normative.
+</ins></em></p><p><ins class="diff-new">
+JSON-LD
+is
+intended
+to
+have
+an
+easy
+to
+parse
+grammar
+that
+closely
+models
+existing
+practice
+in
+using
+JSON
+for
+describing
+object
+representations.
+This
+allows
+the
+use
+of
+existing
+libraries
+for
+parsing
+JSON
+in
+a
+document-oriented
+fashion,
+or
+can
+allow
+for
+stream-based
+parsing
+similar
+to
+SAX.
+</ins></p><p><ins class="diff-new">
+As
+with
+other
+grammars
+used
+for
+describing
+linked
+data,
+a
+key
+concept
+is
+that
+of
+a
+</ins><em><ins class="diff-new">
+resource
+</ins></em>.<ins class="diff-new">
+Resources
+may
+</ins>
+be
+<del class="diff-old">interpreted
+</del>
+<ins class="diff-chg">of
+three
+basic
+types:
+</ins><em><ins class="diff-chg">
+IRI
+</ins></em><ins class="diff-chg">
+s,
+for
+describing
+externally
+named
+entities,
+</ins><em><ins class="diff-chg">
+BNodes
+</ins></em>,<ins class="diff-chg">
+resources
+for
+which
+an
+external
+name
+does
+not
+exist,
+or
+is
+not
+known,
+and
+Literals,
+which
+describe
+terminal
+entities
+such
+</ins>
+as
+<del class="diff-old">IRIs,
+</del>
+<ins class="diff-chg">strings,
+dates
+and
+other
+representations
+having
+a
+lexical
+representation
+possibly
+including
+an
+explicit
+</ins>
+language
+<del class="diff-old">tags,
+</del>
+or
+<del class="diff-old">TypedLiterals.
+</del>
+<ins class="diff-chg">datatype.
+</ins></p><p><ins class="diff-chg">
+Data
+described
+with
+JSON-LD
+may
+be
+considered
+to
+be
+the
+representation
+of
+a
+graph
+made
+up
+of
+</ins><em><ins class="diff-chg">
+subject
+</ins></em><ins class="diff-chg">
+and
+</ins><em><ins class="diff-chg">
+object
+</ins></em><ins class="diff-chg">
+resources
+related
+via
+a
+</ins><em><ins class="diff-chg">
+predicate
+</ins></em><ins class="diff-chg">
+resource.
+However,
+specific
+implementations
+may
+choose
+to
+operate
+on
+the
+document
+as
+a
+normal
+JSON
+description
+of
+objects
+having
+attributes.
+</ins></p></div><div id="processing-algorithm-terms" class="section"><h3><span class="secno"><ins class="diff-chg">
+6.2
+</ins></span><ins class="diff-chg">
+Processing
+Algorithm
+Terms
+</ins></h3><dl><dt><dfn title="default_context" id="dfn-default_context"><ins class="diff-chg">
+default
+context
+</ins></dfn></dt><dd><ins class="diff-chg">
+a
+context
+that
+is
+specified
+to
+the
+JSON-LD
+processing
+algorithm
+before
+processing
+begins.
+</ins></dd><dt><dfn title="default_graph" id="dfn-default_graph"><ins class="diff-chg">
+default
+graph
+</ins></dfn></dt><dd><ins class="diff-chg">
+the
+destination
+graph
+for
+all
+triples
+generated
+by
+JSON-LD
+markup.
+</ins></dd><dt><dfn title="active_subject" id="dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></dfn></dt><dd><ins class="diff-chg">
+the
+currently
+active
+subject
+that
+the
+processor
+should
+use
+when
+generating
+triples.
+</ins></dd><dt><dfn title="active_property" id="dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></dfn></dt><dd><ins class="diff-chg">
+the
+currently
+active
+property
+that
+the
+processor
+should
+use
+when
+generating
+triples.
+</ins></dd><dt><dfn title="active_object" id="dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></dfn></dt><dd><ins class="diff-chg">
+the
+currently
+active
+object
+that
+the
+processor
+should
+use
+when
+generating
+triples.
+</ins></dd><dt><dfn title="active_context" id="dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></dfn></dt><dd><ins class="diff-chg">
+a
+context
+that
+is
+used
+to
+resolve
+CURIEs
+while
+the
+processing
+algorithm
+is
+running.
+The
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+is
+the
+context
+contained
+within
+the
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a>.</dd><dt><dfn title="local_context" id="dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></dfn></dt><dd><ins class="diff-chg">
+a
+context
+that
+is
+specified
+at
+the
+JSON
+associative-array
+level,
+specified
+via
+the
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+keyword.
+</ins></dd><dt><dfn title="processor_state" id="dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></dfn></dt><dd><ins class="diff-chg">
+the
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a>,<ins class="diff-chg">
+which
+includes
+the
+</ins><a class="tref" title="active__context"><ins class="diff-chg">
+active
+context
+</ins></a>,<a class="tref" title="current_subject"><ins class="diff-chg">
+current
+subject
+</ins></a>,<ins class="diff-chg">
+and
+</ins><a class="tref" title="current_property"><ins class="diff-chg">
+current
+property
+</ins></a>.<ins class="diff-chg">
+The
+</ins><a class="tref" title="processor__state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+is
+managed
+as
+a
+stack
+with
+elements
+from
+the
+previous
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+copied
+into
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+when
+entering
+a
+new
+associative
+array.
+</ins></dd></dl></div><div id="processing-tokens-and-keywords" class="section"><h3><span class="secno"><ins class="diff-chg">
+6.3
+</ins></span><ins class="diff-chg">
+Processing
+Tokens
+and
+Keywords
+</ins></h3><dl><dt><code><ins class="diff-chg">
+@context
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+set
+the
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a>.</dd><dt><code><ins class="diff-chg">
+@base
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+set
+the
+base
+IRI
+for
+all
+object
+IRIs
+affected
+by
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>.</dd><dt><code><ins class="diff-chg">
+@profile
+</ins></code></dt><dd><ins class="diff-chg">
+A
+reference
+to
+a
+remote
+context
+description
+used
+to
+set
+the
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a>.</dd><dt><code><ins class="diff-chg">
+@vocab
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+set
+the
+base
+IRI
+for
+all
+property
+IRIs
+affected
+by
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>.</dd><dt><code><ins class="diff-chg">
+@coerce
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+specify
+type
+coercion
+rules.
+</ins></dd><dt><code><ins class="diff-chg">
+@literal
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+specify
+a
+literal
+value.
+</ins></dd><dt><code><ins class="diff-chg">
+@iri
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+specify
+an
+IRI
+value.
+</ins></dd><dt><code><ins class="diff-chg">
+@language
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+specify
+the
+language
+for
+a
+literal.
+</ins></dd><dt><code><ins class="diff-chg">
+@datatype
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+specify
+the
+datatype
+for
+a
+literal.
+</ins></dd><dt><code>:</code></dt><dd><ins class="diff-chg">
+The
+separator
+for
+CURIEs
+when
+used
+in
+JSON
+keys
+or
+JSON
+values.
+</ins></dd><dt><code><ins class="diff-chg">
+@
+</ins></code></dt><dd><ins class="diff-chg">
+Sets
+the
+active
+subjects.
+</ins></dd><dt><code><ins class="diff-chg">
+a
+</ins></code></dt><dd><ins class="diff-chg">
+Used
+to
+set
+the
+rdf:type
+of
+the
+active
+subjects.
+This
+token
+may
+be
+conferred
+as
+syntactic
+sugar
+for
+rdf:type.
+</ins></dd></dl><p class="issue"><ins class="diff-chg">
+Use
+</ins><code><ins class="diff-chg">
+@source
+</ins></code><ins class="diff-chg">
+instead
+of
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+?
+</ins></p><p class="issue"><ins class="diff-chg">
+Use
+</ins><code><ins class="diff-chg">
+@type
+</ins></code><ins class="diff-chg">
+instead
+of
+</ins><code><ins class="diff-chg">
+a
+</ins></code><ins class="diff-chg">
+?
+Note
+that
+both
+are
+just
+semantic
+sugar
+for
+</ins><code><ins class="diff-chg">
+rdf:type
+</ins></code>.</p></div><div id="context" class="section"><h3><span class="secno"><ins class="diff-chg">
+6.4
+</ins></span><ins class="diff-chg">
+Context
+</ins></h3><p><ins class="diff-chg">
+Processing
+of
+JSON-LD
+is
+managed
+recursively
+using
+a
+process
+described
+in
+</ins><a href="sequence"><ins class="diff-chg">
+Sequence
+</ins></a>.<ins class="diff-chg">
+During
+processing,
+each
+rule
+is
+applied
+using
+information
+provided
+by
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>.<ins class="diff-chg">
+Processing
+begins
+by
+pushing
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+onto
+the
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+stack
+and
+initializing
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+with
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-chg">
+default
+context
+</ins></a>.<ins class="diff-chg">
+If
+a
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a><ins class="diff-chg">
+is
+encountered,
+information
+from
+the
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a><ins class="diff-chg">
+is
+merged
+into
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>.</p><p class="issue"><ins class="diff-chg">
+Should
+the
+document
+URL
+be
+used
+as
+the
+default
+for
+</ins><code><ins class="diff-chg">
+@base
+</ins></code><ins class="diff-chg">
+in
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-chg">
+default
+context
+</ins></a><ins class="diff-chg">
+?
+</ins>
+</p>
+<p>
+The
+<a class="tref internalDFN" title="active_context" href="#dfn-active_context">
+<ins class="diff-new">active
+context
+</ins></a><ins class="diff-new">
+is
+used
+for
+expanding
+keys
+and
+values
+of
+an
+associative
+array
+(or
+elements
+of
+a
+list
+(see
+</ins><span a="#list-processing"><ins class="diff-new">
+List
+Processing
+</ins></span><ins class="diff-new">
+)).
+</ins></p><p><ins class="diff-new">
+A
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-new">
+local
+context
+</ins></a><ins class="diff-new">
+is
+identified
+within
+an
+associative
+array
+having
+a
+key
+of
+</ins><code><ins class="diff-new">
+@context
+</ins></code><ins class="diff-new">
+with
+an
+associative
+array
+value.
+When
+processing
+a
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-new">
+local
+context
+</ins></a>,
+special
+<del class="diff-old">characters
+</del>
+<ins class="diff-chg">rules
+apply:
+</ins></p><ul><li><ins class="diff-chg">
+The
+key
+</ins><code><ins class="diff-chg">
+@base
+</ins></code><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+have
+a
+value
+of
+a
+simple
+string
+with
+the
+lexical
+form
+of
+IRI
+and
+is
+saved
+in
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+to
+perform
+term
+mapping
+as
+described
+in
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a>.</li><li><ins class="diff-chg">
+The
+key
+</ins><code><ins class="diff-chg">
+@vocab
+</ins></code><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+have
+a
+value
+of
+a
+simple
+string
+with
+the
+lexical
+form
+of
+IRI
+and
+is
+saved
+in
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+to
+perform
+term
+mapping
+as
+described
+in
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a>.</li><li><ins class="diff-chg">
+The
+key
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+have
+a
+value
+of
+an
+associative
+array.
+Processing
+of
+the
+associative
+array
+is
+described
+</ins><a href="#coerce"><ins class="diff-chg">
+below
+</ins></a></li><li><ins class="diff-chg">
+Otherwise,
+the
+key
+</ins><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+have
+the
+lexical
+form
+of
+</ins><cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName"><ins class="diff-chg">
+NCName
+</ins></a></cite><ins class="diff-chg">
+and
+</ins><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+have
+the
+value
+of
+a
+simple
+string
+with
+the
+lexical
+form
+of
+IRI.
+Merge
+each
+key-value
+pair
+into
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>,<ins class="diff-chg">
+overwriting
+any
+duplicate
+values.
+</ins></li></ul><p><ins class="diff-chg">
+A
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a><ins class="diff-chg">
+may
+also
+be
+loaded
+from
+an
+external
+document
+using
+the
+</ins><code><ins class="diff-chg">
+@profile
+</ins></code><ins class="diff-chg">
+key
+as
+described
+in
+</ins><a href="#vocabulary-profiles"><ins class="diff-chg">
+Vocabulary
+Profiles
+</ins></a>.</p><div id="coerce" class="section"><h4><span class="secno"><ins class="diff-chg">
+6.4.1
+</ins></span><ins class="diff-chg">
+Coerce
+</ins></h4><p><ins class="diff-chg">
+Map
+each
+key-value
+pair
+in
+the
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-chg">
+local
+context
+</ins></a><ins class="diff-chg">
+'s
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+mapping
+into
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+'s
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+mapping,
+overwriting
+any
+duplicate
+values
+</ins>
+in
+<ins class="diff-new">the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-new">
+active
+context
+</ins></a><ins class="diff-new">
+'s
+</ins><code><ins class="diff-new">
+@coerce
+</ins></code><ins class="diff-new">
+mapping.
+The
+</ins><code><ins class="diff-new">
+@coerce
+</ins></code><ins class="diff-new">
+mapping
+has
+a
+either
+of
+a
+single
+CURIE
+or
+of
+an
+array
+of
+CURIEs.
+When
+merging
+with
+an
+existing
+mapping
+in
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-new">
+active
+context
+</ins></a>,<ins class="diff-new">
+map
+all
+CURIE
+values
+to
+array
+form
+and
+replace
+with
+the
+union
+of
+the
+value
+from
+the
+</ins><a class="tref internalDFN" title="local_context" href="#dfn-local_context"><ins class="diff-new">
+local
+context
+</ins></a><ins class="diff-new">
+and
+the
+value
+of
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-new">
+active
+context
+</ins></a>.<ins class="diff-new">
+If
+the
+result
+is
+an
+array
+with
+a
+single
+CURIE,
+the
+processor
+</ins><em class="rfc2119" title="may"><ins class="diff-new">
+may
+</ins></em><ins class="diff-new">
+represent
+this
+as
+a
+string
+value.
+</ins></p></div></div><div id="chaining" class="section"><h3><span class="secno"><ins class="diff-new">
+6.5
+</ins></span><ins class="diff-new">
+Chaining
+</ins></h3><p><ins class="diff-new">
+Object
+</ins><dfn title="chaining" id="dfn-chaining"><ins class="diff-new">
+chaining
+</ins></dfn><ins class="diff-new">
+is
+a
+</ins>
+JSON-LD
+<del class="diff-old">are:
+</del>
+<ins class="diff-chg">feature
+that
+allows
+an
+author
+to
+use
+the
+definition
+of
+JSON-LD
+objects
+as
+</ins><a class="tref" title="property"><ins class="diff-chg">
+property
+</ins></a><ins class="diff-chg">
+values.
+This
+is
+a
+commonly
+used
+mechanism
+for
+creating
+a
+parent-child
+relationship
+between
+objects.
+</ins></p><p><ins class="diff-chg">
+The
+example
+shows
+an
+two
+objects
+related
+by
+a
+property
+from
+the
+first
+object:
+</ins></p>  <pre class="example">{
+<ins class="diff-chg">
+...
+  "foaf:name": "Manu Sporny",
+  "<span class="diff">foaf:knows</span>": {
+    "<span class="diff">a</span>": "<span class="diff">foaf:Person</span>",
+    "<span class="diff">foaf:name</span>": "<span class="diff">Gregg Kellogg</span>",
+  }
+...
+}
+</ins></pre><p><ins class="diff-chg">
+An
+object
+definition
+may
+be
+used
+anyplace
+a
+value
+is
+legal
+in
+JSON-LD.
+</ins></p></div><div id="iri-processing" class="section"><h3><span class="secno"><ins class="diff-chg">
+6.6
+</ins></span><ins class="diff-chg">
+IRI
+Processing
+</ins></h3><p><ins class="diff-chg">
+Keys
+and
+some
+values
+are
+evaluated
+to
+produce
+an
+IRI.
+This
+section
+defines
+an
+algorithm
+for
+transforming
+a
+value
+representing
+an
+IRI
+into
+an
+actual
+IRI.
+</ins></p><p><ins class="diff-chg">
+IRIs
+may
+be
+represented
+as
+an
+explicit
+string,
+or
+as
+a
+CURIE,
+as
+a
+value
+relative
+to
+</ins>
+<code>
+<del class="diff-old">&lt;
+</del>
+<ins class="diff-chg">@base
+</ins></code><ins class="diff-chg">
+or
+</ins><code><ins class="diff-chg">
+@vocab
+</ins></code>.</p><p><ins class="diff-chg">
+CURIEs
+are
+defined
+more
+formally
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDFA-CORE"><ins class="diff-chg">
+RDFA-CORE
+</ins></a></cite><ins class="diff-chg">
+]
+</ins><cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies"><ins class="diff-chg">
+section
+6
+"CURIE
+Syntax
+Definition"
+</ins></a></cite>.<ins class="diff-chg">
+Generally,
+a
+CURIE
+is
+composed
+of
+a
+</ins><em><ins class="diff-chg">
+prefix
+</ins></em><ins class="diff-chg">
+and
+a
+</ins><em><ins class="diff-chg">
+suffix
+</ins></em><ins class="diff-chg">
+separated
+by
+a
+':'.
+In
+JSON-LD,
+either
+the
+prefix
+may
+be
+the
+empty
+string,
+denoting
+the
+</ins><dfn title="default_prefix" id="dfn-default_prefix"><ins class="diff-chg">
+default
+prefix
+</ins></dfn>.</p><p><ins class="diff-chg">
+The
+procedure
+for
+generating
+an
+IRI
+is:
+</ins></p><ol class="algorithm"><li><ins class="diff-chg">
+Split
+the
+value
+into
+a
+</ins><em><ins class="diff-chg">
+prefix
+</ins></em><ins class="diff-chg">
+and
+</ins><em><ins class="diff-chg">
+suffix
+</ins></em><ins class="diff-chg">
+from
+the
+first
+occurrence
+of
+':'.
+</ins></li><li><ins class="diff-chg">
+If
+the
+prefix
+is
+a
+'_',
+generate
+a
+named
+BNode
+using
+the
+suffix
+as
+the
+name.
+</ins></li><li><ins class="diff-chg">
+If
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+contains
+a
+mapping
+for
+</ins><em><ins class="diff-chg">
+prefix
+</ins></em>,<ins class="diff-chg">
+generate
+an
+IRI
+by
+prepending
+the
+mapped
+prefix
+to
+the
+(possibly
+empty)
+suffix.
+Note
+that
+an
+empty
+suffix
+and
+no
+suffix
+(meaning
+the
+value
+contains
+no
+':'
+string
+at
+all)
+are
+treated
+equivalently.
+</ins></li><li><ins class="diff-chg">
+If
+the
+IRI
+being
+processed
+is
+for
+a
+property
+(i.e.,
+a
+key
+value
+in
+an
+associative
+array,
+or
+a
+value
+in
+a
+</ins><code><ins class="diff-chg">
+@coerce
+</ins></code><ins class="diff-chg">
+mapping)
+and
+the
+active
+context
+has
+a
+</ins><code><ins class="diff-chg">
+@vocab
+</ins></code><ins class="diff-chg">
+mapping,
+join
+the
+mapped
+value
+to
+the
+suffix
+using
+the
+method
+described
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RFC3987"><ins class="diff-chg">
+RFC3987
+</ins></a></cite><ins class="diff-chg">
+].
+</ins></li><li><ins class="diff-chg">
+If
+the
+IRI
+being
+processed
+is
+for
+a
+subject
+or
+object
+(i.e.,
+not
+a
+property)
+and
+the
+active
+context
+has
+a
+</ins><code><ins class="diff-chg">
+@base
+</ins></code><ins class="diff-chg">
+mapping,
+join
+the
+mapped
+value
+to
+the
+suffix
+using
+the
+method
+described
+in
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RFC3987"><ins class="diff-chg">
+RFC3987
+</ins></a></cite><ins class="diff-chg">
+].
+</ins></li><li><ins class="diff-chg">
+Otherwise,
+use
+the
+value
+directly
+as
+an
+IRI.
+</ins></li></ol><p></p></div></div><div id="sequence" class="section"><h2><span class="secno"><ins class="diff-chg">
+7.
+</ins></span><ins class="diff-chg">
+Sequence
+</ins></h2><p><ins class="diff-chg">
+The
+algorithm
+below
+is
+designed
+for
+in-memory
+implementations
+with
+random
+access
+to
+associative
+array
+elements.
+For
+a
+description
+of
+a
+streaming
+implementation,
+see
+</ins><a href="streaming-processors"><ins class="diff-chg">
+Appendix
+B
+</ins></a>.</p><p><ins class="diff-chg">
+A
+conforming
+JSON-LD
+processor
+</ins><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+implement
+a
+processing
+algorithm
+that
+results
+in
+the
+same
+</ins><a class="tref internalDFN" title="default_graph" href="#dfn-default_graph"><ins class="diff-chg">
+default
+graph
+</ins></a><ins class="diff-chg">
+that
+the
+following
+algorithm
+generates:
+</ins></p><ol class="algorithm"><li id="processing-step-default-context"><ins class="diff-chg">
+Create
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+with
+with
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a><ins class="diff-chg">
+set
+to
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-chg">
+default
+context
+</ins></a><ins class="diff-chg">
+and
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+and
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+initialized
+to
+NULL.
+</ins></li><li id="processing-step-associative"><ins class="diff-chg">
+If
+an
+associative
+array
+is
+detected,
+perform
+the
+following
+steps:
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+associative
+array
+has
+a
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+key,
+process
+the
+local
+context
+as
+described
+in
+</ins><a href="context"><ins class="diff-chg">
+Context
+</ins></a>.</li><li><ins class="diff-chg">
+If
+the
+associative
+array
+has
+an
+</ins><code><ins class="diff-chg">
+@iri
+</ins></code><ins class="diff-chg">
+key,
+set
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+by
+performing
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a><ins class="diff-chg">
+on
+the
+associated
+value.
+Generate
+a
+triple
+representing
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a>,<ins class="diff-chg">
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a>.<ins class="diff-chg">
+Return
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+the
+calling
+location.
+</ins></li><li><ins class="diff-chg">
+If
+the
+associative
+array
+has
+a
+</ins><code><ins class="diff-chg">
+@literal
+</ins></code><ins class="diff-chg">
+key,
+set
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+a
+literal
+value
+as
+follows:
+</ins><ul><li><ins class="diff-chg">
+as
+a
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></a><ins class="diff-chg">
+if
+the
+associative
+array
+contains
+a
+</ins><code><ins class="diff-chg">
+@datatype
+</ins></code><ins class="diff-chg">
+key
+after
+performing
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a><ins class="diff-chg">
+on
+the
+specified
+</ins><code><ins class="diff-chg">
+@datatype
+</ins></code>.</li><li><ins class="diff-chg">
+otherwise,
+as
+a
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></a>.<ins class="diff-chg">
+If
+the
+associative
+array
+contains
+a
+</ins><code><ins class="diff-chg">
+@language
+</ins></code><ins class="diff-chg">
+key,
+use
+it's
+value
+to
+set
+the
+language
+of
+the
+plain
+literal.
+</ins></li></ul><ins class="diff-chg">
+Generate
+a
+triple
+representing
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a>,<ins class="diff-chg">
+the
+</ins><a class="tref" title="active__property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a>.<ins class="diff-chg">
+Return
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+the
+calling
+location.
+</ins></li><li><ins class="diff-chg">
+If
+the
+associative
+array
+has
+a
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+key:
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+value
+is
+a
+string,
+set
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+the
+result
+of
+performing
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a>.<ins class="diff-chg">
+Generate
+a
+triple
+representing
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a>,<ins class="diff-chg">
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a>.<ins class="diff-chg">
+Set
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+to
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a>.</li><li><ins class="diff-chg">
+Create
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+using
+copies
+of
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>,<a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+and
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+process
+the
+value
+starting
+at
+</ins><a href="#processing-step-associative"><ins class="diff-chg">
+Step
+2
+</ins></a>,<ins class="diff-chg">
+set
+the
+</ins><a class="tref" title="active__subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+to
+the
+result
+and
+proceed
+using
+the
+previous
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a>.</li></ol></li><li><ins class="diff-chg">
+If
+the
+associative
+array
+does
+not
+have
+a
+</ins><code><ins class="diff-chg">
+@
+</ins></code><ins class="diff-chg">
+key,
+set
+the
+</ins><a class="tref" title="active__object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+newly
+generated
+</ins><a class="tref" title="blank_node_identifier"><ins class="diff-chg">
+blank
+node
+identifier
+</ins></a>.<ins class="diff-chg">
+Generate
+a
+triple
+representing
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a>,<ins class="diff-chg">
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a>.<ins class="diff-chg">
+Set
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+to
+the
+</ins><a class="tref" title="active__object"><ins class="diff-chg">
+active
+object
+</ins></a>.</li><li><ins class="diff-chg">
+For
+each
+key
+in
+the
+associative
+array
+that
+has
+not
+already
+been
+processed,
+perform
+the
+following
+steps:
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+key
+is
+</ins><code><ins class="diff-chg">
+a
+</ins>
+</code>,
+<ins class="diff-new">set
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-new">
+active
+property
+</ins></a><ins class="diff-new">
+to
+</ins>
+<code>
+<del class="diff-old">&gt;
+</del>
+<ins class="diff-chg">rdf:type
+</ins></code>.</li><li><ins class="diff-chg">
+Otherwise,
+set
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+to
+the
+result
+of
+performing
+</ins><a href="#iri-processing"><ins class="diff-chg">
+IRI
+Processing
+</ins></a><ins class="diff-chg">
+on
+the
+key.
+</ins></li><li><ins class="diff-chg">
+Create
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a><ins class="diff-chg">
+copies
+of
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-chg">
+active
+context
+</ins></a>,<a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-chg">
+active
+subject
+</ins></a><ins class="diff-chg">
+and
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-chg">
+active
+property
+</ins></a><ins class="diff-chg">
+and
+process
+the
+value
+starting
+at
+</ins><a href="#processing-step-associative"><ins class="diff-chg">
+Step
+2
+</ins></a><ins class="diff-chg">
+and
+proceed
+using
+the
+previous
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-chg">
+processor
+state
+</ins></a>.</li></ol></li><li><ins class="diff-chg">
+Return
+the
+</ins><a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-chg">
+active
+object
+</ins></a><ins class="diff-chg">
+to
+the
+calling
+location.
+</ins></li></ol></li><li><ins class="diff-chg">
+If
+a
+regular
+array
+is
+detected,
+process
+each
+value
+in
+the
+array
+by
+doing
+the
+following
+returning
+the
+result
+of
+processing
+the
+last
+value
+in
+the
+array:
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+value
+is
+a
+regular
+array,
+generate
+an
+RDF
+List
+by
+linking
+each
+element
+of
+the
+list
+using
+</ins><code><ins class="diff-chg">
+rdf:first
+</ins></code><ins class="diff-chg">
+and
+</ins><code><ins class="diff-chg">
+rdf:next
+</ins>
+</code>,
+<ins class="diff-new">terminating
+the
+list
+with
+</ins>
+<code>
+<del class="diff-old">@
+</del>
+<ins class="diff-chg">rdf:nil
+</ins>
+</code>
+<ins class="diff-new">using
+the
+following
+sequence:
+</ins><ol><li><ins class="diff-new">
+If
+the
+list
+has
+no
+element,
+generate
+a
+triple
+using
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-new">
+active
+property
+</ins></a>
+and
+<code>
+<del class="diff-old">^
+</del>
+<ins class="diff-chg">rdf:nil
+</ins>
+</code>.
+</li>
+<li>
+<ins class="diff-new">Otherwise,
+generate
+a
+triple
+using
+using
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-new">
+active
+property
+</ins></a><ins class="diff-new">
+and
+a
+newly
+generated
+BNode
+identified
+as
+</ins><em><ins class="diff-new">
+first
+bnode
+</ins></em>.</li><li><ins class="diff-new">
+For
+each
+element
+other
+than
+the
+last
+element
+in
+the
+list:
+</ins><ol><li><ins class="diff-new">
+Create
+a
+processor
+state
+using
+the
+active
+context,
+</ins><em><ins class="diff-new">
+first
+bnode
+</ins></em><ins class="diff-new">
+as
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<ins class="diff-new">
+and
+</ins><code><ins class="diff-new">
+rdf:first
+</ins></code><ins class="diff-new">
+as
+the
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-new">
+active
+property
+</ins></a>.</li><li><ins class="diff-new">
+Unless
+this
+is
+the
+last
+element
+in
+the
+list,
+generate
+a
+new
+BNode
+identified
+as
+</ins><em><ins class="diff-new">
+rest
+bnode
+</ins></em>,<ins class="diff-new">
+otherwise
+use
+</ins><code><ins class="diff-new">
+rdf:nil
+</ins></code>.</li><li><ins class="diff-new">
+Generate
+a
+new
+triple
+using
+</ins><em><ins class="diff-new">
+first
+bnode
+</ins></em>,<code><ins class="diff-new">
+rdf:rest
+</ins></code><ins class="diff-new">
+and
+</ins><em><ins class="diff-new">
+rest
+bnode
+</ins></em>.</li><li><ins class="diff-new">
+Set
+</ins><em><ins class="diff-new">
+first
+bnode
+</ins></em><ins class="diff-new">
+to
+</ins><em><ins class="diff-new">
+rest
+bnode
+</ins></em>.</li></ol></li></ol></li><li><ins class="diff-new">
+Otherwise,
+create
+a
+new
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-new">
+processor
+state
+</ins></a><ins class="diff-new">
+copies
+of
+the
+</ins><a class="tref internalDFN" title="active_context" href="#dfn-active_context"><ins class="diff-new">
+active
+context
+</ins></a>,<a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a><ins class="diff-new">
+and
+</ins><a class="tref internalDFN" title="active_property" href="#dfn-active_property"><ins class="diff-new">
+active
+property
+</ins></a><ins class="diff-new">
+and
+process
+the
+value
+starting
+at
+</ins><a href="#processing-step-associative"><ins class="diff-new">
+Step
+2
+</ins></a><ins class="diff-new">
+and
+proceed
+using
+the
+previous
+</ins><a class="tref internalDFN" title="processor_state" href="#dfn-processor_state"><ins class="diff-new">
+processor
+state
+</ins></a>.</li></ol></li><li><ins class="diff-new">
+If
+a
+string
+is
+detected,
+generate
+a
+triple
+using
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-new">
+active
+object
+</ins></a><ins class="diff-new">
+and
+a
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-new">
+plain
+literal
+</ins></a><ins class="diff-new">
+value
+created
+from
+the
+string.
+</ins></li><li><ins class="diff-new">
+If
+a
+number
+is
+detected,
+generate
+a
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-new">
+typed
+literal
+</ins></a><ins class="diff-new">
+using
+a
+string
+representation
+of
+the
+value
+with
+datatype
+set
+to
+either
+</ins><code><ins class="diff-new">
+xsd:integer
+</ins></code><ins class="diff-new">
+or
+</ins><code><ins class="diff-new">
+xsd:double
+</ins></code>,<ins class="diff-new">
+depending
+on
+if
+the
+value
+contains
+a
+fractional
+and/or
+an
+exponential
+component.
+Generate
+a
+triple
+using
+the
+</ins><a class="tref" title="active__subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-new">
+active
+object
+</ins></a><ins class="diff-new">
+and
+the
+generated
+typed
+literal.
+</ins></li><li><ins class="diff-new">
+Otherwise,
+if
+</ins><strong><ins class="diff-new">
+true
+</ins></strong><ins class="diff-new">
+or
+</ins><strong><ins class="diff-new">
+false
+</ins></strong><ins class="diff-new">
+is
+detected,
+generate
+a
+triple
+using
+the
+</ins><a class="tref internalDFN" title="active_subject" href="#dfn-active_subject"><ins class="diff-new">
+active
+subject
+</ins></a>,<a class="tref internalDFN" title="active_object" href="#dfn-active_object"><ins class="diff-new">
+active
+object
+</ins></a><ins class="diff-new">
+and
+a
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-new">
+typed
+literal
+</ins></a><ins class="diff-new">
+value
+created
+from
+the
+string
+representation
+of
+the
+value
+with
+datatype
+set
+to
+</ins><code><ins class="diff-new">
+xsd:boolean
+</ins></code>.</li></ol></div><div id="best-practices" class="section"><h2><span class="secno"><ins class="diff-new">
+8.
+</ins></span><ins class="diff-new">
+Best
+Practices
+</ins></h2><p><ins class="diff-new">
+The
+nature
+of
+Web
+programming
+allows
+one
+to
+use
+basic
+technologies,
+such
+as
+JSON-LD,
+across
+a
+variety
+of
+systems
+and
+environments.
+This
+section
+attempts
+to
+describe
+some
+of
+those
+environments
+and
+the
+way
+in
+which
+JSON-LD
+can
+be
+integrated
+in
+order
+to
+help
+alleviate
+certain
+development
+headaches.
+</ins>
+</p>
+<del class="diff-old">{
+...
+ "example:code" : ,
+...
+</del>
+<div id="javascript" class="section">
+<h3>
+<span class="secno">
+<ins class="diff-chg">8.1
+</ins></span><ins class="diff-chg">
+JavaScript
+</ins></h3><p class="issue"><ins class="diff-chg">
+It
+is
+expected
+that
+JSON-LD
+will
+be
+used
+quite
+a
+bit
+in
+JavaScript
+environments,
+however,
+features
+like
+the
+expanded
+form
+for
+object
+values
+mean
+that
+using
+JSON-LD
+directly
+in
+JavaScript
+may
+be
+annoying
+without
+a
+middleware
+layer
+such
+as
+a
+simple
+library
+that
+converts
+JSON-LD
+markup
+before
+JavaScript
+uses
+it.
+One
+could
+say
+that
+JSON-LD
+is
+a
+good
+fit
+for
+the
+RDF
+API,
+which
+enables
+a
+variety
+of
+RDF-based
+Web
+Applications,
+but
+some
+don't
+want
+to
+require
+that
+level
+of
+functionality
+just
+to
+use
+JSON-LD.
+The
+group
+is
+still
+discussing
+the
+best
+way
+to
+proceed,
+so
+input
+on
+how
+JSON-LD
+could
+more
+easily
+be
+utilized
+in
+JavaScript
+environments
+would
+be
+very
+much
+appreciated.
+</ins></p></div><div id="schema-less-databases" class="section"><h3><span class="secno"><ins class="diff-chg">
+8.2
+</ins></span><ins class="diff-chg">
+Schema-less
+Databases
+</ins></h3><p class="issue"><ins class="diff-chg">
+Databases
+such
+as
+CouchDB
+and
+MongoDB
+allow
+the
+creation
+of
+schema-less
+data
+stores.
+RDF
+is
+a
+type
+of
+schema-less
+data
+model
+and
+thus
+lends
+itself
+to
+databases
+such
+as
+CouchDB
+and
+MongoDB.
+Both
+of
+these
+databases
+can
+use
+JSON-LD
+as
+their
+storage
+format.
+The
+group
+needs
+feedback
+from
+CouchDB
+and
+MongoDB
+experts
+regarding
+the
+usefulness
+of
+JSON-LD
+in
+those
+environments.
+</ins></p><p class="issue"><ins class="diff-chg">
+MongoDB
+does
+not
+allow
+the
+'.'
+character
+to
+be
+used
+in
+key
+names.
+This
+prevents
+developers
+from
+storing
+IRIs
+as
+keys,
+which
+also
+prevents
+storage
+of
+the
+data
+in
+normalized
+form.
+While
+this
+issue
+can
+be
+avoided
+by
+using
+CURIEs
+for
+key
+values,
+it
+is
+not
+known
+if
+this
+mechanism
+is
+enough
+to
+allow
+JSON-LD
+to
+be
+used
+in
+MongoDB
+in
+a
+way
+that
+is
+useful
+to
+developers.
+</ins></p></div></div><div id="advanced-concepts" class="section"><h2><span class="secno"><ins class="diff-chg">
+9.
+</ins></span><ins class="diff-chg">
+Advanced
+Concepts
+</ins></h2><p class="issue"><ins class="diff-chg">
+There
+are
+a
+few
+advanced
+concepts
+where
+it
+is
+not
+clear
+whether
+or
+not
+the
+JSON-LD
+specification
+is
+going
+to
+support
+the
+complexity
+necessary
+to
+support
+each
+concept.
+The
+entire
+section
+on
+Advanced
+Concepts
+should
+be
+considered
+as
+discussion
+points;
+it
+is
+merely
+a
+list
+of
+possibilities
+where
+all
+of
+the
+benefits
+and
+drawbacks
+have
+not
+been
+explored.
+</ins></p><div id="vocabulary-profiles" class="section"><h3><span class="secno"><ins class="diff-chg">
+9.1
+</ins></span><ins class="diff-chg">
+Vocabulary
+Profiles
+</ins></h3><p><ins class="diff-chg">
+One
+of
+the
+more
+powerful
+features
+of
+RDFa
+1.1
+Core
+is
+the
+ability
+to
+specify
+a
+collection
+of
+prefixes
+and
+terms
+that
+can
+be
+re-used
+by
+a
+processor
+to
+simplfy
+markup.
+JSON-LD
+provides
+a
+similar
+mechanism
+called
+Vocabulary
+Profiles,
+which
+is
+the
+inclusion
+of
+a
+context
+external
+to
+the
+JSON-LD
+document.
+</ins></p><p><ins class="diff-chg">
+The
+example
+below
+demonstrates
+how
+one
+may
+specify
+an
+external
+Vocabulary
+Profile.
+Assume
+the
+following
+profile
+exists
+at
+this
+imaginary
+URL:
+</ins><code><ins class="diff-chg">
+http://example.org/profiles/contacts
+</ins></code>.</p><pre class="example">{
+<ins class="diff-chg">
+  "@context": 
+  {
+     "xsd": "http://www.w3.org/2001/XMLSchema#",
+     "name": "http://xmlns.com/foaf/0.1/name",
+     "age": "http://xmlns.com/foaf/0.1/age",
+     "homepage": "http://xmlns.com/foaf/0.1/homepage",
+     "#types":
+     {
+        "age": "xsd:integer",
+        "homepage": "xsd:anyURI",
+     }
+  }
+}
+</ins></pre><p><ins class="diff-chg">
+The
+profile
+listed
+above
+can
+be
+used
+in
+the
+following
+way:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+  "@profile": "http://example.org/profiles/contacts",
+  "name": "John Smith",
+  "age": "41",
+  "homepage": "http://example.org/home/"
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">The
+example
+above
+would
+generate
+the
+following
+triples:
+</ins></p><pre class="example">_:bnode1
+<ins class="diff-new">
+   &lt;http://xmlns.com/foaf/0.1/name&gt;
+      "John Smith" .
+_:bnode1
+   &lt;http://xmlns.com/foaf/0.1/age&gt;
+      "41"^^http://www.w3.org/2001/XMLSchema#integer .
+_:bnode1
+   &lt;http://xmlns.com/foaf/0.1/homepage&gt;
+&lt;http://example.org/home/&gt;
+.
+</ins></pre>
+</div>
+<div id="disjoint-graphs" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">5.11
+</del>
+<ins class="diff-chg">9.2
+</ins>
+</span>
+<del class="diff-old">Automatic
+Typing
+</del>
+<ins class="diff-chg">Disjoint
+Graphs
+</ins>
+</h3>
+<del class="diff-old">{
+...
+ // This value is automatically converted to having a type of xsd:decimal
+ "measure:cups" : ,
+ // This value is automatically converted to having a type of xsd:integer
+ "chem:protons" : ,
+ // This value is automatically converted to having a type of xsd:boolean
+ "sensor:active" : ,
+...
+</del>
+<p>
+<ins class="diff-chg">When
+serializing
+an
+RDF
+graph
+that
+contains
+two
+or
+more
+sections
+of
+the
+graph
+which
+are
+entirely
+disjoint,
+one
+must
+use
+an
+array
+to
+express
+the
+graph
+as
+two
+graphs.
+This
+may
+not
+be
+acceptable
+to
+some
+authors,
+who
+would
+rather
+express
+the
+information
+as
+one
+graph.
+Since,
+by
+definition,
+disjoint
+graphs
+require
+there
+to
+be
+two
+top-level
+objects,
+JSON-LD
+utilizes
+a
+mechanism
+that
+allows
+disjoint
+graphs
+to
+be
+expressed
+using
+a
+single
+graph.
+</ins></p><p><ins class="diff-chg">
+Assume
+the
+following
+RDF
+graph:
+</ins></p><pre class="example">&lt;http://example.org/people#john&gt; 
+<ins class="diff-chg">
+   &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;
+      &lt;http://xmlns.com/foaf/0.1/Person&gt; .
+&lt;http://example.org/people#jane&gt; 
+   &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt;
+&lt;http://xmlns.com/foaf/0.1/Person&gt;
+.
+</ins></pre><p><ins class="diff-chg">
+Since
+the
+two
+subjects
+are
+entirely
+disjoint
+with
+one
+another,
+it
+is
+impossible
+to
+express
+the
+RDF
+graph
+above
+using
+a
+single
+JSON-LD
+associative
+array.
+</ins></p><p><ins class="diff-chg">
+In
+JSON-LD,
+one
+can
+use
+the
+subject
+to
+express
+disjoint
+graphs
+as
+a
+single
+graph:
+</ins></p><pre class="example">{
+<ins class="diff-chg">
+  "@": 
+  [
+    {
+      "@": "http://example.org/people#john",
+      "a": "foaf:Person"
+    },
+    {
+      "@": "http://example.org/people#jane",
+      "a": "foaf:Person"
+    }
+  ]
+</ins>
+}
+</pre>
+<p>
+<ins class="diff-new">A
+disjoint
+graph
+could
+also
+be
+expressed
+like
+so:
+</ins></p><pre class="example">[
+<ins class="diff-new">
+  {
+    "@": "http://example.org/people#john",
+    "a": "foaf:Person"
+  },
+  {
+    "@": "http://example.org/people#jane",
+    "a": "foaf:Person"
+  }
+]
+</ins></pre>
+</div>
+<div id="the-json-ld-api" class="section">
+<h3>
+<span class="secno">
+<ins class="diff-new">9.3
+</ins></span><ins class="diff-new">
+The
+JSON-LD
+API
+</ins></h3><p><ins class="diff-new">
+This
+API
+provides
+a
+clean
+mechanism
+that
+enables
+developers
+to
+convert
+JSON-LD
+data
+into
+a
+format
+that
+is
+easier
+to
+work
+with
+in
+various
+programming
+languages.
+</ins></p><pre class="idl"><span class="idlInterface" id="idl-def-JSONLDProcessor">[<span class="extAttr">NoInterfaceObject</span>]
+<ins class="diff-new">
+interface <span class="idlInterfaceID">JSONLDProcessor</span> {
+</ins><span class="idlMethod">    <span class="idlMethType"><a>object</a></span> <span class="idlMethName"><a href="#widl-JSONLDProcessor-toProjection-object-DOMString-jsonld-object-template-DOMString-subject-JSONLDParserCallback-callback">toProjection</a></span> (<span class="idlParam">in <span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">jsonld</span></span>, <span class="idlParam">in <span class="idlParamType"><a>object</a>?</span> <span class="idlParamName">template</span></span>, <span class="idlParam">in <span class="idlParamType"><a>DOMString</a>?</span> <span class="idlParamName">subject</span></span>, <span class="idlParam">in optional <span class="idlParamType"><a>JSONLDParserCallback</a>?</span> <span class="idlParamName">callback</span></span>);</span>
+<span class="idlMethod">    <span class="idlMethType"><a>Graph</a></span>  <span class="idlMethName"><a href="#widl-JSONLDProcessor-toGraph-Graph-DOMString-jsonld-JSONLDParserCallback-callback">toGraph</a></span> (<span class="idlParam">in <span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">jsonld</span></span>, <span class="idlParam">in optional <span class="idlParamType"><a>JSONLDParserCallback</a>?</span> <span class="idlParamName">callback</span></span>);</span>
+<ins class="diff-new">
+};</span>
+</ins></pre><div id="methods" class="section"><h4><span class="secno"><ins class="diff-new">
+9.3.1
+</ins></span><ins class="diff-new">
+Methods
+</ins></h4><dl class="methods"><dt id="widl-JSONLDProcessor-toGraph-Graph-DOMString-jsonld-JSONLDParserCallback-callback"><code><ins class="diff-new">
+toGraph
+</ins></code></dt><dd><ins class="diff-new">
+Parses
+JSON-LD
+and
+transforms
+the
+data
+into
+an
+Graph,
+which
+is
+compatible
+with
+the
+RDF
+Interfaces
+API
+specification
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDF-INTERFACES"><ins class="diff-new">
+RDF-INTERFACES
+</ins></a></cite><ins class="diff-new">
+].
+This
+method
+will
+return
+</ins><code><ins class="diff-new">
+null
+</ins></code><ins class="diff-new">
+if
+there
+are
+any
+errors,
+or
+if
+the
+RDF
+Interfaces
+API
+is
+not
+available
+for
+use.
+</ins><table class="parameters"><tr><th><ins class="diff-new">
+Parameter
+</ins></th><th><ins class="diff-new">
+Type
+</ins></th><th><ins class="diff-new">
+Nullable
+</ins></th><th><ins class="diff-new">
+Optional
+</ins></th><th><ins class="diff-new">
+Description
+</ins></th></tr><tr><td class="prmName"><ins class="diff-new">
+jsonld
+</ins></td><td class="prmType"><code><a><ins class="diff-new">
+DOMString
+</ins></a></code></td><td class="prmNullFalse"><ins class="diff-new">
+&#10008;
+</ins></td><td class="prmOptFalse"><ins class="diff-new">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-new">
+The
+JSON-LD
+string
+to
+parse
+into
+the
+RDFGraph.
+</ins></td></tr><tr><td class="prmName"><ins class="diff-new">
+callback
+</ins></td><td class="prmType"><code><a><ins class="diff-new">
+JSONLDParserCallback
+</ins></a></code></td><td class="prmNullTrue"><ins class="diff-new">
+&#10004;
+</ins></td><td class="prmOptTrue"><ins class="diff-new">
+&#10004;
+</ins></td><td class="prmDesc"><ins class="diff-new">
+A
+callback
+that
+is
+called
+whenever
+a
+processing
+error
+occurs
+on
+the
+given
+JSON-LD
+string.
+</ins></td></tr></table><div><em><ins class="diff-new">
+No
+exceptions.
+</ins></em>
+</div>
+<div>
+<em>
+<ins class="diff-chg">Return
+type:
+</ins></em><code><a><ins class="diff-chg">
+Graph
+</ins></a></code></div></dd><dt id="widl-JSONLDProcessor-toProjection-object-DOMString-jsonld-object-template-DOMString-subject-JSONLDParserCallback-callback"><code><ins class="diff-chg">
+toProjection
+</ins></code></dt><dd><ins class="diff-chg">
+Parses
+JSON-LD
+text
+into
+an
+RDF
+API
+Projection
+object
+as
+specified
+by
+the
+RDF
+API
+specification
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDF-API"><ins class="diff-chg">
+RDF-API
+</ins></a></cite><ins class="diff-chg">
+].
+If
+there
+are
+any
+errors,
+</ins><code><ins class="diff-chg">
+null
+</ins></code><ins class="diff-chg">
+is
+returned.
+</ins><table class="parameters"><tr><th><ins class="diff-chg">
+Parameter
+</ins></th><th><ins class="diff-chg">
+Type
+</ins></th><th><ins class="diff-chg">
+Nullable
+</ins></th><th><ins class="diff-chg">
+Optional
+</ins></th><th><ins class="diff-chg">
+Description
+</ins></th></tr><tr><td class="prmName"><ins class="diff-chg">
+jsonld
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+DOMString
+</ins></a></code></td><td class="prmNullFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmOptFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+The
+JSON-LD
+string
+to
+parse
+into
+the
+Projection.
+</ins></td></tr><tr><td class="prmName"><ins class="diff-chg">
+template
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+object
+</ins></a></code></td><td class="prmNullTrue"><ins class="diff-chg">
+&#10004;
+</ins></td><td class="prmOptFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+The
+Projection
+template
+to
+use
+when
+building
+the
+Projection.
+</ins></td></tr><tr><td class="prmName"><ins class="diff-chg">
+subject
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+DOMString
+</ins></a></code></td><td class="prmNullTrue"><ins class="diff-chg">
+&#10004;
+</ins></td><td class="prmOptFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+The
+subject
+to
+use
+when
+building
+the
+Projection.
+</ins></td></tr><tr><td class="prmName"><ins class="diff-chg">
+callback
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+JSONLDParserCallback
+</ins></a></code></td><td class="prmNullTrue"><ins class="diff-chg">
+&#10004;
+</ins></td><td class="prmOptTrue"><ins class="diff-chg">
+&#10004;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+A
+callback
+that
+is
+called
+whenever
+a
+processing
+error
+occurs
+on
+the
+given
+JSON-LD
+string.
+</ins></td></tr></table><div><em><ins class="diff-chg">
+No
+exceptions.
+</ins></em></div><div><em><ins class="diff-chg">
+Return
+type:
+</ins></em><code><a><ins class="diff-chg">
+object
+</ins></a></code></div></dd></dl></div><p><ins class="diff-chg">
+The
+JSONLDParserCallback
+is
+called
+whenever
+a
+processing
+error
+occurs
+on
+input
+data.
+</ins></p><pre class="idl"><span class="idlInterface" id="idl-def-JSONLDProcessorCallback">[<span class="extAttr">NoInterfaceObject Callback</span>]
+<ins class="diff-chg">
+interface <span class="idlInterfaceID">JSONLDProcessorCallback</span> {
+</ins><span class="idlMethod">    <span class="idlMethType"><a>void</a></span> <span class="idlMethName"><a href="#widl-JSONLDProcessorCallback-error-void-DOMString-error">error</a></span> (<span class="idlParam">in <span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">error</span></span>);</span>
+<ins class="diff-chg">
+};</span>
+</ins></pre><div id="methods-1" class="section"><h4><span class="secno"><ins class="diff-chg">
+9.3.2
+</ins></span><ins class="diff-chg">
+Methods
+</ins></h4><dl class="methods"><dt id="widl-JSONLDProcessorCallback-error-void-DOMString-error"><code><ins class="diff-chg">
+error
+</ins></code></dt><dd><ins class="diff-chg">
+This
+callback
+is
+invoked
+whenever
+an
+error
+occurs
+during
+processing.
+</ins><table class="parameters"><tr><th><ins class="diff-chg">
+Parameter
+</ins></th><th><ins class="diff-chg">
+Type
+</ins></th><th><ins class="diff-chg">
+Nullable
+</ins></th><th><ins class="diff-chg">
+Optional
+</ins></th><th><ins class="diff-chg">
+Description
+</ins></th></tr><tr><td class="prmName"><ins class="diff-chg">
+error
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+DOMString
+</ins></a></code></td><td class="prmNullFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmOptFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+A
+descriptive
+error
+string
+returned
+by
+the
+processor.
+</ins></td></tr></table><div><em><ins class="diff-chg">
+No
+exceptions.
+</ins></em></div><div><em><ins class="diff-chg">
+Return
+type:
+</ins></em><code><a><ins class="diff-chg">
+void
+</ins></a></code></div></dd></dl></div><p><ins class="diff-chg">
+The
+following
+example
+demonstrates
+how
+to
+convert
+JSON-LD
+to
+a
+projection
+that
+is
+directly
+usable
+in
+a
+programming
+environment:
+</ins></p><pre class="example">// retrieve JSON-LD from a Web Service
+<ins class="diff-chg">
+var jsonldString = fetchPerson();
+
+// This map, usually defined once per script, defines how to map incoming 
+// JSON-LD to JavaScript objects
+var myTemplate = { "http://xmlns.com/foaf/0.1/name" : "name",
+                   "http://xmlns.com/foaf/0.1/age" : "age",
+                  "http://xmlns.com/foaf/0.1/homepage" : "homepage" };
+
+// Map the JSON-LD to a language-native object
+var person = jsonld.toProjection(jsonldString, myTemplate);
+
+// Use the language-native object
+alert(person.name + " is " + person.age + " years old. " +
+"Their
+homepage
+is:
+"
++
+person.homepage);
+</ins></pre><p><ins class="diff-chg">
+A
+JSON-LD
+Serializer
+is
+also
+available
+to
+map
+a
+language-native
+object
+to
+JSON-LD.
+</ins></p><pre class="idl"><span class="idlInterface" id="idl-def-JSONLDSerializer">[<span class="extAttr">NoInterfaceObject</span>]
+<ins class="diff-chg">
+interface <span class="idlInterfaceID">JSONLDSerializer</span> {
+</ins><span class="idlMethod">    <span class="idlMethType"><a>DOMString</a></span> <span class="idlMethName"><a href="#widl-JSONLDSerializer-normalize-DOMString-object-obj">normalize</a></span> (<span class="idlParam">in <span class="idlParamType"><a>object</a></span> <span class="idlParamName">obj</span></span>);</span>
+<ins class="diff-chg">
+};</span>
+</ins></pre><div id="methods-2" class="section"><h4><span class="secno"><ins class="diff-chg">
+9.3.3
+</ins></span><ins class="diff-chg">
+Methods
+</ins></h4><dl class="methods"><dt id="widl-JSONLDSerializer-normalize-DOMString-object-obj"><code><ins class="diff-chg">
+normalize
+</ins></code></dt><dd><ins class="diff-chg">
+Serializes
+a
+language-native
+object
+into
+a
+normalized
+JSON-LD
+string.
+Normalization
+is
+important
+when
+performing
+things
+like
+equality
+comparison
+and
+digital
+signature
+creation
+and
+verification.
+</ins><table class="parameters"><tr><th><ins class="diff-chg">
+Parameter
+</ins></th><th><ins class="diff-chg">
+Type
+</ins></th><th><ins class="diff-chg">
+Nullable
+</ins></th><th><ins class="diff-chg">
+Optional
+</ins></th><th><ins class="diff-chg">
+Description
+</ins></th></tr><tr><td class="prmName"><ins class="diff-chg">
+obj
+</ins></td><td class="prmType"><code><a><ins class="diff-chg">
+object
+</ins></a></code></td><td class="prmNullFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmOptFalse"><ins class="diff-chg">
+&#10008;
+</ins></td><td class="prmDesc"><ins class="diff-chg">
+An
+associative
+array
+of
+key-value
+pairs
+that
+should
+be
+converted
+to
+a
+JSON-LD
+string.
+It
+is
+assumed
+that
+a
+map
+already
+exists
+for
+the
+data.
+</ins></td></tr></table><div><em><ins class="diff-chg">
+No
+exceptions.
+</ins></em></div><div><em><ins class="diff-chg">
+Return
+type:
+</ins></em><code><a><ins class="diff-chg">
+DOMString
+</ins></a></code></div></dd></dl></div><h3 id="the-normalization-algorithm"><ins class="diff-chg">
+The
+Normalization
+Algorithm
+</ins></h3><p class="issue"><ins class="diff-chg">
+This
+algorithm
+is
+very
+rough,
+untested,
+and
+probably
+contains
+many
+bugs.
+Use
+at
+your
+own
+risk.
+It
+will
+change
+in
+the
+coming
+months.
+</ins></p><p><ins class="diff-chg">
+The
+JSON-LD
+normalization
+algorithm
+is
+as
+follows:
+</ins></p><ol class="algorithm"><li><ins class="diff-chg">
+Remove
+the
+</ins><code><ins class="diff-chg">
+@context
+</ins></code><ins class="diff-chg">
+key
+and
+preserve
+it
+as
+the
+</ins><dfn title="transformation_map" id="dfn-transformation_map"><ins class="diff-chg">
+transformation
+map
+</ins></dfn><ins class="diff-chg">
+while
+running
+this
+algorithm.
+</ins></li><li><ins class="diff-chg">
+For
+each
+key
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+key
+is
+a
+CURIE,
+expand
+the
+CURIE
+to
+an
+IRI
+using
+the
+</ins><a class="tref internalDFN" title="transformation_map" href="#dfn-transformation_map"><ins class="diff-chg">
+transformation
+map
+</ins></a>.</li></ol></li><li><ins class="diff-chg">
+For
+each
+value
+</ins><ol class="algorithm"><li><ins class="diff-chg">
+If
+the
+value
+should
+be
+type
+coerced
+per
+the
+</ins><a class="tref internalDFN" title="transformation_map" href="#dfn-transformation_map"><ins class="diff-chg">
+transformation
+map
+</ins></a>,<ins class="diff-chg">
+ensure
+that
+it
+is
+transformed
+to
+the
+new
+value.
+</ins></li><li><ins class="diff-chg">
+If
+the
+value
+is
+a
+CURIE,
+expand
+the
+CURIE
+to
+an
+IRI
+using
+the
+</ins><a class="tref internalDFN" title="transformation_map" href="#dfn-transformation_map"><ins class="diff-chg">
+transformation
+map
+</ins></a>.</li><li><ins class="diff-chg">
+If
+the
+value
+is
+a
+</ins><a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal"><ins class="diff-chg">
+typed
+literal
+</ins></a><ins class="diff-chg">
+and
+the
+type
+is
+a
+CURIE,
+expand
+it
+to
+an
+IRI
+using
+the
+</ins><a class="tref internalDFN" title="transformation_map" href="#dfn-transformation_map"><ins class="diff-chg">
+transformation
+map
+</ins></a>.</li><li><ins class="diff-chg">
+When
+generating
+the
+final
+value,
+use
+expanded
+object
+value
+form
+to
+store
+all
+IRIs,
+typed
+literals
+and
+</ins><a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal"><ins class="diff-chg">
+plain
+literal
+</ins></a><ins class="diff-chg">
+s
+with
+language
+information.
+</ins></li></ol></li><li><ins class="diff-chg">
+Output
+each
+sorted
+key-value
+pair
+without
+any
+extraneous
+whitespace.
+If
+the
+value
+is
+an
+associative
+array,
+perform
+this
+algorithm,
+starting
+at
+step
+#1,
+recursively
+on
+the
+sub-tree.
+There
+should
+be
+no
+nesting
+in
+the
+outputted
+JSON
+data.
+That
+is,
+the
+top-most
+element
+should
+be
+an
+array.
+Each
+item
+in
+the
+array
+contains
+a
+single
+subject
+with
+a
+corresponding
+array
+of
+properties
+in
+UTF-8
+sort
+order.
+Any
+related
+objects
+that
+are
+complex
+objects
+themselves
+should
+be
+given
+a
+top-level
+object
+in
+the
+top-level
+array.
+</ins></li></ol><p class="issue"><ins class="diff-chg">
+Note
+that
+normalizing
+named
+blank
+nodes
+is
+impossible
+at
+present
+since
+one
+would
+have
+to
+specify
+a
+blank
+node
+naming
+algorithm.
+For
+the
+time
+being,
+you
+cannot
+normalize
+graphs
+that
+contain
+named
+blank
+nodes.
+However,
+normalizing
+graphs
+that
+contain
+non-named
+blank
+nodes
+is
+supported.
+</ins></p><pre class="example">var myObj = { "@context" : { 
+<ins class="diff-chg">
+                "xsd" : "http://www.w3.org/2001/XMLSchema#",
+                "name" : "http://xmlns.com/foaf/0.1/name",
+                "age" : "http://xmlns.com/foaf/0.1/age",
+                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
+                "@coerce": {
+                   "xsd:nonNegativeInteger": "age",
+                   "xsd:anyURI": "homepage"
+                }
+              },
+              "name" : "Joe Jackson",
+              "age" : "42",
+              "homepage" : "http://example.org/people/joe" };
+
+// Map the language-native object to JSON-LD
+var
+jsonldText
+=
+jsonld.normalize(myObj);
+</ins></pre><p><ins class="diff-chg">
+After
+the
+code
+in
+the
+example
+above
+has
+executed,
+the
+</ins><strong><ins class="diff-chg">
+jsonldText
+</ins></strong><ins class="diff-chg">
+value
+will
+be
+(line-breaks
+added
+for
+readability):
+</ins></p><pre class="example">[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
+<ins class="diff-chg">
+"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
+"http://xmlns.com/foaf/0.1/name":"Joe
+Jackson"}]
+</ins></pre><p><ins class="diff-chg">
+When
+normalizing
+</ins><strong><ins class="diff-chg">
+xsd:double
+</ins></strong><ins class="diff-chg">
+values,
+implementers
+</ins><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+ensure
+that
+the
+normalized
+value
+is
+a
+string.
+In
+order
+to
+generate
+the
+string
+from
+a
+</ins><strong><ins class="diff-chg">
+double
+</ins></strong><ins class="diff-chg">
+value,
+output
+equivalent
+to
+the
+</ins><code><ins class="diff-chg">
+printf("%1.6e",
+value)
+</ins></code><ins class="diff-chg">
+function
+in
+C
+</ins><em class="rfc2119" title="must"><ins class="diff-chg">
+must
+</ins></em><ins class="diff-chg">
+be
+used
+where
+</ins><strong><ins class="diff-chg">
+"%1.6e"
+</ins></strong><ins class="diff-chg">
+is
+the
+string
+formatter
+and
+</ins><strong><ins class="diff-chg">
+value
+</ins></strong><ins class="diff-chg">
+is
+the
+value
+to
+be
+converted.
+</ins></p><p><ins class="diff-chg">
+To
+convert
+the
+a
+double
+value
+in
+JavaScript,
+implementers
+can
+use
+the
+following
+snippet
+of
+code:
+</ins></p><pre class="example">// the variable 'value' below is the JavaScript native double value that is to be converted
+<ins class="diff-chg">
+(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/,
+'$10$2')
+</ins></pre><p class="note"><ins class="diff-chg">
+When
+data
+needs
+to
+be
+normalized,
+JSON-LD
+authors
+should
+not
+use
+values
+that
+are
+going
+to
+undergo
+automatic
+conversion.
+This
+is
+due
+to
+the
+lossy
+nature
+of
+</ins><strong><ins class="diff-chg">
+xsd:double
+</ins></strong><ins class="diff-chg">
+values.
+</ins></p><p class="issue"><ins class="diff-chg">
+Round-tripping
+data
+can
+be
+problematic
+if
+we
+mix
+and
+match
+@coerce
+rules
+with
+JSON-native
+datatypes,
+like
+integers.
+Consider
+the
+following
+code
+example:
+</ins></p><pre class="example">var myObj = { "@context" : { 
+<ins class="diff-chg">
+                "number" : "http://example.com/vocab#number",
+                "@coerce": {
+                   "xsd:nonNegativeInteger": "number"
+                }
+              },
+              "number" : 42 };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+
+// Convert the normalized object back to a JavaScript object
+var
+myObj2
+=
+jsonld.parse(jsonldText);
+</ins></pre><p class="issue"><ins class="diff-chg">
+At
+this
+point,
+myObj2
+and
+myObj
+will
+have
+different
+values
+for
+the
+"number"
+value.
+myObj
+will
+be
+the
+number
+42,
+while
+myObj2
+will
+be
+the
+string
+"42".
+This
+type
+of
+data
+round-tripping
+error
+can
+bite
+developers.
+We
+are
+currently
+wondering
+if
+having
+a
+"coerce
+validation"
+phase
+in
+the
+parsing/normalization
+phases
+would
+be
+a
+good
+idea.
+It
+would
+prevent
+data
+round-tripping
+issues
+like
+the
+one
+mentioned
+above.
+</ins></p></div></div><div class="appendix section" id="the-default-context">
+<h2>
+<span class="secno">
+A.
+</span>
+<ins class="diff-new">The
+Default
+Context
+</ins></h2><p><ins class="diff-new">
+The
+</ins><dfn title="default_context" id="dfn-default_context-1"><ins class="diff-new">
+default
+context
+</ins></dfn><ins class="diff-new">
+is
+provided
+to
+ensure
+that
+there
+are
+a
+reasonable
+set
+of
+prefixes
+and
+terms
+available
+to
+all
+JSON-LD
+developers.
+Mappings
+specified
+by
+the
+</ins><a class="tref internalDFN" title="default_context" href="#dfn-default_context-1"><ins class="diff-new">
+default
+context
+</ins></a><em class="rfc2119" title="should not"><ins class="diff-new">
+should
+not
+</ins></em><ins class="diff-new">
+be
+overwritten
+by
+JSON-LD
+authors.
+All
+JSON-LD
+processors
+</ins><em class="rfc2119" title="must"><ins class="diff-new">
+must
+</ins></em><ins class="diff-new">
+load
+the
+following
+context
+in
+as
+the
+intial
+context
+before
+processing
+JSON-LD
+text.
+</ins></p><pre>{
+<ins class="diff-new">
+  "@context":
+  {
+    "@vocab": "",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "cal": "http://www.w3.org/2002/12/cal/ical#",
+    "vcard": "http://www.w3.org/2006/vcard/ns# ",
+    "geo": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "cc": "http://creativecommons.org/ns#",
+    "sioc": "http://rdfs.org/sioc/ns#",
+    "doap": "http://usefulinc.com/ns/doap#",
+    "com": "http://purl.org/commerce#",
+    "ps": "http://purl.org/payswarm#",
+    "gr": "http://purl.org/goodrelations/v1#",
+    "sig": "http://purl.org/signature#",
+    "ccard": "http://purl.org/commerce/creditcard#"
+    "@coerce": 
+    {
+      "xsd:anyURI": ["rdf:type", "rdf:rest", "foaf:homepage", "foaf:member"],
+      "xsd:integer": "foaf:age"
+    }
+  }
+}
+</ins></pre></div><div class="appendix section" id="acknowledgements"><h2><span class="secno"><ins class="diff-new">
+B.
+</ins></span>
+Acknowledgements
+</h2>
+<p>
+The
+editor
+would
+like
+to
+thank
+Mark
+Birbeck,
+who
+provided
+a
+great
+deal
+of
+the
+rationale
+and
+reasoning
+behind
+the
+JSON-LD
+work
+via
+his
+work
+on
+RDFj,
+<ins class="diff-new">Dave
+Longley
+who
+reviewed,
+provided
+feedback,
+and
+performed
+several
+implementation
+on
+the
+specification,
+</ins>
+and
+Ian
+Davis,
+who
+created
+RDF/JSON.
+<ins class="diff-new">Thanks
+also
+to
+Nathan
+Rixham,
+Bradley
+P.
+Allen
+and
+Richard
+Cyganiak
+for
+their
+input
+on
+the
+specification.
+</ins>
+</p>
+</div>
+<div id="respec-err" style="position: fixed; width: 350px; top: 10px; right: 10px; border: 3px double #f00; background: #fff" class="removeOnSave">
+<ul>
+<li style="color: #c00">
+<ins class="diff-new">There
+appears
+to
+have
+been
+a
+problem
+fetching
+the
+style
+sheet;
+status=0
+</ins></li></ul></div>
+<div id="references" class="appendix section">
+<h2>
+<span class="secno">
+<del class="diff-old">B.
+</del>
+<ins class="diff-chg">C.
+</ins>
+</span>
+References
+</h2>
+<div id="normative-references" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">B.1
+</del>
+<ins class="diff-chg">C.1
+</ins>
+</span>
+Normative
+references
+</h3>
+<dl class="bibliography">
+<dt id="bib-BCP47">
+<ins class="diff-new">[BCP47]
+</ins></dt><dd><ins class="diff-new">
+A.
+Phillips,
+M.
+Davis.
+</ins><a href="http://tools.ietf.org/rfc/bcp/bcp47.txt"><cite><ins class="diff-new">
+Tags
+for
+Identifying
+Languages
+</ins></cite></a><ins class="diff-new">
+September
+2009.
+IETF
+Best
+Current
+Practice.
+URL:
+</ins><a href="http://tools.ietf.org/rfc/bcp/bcp47.txt"><ins class="diff-new">
+http://tools.ietf.org/rfc/bcp/bcp47.txt
+</ins></a></dd><dt id="bib-RDF-API"><ins class="diff-new">
+[RDF-API]
+</ins></dt><dd><ins class="diff-new">
+Manu
+Sporny,
+Benjamin
+Adrian,
+Nathan
+Rixham;
+et
+al.
+</ins><a href="http://www.w3.org/2010/02/rdfa/sources/rdf-api/"><cite><ins class="diff-new">
+RDF
+API
+</ins></cite></a><ins class="diff-new">
+Latest.
+W3C
+Editor's
+Draft.
+URL:
+</ins><a href="http://www.w3.org/2010/02/rdfa/sources/rdf-api/"><ins class="diff-new">
+http://www.w3.org/2010/02/rdfa/sources/rdf-api/
+</ins></a></dd><dt id="bib-RDF-CONCEPTS"><ins class="diff-new">
+[RDF-CONCEPTS]
+</ins></dt><dd><ins class="diff-new">
+Graham
+Klyne;
+Jeremy
+J.
+Carroll.
+</ins><a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210"><cite><ins class="diff-new">
+Resource
+Description
+Framework
+(RDF):
+Concepts
+and
+Abstract
+Syntax.
+</ins></cite></a><ins class="diff-new">
+10
+February
+2004.
+W3C
+Recommendation.
+URL:
+</ins><a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210"><ins class="diff-new">
+http://www.w3.org/TR/2004/REC-rdf-concepts-20040210
+</ins></a></dd><dt id="bib-RDF-INTERFACES"><ins class="diff-new">
+[RDF-INTERFACES]
+</ins></dt><dd><ins class="diff-new">
+Nathan
+Rixham,
+Manu
+Sporny,
+Benjamin
+Adrian;
+et
+al.
+</ins><a href="http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/"><cite><ins class="diff-new">
+RDF
+Interfaces
+</ins></cite></a><ins class="diff-new">
+Latest.
+W3C
+Editor's
+Draft.
+URL:
+</ins><a href="http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/"><ins class="diff-new">
+http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/
+</ins></a></dd><dt id="bib-RFC3987"><ins class="diff-new">
+[RFC3987]
+</ins></dt><dd><ins class="diff-new">
+M.
+D�rst;
+M.
+Suignard.
+</ins><a href="http://www.ietf.org/rfc/rfc3987.txt"><cite><ins class="diff-new">
+Internationalized
+Resource
+Identifiers
+(IRIs).
+</ins></cite></a><ins class="diff-new">
+January
+2005.
+Internet
+RFC
+3987.
+URL:
+</ins><a href="http://www.ietf.org/rfc/rfc3987.txt"><ins class="diff-new">
+http://www.ietf.org/rfc/rfc3987.txt
+</ins></a></dd>
+<dt id="bib-RFC4627">
+[RFC4627]
+</dt>
+<dd>
+D.
+<del class="diff-old">Crockford
+</del>
+<ins class="diff-chg">Crockford.
+</ins>
+<a href="http://www.ietf.org/rfc/rfc4627.txt">
+<cite>
+The
+application/json
+Media
+Type
+for
+JavaScript
+Object
+Notation
+(JSON)
+</cite>
+</a>
+July
+2006.
+Internet
+RFC
+4627.
+URL:
+<a href="http://www.ietf.org/rfc/rfc4627.txt">
+http://www.ietf.org/rfc/rfc4627.txt
+</a>
+</dd>
+</dl>
+</div>
+<div id="informative-references" class="section">
+<h3>
+<span class="secno">
+<del class="diff-old">B.2
+</del>
+<ins class="diff-chg">C.2
+</ins>
+</span>
+Informative
+references
+</h3>
+<dl class="bibliography">
+<dt id="bib-MICRODATA">
+[MICRODATA]
+</dt>
+<dd>
+Ian
+Hickson;
+et
+al.
+<a href="http://www.w3.org/TR/microdata/">
+<cite>
+Microdata
+</cite>
+</a>
+04
+March
+2010.
+W3C
+Working
+Draft.
+URL:
+<a href="http://www.w3.org/TR/microdata/">
+http://www.w3.org/TR/microdata/
+</a>
+</dd>
+<dt id="bib-MICROFORMATS">
+[MICROFORMATS]
+</dt>
+<dd>
+<a href="http://microformats.org">
+<cite>
+Microformats
+</cite>
+</a>.
+URL:
+<a href="http://microformats.org">
+http://microformats.org
+</a>
+</dd>
+<dt id="bib-RDFA-CORE">
+[RDFA-CORE]
+</dt>
+<dd>
+Shane
+McCarron;
+et
+al.
+<a href="http://www.w3.org/TR/2011/WD-rdfa-core-20110331">
+<cite>
+RDFa
+Core
+1.1:
+Syntax
+and
+processing
+rules
+for
+embedding
+RDF
+through
+attributes.
+</cite>
+</a>
+<del class="diff-old">22
+April
+2010.
+</del>
+<ins class="diff-chg">31
+March
+2011.
+</ins>
+W3C
+Working
+Draft.
+URL:
+<del class="diff-old">http://www.w3.org/TR/2010/WD-rdfa-core-20100422
+</del>
+<a href="http://www.w3.org/TR/2011/WD-rdfa-core-20110331">
+<ins class="diff-chg">http://www.w3.org/TR/2011/WD-rdfa-core-20110331
+</ins>
+</a>
+</dd>
+</dl>
+</div>
+</div>
+</body>
+</html>
