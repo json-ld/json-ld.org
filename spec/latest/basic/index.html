@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSON-LD Basic - Simple Linked Data Expression in JSON</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+<script type="text/javascript"
+  src="http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js" class="remove">
+ </script>
+<script type="text/javascript" class="remove">
+
+    var preProc = {
+          apply:  function(c) {
+                    // extend the bibliography entries
+                    berjon.biblio["MICRODATA"] = "Ian Hickson; et al. <a href=\"http://www.w3.org/TR/microdata/\"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/microdata/\">http://www.w3.org/TR/microdata/</a> ";
+                    berjon.biblio["HTML-RDFA"] = "Manu Sporny; et al. <a href=\"http://www.w3.org/TR/rdfa-in-html/\"><cite>HTML+RDFa</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/rdfa-in-html/\">http://www.w3.org/TR/rdfa-in-html/</a> ";
+
+                    // process the document before anything else is done
+                    var refs = document.querySelectorAll('adef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'dfn' ) ;
+                        var tit = item.getAttribute('title') ;
+                        if (!tit) {
+                            tit = con;
+                        }
+                        sp.className = 'adef' ;
+                        sp.title=tit ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    refs = document.querySelectorAll('aref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'aref' ;
+                        sp.setAttribute('title', con);
+                        sp.innerHTML = '@'+con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // local datatype references
+                    refs = document.querySelectorAll('ldtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'datatype';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // external datatype references
+                    refs = document.querySelectorAll('dtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'externalDFN';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now do terms
+                    refs = document.querySelectorAll('tdef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'dfn' ) ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now term references
+                    refs = document.querySelectorAll('tref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+
+                        var sp = document.createElement( 'a' ) ;
+                        var id = item.textContent ;
+                        sp.className = 'tref' ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                }
+        } ;
+
+
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          //publishDate:          "2010-04-29",
+          //copyrightStart:       "2010",
+          
+          // the specification's short name, as in http://www.w3.org/TR/short-name/
+          shortName:            "json-ld-basic",
+          subtitle:             "A Basic Context-based JSON Serialization for Linked Data",
+          // if you wish the publication date to be other than today, set this
+          // publishDate:  "2009-08-06",
+
+          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+          // and its maturity status
+          //previousPublishDate:  "2011-05-07",
+          //previousMaturity:     "ED",
+          //previousDiffURI:      "http://json-ld.org/spec/ED/20100529/index.html",
+          diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
+
+          // if there a publicly available Editor's Draft, this is the link
+          edDraftURI:           "http://json-ld.org/spec/latest/basic/",
+
+          // if this is a LCWD, uncomment and set the end of its review period
+          // lcEnd: "2009-08-05",
+
+          // if you want to have extra CSS, append them to this list
+          // it is recommended that the respec.css stylesheet be kept
+          extraCSS:             [
+              "http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css",
+              "spec.css"
+          ],
+
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
+              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+                company: "Kellogg Associates" },
+          ],
+
+          // authors, add as many as you like. 
+          // This is optional, uncomment if you have authors as well as editors.
+          // only "name" is required. Same format as editors.
+
+          authors:  [
+              { name: "Mark Birbeck", url: "http://webbackplane.com/",
+                company: "Backplane Ltd.", companyURL: "http://webbackplane.com/" },
+              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
+          ],
+          
+          // name of the WG
+          wg:           "JSON-LD Community Group",
+          
+          // URI of the public WG page
+          wgURI:        "http://json-ld.org/",
+          
+          // name (with the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "public-linked-json@w3.org",
+          
+          // URI of the patent status for this WG, for Rec-track documents
+          // !!!! IMPORTANT !!!!
+          // This is important for Rec-track documents, do not copy a patent URI from a random
+          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+          // Team Contact.
+          wgPatentURI:  "",
+          maxTocLevel: 3,
+          preProcess: [ preProc ]
+          //alternateFormats: [ {uri: "diff-20110507.html", label: "diff to previous version"} ],
+      };
+
+      function updateExample(doc, content) {
+        // perform transformations to make it render and prettier
+        content = content.replace(/<!--/, '');
+        content = content.replace(/-->/, '');
+        content = doc._esc(content);
+        content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="diff">$1</span>') ;
+        return content ;
+      }
+
+      function updateDTD(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="dtd">' + doc._esc(content) + '</pre>';
+        content = content.replace(/!ENTITY % ([^ \t\r\n]*)/g, '!ENTITY <span class="entity">% $1</span>');
+        content = content.replace(/!ELEMENT ([^ \t$]*)/mg, '!ELEMENT <span class="element">$1</span>');
+        return content;
+      }
+
+      function updateSchema(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="dtd">' + doc._esc(content) + '</pre>';
+        content = content.replace(/&lt;xs:element\s+name=&quot;([^&]*)&quot;/g, '&lt;xs:element name="<span class="element" id="schema_element_$1">$1</span>"') ;
+        return content;
+      }
+
+      function updateTTL(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="sh_sourceCode">' + doc._esc(content) + '</pre>';
+        content = content.replace(/@prefix/g, '<span class="sh_keyword">@prefix</span>');
+        return content;
+      }
+  </script>
+<style>
+.diff { font-weight:bold; color:#0a3; }
+</style>
+</head>
+
+<body>
+<section id="abstract">
+<p>
+Developers that embed structured data in their Web pages can choose among
+a number of languages such as RDFa [[RDFA-CORE]], Microformats [[MICROFORMATS]] 
+and Microdata [[MICRODATA]]. Each of these structured data languages, while
+incompatible at the syntax level, express Linked Data. JSON has 
+proven to be a highly useful object serialization and messaging format. 
+In an attempt to harmonize the representation of Linked Data in JSON, 
+this specification outlines a common JSON representation format for 
+Linked Data that can be used to represent a basic set of objects specified 
+via RDFa, Microformats and Microdata.
+</p>
+</section>
+
+<section id='sotd'>
+<p>This document is an experimental work in progress.</p>
+<!-- <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p> -->
+</section>
+
+<section>
+<h1>Introduction</h1>
+
+<p>
+JSON-LD is designed as a light-weight syntax that can be used to express 
+Linked Data. It is primarily intended to be a way to express Linked Data 
+in Javascript and other Web-based programming environments. It is also 
+useful when building interoperable Web Services and when storing Linked 
+Data in JSON-based document storage engines. It is practical and designed 
+to be as simple as possible, utilizing the large number of JSON parsers 
+and existing code that is in use today. 
+<p>
+
+<p>
+This document outlines <strong>JSON-LD Basic</strong>, which is a subset
+of <strong>JSON-LD Advanced</strong>. JSON-LD Basic allows developers that do
+not understand or care about more formal ways of modelling data, such as RDF,
+to still create simple Linked Data systems for the Web.
+</p>
+
+
+<p>JSON-LD Basic does not require anyone to change their simple JSON markup, but 
+easily add meaning by adding context in a way that is out-of-band. The syntax is 
+designed to not disturb already deployed systems running on JSON, but 
+provide a smooth migration path from JSON to JSON with added
+semantics. Finally, the format is intended to be fast to parse, fast to 
+generate, stream-based and document-based processing compatible, and require
+a very small memory footprint in order to operate.
+</p>
+
+<p>
+  JSON, as specified in [[!RFC4627]], is a simple language for representing objects on the web.
+  Linked Data is a way of describing content across different documents, or web resources. Web
+  resources are described using <tref>IRI</tref>s, and typically are dereferencable entities that may be used
+  to find more information, creating a "web of knowledge". JSON-LD is intended to be a simple
+  publishing method for expressing Linked Data in JSON.
+</p>
+<section>
+<h2>How to Read this Document</h2>
+
+<p>
+This document is a basic specification for a serialization of JSON for Linked
+data called <strong>JSON-LD Basic</strong>. The document is primarily intended 
+for the following audiences:
+</p>
+
+<ul>
+  <li>Novice Web developers that want to understand the basic features and
+  language syntax for JSON-LD.</li>
+  <li>Web developers that want to learn about marking up simple Linked Data
+  concepts in JSON.</li>
+</ul>
+
+<p>
+To understand this specification you must first be familiar with JSON, 
+which is detailed in [[!RFC4627]].</p>
+</section>
+
+<section>
+<h2>Contributing</h2>
+
+<p>There are a number of ways that one may participate in the development of
+this specification:</p>
+
+<ul>
+<li>All comments and discussion takes place on the public mailing list:
+<a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
+</li>
+
+<li>Specification bugs and issues should be reported in the 
+<a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+<li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the 
+specification can be found on Github.</li>
+
+<li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a> 
+IRC channel is available for real-time discussion on irc.freenode.net.</li>
+</ul>
+
+</section>
+
+</section>
+
+<section>
+<h1>Design Goals and Rationale</h1>
+
+<p>The following section outlines the design goals and rationale behind the 
+JSON-LD markup language.
+</p>
+
+<section>
+<h2>Goals</h2>
+
+<p>
+A number of design considerations were explored during the creation of this 
+markup language:
+</p>
+
+<dl>
+ <dt>Simplicity</dt>
+ <dd>Most Web Developers don't need to know anything about RDF in order to 
+ use the basic Linked Data functionality provided by JSON-LD.</dd>
+ <dt>JSON Compatibility</dt>
+ <dd>The Basic JSON-LD markup should be 100% compatible with JSON.</dd>
+ <dt>Upwards Compatibility</dt>
+ <dd>The Basic JSON-LD markup should be 100% upward compatible with
+ <strong>JSON-LD Advanced</strong>.</dd>
+ <dt>Terseness</dt>
+ <dd>The JSON-LD syntax must be very terse and human readable.</dd>
+ <dt>Zero Edits, most of the time</dt>
+ <dd>JSON-LD provides a mechanism that allows developers to specify 
+ context in a way that is out-of-band. This allows organizations that have
+ already deployed large JSON-based infrastructure to add meaning to their
+ JSON in a way that is not disruptive to their day-to-day operations and is
+ transparent to their current customers. At times, mapping JSON to 
+ Linked Data may become difficult - in these instances, rather than having 
+ JSON-LD support esoteric markup, we chose not to support the use case and
+ support a simplified syntax instead. So, while we strive for Zero Edits,
+ it was not always possible without adding great complexity to the language.
+ </dd>
+</dl>
+</section>
+
+<section>
+<h2>Mapping Terms to IRIs</h2>
+
+<p>
+  An Internationalized Resource Identifier (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>)
+  as described in [[!RFC3987]], is a mechanism for representing unique identifiers on the web. In Linked Data,
+  IRIs (or URI references) are commonly used for describing entities and properties.
+</p>
+
+<p>Establishing a mechanism to map JSON keys to IRIs helps to establish that
+the keys used in markup are exactly the same between two JSON-LD
+serializations if the IRIs are equivalent.
+</p>
+
+<p>We will be using the following JSON object as the example for this section:
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": "http://example.org/contexts/Person",
+  "@type": "Person",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+</section>
+
+<section>
+<h3>Unambiguous Identifiers for JSON</h3>
+            
+<p>If a set of terms, like <strong>Person</strong>, 
+<strong>name</strong>, and <strong>homepage</strong>,
+are defined in a context, and that context is used to resolve the
+names in JSON objects, machines could automatically expand the terms to 
+something meaningful and unambiguous, like this:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "****http://www.w3.org/1999/02/22-rdf-syntax-ns#type****": "****http://xmlns.com/foaf/0.1/Person****",
+  "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
+  "****http://xmlns.com/foaf/0.1/homepage****": "http://manu.sporny.org"
+  "****http://rdfs.org/sioc/ns#avatar****": "http://twitter.com/account/profile_image/manusporny"
+}
+ -->
+</pre>
+
+<p>Doing this would mean that JSON would start to become unambiguously
+machine-readable, play well with the semantic web, and basic markup wouldn't 
+be that much more complex than basic JSON markup. A win, all around.</p>
+</section>
+
+<section>
+<h3>The JSON-LD Context</h3>
+
+<p>A context is used to allow developers to use aliases for 
+<tref>IRI</tref>s. The Linked Data web, just like the document-based web, uses IRIs for
+unambiguous identification. The idea is that these terms mean something, 
+which you will eventually want to query. A context allows the expression of a number of
+terms which map directly to <tref>IRI</tref>s. For example, the term <code>name</code>
+may map directly to the IRI <code>http://xmlns.com/foaf/0.1/name</code>. This allows
+JSON-LD documents to be constructed using common JSON syntax of using simple name/value
+pairs.
+</p>
+
+<p>Developers, and machines, would be able to use this IRI (plugging it
+directly into a web browser, for instance) to go to the term and get a 
+definition of what the term means. Much like we can use WordNet today to 
+see the 
+<a href="http://wordnetweb.princeton.edu/perl/webwn?s=definition">definition</a>
+of words in the English language. Machines need the same sort of 
+dictionary of terms, and IRIs provide a way to ensure that these terms
+are unambiguous.
+</p>
+
+<p>The context provides a collection of vocabulary terms that can be used
+for a JSON object.</p>
+
+<p>Developers can specify which context to use by using the 
+<code>@context</code> keyword, like so:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": "http://example.org/contexts/myvocab",****
+  "@type": "Person",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"****,
+  "personality": "friendly"****
+}
+
+-->
+</pre>
+
+<p>The <code>@context</code> keyword is used to change how the JSON-LD
+processor evaluates key-value pairs. In this case, it is used to specify
+that the Vocabulary document specified 
+(<code>http://example.org/contexts/myvocab</code>) is to be used to interpret 
+the keys in the Linked Data object. In the fictional example above, 
+"<code>personality</code>" would
+expand to "<code>http://example.org/myvocab#personality</code>". Any
+Web developer that used the <code>http://example.org/contexts/myvocab</code>
+for their context could expect that the keys in their JSON object mean the
+exact same thing as the keys in another JSON object that uses the
+same <code>@context</code>.</p>
+
+</section>
+
+<section>
+<h3>An Example of a Context</h3>
+
+<p>JSON-LD strives to ensure that developers don't have to change the JSON
+that is going into and being returned from their Web applications. A JSON-LD 
+aware Web Service MAY define a known context. For example, the
+following <tref>default context</tref> could apply to all incoming Web Service 
+calls previously accepting only JSON data:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": 
+  {
+    "Person": "http://xmlns.com/foaf/0.1/Person",
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": "http://xmlns.com/foaf/0.1/homepage",
+    "@coerce": 
+    {
+      "IRI": ["@type", "homepage"]
+    }
+  }
+}
+-->
+</pre>
+
+<p>The <code>@coerce</code> keyword is used to specify type coercion
+rules for the data. For each key in the map, the key is the type to
+be coerced to and the value is the vocabulary term to be coerced.
+Type coercion for the key <code>IRI</code> asserts that all 
+vocabulary terms listed should undergo coercion to an IRI.
+</p>
+
+</section>
+</section>
+
+<section>
+<h2>JSON-LD Basic Keywords</h2>
+
+<p>
+There are four keywords in <strong>JSON-LD Basic</strong>:
+</p>
+
+<dl>
+<dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
+<dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
+<dt><code>@subject</code></dt><dd>Sets the active subject.</dd>
+<dt><code>@type</code></dt><dd>Used to set the rdf:type of the active subjects. This token may be conferred as syntactic sugar for rdf:type.</dd>
+</dl>
+
+<p>
+Each section below explains their syntax and usage.
+</p>
+
+<section>
+<h3>Context</h3>
+<p>
+The context is used to specify the IRIs that JSON keys map to when interpreted
+as Linked Data. If two JSON objects contain the same context, their JSON keys 
+are guaranteed to map to the same IRIs. Thus, the JSON objects become 
+machine-readable Linked Data objects. In <strong>JSON-LD Basic</strong>, a 
+valid context MUST only have one value associated with it and this value MUST 
+be a string.
+</p>
+
+<p>An example of correct usage:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": "http://example.org/contexts/myvocab",****
+  ...
+}
+
+-->
+</pre>
+</section>
+
+<section>
+<h3>Coerce</h3>
+<p>
+At times, it is important for applications to be able to understand when
+a value is an IRI and when a value is just plain text. The <code>@coerce</code>
+keyword can be used to specify the difference between JSON values that are
+IRIs and JSON values that are plain text.
+</p>
+
+<p>An example demonstrating that both the "homepage" and "@type" JSON key-value
+pairs should have their values coerced to an IRI:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": 
+  {****
+    "@coerce": 
+    {
+      "IRI": ["@type", "homepage"]
+    }****
+  }
+}
+-->
+</pre>
+
+</section>
+
+<section>
+<h3>Subject</h3>
+
+<p>
+The subject identifies the item that is being described using an IRI. By using
+an IRI for identification, the developer ensures that the object can be 
+referred to by other systems in a way that is universal to the Web. JSON objects
+identified using IRIs should ensure that the IRI is dereferenceable in some
+way so that machines can find out more about the resource by dereferencing the
+link.
+</p>
+
+<p>The following example demonstrates the identification of a JSON Linked Data
+object:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": "http://example.org/Person",
+  ****"@subject": "http://manu.sporny.org/about#me"****,
+  "name": "Manu Sporny"
+}
+-->
+</pre>
+
+</section>
+
+<section>
+<h3>Type</h3>
+
+<p>The <code>@type</code> attribute is used to identify the type of a 
+particular JSON-LD object. In Object Oriented Programming, this is known as
+the Class of an object.</p>
+
+<p>The following example demonstrates how to specify a type of "Person" for
+the JSON-LD object below:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": "http://example.org/Person",
+  "@subject": "http://manu.sporny.org/about#me",
+  ****"@type": "Person"****,
+  "name": "Manu Sporny"
+}
+-->
+</pre>
+
+<p>
+A JSON-LD object may have more than one type:
+</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": "http://example.org/Person",
+  "@subject": "http://manu.sporny.org/about#me",
+  ****"@type": ["Person", "Developer"]****,
+  "name": "Manu Sporny"
+}
+-->
+</pre>
+
+</section>
+
+</section>
+
+<section class="appendix">
+<h1>Acknowledgements</h1>
+
+<p>The editor would like to thank Mark Birbeck, who provided a great deal of the
+rationale and reasoning behind the JSON-LD work via his work on RDFj, 
+Dave Longley who reviewed, provided feedback, and performed several
+implementation on the specification, and Ian Davis, who created RDF/JSON. 
+Thanks also to Nathan Rixham, Bradley P. Allen and Richard Cyganiak for their 
+input on the specification.</p>
+</section>
+
+</body>
+</html>
+
