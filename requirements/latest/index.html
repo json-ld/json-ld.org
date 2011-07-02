@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSON-LD Requirements</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+<script type="text/javascript"
+  src="http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js" class="remove">
+ </script>
+<script type="text/javascript" class="remove">
+
+    var preProc = {
+          apply:  function(c) {
+                    // extend the bibliography entries
+                    berjon.biblio["RFC4627"] = "<cite><a href=\"http://www.ietf.org/rfc/rfc4627.txt\">JavaScript Object Notation (JSON)</a></cite>, D. Crockford. IETF Network Working Group, July 2006. URL: http://www.ietf.org/rfc/rfc4627.txt.";
+
+                    // process the document before anything else is done
+                    var refs = document.querySelectorAll('adef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'dfn' ) ;
+                        var tit = item.getAttribute('title') ;
+                        if (!tit) {
+                            tit = con;
+                        }
+                        sp.className = 'adef' ;
+                        sp.title=tit ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    refs = document.querySelectorAll('aref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'aref' ;
+                        sp.setAttribute('title', con);
+                        sp.innerHTML = '@'+con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // local datatype references
+                    refs = document.querySelectorAll('ldtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'datatype';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // external datatype references
+                    refs = document.querySelectorAll('dtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'externalDFN';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now do terms
+                    refs = document.querySelectorAll('tdef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'dfn' ) ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now term references
+                    refs = document.querySelectorAll('tref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+
+                        var sp = document.createElement( 'a' ) ;
+                        var id = item.textContent ;
+                        sp.className = 'tref' ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                }
+        } ;
+
+
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          //publishDate:          "2010-04-29",
+          //copyrightStart:       "2010",
+          
+          // the specification's short name, as in http://www.w3.org/TR/short-name/
+          shortName:            "json-ld",
+          subtitle:             "A Context-based JSON Serialization for Linked Data",
+          // if you wish the publication date to be other than today, set this
+          // publishDate:  "2009-08-06",
+
+          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+          // and its maturity status
+          previousPublishDate:  "2011-05-07",
+          previousMaturity:     "ED",
+          previousDiffURI:      "http://json-ld.org/spec/ED/20100529/index.html",
+          diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
+
+          // if there a publicly available Editor's Draft, this is the link
+          edDraftURI:           "http://json-ld.org/spec/latest/",
+
+          // if this is a LCWD, uncomment and set the end of its review period
+          // lcEnd: "2009-08-05",
+
+          // if you want to have extra CSS, append them to this list
+          // it is recommended that the respec.css stylesheet be kept
+          extraCSS:             [
+              "http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css",
+              "spec.css"
+          ],
+
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+                company: "Kellogg Associates" },
+          ],
+
+          // authors, add as many as you like. 
+          // This is optional, uncomment if you have authors as well as editors.
+          // only "name" is required. Same format as editors.
+
+          // name of the WG
+          wg:           "Linked Data in JSON Interest Group",
+          
+          // URI of the public WG page
+          wgURI:        "",
+          
+          // name (with the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "",
+          
+          // URI of the patent status for this WG, for Rec-track documents
+          // !!!! IMPORTANT !!!!
+          // This is important for Rec-track documents, do not copy a patent URI from a random
+          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+          // Team Contact.
+          wgPatentURI:  "",
+          maxTocLevel: 3,
+          preProcess: [ preProc ]
+          //alternateFormats: [ {uri: "diff-20110507.html", label: "diff to previous version"} ],
+      };
+  </script>
+<style>
+.diff { font-weight:bold; color:#0a3; }
+</style>
+</head>
+
+<body>
+<section id="abstract">
+<p>
+  This document attempts to gather requirements for Linked Data in JSON (JSON-LD)
+  in order to create an objective measure with which to evaluate the
+  <cite><a href="/spec/latest/">JSON-LD Specification</a></cite>.
+</p>
+</section>
+
+<section id='sotd'>
+<p>This document is an experimental work in progress.</p>
+<!-- <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p> -->
+</section>
+
+<section>
+<h1>Introduction</h1>
+</section>
+
+<section><h1>Definitions</h1>
+  <dl>
+    <dt><tdef>JSON</tdef></dt><dd>
+      <abbr title="JavaScript Object Notation">JSON</abbr> (JavaScript Object Notation)
+      [[!RFC4627]]
+      is a simple way to express objects in a syntax compatible with JavaScript.
+    </dd>
+    <dt><tdef>Linked Data</tdef></dt><dd>
+      According to <cite><a
+      href="http://en.wikipedia.org/wiki/Linked_Data">Wikipedia</a></cite>, Linked Data ...
+      <blockquote cite="http://en.wikipedia.org/wiki/Linked_Data">
+        describes a method of publishing structured data so that it can be interlinked and
+        become more useful. It builds upon standard Web technologies such as HTTP and URIs,
+        but rather than using them to serve web pages for human readers, it extends them to
+        share information in a way that can be read automatically by computers. This
+        enables data from different sources to be connected and queried.
+      </blockquote>
+    </dd>
+    <dt><tdef>JSON Object</tdef></dt><dd>
+      From [[RFC4627]]: <blockquote>
+        An object structure is represented as a pair of curly brackets surrounding zero or
+        more name/value pairs (or members). A name is a string. A single colon comes after
+        each name, separating the name from the value. A single comma separates a value
+        from a following name. The names within an object SHOULD be unique.
+      </blockquote>
+    </dd>
+  </dl>
+</section>
+
+<section><h1>Requirements</h1>
+  <section><h2>Linked Data</h2>
+    <p>
+      The following are taken to be assertions about the meaning of <tref>Linked Data</tref>.
+    </p>
+    <ol>
+      <li>Linked Data is used to express relationships between entities expressed as subject-predicate-object, or entity-attribute-value.</li>
+      <li>A <tdef>subject</tdef> is a non-terminal node in a conceptional graph.</li>
+      <li>A subject MAY be given a unique identifier represented using a URI.</li>
+      <li>A subject without a URI is scoped to the document in which it is expressed.</li>
+      <li>A subject without a URI is called a <tdef>Blank Node</tdef> (or <tdef>BNode</tdef>)</li>
+      <li>A <tref>BNode</tref> MAY be given an identifier for intra-document referencing.</li>
+      <li>A <tdef>predicate</tdef> describes an edge of the conceptual graph relating two entities.</li>
+      <li>A predicate SHOULD be represented as a URI.</li>
+      <li>An <tdef>object</tdef> is a node in a conceptual graph that may be a non-terminal or a terminal node.</li>
+      <li>An object which is a terminal node is called a <tdef>literal</tdef>.</li>
+      <li>A literal MAY include a datatype or have a language.</li>
+    </ol>
+  </section>
+  <section><h2>JSON-LD</h2>
+    <p>The following are taken to be requirements for expressing JSON as <tref>Linked Data</tref>.</p>
+    <ol>
+      <li>A JSON-LD document MUST be able to express <tref>Linked Data</tref>.</li>
+      <li>
+        A JSON-LD document uses <trefs>JSON object</trefs>s, arrays, numbers, strings and
+        other literal names to express semantic information.
+      </li>
+      <li>A <tref>subject</tref> is represented with a <tref>JSON object</tref>.</li>
+      <li>There MUST be a way to associate a URI with a <tref>subject</tref>.</li>
+      <li>There MAY be a way to associate a <tref>BNode</tref> identifier with a <tref>subject</tref>.</li>
+      <li>JSON name/value pairs are used to describe predicate-object (or attribute-value) pairs.</li>
+      <li>There MUST be a way to associate a URI with a JSON name.</li>
+      <li>JSON strings MAY represent literals.</li>
+      <li>JSON strings MAY represent URIs.</li>
+      <li>There MUST be a way to determine if a JSON value represents a URI.</li>
+      <li>There SHOULD be a way to associate a datatype with a literal JSON value.</li>
+      <li>JSON numbers and other literal values represent specific typed literals.</li>
+      <li>A JSON array MAY be used to associate multiple <tref>object</tref>s with a <tref>subject</tref> through a common <tref>predicate</tref>.</li>
+      <li>A JSON array MUST NOT be used to imply an order to the component entities.</li>
+      <li>JSON-LD MAY provide a way to express an ordered relationship.</li>
+    </ol>
+  </section>
+</section>
+
+</body>
+</html>
+
