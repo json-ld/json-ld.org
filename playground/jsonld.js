@@ -195,9 +195,9 @@ var _expandTerm = function(ctx, term, usedCtx)
       }
    }
    // 3. The property is the special-case '@'.
-   else if(term === "@")
+   else if(term === "@subject")
    {
-      rval = "@";
+      rval = "@subject";
    }
    // 4. The property is a relative IRI, prepend the default vocab.
    else
