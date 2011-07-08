@@ -6,6 +6,7 @@
    window.playground = window.playground || {};
    var playground = window.playground;
    playground.examples = {};
+   playground.frames = {};
 
    // Add the example of a Person
    playground.examples["Person"] =
@@ -73,7 +74,7 @@
    playground.examples["Product"] =
    {
       "@subject": "http://example.org/cars/for-sale#tesla",
-      "@type": "gr:Offering",
+      "a": "gr:Offering",
       "gr:name": "Used Tesla Roadster",
       "gr:description": "Need to sell fast and furiously",
       "gr:hasBusinessFunction": "gr:Sell",
@@ -85,7 +86,7 @@
       },
       "gr:includes": 
       {
-         "@type": ["gr:Individual", "pto:Vehicle"],
+         "a": ["gr:Individual", "pto:Vehicle"],
          "gr:name": "Tesla Roadster",
          "foaf:page": "http://www.teslamotors.com/roadster"
       },
@@ -152,13 +153,47 @@
    // Add the example of a Library
    playground.examples["Library"] =
    {
-      "name": "The Long Library",
-      "@context":
-      {
-         "xsd": "http://www.w3.org/2001/XMLSchema#",
-         "@coerce":
+      "@": [
          {
-            "xsd:anyURI": ["image"]
+            "@": "http://example.org/library",
+            "a": "ex:Library",
+            "ex:contains": "http://example.org/library/the-republic"
+         },
+         {
+            "@": "http://example.org/library/the-republic",
+            "a": "ex:Book",
+            "dc:creator": "Plato",
+            "dc:title": "The Republic",
+            "ex:contains": "http://example.org/library/the-republic#introduction"
+         },
+         {
+            "@": "http://example.org/library/the-republic#introduction",
+            "a": "ex:Chapter",
+            "dc:description": "An introductory chapter on The Republic.",
+            "dc:title": "The Introduction"
+         }
+      ],
+      "@context": {
+         "@coerce": {
+            "xsd:anyURI": "ex:contains"
+         },
+         "dc": "http://purl.org/dc/elements/1.1/",
+         "ex": "http://example.org/vocab#"
+      }
+   };
+
+   // Add the example of a Library
+   playground.frames["Library"] =
+   {
+      "@context": {
+         "dc": "http://purl.org/dc/elements/1.1/",
+         "ex": "http://example.org/vocab#"
+      },
+      "a": "ex:Library",
+      "ex:contains": {
+         "a": "ex:Book",
+         "ex:contains": {
+            "a": "ex:Chapter"
          }
       }
    };

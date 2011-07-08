@@ -10,6 +10,22 @@
    playground.init = function()
    {
       $("#tabs").tabs();
+      $("#frame").hide();
+      $("#tabs").bind("tabsselect", playground.tabSelected);
+   };
+
+   playground.tabSelected = function(event, ui)
+   {
+      if(ui.tab.id == "tab-framed")
+      {
+         $("#markup").addClass("compressed");
+         $("#frame").show();
+      }
+      else
+      {
+         $("#frame").hide();
+         $("#markup").removeClass("compressed");
+      }
    };
 
    playground.process = function()
@@ -17,17 +33,20 @@
       try
       {
          var input = JSON.parse($("#markup").val());
+         var frame = JSON.parse($("#frame").val());
          var normalized = forge.jsonld.normalize(input);
          var expanded = forge.jsonld.removeContext(input);
          var compacted = forge.jsonld.changeContext(
             input["@context"] || {}, input);
-         var framed = forge.jsonld.frame({}, input);
+         var framed = forge.jsonld.frame(input, frame);
 
          $("#normalized").html(js_beautify(JSON.stringify(normalized)),
             { "indent_size": 3, "brace_style": "expand" });
          $("#compacted").html(js_beautify(JSON.stringify(compacted)),
             { "indent_size": 3, "brace_style": "expand" });
          $("#expanded").html(js_beautify(JSON.stringify(expanded)),
+            { "indent_size": 3, "brace_style": "expand" });
+         $("#framed").html(js_beautify(JSON.stringify(framed)),
             { "indent_size": 3, "brace_style": "expand" });
 
          prettyPrint();
@@ -45,6 +64,14 @@
       {
          $("#markup").val(js_beautify(JSON.stringify(playground.examples[type]),
             { "indent_size": 3, "brace_style": "expand" }));
+         $("#frame").val("{}");
+
+         if(type in playground.frames)
+         {
+            $("#frame").val(js_beautify(
+               JSON.stringify(playground.frames[type]),
+               { "indent_size": 3, "brace_style": "expand" }));
+         }
       }
 
       playground.process();
