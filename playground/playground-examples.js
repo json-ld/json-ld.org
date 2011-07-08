@@ -73,7 +73,7 @@
    // Add the example of a Product
    playground.examples["Product"] =
    {
-      "@subject": "http://example.org/cars/for-sale#tesla",
+      "@": "http://example.org/cars/for-sale#tesla",
       "a": "gr:Offering",
       "gr:name": "Used Tesla Roadster",
       "gr:description": "Need to sell fast and furiously",
