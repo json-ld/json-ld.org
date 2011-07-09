@@ -1,14 +1,18 @@
 /**
- * The JSON-LD Sandbox is used to test out JavaScript 
+ * The JSON-LD Playground example files.
+ *
+ * @author Manu Sporny <msporny@digitalbazaar.com>
  */
 (function($)
 {
    window.playground = window.playground || {};
    var playground = window.playground;
+   
+   // setup the examples and frame examples
    playground.examples = {};
    playground.frames = {};
 
-   // Add the example of a Person
+   // add the example of a Person
    playground.examples["Person"] =
    {
       "name": "Manu Sporny",
@@ -25,7 +29,7 @@
       }
    };
 
-   // Add the example of a Place
+   // add the example of a Place
    playground.examples["Place"] =
    {
       "name": "The Empire State Building",
@@ -53,7 +57,7 @@
       }
    };
 
-   // Add the example of a Event
+   // add the example of a Event
    playground.examples["Event"] =
    {
       "ical:summary": "Lady Gaga Concert",
@@ -70,7 +74,7 @@
       }
    };
 
-   // Add the example of a Product
+   // add the example of a Product
    playground.examples["Product"] =
    {
       "@": "http://example.org/cars/for-sale#tesla",
@@ -104,7 +108,7 @@
       }
    };
 
-   // Add the example of a Recipe
+   // add the example of a Recipe
    playground.examples["Recipe"] =
    {
       "name": "Mojito",
@@ -151,7 +155,7 @@
       }
    };
 
-   // Add the example of a Library
+   // add the example of a Library
    playground.examples["Library"] =
    {
       "@": [
@@ -174,8 +178,10 @@
             "dc:title": "The Introduction"
          }
       ],
-      "@context": {
-         "@coerce": {
+      "@context": 
+      {
+         "@coerce": 
+         {
             "xsd:anyURI": "ex:contains"
          },
          "dc": "http://purl.org/dc/elements/1.1/",
@@ -183,17 +189,20 @@
       }
    };
 
-   // Add the example of a Library
+   // add the frame example of a Library
    playground.frames["Library"] =
    {
-      "@context": {
+      "@context": 
+      {
          "dc": "http://purl.org/dc/elements/1.1/",
          "ex": "http://example.org/vocab#"
       },
       "a": "ex:Library",
-      "ex:contains": {
+      "ex:contains": 
+      {
          "a": "ex:Book",
-         "ex:contains": {
+         "ex:contains": 
+         {
             "a": "ex:Chapter"
          }
       }

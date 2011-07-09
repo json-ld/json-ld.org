@@ -1,6 +1,6 @@
 /**
  * @fileoverview
- * Registers a language handler for JSON-LD.
+ * Registers a language handler for prettify.js for JSON-LD.
  *
  * @author David I. Lehn <dlehn@digitalbazaar.com>
  */

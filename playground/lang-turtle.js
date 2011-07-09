@@ -1,9 +1,9 @@
 /**
  * @fileoverview
- * Registers a language handler for TURTLE.
+ * Registers a language handler for prettify.js for TURTLE.
  *
- * @author Manu Sporny <msporny@digitalbazaar.com>
  * @author David I. Lehn <dlehn@digitalbazaar.com>
+ * @author Manu Sporny <msporny@digitalbazaar.com>
  */
 
 PR.registerLangHandler(
