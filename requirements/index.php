@@ -12,7 +12,7 @@ print <<< htmlcode
    > 
    <head> 
       <meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
-      <title>JSON-LD - Specifications</title> 
+      <title>JSON-LD - Requirements</title> 
       <link href="../site.css" rel="stylesheet" type="text/css" /> 
       <link rel="shortcut icon" href="favicon.ico" /> 
       <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
@@ -21,13 +21,16 @@ print <<< htmlcode
    <body> 
       <div id="container"> 
          <div id="header"> 
-            <div class="col"> 
-               <h1>JSON-LD - Requirements</h1>
-            </div> 
+            <span class="col"> 
+               <img class="banner" src="../images/json-ld-logo-1.png" />
+               <img class="banner" src="../images/json-ld-logo-2.png" />
+               <img class="banner" src="../images/json-ld-logo-3.png" />
+               <h1>Requirements</h1>
+            </span> 
          </div> 
 
          <div id="content"> 
-            <div><a href="../">JSON-LD</a> &gt; Requirements</div>
+            <div class="breadcrumbs"><a href="../">JSON-LD</a> &gt; Requirements</div>
             <div id="info"> 
                <h1>Requirements</h1> 
                <p>The following requirements are sorted in most recent to

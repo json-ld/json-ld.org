@@ -21,13 +21,16 @@ print <<< htmlcode
    <body> 
       <div id="container"> 
          <div id="header"> 
-            <div class="col"> 
-               <h1>JSON-LD - Specifications</h1>
-            </div> 
+            <span class="col"> 
+               <img class="banner" src="../images/json-ld-logo-1.png" />
+               <img class="banner" src="../images/json-ld-logo-2.png" />
+               <img class="banner" src="../images/json-ld-logo-3.png" />
+               <h1>Specifications</h1>
+            </span> 
          </div> 
 
          <div id="content"> 
-            <div><a href="../">JSON-LD</a> &gt; Specifications</div>
+            <div class="breadcrumbs"><a href="../">JSON-LD</a> &gt; Specifications</div>
             <div id="info"> 
                <h1>Specifications</h1> 
                <p>The following specifications are sorted in most recent to
