@@ -43,46 +43,51 @@
    {
       var input = null;
       var frame = null;
+      var errors = false;
 
       try
       {
-         var input = JSON.parse($("#markup").val());
+         $("#markup-errors").text("");
+         input = JSON.parse($("#markup").val());
       }
       catch(e)
       {
-         console.log(e);
-         $("#markup-errors").html(e);
+         $("#markup-errors").text("JSON markup - " + e);
+         errors = true;
       }
-
 
       try
       {
+         $("#frame-errors").text("");
          var frame = JSON.parse($("#frame").val());
       }
       catch(e)
       {
-         console.log(e);
-         $("#frame-errors").html(e);
+         $("#frame-errors").text("JSON-LD frame - " + e);
+         errors = true;
       }
 
-      var normalized = forge.jsonld.normalize(input);
-      var expanded = forge.jsonld.removeContext(input);
-      var compacted = forge.jsonld.changeContext(
-         input["@context"] || {}, input);
-      var framed = forge.jsonld.frame(input, frame);
-      var turtle = forge.jsonld.turtle(input);
+      if(!errors)
+      {
+         var normalized = forge.jsonld.normalize(input);
+         var expanded = forge.jsonld.removeContext(input);
+         var compacted = forge.jsonld.changeContext(
+            input["@context"] || {}, input);
+         var framed = forge.jsonld.frame(input, frame);
+         var turtle = forge.jsonld.turtle(input);
 
-      $("#normalized").html(js_beautify(JSON.stringify(normalized)),
-         { "indent_size": 3, "brace_style": "expand" });
-      $("#compacted").html(js_beautify(JSON.stringify(compacted)),
-         { "indent_size": 3, "brace_style": "expand" });
-      $("#expanded").html(js_beautify(JSON.stringify(expanded)),
-         { "indent_size": 3, "brace_style": "expand" });
-      $("#framed").html(js_beautify(JSON.stringify(framed)),
-         { "indent_size": 3, "brace_style": "expand" });
-      $("#turtle").html(playground.htmlEscape(turtle));
+         $("#normalized").html(js_beautify(JSON.stringify(normalized)),
+            { "indent_size": 3, "brace_style": "expand" });
+         $("#compacted").html(js_beautify(JSON.stringify(compacted)),
+            { "indent_size": 3, "brace_style": "expand" });
+         $("#expanded").html(js_beautify(JSON.stringify(expanded)),
+            { "indent_size": 3, "brace_style": "expand" });
+         $("#framed").html(js_beautify(JSON.stringify(framed)),
+            { "indent_size": 3, "brace_style": "expand" });
+         $("#turtle").html(playground.htmlEscape(turtle));
 
-      prettyPrint();
+         prettyPrint();
+      }
    }
    
    playground.populate = function(type)

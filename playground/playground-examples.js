@@ -93,6 +93,7 @@
       "@context":
       {
          "gr": "http://purl.org/goodrelations/v1#",
+         "pto": "http://www.productontology.org/id/",
          "foaf": "http://xmlns.com/foaf/0.1/",
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":

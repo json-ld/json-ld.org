@@ -50,9 +50,24 @@ function printObject(obj)
 {
    var rval = undefined;
 
-   // FIXME: Implement printing out arrays of objects
-
-   if(typeof(obj) == "object")
+   if(obj instanceof Array)
+   {
+      var firstItem = true;
+      for(i in obj)
+      {
+         if(firstItem == true)
+         {
+            firstItem = false;
+            rval = "\n      ";
+         }
+         else
+         {
+            rval += ",\n      ";
+         }
+         rval += printObject(obj[i]);
+      }
+   }
+   else if(obj instanceof Object)
    {
       if("@literal" in obj && "@datatype" in obj)
       {
