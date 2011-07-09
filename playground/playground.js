@@ -121,13 +121,13 @@
          }
          else if(playground.activeTab == "tab-expanded")
          {
-            var expanded = forge.jsonld.removeContext(input);
+            var expanded = forge.jsonld.expand(input);
             $("#expanded").html(js_beautify(JSON.stringify(expanded)),
                { "indent_size": 3, "brace_style": "expand" });
          }
          else if(playground.activeTab == "tab-compacted")
          {
-            var compacted = forge.jsonld.changeContext(
+            var compacted = forge.jsonld.compact(
                input["@context"] || {}, input);
             $("#compacted").html(js_beautify(JSON.stringify(compacted)),
                { "indent_size": 3, "brace_style": "expand" });

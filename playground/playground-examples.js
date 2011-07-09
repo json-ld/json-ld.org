@@ -77,8 +77,8 @@
    // add the example of a Product
    playground.examples["Product"] =
    {
-      "@": "http://example.org/cars/for-sale#tesla",
-      "a": "gr:Offering",
+      "@subject": "http://example.org/cars/for-sale#tesla",
+      "@type": "gr:Offering",
       "gr:name": "Used Tesla Roadster",
       "gr:description": "Need to sell fast and furiously",
       "gr:hasBusinessFunction": "gr:Sell",
@@ -90,7 +90,7 @@
       },
       "gr:includes": 
       {
-         "a": ["gr:Individual", "pto:Vehicle"],
+         "@type": ["gr:Individual", "pto:Vehicle"],
          "gr:name": "Tesla Roadster",
          "foaf:page": "http://www.teslamotors.com/roadster"
       },
@@ -158,22 +158,22 @@
    // add the example of a Library
    playground.examples["Library"] =
    {
-      "@": [
+      "@subject": [
          {
-            "@": "http://example.org/library",
-            "a": "ex:Library",
+            "@subject": "http://example.org/library",
+            "@type": "ex:Library",
             "ex:contains": "http://example.org/library/the-republic"
          },
          {
-            "@": "http://example.org/library/the-republic",
-            "a": "ex:Book",
+            "@subject": "http://example.org/library/the-republic",
+            "@type": "ex:Book",
             "dc:creator": "Plato",
             "dc:title": "The Republic",
             "ex:contains": "http://example.org/library/the-republic#introduction"
          },
          {
-            "@": "http://example.org/library/the-republic#introduction",
-            "a": "ex:Chapter",
+            "@subject": "http://example.org/library/the-republic#introduction",
+            "@type": "ex:Chapter",
             "dc:description": "An introductory chapter on The Republic.",
             "dc:title": "The Introduction"
          }
@@ -197,13 +197,13 @@
          "dc": "http://purl.org/dc/elements/1.1/",
          "ex": "http://example.org/vocab#"
       },
-      "a": "ex:Library",
+      "@type": "ex:Library",
       "ex:contains": 
       {
-         "a": "ex:Book",
+         "@type": "ex:Book",
          "ex:contains": 
          {
-            "a": "ex:Chapter"
+            "@type": "ex:Chapter"
          }
       }
    };

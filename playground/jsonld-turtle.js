@@ -25,7 +25,7 @@ function getProperties(obj)
    // accumulate the names of all non-JSON-LD special keys
    for(var key in obj)
    {
-      if(key != "@")
+      if(key != "@subject")
       {
          rval.push(key);
       }
@@ -146,7 +146,7 @@ jsonld.turtle = function(input)
    {
       // print out each key in the normalized array (the subjects)
       var subject = normalized[s];
-      var iri = subject["@"]["@iri"];
+      var iri = subject["@subject"]["@iri"];
 
       rval += iriToTurtle(iri) + "\n";
 
