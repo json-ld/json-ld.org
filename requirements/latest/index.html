@@ -136,8 +136,7 @@
       var respecConfig = {
           // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
           specStatus:           "unofficial",
-          //publishDate:          "2011-07-03",
-          //copyrightStart:       "2010",
+          //publishDate:          "2011-07-11",
           
           // the specification's short name, as in http://www.w3.org/TR/short-name/
           shortName:            "json-ld",
@@ -147,7 +146,7 @@
 
           // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
           // and its maturity status
-          previousPublishDate:  "2011-05-07",
+          previousPublishDate:  "2011-07-03",
           previousMaturity:     "ED",
           previousDiffURI:      "http://json-ld.org/requirements/ED/20100703/index.html",
           diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
@@ -233,7 +232,7 @@ enhances the functionality and interoperability of the Web.
       [[!RFC4627]]
       is a simple way to express objects in a syntax compatible with JavaScript.
     </dd>
-    <dt><tdef>Linked Data</tdef></dt><dd>
+    <dt>Linked Data</dt><dd>
       According to <cite><a
       href="http://en.wikipedia.org/wiki/Linked_Data">Wikipedia</a></cite>, Linked Data ...
       <blockquote cite="http://en.wikipedia.org/wiki/Linked_Data">
@@ -266,36 +265,16 @@ enhances the functionality and interoperability of the Web.
       expression; that is left for the following section.
     </p>
     <ol>
-      <li>
-        Linked Data is used to represent a directed graph, and within the context of Linked
-        Data, the graph can be represented as (directed) edges between different nodes.
-        Nodes may be labeled. Nodes are externally addressable if the label is a URI.
-        <p class="note">
-          Note, original approved wording was: <em>Linked Data is used to represent a
-          directed graph, and within the context of Linked Data, the graph can be
-          represented as connections between different nodes, nodes are subjects and
-          objects, links are properties. Nodes may have identifiers that are URIs allowing
-          them to be externally addressed.</em></p>
-      </li>
-      <li>A <tdef>subject</tdef> is any node in a directed graph with at least one outgoing edge.</li>
+      <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a linked data graph.</li>
+      <li>A <tdef>linked data graph</tdef> is a labeled directed graph, where nodes are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.</li>
+      <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
       <li>A <tref>subject</tref> MAY be labeled with a IRI.</li>
-      <li class="issue">A <tref>subject</tref> without a IRI is scoped to the document in which it is expressed.</li>
-      <li>A node may be unlabeled.</li>
-      <li class="issue">An unlabeled node MAY be given an identifier for intra-document referencing.</li>
-      <li>A <tdef>property</tdef> is an edge of the directed graph.</li>
-      <li>A <tdef>property</tdef> SHOULD be labeled with an IRI.
-        <p class="note">
-          Using a IRI for a property is a best practice, as it allows the edge to be
-          described unambiguously. Simply labeling an edge "homeAddress", for example, could
-          be ambiguous. In the context of JSON-LD, this does not necessarily mean that an
-          object key is represented directly be a URI; it may be simple term (NCName) which
-          is mapped to a URI elsewhere (i.e., @context).
-        </p>
-      </li>
-      <li>An <tdef>object</tdef> is a node in a directed graph with at least one incoming edge.</li>
-      <li>An <tdef>object</tdef> MAY be labeled with an IRI.</li>
-      <li class="issue">An <tref>object</tref> MAY be labeled with an IRI or a <tref>literal</t>.</li>
-      <li class="issue">A <tdef>literal</tdef> MAY include a datatype or have a language.</li>
+      <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.</li>
+      <li>A <tref>property</tref> SHOULD be labeled with an IRI.</li>
+      <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
+      <li>An <tref>object</tref> MAY be labeled with an IRI.</li>
+      <li>An IRI that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
+      <li>A <tdef>literal</tdef> is an <tref>object</tref> with a label that is not an IRI</li>
     </ol>
   </section>
   <section><h2>JSON-LD</h2>
@@ -304,24 +283,23 @@ enhances the functionality and interoperability of the Web.
       This section has not been discussed on a teleconference
     </p>
     <ol>
-      <li>A JSON-LD document MUST be able to express <tref>Linked Data</tref>.</li>
+      <li>A JSON-LD document MUST be able to express a <tref>linked data graph</tref>.</li>
       <li>
         A JSON-LD document uses <trefs>JSON object</trefs>s, arrays, numbers, strings and
         other literal names to express semantic information.
       </li>
       <li>A <tref>subject</tref> is represented with a <tref>JSON object</tref>.</li>
-      <li>There MUST be a way to associate a IRI with a <tref>subject</tref>.</li>
-      <li>There MAY be a way to associate a <tref>BNode</tref> identifier with a <tref>subject</tref>.</li>
-      <li>JSON name/value pairs are used to describe property-object (or attribute-value) pairs.</li>
-      <li>There MUST be a way to associate a IRI with a JSON name.</li>
+      <li>There MUST be a way label a <tref>JSON object</tref> with an IRI.</li>
+      <li>There MUST be a way to reference an un-labeled JSON object that does not have a direct child relationship.</li>
+      <li>JSON name/value pairs are used to describe property-object relationships.</li>
+      <li>There MUST be a way to associate a IRI with the name in a JSON name/value pair.</li>
       <li>JSON strings MAY represent literals.</li>
       <li>JSON strings MAY represent IRIs.</li>
       <li>There MUST be a way to determine if a JSON value represents a IRI.</li>
-      <li>There SHOULD be a way to associate a datatype with a literal JSON value.</li>
-      <li>JSON numbers and other literal values represent specific typed literals.</li>
+      <li>There SHOULD be a way to associate a datatype IRI with a literal JSON value.</li>
+      <li>JSON booleans, numbers and other literal values represent specific datatyped literals.</li>
       <li>A JSON array MAY be used to associate multiple <tref>object</tref>s with a <tref>subject</tref> through a common <tref>property</tref>.</li>
       <li>A JSON array MUST NOT be used to imply an order to the component entities.</li>
-      <li>JSON-LD MAY provide a way to express an ordered relationship.</li>
     </ol>
   </section>
 </section>
