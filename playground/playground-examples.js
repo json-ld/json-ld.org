@@ -19,8 +19,8 @@
       "homepage": "http://manu.sporny.org/",
       "@context":
       {
-         "name": "http://xmlns.com/0.1/foaf/name",
-         "homepage": "http://xmlns.com/0.1/foaf/homepage",
+         "name": "http://xmlns.com/foaf/0.1/name",
+         "homepage": "http://xmlns.com/foaf/0.1/homepage",
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
