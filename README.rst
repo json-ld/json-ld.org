@@ -1,7 +1,6 @@
 Introduction
 ------------
 
-
 JSON-LD (JavaScript Object Notation for Linked Data) is a lightweight Linked
 Data format. It is easy for humans to read and write. It is easy for machines
 to parse and generate. It is based on the already successful JSON format and
@@ -17,12 +16,13 @@ A Simple Example
 
 A simple example of a JSON object with added semantics::
 
-  {
-    "#": {"foaf": "http://xmlns.com/foaf/0.1/"},
-    "@": "<http://example.org/people#john>",
-    "a": "foaf:Person",
-    "foaf:name" : "John Lennon"
-  }
+{ 
+  "@context": "http://purl.org/jsonld/Person"
+  "@subject": "http://dbpedia.org/resource/John_Lennon",
+  "name": "John Lennon",
+  "birthday": "10-09",
+  "member": "http://dbpedia.org/resource/The_Beatles"
+}
 
 The example above describes a person whose name is John Lennon. The difference
 between regular JSON and JSON-LD is that the JSON-LD object above uniquely
