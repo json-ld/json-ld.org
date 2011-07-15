@@ -309,28 +309,38 @@
     */
    playground.populateWithJSON = function(data)
    {
+      var hasData = false;
+
       if('markup' in data && data.markup !== null)
       {
+         hasData = true;
          // fill the markup box with the example
          $("#markup").val(js_beautify(
             data.markup,
             { "indent_size": 3, "brace_style": "expand" }));
-         $("#frame").val("{}");
       }
 
       if('frame' in data && data.frame !== null)
       {
+         hasData = true;
          // fill the frame input box with the example frame
          $("#frame").val(js_beautify(
             data.frame,
             { "indent_size": 3, "brace_style": "expand" }));
       }
+      else
+      {
+         $("#frame").val("{}");
+      }
 
-      // perform processing on the data provided in the input boxes
-      playground.process();
+      if(hasData)
+      {
+         // perform processing on the data provided in the input boxes
+         playground.process();
 
-      // apply the syntax colorization
-      prettyPrint();
+         // apply the syntax colorization
+         prettyPrint();
+      }
    };
 
    /**
