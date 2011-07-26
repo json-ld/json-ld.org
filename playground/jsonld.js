@@ -100,7 +100,7 @@ var _compactIri = function(ctx, iri, usedCtx)
    for(var key in ctx)
    {
       // skip special context keys (start with '@')
-      if(key.length > 0 && key.indexOf('@') !== 0)
+      if(key.length > 0 && key[0] !== '@')
       {
          // compact to a term
          if(iri === ctx[key])
@@ -127,7 +127,7 @@ var _compactIri = function(ctx, iri, usedCtx)
       for(var key in ctx)
       {
          // skip special context keys (start with '@')
-         if(key.length > 0 && key.indexOf('@') !== 0)
+         if(key.length > 0 && key[0] !== '@')
          {
             // see if IRI begins with the next IRI from the context
             var ctxIri = ctx[key];
@@ -136,7 +136,7 @@ var _compactIri = function(ctx, iri, usedCtx)
             // compact to a CURIE
             if(idx === 0 && iri.length > ctxIri.length)
             {
-               rval = key + ':' + iri.substr(idx + ctxIri.length);
+               rval = key + ':' + iri.substr(ctxIri.length);
                if(usedCtx !== null)
                {
                   usedCtx[key] = ctxIri;
@@ -620,7 +620,7 @@ var _expand = function(ctx, property, value, expandSubjects)
             {
                _setProperty(rval, key, _clone(value[key]));
             }
-            else if(key !== '@context' && key !== '@coerce')
+            else if(key !== '@context')
             {
                // set object to expanded property
                _setProperty(
@@ -742,8 +742,8 @@ var _compare = function(v1, v2)
 
 /**
  * Compares two keys in an object. If the key exists in one object
- * and not the other, that object is less. If the key exists in both objects,
- * then the one with the lesser value is less.
+ * and not the other, the object with the key is less. If the key exists in
+ * both objects, then the one with the lesser value is less.
  * 
  * @param o1 the first object.
  * @param o2 the second object.
@@ -997,16 +997,6 @@ var _flatten = function(parent, parentProperty, value, subjects)
       for(var i in value)
       {
          _flatten(parent, parentProperty, value[i], subjects);
-      }
-      
-      // if value is a list of objects, sort them
-      if(value.length > 0 &&
-         (value[0].constructor === String ||
-         (value[0].constructor === Object &&
-         ('@literal' in value[0] || '@iri' in value[0]))))
-      {
-         // sort values
-         value.sort(_compareObjects);
       }
    }
    else if(value.constructor === Object)
@@ -1342,17 +1332,18 @@ jsonld.Processor.prototype.canonicalizeBlankNodes = function(input)
    {
       var bnode = bnodes[i];
       var iri = bnode[__s]['@iri'];
-      this.serializations[iri] =
-      {
-         'props': null,
-         'refs': null
-      };
       if(c14n.inNamespace(iri))
       {
          // generate names until one is unique
          while(ngTmp.next() in subjects);
          this.renameBlankNode(bnode, ngTmp.current());
+         iri = bnode[__s]['@iri'];
       }
+      this.serializations[iri] =
+      {
+         'props': null,
+         'refs': null
+      };
    }
    
    // keep sorting and naming blank nodes until they are all named
@@ -1365,7 +1356,7 @@ jsonld.Processor.prototype.canonicalizeBlankNodes = function(input)
       });
       
       // name all bnodes according to the first bnode's relation mappings
-      var bnode = bnodes.shift(1);
+      var bnode = bnodes.shift();
       var iri = bnode[__s]['@iri'];
       var dirs = ['props', 'refs'];
       for(var d in dirs)
@@ -1394,11 +1385,11 @@ jsonld.Processor.prototype.canonicalizeBlankNodes = function(input)
          var renamed = [];
          for(var i in keys)
          {
-            var iri = keys[i];
-            if(!c14n.inNamespace(iri) && iri in subjects)
+            var iriK = keys[i];
+            if(!c14n.inNamespace(iri) && iriK in subjects)
             {
-               this.renameBlankNode(subjects[iri], c14n.next());
-               renamed.push(iri);
+               this.renameBlankNode(subjects[iriK], c14n.next());
+               renamed.push(iriK);
             }
          }
          
@@ -1453,9 +1444,9 @@ MappingBuilder = function()
 };
 
 /**
- * Copies a MappingBuilder.
+ * Copies this MappingBuilder.
  * 
- * @param mb the MappingBuilder to copy.
+ * @return the MappingBuilder copy.
  */
 MappingBuilder.prototype.copy = function()
 {
@@ -1519,6 +1510,49 @@ var _rotate = function(a)
 };
 
 /**
+ * Serializes the properties of the given bnode for its relation serialization.
+ * 
+ * @param b the blank node.
+ * 
+ * @return the serialized properties.
+ */
+var _serializeProperties = function(b)
+{
+   var rval = '';
+   
+   for(var p in b)
+   {
+      if(p !== '@subject')
+      {
+         var first = true;
+         var objs = (b[p].constructor === Array) ? b[p] : [b[p]];
+         for(var oi in objs)
+         {
+            if(first)
+            {
+               first = false;
+            }
+            else
+            {
+               rval += '|';
+            }
+            if(objs[oi].constructor === Object &&
+               '@iri' in objs[oi] && _isBlankNodeIri(objs[oi]['@iri']))
+            {
+               rval += '_:';
+            }
+            else
+            {
+               rval += JSON.stringify(objs[oi]);
+            }
+         }
+      }
+   }
+   
+   return rval;
+};
+
+/**
  * Recursively creates a relation serialization (partial or full).
  * 
  * @param keys the keys to serialize in the current output.
@@ -1527,7 +1561,8 @@ var _rotate = function(a)
  * 
  * @return the relation serialization.
  */
-var _recursiveSerializeMapping = function(keys, output, done)
+jsonld.Processor.prototype.recursiveSerializeMapping = function(
+   keys, output, done)
 {
    var rval = '';
    for(var i in keys)
@@ -1547,8 +1582,40 @@ var _recursiveSerializeMapping = function(keys, output, done)
       {
          done[k] = true;
          var tmp = output[k];
-         rval += k + tmp.join('');
-         rval += _recursiveSerializeMapping(tmp, output, done);
+         for(var t in tmp.k)
+         {
+            var s = tmp.k[t]; 
+            rval += s;
+            var iri = tmp.m[s];
+            if(iri in this.subjects)
+            {
+               var b = this.subjects[iri];
+               
+               // serialize properties
+               rval += '<';
+               rval += _serializeProperties(b);
+               rval += '>';
+               
+               // serialize references
+               rval += '<';
+               var first = true;
+               var refs = this.edges.refs[iri].all;
+               for(var r in refs)
+               {
+                  if(first)
+                  {
+                     first = false;
+                  }
+                  else
+                  {
+                     rval += '|';
+                  }
+                  rval += _isBlankNodeIri(refs[r].s) ? '_:' : refs[r].s;
+               }
+               rval += '>';
+            }
+         }
+         rval += this.recursiveSerializeMapping(tmp.k, output, done);
       }
    }
    return rval;
@@ -1561,12 +1628,9 @@ var _recursiveSerializeMapping = function(keys, output, done)
  * 
  * @return the relation serialization.
  */
-var _serializeMapping = function(output)
+jsonld.Processor.prototype.serializeMapping = function(output)
 {
-   // get sorted keys for current output
-   var keys = Object.keys(output).sort();
-   var done = {};
-   return _recursiveSerializeMapping(keys, output, done);
+   return this.recursiveSerializeMapping(['s1'], output, {});
 };
 
 /**
@@ -1600,6 +1664,77 @@ var _compareSerializations = function(s1, s2)
 };
 
 /**
+ * Recursively serializes adjacent bnode combinations.
+ * 
+ * @param s the serialization to update.
+ * @param top the top of the serialization.
+ * @param mb the MappingBuilder to use.
+ * @param dir the edge direction to use ('props' or 'refs').
+ * @param mapped all of the already-mapped adjacent bnodes.
+ * @param notMapped all of the not-yet mapped adjacent bnodes.
+ */
+jsonld.Processor.prototype.serializeCombos = function(
+   s, top, mb, dir, mapped, notMapped)
+{
+   // copy mapped nodes
+   mapped = _clone(mapped);
+   
+   // handle recursion
+   if(notMapped.length > 0)
+   {
+      // map first bnode in list
+      mapped[mb.mapNode(notMapped[0].s)] = notMapped[0].s;
+      
+      // recurse into remaining possible combinations
+      var original = mb.copy();
+      notMapped = notMapped.slice(1);
+      var rotations = Math.max(1, notMapped.length);
+      for(var r = 0; r < rotations; ++r)
+      {
+         var m = (r === 0) ? mb : original.copy();
+         this.serializeCombos(s, top, m, dir, mapped, notMapped);
+         
+         // rotate not-mapped for next combination
+         _rotate(notMapped);
+      }
+   }
+   // handle final adjacent node in current combination
+   else
+   {
+      var keys = Object.keys(mapped).sort();
+      mb.output[top] = { k: keys, m: mapped };
+      
+      // optimize away mappings that are already too large
+      var _s = this.serializeMapping(mb.output);
+      if(s[dir] === null || _compareSerializations(_s, s[dir].s) <= 0)
+      {
+         var oldCount = mb.count;
+         
+         // recurse into adjacent values
+         for(var i in keys)
+         {
+            var k = keys[i];
+            this.serializeBlankNode(s, mapped[k], mb, dir);
+         }
+         
+         // reserialize if more nodes were mapped
+         if(mb.count > oldCount)
+         {
+            _s = this.serializeMapping(mb.output);
+         }
+         
+         // update least serialization if new one has been found
+         if(s[dir] === null ||
+            (_compareSerializations(_s, s[dir].s) <= 0 &&
+            _s.length >= s[dir].s.length))
+         {
+            s[dir] = { s: _s, m: mb.mapping };
+         }
+      }
+   }
+};
+
+/**
  * Computes the relation serialization for the given blank node IRI.
  * 
  * @param s the serialization to update.
@@ -1616,53 +1751,50 @@ jsonld.Processor.prototype.serializeBlankNode = function(s, iri, mb, dir)
       mb.mapped[iri] = true;
       var top = mb.mapNode(iri);
       
-      // copy original mapping builder, loop over adjacent values
+      // copy original mapping builder
       var original = mb.copy();
-      var values = this.edges[dir][iri].bnodes.slice();
-      var loop = Math.max(1, values.length);
-      for(var i = 0; i < loop; ++i)
+      
+      // split adjacent bnodes on mapped and not-mapped
+      var adj = this.edges[dir][iri].bnodes;
+      var mapped = {};
+      var notMapped = [];
+      for(var i in adj)
+      {
+         if(adj[i].s in mb.mapping)
+         {
+            mapped[mb.mapping[adj[i].s]] = adj[i].s;
+         }
+         else
+         {
+            notMapped.push(adj[i]);
+         }
+      }
+      
+      // TODO: ensure this optimization does not alter canonical order
+      
+      // if the current bnode already has a serialization, reuse it
+      /*var hint = (iri in this.serializations) ?
+         this.serializations[iri][dir] : null;
+      if(hint !== null)
+      {
+         var hm = hint.m;
+         notMapped.sort(function(a, b)
+         {
+            return _compare(hm[a.s], hm[b.s]);
+         });
+         for(var i in notMapped)
+         {
+            mapped[mb.mapNode(notMapped[i].s)] = notMapped[i].s;
+         }
+         notMapped = [];
+      }*/
+      
+      // loop over possible combinations
+      var combos = Math.max(1, notMapped.length);
+      for(var i = 0; i < combos; ++i)
       {
          var m = (i === 0) ? mb : original.copy();
-         
-         // map all edge nodes
-         var tmp = [];
-         for(var i2 in values)
-         {
-            tmp.push(m.mapNode(values[i2].s));
-         }
-         m.output[top] = tmp.sort();
-         var oldCount = m.count;
-         
-         // optimize away mappings that are already too large
-         var _s = _serializeMapping(m.output);
-         if(s[dir] === null || _compareSerializations(_s, s[dir].s) <= 0)
-         {
-            // recurse into adjacent values
-            for(var i2 in values)
-            {
-               // TODO: optimization: for each value, see if the value already
-               // has a shortest serialization for the given direction that
-               // can be reused
-               this.serializeBlankNode(s, values[i2].s, m, dir);
-            }
-            
-            // reserialize if more nodes were mapped
-            if(m.count > oldCount)
-            {
-               _s = _serializeMapping(m.output);
-            }
-            
-            // update least serialization if new one has been found
-            if(s[dir] === null ||
-               (_compareSerializations(_s, s[dir].s) <= 0 &&
-               _s.length >= s[dir].s.length))
-            {
-               s[dir] = { s: _s, m: m.mapping };
-            }
-         }
-         
-         // rotate values
-         _rotate(values);
+         this.serializeCombos(s, top, mb, dir, mapped, notMapped);         
       }
    }
 };
@@ -1968,7 +2100,11 @@ var _isDuckType = function(input, frame)
    if(!(type in frame))
    {
       // get frame properties that must exist on input
-      var props = Object.keys(frame);
+      var props = Object.keys(frame).filter(function(e)
+      {
+         // filter non-keywords
+         return e.indexOf('@') !== 0;
+      });
       if(props.length === 0)
       {
          // input always matches if there are no properties
@@ -2014,6 +2150,10 @@ var _frame = function(subjects, input, frame, embeds, options)
    {
       rval = [];
       frames = frame;
+      if(frames.length === 0)
+      {
+         frames.push({});
+      }
    }
    else
    {
@@ -2030,7 +2170,8 @@ var _frame = function(subjects, input, frame, embeds, options)
       if(frame.constructor !== Object)
       {
          throw {
-            message: 'Invalid JSON-LD frame. Frame type is not a map or array.'
+            message: 'Invalid JSON-LD frame. ' +
+               'Frame must be an object or an array.'
          };
       }
       
@@ -2038,10 +2179,18 @@ var _frame = function(subjects, input, frame, embeds, options)
       values[i] = [];
       for(var n = 0; n < input.length && limit !== 0; ++n)
       {
-         // add input to list if it matches frame specific type or duck-type
-         if(_isType(input[n], frame) || _isDuckType(input[n], frame))
+         // dereference input if it refers to a subject
+         var next = input[n];
+         if(next.constructor === Object && '@iri' in next &&
+            next['@iri'] in subjects)
          {
-            values[i].push(input[n]);
+            next = subjects[next['@iri']];
+         }
+         
+         // add input to list if it matches frame specific type or duck-type
+         if(_isType(next, frame) || _isDuckType(next, frame))
+         {
+            values[i].push(next);
             --limit;
          }
       }
@@ -2073,7 +2222,8 @@ var _frame = function(subjects, input, frame, embeds, options)
             // TODO: possibly support multiple embeds in the future ... and
             // instead only prevent cycles?
             throw {
-               message: 'Multiple embeds of the same subject is not supported.',
+               message: 'More than one embed of the same subject is not ' +
+                  'supported.',
                subject: value[__s]['@iri']
             };
          }
@@ -2462,5 +2612,12 @@ jsonld.frame = function(input, frame, options)
 {
    return new jsonld.Processor().frame(input, frame, options);
 };
+
+/**
+ * Creates the JSON-LD default context.
+ *
+ * @return the JSON-LD default context.
+ */
+jsonld.createDefaultContext = _createDefaultContext;
 
 })();
