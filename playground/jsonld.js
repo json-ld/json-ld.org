@@ -412,7 +412,9 @@ var _compact = function(ctx, property, value, usedCtx)
    
    if(value === null)
    {
+      // return null, but check coerce type to add to usedCtx
       rval = null;
+      _getCoerceType(ctx, property, usedCtx);
    }
    else if(value.constructor === Array)
    {
@@ -442,10 +444,13 @@ var _compact = function(ctx, property, value, usedCtx)
       {
          if(value[key] !== '@context')
          {
-            // set object to compacted property
-            _setProperty(
-               rval, _compactIri(ctx, key, usedCtx),
-               _compact(ctx, key, value[key], usedCtx));
+            // set object to compacted property, only overwrite existing
+            // properties if the property actually compacted
+            var p = _compactIri(ctx, key, usedCtx);
+            if(p !== key || !(p in rval))
+            {
+               rval[p] = _compact(ctx, key, value[key], usedCtx);
+            }
          }
       }
    }
@@ -1001,7 +1006,11 @@ var _flatten = function(parent, parentProperty, value, subjects)
 {
    var flattened = null;
    
-   if(value.constructor === Array)
+   if(value === null)
+   {
+      // drop null values
+   }
+   else if(value.constructor === Array)
    {
       // list of objects or a disjoint graph
       for(var i in value)
@@ -2288,12 +2297,12 @@ var _frame = function(subjects, input, frame, embeds, options)
                   }
                   else
                   {
-                     // add null property to value
-                     value[key] = null;
+                     // add empty array/null property to value
+                     value[key] = (f.constructor === Array) ? [] : null;
                   }
                   
-                  // handle setting default value(s)
-                  if(key in value)
+                  // handle setting default value
+                  if(value[key] === null)
                   {
                      // use first subframe if frame is an array
                      if(f.constructor === Array)
@@ -2304,37 +2313,13 @@ var _frame = function(subjects, input, frame, embeds, options)
                      // determine if omit default is on
                      var omitOn = ('@omitDefault' in f) ?
                         f['@omitDefault'] : options.defaults.omitDefaultOn;
-                     
-                     if(value[key] === null)
+                     if(omitOn)
                      {
-                        if(omitOn)
-                        {
-                           delete value[key];
-                        }
-                        else if('@default' in f)
-                        {
-                           value[key] = f['@default'];
-                        }
+                        delete value[key];
                      }
-                     else if(value[key].constructor === Array)
+                     else if('@default' in f)
                      {
-                        var tmp = [];
-                        for(var i in value[key])
-                        {
-                           if(value[key][i] === null)
-                           {
-                              // do not auto-include null in arrays
-                              if(!omitOn && '@default' in f)
-                              {
-                                 tmp.push(f['@default']);
-                              }
-                           }
-                           else
-                           {
-                              tmp.push(value[key][i]);
-                           }
-                        }
-                        value[key] = tmp;
+                        value[key] = f['@default'];
                      }
                   }
                }
