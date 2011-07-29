@@ -57,7 +57,7 @@ var _createDefaultContext = function()
       rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
       owl: 'http://www.w3.org/2002/07/owl#',
       xsd: 'http://www.w3.org/2001/XMLSchema#',
-      dcterms: 'http://purl.org/dc/terms/',
+      dc: 'http://purl.org/dc/terms/',
       foaf: 'http://xmlns.com/foaf/0.1/',
       cal: 'http://www.w3.org/2002/12/cal/ical#',
       vcard: 'http://www.w3.org/2006/vcard/ns#',
@@ -584,10 +584,15 @@ var _expand = function(ctx, property, value, expandSubjects)
    var rval;
    
    // TODO: add data format error detection?
-
+   
+   // value is null, nothing to expand
+   if(value === null)
+   {
+      rval = null;
+   }
    // if no property is specified and the value is a string (this means the
    // value is a property itself), expand to an IRI
-   if(property === null && value.constructor === String)
+   else if(property === null && value.constructor === String)
    {
       rval = _expandTerm(ctx, value, null);
    }
@@ -616,7 +621,8 @@ var _expand = function(ctx, property, value, expandSubjects)
          for(var key in value)
          {
             // preserve frame keywords
-            if(key === '@embed' || key === '@explicit')
+            if(key === '@embed' || key === '@explicit' ||
+               key === '@default' || key === '@omitDefault')
             {
                _setProperty(rval, key, _clone(value[key]));
             }
@@ -941,7 +947,11 @@ var _createNameGenerator = function(prefix)
  */
 var _collectSubjects = function(input, subjects, bnodes)
 {
-   if(input.constructor === Array)
+   if(input === null)
+   {
+      // nothing to collect
+   }
+   else if(input.constructor === Array)
    {
       for(var i in input)
       {
@@ -1047,19 +1057,25 @@ var _flatten = function(parent, parentProperty, value, subjects)
          // flatten embeds
          for(var key in value)
          {
-            if(value[key].constructor === Array)
+            var v = value[key];
+            
+            // drop null values
+            if(v !== null)
             {
-               subject[key] = [];
-               _flatten(subject[key], null, value[key], subjects);
-               if(subject[key].length === 1)
+               if(v.constructor === Array)
                {
-                  // convert subject[key] to object if only 1 value was added
-                  subject[key] = subject[key][0];
+                  subject[key] = [];
+                  _flatten(subject[key], null, v, subjects);
+                  if(subject[key].length === 1)
+                  {
+                     // convert subject[key] to object if it has only 1
+                     subject[key] = subject[key][0];
+                  }
                }
-            }
-            else
-            {
-               _flatten(subject, key, value[key], subjects);
+               else
+               {
+                  _flatten(subject, key, v, subjects);
+               }
             }
          }
       }
@@ -2239,7 +2255,7 @@ var _frame = function(subjects, input, frame, embeds, options)
             {
                for(key in value)
                {
-                  // always include subject
+                  // do not remove subject or any key in the frame
                   if(key !== __s && !(key in frame))
                   {
                      delete value[key];
@@ -2253,11 +2269,12 @@ var _frame = function(subjects, input, frame, embeds, options)
                // skip keywords and type query
                if(key.indexOf('@') !== 0 && key !== jsonld.ns.rdf + 'type')
                {
+                  var f = frame[key];
                   if(key in value)
                   {
                      // build input and do recursion
-                     input = (value[key].constructor === Array) ?
-                        value[key] : [value[key]];
+                     var v = value[key];
+                     input = (v.constructor === Array) ? v : [v];
                      for(var n in input)
                      {
                         // replace reference to subject w/subject
@@ -2267,13 +2284,58 @@ var _frame = function(subjects, input, frame, embeds, options)
                            input[n] = subjects[input[n]['@iri']];
                         }
                      }
-                     value[key] = _frame(
-                        subjects, input, frame[key], embeds, options);
+                     value[key] = _frame(subjects, input, f, embeds, options);
                   }
                   else
                   {
                      // add null property to value
                      value[key] = null;
+                  }
+                  
+                  // handle setting default value(s)
+                  if(key in value)
+                  {
+                     // use first subframe if frame is an array
+                     if(f.constructor === Array)
+                     {
+                        f = (f.length > 0) ? f[0] : {};
+                     }
+                     
+                     // determine if omit default is on
+                     var omitOn = ('@omitDefault' in f) ?
+                        f['@omitDefault'] : options.defaults.omitDefaultOn;
+                     
+                     if(value[key] === null)
+                     {
+                        if(omitOn)
+                        {
+                           delete value[key];
+                        }
+                        else if('@default' in f)
+                        {
+                           value[key] = f['@default'];
+                        }
+                     }
+                     else if(value[key].constructor === Array)
+                     {
+                        var tmp = [];
+                        for(var i in value[key])
+                        {
+                           if(value[key][i] === null)
+                           {
+                              // do not auto-include null in arrays
+                              if(!omitOn && '@default' in f)
+                              {
+                                 tmp.push(f['@default']);
+                              }
+                           }
+                           else
+                           {
+                              tmp.push(value[key][i]);
+                           }
+                        }
+                        value[key] = tmp;
+                     }
                   }
                }
             }
@@ -2327,7 +2389,8 @@ jsonld.Processor.prototype.frame = function(input, frame, options)
       defaults:
       {
          embedOn: true,
-         explicitOn: false
+         explicitOn: false,
+         omitDefaultOn: false
       }
    };
    
