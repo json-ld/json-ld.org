@@ -278,7 +278,8 @@ enhances the functionality and interoperability of the Web.
 
 <p>
 JSON, as specified in [[!RFC4627]], is a simple language for representing 
-objects on the Web. Linked Data is a way of describing content across different 
+data on the Web. Linked Data is a technique for describing content across 
+different 
 documents or Web sites. Web resources are described using <tref>IRI</tref>s, 
 and typically are dereferencable entities that may be used to find more 
 information, creating a "Web of Knowledge". JSON-LD is intended to be a simple 
@@ -327,8 +328,12 @@ data. The document is primarily intended for the following audiences:
 </ul>
 
 <p>
-To understand this specification you must first be familiar with JSON, 
-which is detailed in [[!RFC4627]] and RDF as described in [[!RDF-CONCEPTS]].</p>
+To understand the basics in this specification you must first be familiar with 
+JSON, which is detailed in [[!RFC4627]]. To understand the API and how it is
+intended to operate  in a programming environment, it is useful to have working 
+knowledge of the JavaScript programming language [[ECMA-262]] and 
+WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be 
+familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </section>
 
 <section>
@@ -338,7 +343,7 @@ which is detailed in [[!RFC4627]] and RDF as described in [[!RDF-CONCEPTS]].</p>
 this specification:</p>
 
 <ul>
-<li>Comments and discussion should happen on the public mailing list:
+<li>Technical discussion typically occurs on the public mailing list:
 <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
 </li>
 
@@ -378,9 +383,12 @@ markup language:
 <dl>
  <dt>Simplicity</dt>
  <dd>Developers need only know JSON and three keywords to use the basic 
- functionality in JSON-LD.</dd>
+ functionality in JSON-LD. No extra processors or software libraries are
+ necessary to use JSON-LD in its most basic form. The language attempts to
+ ensure that developers have an easy learning curve.</dd>
  <dt>Compatibility</dt>
- <dd>The JSON-LD markup must be 100% compatible with JSON.</dd>
+ <dd>The JSON-LD markup must be 100% compatible with JSON. This ensures that
+ all of the standard JSON libraries work seamlessly with JSON-LD documents.</dd>
  <dt>Expressiveness</dt>
  <dd>The syntax must be able to express directed graphs, which have been proven
  to be able to simply express almost every real world data model.</dd>
@@ -399,7 +407,7 @@ markup language:
  transparent to their current customers. At times, mapping JSON to 
  a graph representation can become difficult. In these instances, rather than 
  having JSON-LD support esoteric markup, we chose not to support the use case 
- and support a simplified syntax instead. So, while we strive for Zero Edits,
+ and support a simplified syntax instead. So, while Zero Edits was a goal,
  it was not always possible without adding great complexity to the language.
  </dd>
  <dt>Streaming</dt>
@@ -466,7 +474,8 @@ that developers will generate good Linked Data for the Web. JSON-LD
 formalizes those techniques.
 </p>
 
-<p>We will be using the following JSON markup as the example for this section:
+<p>We will be using the following JSON markup as the example for the
+rest of this section:
 </p>
 
 <pre class="example" data-transform="updateExample">
@@ -483,8 +492,9 @@ formalizes those techniques.
 <section>
 <h3>The Context</h3>
 
-<p>In JSON-LD, a context is used to allow developers to map <tdef>term</tdef>s 
-to <tref>IRI</tref>s. The semantic web, just like the document-based 
+<p>In JSON-LD, a context is used to allow developers to map <tref>term</tref>s 
+to <tref>IRI</tref>s. A <tdef>term</tdef> is a short word that MAY be expanded
+to an <tref>IRI</tref>. The semantic web, just like the document-based 
 web, uses IRIs for unambiguous identification. The idea is that these 
 <tref>term</tref>s mean something that may be of use to other developers.
 For example, the term <code>name</code> may map directly to the IRI 
@@ -494,8 +504,8 @@ ensuring that the data is useful outside of the database or page in which it
 resides.
 </p>
 
-<p>These Linked Data <tref>term</tref>s can be used by adding a single line 
-to the JSON markup above:</p>
+<p>These Linked Data <tref>term</tref>s are typically collected in a context and
+then used by adding a single line to the JSON markup above:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -520,23 +530,31 @@ site-by-site basis.</p>
 
 <p>
 The semantic web uses a special type of document called a 
-<em>Web Vocabulary</em> to declare <tref>term</tref>s. 
-Typically, these Web Vocabulary documents have <tdef>prefix</tdef>es associated
-with them and contain a number of <tref>term</tref> declarations. Some Web
-Vocabularies may have 10-20 terms defined. If a developer has to use 3-4
-different vocabularies, the number of terms that would have to be declared
-in a single context would become quite large. To reduce the number of 
-different terms that must be defined, JSON-LD also allows terms to be used as 
-compact IRI prefixes (<abbr title="Compact URI">CURIE</abbr>).
+<em>Web Vocabulary</em> to define <tref>term</tref>s. A context is a type of
+Web vocabulary.
+Typically, these Web Vocabulary documents have <tref>prefix</tref>es associated
+with them and contain a number of <tref>term</tref> declarations. A
+<tdef>prefix</tdef>, like a <tref>term</tref>, is a short word that expands
+to a Web Vocabulary IRI. <tref>Prefix</tref>es are helpful when a developer
+wants to mix multiple vocabularies together in a context, but does not want
+to go to the trouble of defining every single term in every single vocabulary.
+Some Web Vocabularies may have 10-20 terms defined. If a developer wants to use 
+3-4 different vocabularies, the number of terms that 
+would have to be declared in a single context would become quite large. To 
+reduce the number of different terms that must be defined, JSON-LD also allows 
+prefixes to be used to compact IRIs.
 <p>
 
 <p>For example, the IRI <code>http://xmlns.com/foaf/0.1/</code> 
-specifies a Web Vocabulary, and <strong>name</strong> is a term in 
-that vocabulary. Join the two items together and you have an unambiguous 
-identifier for a vocabulary <tref>term</tref>. The Compact URI Expression, 
-or short-form, is <code>foaf:name</code> and the expanded-form is
-<code>http://xmlns.com/foaf/0.1/name</code>. This vocabulary term is used to
-specify a person's name.
+specifies a Web Vocabulary which may be represented using the
+<code>foaf</code> <tref>prefix</tref>. The <code>foaf</code> Web Vocabulary
+contains a term called <strong>name</strong>. If you join the 
+<code>foaf</code> <tref>prefix</tref> with the <strong>name</strong> suffix, 
+you can build a compact IRI that will expand out into an absolute IRI for the
+<code>http://xmlns.com/foaf/0.1/name</code> vocabulary term.
+That is, the compact IRI, or short-form, is <code>foaf:name</code> and the 
+expanded-form is <code>http://xmlns.com/foaf/0.1/name</code>. This vocabulary 
+term is used to specify a person's name.
 </p>
 
 <p>Developers, and machines, are able to use this IRI (plugging it
@@ -549,8 +567,9 @@ dictionary of terms. IRIs provide a way to ensure that these terms
 are unambiguous.
 </p>
 
-<p>The context provides a collection of vocabulary terms, and prefixes, that 
-can be used for a JSON object.</p>
+<p>The context provides a collection of vocabulary <tref>term</tref>s and 
+<tref>prefix</tref>es that can be used to expand JSON keys and values into
+<tref>IRI</tref>s.</p>
 
 <section>
 <h3>Inside a Context</h3>
@@ -564,7 +583,7 @@ de-referenced, would look something like this:</p>
 {
     "name": "http://xmlns.com/foaf/0.1/name",
     "homepage": "http://xmlns.com/foaf/0.1/homepage"
-    "avatar": "http://xmlns.com/foaf/0.1/homepage"
+    "avatar": "http://xmlns.com/foaf/0.1/avatar"
 }
 -->
 </pre>
