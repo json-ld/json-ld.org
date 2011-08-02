@@ -642,10 +642,11 @@ requiring developers that use JSON to drastically change their workflow.</p>
 <section>
 <h1>Basic Concepts</h1>
 
-<p>JSON-LD is designed to ensure that most Linked Data concepts can be marked 
+<p>JSON-LD is designed to ensure that Linked Data concepts can be marked 
 up in a way that is simple to understand and author by Web developers. In many
-cases, Javascript objects can become Linked Data with the simple addition
-of a context.</p>
+cases, regular JSON markup can become Linked Data with the simple addition
+of a context. As more JSON-LD features are used, more semantics are added
+to the JSON markup.</p>
 
 <section>
 <h2>IRIs</h2>
@@ -657,7 +658,7 @@ expressed in a variety of different ways in JSON-LD.</p>
 <ol>
   <li>In general, <tref>term</tref>s in the key position in 
     an associative array that have a mapping to an IRI in the context are
-    expanded to an IRI in a JSON-LD processor. There are special rules for 
+    expanded to an IRI by JSON-LD processors. There are special rules for 
     processing keys in <code>@context</code> and when dealing with keys that 
     start with the <code>@</code> character.</li>
   <li>An IRI is generated for the value specified using <code>@subject</code>, 
@@ -700,7 +701,7 @@ opposed to being interpreted as a string..</p>
 -->
 </pre>
 
-<p>CURIE expansion also occurs for keys in JSON-LD:</p>
+<p><tref>Prefix</tref>es are expanded when used in keys:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -743,11 +744,15 @@ a particular vocabulary term, an IRI is generated:</p>
     }
   }****
 ...
-  "foaf:homepage": "http://manu.sporny.org",
+  "foaf:homepage": "http://manu.sporny.org/",
 ...
 }
 -->
 </pre>
+
+<p>Even though the value <code>http://manu.sporny.org/</code> is a string,
+the type coercion rules will transform the value into an IRI when processed
+by a JSON-LD Processor</p>
 
 </section>
 
@@ -808,7 +813,7 @@ document is mapped to RDF (in N-Triples notation):</p>
 <section>
 <h2>Strings</h2>
 
-<p>Regular text strings, also called <tdef>plain literal</tdef>s, are 
+<p>Regular text strings, also refered to as <tdef>plain literal</tdef>s, are 
 easily expressed using regular JSON strings.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -827,7 +832,7 @@ easily expressed using regular JSON strings.</p>
 <h2>String Internationalization</h2>
 
 <p>JSON-LD makes an assumption that strings with associated language encoding 
-information is not very common when used in JavaScript and Web Services. 
+information are not very common when used in JavaScript and Web Services. 
 Thus, it takes a little more effort to express strings with associated 
 language information.</p>
 
@@ -907,6 +912,30 @@ typed literal:</p>
 <p>Both examples above would generate an object with the literal value of
 <code>2010-05-29T14:17:39+02:00</code> and the datatype of
 <code>http://www.w3.org/2001/XMLSchema#dateTime</code>.</p>
+
+<p>The third example uses a built-in native JSON type, a number, to 
+express a datatype:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@subject": "http://example.org/people#joebob",
+  "foaf:age": ****31****
+...
+}
+-->
+</pre>
+
+<p>The example above would generate the following triple:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/people#joebob> 
+   <http://xmlns.com/foaf/0.1/age> 
+      "31"^^<http://www.w3.org/2001/XMLSchema#integer> .
+-->
+</pre>
 
 </section>
 
