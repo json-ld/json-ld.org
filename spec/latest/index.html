@@ -1623,28 +1623,63 @@ language-native data structures MUST be used where applicable.</p>
   </p>
   <p>
     A <tref>local context</tref> is identified within an associative array having a key of <code>@context</code>
-    with string or an associative array value. When processing a <tref>local context</tref>, special rules apply:
+    with string or an associative array value. When processing a <tref>local context</tref>, special processing rules apply:
   </p>
-  <p>
-    If the <code>@context</code> value is a simple string, it MUST have a lexical form of IRI and used to initialize
-    a new JSON document which is used as if an associative array were evaluated directly.
-  </p>
-  <ul>
-    <li>The key <code>@base</code> MUST have a value of a simple string with the lexical
-    form of IRI and is saved in the <tref>active context</tref> to perform term mapping as described in <a
-    href="#iri-processing">IRI Processing</a>.</li>
-    <li>The key <code>@vocab</code> MUST have a value of a simple string with the lexical
-    form of IRI and is saved in the <tref>active context</tref> to perform term mapping as described in <a
-    href="#iri-processing">IRI Processing</a>.</li>
-    <li>The key <code>@coerce</code> MUST have a value of an associative array. Processing
-      of the associative array is described <a href="#coerce">below</a></li>
-    <li>Otherwise, the key MUST have the lexical form of
-      <cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>
-      and MUST have the value of a simple string with the lexical form of IRI.
-      Merge each key-value pair into the <tref>active context</tref>, overwriting
-      any duplicate values.
+  <ol class="algorithm">
+    <li>Create a new, empty <tref>local context</tref>.</li>
+    <li>
+      If the value is a simple string, it MUST have a lexical form of IRI and used to initialize
+      a new JSON document which replaces the value for subsequent processing.
     </li>
-  </ul>
+    <li>If the value is an associative array, perform the following steps:
+      <ol class="algorithm">
+        <li>
+          If the associative array has a <code>@base</code> key, MUST have a value of a simple string with the
+          lexical form of an absolute IRI. Add the base mapping to the <tref>local context</tref>. <p
+          class="issue">Turtle allows @base to be relative. If we did this, we would have to add
+          <a href="#iri-expansion">IRI Expansion</a>.</p>
+        </li>
+        <li>
+          If the associative array has a <code>@vocab</code> key, MUST have a value of a simple string with the
+          lexical form of an absolute IRI. Add the vocabulary mapping to the <tref>local context</tref> after
+          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
+        </li>
+        <li>
+          The key <code>@coerce</code> MUST have a value of an associative array. Add the
+          <code>@coerce</code> mapping to the <tref>local context</tref>.
+        </li>
+        <li>
+          Otherwise, the key MUST have the lexical form of
+          <cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>
+          and MUST have the value of a simple string with the lexical form of IRI.
+          Merge the key-value pair into the <tref>local context</tref>.
+        </li>
+      </ol>
+    </li>
+    <li>
+      Merge the of <tref>local context</tref>'s <code>@coerce</code> mapping into  the
+      <tref>active context</tref>'s <code>@coerce</code> mapping as described <a href="#coerce">below</a>.
+    </li>
+    <li>
+      Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref>to the
+      <tref>active context</tref> overwriting any duplicate values.
+    </li>
+  </ol>
+  
+  <section>
+    <h3>Coerce</h3>
+    <p>
+      Map each key-value pair in the <tref>local context</tref>'s
+      <code>@coerce</code> mapping into the <tref>active context</tref>'s
+      <code>@coerce</code> mapping, overwriting any duplicate values in 
+      the <tref>active context</tref>'s <code>@coerce</code> mapping.
+      The <code>@coerce</code> mapping has either a single CURIE or an
+      array of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
+      map all CURIE values to array form and replace with the union of the value from
+      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an array
+      with a single CURIE, the processor MAY represent this as a string value.
+    </p>
+  </section>
 
   <section>
     <h3>Initial Context</h3>
@@ -1668,21 +1703,6 @@ language-native data structures MUST be used where applicable.</p>
     -->
     </pre>
   </section>
-  
-  <section>
-    <h3>Coerce</h3>
-    <p>
-      Map each key-value pair in the <tref>local context</tref>'s
-      <code>@coerce</code> mapping into the <tref>active context</tref>'s
-      <code>@coerce</code> mapping, overwriting any duplicate values in 
-      the <tref>active context</tref>'s <code>@coerce</code> mapping.
-      The <code>@coerce</code> mapping has either a single CURIE or an
-      array of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
-      map all CURIE values to array form and replace with the union of the value from
-      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an array
-      with a single CURIE, the processor MAY represent this as a string value.
-    </p>
-  </section>
 </section>
 
 <section>
@@ -1701,11 +1721,11 @@ language-native data structures MUST be used where applicable.</p>
       <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
       <li>If the prefix is a '_' (underscore), the IRI is unchanged.</li>
       <li>If the <tref>active context</tref> contains a mapping for <em>prefix</em>, generate an IRI
-        by prepending the mapped prefix to the (possibly empty) suffix. Note that an empty
+        by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
       <li>If the IRI being processed is for a property (i.e., a key value in an associative array, or a
         value in a <code>@coerce</code> mapping) and the active context has a <code>@vocab</code> mapping,
-        join the mapped value to the suffix using the method described in [[!RFC3986]].</li>
+        join the mapped value to the suffix using textual concatenation.</li>
       <li>If the IRI being processed is for a subject or object (i.e., not a property) and the active context has a <code>@base</code> mapping,
         join the mapped value to the suffix using the method described in [[!RFC3986]].</li>
       <li>Otherwise, use the value directly as an IRI.</li>
@@ -2088,7 +2108,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the associative array has an <code>@iri</code> key, set the <tref>active object</tref> by
-          performing <a href="#iri-processing">IRI Processing</a> on the associated value. Generate a
+          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. Generate a
           triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
         </li>
@@ -2098,7 +2118,7 @@ implement the algorithm exactly as described.
           <ul>
             <li>
               as a <tref>typed literal</tref> if the associative array contains a <code>@datatype</code> key
-              after performing <a href="#iri-processing">IRI Processing</a> on the specified<code>@datatype</code>.
+              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified<code>@datatype</code>.
             </li>
             <li>
               otherwise, as a <tref>plain literal</tref>. If the associative array contains
@@ -2112,7 +2132,7 @@ implement the algorithm exactly as described.
           <ol class="algorithm">
             <li>
               If the value is a string, set the <tref>active object</tref> to the result of performing
-              <a href="#iri-processing">IRI Processing</a>. Generate a
+              <a href="#iri-expansion">IRI Expansion</a>. Generate a
               triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
               <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
             </li>
@@ -2139,7 +2159,7 @@ implement the algorithm exactly as described.
             to <code>rdf:type</code>.
             </li>
             <li>Otherwise, set the <tref>active property</tref> to the result of performing
-            <a href="#iri-processing">IRI Processing</a> on the key.</li>
+            <a href="#iri-expansion">IRI Expansion</a> on the key.</li>
             <li>
               Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
               <tref>active subject</tref> and <tref>active property</tref> and process the value
