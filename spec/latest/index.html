@@ -334,6 +334,16 @@ intended to operate  in a programming environment, it is useful to have working
 knowledge of the JavaScript programming language [[ECMA-262]] and 
 WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be 
 familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
+
+<p>
+  Examples may contain references to existing vocabularies and use abbreviations in CURIEs and source code. The following is a list of all vocabularies and their abbreviations, as used in this document:
+</p>
+<ul>
+  <li>The <a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#">RDF</a>
+  vocabulary (abbreviation: <code>rdf</code>, e.g., <code>rdf:type</code>)</li>
+  <li>The <a href="http://www.w3.org/2001/XMLSchema#">XSD</a>
+  vocabulary (abbreviation: <code>xsd</code>, e.g., <code>xsd:integer</code>)</li>
+</ul>
 </section>
 
 <section>
@@ -589,7 +599,7 @@ de-referenced, would look something like this:</p>
 </pre>
 
 <p>A JSON-LD context document is a simple mapping from <tref>term</tref>s and
-<tref>prefix</tref>es to IRIs. Contexts may also contain datatype information
+<tref>prefix</tref>es to expanded values such as IRIs or keywords. Contexts may also contain datatype information
 for certain <tref>term</tref>s as well as other processing instructions for
 the JSON-LD processor.
 </p>
@@ -657,10 +667,10 @@ expressed in a variety of different ways in JSON-LD.</p>
 
 <ol>
   <li>In general, <tref>term</tref>s in the key position in 
-    an associative array that have a mapping to an IRI in the context are
+    an associative array that have a mapping to an IRI or another key in the context are
     expanded to an IRI by JSON-LD processors. There are special rules for 
     processing keys in <code>@context</code> and when dealing with keys that 
-    start with the <code>@</code> character.</li>
+    start with the <code>@subject</code> character.</li>
   <li>An IRI is generated for the value specified using <code>@subject</code>, 
     if it is a string.</li>
   <li>An IRI is generated for the value specified using <code>@type</code>.</li>
@@ -1517,7 +1527,7 @@ normalized form.</p>
 
 <p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
 alphabetical order. Also, notice how the <tref>subject</tref> has been 
-labeled with a blank node identifier. Normalization ensures that any arbitrary
+labeled with a <tref>blank node identifier</tref>. Normalization ensures that any arbitrary
 graph containing exactly the same information would be normalized to exactly
 the same form shown above.</p>
 
@@ -1550,7 +1560,7 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
   <dt><code>:</code></dt><dd>The separator for CURIEs when used in JSON keys or JSON values.</dd>
   <dt><code>@subject</code></dt><dd>Sets the active subjects.</dd>
-  <dt><code>@type</code></dt><dd>Used to set the rdf:type of the active subjects. This token may be conferred as syntactic sugar for rdf:type.</dd>
+  <dt><code>@type</code></dt><dd>Used to set the type of the active subjects.</dd>
   </dl>
 </section>
 
@@ -1622,8 +1632,9 @@ language-native data structures MUST be used where applicable.</p>
     of a list (see <span a="#list-processing">List Processing</span>)).
   </p>
   <p>
-    A <tref>local context</tref> is identified within an associative array having a key of <code>@context</code>
-    with string or an associative array value. When processing a <tref>local context</tref>, special processing rules apply:
+    A <tref>local context</tref> is identified within an associative array having a key of
+    <code>@context</code> with string or an associative array value. When processing a <tref>local
+    context</tref>, special processing rules apply:
   </p>
   <ol class="algorithm">
     <li>Create a new, empty <tref>local context</tref>.</li>
@@ -1634,25 +1645,27 @@ language-native data structures MUST be used where applicable.</p>
     <li>If the value is an associative array, perform the following steps:
       <ol class="algorithm">
         <li>
-          If the associative array has a <code>@base</code> key, MUST have a value of a simple string with the
-          lexical form of an absolute IRI. Add the base mapping to the <tref>local context</tref>. <p
-          class="issue">Turtle allows @base to be relative. If we did this, we would have to add
-          <a href="#iri-expansion">IRI Expansion</a>.</p>
+          If the associative array has a <code>@base</code> key, it MUST have a value of a simple
+          string with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
+          context</tref>. <p class="issue">Turtle allows @base to be relative. If we did this, we
+          would have to add <a href="#iri-expansion">IRI Expansion</a>.</p>
         </li>
         <li>
-          If the associative array has a <code>@vocab</code> key, MUST have a value of a simple string with the
-          lexical form of an absolute IRI. Add the vocabulary mapping to the <tref>local context</tref> after
-          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
+          If the associative array has a <code>@vocab</code> key, it MUST have a value of a simple
+          string with the lexical form of an absolute IRI. Add the vocabulary mapping to the
+          <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
+          the associated value.
         </li>
         <li>
-          The key <code>@coerce</code> MUST have a value of an associative array. Add the
-          <code>@coerce</code> mapping to the <tref>local context</tref>.
+          If the associative array has a <code>@coerce</code> key, it MUST have a value of an
+          associative array. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
+          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).
         </li>
         <li>
-          Otherwise, the key MUST have the lexical form of
-          <cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>
-          and MUST have the value of a simple string with the lexical form of IRI.
-          Merge the key-value pair into the <tref>local context</tref>.
+          Otherwise, the key MUST have the lexical form of <cite><a
+          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> and
+          MUST have the value of a simple string with the lexical form of IRI. Merge the key-value
+          pair into the <tref>local context</tref>.
         </li>
       </ol>
     </li>
@@ -1753,7 +1766,7 @@ language-native data structures MUST be used where applicable.</p>
         matched IRI in the <tref>local context</tref> concatenated with a 
         colon (:) character and the unmatched part of the string. If there is
         more than one compacted IRI produced, the final value is the 
-        lexographically least value of the entire set of compacted IRIs.</li>
+        lexicographically least value of the entire set of compacted IRIs.</li>
     </ol>
   </p>
 </section>
@@ -2081,13 +2094,12 @@ implement the algorithm exactly as described.
 
 <section>
   <h3>RDF Conversion Algorithm</h3>
-
   <p>
     The algorithm below is designed for in-memory implementations with random access to associative
     array elements.
   </p>
   <p>
-    A conforming JSON-LD processor MUST implement a
+    A conforming JSON-LD processor implementing RDF conversion MUST implement a
     processing algorithm that results in the same <tref>default graph</tref> that the following
     algorithm generates:
   </p>
@@ -2107,10 +2119,17 @@ implement the algorithm exactly as described.
           described in <a href="#context">Context</a>.
         </li>
         <li>
+          Create a new associative array by mapping the keys from the current associative array using the
+          <tref>active context</tref> to new keys using the associated value from the current associative array.
+          Repeat the mapping until no entry is found within the <tref>active context</tref> for the key. Use the new
+          associative array in subsequent steps.
+        </li>
+        <li>
           If the associative array has an <code>@iri</code> key, set the <tref>active object</tref> by
           performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. Generate a
           triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
+          <p class="issue"><code>@iri</code> really just behaves the same as <code>@subject</code>, consider consolidating them.</p>
         </li>
         <li>
           If the associative array has a <code>@literal</code> key, set the <tref>active object</tref>
@@ -2128,7 +2147,7 @@ implement the algorithm exactly as described.
           Generate a triple representing the <tref>active subject</tref>, the <tref>active
           property</tref> and the <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
         </li>
-        <li>If the associative array has a <code>@</code> key:
+        <li>If the associative array has a <code>@subject</code> key:
           <ol class="algorithm">
             <li>
               If the value is a string, set the <tref>active object</tref> to the result of performing
@@ -2145,8 +2164,8 @@ implement the algorithm exactly as described.
           </ol>
         </li>
         <li>
-          If the associative array does not have a <code>@</code> key, set the <tref>active
-          object</tref> to newly generated <tref>blank node identifier</tref>. Generate a triple
+          If the associative array does not have a <code>@subject</code> key, set the <tref>active
+          object</tref> to newly generated <tdef>blank node identifier</tdef>. Generate a triple
           representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
           object</tref>.
@@ -2155,8 +2174,9 @@ implement the algorithm exactly as described.
           For each key in the associative array that has not already been processed, perform
           the following steps:
           <ol class="algorithm">
-            <li>If the key is <code>a</code>, set the <tref>active property</tref> 
-            to <code>rdf:type</code>.
+            <li>
+              If the key is <code>@type</code>, set the <tref>active property</tref> 
+              to <code>rdf:type</code>.
             </li>
             <li>Otherwise, set the <tref>active property</tref> to the result of performing
             <a href="#iri-expansion">IRI Expansion</a> on the key.</li>
@@ -2190,31 +2210,49 @@ implement the algorithm exactly as described.
             </li>
             <li>
               Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-              and a newly generated BNode identified as <em>first bnode</em>.
+              and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
             </li>
             <li>
               For each element other than the last element in the list:
               <ol class="algorithm">
-                <li>Create a processor state using the active context, <em>first bnode</em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
-                <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest bnode</em>, otherwise use <code>rdf:nil</code>.</li>
-                <li>Generate a new triple using <em>first bnode</em>, <code>rdf:rest</code> and <em>rest bnode</em>.</li>
-                <li>Set <em>first bnode</em> to <em>rest bnode</em>.</li>
+                <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+                <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
+                <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
+                <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
               </ol>
             </li>
           </ol>
         </li>
         <li>
-          Otherwise, create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
-          <tref>active subject</tref> and <tref>active property</tref> and process the value
-          starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
-          previous <tref>processor state</tref>.
+          Otherwise, create a new <tref>processor state</tref> using copies of the <tref>active
+          context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
+          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+          <tref>processor state</tref>.
         </li>
       </ol>
     </li>
     
     <li>
-      If a string is detected, generate a triple using the <tref>active subject</tref>, <tref>active object</tref>
-      and a <tref>plain literal</tref> value created from the string.
+      If a string is detected:
+      <ol class="algorithm">
+        <li>
+          If the <tref>active property</tref> is the target of a <code>@iri</code> coercion,
+          set the <tref>active object</tref> by
+          performing <a href="#iri-expansion">IRI Expansion</a> on the string.
+        </li>
+        <li>
+          Otherwise, if the <tref>active property</tref> is the target of coercion,
+          set the <tref>active object</tref> by creating a <tref>typed literal</tref> using
+          the string and the coercion key as the datatype IRI.
+        </li>
+        <li>
+          Otherwise, set the <tref>active object</tref> to a <tref>plain literal</tref> value created from
+          the string.
+        </li>
+      </ol>
+      Generate a
+      triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+      <tref>active object</tref>.
     </li>
     
     <li>
@@ -2222,12 +2260,12 @@ implement the algorithm exactly as described.
       the value with datatype set to either <code>xsd:integer</code> or
       <code>xsd:double</code>, depending on if the value contains a
       fractional and/or an exponential component. Generate a triple using the <tref>active
-      subject</tref>, <tref>active object</tref> and the generated typed literal.
+      subject</tref>, <tref>active property</tref> and the generated typed literal.
     </li>
     
     <li>
       Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
-      generate a triple using the <tref>active subject</tref>, <tref>active object</tref>
+      generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
       and a <tref>typed literal</tref> value created from the string representation of the
       value with datatype set to <code>xsd:boolean</code>.
     </li>
@@ -2369,6 +2407,8 @@ JSON-LD data into a format that is easier to work with in various programming
 languages.
 </p>
 
+<section>
+<h3>JSONLDProcessor</h3>
 <dl title="[NoInterfaceObject] interface JSONLDProcessor" class="idl">
 
   <dt>object toProjection()</dt>
@@ -2404,7 +2444,9 @@ languages.
   </dd>
 
 </dl>
-
+</section>
+<section>
+<h3>JSONLDParserCallback</h3>
 <p>The JSONLDParserCallback is called whenever a processing error occurs on
 input data.</p>
 
@@ -2443,7 +2485,8 @@ alert(person.name + " is " + person.age + " years old. " +
       "Their homepage is: " + person.homepage);
 -->
 </pre>
-
+</section>
+<section><h3>JSONLDSerializer</h3>
 <p>A JSON-LD Serializer is also available to map a language-native object
 to JSON-LD.
 
@@ -2664,7 +2707,7 @@ of these vocabularies are:
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****rdf:type****": "****foaf:Person****",
+  "****@type****": "****foaf:Person****",
   "****foaf:name****": "Manu Sporny",
   "****foaf:homepage****": "http://manu.sporny.org/",
   "****sioc:avatar****": "http://twitter.com/account/profile_image/manusporny"
