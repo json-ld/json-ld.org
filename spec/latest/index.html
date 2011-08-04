@@ -1688,13 +1688,93 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
+  <h2>IRI Compaction</h2>
+  <p>Some keys and values are expressed using IRIs. This section defines an 
+    algorithm for transforming an IRI to a compact IRI using the
+    <tref>term</tref>s and <tref>prefix</tref>es specified in the 
+    <tref>local context</tref>.</p>
+
+  <p>The algorithm for generating a compacted IRI is:
+    <ol class="algorithm">
+      <li>Search every key-value pair in the <tref>local context</tref> that is 
+        a <tref>term</tref> or a <tref>prefix</tref> for a complete match 
+        against the IRI. If a complete match is found, the resulting compacted
+        IRI is the <tref>term</tref> associated with the IRI in the 
+        <tref>local context</tref>.</li>
+      <li>If a complete match is not found, search for a partial match from
+        the beginning of the IRI. For all matches that are found, the resulting
+        compacted IRI is the <tref>prefix</tref> associated with the partially
+        matched IRI in the <tref>local context</tref> concatenated with a 
+        colon (:) character and the unmatched part of the string. If there is
+        more than one compacted IRI produced, the final value is the 
+        lexographically least value of the entire set of compacted IRIs.</li>
+    </ol>
+  </p>
+</section>
+
+<section>
+  <h2>Value Expansion</h2>
+  <p>Some values in JSON-LD can be expressed in a compact form. These values
+    are required to be expanded at times when processing JSON-LD documents.
+  </p>
+
+  <p>The algorithm for expanding a value is:
+    <ol class="algorithm">
+      <li>If the key that is associated with the value has an associated
+        coercion entry in the <tref>local context</tref>, the resulting
+        expansion is an object populated according to the following steps:
+        <ol class="algorithm">
+          <li>If the coercion target is <code>@iri</code>, expand the value
+            by adding a new key-value pair where the key is <code>@iri</code>
+            and the value is the expanded IRI according to the
+            <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+          <li>If the coercion target is a typed literal, expand the value
+            by adding two new key-value pairs. The first key-value pair 
+            will be <code>@literal</code> and the unexpanded value. The second
+            key-value pair will be <code>@datatype</code> and the associated
+            coercion datatype expanded according to the
+            <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+        </ol>
+      </li>
+    </ol>
+  </p>
+</section>
+
+<section>
+  <h2>Value Compaction</h2>
+  <p>Some values, such as IRIs and typed literals, may be expressed in an
+    expanded form in JSON-LD. These values are required to be compacted at 
+    times when processing JSON-LD documents.
+  </p>
+
+  <p>The algorithm for compacting a value is:
+    <ol class="algorithm">
+      <li>If the <tref>local context</tref> contains a coercion target for the
+        key that is associated with the value, compact the value using the
+        following steps:
+        <ol class="algorithm">
+          <li>If the coercion target is an <code>@iri</code>, the compacted
+            value is the value associated with the <code>@iri</code> key,
+            processed according to the 
+            <a href="#iri-compaction">IRI Compaction</a> steps.</li>
+          <li>If the coercion target is a typed literal, the compacted
+            value is the value associated with the <code>@literal</code> key.
+          </li>
+          <li>Otherwise, the value is not modified.</li>
+        </ol>
+      </li>
+    </ol>
+  </p>
+</section>
+
+<section>
 <h2>Expansion</h2>
 
 <p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
 <p>As stated previously, expansion is the process of taking a JSON-LD 
-input and expanding all IRIs to their fully-expanded form. The output
-will not contain a single context declaration and will have all IRIs 
+input and expanding all IRIs and typed literals to their fully-expanded form. 
+The output will not contain a single context declaration and will have all IRIs 
 and typed literals fully expanded.
 </p>
 
@@ -1702,21 +1782,26 @@ and typed literals fully expanded.
 <h3>Expansion Algorithm</h3>
 
 <ol class="algorithm">
-  <li>Process each key in the <tref>JSON-LD input</tref> by expanding
-  the key according to the <a href="#iri-expansion">IRI Expansion</a>
-  rules.</li>
-  <li>Process each value 
+  <li>If the top-level item in the <tref>JSON-LD input</tref> is an array, 
+  process each item in the array recursively using this algorithm.</li>
+  <li>If the top-level item in the <tref>JSON-LD input</tref> is an object, 
+  update the <tref>local context</tref> according to the steps outlined in
+  the <a href="#context">context</a> section. Process each key, expanding 
+  the key according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
   <ol class="algorithm">
-    <li>If the value is an array, process each item in the array starting on
-    step #2.</li>
-    <li>If the value is an object, process the object recursively, starting
-    on step #1.</li>
-    <li>Otherwise, check to see the value has an associated coercion rule. 
-    If the value should be coerced, expand the value according to the 
-    <a href="#value-expansion">Value Expansion</a> rules. If the value does
-    not need to be coerced, leave the value as-is.
-    </li>
-  <li>Remove the context from the object</li>
+    <li>Process each value associated with each key
+      <ol class="algorithm">
+        <li>If the value is an array, process each item in the array 
+        recursively using this algorithm.</li>
+        <li>If the value is an object, process the object recursively
+        using this algorithm.</li>
+        <li>Otherwise, check to see the associated key has an associated 
+        coercion rule. If the value should be coerced, expand the value 
+        according to the <a href="#value-expansion">Value Expansion</a> rules. 
+        If the value does not need to be coerced, leave the value as-is.
+        </li>
+      </ol>
+    <li>Remove the context from the object</li>
   </ol>
 </ol>
 </section>
@@ -1739,9 +1824,15 @@ typed literals are fully compacted.
 <h3>Compaction Algorithm</h3>
 
 <ol class="algorithm">
-  <li>Perform the <a href="#compaction-algorithm">Compaction Algorithm</a> on 
+  <li>Perform the <a href="#expansion-algorithm">Expansion Algorithm</a> on 
   the <tref>JSON-LD input</tref>.</li>
-  <li>Using the <tref>input context</tref>, compress each key/value pair.</li>
+  <li>If the top-level item is an array, process each item in the array 
+    recursively, starting at this step.
+  <li>If the top-level item is an object, compress each key using the steps
+    defined in <a href="#iri-compaction">IRI Compaction</a> and compress each
+    value using the steps defined in 
+    <a href="#value-compaction">Value Compaction</a></li>
+  </li>
 </ol>
 </section>
 
