@@ -1545,7 +1545,135 @@ the same form shown above.</p>
 
 <section>
 <h2>Normalization</h2>
-<p class="issue">TBD: Explain normalization algorithm.</p>
+<p class="issue">Needs to be updated.</p>
+<p class="issue">This algorithm is very rough, untested, and probably contains
+many bugs. Use at your own risk. It will change in the coming months.</p>
+
+<p>The JSON-LD normalization algorithm is as follows:</p>
+
+<ol class="algorithm">
+  <li>Remove the <code>@context</code> key and preserve it as the 
+  <tdef>transformation map</tdef> while running this algorithm.</li>
+  <li>For each key
+   <ol class="algorithm">
+    <li>If the key is a CURIE, expand the CURIE to an IRI using the
+        <tref>transformation map</tref>.</li>
+   </ol>
+  </li>
+  <li>For each value
+   <ol class="algorithm">
+    <li>If the value should be type coerced per the 
+        <tref>transformation map</tref>, ensure that it is transformed to the
+        new value.</li>
+    <li>If the value is a CURIE, expand the CURIE to an IRI using the
+        <tref>transformation map</tref>.</li>
+    <li>If the value is a <tref>typed literal</tref> and the type is a CURIE,
+        expand it to an IRI using the <tref>transformation map</tref>.</li>
+    <li>When generating the final value, use expanded object value form to
+      store all IRIs, typed literals and <tref>plain literal</tref>s with language
+      information.</li>
+   </ol>
+  </li>
+  <li>Output each sorted key-value pair without any extraneous whitespace. If 
+  the value is an associative array, perform this algorithm, starting
+  at step #1, recursively on the sub-tree. There should be no nesting in
+  the outputted JSON data. That is, the top-most element should be an
+  array. Each item in the array contains a single subject with a 
+  corresponding array of properties in UTF-8 sort order. Any related 
+  objects that are complex objects themselves should be given a top-level 
+  object in the top-level array.</li>
+  </li>
+</ol>
+
+<p class="issue">Note that normalizing named blank nodes is impossible at
+present since one would have to specify a blank node naming algorithm. For
+the time being, you cannot normalize graphs that contain named blank
+nodes. However, normalizing graphs that contain non-named blank nodes 
+is supported.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+var myObj = { "@context" : { 
+                "xsd" : "http://www.w3.org/2001/XMLSchema#",
+                "name" : "http://xmlns.com/foaf/0.1/name",
+                "age" : "http://xmlns.com/foaf/0.1/age",
+                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
+                "@coerce": {
+                   "xsd:nonNegativeInteger": "age",
+                   "xsd:anyURI": "homepage"
+                }
+              },
+              "name" : "Joe Jackson",
+              "age" : "42",
+              "homepage" : "http://example.org/people/joe" };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+-->
+</pre>
+
+<p>After the code in the example above has executed, the 
+<strong>jsonldText</strong> value will be (line-breaks added for 
+readability):</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
+"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
+"http://xmlns.com/foaf/0.1/name":"Joe Jackson"}]
+-->
+</pre>
+
+<p>When normalizing <strong>xsd:double</strong> values, implementers MUST
+ensure that the normalized value is a string. In order to generate the
+string from a <strong>double</strong> value, output equivalent to the
+<code>printf("%1.6e", value)</code> function in C MUST be used where
+<strong>"%1.6e"</strong> is the string formatter and <strong>value</strong>
+is the value to be converted.</p>
+
+<p>To convert the a double value in JavaScript, implementers can use the 
+following snippet of code:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+// the variable 'value' below is the JavaScript native double value that is to be converted
+(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
+-->
+</pre>
+
+<p class="note">When data needs to be normalized, JSON-LD authors should
+not use values that are going to undergo automatic conversion. This is due
+to the lossy nature of <strong>xsd:double</strong> values.</p>
+
+<p class="issue">Round-tripping data can be problematic if we mix and
+match @coerce rules with JSON-native datatypes, like integers. Consider the 
+following code example:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+var myObj = { "@context" : { 
+                "number" : "http://example.com/vocab#number",
+                "@coerce": {
+                   "xsd:nonNegativeInteger": "number"
+                }
+              },
+              "number" : 42 };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+
+// Convert the normalized object back to a JavaScript object
+var myObj2 = jsonld.parse(jsonldText);
+-->
+</pre>
+
+<p class="issue">At this point, myObj2 and myObj will have different
+values for the "number" value. myObj will be the number 42, while
+myObj2 will be the string "42". This type of data round-tripping
+error can bite developers. We are currently wondering if having a
+"coerce validation" phase in the parsing/normalization phases would be a 
+good idea. It would prevent data round-tripping issues like the
+one mentioned above.</p>
 </section>
 
 <section>
@@ -1693,6 +1821,7 @@ implement the algorithm exactly as described.
       any duplicate values.
     </li>
   </ul>
+
   <section>
     <h5>Coerce</h5>
     <p>
@@ -2119,137 +2248,6 @@ to JSON-LD.
   </dl>
   </dd>
 </dl>
-
-<h3>The Normalization Algorithm</h3>
-
-<p class="issue">This algorithm is very rough, untested, and probably contains
-many bugs. Use at your own risk. It will change in the coming months.</p>
-
-<p>The JSON-LD normalization algorithm is as follows:</p>
-
-<ol class="algorithm">
-  <li>Remove the <code>@context</code> key and preserve it as the 
-  <tdef>transformation map</tdef> while running this algorithm.</li>
-  <li>For each key
-   <ol class="algorithm">
-    <li>If the key is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-   </ol>
-  </li>
-  <li>For each value
-   <ol class="algorithm">
-    <li>If the value should be type coerced per the 
-        <tref>transformation map</tref>, ensure that it is transformed to the
-        new value.</li>
-    <li>If the value is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-    <li>If the value is a <tref>typed literal</tref> and the type is a CURIE,
-        expand it to an IRI using the <tref>transformation map</tref>.</li>
-    <li>When generating the final value, use expanded object value form to
-      store all IRIs, typed literals and <tref>plain literal</tref>s with language
-      information.</li>
-   </ol>
-  </li>
-  <li>Output each sorted key-value pair without any extraneous whitespace. If 
-  the value is an associative array, perform this algorithm, starting
-  at step #1, recursively on the sub-tree. There should be no nesting in
-  the outputted JSON data. That is, the top-most element should be an
-  array. Each item in the array contains a single subject with a 
-  corresponding array of properties in UTF-8 sort order. Any related 
-  objects that are complex objects themselves should be given a top-level 
-  object in the top-level array.</li>
-  </li>
-</ol>
-
-<p class="issue">Note that normalizing named blank nodes is impossible at
-present since one would have to specify a blank node naming algorithm. For
-the time being, you cannot normalize graphs that contain named blank
-nodes. However, normalizing graphs that contain non-named blank nodes 
-is supported.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-var myObj = { "@context" : { 
-                "xsd" : "http://www.w3.org/2001/XMLSchema#",
-                "name" : "http://xmlns.com/foaf/0.1/name",
-                "age" : "http://xmlns.com/foaf/0.1/age",
-                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
-                "@coerce": {
-                   "xsd:nonNegativeInteger": "age",
-                   "xsd:anyURI": "homepage"
-                }
-              },
-              "name" : "Joe Jackson",
-              "age" : "42",
-              "homepage" : "http://example.org/people/joe" };
-
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
--->
-</pre>
-
-<p>After the code in the example above has executed, the 
-<strong>jsonldText</strong> value will be (line-breaks added for 
-readability):</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
-"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
-"http://xmlns.com/foaf/0.1/name":"Joe Jackson"}]
--->
-</pre>
-
-<p>When normalizing <strong>xsd:double</strong> values, implementers MUST
-ensure that the normalized value is a string. In order to generate the
-string from a <strong>double</strong> value, output equivalent to the
-<code>printf("%1.6e", value)</code> function in C MUST be used where
-<strong>"%1.6e"</strong> is the string formatter and <strong>value</strong>
-is the value to be converted.</p>
-
-<p>To convert the a double value in JavaScript, implementers can use the 
-following snippet of code:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-// the variable 'value' below is the JavaScript native double value that is to be converted
-(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
--->
-</pre>
-
-<p class="note">When data needs to be normalized, JSON-LD authors should
-not use values that are going to undergo automatic conversion. This is due
-to the lossy nature of <strong>xsd:double</strong> values.</p>
-
-<p class="issue">Round-tripping data can be problematic if we mix and
-match @coerce rules with JSON-native datatypes, like integers. Consider the 
-following code example:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-var myObj = { "@context" : { 
-                "number" : "http://example.com/vocab#number",
-                "@coerce": {
-                   "xsd:nonNegativeInteger": "number"
-                }
-              },
-              "number" : 42 };
-
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
-
-// Convert the normalized object back to a JavaScript object
-var myObj2 = jsonld.parse(jsonldText);
--->
-</pre>
-
-<p class="issue">At this point, myObj2 and myObj will have different
-values for the "number" value. myObj will be the number 42, while
-myObj2 will be the string "42". This type of data round-tripping
-error can bite developers. We are currently wondering if having a
-"coerce validation" phase in the parsing/normalization phases would be a 
-good idea. It would prevent data round-tripping issues like the
-one mentioned above.</p>
 
 </section>
 
