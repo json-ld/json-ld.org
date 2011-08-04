@@ -1728,7 +1728,8 @@ implement the algorithm exactly as described.
     <dt><tdef>initial context</tdef></dt>
     <dd>
       a context that is specified to the JSON-LD processing algorithm
-      before processing begins.
+      before processing begins. The initial context defines <code>@base</code>
+      to the document's location and defines the value range of <code>@type</code> to be an IRI.
     </dd>
     <dt><tdef>default graph</tdef></dt>
     <dd>
@@ -1793,17 +1794,21 @@ implement the algorithm exactly as described.
     Processing of JSON-LD is managed recursively using a process described in <a href="sequence">Sequence</a>.
     During processing, each rule is applied using information provided by the <tref>active context</tref>.
     Processing begins by pushing a new <tref>processor state</tref> onto the <tref>processor state</tref> stack and
-    initializing the <tref>active context</tref> with the <tref>initial context</tref>. If a <tref>local context</tref> is encountered,
-    information from the <tref>local context</tref> is merged into the <tref>active context</tref>.
+    initializing the <tref>active context</tref> with the <tref>initial context</tref>. If a <tref>local
+    context</tref> is encountered, information from the <tref>local context</tref> is merged into the <tref>active
+    context</tref>.
   </p>
-  <p class="issue">Should the document URL be used as the default for <code>@base</code> in the <tref>initial context</tref>?</p>
   <p>
     The <tref>active context</tref> is used for expanding keys and values of an associative array (or elements
     of a list (see <span a="#list-processing">List Processing</span>)).
   </p>
   <p>
-    A <tref>local context</tref> is identified within an associative array having a key of <code>@context</code> with an associative
+    A <tref>local context</tref> is identified within an associative array having a key of <code>@context</code> with string or an associative
     array value. When processing a <tref>local context</tref>, special rules apply:
+  </p>
+  <p>
+    If the <code>@context</code> value is a simple string, it MUST have a lexical form of IRI and used to initialize a new
+    JSON document which is used as if an associative array were evaluated directly.
   </p>
   <ul>
     <li>The key <code>@base</code> MUST have a value of a simple string with the lexical
