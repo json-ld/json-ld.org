@@ -250,6 +250,13 @@
   </script>
 <style>
 .diff { font-weight:bold; color:#0a3; }
+ol.algorithm.update { margin-left: 2em; }
+ol.algorithm.update>li { list-style-type: none; }
+ol.algorithm.update>li>span.list-number {
+  display:block;
+  float: left; 
+  margin-left: -3.5em;
+}
 </style>
 </head>
 
@@ -965,6 +972,11 @@ express a datatype:</p>
 <p>A JSON-LD author can express multiple triples in a compact way by using
 arrays. If a subject has multiple values for the same property, the author
 MAY express each property as an array.</p>
+
+<p class="note">In JSON-LD, Multiple objects on a property are not ordered. This is because typically graphs
+are not inherently ordered data structures. To see more on creating ordered collections
+in JSON-LD, see <a href="#lists">Lists</a>.
+</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -2343,7 +2355,7 @@ implement the algorithm exactly as described.
           Generate a triple representing the <tref>active subject</tref>, the <tref>active
           property</tref> and the <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
         </li>
-        <li>If the associative array has a <code>@subject</code> key:
+        <li id="processing-step-subject">If the associative array has a <code>@subject</code> key:
           <ol class="algorithm">
             <li>
               If the value is a string, set the <tref>active object</tref> to the result of performing
@@ -2396,31 +2408,7 @@ implement the algorithm exactly as described.
 
       <ol class="algorithm">
         <li>
-          If the value is a regular array, generate an RDF List by linking
-          each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
-          using the following sequence:
-          <ol class="algorithm">
-            <li>
-              If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
-              and <code>rdf:nil</code>.
-            </li>
-            <li>
-              Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-              and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
-            </li>
-            <li>
-              For each element other than the last element in the list:
-              <ol class="algorithm">
-                <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
-                <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
-                <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
-                <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-        <li>
-          Otherwise, create a new <tref>processor state</tref> using copies of the <tref>active
+          Create a new <tref>processor state</tref> using copies of the <tref>active
           context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
           starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
           <tref>processor state</tref>.
@@ -2596,6 +2584,149 @@ single graph:</p>
 -->
 </pre>
 
+</section>
+
+<section>
+  <h2>Lists</h2>
+  <p>
+    Because graphs do not describe ordering for links between nodes, multi-valued properties
+    in JSON do not provide an ordering of the listed objects. For example, consider the following
+    simple document:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This results in three triples being generated, each relating the subject to an individual
+    object, with no inherent order. To address this issue, RDF-based languages, such as [[TURTLE]]
+    use the concept of an <code>rdf:List</code> (as described in [[RDF-SCHEMA]]). This uses a sequence
+    of unlabeled nodes with properties describing a value, a null-terminated next property. Without
+    specific syntactical support, this could be represented in JSON-LD as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****{****,
+      ****"@first": "joe"****,
+      ****"@rest": {****
+        ****"@first": "bob"****,
+        ****"@rest": {****
+          ****"@first": "jaybee"****,
+          ****"@rest": "@nil"****
+          ****}****
+        ****}****
+      ****}****
+    ****}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    As this notation is rather unwieldy and the notion of ordered collections is rather important
+    in data modeling, it is useful to have specific language support. In JSON-LD, a list may
+    be represented using the <code>@list</code> keyword as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****{"@list": ["joe", "bob", "jaybee"]}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This describes the use of this array as being ordered, and order is maintained through
+    normalization and RDF conversion. If every use of a given multi-valued property is a
+    list, this may be abbreviated by adding an <code>@coerce</code> term:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    ****"@context": {****
+      ...
+      ****"@context": {****
+        ****"@list": ["foaf:nick"]****
+      ****}****
+    ****}****,
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <section><h3 id="list-expansion">Expansion</h3>
+    <p class="issue">TBD.</p>
+  </section>
+  <section><h3 id="list-normalization">Normalization</h3>
+    <p class="issue">TBD.</p>
+  </section>
+  <section><h3 id="list-rdf">RDF Conversion</h3>
+    <p>
+      To support RDF Conversion of lists, <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>
+      is updated as follows:
+    </p>
+    <ol class="algorithm update">
+      <li>
+        <span class="list-number">2.2.4a.</span>
+        If the associative array has a <code>@list</code> key and the value is an array
+        process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
+      </li>
+      <li>
+        <span class="list-number">2.9.3.</span>
+        Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+        <tref>active subject</tref> and <tref>active property</tref>.
+        <ol class="algorithm">
+          <li>
+            If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
+            and the value is an array,
+            process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
+          </li>
+          <li>
+            Otherwise, process the value starting at
+            <a href="#processing-step-associative">Step 2</a>.
+          </li>
+          <li>Proceed using the previous <tref>processor state</tref>.</li>
+        </ol>
+      </li>
+      <li id="processing-step-list">
+        <span class="list-number">3a.</span>
+        Generate an RDF List by linking
+        each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
+        using the following sequence:
+        <ol class="algorithm">
+          <li>
+            If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
+            and <code>rdf:nil</code>.
+          </li>
+          <li>
+            Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+            and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
+          </li>
+          <li>
+            For each element other than the last element in the list:
+            <ol class="algorithm">
+              <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+              <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
+              <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
+              <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </section>
 </section>
 
 <section>
