@@ -173,8 +173,8 @@
           // editors, add as many as you like
           // only "name" is required
           editors:  [
-              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
+              { name: "Manu Sporny", url: "http://manu.sporny.org/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
                 company: "Kellogg Associates" },
           ],
@@ -184,10 +184,14 @@
           // only "name" is required. Same format as editors.
 
           authors:  [
+              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+                company: "Kellogg Associates" },
+              { name: "Dave Longley",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
               { name: "Mark Birbeck", url: "http://webbackplane.com/",
                 company: "Backplane Ltd.", companyURL: "http://webbackplane.com/" },
-              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
           ],
           
           // name of the WG
@@ -1963,7 +1967,8 @@ normalized according to the
 <tref>input frame</tref> that has been expanded according to the
 <a href="#expansion-algorithm">Expansion Algorithm</a> 
 (<strong>expanded frame</strong>), and a number of options and produces
-<tref>JSON-LD output</tref>. 
+<tref>JSON-LD output</tref>. The following series of steps is the recursive
+portion of the framing algorithm:
 </p>
 
 <ol class="algorithm">
@@ -2008,17 +2013,17 @@ normalized according to the
          <strong>expanded frame</strong> exists in the item.</li>
     </ol></li>
   <li>Process each item in the <tref>match array</tref> with its associated
-    <tdef>match frame</tdef>:
+    <tdef>match frame</tdef> to generate a <tdef>list of match results</tdef>:
     <ol class="algorithm">
       <li>If the <tref>match frame</tref> contains an <code>@embed</code>
-        keyword, set the <tref>object embed flag</tref> to its value. Note: 
-        valid values are <code>true</code> and <code>false</code>.
-      <li>If the <tref>match frame</tref> contains an <code>@explicit</code>
+        keyword, set the <tref>object embed flag</tref> to its value. 
+        If the <tref>match frame</tref> contains an <code>@explicit</code>
         keyword, set the <tref>explicit inclusion flag</tref> to its value. 
-        Note: valid values are <code>true</code> and <code>false</code>.
-      <li>If the <tref>match frame</tref> contains an <code>@omitDefault</code>
+        If the <tref>match frame</tref> contains an <code>@omitDefault</code>
         keyword, set the <tref>omit missing properties flag</tref> to its value. 
-        Note: valid values are <code>true</code> and <code>false</code>.
+        Note: if the key exists, but the value is neither
+        <code>true</code> or <code>false</code>, set the associated flag to 
+        <code>true</code>.
       <li>If the <tref>object embed flag</tref> is cleared and the item has
         the <code>@subject</code> property, replace the item with the value
         of the <code>@subject</code> property.</li>
@@ -2036,30 +2041,50 @@ normalized according to the
           <li>For each key in the <tref>match frame</tref>, except for
             keywords and <code>rdf:type</code>:
           <ol class="algorithm">
-            <li>If the key is in the item, then build a new input list 
-              using the objects from item[key]. If any object is an IRI that 
-              is a subject in the graph, use the subject in the new input 
-              list, not the IRI. Set value[key] to the return value of 
-              Frame(newInput, frame[key]).</li>
-            <li>If the key is not in the value, set value[key] to an empty 
-              array if the frame[key] is an array and null if it isn't.</li>
-            <li>If value[key] is null, set a default value:
+            <li>If the key is in the item, then build a new 
+              <tdef>recursion input list</tdef> using the object or objects 
+              associated with the key. If any object contains an
+              <code>@iri</code> value that exists in the 
+              <tref>normalized input</tref>, replace the object in the
+              <tref>recusion input list</tref> with a new object with a 
+              single key-value pair where the key is
+              <code>@subject</code> and the value is the value of the 
+              <code>@iri</code>. Replace the value associated with the
+              key by recursively calling this algorithm using
+              <tref>recursion input list</tref>, <tref>match frame</tref>,
+              and <tref>framing context</tref> as input.</li>
+            <li>If the key is not in the item, set value to an empty 
+              array if the <tref>match frame</tref>'s value is an array 
+              or <code>null</code> otherwise.</li>
+            <li>If value is <code>null</code>, process the 
+              <tref>omit missing properties flag</tref>:
               <ol class="algorithm">
-                <li>Set f to frame[key]. If frame[key] is an array, use the first 
-                  frame from the array, using an empty object frame is it is 
-                  empty.</li>
-                <li>If @omitDefault is on (f has @omitDefault set to true or the 
-                  default is true), delete the key in value. Otherwise, if 
-                  @default is set in f, set value[key] to f['@default'].</li>
+                <li>If the value associated with the key in the 
+                  <tref>match frame</tref> is an array, use the first frame 
+                  from the array as the <tdef>property frame</tdef>, otherwise
+                  set the <tref>property frame</tref> to an empty object.</li>
+                <li>If the <tref>omit missing properties flag</tref> is set,
+                  delete the key in the item. Otherwise, if the
+                  <code>@default</code> key is set in the 
+                  <tref>property frame</tref> set the item's value to the value
+                  of <code>@default</code>.</li>
               </ol></li>
           </ol></li>
         </ol>
-      <li>If the output is null, set the output to the value. If the output 
-        is an array, push the value onto the array.</li>
+      <li>Append the result of the previous steps to the 
+        <tref>list of match results</tref>. Note: The result of the previous
+        step should either be a <code>null</code> value or an array.
     </ol>
-  <li>Return the output.</li>
-  <li>Compact the output using the frame's saved context.</li>
+  <li>Return the <tref>list of match results</tref>.</li>
 </ol>  
+
+The final step of the framing algorithm requires the 
+<tref>list of matched results</tref> to be compacted according to the 
+<a href="#compaction-algorithm">Compaction Algorithm</a> by using the 
+context provided in the <tref>input frame</tref>. The resulting value is the
+final output of the compaction algorithm and is what should be returned to the
+application.
+
 </section>
 
 </section>
