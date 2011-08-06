@@ -102,7 +102,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:anyURI": ["foaf:page"],
+            "xsd:anyURI": ["foaf:page", "gr:acceptedPaymentMethods", "gr:hasBusinessFunction"],
             "xsd:float": ["gr:hasCurrencyValue"]
          }
       }
