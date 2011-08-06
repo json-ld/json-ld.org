@@ -209,7 +209,7 @@
           // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
           // Team Contact.
           wgPatentURI:  "",
-          maxTocLevel: 3,
+          maxTocLevel: 2,
           preProcess: [ preProc ]
           //alternateFormats: [ {uri: "diff-20110507.html", label: "diff to previous version"} ],
       };
@@ -250,6 +250,13 @@
   </script>
 <style>
 .diff { font-weight:bold; color:#0a3; }
+ol.algorithm.update { margin-left: 2em; }
+ol.algorithm.update>li { list-style-type: none; }
+ol.algorithm.update>li>span.list-number {
+  display:block;
+  float: left; 
+  margin-left: -3.5em;
+}
 </style>
 </head>
 
@@ -966,6 +973,11 @@ express a datatype:</p>
 arrays. If a subject has multiple values for the same property, the author
 MAY express each property as an array.</p>
 
+<p class="note">In JSON-LD, Multiple objects on a property are not ordered. This is because typically graphs
+are not inherently ordered data structures. To see more on creating ordered collections
+in JSON-LD, see <a href="#lists">Lists</a>.
+</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
 {
@@ -1481,13 +1493,14 @@ keywords have been overridden by <strong>url</strong> and
 <section>
 <h2>Normalization</h2>
 
-<p>Normalization is the process of taking a JSON-LD document and performing a 
-deterministic transformation on that document that results in a final document
-that any conforming JSON-LD processor would have generated given the same
-input document. The problem is a fairly difficult technical problem to solve
-because it requires a directed graph to be ordered into a set of nodes and
-edges in a deterministic way. This is easy to do when all of the nodes have
-unique names, but very difficult to do when some of the nodes are unlabeled.
+<p>Normalization is the process of taking <tref>JSON-LD input</tref> and 
+performing a deterministic transformation on that input that results in a 
+<tref>JSON-LD output</tref> that any conforming JSON-LD processor would have 
+generated given the same input. The problem is a fairly difficult technical 
+problem to solve because it requires a directed graph to be ordered into a 
+set of nodes and edges in a deterministic way. This is easy to do when all of 
+the nodes have unique names, but very difficult to do when some of the nodes 
+are not labeled.
 </p>
 
 <p>Normalization is useful when comparing two graphs against one another,
@@ -2108,84 +2121,143 @@ application.
 
 <section>
 <h2>Normalization</h2>
-<p class="issue">Needs to be updated.</p>
-<p class="issue">This algorithm is very rough, untested, and probably contains
-many bugs. Use at your own risk. It will change in the coming months.</p>
 
-<p>The JSON-LD normalization algorithm is as follows:</p>
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p></p>
+
+<section>
+<h3>Normalization Algorithm Terms</h3>
+ <dl>
+   <dt><tdef>term1</tdef></dt>
+   <dd>
+     definition1
+   </dd>
+</dl>
+</section>
+
+<section>
+<h3>Normalization Algorithm</h3>
 
 <ol class="algorithm">
-  <li>Remove the <code>@context</code> key and preserve it as the 
-  <tdef>transformation map</tdef> while running this algorithm.</li>
-  <li>For each key
-   <ol class="algorithm">
-    <li>If the key is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-   </ol>
+<li>Expand input (resolve keywords and CURIEs, etc).</li>
+<li>Flatten input (give unique names to unnamed blank nodes, remove embeds, duplicate objects for predicates, etc.).</li>
+<li>Label the unlabeled nodes.</li>
+</ol>
+</section>
+
+<section>
+<h4>Node Labeling Algorithm</h4>
+
+<ol class="algorithm">
+<li>Rename any blank nodes that start with 'c14n' using a temporary prefix.</li>
+<li>Initialize property and reference relation serializations for all blank nodes to null.</li>
+<li>Until all blank nodes are canonically named, keep sorting them according to DeepCompare and naming them according to NameNode.</li>
+</ol>
+</section>
+
+<section>
+<h4>Deep Comparison Algorithm</h4>
+
+<p>
+DeepCompare(bnodeA, bnodeB):
+</p>
+
+<ol class="algorithm">
+  <li>Return the value of ShallowCompare if it is non-zero.</li>
+  <li>Compare property serializations and then reference serializations, recycling the mapping from property serializations for reference serializations.
+    <ol class="algorithm">
+      <li>If the serialization for bnodeA is null, do SerializeNode(bnodeA, new Mapping).</li>
+      <li>If the serialization for bnodeB is null, do SerializeNode(bnodeA, new Mapping).</li>
+      <li>Return the result of a lexicographical comparison of the two serializations.</li>
+    </ol>
+</ol>
+</section>
+
+<section>
+<h4>Node Serialization Algorithm</h4>
+
+<p>
+SerializeNode(bnode, mapping, dir):
+</p>
+
+<ol class="algorithm">
+<li>If the bnode's label is already marked as mapped, return.</li>
+<li>Mark the bnode's label as mapped.</li>
+<li>Assign the next serialization name to the bnode's label and store it in "top".</li>
+<li>Split the bnode's adjacent bnodes into a map and a list. The map contains a reverse mapping of serialization names to bnode labels for all labels in the mapping, the list (notMapped) contains all labels not in the mapping yet.</li>
+<li>Save a copy of the mapping.</li>
+<li>Do SerializeCombos for max(1, notMapped.length) using the original mapping for the first call and a copy of the mapping for each subsequent call.</li>
+</ol>
+
+</section>
+
+<section>
+<h4>Combinatorial Serialization Algorithm</h4>
+
+<p>
+SerializeCombos(top, mapping, mapped, notMapped, dir):
+</p>
+
+<ol class="algorithm">
+  <li>If notMapped is non-empty, copy mapped and assign the next serialization name to its first bnode, remove it from the list, and update mapped.
+    <ol class="algorithm">
+      <li>For max(1, notMapped.length) recurse into SerializeCombos with the original mapping for the first call and a copy of the mapping for each subsequent call. Rotate notMapped on each iteration.</li>
+    </ol>
   </li>
-  <li>For each value
-   <ol class="algorithm">
-    <li>If the value should be type coerced per the 
-        <tref>transformation map</tref>, ensure that it is transformed to the
-        new value.</li>
-    <li>If the value is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-    <li>If the value is a <tref>typed literal</tref> and the type is a CURIE,
-        expand it to an IRI using the <tref>transformation map</tref>.</li>
-    <li>When generating the final value, use expanded object value form to
-      store all IRIs, typed literals and <tref>plain literal</tref>s with language
-      information.</li>
-   </ol>
-  </li>
-  <li>Output each sorted key-value pair without any extraneous whitespace. If 
-  the value is an associative array, perform this algorithm, starting
-  at step #1, recursively on the sub-tree. There should be no nesting in
-  the outputted JSON data. That is, the top-most element should be an
-  array. Each item in the array contains a single subject with a 
-  corresponding array of properties in UTF-8 sort order. Any related 
-  objects that are complex objects themselves should be given a top-level 
-  object in the top-level array.</li>
+  <li>If notMapped is empty, save an entry mapping from the bnode's serialization name to the reverse mapping (mapped) and its sorted keys then do SerializeMapping.
+    <ol class="algorithm">
+      <li>If the serialization is lexicographically less than the current serialization or the current serialization is null, then iterate over the sorted keys, get the reverse-mapped adjacent bnode and recursively call SerializeNode on each iteration.</li>
+      <li>Do SerializeMapping then if the serialization is lexicographically less than the current serialization or the current serialization is null, then set it as the least serialization for the bnode in the given edge direction ('property' or 'reference').</li>
+    </ol>
   </li>
 </ol>
 
-<p class="issue">Note that normalizing named blank nodes is impossible at
-present since one would have to specify a blank node naming algorithm. For
-the time being, you cannot normalize graphs that contain named blank
-nodes. However, normalizing graphs that contain non-named blank nodes 
-is supported.</p>
+</section>
 
-<pre class="example" data-transform="updateExample">
-<!--
-var myObj = { "@context" : { 
-                "xsd" : "http://www.w3.org/2001/XMLSchema#",
-                "name" : "http://xmlns.com/foaf/0.1/name",
-                "age" : "http://xmlns.com/foaf/0.1/age",
-                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
-                "@coerce": {
-                   "xsd:nonNegativeInteger": "age",
-                   "xsd:anyURI": "homepage"
-                }
-              },
-              "name" : "Joe Jackson",
-              "age" : "42",
-              "homepage" : "http://example.org/people/joe" };
+<section>
+<h4>Mapping Serialization Algorithm</h4>
 
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
--->
-</pre>
+<p>
+SerializeMapping(mapping):
+(This function incrementally updates the relation serialization for a mapping)
+</p>
 
-<p>After the code in the example above has executed, the 
-<strong>jsonldText</strong> value will be (line-breaks added for 
-readability):</p>
+<ol class="algorithm">
+  <li>If there is an entry on the mapping's key stack, pop it and iterate over every key.</li>
+  <li>For each key, if an entry for the key hasn't been added to the mapping yet, break out of the loop.</li>
+  <li>Update the key stack entry's index.</li>
+  <li>If the key has already been serialized, output "'_' + key" and continue.</li>
+  <li>For each key, serialize the key then its associated bnode properties, then its bnode references. The entire property list is surrounded by '[' and ']' and so is the reference list. Individual properties/references are seperated by '|'. If a property is an array, all of the serializations are concatenated together with no joining delimiter. The '@subject' property is skipped. The property IRI is turtle-serialized. If a property or reference object is a bnode, it is serialized to '_:', otherwise the turtle serialization is used.</li>
+  <li>Join all of the adjacent keys and add them to the serialization.</li>
+  <li>Push the adjacent keys onto the key stack.</li>
+  <li>Do SerializeMapping.</li>
+</ol>
 
-<pre class="example" data-transform="updateExample">
-<!--
-[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
-"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
-"http://xmlns.com/foaf/0.1/name":"Joe Jackson"}]
--->
-</pre>
+</section>
+
+<section>
+<h4>Label Generation Algorithm</h4>
+
+<p>
+NameNode(bnode):
+</p>
+
+<ol class="algorithm">
+  <li>Remove the first blank node from the list of sorted blank nodes.</li>
+  <li>Give it the next canonical name.</li>
+  <li>Give canonical names to each blank node key in its property serialization mapping in lexicographical order.</li>
+  <li>Give canonical names to each blank node key in its reference serialization mapping in lexicographical order.</li>
+  <li>Set all serializations containing newly-named blank nodes to null.</li>
+</ol>
+
+</section>
+
+</section>
+
+<section>
+
+<h3>Data Round Tripping</h3>
 
 <p>When normalizing <strong>xsd:double</strong> values, implementers MUST
 ensure that the normalized value is a string. In order to generate the
@@ -2237,6 +2309,7 @@ error can bite developers. We are currently wondering if having a
 "coerce validation" phase in the parsing/normalization phases would be a 
 good idea. It would prevent data round-tripping issues like the
 one mentioned above.</p>
+
 </section>
 
 <section>
@@ -2350,7 +2423,7 @@ implement the algorithm exactly as described.
           Generate a triple representing the <tref>active subject</tref>, the <tref>active
           property</tref> and the <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
         </li>
-        <li>If the associative array has a <code>@subject</code> key:
+        <li id="processing-step-subject">If the associative array has a <code>@subject</code> key:
           <ol class="algorithm">
             <li>
               If the value is a string, set the <tref>active object</tref> to the result of performing
@@ -2403,31 +2476,7 @@ implement the algorithm exactly as described.
 
       <ol class="algorithm">
         <li>
-          If the value is a regular array, generate an RDF List by linking
-          each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
-          using the following sequence:
-          <ol class="algorithm">
-            <li>
-              If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
-              and <code>rdf:nil</code>.
-            </li>
-            <li>
-              Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-              and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
-            </li>
-            <li>
-              For each element other than the last element in the list:
-              <ol class="algorithm">
-                <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
-                <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
-                <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
-                <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-        <li>
-          Otherwise, create a new <tref>processor state</tref> using copies of the <tref>active
+          Create a new <tref>processor state</tref> using copies of the <tref>active
           context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
           starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
           <tref>processor state</tref>.
@@ -2603,6 +2652,149 @@ single graph:</p>
 -->
 </pre>
 
+</section>
+
+<section>
+  <h2>Lists</h2>
+  <p>
+    Because graphs do not describe ordering for links between nodes, multi-valued properties
+    in JSON do not provide an ordering of the listed objects. For example, consider the following
+    simple document:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This results in three triples being generated, each relating the subject to an individual
+    object, with no inherent order. To address this issue, RDF-based languages, such as [[TURTLE]]
+    use the concept of an <code>rdf:List</code> (as described in [[RDF-SCHEMA]]). This uses a sequence
+    of unlabeled nodes with properties describing a value, a null-terminated next property. Without
+    specific syntactical support, this could be represented in JSON-LD as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****{****,
+      ****"@first": "joe"****,
+      ****"@rest": {****
+        ****"@first": "bob"****,
+        ****"@rest": {****
+          ****"@first": "jaybee"****,
+          ****"@rest": "@nil"****
+          ****}****
+        ****}****
+      ****}****
+    ****}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    As this notation is rather unwieldy and the notion of ordered collections is rather important
+    in data modeling, it is useful to have specific language support. In JSON-LD, a list may
+    be represented using the <code>@list</code> keyword as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****{"@list": ["joe", "bob", "jaybee"]}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This describes the use of this array as being ordered, and order is maintained through
+    normalization and RDF conversion. If every use of a given multi-valued property is a
+    list, this may be abbreviated by adding an <code>@coerce</code> term:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    ****"@context": {****
+      ...
+      ****"@context": {****
+        ****"@list": ["foaf:nick"]****
+      ****}****
+    ****}****,
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <section><h3 id="list-expansion">Expansion</h3>
+    <p class="issue">TBD.</p>
+  </section>
+  <section><h3 id="list-normalization">Normalization</h3>
+    <p class="issue">TBD.</p>
+  </section>
+  <section><h3 id="list-rdf">RDF Conversion</h3>
+    <p>
+      To support RDF Conversion of lists, <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>
+      is updated as follows:
+    </p>
+    <ol class="algorithm update">
+      <li>
+        <span class="list-number">2.2.4a.</span>
+        If the associative array has a <code>@list</code> key and the value is an array
+        process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
+      </li>
+      <li>
+        <span class="list-number">2.9.3.</span>
+        Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+        <tref>active subject</tref> and <tref>active property</tref>.
+        <ol class="algorithm">
+          <li>
+            If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
+            and the value is an array,
+            process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
+          </li>
+          <li>
+            Otherwise, process the value starting at
+            <a href="#processing-step-associative">Step 2</a>.
+          </li>
+          <li>Proceed using the previous <tref>processor state</tref>.</li>
+        </ol>
+      </li>
+      <li id="processing-step-list">
+        <span class="list-number">3a.</span>
+        Generate an RDF List by linking
+        each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
+        using the following sequence:
+        <ol class="algorithm">
+          <li>
+            If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
+            and <code>rdf:nil</code>.
+          </li>
+          <li>
+            Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+            and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
+          </li>
+          <li>
+            For each element other than the last element in the list:
+            <ol class="algorithm">
+              <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+              <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
+              <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
+              <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </section>
 </section>
 
 <section>
