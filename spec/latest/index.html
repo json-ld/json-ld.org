@@ -209,7 +209,7 @@
           // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
           // Team Contact.
           wgPatentURI:  "",
-          maxTocLevel: 3,
+          maxTocLevel: 2,
           preProcess: [ preProc ]
           //alternateFormats: [ {uri: "diff-20110507.html", label: "diff to previous version"} ],
       };
@@ -1493,13 +1493,14 @@ keywords have been overridden by <strong>url</strong> and
 <section>
 <h2>Normalization</h2>
 
-<p>Normalization is the process of taking a JSON-LD document and performing a 
-deterministic transformation on that document that results in a final document
-that any conforming JSON-LD processor would have generated given the same
-input document. The problem is a fairly difficult technical problem to solve
-because it requires a directed graph to be ordered into a set of nodes and
-edges in a deterministic way. This is easy to do when all of the nodes have
-unique names, but very difficult to do when some of the nodes are unlabeled.
+<p>Normalization is the process of taking <tref>JSON-LD input</tref> and 
+performing a deterministic transformation on that input that results in a 
+<tref>JSON-LD output</tref> that any conforming JSON-LD processor would have 
+generated given the same input. The problem is a fairly difficult technical 
+problem to solve because it requires a directed graph to be ordered into a 
+set of nodes and edges in a deterministic way. This is easy to do when all of 
+the nodes have unique names, but very difficult to do when some of the nodes 
+are not labeled.
 </p>
 
 <p>Normalization is useful when comparing two graphs against one another,
@@ -2120,84 +2121,143 @@ application.
 
 <section>
 <h2>Normalization</h2>
-<p class="issue">Needs to be updated.</p>
-<p class="issue">This algorithm is very rough, untested, and probably contains
-many bugs. Use at your own risk. It will change in the coming months.</p>
 
-<p>The JSON-LD normalization algorithm is as follows:</p>
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p></p>
+
+<section>
+<h3>Normalization Algorithm Terms</h3>
+ <dl>
+   <dt><tdef>term1</tdef></dt>
+   <dd>
+     definition1
+   </dd>
+</dl>
+</section>
+
+<section>
+<h3>Normalization Algorithm</h3>
 
 <ol class="algorithm">
-  <li>Remove the <code>@context</code> key and preserve it as the 
-  <tdef>transformation map</tdef> while running this algorithm.</li>
-  <li>For each key
-   <ol class="algorithm">
-    <li>If the key is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-   </ol>
+<li>Expand input (resolve keywords and CURIEs, etc).</li>
+<li>Flatten input (give unique names to unnamed blank nodes, remove embeds, duplicate objects for predicates, etc.).</li>
+<li>Label the unlabeled nodes.</li>
+</ol>
+</section>
+
+<section>
+<h4>Node Labeling Algorithm</h4>
+
+<ol class="algorithm">
+<li>Rename any blank nodes that start with 'c14n' using a temporary prefix.</li>
+<li>Initialize property and reference relation serializations for all blank nodes to null.</li>
+<li>Until all blank nodes are canonically named, keep sorting them according to DeepCompare and naming them according to NameNode.</li>
+</ol>
+</section>
+
+<section>
+<h4>Deep Comparison Algorithm</h4>
+
+<p>
+DeepCompare(bnodeA, bnodeB):
+</p>
+
+<ol class="algorithm">
+  <li>Return the value of ShallowCompare if it is non-zero.</li>
+  <li>Compare property serializations and then reference serializations, recycling the mapping from property serializations for reference serializations.
+    <ol class="algorithm">
+      <li>If the serialization for bnodeA is null, do SerializeNode(bnodeA, new Mapping).</li>
+      <li>If the serialization for bnodeB is null, do SerializeNode(bnodeA, new Mapping).</li>
+      <li>Return the result of a lexicographical comparison of the two serializations.</li>
+    </ol>
+</ol>
+</section>
+
+<section>
+<h4>Node Serialization Algorithm</h4>
+
+<p>
+SerializeNode(bnode, mapping, dir):
+</p>
+
+<ol class="algorithm">
+<li>If the bnode's label is already marked as mapped, return.</li>
+<li>Mark the bnode's label as mapped.</li>
+<li>Assign the next serialization name to the bnode's label and store it in "top".</li>
+<li>Split the bnode's adjacent bnodes into a map and a list. The map contains a reverse mapping of serialization names to bnode labels for all labels in the mapping, the list (notMapped) contains all labels not in the mapping yet.</li>
+<li>Save a copy of the mapping.</li>
+<li>Do SerializeCombos for max(1, notMapped.length) using the original mapping for the first call and a copy of the mapping for each subsequent call.</li>
+</ol>
+
+</section>
+
+<section>
+<h4>Combinatorial Serialization Algorithm</h4>
+
+<p>
+SerializeCombos(top, mapping, mapped, notMapped, dir):
+</p>
+
+<ol class="algorithm">
+  <li>If notMapped is non-empty, copy mapped and assign the next serialization name to its first bnode, remove it from the list, and update mapped.
+    <ol class="algorithm">
+      <li>For max(1, notMapped.length) recurse into SerializeCombos with the original mapping for the first call and a copy of the mapping for each subsequent call. Rotate notMapped on each iteration.</li>
+    </ol>
   </li>
-  <li>For each value
-   <ol class="algorithm">
-    <li>If the value should be type coerced per the 
-        <tref>transformation map</tref>, ensure that it is transformed to the
-        new value.</li>
-    <li>If the value is a CURIE, expand the CURIE to an IRI using the
-        <tref>transformation map</tref>.</li>
-    <li>If the value is a <tref>typed literal</tref> and the type is a CURIE,
-        expand it to an IRI using the <tref>transformation map</tref>.</li>
-    <li>When generating the final value, use expanded object value form to
-      store all IRIs, typed literals and <tref>plain literal</tref>s with language
-      information.</li>
-   </ol>
-  </li>
-  <li>Output each sorted key-value pair without any extraneous whitespace. If 
-  the value is an associative array, perform this algorithm, starting
-  at step #1, recursively on the sub-tree. There should be no nesting in
-  the outputted JSON data. That is, the top-most element should be an
-  array. Each item in the array contains a single subject with a 
-  corresponding array of properties in UTF-8 sort order. Any related 
-  objects that are complex objects themselves should be given a top-level 
-  object in the top-level array.</li>
+  <li>If notMapped is empty, save an entry mapping from the bnode's serialization name to the reverse mapping (mapped) and its sorted keys then do SerializeMapping.
+    <ol class="algorithm">
+      <li>If the serialization is lexicographically less than the current serialization or the current serialization is null, then iterate over the sorted keys, get the reverse-mapped adjacent bnode and recursively call SerializeNode on each iteration.</li>
+      <li>Do SerializeMapping then if the serialization is lexicographically less than the current serialization or the current serialization is null, then set it as the least serialization for the bnode in the given edge direction ('property' or 'reference').</li>
+    </ol>
   </li>
 </ol>
 
-<p class="issue">Note that normalizing named blank nodes is impossible at
-present since one would have to specify a blank node naming algorithm. For
-the time being, you cannot normalize graphs that contain named blank
-nodes. However, normalizing graphs that contain non-named blank nodes 
-is supported.</p>
+</section>
 
-<pre class="example" data-transform="updateExample">
-<!--
-var myObj = { "@context" : { 
-                "xsd" : "http://www.w3.org/2001/XMLSchema#",
-                "name" : "http://xmlns.com/foaf/0.1/name",
-                "age" : "http://xmlns.com/foaf/0.1/age",
-                "homepage" : "http://xmlns.com/foaf/0.1/homepage",
-                "@coerce": {
-                   "xsd:nonNegativeInteger": "age",
-                   "xsd:anyURI": "homepage"
-                }
-              },
-              "name" : "Joe Jackson",
-              "age" : "42",
-              "homepage" : "http://example.org/people/joe" };
+<section>
+<h4>Mapping Serialization Algorithm</h4>
 
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
--->
-</pre>
+<p>
+SerializeMapping(mapping):
+(This function incrementally updates the relation serialization for a mapping)
+</p>
 
-<p>After the code in the example above has executed, the 
-<strong>jsonldText</strong> value will be (line-breaks added for 
-readability):</p>
+<ol class="algorithm">
+  <li>If there is an entry on the mapping's key stack, pop it and iterate over every key.</li>
+  <li>For each key, if an entry for the key hasn't been added to the mapping yet, break out of the loop.</li>
+  <li>Update the key stack entry's index.</li>
+  <li>If the key has already been serialized, output "'_' + key" and continue.</li>
+  <li>For each key, serialize the key then its associated bnode properties, then its bnode references. The entire property list is surrounded by '[' and ']' and so is the reference list. Individual properties/references are seperated by '|'. If a property is an array, all of the serializations are concatenated together with no joining delimiter. The '@subject' property is skipped. The property IRI is turtle-serialized. If a property or reference object is a bnode, it is serialized to '_:', otherwise the turtle serialization is used.</li>
+  <li>Join all of the adjacent keys and add them to the serialization.</li>
+  <li>Push the adjacent keys onto the key stack.</li>
+  <li>Do SerializeMapping.</li>
+</ol>
 
-<pre class="example" data-transform="updateExample">
-<!--
-[{"http://xmlns.com/foaf/0.1/age":{"@datatype":"http://www.w3.org/2001/XMLSchema#nonNegativeInteger","@literal":"42"},
-"http://xmlns.com/foaf/0.1/homepage":{"@iri":"http://example.org/people/joe"},
-"http://xmlns.com/foaf/0.1/name":"Joe Jackson"}]
--->
-</pre>
+</section>
+
+<section>
+<h4>Label Generation Algorithm</h4>
+
+<p>
+NameNode(bnode):
+</p>
+
+<ol class="algorithm">
+  <li>Remove the first blank node from the list of sorted blank nodes.</li>
+  <li>Give it the next canonical name.</li>
+  <li>Give canonical names to each blank node key in its property serialization mapping in lexicographical order.</li>
+  <li>Give canonical names to each blank node key in its reference serialization mapping in lexicographical order.</li>
+  <li>Set all serializations containing newly-named blank nodes to null.</li>
+</ol>
+
+</section>
+
+</section>
+
+<section>
+
+<h3>Data Round Tripping</h3>
 
 <p>When normalizing <strong>xsd:double</strong> values, implementers MUST
 ensure that the normalized value is a string. In order to generate the
@@ -2249,6 +2309,7 @@ error can bite developers. We are currently wondering if having a
 "coerce validation" phase in the parsing/normalization phases would be a 
 good idea. It would prevent data round-tripping issues like the
 one mentioned above.</p>
+
 </section>
 
 <section>
