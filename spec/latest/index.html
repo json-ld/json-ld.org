@@ -173,8 +173,8 @@
           // editors, add as many as you like
           // only "name" is required
           editors:  [
-              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
+              { name: "Manu Sporny", url: "http://manu.sporny.org/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
                 company: "Kellogg Associates" },
           ],
@@ -184,10 +184,14 @@
           // only "name" is required. Same format as editors.
 
           authors:  [
+              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+                company: "Kellogg Associates" },
+              { name: "Dave Longley",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
               { name: "Mark Birbeck", url: "http://webbackplane.com/",
                 company: "Backplane Ltd.", companyURL: "http://webbackplane.com/" },
-              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar, Inc.", companyURL: "http://digitalbazaar.com/" },
           ],
           
           // name of the WG
@@ -1765,15 +1769,15 @@ language-native data structures MUST be used where applicable.</p>
 
   <p>The algorithm for generating a compacted IRI is:
     <ol class="algorithm">
-      <li>Search every key-value pair in the <tref>local context</tref> that is 
-        a <tref>term</tref> or a <tref>prefix</tref> for a complete match 
+      <li>Search every key-value pair in the <tref>active context</tref> for
+        a <tref>term</tref> that is a complete match 
         against the IRI. If a complete match is found, the resulting compacted
         IRI is the <tref>term</tref> associated with the IRI in the 
-        <tref>local context</tref>.</li>
+        <tref>active context</tref>.</li>
       <li>If a complete match is not found, search for a partial match from
         the beginning of the IRI. For all matches that are found, the resulting
         compacted IRI is the <tref>prefix</tref> associated with the partially
-        matched IRI in the <tref>local context</tref> concatenated with a 
+        matched IRI in the <tref>active context</tref> concatenated with a 
         colon (:) character and the unmatched part of the string. If there is
         more than one compacted IRI produced, the final value is the 
         lexicographically least value of the entire set of compacted IRIs.</li>
@@ -1910,7 +1914,189 @@ typed literals are fully compacted.
 
 <section>
 <h2>Framing</h2>
-<p class="issue">TBD: Explain framing algorithm.</p>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p>A JSON-LD document is a representation of a directed graph. A single
+directed graph can have many different serializations, each expressing
+exactly the same information. Developers typically don't work directly with
+graphs, but rather, prefer trees when dealing with JSON. While mapping a graph 
+to a tree can be done, the layout of the end result must be specified in 
+advance. This section defines an algorithm for mapping a graph to 
+a tree given a <tref>frame</tref>.
+</p>
+
+<section>
+<h3>Framing Algorithm Terms</h3>
+ <dl>
+   <dt><tdef>input frame</tdef></dt>
+   <dd>
+     the initial <tref>frame</tref> provided to the framing algorithm.
+   </dd>
+   <dt><tdef>framing context</tdef></dt>
+   <dd>
+     a context containing the <tref>object embed flag</tref>, the
+     <tref>explicit inclusion flag</tref> and the 
+     <tref>omit default flag</tref>.
+   </dd>
+   <dt><tdef>object embed flag</tdef></dt>
+   <dd>
+     a flag specifying that objects should be directly embedded in the output,
+     instead of being referred to by their IRI.
+   </dd>
+   <dt><tdef>explicit inclusion flag</tdef></dt>
+   <dd>
+     a flag specifying that for properties to be included in the output, they
+     must be explicitly declared in the <tref>framing context</tref>.
+   </dd>
+   <dt><tdef>omit missing properties flag</tdef></dt>
+   <dd>
+     a flag specifying that properties that are missing from the 
+     <tref>JSON-LD input</tref> should be omitted from the output.
+   </dd>
+   <dt><tdef>match limit</tdef></dt>
+   <dd>
+     A value specifying the maximum number of matches to accept when building
+     arrays of values during the framing algorithm. A value of -1 specifies
+     that there is no match limit.
+   </dd>
+   <dt><tdef>map of embedded subjects</tdef></dt>
+   <dd>
+     A map that tracks if a subject has been embedded in the output of the
+     <a href="#framing-algorithm">Framing Algorithm</a>.
+ </dl>
+</section>
+
+<section>
+<h3>Framing Algorithm</h3>
+
+<p>The framing algorithm takes <tref>JSON-LD input</tref> that has been 
+normalized according to the 
+<a href="#normalization-algorithm">Normalization Algorithm</a> 
+(<strong>normalized input</strong>), an 
+<tref>input frame</tref> that has been expanded according to the
+<a href="#expansion-algorithm">Expansion Algorithm</a> 
+(<strong>expanded frame</strong>), and a number of options and produces
+<tref>JSON-LD output</tref>. The following series of steps is the recursive
+portion of the framing algorithm:
+</p>
+
+<ol class="algorithm">
+  <li>Initialize the <tref>framing context</tref> by setting the
+   <tref>object embed flag</tref>, clearing the 
+   <tref>explicit inclusion flag</tref>, and clearing the
+   <tref>omit missing properties flag</tref>. Override these values
+   based on input options provided to the algorithm by the application.
+  </li>
+  <li>Generate a <tdef>list of frames</tdef> by processing the 
+    <strong>expanded frame</strong>:
+    <ol class="algorithm">
+      <li>If the <strong>expanded frame</strong> is not an array, set 
+        <tref>match limit</tref> to 1, place the 
+        <strong>expanded frame</strong> into the <tref>list of frames</tref>,
+        and set the <tref>JSON-LD output</tref> to <code>null</code>.</li>
+      <li>If the <strong>expanded frame</strong> is an empty array, place an
+        empty object into the <tref>list of frames</tref>,
+        and set the <tref>JSON-LD output</tref> to an array, and set
+        <tref>match limit</tref> to -1.</li>
+      <li>If the <strong>expanded frame</strong> is a non-empty array, add
+        each item in the <strong>expanded frame</strong> into the 
+        <tref>list of frames</tref> and set <tref>match limit</tref> to -1.</li>
+    </ol></li>
+  <li>Create a <tdef>match array</tdef> for each <strong>expanded frame</strong> 
+    in the <tref>list of frames</tref> halting when either the 
+    <tref>match limit</tref> is zero or the end of the 
+    <tref>list of frames</tref> is reached. If an 
+    <strong>expanded frame</strong> is 
+    not an object, the processor MUST throw a <code>Invalid Frame Format</code> 
+    exception. Add each matching item from the <strong>normalized input</strong>
+    to the <tref>matches array</tref> and decrement the 
+    <tref>match limit</tref> by 1 if:
+    <ol class="algorithm">
+       <li>The <strong>expanded frame</strong> has an <code>rdf:type</code> 
+         that exists in the item's list of <code>rdf:type</code>s. Note: 
+         the <code>rdf:type</code> can be an array, but only one value needs 
+         to be in common between the item and the 
+         <strong>expanded frame</strong> for a match.</li>
+       <li>The <strong>expanded frame</strong> does not have an 
+         <code>rdf:type</code> property, but every property in the 
+         <strong>expanded frame</strong> exists in the item.</li>
+    </ol></li>
+  <li>Process each item in the <tref>match array</tref> with its associated
+    <tdef>match frame</tdef> to generate a <tdef>list of match results</tdef>:
+    <ol class="algorithm">
+      <li>If the <tref>match frame</tref> contains an <code>@embed</code>
+        keyword, set the <tref>object embed flag</tref> to its value. 
+        If the <tref>match frame</tref> contains an <code>@explicit</code>
+        keyword, set the <tref>explicit inclusion flag</tref> to its value. 
+        If the <tref>match frame</tref> contains an <code>@omitDefault</code>
+        keyword, set the <tref>omit missing properties flag</tref> to its value. 
+        Note: if the key exists, but the value is neither
+        <code>true</code> or <code>false</code>, set the associated flag to 
+        <code>true</code>.
+      <li>If the <tref>object embed flag</tref> is cleared and the item has
+        the <code>@subject</code> property, replace the item with the value
+        of the <code>@subject</code> property.</li>
+      <li>If the <tref>object embed flag</tref> is set and the item has
+        the <code>@subject</code> property, and its IRI is in the 
+        <tref>map of embedded subjects</tref>, throw a
+        <code>Duplicate Embed</code> exception.</li>
+      <li>If the <tref>object embed flag</tref> is set and the item has
+        the <code>@subject</code> property and its IRI is not in the
+        <tref>map of embedded subjects</tref>:
+        <ol class="algorithm">
+          <li>If the <tref>explicit inclusion flag</tref> is set, 
+            then delete any key from the item that does not exist in the
+            <tref>match frame</tref>, except <code>@subject</code>.</li>
+          <li>For each key in the <tref>match frame</tref>, except for
+            keywords and <code>rdf:type</code>:
+          <ol class="algorithm">
+            <li>If the key is in the item, then build a new 
+              <tdef>recursion input list</tdef> using the object or objects 
+              associated with the key. If any object contains an
+              <code>@iri</code> value that exists in the 
+              <tref>normalized input</tref>, replace the object in the
+              <tref>recusion input list</tref> with a new object with a 
+              single key-value pair where the key is
+              <code>@subject</code> and the value is the value of the 
+              <code>@iri</code>. Replace the value associated with the
+              key by recursively calling this algorithm using
+              <tref>recursion input list</tref>, <tref>match frame</tref>,
+              and <tref>framing context</tref> as input.</li>
+            <li>If the key is not in the item, set value to an empty 
+              array if the <tref>match frame</tref>'s value is an array 
+              or <code>null</code> otherwise.</li>
+            <li>If value is <code>null</code>, process the 
+              <tref>omit missing properties flag</tref>:
+              <ol class="algorithm">
+                <li>If the value associated with the key in the 
+                  <tref>match frame</tref> is an array, use the first frame 
+                  from the array as the <tdef>property frame</tdef>, otherwise
+                  set the <tref>property frame</tref> to an empty object.</li>
+                <li>If the <tref>omit missing properties flag</tref> is set,
+                  delete the key in the item. Otherwise, if the
+                  <code>@default</code> key is set in the 
+                  <tref>property frame</tref> set the item's value to the value
+                  of <code>@default</code>.</li>
+              </ol></li>
+          </ol></li>
+        </ol>
+      <li>Append the result of the previous steps to the 
+        <tref>list of match results</tref>. Note: The result of the previous
+        step should either be a <code>null</code> value or an array.
+    </ol>
+  <li>Return the <tref>list of match results</tref>.</li>
+</ol>  
+
+The final step of the framing algorithm requires the 
+<tref>list of matched results</tref> to be compacted according to the 
+<a href="#compaction-algorithm">Compaction Algorithm</a> by using the 
+context provided in the <tref>input frame</tref>. The resulting value is the
+final output of the compaction algorithm and is what should be returned to the
+application.
+
+</section>
+
 </section>
 
 <section>
