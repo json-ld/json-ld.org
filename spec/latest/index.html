@@ -2165,6 +2165,13 @@ to be identified. For identification purposes, this algorithm is named
 <section>
 <h3>Normalization Algorithm</h3>
 
+<p>The normalization algorithm expands the <tref>JSON-LD input</tref>,
+flattens the data structure, and creates an initial set of names for all
+nodes in the graph. The flattened data structure is then processed by the
+node labeling algorithm in order to get a fully expanded and named list of
+nodes.
+</p>
+
 <ol class="algorithm">
 <li>Expand the <tref>JSON-LD input</tref> according to the steps in
 the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
@@ -2198,9 +2205,23 @@ with a value starting with <code>_:</code> according to the steps in the
 <section>
 <h4>Node Labeling Algorithm</h4>
 
+<p>The node labeling algorithm sorts all of the unlabeled nodes in the graph
+and deterministically names them in descending order.</p>
+
 <ol class="algorithm">
-<li>Initialize property and reference relation serializations for all blank nodes to null.</li>
-<li>Until all blank nodes are canonically named, keep sorting them according to DeepCompare and naming them according to NameNode.</li>
+  <li>???Create a <tdef>property to unlabeled node mapping</tdef> that relates
+    property IRIs to unlabeled node identifiers. Create a key for every 
+    property that is associated with a value that has an unlabeled node
+    identifier.</li>
+  <li>???Create a <tdef>unlabeled node references mapping</tdef> that relates
+    unlabeled nodes to the subjects that refer to them. Create a key for every 
+    unlabeled node with mappings to each node that references the unlabeled
+    node.???</li>
+  <li>Label every unlabeled node according to the
+    <a href="#label-generation-algorithm">Label Generation Algorithm</a>
+    in descending order using the 
+    <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+    determine the sort order.</li>
 </ol>
 </section>
 
@@ -2208,17 +2229,24 @@ with a value starting with <code>_:</code> according to the steps in the
 <h4>Shallow Comparison Algorithm</h4>
 
 <p>
-ShallowCompare(bnodeA, bnodeB):
+The shallow comparison algorithm takes two unlabeled nodes,
+<strong>alpha</strong> and <strong>beta</strong>, as input and
+determines which one should come first in a sorted list. The following
+algorithm determines the steps that are executed in order to determine the
+node that should come first in a list:
 </p>
 
 <ol class="algorithm">
-  <li>The bnode with fewer properties is first.</li>
-  <li>The bnode with the alphabetically first property is first.</li>
-  <li>Do CompareObjects for each equivalent property.</li>
-  <li>The bnode with fewer references is first.</li>
-  <li>The bnode with the reference IRI (vs. bnode) is first.</li>
-  <li>The bnode with the alphabetically-first reference IRI is first.</li>
-  <li>The bnode with the alphabetically-first reference property is first.</li>
+  <li>The node with fewer properties is first.</li>
+  <li>The node with the lexicographically lesser property is first.</li>
+  <li>???Do CompareObjects for each equivalent property.???</li>
+  <li>The node with fewer entries in the 
+    <tref>unlabeled node references mapping</tref> is first.</li>
+  <li>???The node with the reference IRI (vs. bnode) is first.???</li>
+  <li>???The node with the lexicographically lesser reference IRI 
+    is first.???</li>
+  <li>???The node with the lexicographically lesser reference property 
+    is first.???</li>
 </ol>
 </section>
 
