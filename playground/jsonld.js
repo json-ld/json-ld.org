@@ -1029,19 +1029,23 @@ var _flatten = function(parent, parentProperty, value, subjects)
             // drop null values
             if(v !== null)
             {
-               if(v.constructor === Array)
+               if(key in subject)
                {
-                  subject[key] = [];
-                  _flatten(subject[key], null, v, subjects);
-                  if(subject[key].length === 1)
+                  if(subject[key].constructor !== Array)
                   {
-                     // convert subject[key] to object if it has only 1
-                     subject[key] = subject[key][0];
+                     subject[key] = [subject[key]];
                   }
                }
                else
                {
-                  _flatten(subject, key, v, subjects);
+                  subject[key] = [];
+               }
+               
+               _flatten(subject[key], null, v, subjects);
+               if(subject[key].length === 1)
+               {
+                  // convert subject[key] to object if it has only 1
+                  subject[key] = subject[key][0];
                }
             }
          }
@@ -2184,15 +2188,8 @@ var _frame = function(subjects, input, frame, embeds, options)
       values[i] = [];
       for(var n = 0; n < input.length && limit !== 0; ++n)
       {
-         // dereference input if it refers to a subject
-         var next = input[n];
-         if(next.constructor === Object && '@iri' in next &&
-            next['@iri'] in subjects)
-         {
-            next = subjects[next['@iri']];
-         }
-         
          // add input to list if it matches frame specific type or duck-type
+         var next = input[n];
          if(_isType(next, frame) || _isDuckType(next, frame))
          {
             values[i].push(next);
