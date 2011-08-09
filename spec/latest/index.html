@@ -2182,73 +2182,115 @@ to be identified. For identification purposes, this algorithm is named
 
 <p>The normalization algorithm expands the <tref>JSON-LD input</tref>,
 flattens the data structure, and creates an initial set of names for all
-nodes in the graph. The flattened data structure is then processed by the
+nodes in the graph. The flattened data structure is then processed by a
 node labeling algorithm in order to get a fully expanded and named list of
-nodes.
+nodes which is then sorted.
 </p>
 
 <ol class="algorithm">
 <li>Expand the <tref>JSON-LD input</tref> according to the steps in
 the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
 result as the <strong>expanded input</strong>.</li>
-<li>Process every object in the <strong>expanded input</strong>
-searching for <code>@subject</code> values that start with the
-text string <code>_:c14n</code>. If a match is found, rename the subject and 
-all references to the subject by concatenating <code>_:</code> with the 
-<tref>naming base string</tref> and a unique identifier, such as an
-incremented counter value.
-</li>
-<li>Create an empty <tref>list of expanded nodes</tref> and recursively 
-process every object in the <strong>expanded input</strong> that is not an 
-expanded IRI, typed literal or language literal, in depth-first order:
+<li>Create an empty <tdef>map of expanded nodes</tdef> and recursively 
+process every <tdef>expanded node</tdef> in the <strong>expanded input</strong>
+in depth-first order:
   <ol class="algorithm">
-    <li>If an object does not contain a <code>@subject</code>, 
-      name it by concatenating 
-      <code>_:</code> with the <tref>naming base string</tref> and a 
-      unique identifier, such as an  incremented counter value.</li>
-    <li>Add the object to the <tref>list of expanded nodes<tref>.</li>
-    <li>Replace the reference to the object with the value of the
-       <code>@subject</code> in the object.</li>
-    <li>???duplicate objects for predicates???</li>
+    <li>If the <tref>expanded node</tref> is an unlabeled node, add a 
+      new key-value pair 
+      where the key is <code>@subject</code> and the value is the 
+      concatenation of <code>_:</code> with the <tref>naming base string</tref> 
+      and a unique identifier, such as an incrementing counter value.</li>
+    <li>Add the <tref>expanded node</tref> to the 
+      <tref>map of expanded nodes</tref>:
+      <ol class="algorithm">
+        <li>If the <tref>expanded node</tref>'s subject IRI is already in the 
+          <tref>map of expanded nodes</tref> merge all properties from the 
+          entry in the <tref>map of expanded nodes</tref> into the 
+          <tref>expanded node</tref>.</li>
+        <li>Go through every property associated with an array in the 
+          <tref>expanded node</tref> and remove any duplicate IRI entries from
+          the array. If resulting array only has one IRI entry, change it 
+          from an array to an object.</li>
+        <li>Set the entry for the <tref>expanded node</tref>'s subject IRI
+          in the <tref>map of expanded nodes</tref> to the
+          <tref>expanded node</tref>.
+        </li></ol></li>
+    <li>Replace the reference to the node in the 
+      <strong>expanded input</strong> with an object containing a single
+       key-value pair where the key is <code>@iri</code> and the value is
+       the value of the <code>@subject</code> key in the node.</li>
   </ol></li>
+<li>Create a <tdef>outgoing map</tdef> that relates graph
+  node IRIs to the targets nodes that they reference. For example, if a 
+  node <tref>alpha</tref> refers to a node <tref>beta</tref> via a property, 
+  the key in the <tref>outgoing map</tref> is the subject IRI of 
+  <tref>alpha</tref> and the value is an array containing at least
+  <tref>beta</tref>.
+  <ol class="algorithm">
+    <li>Add all outgoing references for every node in the graph.</li>
+  </ol></li>
+<li>Create a <tdef>incoming map</tdef> that relates graph node IRIs
+  to every other node that refers to them in the graph.
+  For example, if a node <tref>alpha</tref> refers to a
+  node <tref>beta</tref> via a property, the key in the 
+  <tref>incoming map</tref> is the subject IRI for <tref>beta</tref> and 
+  the value is an array containing at least <tref>alpha</tref>.
+  <ol class="algorithm">
+    <li>Add all incoming references for every node in the graph.</li>
+  </ol></li>
+
+<li>For every entry in the <tref>map of expanded nodes</tref> that has a 
+subject IRI that begins with <code>_:c14n</code>, relabel the subject IRI
+using the steps in the 
+<a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. The
+<tref>new label</tref> MUST be created by concatenating <code>_:</code> with 
+the <tref>naming base string</tref> and a unique identifier, such as an
+incrementing counter value.
 <li>Label all of the nodes that contain a <code>@subject</code> key associated
 with a value starting with <code>_:</code> according to the steps in the 
-<a href="#node-labeling-algorithm">Node Labeling Algorithm</a>.</li>
+<a href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.
+</li>
 </ol>
 </section>
 
 <section>
-<h4>Node Labeling Algorithm</h4>
+<h4>Node Relabeling Algorithm</h4>
 
-<p>The node labeling algorithm takes the <tref>list of expanded nodes</tref>
-and sorts the list, deterministically naming all of the unlabeled nodes 
-in the graph.</p>
+<p>The node relabeling algorithm takes a node containing an <tdef>old label</tdef> 
+that is the subject IRI, the <tref>outgoing map</tref>, 
+the <tref>incoming map</tref>, and a <tdef>new label</tdef> that is an IRI.
+</p>
 
 <ol class="algorithm">
-  <li>Create a <tdef>forward mapping</tdef> that relates graph
-    nodes to the IRIs of the targets nodes that 
-    they reference. For example, if a node <tref>alpha</tref> refers to a
-    node <tref>beta</tref> via a property, the key in the 
-    <tref>forward mapping</tref> is the subject IRI of <tref>alpha</tref> and 
-    the value is an array containing at least the subject IRI of 
-    <tref>beta</tref>.
-    <ol class="algorithm">
-      <li>Add all forward mappings for every node in the graph.</li>
-    </ol></li>
-  <li>Create a <tdef>reverse mapping</tdef> that relates graph nodes
-    to every other node that refers to them in the graph.
-    For example, if a node <tref>alpha</tref> refers to a
-    node <tref>beta</tref> via a property, the key in the 
-    <tref>reverse mapping</tref> is the subject IRI for <tref>beta</tref> and 
-    the value is an array containing at least the IRI for <tref>alpha</tref>.
-    <ol class="algorithm">
-      <li>Add all reverse mappings for every node in the graph.</li>
-    </ol></li>
-  <li>Label every unlabeled node according to the
-    <a href="#label-generation-algorithm">Label Generation Algorithm</a>
-    in descending order using the 
-    <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
-    determine the sort order.</li>
+  <li>For each node that is associated with the <tref>old label</tref> in the
+    <tref>incoming map</tref>, update all properties that reference the
+    <tref>old label</tref> with the <tref>new label</tref>.</li>
+  <li>Change the <tref>old label</tref> keys in the <tref>incoming map</tref> 
+    and the <tref>outgoing map</tref> to the <tref>new label</tref>.</li>
+  <li>Set the node's subject IRI to the <tref>new label</tref>.</li>
+</ol>
+</section>
+
+<section>
+<h4>Deterministic Labeling Algorithm</h4>
+
+<p>The deterministic labeling algorithm takes the 
+<tref>map of expanded nodes</tref>
+and produces a sorted list of deterministically named and expanded nodes from
+the graph.
+
+<ol class="algorithm">
+   <li>Transform the <tref>map of expanded nodes</tref> into a
+    <tref>list of expanded nodes</tref> and sort it in descending order using 
+    the <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+    determine the sort order</li>
+  <li>Remove and relabel the first node in the list according to the
+    <a href="#label-generation-algorithm">Node Labeling Algorithm</a> using
+    the c14n base string.</li>
+  <li>If there's a property mapping for the node, relabel all nodes in the
+    mapping in lexicographical order by key in the mapping. Do the same
+    for the reference mapping. Then repeat if the expanded list of nodes
+    is not empty.</li>
 </ol>
 </section>
 
@@ -2294,13 +2336,13 @@ node that should come first in a list:
         <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
         The node associated with the lesser item is first.
     </ol></li>
-  <li>Process the <tref>reverse mapping</tref> to determine order:
+  <li>Process the <tref>incoming map</tref> to determine order:
     <ol class="algorithm">
-      <li>The node with fewer entries in the <tref>reverse mapping</tref> 
+      <li>The node with fewer entries in the <tref>incoming map</tref> 
       is first.</li>
-      <li>Sort the <tref>reverse mapping</tref> entry for <tref>alpha</tref>
+      <li>Sort the <tref>incoming map</tref> entry for <tref>alpha</tref>
         into a <tdef>list of sorted alpha mappings</tdef>. Sort the 
-        <tref>reverse mapping</tref> entry for <tref>beta</tref>
+        <tref>incoming map</tref> entry for <tref>beta</tref>
         into a <tdef>list of sorted beta mappings</tdef>.
       <li>The node associated with the list of sorted mappings
         with the least number of unlabeled nodes is first.</li>
