@@ -2058,6 +2058,14 @@ a tree given a <tref>frame</tref>.
    <dd>
      A map that tracks if a subject has been embedded in the output of the
      <a href="#framing-algorithm">Framing Algorithm</a>.
+   </dd>
+   <dt><tdef>serialization identifier</tdef></dt>
+   <dd>
+     An identifier that is created to aid in the normalization process in the
+     <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>. The
+     value typically takes the form of <code>s&lt;NUMBER&gt;</code> or 
+     <code>c&lt;NUMBER&gt;</code>.
+   </dd>
  </dl>
 </section>
 
@@ -2372,18 +2380,41 @@ the graph.
   <li>Append to the <tref>sorted list of expanded nodes</tref> by processing
     the remainder of the <tref>list of expanded nodes</tref> until it is empty:
     <ol class="algorithm">
+      <li>Create a <tdef>map of outgoing serialization maps</tdef> where the 
+        key is an unlabeled node identifier and the value is a map. The value 
+        map contains a <tref>serialization map</tref> with keys that are 
+        unlabeled node identifiers that map to values that are 
+        <tref>serialization identifier</tref>s.</li>
+      <li>Create a <tdef>map of outgoing serializations</tdef> where the key is 
+        an unlabeled node identifier and the value is a serialization string.
+        </li>
+      <li>Create a <tdef>map of incoming serialization maps</tdef> where the key
+        is an unlabeled node identifier and the value is a map. The value 
+        map contains a <tref>serialization map</tref> with keys that are 
+        unlabeled node identifiers that map to values that are 
+        <tref>serialization identifier</tref>s.</li>
+      <li>Create a <tdef>map of incoming serializations</tdef> where the key is 
+        an unlabeled node identifier and the value is a serialization string.
+        </li>
       <li>Sort the <tref>list of expanded nodes</tref> in descending order 
         using the 
         <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
         determine the sort order.</li>
-     <li>Remove and relabel the first node in the 
+      <li>Remove and relabel the first node in the 
         resorted <tref>list of expanded nodes</tref> according to the
         <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
         The <tref>new label</tref> MUST be created by concatenating 
         <code>_:c14n</code> with the value from the 
         <tref>normalized node counter</tref>. Add the relabeled node into the 
-        <tref>sorted list of expanded nodes</tdef>.
+        <tref>sorted list of expanded nodes</tref>.
         </li>
+     <li>Take the first node's property serialization mapping 
+       (if it has one) and sort all of its values.</li>
+     <li>Name each bnode that is related to each key in the order of the keys.
+       </li>
+     <li>Repeat with the reference serialization mapping.</li>
+     <li>Remove any serialization mappings that contain a bnode that was 
+       named.</li>
      <li>Increase the <tref>normalized node counter</tref> by <code>1</code>. 
        </ol></li>
   <li>Sort the <tref>sorted list of expanded nodes</tref> in descending order 
@@ -2506,8 +2537,8 @@ not truly equivalent.
     If the result does not show that the two nodes are equivalent, return 
     the result.
     </li>
-  <li>Create a <tdef>serialization map</tdef> and compare incoming and outgoing 
-    edges to each node:
+  <li>Compare incoming and outgoing edges to each node, updating the
+    <tref>serialization map</tref> as each node is processed:
     <ol class="algorithm">
       <li>If the serialization for <tref>alpha</tref> does not exist in the
         <tref>serialization map</tref>, generate the serialization by
