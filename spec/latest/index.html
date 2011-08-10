@@ -359,6 +359,37 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <li>The <a href="http://www.w3.org/2001/XMLSchema#">XSD</a>
   vocabulary (abbreviation: <code>xsd</code>, e.g., <code>xsd:integer</code>)</li>
 </ul>
+
+<p>
+  JSON [[RFC4627]] defines several terms which are used throughout this document:
+  <dl>
+    <dt><tdef>JSON Object</tdef></dt><dd>
+      An object structure is represented as a pair of curly brackets surrounding zero or
+      more name/value pairs (or members). A name is a <tref>string</tref>. A single colon comes after
+      each name, separating the name from the value. A single comma separates a value
+      from a following name. The names within an object SHOULD be unique.
+    </dd>
+    <dt><tdef>array</tdef></dt><dd>
+      An <em>array</em> is an ordered collection of values. An array begins with [ (left bracket) and ends with ]
+      (right bracket). Values are separated by , (comma). Within JSON-LD, array order is not preserved, unless
+      specific markup is provided (see <a href="#lists">Lists</a>). This is because the basic data model of JSON-LD
+      <tref>linked data graph</tref>, which is inherently unordered.
+    </dd>
+    <dt><tdef>string</tdef></dt><dd>
+      A string is a sequence of zero or more Unicode characters, wrapped in double quotes, using backslash escapes. A
+      character is represented as a single character string. A string is very much like a C or Java string.
+    </dd>
+    <dt><tdef>number</tdef></dt><dd>
+      A number is very much like a C or Java number, except that the octal and hexadecimal formats are not used.
+    </dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
+      Boolean values.
+    </dd>
+    <dt><tdef>null</tdef></dt><dd>
+      The use of the <em>null</em> value is undefined within JSON-LD.
+    </dd>
+  </dl>
+</p>
 </section>
 
 <section>
@@ -447,26 +478,16 @@ The following definition for <tref>Linked Data</tref> is the one that will
 be used for this specification.
 </p>
 <ol>
- <li><tdef>Linked Data</tdef> is a set of documents, each containing a 
-   representation of a linked data graph.</li>
- <li>A <tdef>linked data graph</tdef> is a labeled directed graph, where nodes 
-   are <tref>subject</tref>s or <tref>object</tref>s, and edges are 
-   properties.</li>
- <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> 
-   with at least one outgoing edge.</li>
- <li>A <tref>subject</tref> SHOULD be labeled with a IRI.</li>
- <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>
-   .</li>
- <li>A <tref>property</tref> MUST be labeled with an IRI.</li>
- <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with 
-   at least one incoming edge.</li>
- <li>An <tref>object</tref> MAY be labeled with an IRI.</li>
- <li>An IRI that is a label in a <tref>linked data graph</tref> SHOULD be 
-   dereferencable to a <tref>Linked Data</tref> document describing the 
-   labeled <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>
-   .</li>
- <li>A <tdef>literal</tdef> is an <tref>object</tref> with a label that is not 
- an IRI</li>
+  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a linked data graph.</li>
+  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where nodes are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.</li>
+  <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
+  <li>A <tref>subject</tref> SHOULD be labeled with an IRI.</li>
+  <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.</li>
+  <li>A <tref>property</tref> SHOULD be labeled with an IRI.</li>
+  <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
+  <li>An <tref>object</tref> MAY be labeled with an IRI.</li>
+  <li>An IRI that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
+  <li>A <tdef>literal</tdef> is an <tref>object</tref> with a label that is not an IRI</li>
 </ol>
 
 <p>
@@ -682,12 +703,12 @@ expressed in a variety of different ways in JSON-LD.</p>
 
 <ol>
   <li>In general, <tref>term</tref>s in the key position in 
-    an associative array that have a mapping to an IRI or another key in the context are
+    a <tref>JSON object</tref> that have a mapping to an IRI or another key in the context are
     expanded to an IRI by JSON-LD processors. There are special rules for 
     processing keys in <code>@context</code> and when dealing with keys that 
     start with the <code>@subject</code> character.</li>
   <li>An IRI is generated for the value specified using <code>@subject</code>, 
-    if it is a string.</li>
+    if it is a <tref>string</tref>.</li>
   <li>An IRI is generated for the value specified using <code>@type</code>.</li>
   <li>An IRI is generated for the value specified using the <code>@iri</code> 
     keyword.</li>
@@ -710,7 +731,7 @@ expressed in a variety of different ways in JSON-LD.</p>
 
 <p>In the example above, the key 
 <code>http://xmlns.com/foaf/0.1/name</code> is interpreted as an IRI, as 
-opposed to being interpreted as a string..</p>
+opposed to being interpreted as a string.</p>
 
 <p>Term expansion occurs for IRIs if a term is defined within the 
 <tref>active context</tref>:</p>
@@ -776,7 +797,7 @@ a particular vocabulary term, an IRI is generated:</p>
 -->
 </pre>
 
-<p>Even though the value <code>http://manu.sporny.org/</code> is a string,
+<p>Even though the value <code>http://manu.sporny.org/</code> is a <tref>string</tref>,
 the type coercion rules will transform the value into an IRI when processed
 by a JSON-LD Processor</p>
 
@@ -839,8 +860,8 @@ document is mapped to RDF (in N-Triples notation):</p>
 <section>
 <h2>Strings</h2>
 
-<p>Regular text strings, also refered to as <tdef>plain literal</tdef>s, are 
-easily expressed using regular JSON strings.</p>
+<p>Regular text strings, also referred to as <tdef>plain literal</tdef>s, are 
+easily expressed using regular JSON <tref>string</tref>s.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -940,7 +961,7 @@ typed literal:</p>
 <code>2010-05-29T14:17:39+02:00</code> and the datatype of
 <code>http://www.w3.org/2001/XMLSchema#dateTime</code>.</p>
 
-<p>The third example uses a built-in native JSON type, a number, to 
+<p>The third example uses a built-in native JSON type, a <tref>number</tref>, to 
 express a datatype:</p>
 
 <pre class="example" data-transform="updateExample">
@@ -970,8 +991,8 @@ express a datatype:</p>
 <h2>Multiple Objects for a Single Property</h2>
 
 <p>A JSON-LD author can express multiple triples in a compact way by using
-arrays. If a subject has multiple values for the same property, the author
-MAY express each property as an array.</p>
+<tref>array</tref>s. If a subject has multiple values for the same property, the author
+MAY express each property as an <tref>array</tref>.</p>
 
 <p class="note">In JSON-LD, Multiple objects on a property are not ordered. This is because typically graphs
 are not inherently ordered data structures. To see more on creating ordered collections
@@ -1172,8 +1193,8 @@ provided by the developer.
 
 <p>A JSON-LD document is a representation of a directed graph. A single
 directed graph can have many different serializations, each expressing
-exactly the same information. Developers typically work with trees, also
-called associative arrays, when dealing with JSON. While mapping a graph to 
+exactly the same information. Developers typically work with trees, represented as
+<tref>JSON object</tref>s. While mapping a graph to 
 a tree can be done, the layout of the end result must be specified in advance. 
 A <tdef>Frame</tdef> can be used by a developer on a JSON-LD document to 
 specify a deterministic layout for a graph.
@@ -1327,7 +1348,7 @@ information to create <tref>typed literal</tref>s:</p>
 <p class="note">When dealing with a number of modern programming languages,
 including JavaScript ECMA-262, there is no distinction between 
 <strong>xsd:decimal</strong> and <strong>xsd:double</strong> values. That is, 
-the number <code>5.3</code> and the number 
+the <tref>number</tref> <code>5.3</code> and the <tref>number</tref> 
 <code>5.3e0</code> are treated as if they were the same. When converting from 
 JSON-LD to a language-native format and back, datatype information is lost in a 
 number of these languages. Thus, one could say that <code>5.3</code> is a 
@@ -1621,7 +1642,7 @@ language-native data structures MUST be used where applicable.</p>
     </dd>
     <dt><tdef>local context</tdef></dt>
     <dd>
-      a context that is specified at the JSON associative-array level,
+      a context that is specified within a <tref>JSON object</tref>,
       specified via the <code>@context</code> keyword.
     </dd>
     <dt><tdef>processor state</tdef></dt>
@@ -1631,7 +1652,7 @@ language-native data structures MUST be used where applicable.</p>
       <tref>current property</tref>. The <tref>processor state</tref> is managed
       as a stack with elements from the previous <tref>processor state</tref>
       copied into a new <tref>processor state</tref> when entering a new 
-      associative array.
+      <tref>JSON object</tref>.
     </dd>
     <dt><tdef>JSON-LD input</tdef></dt>
     <dd>
@@ -1655,43 +1676,43 @@ language-native data structures MUST be used where applicable.</p>
     information from the <tref>local context</tref> is merged into the <tref>active context</tref>.
   </p>
   <p>
-    The <tref>active context</tref> is used for expanding keys and values of an associative array (or elements
+    The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
     of a list (see <span a="#list-processing">List Processing</span>)).
   </p>
   <p>
-    A <tref>local context</tref> is identified within an associative array having a key of
-    <code>@context</code> with string or an associative array value. When processing a <tref>local
+    A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
+    <code>@context</code> with <tref>string</tref> or a <tref>JSON object</tref> value. When processing a <tref>local
     context</tref>, special processing rules apply:
   </p>
   <ol class="algorithm">
     <li>Create a new, empty <tref>local context</tref>.</li>
     <li>
-      If the value is a simple string, it MUST have a lexical form of IRI and used to initialize
+      If the value is a simple <tref>string</tref>, it MUST have a lexical form of IRI and used to initialize
       a new JSON document which replaces the value for subsequent processing.
     </li>
-    <li>If the value is an associative array, perform the following steps:
+    <li>If the value is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
         <li>
-          If the associative array has a <code>@base</code> key, it MUST have a value of a simple
-          string with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
+          If the <tref>JSON object</tref> has a <code>@base</code> key, it MUST have a value of a simple
+          <tref>string</tref> with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
           context</tref>. <p class="issue">Turtle allows @base to be relative. If we did this, we
           would have to add <a href="#iri-expansion">IRI Expansion</a>.</p>
         </li>
         <li>
-          If the associative array has a <code>@vocab</code> key, it MUST have a value of a simple
-          string with the lexical form of an absolute IRI. Add the vocabulary mapping to the
+          If the <tref>JSON object</tref> has a <code>@vocab</code> key, it MUST have a value of a simple
+          <tref>string</tref> with the lexical form of an absolute IRI. Add the vocabulary mapping to the
           <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
           the associated value.
         </li>
         <li>
-          If the associative array has a <code>@coerce</code> key, it MUST have a value of an
-          associative array. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
+          If the <tref>JSON object</tref> has a <code>@coerce</code> key, it MUST have a value of a
+          <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
           performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).
         </li>
         <li>
           Otherwise, the key MUST have the lexical form of <cite><a
           href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> and
-          MUST have the value of a simple string with the lexical form of IRI. Merge the key-value
+          MUST have the value of a simple <tref>string</tref> with the lexical form of IRI. Merge the key-value
           pair into the <tref>local context</tref>.
         </li>
       </ol>
@@ -1714,9 +1735,9 @@ language-native data structures MUST be used where applicable.</p>
       <code>@coerce</code> mapping, overwriting any duplicate values in 
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
       The <code>@coerce</code> mapping has either a single CURIE or an
-      array of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
-      map all CURIE values to array form and replace with the union of the value from
-      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an array
+      <tref>array</tref> of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
+      map all CURIE values to <tref>array</tref> form and replace with the union of the value from
+      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an <tref>array</tref>
       with a single CURIE, the processor MAY represent this as a string value.
     </p>
   </section>
@@ -1763,7 +1784,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>If the <tref>active context</tref> contains a mapping for <em>prefix</em>, generate an IRI
         by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
-      <li>If the IRI being processed is for a property (i.e., a key value in an associative array, or a
+      <li>If the IRI being processed is for a property (i.e., a key value in a <tref>JSON object</tref>, or a
         value in a <code>@coerce</code> mapping) and the active context has a <code>@vocab</code> mapping,
         join the mapped value to the suffix using textual concatenation.</li>
       <li>If the IRI being processed is for a subject or object (i.e., not a property) and the active context has a <code>@base</code> mapping,
@@ -1868,8 +1889,8 @@ and typed literals fully expanded.
 <h3>Expansion Algorithm</h3>
 
 <ol class="algorithm">
-  <li>If the top-level item in the <tref>JSON-LD input</tref> is an array, 
-  process each item in the array recursively using this algorithm.</li>
+  <li>If the top-level item in the <tref>JSON-LD input</tref> is an <tref>array</tref>, 
+  process each item in the <tref>array</tref> recursively using this algorithm.</li>
   <li>If the top-level item in the <tref>JSON-LD input</tref> is an object, 
   update the <tref>local context</tref> according to the steps outlined in
   the <a href="#context">context</a> section. Process each key, expanding 
@@ -1877,7 +1898,7 @@ and typed literals fully expanded.
   <ol class="algorithm">
     <li>Process each value associated with each key
       <ol class="algorithm">
-        <li>If the value is an array, process each item in the array 
+        <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref> 
         recursively using this algorithm.</li>
         <li>If the value is an object, process the object recursively
         using this algorithm.</li>
@@ -1912,7 +1933,7 @@ typed literals are fully compacted.
 <ol class="algorithm">
   <li>Perform the <a href="#expansion-algorithm">Expansion Algorithm</a> on 
   the <tref>JSON-LD input</tref>.</li>
-  <li>If the top-level item is an array, process each item in the array 
+  <li>If the top-level item is an <tref>array</tref>, process each item in the <tref>array</tref> 
     recursively, starting at this step.
   <li>If the top-level item is an object, compress each key using the steps
     defined in <a href="#iri-compaction">IRI Compaction</a> and compress each
@@ -2004,18 +2025,18 @@ portion of the framing algorithm:
   <li>Generate a <tdef>list of frames</tdef> by processing the 
     <strong>expanded frame</strong>:
     <ol class="algorithm">
-      <li>If the <strong>expanded frame</strong> is not an array, set 
+      <li>If the <strong>expanded frame</strong> is not an <tref>array</tref>, set 
         <tref>match limit</tref> to 1, place the 
         <strong>expanded frame</strong> into the <tref>list of frames</tref>,
         and set the <tref>JSON-LD output</tref> to <code>null</code>.</li>
-      <li>If the <strong>expanded frame</strong> is an empty array, place an
+      <li>If the <strong>expanded frame</strong> is an empty <tref>array</tref>, place an
         empty object into the <tref>list of frames</tref>,
-        set the <tref>JSON-LD output</tref> to an array, and set
+        set the <tref>JSON-LD output</tref> to an <tref>array</tref>, and set
         <tref>match limit</tref> to -1.</li>
-      <li>If the <strong>expanded frame</strong> is a non-empty array, add
+      <li>If the <strong>expanded frame</strong> is a non-empty <tref>array</tref>, add
         each item in the <strong>expanded frame</strong> into the 
         <tref>list of frames</tref>, set the <tref>JSON-LD output</tref> to an
-        array, and set <tref>match limit</tref> to -1.</li>
+        <tref>array</tref>, and set <tref>match limit</tref> to -1.</li>
     </ol></li>
   <li>Create a <tdef>match array</tdef> for each <strong>expanded frame</strong> 
     in the <tref>list of frames</tref> halting when either the 
@@ -2029,7 +2050,7 @@ portion of the framing algorithm:
     <ol class="algorithm">
        <li>The <strong>expanded frame</strong> has an <code>rdf:type</code> 
          that exists in the item's list of <code>rdf:type</code>s. Note: 
-         the <code>rdf:type</code> can be an array, but only one value needs 
+         the <code>rdf:type</code> can be an <tref>array</tref>, but only one value needs 
          to be in common between the item and the 
          <strong>expanded frame</strong> for a match.</li>
        <li>The <strong>expanded frame</strong> does not have an 
@@ -2364,9 +2385,9 @@ The algorithm is useful when sorting two lists of graph node properties.
 </p>
 
 <ol class="algorithm">
-  <li>If one of the values is a string and the other is not, the value that is
+  <li>If one of the values is a <tref>string</tref> and the other is not, the value that is
     a string is first.</li>
-  <li>If both values are strings, the lexicographically lesser string is
+  <li>If both values are <tref>string</tref>s, the lexicographically lesser string is
     first.</li>
   <li>If one of the values is a literal and the other is not, the value that is
     a literal is first.</li>
@@ -2602,8 +2623,7 @@ implement the algorithm exactly as described.
 <section>
   <h3>RDF Conversion Algorithm</h3>
   <p>
-    The algorithm below is designed for in-memory implementations with random access to associative
-    array elements.
+    The algorithm below is designed for in-memory implementations with random access to <tref>JSON object</tref> elements.
   </p>
   <p>
     A conforming JSON-LD processor implementing RDF conversion MUST implement a
@@ -2619,35 +2639,35 @@ implement the algorithm exactly as described.
     </li>
 
     <li id="processing-step-associative">
-      If an associative array is detected, perform the following steps:
+      If a <tref>JSON object</tref> is detected, perform the following steps:
       <ol class="algorithm">
         <li>
-          If the associative array has a <code>@context</code> key, process the local context as
+          If the <tref>JSON object</tref> has a <code>@context</code> key, process the local context as
           described in <a href="#context">Context</a>.
         </li>
         <li>
-          Create a new associative array by mapping the keys from the current associative array using the
-          <tref>active context</tref> to new keys using the associated value from the current associative array.
+          Create a new <tref>JSON object</tref> by mapping the keys from the current <tref>JSON object</tref> using the
+          <tref>active context</tref> to new keys using the associated value from the current <tref>JSON object</tref>.
           Repeat the mapping until no entry is found within the <tref>active context</tref> for the key. Use the new
-          associative array in subsequent steps.
+          <tref>JSON object</tref> in subsequent steps.
         </li>
         <li>
-          If the associative array has an <code>@iri</code> key, set the <tref>active object</tref> by
+          If the <tref>JSON object</tref> has an <code>@iri</code> key, set the <tref>active object</tref> by
           performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. Generate a
           triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
           <p class="issue"><code>@iri</code> really just behaves the same as <code>@subject</code>, consider consolidating them.</p>
         </li>
         <li>
-          If the associative array has a <code>@literal</code> key, set the <tref>active object</tref>
+          If the <tref>JSON object</tref> has a <code>@literal</code> key, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
             <li>
-              as a <tref>typed literal</tref> if the associative array contains a <code>@datatype</code> key
+              as a <tref>typed literal</tref> if the <tref>JSON object</tref> contains a <code>@datatype</code> key
               after performing <a href="#iri-expansion">IRI Expansion</a> on the specified<code>@datatype</code>.
             </li>
             <li>
-              otherwise, as a <tref>plain literal</tref>. If the associative array contains
+              otherwise, as a <tref>plain literal</tref>. If the <tref>JSON object</tref> contains
               a <code>@language</code> key, use it's value to set the language of the plain literal.
             </li>
             <li>
@@ -2656,10 +2676,10 @@ implement the algorithm exactly as described.
             </li>
           </ol>
         </li>
-        <li id="processing-step-subject">If the associative array has a <code>@subject</code> key:
+        <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@subject</code> key:
           <ol class="algorithm">
             <li>
-              If the value is a string, set the <tref>active object</tref> to the result of performing
+              If the value is a <tref>string</tref>, set the <tref>active object</tref> to the result of performing
               <a href="#iri-expansion">IRI Expansion</a>. Generate a
               triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
               <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
@@ -2673,14 +2693,14 @@ implement the algorithm exactly as described.
           </ol>
         </li>
         <li>
-          If the associative array does not have a <code>@subject</code> key, set the <tref>active
+          If the <tref>JSON object</tref> does not have a <code>@subject</code> key, set the <tref>active
           object</tref> to newly generated <tdef>blank node identifier</tdef>. Generate a triple
           representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
           object</tref>.
         </li>
         <li>
-          For each key in the associative array that has not already been processed, perform
+          For each key in the <tref>JSON object</tref> that has not already been processed, perform
           the following steps:
           <ol class="algorithm">
             <li>
@@ -2704,8 +2724,8 @@ implement the algorithm exactly as described.
     </li>
 
     <li>
-      If a regular array is detected, process each value in the array by doing the following
-      returning the result of processing the last value in the array:
+      If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref> by doing the following
+      returning the result of processing the last value in the <tref>array</tref>:
 
       <ol class="algorithm">
         <li>
@@ -2718,7 +2738,7 @@ implement the algorithm exactly as described.
     </li>
     
     <li>
-      If a string is detected:
+      If a <tref>string</tref> is detected:
       <ol class="algorithm">
         <li>
           If the <tref>active property</tref> is the target of a <code>@iri</code> coercion,
@@ -2741,7 +2761,7 @@ implement the algorithm exactly as described.
     </li>
     
     <li>
-      If a number is detected, generate a <tref>typed literal</tref> using a string representation of
+      If a <tref>number</tref> is detected, generate a <tref>typed literal</tref> using a string representation of
       the value with datatype set to either <code>xsd:integer</code> or
       <code>xsd:double</code>, depending on if the value contains a
       fractional and/or an exponential component. Generate a triple using the <tref>active
@@ -2821,7 +2841,7 @@ possibilities where all of the benefits and drawbacks have not been explored.
 <h2>Disjoint Graphs</h2>
 
 <p>When serializing an RDF graph that contains two or more sections of the
-graph which are entirely disjoint, one must use an array to express the graph
+graph which are entirely disjoint, one must use an <tref>array</tref> to express the graph
 as two graphs. This may not be acceptable to some authors, who would rather
 express the information as one graph. Since, by definition, disjoint graphs
 require there to be two top-level objects, JSON-LD utilizes a mechanism that
@@ -2841,8 +2861,7 @@ allows disjoint graphs to be expressed using a single graph.</p>
 </pre>
 
 <p>Since the two subjects are entirely disjoint with one another, it is
-impossible to express the RDF graph above using a single JSON-LD associative
-array.</p>
+impossible to express the RDF graph above using a single <tref>JSON object</tref>.</p>
 
 <p>In JSON-LD, one can use the subject to express disjoint graphs as a 
 single graph:</p>
@@ -2947,7 +2966,7 @@ single graph:</p>
   -->
   </pre>
   <p>
-    This describes the use of this array as being ordered, and order is maintained through
+    This describes the use of this <tref>array</tref> as being ordered, and order is maintained through
     normalization and RDF conversion. If every use of a given multi-valued property is a
     list, this may be abbreviated by adding an <code>@coerce</code> term:
   </p>
@@ -2981,7 +3000,7 @@ single graph:</p>
     <ol class="algorithm update">
       <li>
         <span class="list-number">2.4a.</span>
-        If the associative array has a <code>@list</code> key and the value is an array
+        If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
         process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
       </li>
       <li>
@@ -2991,7 +3010,7 @@ single graph:</p>
         <ol class="algorithm">
           <li>
             If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
-            and the value is an array,
+            and the value is an <tref>array</tref>,
             process the value as a list starting at <a href="#processing-step-list">Step 3a</a>.
           </li>
           <li>
@@ -3127,7 +3146,7 @@ to JSON-LD.
   and digital signature creation and verification.
   <dl class="parameters">
      <dt>object obj</dt>
-     <dd>An associative array of key-value pairs that should be converted
+     <dd>a <tref>JSON object</tref> of key-value pairs that should be converted
      to a JSON-LD string. It is assumed that a map already exists for the
      data.</dd>
   </dl>
