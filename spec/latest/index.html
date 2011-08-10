@@ -347,7 +347,7 @@ WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
 familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <p>
-  Examples may contain references to existing vocabularies and use abbreviations in CURIEs and source code. The following is a list of all vocabularies and their abbreviations, as used in this document:
+  Examples may contain references to existing vocabularies and use abbreviations in <tref>CURIE</tref>s and source code. The following is a list of all vocabularies and their abbreviations, as used in this document:
 </p>
 <ul>
   <li>The <a href="http://purl.org/dc/terms/">Dublin Core</a>
@@ -752,15 +752,15 @@ opposed to being interpreted as a string.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****@context****": {"****foaf****": "****http://xmlns.com/foaf/0.1/****"},
+  "****@context****": {"****name****": "****http://xmlns.com/foaf/0.1/name****"},
 ...
-  "****foaf:name****": "Manu Sporny",
+  "****name****": "Manu Sporny",
 ...
 }
 -->
 </pre>
 
-<p><code>foaf:name</code> above will automatically expand out to the IRI
+<p><code>name</code> above will automatically expand out to the IRI
 <code>http://xmlns.com/foaf/0.1/name</code>.</p>
 
 <p>An IRI is generated when a value is associated with a key using 
@@ -770,7 +770,7 @@ the <code>@iri</code> keyword:</p>
 <!--
 {
 ...
-  "foaf:homepage": { "****@iri****": "http://manu.sporny.org" }
+  "homepage": { "****@iri****": "http://manu.sporny.org" }
 ...
 }
 -->
@@ -787,11 +787,11 @@ a particular vocabulary term, an IRI is generated:</p>
     ...
     "@coerce": 
     {
-      "@iri": "foaf:homepage"
+      "@iri": "homepage"
     }
   }****
 ...
-  "foaf:homepage": "http://manu.sporny.org/",
+  "homepage": "http://manu.sporny.org/",
 ...
 }
 -->
@@ -806,7 +806,17 @@ by a JSON-LD Processor</p>
 <section>
 <h2>Identifying the Subject</h2>
 
-<p>A subject is declared using the <code>@subject</code> key. The subject is the
+<p>
+  <tref>IRI</tref>s are a fundamental concept of Linked Data, and nodes should have a de-referencable
+  identifier used to name and locate them. For nodes to be truely linked, de-referencing the identifier
+  should result in a representation of that node. Associating an IRI with a node tells an application
+  that the returned document contains a description of of the identifier requested.
+</p>
+<p>
+  JSON-LD documents may also contain descriptions of other nodes, so it is necessary to be able to
+  uniquely identify each node which may be externally referenced.
+</p>
+<p>A <tref>subject</tref> of a node is declared using the <code>@subject</code> key. The subject is the
 first piece of information needed by the JSON-LD processor in order to
 create the (subject, property, object) tuple, also known as a triple.</p>
 
@@ -831,7 +841,9 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 
 <p>The type of a particular subject can be specified using the 
 <code>@type</code> key. Specifying the type in this way will generate a 
-triple of the form (subject, type, type-url).</p>
+triple of the form (subject, type, type-uri).</p>
+
+<p>To be Linked Data, types should be uniquely identified by an <tref>IRI</tref>.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -867,7 +879,7 @@ easily expressed using regular JSON <tref>string</tref>s.</p>
 <!--
 {
 ...
-  "foaf:name": "****Mark Birbeck****",
+  "name": "****Mark Birbeck****",
 ...
 }
  -->
@@ -887,7 +899,7 @@ language information.</p>
 <!--
 {
 ...
-  "foaf:name": ****
+  "name": ****
   {
     "@literal": "花澄",
     "@language": "ja"
@@ -927,15 +939,15 @@ typed literal:</p>
 {****
   "@context": 
   {
-    "dc":  "http://purl.org/dc/terms/",
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
+    "modified":  "http://purl.org/dc/terms/modified",
+    "dateTime": "http://www.w3.org/2001/XMLSchema#dateTime"
     "@coerce": 
     {
-      "xsd:dateTime": "dc:modified"
+      "dateTime": "modified"
     }
   }****
 ...
-  "dc:modified": "2010-05-29T14:17:39+02:00",
+  "modified": "2010-05-29T14:17:39+02:00",
 ...
 }
 -->
@@ -947,10 +959,10 @@ typed literal:</p>
 <!--
 {
 ...
-  "dc:modified": ****
+  "modified": ****
   {
     "@literal": "2010-05-29T14:17:39+02:00",
-    "@datatype": "xsd:dateTime"
+    "@datatype": "dateTime"
   }****
 ...
 }
@@ -969,7 +981,7 @@ express a datatype:</p>
 {
 ...
   "@subject": "http://example.org/people#joebob",
-  "foaf:age": ****31****
+  "age": ****31****
 ...
 }
 -->
@@ -1004,7 +1016,7 @@ in JSON-LD, see <a href="#lists">Lists</a>.
 {
 ...
   "@subject": "http://example.org/people#joebob",
-  "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  "nick": ****["joe", "bob", "jaybee"]****,
 ...
 }
 -->
@@ -1039,15 +1051,15 @@ form for objects:</p>
 {
 ...
   "@subject": "http://example.org/articles/8",
-  "dcterms:modified": ****
+  "modified": ****
   [
     {
       "@literal": "2010-05-29T14:17:39+02:00",
-      "@datatype": "xsd:dateTime"
+      "@datatype": "dateTime"
     },
     {
       "@literal": "2010-05-30T09:21:28-04:00",
-      "@datatype": "xsd:dateTime"
+      "@datatype": "dateTime"
     }
   ]****
 ...
@@ -1210,38 +1222,38 @@ graph of information, and applying a specific graph layout
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "@coerce": {
-    "dc":  "http://purl.org/dc/terms/",
-    "ex":  "http://example.org/"
-   },
-   "@subject": 
-   [{
-      "@subject": "http://example.org/library",
-      "@type": "ex:Library",
-      "ex:contains": "http://example.org/library/the-republic"
-   }, 
-   {
-      "@subject": "http://example.org/library/the-republic",
-      "@type": "ex:Book",
-      "dc:creator": "Plato",
-      "dc:title": "The Republic",
-      "ex:contains": "http://example.org/library/the-republic#introduction"
-   }, 
-   {
-      "@subject": "http://example.org/library/the-republic#introduction",
-      "@type": "ex:Chapter",
-      "dc:description": "An introductory chapter on The Republic.",
-      "dc:title": "The Introduction"
-   }],
-   "@context": 
-   {
-      "@coerce": 
-      {
-         "@iri": "ex:contains"
-      },
-      "dc": "http://purl.org/dc/elements/1.1/",
-      "ex": "http://example.org/vocab#"
-   }
+  "@coerce": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title",
+    "@coerce": 
+    {
+      "@iri": "ex:contains"
+    },
+  },
+  "@subject": 
+  [{
+    "@subject": "http://example.com/library",
+    "@type": "Library",
+    "contains": "http://example.org/library/the-republic"
+  }, 
+  {
+    "@subject": "http://example.org/library/the-republic",
+    "@type": "Book",
+    "creator": "Plato",
+    "title": "The Republic",
+    "contains": "http://example.org/library/the-republic#introduction"
+  }, 
+  {
+    "@subject": "http://example.org/library/the-republic#introduction",
+    "@type": "Chapter",
+    "description": "An introductory chapter on The Republic.",
+    "title": "The Introduction"
+  }]
 }-->
 </pre>
 
@@ -1254,17 +1266,22 @@ define the following <tref>frame</tref>:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "@context": {
-      "dc": "http://purl.org/dc/elements/1.1/",
-      "ex": "http://example.org/vocab#"
-   },
-   "@type": "ex:Library",
-   "ex:contains": {
-      "@type": "ex:Book",
-      "ex:contains": {
-         "@type": "ex:Chapter"
-      }
-   }
+  "@context": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title"
+  },
+  "@type": "Library",
+  "contains": {
+    "@type": "Book",
+    "contains": {
+      "@type": "Chapter"
+    }
+  }
 }
 -->
 </pre>
@@ -1276,27 +1293,29 @@ JSON-LD document is the end result:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "@context": 
-   {
-      "ex": "http://example.org/vocab#",
-      "dc":  "http://purl.org/dc/terms/",
-   }
-   "@subject": "http://example.org/library",
-   "@type": "ex:Library",
-   "ex:contains": 
-   {
-      "@subject": "http://example.org/library/the-republic",
-      "@type": "ex:Book",
-      "dc:creator": "Plato",
-      "dc:title": "The Republic",
-      "ex:contains": 
-      {
-         "@subject": "http://example.org/library/the-republic#introduction",
-         "@type": "ex:Chapter",
-         "dc:description": "An introductory chapter on The Republic.",
-         "dc:title": "The Introduction"
-      },
-   },
+  "@context": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title"
+  },
+  "@subject": "http://example.org/library",
+  "@type": "Library",
+  "contains": {
+    ****"@subject": "http://example.org/library/the-republic",****
+    "@type": "Book",
+    ****"creator": "Plato",****
+    ****"title": "The Republic",****
+    "contains": {
+      ****"@subject": "http://example.org/library/the-republic#introduction",****
+      "@type": "Chapter",
+      ****"description": "An introductory chapter on The Republic.",****
+      ****"title": "The Introduction"****
+    },
+  },
 }
 -->
 </pre>
@@ -1316,6 +1335,52 @@ force a specific tree layout to a JSON-LD document.
 the core functionality described above. The following sections outline the
 features that are specific to JSON-LD.
 </p>
+
+<section>
+  <h2>CURIEs</h2>
+  <p>
+    Concepts in Linked Data documents may draw on a number of different vocabularies. The @vocab mechanism
+    is useful to easily associate types and properties with a specific vocabulary, but when many vocabularies
+    are used, this becomes difficult. Consider the following example:
+  </p>
+  <pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ****"dc": "http://purl.org/dc/elements/1.1/",****
+    ****"ex": "http://example.org/vocab#"****
+  },
+  "@subject": "http://example.org/library",
+  "@type": ****"ex:Library"****,
+  ****"ex:contains"****: {
+    "@subject": "http://example.org/library/the-republic",
+    "@type": ****"ex:Book"****,
+    ****"dc:creator"****: "Plato",
+    ****"dc:title"****: "The Republic",
+    ****"ex:contains"****: {
+      "@subject": "http://example.org/library/the-republic#introduction",
+      "@type": ****"ex:Chapter"****,
+      ****"dc:description"****: "An introductory chapter on The Republic.",
+      ****"dc:title"****: "The Introduction"
+    },
+  },
+}
+-->
+  </pre>
+  <p>
+    In this example, two different vocabularies are identified with prefixes, and used as type
+    and property values using the CURIE notation.
+  </p>
+  <p>
+    A <tdef>CURIE</tdef> is a compact way of describing an <tref>IRI</tref>. The term actually comes
+    from Compact URI.
+    Generally, a CURIE is composed of a <em>prefix</em> and a <em>suffix</em> separated by a ':'. In
+    JSON-LD, the prefix may be the empty string, denoting the <tdef>default prefix</tdef>.
+  </p>
+  <p>
+    CURIEs are defined more formally in [[RDFA-CORE]] <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">section 6 &quot;CURIE Syntax Definition&quot;</a></cite>.
+  </p>
+</section>
 
 <section>
 <h2>Automatic Typing</h2>
@@ -1433,10 +1498,10 @@ _:bnode1
   <!--
   {
   ...
-    "foaf:name": "Manu Sporny",
-    "****foaf:knows****": {
-      "****@type****": "****foaf:Person****",
-      "****foaf:name****": "****Gregg Kellogg****",
+    "name": "Manu Sporny",
+    "****knows****": {
+      "****@type****": "****Person****",
+      "****name****": "****Gregg Kellogg****",
     }
   ...
   }
@@ -1457,7 +1522,7 @@ being able to specify the subject. Typically, this type of node is called
 an unlabeled node or a blank node. In JSON-LD, unlabeled node identifiers are 
 automatically created if a subject is not specified using the 
 <code>@subject</code> keyword. However, authors may provide identifiers for
-unlabeled nodes by using the special <code>_</code> (underscore) CURIE 
+unlabeled nodes by using the special <code>_</code> (underscore) <tref>CURIE</tref> 
 prefix.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -1606,7 +1671,7 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@iri</code></dt><dd>Used to specify an IRI value.</dd>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
-  <dt><code>:</code></dt><dd>The separator for CURIEs when used in JSON keys or JSON values.</dd>
+  <dt><code>:</code></dt><dd>The separator for <tref>CURIE</tref>s when used in JSON keys or JSON values.</dd>
   <dt><code>@subject</code></dt><dd>Sets the active subjects.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subjects.</dd>
   </dl>
@@ -1636,7 +1701,7 @@ language-native data structures MUST be used where applicable.</p>
     </dd>
     <dt><tdef>active context</tdef></dt>
     <dd>
-      a context that is used to resolve CURIEs while the processing
+      a context that is used to resolve <tref>CURIE</tref>s while the processing
       algorithm is running. The <tref>active context</tref> is the context 
       contained within the <tref>processor state</tref>.
     </dd>
@@ -1734,7 +1799,7 @@ language-native data structures MUST be used where applicable.</p>
       <code>@coerce</code> mapping into the <tref>active context</tref>'s
       <code>@coerce</code> mapping, overwriting any duplicate values in 
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
-      The <code>@coerce</code> mapping has either a single CURIE or an
+      The <code>@coerce</code> mapping has either a single <tref>CURIE</tref> or an
       <tref>array</tref> of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
       map all CURIE values to <tref>array</tref> form and replace with the union of the value from
       the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an <tref>array</tref>
@@ -1770,13 +1835,8 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an IRI. This section defines an algorithm for
     transforming a value representing an IRI into an actual IRI.</p>
-  <p>IRIs may be represented as an explicit string, or as a CURIE, as a value relative to <code>@base</code>
+  <p>IRIs may be represented as an explicit string, or as a <tref>CURIE</tref>, as a value relative to <code>@base</code>
     or <code>@vocab</code>.</p>
-  <p>
-    CURIEs are defined more formally in [[RDFA-CORE]] <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">section 6 &quot;CURIE Syntax Definition&quot;</a></cite>.
-    Generally, a CURIE is composed of a <em>prefix</em> and a <em>suffix</em> separated by a ':'. In
-    JSON-LD, either the prefix may be the empty string, denoting the <tdef>default prefix</tdef>.
-  </p>
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
       <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
@@ -2817,7 +2877,7 @@ environments.</p>
 <p class="issue">MongoDB does not allow the '.' character to be used in
 key names. This prevents developers from storing IRIs as keys, which also
 prevents storage of the data in normalized form. While this issue can
-be avoided by using CURIEs for key values, it is not known if this
+be avoided by using <tref>CURIE</tref>s for key values, it is not known if this
 mechanism is enough to allow JSON-LD to be used in MongoDB in a way that
 is useful to developers.
 </p>
@@ -2869,18 +2929,18 @@ single graph:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "@coerce": {
-    "foaf": "http://xmlns.com/foaf/0.1/"
+  "@context": {
+    "Person": "http://xmlns.com/foaf/0.1/Person"
   },
   "@subject": 
   [
     {
       "@subject": "http://example.org/people#john",
-      "@type": "foaf:Person"
+      "@type": "Person"
     },
     {
       "@subject": "http://example.org/people#jane",
-      "@type": "foaf:Person"
+      "@type": "Person"
     }
   ]
 }
@@ -2918,7 +2978,7 @@ single graph:</p>
   {
   ...
     "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+    "nick": ****["joe", "bob", "jaybee"]****,
   ...
   }
   -->
@@ -2935,7 +2995,7 @@ single graph:</p>
   {
   ...
     "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****{****,
+    "nick": ****{****,
       ****"@first": "joe"****,
       ****"@rest": {****
         ****"@first": "bob"****,
@@ -3392,7 +3452,7 @@ with "<code>http://example.org/myvocab#</code>" when it
 is detected. In the example above, "<code>myvocab:personality</code>" would
 expand to "<code>http://example.org/myvocab#personality</code>".</p>
 
-<p>This mechanism is a short-hand for RDF, called a CURIE, and provides
+<p>This mechanism is a short-hand for RDF, called a <tref>CURIE</tref>, and provides
 developers an unambiguous way to map any JSON value to RDF.<p>
 
 </section>
