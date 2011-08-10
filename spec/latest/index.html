@@ -2361,17 +2361,34 @@ and produces a sorted list of deterministically named and expanded nodes from
 the graph.
 
 <ol class="algorithm">
-   <li>Transform the <tref>map of expanded nodes</tref> into a
-    <tref>list of expanded nodes</tref> and sort it in descending order using 
-    the <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
-    determine the sort order</li>
-  <li>Remove and relabel the first node in the list according to the
-    <a href="#label-generation-algorithm">Node Labeling Algorithm</a> using
-    the c14n base string.</li>
-  <li>If there's a property mapping for the node, relabel all nodes in the
-    mapping in lexicographical order by key in the mapping. Do the same
-    for the reference mapping. Then repeat if the expanded list of nodes
-    is not empty.</li>
+   <li>Initialize the <tdef>normalized node counter</tdef> to <code>0</code> and
+     the <tdef>sorted list of expanded nodes</tdef> to an empty array.</li>
+   <li>Copy all of the nodes in the 
+    <tref>map of expanded nodes</tref> into a 
+    <tref>list of expanded nodes</tref>.
+   <li>Move every node with an IRI that does not start with <code>_:</code>
+     from the <tref>list of expanded nodes</tref> into the 
+     <tref>sorted list of expanded nodes</tref> and sort the
+     <tref>sorted list of expanded nodes</tref> according to the steps 
+     in the
+     <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>.</li>
+   <li>Append to the <tref>sorted list of expanded nodes</tref> by processing
+    the remainder of the <tref>list of expanded nodes</tref> until it is empty:
+     <ol class="algorithm">
+       <li>Sort the <tref>list of expanded nodes</tref> in descending order 
+         using the 
+         <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+         determine the sort order.</li>
+      <li>Remove and relabel the first node in the 
+         resorted <tref>list of expanded nodes</tref> according to the
+         <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
+         The <tref>new label</tref> MUST be created by concatenating 
+         <code>_:c14n</code> with the value from the 
+         <tref>normalized node counter</tref>. Add the relabeled node into the 
+         <tref>sorted list of expanded nodes</tdef>.
+         </li>
+      <li>Increase the <tref>normalized node counter</tref> by <code>1</code>. 
+        </ol></li>
 </ol>
 </section>
 
@@ -2432,7 +2449,7 @@ node that should come first in a list:
         <tref>list of sorted beta mappings</tref>.
         The node associated with the lexicographically lesser IRI is first.</li>
     </ol></li>
-  <li>Otherwise, the nodes are equal.</li>
+  <li>Otherwise, the nodes are equivalent.</li>
 </section>
 
 <section>
@@ -2472,17 +2489,44 @@ The algorithm is useful when sorting two lists of graph node properties.
 <h4>Deep Comparison Algorithm</h4>
 
 <p>
-DeepCompare(bnodeA, bnodeB):
+The deep comparison algorithm is used to compare the difference between two
+nodes, <tref>alpha</tref> and <tref>beta</tref>. 
+A deep comparison takes the incoming and outgoing node edges in
+a graph into account if the number of properties and value of those properties 
+are identical. The algorithm is helpful when sorting a list of nodes and will
+return whichever node should be placed first in a list if the two nodes are
+not truly equivalent.
 </p>
 
 <ol class="algorithm">
-  <li>Return the value of ShallowCompare if it is non-zero.</li>
-  <li>Compare property serializations and then reference serializations, recycling the mapping from property serializations for reference serializations.
+  <li>Perform a comparison between <tref>alpha</tref> and <tref>beta</tref>
+    using the steps in the 
+    <a href="#shallow-comparison-algorithm">Shallow Comparison Algorithm</a>.
+    If the result does not show that the two nodes are equivalent, return 
+    the result.
+    </li>
+  <li>Create a <tdef>serialization map</tdef> and compare incoming and outgoing 
+    edges to each node:
     <ol class="algorithm">
-      <li>If the serialization for bnodeA is null, do SerializeNode(bnodeA, new Mapping).</li>
-      <li>If the serialization for bnodeB is null, do SerializeNode(bnodeA, new Mapping).</li>
-      <li>Return the result of a lexicographical comparison of the two serializations.</li>
-    </ol>
+      <li>If the serialization for <tref>alpha</tref> does not exist in the
+        <tref>serialization map</tref>, generate the serialization by
+        following the steps in the 
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>alpha</tref> and the <tref>serialization map</tref>
+        to the algorithm as inputs.
+      <li>If the serialization for <tref>beta</tref> does not exist in the
+        <tref>serialization map</tref>, generate the serialization by
+        following the steps in the 
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>beta</tref> and the <tref>serialization map</tref>
+        to the algorithm as inputs.
+      <li>If the lexicographical value of the entry for <tref>alpha</tref> in
+        the <tref>serialization map</tref> is greater than the entry for
+        <tref>beta</tref> in the <tref>serialization map</tref>, then 
+        <tref>alpha</tref> is first. If the lexicographical value is less, then
+        <tref>beta</tref> is first.</li>
+      <li>Otherwise, the nodes are equivalent.</li>
+    </ol></li>
 </ol>
 </section>
 
