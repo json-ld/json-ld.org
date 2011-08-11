@@ -2371,51 +2371,105 @@ the graph.
 <ol class="algorithm">
   <li>Initialize the <tdef>normalized node counter</tdef> to <code>0</code> and
     the <tdef>sorted list of expanded nodes</tdef> to an empty array.</li>
-  <li>Copy all of the nodes in the 
+  <li>Place a reference to each of the nodes in the 
    <tref>map of expanded nodes</tref> into a 
    <tref>list of expanded nodes</tref>.
   <li>Move every node with an IRI that does not start with <code>_:</code>
     from the <tref>list of expanded nodes</tref> into the 
     <tref>sorted list of expanded nodes</tref>.</li>
+  <li>Create a <tdef>map of outgoing serialization maps</tdef> where the 
+    key is an unlabeled node identifier and the value is a map. The value 
+    map contains a <tref>serialization map</tref> with keys that are 
+    unlabeled node identifiers that map to values that are 
+    <tref>serialization identifier</tref>s.</li>
+  <li>Create a <tdef>map of outgoing serializations</tdef> where the key is 
+    an unlabeled node identifier and the value is a serialization string.
+    </li>
+  <li>Create a <tdef>map of incoming serialization maps</tdef> where the key
+    is an unlabeled node identifier and the value is a map. The value 
+    map contains a <tref>serialization map</tref> with keys that are 
+    unlabeled node identifiers that map to values that are 
+    <tref>serialization identifier</tref>s.</li>
+  <li>Create a <tdef>map of incoming serializations</tdef> where the key is 
+    an unlabeled node identifier and the value is a serialization string.
+    </li>
   <li>Append to the <tref>sorted list of expanded nodes</tref> by processing
     the remainder of the <tref>list of expanded nodes</tref> until it is empty:
     <ol class="algorithm">
-      <li>Create a <tdef>map of outgoing serialization maps</tdef> where the 
-        key is an unlabeled node identifier and the value is a map. The value 
-        map contains a <tref>serialization map</tref> with keys that are 
-        unlabeled node identifiers that map to values that are 
-        <tref>serialization identifier</tref>s.</li>
-      <li>Create a <tdef>map of outgoing serializations</tdef> where the key is 
-        an unlabeled node identifier and the value is a serialization string.
-        </li>
-      <li>Create a <tdef>map of incoming serialization maps</tdef> where the key
-        is an unlabeled node identifier and the value is a map. The value 
-        map contains a <tref>serialization map</tref> with keys that are 
-        unlabeled node identifiers that map to values that are 
-        <tref>serialization identifier</tref>s.</li>
-      <li>Create a <tdef>map of incoming serializations</tdef> where the key is 
-        an unlabeled node identifier and the value is a serialization string.
-        </li>
       <li>Sort the <tref>list of expanded nodes</tref> in descending order 
         using the 
         <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
         determine the sort order.</li>
-      <li>Remove and relabel the first node in the 
+      <li>Create a <tdef>list of all old labels</tdef> and initialize it to an
+        empty array.</li>
+      <li>Relabel the first node in the 
         resorted <tref>list of expanded nodes</tref> according to the
         <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
         The <tref>new label</tref> MUST be created by concatenating 
         <code>_:c14n</code> with the value from the 
-        <tref>normalized node counter</tref>. Add the relabeled node into the 
-        <tref>sorted list of expanded nodes</tref>.
+        <tref>normalized node counter</tref>. 
+        Increase the <tref>normalized node counter</tref> by <code>1</code>. 
+        Place the <tref>old label</tref>
+        in the <tref>list of all old labels</tref>. 
         </li>
-     <li>Take the first node's property serialization mapping 
-       (if it has one) and sort all of its values.</li>
-     <li>Name each bnode that is related to each key in the order of the keys.
-       </li>
-     <li>Repeat with the reference serialization mapping.</li>
-     <li>Remove any serialization mappings that contain a bnode that was 
-       named.</li>
-     <li>Increase the <tref>normalized node counter</tref> by <code>1</code>. 
+     <li>Relabel all of the nodes in the 
+       <tref>outgoing serialization map</tref> for the <tref>old label</tref>:
+       <ol class="algorithm">
+         <li>Create a <tdef>list of old labels</tdef> and 
+         add all of the keys from the <tref>outgoing serialization map</tref>
+         to the list.</li>
+         <li>Sort the <tref>list of old labels</tref> lexicographically using
+           each associated value from the 
+           <tref>outgoing serialization map</tref>.</li>
+         <li>For each <tref>old label</tref> in the
+           <tref>list of old labels</tref> get the node from the 
+           <tref>map of expanded nodes</tref> and relabel it according to the
+           <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
+           The <tref>new label</tref> MUST be created by concatenating 
+           <code>_:c14n</code> with the value from the 
+           <tref>normalized node counter</tref>. 
+           Increase the <tref>normalized node counter</tref> by <code>1</code>. 
+           Place the <tref>old label</tref>
+           in the <tref>list of all old labels</tref>. 
+         </li></ol></li>
+     <li>Relabel all of the nodes in the
+       <tref>incoming serialization map</tref> for the <tref>old label</tref>:
+       <ol class="algorithm">
+         <li>Create a <tdef>list of old labels</tdef> and 
+         add all of the keys from the <tref>incoming serialization map</tref>
+         to the list.</li>
+         <li>Sort the <tref>list of old labels</tref> lexicographically using
+           each associated value from the 
+           <tref>incoming serialization map</tref>.</li>
+         <li>For each <tref>old label</tref> in the
+           <tref>list of old labels</tref> get the node from the 
+           <tref>map of expanded nodes</tref> and relabel it according to the
+           <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>
+           The <tref>new label</tref> MUST be created by concatenating 
+           <code>_:c14n</code> with the value from the 
+           <tref>normalized node counter</tref>. 
+           Increase the <tref>normalized node counter</tref> by <code>1</code>. 
+           Place the <tref>old label</tref>
+           in the <tref>list of all old labels</tref>. 
+         </li></ol></li>
+     <li>For each <tref>old label</tref> in the 
+       <tref>list of old labels</tref>, if any
+       <tref>outgoing serialization map</tref> contains a key that
+       matches the <tref>old label</tref>, then remove the entry in the
+       <tref>map of outgoing serializations</tref> and remove the
+       entry in the <tref>map of outgoing serialization maps</tref>.
+     </li>
+     <li>For each <tref>old label</tref> in the 
+       <tref>list of old labels</tref>, if any
+       <tref>incoming serialization map</tref> contains a key that
+       matches the <tref>old label</tref>, then remove the entry in the
+       <tref>map of incoming serializations</tref> and remove the
+       entry in the <tref>map of incoming serialization maps</tref>.
+     </li>
+     <li>
+       Remove each node with a subject IRI that starts with
+       <code>_:c14n</code> from the <tref>list of expanded nodes</tref> and
+       add it to the <tref>sorted list of expanded nodes</tref>.
        </ol></li>
   <li>Sort the <tref>sorted list of expanded nodes</tref> in descending order 
     using the 
