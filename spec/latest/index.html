@@ -2615,27 +2615,62 @@ not truly equivalent.
     If the result does not show that the two nodes are equivalent, return 
     the result.
     </li>
-  <li>Compare incoming and outgoing edges to each node, updating the
-    <tref>serialization map</tref> as each node is processed:
+  <li>Initialize the <tdef>mapping counter</tdef> to <code>1</code>. 
+     Initialize the <tdef>list of unserialized identifiers</tdef> to an 
+     empty array. Initialize the
+    <tdef>processed identifiers map</tdef>, 
+    the <tdef>incoming serialization map</tdef>, 
+    the <tdef>outgoing serialization map</tdef>, and
+    the <tdef>serialized identifier map</tdef> to empty maps.
+  <li>Compare incoming and outgoing edges for each node, updating the
+    serialization maps as each node is processed:
     <ol class="algorithm">
-      <li>If the serialization for <tref>alpha</tref> does not exist in the
-        <tref>serialization map</tref>, generate the serialization by
+      <li>If the subject IRI for <tref>alpha</tref> does not exist in the
+        <tref>outgoing serialization map</tref>, generate the serialization by
         following the steps in the 
         <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
-        Provide <tref>alpha</tref> and the <tref>serialization map</tref>
-        to the algorithm as inputs.
-      <li>If the serialization for <tref>beta</tref> does not exist in the
-        <tref>serialization map</tref>, generate the serialization by
+        Provide <tref>alpha</tref>, 
+        the <tref>processed identifiers map</tref>,
+        the <tref>outgoing serialization map</tref>,
+        the <tref>serialized identifier map</tref> and the 
+        <tref>list of unserialized identifiers</tref> to the algorithm as inputs.       
+      <li>If the subject IRI for <tref>beta</tref> does not exist in the
+        <tref>outgoing serialization map</tref>, generate the serialization by
         following the steps in the 
         <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
-        Provide <tref>beta</tref> and the <tref>serialization map</tref>
-        to the algorithm as inputs.
+        Provide <tref>beta</tref>, 
+        the <tref>processed identifiers map</tref>,
+        the <tref>outgoing serialization map</tref>,
+        the <tref>serialized identifier map</tref> and the 
+        <tref>list of unserialized identifiers</tref> to the algorithm as inputs.
       <li>If the lexicographical value of the entry for <tref>alpha</tref> in
-        the <tref>serialization map</tref> is greater than the entry for
-        <tref>beta</tref> in the <tref>serialization map</tref>, then 
-        <tref>alpha</tref> is first. If the lexicographical value is less, then
-        <tref>beta</tref> is first.</li>
-      <li>Otherwise, the nodes are equivalent.</li>
+        the <tref>outgoing serialization map</tref> is greater than the entry 
+        for <tref>beta</tref> in the <tref>outgoing serialization map</tref>, 
+        then <tref>alpha</tref> is first. If the lexicographical value is less, 
+        then <tref>beta</tref> is first.</li>
+      <li>If the subject IRI for <tref>alpha</tref> does not exist in the
+        <tref>incoming serialization map</tref>, generate the serialization by
+        following the steps in the 
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>alpha</tref>, 
+        the <tref>processed identifiers map</tref>,
+        the <tref>incoming serialization map</tref>,
+        the <tref>serialized identifier map</tref> and the 
+        <tref>list of unserialized identifiers</tref> to the algorithm as inputs.       
+      <li>If the subject IRI for <tref>beta</tref> does not exist in the
+        <tref>incoming serialization map</tref>, generate the serialization by
+        following the steps in the 
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>beta</tref>, 
+        the <tref>processed identifiers map</tref>,
+        the <tref>incoming serialization map</tref>,
+        the <tref>serialized identifier map</tref> and the 
+        <tref>list of unserialized identifiers</tref> to the algorithm as inputs.
+      <li>If the lexicographical value of the entry for <tref>alpha</tref> in
+        the <tref>incoming serialization map</tref> is greater than the entry 
+        for <tref>beta</tref> in the <tref>incoming serialization map</tref>, 
+        then <tref>alpha</tref> is first. If the lexicographical value is less, 
+        then <tref>beta</tref> is first.</li>
     </ol></li>
 </ol>
 </section>
@@ -2644,16 +2679,53 @@ not truly equivalent.
 <h4>Node Serialization Algorithm</h4>
 
 <p>
-SerializeNode(bnode, mapping, dir):
+The node serialization algorithm takes a node,
+a <tref>processed identifiers map</tref>, a
+<tdef>serialization map</tdef>, a <tref>serialized identifier map</tref>,
+and a <tref>list of unserialized identifiers</tref> as inputs and generates
+deterministic serializations for all unlabeled nodes in the graph. The
+node's subject IRI will be called the <tdef>label</tdef> in this algorithm.
 </p>
 
 <ol class="algorithm">
-<li>If the bnode's label is already marked as mapped, return.</li>
-<li>Mark the bnode's label as mapped.</li>
-<li>Assign the next serialization name to the bnode's label and store it in "top".</li>
-<li>Split the bnode's adjacent bnodes into a map and a list. The map contains a reverse mapping of serialization names to bnode labels for all labels in the mapping, the list (notMapped) contains all labels not in the mapping yet.</li>
-<li>Save a copy of the mapping.</li>
-<li>Do SerializeCombos for max(1, notMapped.length) using the original mapping for the first call and a copy of the mapping for each subsequent call.</li>
+<li>If the <tref>label</tref> exists in the 
+  <tref>processed identifiers map</tref>, terminate the algorithm as the 
+  <tref>serialization identifier</tref> has already been created</li>
+<li>Set the value associated with the <tref>label</tref> in the
+  <tref>processed identifiers map</tref> to <code>true</code>.
+<li>Generate the next <tdef>serialization label</tdef> for the 
+  <tref>label</tref>:
+  <ol class="algorithm">
+    <li>If the <tref>label</tref> starts with the string <code>_:c14n</code>,
+      the <tref>serialization label</tref> is the letter <code>c</code>
+      followed by the number that follows <code>_:c14n</code> in the
+      <tref>label</tref>.</li>
+    <li>Otherwise, the <tref>serialization label</tref> is the
+      letter <code>s</code> followed by the string value of 
+      <tref>mapping count</tref>. Increment the <tref>mapping count</tref> by
+      <code>1</code>.</li>
+  </ol>
+<li>For every property in the node that references a target node with a 
+subject IRI that starts with <code>_:</code> 
+(the <tdef>target node label</tdef>):
+  <ol class="algorithm">
+    <li>Look up the <tref>target node label</tref> in the 
+      <tref>processed identifiers map</tref> and if a mapping exists,
+      update the <tref>serialized identifier map</tref> where the key is
+      the value in the <tref>serialization map</tref> and the value is the
+      <tref>target node label</tref>.</li>
+    <li>Otherwise, add the <tref>target node label</tref> to the 
+      <tref>list of unserialized identifiers</tref>.
+  </ol>
+</li> 
+<li>Set the <tdef>maximum serialization combinations</tdef> to 
+  <code>1</code> or the length of the 
+  <tref>list of unserialized identifiers</tref>, whichever is greater.</li>
+<li>While the <tref>maximum serialization combinations</tref> is greater than
+  <code>0</code>, perform the
+  <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+  and decrement the <tref>maximum serialization combinations</tref> by
+  <code>1</code> for each iteration.
 </ol>
 
 </section>
