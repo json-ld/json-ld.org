@@ -2819,19 +2819,64 @@ set it as the least serialization for the bnode in the given edge direction
 <h4>Mapping Serialization Algorithm</h4>
 
 <p>
+<tref>map of all labels</tref>, <tref>map of all properties</tref>,
+<tdef>key stack</tdef>, <tdef>serialization string</tref>
+</p>
+
+<p>
 SerializeMapping(mapping):
 (This function incrementally updates the relation serialization for a mapping)
 </p>
 
 <ol class="algorithm">
-  <li>If there is an entry on the mapping's key stack, pop it and iterate over every key.</li>
+  <li>If the <tref>serialization keys stack</tref> is not empty
+    <ol class="algorithm">
+      <li>Pop the <tdef>list of serialization keys</tdef> off of the 
+        <tref>serialization keys stack</tref>.</li>
+      <li>For each <tdef>serialization key</tdef> in the 
+        <tref>list of serialization keys</tref>:
+        <ol class="algorithm">
+          <li>If the <tref>serialization key</tref> is not in the
+            ???list of adjacent nodes???, push the 
+            <tref>list of serialization keys</tref> onto the
+            <tref>serialization keys stack</tref> and exit from this loop.</li>
+          <li>If the <tref>serialization key</tref> is a key in the
+            <tref>completed serialization key map</tref>, a cycle has
+            been detected. Append the concatenation of the <code>_</code> 
+            character and the <tref>serialization key</tref> to the 
+            <tref>serialization string</tref>.
+          <li>Otherwise, serialize all outgoing and incoming edges in the
+            graph by performing the following steps:
+            <ol class="algorithm">
+              <li>Mark the <tref>serialization key</tref> as being processed
+                by adding a new key-value pair to the 
+                <tref>completed serialization key map</tref> where the key
+                is the <tref>serialization key</tref> and the value is
+                <code>true</code>.
+                </li>
+              <li>Set the <tref>serialization fragment</tref> to the value of
+                the <tref>serialization key</tref>.</li>
+              <li>Set the <tref>list of adjacent node keys</tref> by using the
+                <tref>serialization key</tref> to look up the list in the
+                <tref>adjacent node keys map</tref>.</li>
+              <li>Set the <tref>adjacent node label</tref> ???somehow???.</li>
+              <li>If a mapping for the <tref>adjacent node label</tref>
+                exists in the <tref>map of all labels</tref>:
+                <ol class="algorithm">
+                  <li>Append the result of the
+                    <a href="">Label Serialization Algorithm</a> to the
+                    <tref>serialization fragment</tref>.</li>
+                </ol>
+        </ol></li>
+    </ol></li>
+  <!--li>If there is an entry on the mapping's key stack, pop it and iterate over every key.</li>
   <li>For each key, if an entry for the key hasn't been added to the mapping yet, break out of the loop.</li>
   <li>Update the key stack entry's index.</li>
   <li>If the key has already been serialized, output "'_' + key" and continue.</li>
   <li>For each key, serialize the key then its associated bnode properties, then its bnode references. The entire property list is surrounded by '[' and ']' and so is the reference list. Individual properties/references are seperated by '|'. If a property is an array, all of the serializations are concatenated together with no joining delimiter. The '@subject' property is skipped. The property IRI is turtle-serialized. If a property or reference object is a bnode, it is serialized to '_:', otherwise the turtle serialization is used.</li>
   <li>Join all of the adjacent keys and add them to the serialization.</li>
   <li>Push the adjacent keys onto the key stack.</li>
-  <li>Do SerializeMapping.</li>
+  <li>Do SerializeMapping.</li -->
 </ol>
 
 </section>
