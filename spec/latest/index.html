@@ -2881,6 +2881,70 @@ SerializeMapping(mapping):
 
 </section>
 
+<section>
+<h4>Label Serialization Algorithm</h4>
+
+<p>
+<tref>map of properties</tref>, <tdef>label serialization</tdef>
+</p>
+
+<ol class="algorithm">
+  <li>Initialize the <tref>label serialization</tref> to an empty string.</li>
+  <li>Append the <code>[</code> character to the 
+    <tref>label serialization</tref>.</li>
+  <li>Append to the <tref>label serialization</tref> by processing each
+    key-value pair in the <tref>map of properties</tref>, excluding the
+    <code>@subject</code> property ???do the map keys need to be sorted???:
+    <ol class="algorithm">
+      <li>Build a string using the pattern <code>&lt;</code><strong>KEY</strong><code>&gt;</code> 
+        where <strong>KEY</strong> is the current key. Append string to the
+        <tref>label serialization</tref>.</li>
+      <li>The value may be a single object or an array of objects.
+        Process all of the objects that are associated with the key, building
+        an <tdef>object string</tdef> for each item:
+        <ol class="algorithm">
+          <li>If the object contains an <code>@iri</code> key with a
+            value that starts
+            with <code>_:</code>, set the <tref>object string</tref> to
+            the value <code>_:</code>. If the value does not
+            start with <code>_:</code>, build the <tref>object string</tref> 
+            using the pattern 
+            <code>&lt;</code><strong>IRI</strong><code>&gt;</code> 
+            where <strong>IRI</strong> is the value associated with the
+            <code>@iri</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@datatype</code> key, build the <tref>object string</tref> 
+            using the pattern 
+            <code>"</code><strong>LITERAL</strong><code>"^^&lt;</code><strong>DATATYPE</strong><code>&gt;</code>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>DATATYPE</strong> is the
+            value associated with the <code>@datatype</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@language</code> key, build the <tref>object string</tref> 
+            using the pattern 
+            <code>"</code><strong>LITERAL</strong><code>"@</code><strong>LANGUAGE</strong>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>LANGUAGE</strong> is the
+            value associated with the <code>@language</code> key.</li>
+          <li>Otherwise, the value is a string. Build the 
+            <tref>object string</tref> using the pattern 
+            <code>"</code><strong>LITERAL</strong><code>"</code> 
+            where <strong>LITERAL</strong> is the value associated with the
+            current key.</li>
+          <li>Append the <tref>object string</tref> to the 
+            <tref>label serialization</tref>.</li>
+        </ol>
+    </ol>
+  </li>
+  <li>Append the <code>]</code> character to the 
+    <tref>label serialization</tref>.</li>
+  <li>
+  
+  <li>Serialize all of the incoming references.</li>
+</ol>
+
+</section>
+
 </section>
 
 <section>
