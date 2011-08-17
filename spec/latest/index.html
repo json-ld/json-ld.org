@@ -1649,6 +1649,162 @@ the same form shown above.</p>
 </section>
 
 <section>
+<h2>The Application Programming Interface</h2>
+
+<p>This API provides a clean mechanism that enables developers to convert 
+JSON-LD data into a a variety of output formats that are easier to work with in 
+various programming languages. If an API is provided in a programming 
+environment, the entire API MUST be implemented.
+</p>
+
+<section>
+<h3>JSONLDProcessor</h3>
+<dl title="[NoInterfaceObject] interface JSONLDProcessor" class="idl">
+
+  <dt>object expand()</dt>
+  <dd><a href="#expansion">Expands</a> the given <code>input</code>
+    according to the steps in the
+    <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+    <code>input</code> MUST be copied, expanded and returned if there are
+    no errors. If the expansion fails, <code>null</code> MUST be returned.
+    <div class="issue">How do we generate warning messages during this process?
+      For example, what happens when a key that doesn't have a mapping is
+      discovered?</div>
+  <dl class="parameters">
+     <dt>object input</dt>
+     <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
+     <dt>JSONLDProcessorCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the <code>input</code>.</dd>
+  </dl>
+  </dd>
+
+  <dt>object compact()</dt>
+  <dd><a href="#compaction">Compacts</a> the given <code>input</code>
+    according to the steps in the
+    <a href="#compaction-algorithm">Compaction Algorithm</a>. The
+    <code>input</code> MUST be copied, compacted and returned if there are
+    no errors. If the compaction fails, <code>null</code> MUST be returned.
+  <dl class="parameters">
+     <dt>object input</dt>
+     <dd>The JSON-LD object to perform compaction on.</dd>
+     <dt>object context</dt>
+     <dd>The base context to use when compacting the <code>input</code>.</dd>
+     <dt>JSONLDProcessorCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+       the given <code>input</code>.</dd>
+  </dl>
+  </dd>
+
+  <dt>object frame()</dt>
+  <dd><a href="#framing">Frames</a> the given <code>input</code>
+    using the <code>frame</code> according to the steps in the
+    <a href="#framing-algorithm">Framing Algorithm</a>. The
+    <code>input</code> is used to build the framed output and is returned if 
+    there are no errors. Exceptions are thrown if there are errors.
+    <div class="issue">Define what the exceptions are. We need to specify
+    whether or not we want exceptions thrown, or errors returned to the
+    error callback?</div>
+  <dl class="parameters">
+     <dt>object input</dt>
+     <dd>The JSON-LD object to perform framing on.</dd>
+     <dt>object frame</dt>
+     <dd>The frame to use when re-arranging the data.</dd>
+     <dt>object options</dt>
+     <dd>A set of options that will affect the framing algorithm.</dd>
+     <dt>JSONLDProcessorCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given <code>input</code>.</dd>
+  </dl>
+  </dd>
+
+  <dt>object normalize()</dt>
+  <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
+    according to the steps in the
+    <a href="#normalization-algorithm">Normalization Algorithm</a>. The
+    <code>input</code> MUST be copied, normalized and returned if there are
+    no errors. If the compaction fails, <code>null</code> MUST be returned.
+  <dl class="parameters">
+     <dt>object input</dt>
+     <dd>The JSON-LD object to perform normalization upon.</dd>
+     <dt>JSONLDProcessorCallback optional? callback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given JSON-LD string.</dd>
+  </dl>
+  </dd>
+
+  <dt>object triples()</dt>
+  <dd>Processes the <code>input</code> according to the 
+    <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
+    the provided <code>tripleCallback</code> for each triple generated.
+  <dl class="parameters">
+     <dt>object input</dt>
+     <dd>The JSON-LD object to process when outputting triples.</dd>
+     <dt>JSONLDTripleCallback tripleCallback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given <code>input</code>.
+     <div class="issue">This callback should be aligned with the 
+       RDF API.</div></dd>
+     <dt>JSONLDProcessorCallback optional? parserCallback</dt>
+     <dd>A callback that is called whenever a processing error occurs on
+     the given <code>input</code>.</dd>
+  </dl>
+  </dd>
+
+</dl>
+</section>
+
+<section>
+<h3>JSONLDProcessorCallback</h3>
+<p>The JSONLDProcessorCallback is called whenever a processing error occurs 
+while processing the <tref>JSON-LD input</tref>.</p>
+
+<dl title="[NoInterfaceObject Callback] interface JSONLDProcessorCallback" 
+    class="idl">
+
+  <dt>void error()</dt>
+  <dd>This callback is invoked whenever an error occurs during processing.
+  <dl class="parameters">
+     <dt>DOMString error</dt>
+     <dd>A descriptive error string returned by the processor.</dd>
+  </dl>
+  </dd>
+</dl>
+</section>
+
+<section>
+<h3>JSONLDTripleCallback</h3>
+<p>The JSONLDTripleCallback is called whenever the processor generates a
+triple during the <code>triple()</code> call.</p>
+
+<dl title="[NoInterfaceObject Callback] interface JSONLDTripleCallback" 
+    class="idl">
+
+  <dt>void triple()</dt>
+  <dd>This callback is invoked whenever a triple is generated by the processor.
+  <dl class="parameters">
+     <dt>DOMString subject</dt>
+     <dd>The subject IRI that is associated with the triple.</dd>
+     <dt>DOMString property</dt>
+     <dd>The property IRI that is associated with the triple.</dd>
+     <dt>DOMString objectType</dt>
+     <dd>The type of object that is associated with the triple. Valid values
+       are <code>IRI</code> and <code>literal</code>.</dd>
+     <dt>DOMString object</dt>
+     <dd>The object value associated with the subject and the property.</dd>
+     <dt>DOMString? datatype</dt>
+     <dd>The datatype associated with the object.</dd>
+     <dt>DOMString? language</dt>
+     <dd>The language associated with the object in BCP47 format.</dd>
+  </dl>
+  </dd>
+</dl>
+</section>
+
+
+</section>
+
+<section>
 <h1>Algorithms</h1>
 
 <p>All algorithms described in this section are intended to operate on
@@ -3617,114 +3773,6 @@ single graph:</p>
     </ol>
   </section>
 </section>
-
-<!---section>
-<h2>The JSON-LD API</h2>
-
-<p>This API provides a clean mechanism that enables developers to convert 
-JSON-LD data into a format that is easier to work with in various programming
-languages.
-</p>
-
-<section>
-<h3>JSONLDProcessor</h3>
-<dl title="[NoInterfaceObject] interface JSONLDProcessor" class="idl">
-
-  <dt>object toProjection()</dt>
-  <dd>Parses JSON-LD text into an RDF API Projection object as specified
-    by the RDF API specification [[!RDF-API]].
-    If there are any errors, <code>null</code> is returned.
-  <dl class="parameters">
-     <dt>DOMString jsonld</dt>
-     <dd>The JSON-LD string to parse into the Projection.</dd>
-     <dt>object? template</dt>
-     <dd>The Projection template to use when building the Projection.</dd>
-     <dt>DOMString? subject</dt>
-     <dd>The subject to use when building the Projection.</dd>
-     <dt>JSONLDParserCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given JSON-LD string.</dd>
-  </dl>
-  </dd>
-
-  <dt>Graph toGraph()</dt>
-  <dd>Parses JSON-LD and transforms the data into an Graph, which is 
-  compatible with the RDF Interfaces API specification [[!RDF-INTERFACES]]. 
-  This method will 
-  return <code>null</code> if there are any errors, or if the RDF Interfaces 
-  API is not available for use.
-  <dl class="parameters">
-     <dt>DOMString jsonld</dt>
-     <dd>The JSON-LD string to parse into the RDFGraph.</dd>
-     <dt>JSONLDParserCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given JSON-LD string.</dd>
-  </dl>
-  </dd>
-
-</dl>
-</section>
-<section>
-<h3>JSONLDParserCallback</h3>
-<p>The JSONLDParserCallback is called whenever a processing error occurs on
-input data.</p>
-
-<dl title="[NoInterfaceObject Callback] interface JSONLDProcessorCallback" 
-    class="idl">
-
-  <dt>void error()</dt>
-  <dd>This callback is invoked whenever an error occurs during processing.
-  <dl class="parameters">
-     <dt>DOMString error</dt>
-     <dd>A descriptive error string returned by the processor.</dd>
-  </dl>
-  </dd>
-</dl>
-
-<p>The following example demonstrates how to convert JSON-LD to a projection
-that is directly usable in a programming environment:
-</p>
-
-<pre class="example" data-transform="updateExample">
-// retrieve JSON-LD from a Web Service
-var jsonldString = fetchPerson();
-
-// This map, usually defined once per script, defines how to map incoming 
-// JSON-LD to JavaScript objects
-var myTemplate = { "http://xmlns.com/foaf/0.1/name" : "name",
-                   "http://xmlns.com/foaf/0.1/age" : "age",
-                  "http://xmlns.com/foaf/0.1/homepage" : "homepage" };
-
-// Map the JSON-LD to a language-native object
-var person = jsonld.toProjection(jsonldString, myTemplate);
-
-// Use the language-native object
-alert(person.name + " is " + person.age + " years old. " +
-      "Their homepage is: " + person.homepage);
-</pre>
-</section>
-<section><h3>JSONLDSerializer</h3>
-<p>A JSON-LD Serializer is also available to map a language-native object
-to JSON-LD.
-
-<dl title="[NoInterfaceObject] interface JSONLDSerializer" class="idl">
-
-  <dt>DOMString normalize()</dt>
-  <dd>Serializes a language-native object into a normalized JSON-LD string.
-  Normalization is important when performing things like equality comparison
-  and digital signature creation and verification.
-  <dl class="parameters">
-     <dt>object obj</dt>
-     <dd>a <tref>JSON object</tref> of key-value pairs that should be converted
-     to a JSON-LD string. It is assumed that a map already exists for the
-     data.</dd>
-  </dl>
-  </dd>
-</dl>
-
-</section>
-
-</section -->
 
 </section>
 
