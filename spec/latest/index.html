@@ -2729,26 +2729,22 @@ node that should come first in a list:
   <li>Lexicographically sort the property IRIs for each node and compare
     the sorted lists. If an IRI is found to be lexicographically smaller, the
     node containing that IRI is first.</li>
-  <li>Compare the property values against one another:
+  <li>Compare the values of each property against one another:
     <ol class="algorithm">
+      <li>The node associated with fewer property values is first.
+      </li>
       <li>Create an <tdef>alpha list</tdef> by adding all values associated 
-        with the <tref>alpha</tref> property that is not an unlabeled node.
-        Track the number of unlabeled nodes not added to the list using an
-        <tdef>alpha unlabeled counter</tdef>.</li>
+        with the <tref>alpha</tref> property that are not unlabeled nodes.
+      </li>
       <li>Create a <tdef>beta list</tdef> by adding all values associated 
-        with the <tref>beta</tref> property that is not an unlabeled node. 
-        Track the number of unlabeled nodes not added to the list using an
-        <tdef>beta unlabeled counter</tdef>.
+        with the <tref>beta</tref> property that is not an unlabeled node.
+      </li>
       <li>Compare the length of <tref>alpha list</tref> and 
-        <tref>beta list</tref>. The node associated with the list containing the
-        lesser number of items is first.</li>
-      <li>Compare the <tref>alpha unlabeled counter</tref> to the 
-        <tref>beta unlabeled counter</tref>, the node associated with the lesser
-        value is first.</li>
+        <tref>beta list</tref>. The node associated with the list containing
+        the fewer number of items is first.</li>
       <li>Sort <tref>alpha list</tref> and <tref>beta list</tref> according to
         the
-        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>
-        as the sorting comparator.
+        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
         For each offset into the <tref>alpha list</tref>, compare the item
         at the offset against the item at the same offset in the 
         <tref>beta list</tref> according to the
@@ -2761,13 +2757,28 @@ node that should come first in a list:
       <li>The node with the shortest <tref>incoming list</tref> is first.</li>
       <li>Sort the <tref>incoming list</tref>s according to incoming property
          and then incoming <tref>label</tref>.
-      <li>The node associated with the least number of incoming unlabeled
-         nodes is first.</li>
+      <li>The node associated with the fewest number of incoming nodes is
+        first.</li>
       <li>For each offset into the <tref>incoming list</tref>s, 
-        compare the associated properties and <tref>label</tref>s.
-        The node associated with the lexicographically lesser associated
-        property is first. The node associated with the lexicographically
-        lesser <tref>label</tref> is first.</li>
+        compare the associated properties and <tref>label</tref>s:
+        <ol class="algorithm">
+          </li>The node associated with a <tref>label</tref> that does not begin with
+            <code>_:</code> is first.
+          </li>
+          <li>If the nodes' <tref>label</tref>s do not begin with
+            <code>_:</code>, then the node associated with the
+            lexicographically lesser <tref>label</tref> is first.</li>
+          </li>
+          <li>The node associated with the lexicographically lesser associated
+            property is first.
+          </li>
+          <li>The node with the <tref>label</tref> that does not begin with
+            <code>_:c14n</code> is first.
+          </li>
+          <li>The node with the lexicographically lesser <tref>label</tref>
+            is first.
+          </li>
+        </ol> 
     </ol></li>
   <li>Otherwise, the nodes are equivalent.</li>
 </section>
@@ -2783,20 +2794,27 @@ The algorithm is useful when sorting two lists of graph node properties.
 
 <ol class="algorithm">
   <li>If one of the values is a <tref>string</tref> and the other is not, the value that is
-    a string is first.</li>
+    a string is first.
+  </li>
   <li>If both values are <tref>string</tref>s, the lexicographically lesser string is
-    first.</li>
+    first.
+  </li>
   <li>If one of the values is a literal and the other is not, the value that is
-    a literal is first.</li>
-  <li>If both values are literals
+    a literal is first.
+  </li>
+  <li>If both values are literals:
     <ol class="algorithm">
       <li>The lexicographically lesser string associated with 
-        <code>@literal</code> is first.</li>
+        <code>@literal</code> is first.
+      </li>
       <li>The lexicographically lesser string associated with 
-        <code>@datatype</code> is first.</li>
+        <code>@datatype</code> is first.
+      </li>
       <li>The lexicographically lesser string associated with 
-        <code>@language</code> is first.</li>
-    </ol></li>
+        <code>@language</code> is first.
+      </li>
+    </ol>
+  </li>
   <li>If both values are expanded IRIs, the 
     lexicographically lesser string associated with <code>@iri</code> 
     is first.</li>
@@ -3232,9 +3250,12 @@ has been assigned a particular <tref>serialization label</tref>.
   <li>Append the <code>[</code> character to the 
     <tref>label serialization</tref>.</li>
   <li>Append all properties to the <tref>label serialization</tref> by 
-    processing each key-value pair in the <tref>map of properties</tref>, 
+    processing each key-value pair in the <tref>node reference</tref>, 
     excluding the
-    <code>@subject</code> property ???do the map keys need to be sorted???:
+    <code>@subject</code> property. The keys should be processed in
+    lexicographical order and their associated values should be processed
+    in the order produced by the
+    <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>:
     <ol class="algorithm">
       <li>Build a string using the pattern <code>&lt;</code><strong>KEY</strong><code>&gt;</code> 
         where <strong>KEY</strong> is the current key. Append string to the
@@ -3285,8 +3306,7 @@ has been assigned a particular <tref>serialization label</tref>.
     <tref>label serialization</tref>.</li>
   <li>Append all incoming references for the current
     <tref>label</tref> to the <tref>label serialization</tref> by 
-    processing all of the items associated with the <tref>label</tref>
-    in the <tref>incoming map</tref>:
+    processing all of the items associated with the <tref>incoming list</tref>:
     <ol class="algorithm">
       <li>Build a <tdef>reference string</tdef> 
         using the pattern <code>&lt;</code><strong>PROPERTY</strong><code>&gt;</code><code>&lt;</code><strong>REFERER</strong><code>&gt;</code>
