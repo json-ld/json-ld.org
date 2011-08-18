@@ -2949,7 +2949,13 @@ inputs and generates a deterministic serialization for the
   <tref>label</tref> according to the
   <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
 </li>
-<li>Create an empty array called the <tref>list of unserialized labels</tref>.
+<li>Create an empty map called the <tref>adjacent serialized labels map</tref>
+that will store mappings from <tref>serialized label</tref>s to adjacent
+node <tref>label</tref>s.</li>
+<li>Create an empty array called the
+<tref>adjacent unserialized labels list</tref> that will store
+<tref>label</tref>s of adjacent nodes that haven't been assigned
+<tref>serialization label</tref>s yet.
 </li>
 <li>For every <tref>label</tref> in a list, where the list the <tref>outgoing list</tref> if
 the <tref>direction</tref> is <code>outgoing direction</code> and the
@@ -2958,20 +2964,25 @@ the <tref>direction</tref> is <code>outgoing direction</code> and the
   <ol class="algorithm">
     <li>Look up the <tref>target node label</tref> in the 
       <tref>processed labels map</tref> and if a mapping exists,
-      update the <tref>serialized labels map</tref> where the key is
+      update the <tref>adjacent serialized labels map</tref> where the key is
       the value in the <tref>serialization map</tref> and the value is the
       <tref>target node label</tref>.</li>
     <li>Otherwise, add the <tref>target node label</tref> to the 
-      <tref>list of unserialized labels</tref>.
+      <tref>adjacent unserialized labels list</tref>.
   </ol>
 </li> 
 <li>Set the <tdef>maximum serialization combinations</tdef> to 
   <code>1</code> or the length of the 
-  <tref>list of unserialized labels</tref>, whichever is greater.</li>
+  <tref>adjacent unserialized labels list</tref>, whichever is greater.</li>
 <li>While the <tref>maximum serialization combinations</tref> is greater than
   <code>0</code>, perform the
   <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
-  and decrement the <tref>maximum serialization combinations</tref> by
+  passing the <tref>node state</tref>, the <tref>mapping state</tref> for the
+  first iteration and a copy of it for each subsequent iteration, the
+  generated <tref>serialization label</tref>, the <tref>direction</tref>,
+  the <tref>adjacent serialized labels map</tref>, and the
+  <tref>adjacent unserialized labels list</tref>.
+  Decrement the <tref>maximum serialization combinations</tref> by
   <code>1</code> for each iteration.
 </ol>
 
@@ -2982,87 +2993,127 @@ the <tref>direction</tref> is <code>outgoing direction</code> and the
 
 <p>
 The algorithm generates a <tref>serialization label</tref> given a 
-<tref>label</tref> and a <tref>mapping count</tref>.
+<tref>label</tref> and a <tref>mapping state</tref> and returns the
+<tref>serialization label</tref>.
 </p>
 
-<li>
-  <ol class="algorithm">
-    <li>If the <tref>label</tref> starts with the string <code>_:c14n</code>,
-      the <tref>serialization label</tref> is the letter <code>c</code>
-      followed by the number that follows <code>_:c14n</code> in the
-      <tref>label</tref>.</li>
-    <li>Otherwise, the <tref>serialization label</tref> is the
-      letter <code>s</code> followed by the string value of 
-      <tref>mapping count</tref>. Increment the <tref>mapping count</tref> by
-      <code>1</code> ensuring that the value persists across multiple
-      invocations of this algorithm.</li>
-  </ol>
-</li>
+ <ol class="algorithm">
+   <li>If the <tref>label</tref> is already in the
+     <tref>serialization labels map</tref>, return its associated value.
+   </li>
+   <li>If the <tref>label</tref> starts with the string <code>_:c14n</code>,
+     the <tref>serialization label</tref> is the letter <code>c</code>
+     followed by the number that follows <code>_:c14n</code> in the
+     <tref>label</tref>.
+   </li>
+   <li>Otherwise, the <tref>serialization label</tref> is the
+     letter <code>s</code> followed by the string value of 
+     <tref>mapping count</tref>. Increment the <tref>mapping count</tref> by
+     <code>1</code>.
+   </li>
+   <li>Create a new key-value pair in the <tref>serialization labels map</tref>
+     where the key is the <tref>label</tref> and the value is the
+     generated <tref>serialization label</tref>.
+   </li>
+ </ol>
 </section>
 
 <section>
 <h4>Combinatorial Serialization Algorithm</h4>
 
 <p>
-SerializeCombos() takes a <tref>label</tref>, 
-a <tref>serialization map</tref>, a <tref>serialization label</tref>, a
-<tref>processed labels map</tref>, a <tref>serialization map</tref>, 
-a <tref>serialized labels map</tref>, and a 
-<tref>list of unserialized labels</tref> as inputs and generates
-deterministic serializations for all possible combinations of graphs.
+The combinatorial serialization algorithm takes a <tref>node state</tref>, a
+<tref>mapping state</tref>, a <tref>serialization label</tref>, a
+<tref>direction</tref>, a <tref>adjacent serialized labels map</tref>,
+and a <tref>adjacent unserialized labels list</tref> as inputs and generates
+the lexicographically least serialization of nodes relating to the
+<tref>node reference</tref>.
 </p>
 
 <ol class="algorithm">
-  <li>If the <tref>list of unserialized labels</tref> is not empty:
+  <li>If the <tref>adjacent unserialized labels list</tref> is not empty:
     <ol class="algorithm">
-      <li>Copy the <tref>serialization map</tref> to the 
-        <tdef>serialization map copy</tdef>.</li>
+      <li>Copy the <tref>adjacent serialized labels map</tref> to the 
+        <tdef>adjacent serialized labels map copy</tdef>.</li>
       <li>Remove the first <tref>unserialized label</tref> from the
-        <tref>list of unserialized labels</tref> and create a new 
+        <tref>adjacent unserialized labels list</tref> and create a new 
         <tdef>new serialization label</tdef> according to the
-        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>
-        passing the <tref>unserialized label</tref> and the 
-        <tref>mapping counter</tref> as parameters.
+        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
       <li>Create a new key-value mapping in the 
-        <tref>serialization map copy</tref> 
+        <tref>adjacent serialized labels map copy</tref> 
         where the key is the <tref>new serialization label</tref> and the value
         is the <tref>unserialized label</tref>.
-<li>Set the <tdef>maximum serialization rotations</tdef> to 
-  <code>1</code> or the length of the 
-  <tref>list of unserialized labels</tref>, whichever is greater.</li>
-<li>While the <tref>maximum serialization rotations</tref> is greater than
-  <code>0</code>:
-  <ol class="algorithm">
-    <li>If this is the first iteration in the loop, perform the
-      <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
-      passing in the <tref>label</tref>, the <tref>serialization map copy</tref>,
-      the <tref>serialization label</tref>, the
-      <tref>processed labels map</tref>, 
-      <tref>serialized labels map</tref>, and the
-      <tref>list of unserialized labels</tref>.</li>
-    <li>If this is not the first iteration in the loop, perform the
-      <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
-      passing in the <tref>label</tref>, the <tref>serialization map copy</tref>,
-      the <tref>serialization label</tref>, and temporary copies of the
-      <tref>processed labels map</tref>, 
-      <tref>serialized labels map</tref>, and the
-      <tref>list of unserialized labels</tref>.</li>
-    <li>Decrement the <tref>maximum serialization rotations</tref> by
-    <code>1</code> for each iteration.
-  </ol></li>
-  <li>If the <tref>list of unserialized labels</tref> is empty:
+      <li>Set the <tdef>maximum serialization rotations</tdef> to 
+        <code>1</code> or the length of the 
+        <tref>adjacent unserialized labels list</tref>, whichever is greater.
+      </li>
+      <li>While the <tref>maximum serialization rotations</tref> is greater than
+        <code>0</code>:
+        <ol class="algorithm">
+          <li>Recursively perform the
+            <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+            passing the <tref>mapping state</tref> for the first iteration of the
+            loop, and a copy of it for each subsequent iteration.
+          </li>
+          <li>Rotate the elements in the
+            <tref>adjacent unserialized labels list</tref> by shifting each of
+            them once to the right, moving the element at the end of the list
+            to the beginning of the list.
+          </li>
+          <li>Decrement the <tref>maximum serialization rotations</tref> by
+            <code>1</code> for each iteration.
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>If the <tref>adjacent unserialized labels list</tref> is empty:
     <ol class="algorithm">
-      <li>???Save an entry mapping from the bnode's 
-serialization name to the reverse mapping (mapped) and its sorted keys then do SerializeMapping:
-    <ol class="algorithm">
-      <li>???If the serialization is lexicographically less than the current 
-serialization or the current serialization is null, then iterate over the 
-sorted keys, get the reverse-mapped adjacent bnode and recursively call 
-SerializeNode on each iteration.</li>
-      <li>???Do SerializeMapping then if the serialization is lexicographically 
-less than the current serialization or the current serialization is null, then 
-set it as the least serialization for the bnode in the given edge direction 
-('property' or 'reference').</li>
+      <li>Create a <tdef>list of keys</tdef> from the keys in the
+        <tref>adjacent serialized labels map</tref> and sort it
+        lexicographically.
+      </li>
+      <li>Add a key-value pair to the <tref>adjacent info map</tref> where
+        the key is the <tref>serialization label</tref> and the value is
+        an object containing the <tref>node reference</tref>'s label, the
+        <tref>list of keys</tref> and the
+        <tref>adjacent serialized labels map</tref>.
+      </li>
+      <li>Update the <tref>mapping state</tref> according to the
+        <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+      </li>
+      <li>If the <tref>direction</tref> is <code>outgoing direction</code>
+        then <tdef>directed serialization</tdef> refers to the
+        <tref>outgoing serialization</tref> and the
+        <tdef>directed serialization map</tdef> refers to the
+        <tref>outgoing serialization map</tref>, otherwise it refers to the
+        <tref>incoming serialization</tref> and the
+        <tref>directed serialization map</tref> refers to the
+        <tref>incoming serialization map</tref>. Compare the
+        <tref>serialization string</tref> to the
+        <tref>directed serialization</tref> according to the
+        <a href="#mapping-serialization-algorithm">Serialization Comparison Algorithm</a>.
+        If the <tref>serialization string</tref> is less than or equal to
+        the <tref>directed serialization</tref>: 
+        <ol class="algorithm">
+          <li>For each value in the <tref>list of keys</tref>, run the
+            <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+          </li>
+	       <li>Update the <tref>serialization string</tref> according to the
+	         <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+	       </li>
+	       <li>Compare the <tref>serialization string</tref> to the
+	         <tref>directed serialization</tref> again and if it is less than
+	         or equal and the length of the <tref>serialization string</tref> is
+	         greater than or equal to the length of the
+	         <tref>directed serialization</tref>, then set the
+	         <tref>directed serialization</tref> to the
+	         <tref>serialization string</tref> and set the
+	         <tref>directed serialization map</tref> to the
+	         <tref>serialized labels map</tref>.
+	       </li>
+        </ol>
+      </li>
     </ol>
   </li>
 </ol>
@@ -3070,67 +3121,100 @@ set it as the least serialization for the bnode in the given edge direction
 </section>
 
 <section>
-<h4>Mapping Serialization Algorithm</h4>
+<h4>Serialization Comparison Algorithm</h4>
 
 <p>
-<tref>map of all labels</tref>, <tref>map of all properties</tref>,
-<tdef>key stack</tdef>, <tdef>serialization string</tref>
-</p>
-
-<p>
-SerializeMapping(mapping):
-(This function incrementally updates the relation serialization for a mapping)
+The serialization comparison algorithm takes two serializations,
+<tref>alpha</tref> and <tref>beta</tref> and returns either which of the two
+is less than the other or that they are equal.
 </p>
 
 <ol class="algorithm">
-  <li>If the <tref>serialization keys stack</tref> is not empty
+  <li>Whichever serialization is an empty string is greater. If they are
+    both empty strings, they are equal.</li>
+  <li>Return the result of a lexicographical comparison of <tref>alpha</tref>
+    and <tref>beta</tref> up to the number of characters in the shortest of
+    the two serializations.
+  </li>
+</ol>
+</section>
+
+<section>
+<h4>Mapping Serialization Algorithm</h4>
+
+<p>
+The mapping serialization algorithm incrementally updates the
+<tref>serialization string</tref> in a <tref>mapping state</tref>.
+</p>
+
+<ol class="algorithm">
+  <li>If the <tref>key stack</tref> is not empty:
     <ol class="algorithm">
-      <li>Pop the <tdef>list of serialization keys</tdef> off of the 
-        <tref>serialization keys stack</tref>.</li>
+      <li>Pop the <tdef>serialization key info</tdef> off of the
+        <tref>key stack</tref>.
+      </li>
       <li>For each <tdef>serialization key</tdef> in the 
-        <tref>list of serialization keys</tref>:
+        <tref>serialization key info</tref> array, starting at
+        the <tdef>serialization key index</tdef> from the
+        <tref>serialization key info</tref>:
         <ol class="algorithm">
           <li>If the <tref>serialization key</tref> is not in the
-            ???list of adjacent nodes???, push the 
-            <tref>list of serialization keys</tref> onto the
-            <tref>serialization keys stack</tref> and exit from this loop.</li>
-          <li>If the <tref>serialization key</tref> is a key in the
-            <tref>completed serialization key map</tref>, a cycle has
-            been detected. Append the concatenation of the <code>_</code> 
-            character and the <tref>serialization key</tref> to the 
+            <tref>adjacent info map</tref>, push the 
+            <tref>serialization key info</tref> onto the
+            <tref>key stack</tref> and exit from this loop.
+          </li>
+          <li>If the <tref>serialization key</tref> is a key in
+            <tref>serialized keys</tref>, a cycle has been detected. Append
+            the concatenation of the <code>_</code> character and the
+            <tref>serialization key</tref> to the
             <tref>serialization string</tref>.
           <li>Otherwise, serialize all outgoing and incoming edges in the
-            graph by performing the following steps:
+            related node by performing the following steps:
             <ol class="algorithm">
-              <li>Mark the <tref>serialization key</tref> as being processed
-                by adding a new key-value pair to the 
-                <tref>completed serialization key map</tref> where the key
+              <li>Mark the <tref>serialization key</tref> as having
+                been processed by adding a new key-value pair to 
+                <tref>serialized keys</tref> where the key
                 is the <tref>serialization key</tref> and the value is
                 <code>true</code>.
-                </li>
-              <li>Set the <tref>serialization fragment</tref> to the value of
+              </li>
+              <li>Set the <tdef>serialization fragment</tdef> to the value of
                 the <tref>serialization key</tref>.</li>
-              <li>Set the <tref>list of adjacent node keys</tref> by using the
-                <tref>serialization key</tref> to look up the list in the
-                <tref>adjacent node keys map</tref>.</li>
-              <li>Set the <tref>adjacent node label</tref> ???somehow???.</li>
+              <li>Set the <tref>adjacent info</tref> to the value of the
+                <tref>serialization key</tref> in the
+                <tref>adjacent info map</tref>.
+              </li>
+              <li>Set the <tref>adjacent node label</tref> to the node
+                <tref>label</tref> from the <tref>adjacent info</tref>.
+              </li>
               <li>If a mapping for the <tref>adjacent node label</tref>
                 exists in the <tref>map of all labels</tref>:
                 <ol class="algorithm">
                   <li>Append the result of the
                     <a href="">Label Serialization Algorithm</a> to the
-                    <tref>serialization fragment</tref>.</li>
+                    <tref>serialization fragment</tref>.
+                  </li>
                 </ol>
-        </ol></li>
-    </ol></li>
-  <!--li>If there is an entry on the mapping's key stack, pop it and iterate over every key.</li>
-  <li>For each key, if an entry for the key hasn't been added to the mapping yet, break out of the loop.</li>
-  <li>Update the key stack entry's index.</li>
-  <li>If the key has already been serialized, output "'_' + key" and continue.</li>
-  <li>For each key, serialize the key then its associated bnode properties, then its bnode references. The entire property list is surrounded by '[' and ']' and so is the reference list. Individual properties/references are seperated by '|'. If a property is an array, all of the serializations are concatenated together with no joining delimiter. The '@subject' property is skipped. The property IRI is turtle-serialized. If a property or reference object is a bnode, it is serialized to '_:', otherwise the turtle serialization is used.</li>
-  <li>Join all of the adjacent keys and add them to the serialization.</li>
-  <li>Push the adjacent keys onto the key stack.</li>
-  <li>Do SerializeMapping.</li -->
+              </li>
+              <li>Append all of the keys in the <tref>adjacent info</tref>
+                to the <tref>serialization fragment</tref>.
+              </li>
+              <li>Append the <tref>serialization fragment</tref> to the
+                <tref>serialization string</tref>.
+              </li>
+              <li>Push a new key info object containing the keys from the
+                <tref>adjacent info</tref> and an index of <code>0</code>
+                onto the <tref>key stack</tref>.
+              </li>
+              <li>Recursively update the <tref>serialization string</tref>
+                according to the
+                <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
 </ol>
 
 </section>
@@ -3139,9 +3223,8 @@ SerializeMapping(mapping):
 <h4>Label Serialization Algorithm</h4>
 
 <p>
-<tref>map of properties</tref>, <tdef>label serialization</tdef>,
-<tref>label</tref>, <tref>incoming map</tref>, 
-<tdef>adjacent node labels</tdef>, <tref>key stack</tref>.
+The label serialization algorithm serializes information about a node that
+has been assigned a particular <tref>serialization label</tref>.
 </p>
 
 <ol class="algorithm">
