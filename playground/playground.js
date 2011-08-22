@@ -209,32 +209,32 @@
       {
          if(playground.activeTab == "tab-normalized")
          {
-            var normalized = forge.jsonld.normalize(input);
+            var normalized = jsonld.normalize(input);
             $("#normalized").html(js_beautify(JSON.stringify(normalized)),
                { "indent_size": 3, "brace_style": "expand" });
          }
          else if(playground.activeTab == "tab-expanded")
          {
-            var expanded = forge.jsonld.expand(input);
+            var expanded = jsonld.expand(input);
             $("#expanded").html(js_beautify(JSON.stringify(expanded)),
                { "indent_size": 3, "brace_style": "expand" });
          }
          else if(playground.activeTab == "tab-compacted")
          {
-            var compacted = forge.jsonld.compact(
+            var compacted = jsonld.compact(
                input["@context"] || {}, input);
             $("#compacted").html(js_beautify(JSON.stringify(compacted)),
                { "indent_size": 3, "brace_style": "expand" });
          }
          else if(playground.activeTab == "tab-framed")
          {
-            var framed = forge.jsonld.frame(input, frame);
+            var framed = jsonld.frame(input, frame);
             $("#framed").html(js_beautify(JSON.stringify(framed)),
                { "indent_size": 3, "brace_style": "expand" });
          }
          else if(playground.activeTab == "tab-turtle")
          {
-            var turtle = forge.jsonld.turtle(input);
+            var turtle = jsonld.turtle(input);
             $("#turtle").html(playground.htmlEscape(turtle));
          }
 

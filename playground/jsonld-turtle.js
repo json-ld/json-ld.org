@@ -7,8 +7,6 @@
  */
 (function()
 {
-// reference to the forge JSON-LD processor
-var jsonld = forge.jsonld;
 
 /**
  * Retrieves all of the properties that are a part of a JSON-LD object, 
