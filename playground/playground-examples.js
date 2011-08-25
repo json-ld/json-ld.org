@@ -24,7 +24,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:anyURI": ["homepage"]
+            "@iri": ["homepage"]
          }
       }
    };
@@ -51,7 +51,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:anyURI": ["image"],
+            "@iri": ["image"],
             "xsd:float": ["latitude", "longitude"]
          }
       }
@@ -102,7 +102,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:anyURI": ["foaf:page", "gr:acceptedPaymentMethods", "gr:hasBusinessFunction"],
+            "@iri": ["foaf:page", "gr:acceptedPaymentMethods", "gr:hasBusinessFunction"],
             "xsd:float": ["gr:hasCurrencyValue"]
          }
       }
@@ -182,7 +182,7 @@
       {
          "@coerce": 
          {
-            "xsd:anyURI": "ex:contains"
+            "@iri": "ex:contains"
          },
          "dc": "http://purl.org/dc/elements/1.1/",
          "ex": "http://example.org/vocab#",
