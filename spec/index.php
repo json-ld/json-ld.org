@@ -15,7 +15,6 @@ print <<< htmlcode
       <title>JSON-LD - Specifications</title> 
       <link href="../site.css" rel="stylesheet" type="text/css" /> 
       <link rel="shortcut icon" href="favicon.ico" /> 
-      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
    </head> 
  
    <body> 
