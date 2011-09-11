@@ -1694,8 +1694,8 @@ the same form shown above.</p>
 
 <p>This API provides a clean mechanism that enables developers to convert
 JSON-LD data into a a variety of output formats that are easier to work with in
-various programming languages. If an API is provided in a programming
-environment, the entire API MUST be implemented.
+various programming languages. If a JSON-LD API is provided in a programming
+environment, the entirety of the following API MUST be implemented.
 </p>
 
 <section>
@@ -1707,19 +1707,27 @@ environment, the entire API MUST be implemented.
     according to the steps in the
     <a href="#expansion-algorithm">Expansion Algorithm</a>. The
     <code>input</code> MUST be copied, expanded and returned if there are
-    no errors. If the expansion fails, <code>null</code> MUST be returned.
-    <div class="issue">How do we generate warning messages during this process?
-      For example, what happens when a key that doesn't have a mapping is
-      discovered?</div>
-  <dl class="parameters">
+    no errors. If the expansion fails, an appropriate exception MUST be thrown.
+    
+    <dl class="parameters">
      <dt>object input</dt>
      <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
      <dt>object optional? context</dt>
      <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
-     <dt>JsonLdProcessorCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the <code>input</code>.</dd>
-  </dl>
+    </dl>
+
+    <dl class="exception" title="InvalidContext">
+     <dt>INVALID_SYNTAX</dt>
+     <dd>A general syntax error was detected in the <code>@context</code>. 
+     For example, if a <code>@coerce</code> key maps to anything other than 
+     a string or an array of strings, this exception would be raised.</dd>
+     <dt>MULTIPLE_DATATYPES</dt>
+     <dd>There is more than one target datatype specified for a single 
+     property in the list of coercion rules. This means that the processor
+     does not know what the developer intended for the target datatype for a
+     property.</dd>
+    </dl>
+    
   </dd>
 
   <dt>object compact()</dt>
@@ -1733,10 +1741,29 @@ environment, the entire API MUST be implemented.
      <dd>The JSON-LD object to perform compaction on.</dd>
      <dt>object optional? context</dt>
      <dd>The base context to use when compacting the <code>input</code>.</dd>
-     <dt>JsonLdProcessorCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-       the given <code>input</code>.</dd>
   </dl>
+
+    <dl class="exception" title="InvalidContext">
+     <dt>INVALID_SYNTAX</dt>
+     <dd>A general syntax error was detected in the <code>@context</code>. 
+     For example, if a <code>@coerce</code> key maps to anything other than 
+     a string or an array of strings, this exception would be raised.</dd>
+     <dt>MULTIPLE_DATATYPES</dt>
+     <dd>There is more than one target datatype specified for a single 
+     property in the list of coercion rules. This means that the processor
+     does not know what the developer intended for the target datatype for a
+     property.</dd>
+    </dl>
+
+    <dl class="exception" title="ProcessingError">
+     <dt>LOSSY_COMPACTION</dt>
+     <dd>The compaction would lead to a loss of information, such as a
+     <code>@language</code> value.</dd>
+     <dt>CONFLICTING_DATATYPES</dt>
+     <dd>The target datatype specified in the coercion rule and the
+     datatype for the typed literal do not match.</dd>
+    </dl>
+
   </dd>
 
   <dt>object frame()</dt>
@@ -1755,10 +1782,18 @@ environment, the entire API MUST be implemented.
      <dd>The frame to use when re-arranging the data.</dd>
      <dt>object options</dt>
      <dd>A set of options that will affect the framing algorithm.</dd>
-     <dt>JsonLdProcessorCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given <code>input</code>.</dd>
   </dl>
+
+    <dl class="exception" title="InvalidFrame">
+    <dt>INVALID_SYNTAX</dt>
+    <dd>A frame must be either an object or an array of objects, if the frame
+    is neither of these types, this exception is thrown.</dd>
+    <dt>MULTIPLE_EMBEDS</dt>
+    <dd>A subject IRI was specified in more than one place in the input
+    frame. More than one embed of a given subject IRI is not allowed, and if
+    requested, MUST result in this exception.</dd>
+    </dl>
+
   </dd>
 
   <dt>object normalize()</dt>
@@ -1772,10 +1807,20 @@ environment, the entire API MUST be implemented.
      <dd>The JSON-LD object to perform normalization upon.</dd>
      <dt>object optional? context</dt>
      <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
-     <dt>JsonLdProcessorCallback optional? callback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given JSON-LD string.</dd>
   </dl>
+  
+    <dl class="exception" title="InvalidContext">
+     <dt>INVALID_SYNTAX</dt>
+     <dd>A general syntax error was detected in the <code>@context</code>. 
+     For example, if a <code>@coerce</code> key maps to anything other than 
+     a string or an array of strings, this exception would be raised.</dd>
+     <dt>MULTIPLE_DATATYPES</dt>
+     <dd>There is more than one target datatype specified for a single 
+     property in the list of coercion rules. This means that the processor
+     does not know what the developer intended for the target datatype for a
+     property.</dd>
+    </dl>
+  
   </dd>
 
   <dt>object triples()</dt>
@@ -1792,31 +1837,24 @@ environment, the entire API MUST be implemented.
        RDF API.</div></dd>
      <dt>object optional? context</dt>
      <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
-     <dt>JsonLdProcessorCallback optional? parserCallback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given <code>input</code>.</dd>
   </dl>
+
+    <dl class="exception" title="InvalidContext">
+     <dt>INVALID_SYNTAX</dt>
+     <dd>A general syntax error was detected in the <code>@context</code>. 
+     For example, if a <code>@coerce</code> key maps to anything other than 
+     a string or an array of strings, this exception would be raised.</dd>
+     <dt>MULTIPLE_DATATYPES</dt>
+     <dd>There is more than one target datatype specified for a single 
+     property in the list of coercion rules. This means that the processor
+     does not know what the developer intended for the target datatype for a
+     property.</dd>
+    </dl>
+
   </dd>
 
 </dl>
-</section>
 
-<section>
-<h3>JsonLdProcessorCallback</h3>
-<p>The JsonLdProcessorCallback is called whenever a processing error occurs
-while processing the <tref>JSON-LD input</tref>.</p>
-
-<dl title="[NoInterfaceObject Callback] interface JsonLdProcessorCallback"
-    class="idl">
-
-  <dt>void error()</dt>
-  <dd>This callback is invoked whenever an error occurs during processing.
-  <dl class="parameters">
-     <dt>DOMString error</dt>
-     <dd>A descriptive error string returned by the processor.</dd>
-  </dl>
-  </dd>
-</dl>
 </section>
 
 <section>
