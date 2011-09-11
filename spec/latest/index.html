@@ -349,7 +349,7 @@ WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
 familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <p>
-  Examples may contain references to existing vocabularies and use abbreviations in <tref>CURIE</tref>s and source code. The following is a list of all vocabularies and their abbreviations, as used in this document:
+  Examples may contain references to existing vocabularies and use <tref>prefix</tref>es to refer to Web Vocabularies. The following is a list of all vocabularies and their <tref>prefix</tref> abbreviations, as used in this document:
 </p>
 <ul>
   <li>The <a href="http://purl.org/dc/terms/">Dublin Core</a>
@@ -1342,7 +1342,7 @@ features that are specific to JSON-LD.
 </p>
 
 <section>
-  <h2>CURIEs</h2>
+  <h2>Vocabulary Prefixes</h2>
   <p>
     Vocabulary terms in Linked Data documents may draw from a number of
     different Web vocabularies. At times, declaring every single term that
@@ -1352,35 +1352,37 @@ features that are specific to JSON-LD.
     first is the cognitive load on the developer, the second is
     the serialized size of the context, the third is future-proofing
     application contexts. In order to address these issues, the concept of a
-    <em>Compact URI Expression</em> (CURIE) mechanism is introduced.</p>
+    <tref>prefix</tref> mechanism is introduced.</p>
   <p>
-    A <tdef>CURIE</tdef> is a compact way of describing an <tref>IRI</tref>.
-    Generally, a CURIE is composed of a <em>prefix</em> and a <em>suffix</em>
-    separated by a colon (<code>:</code>).
+    A <tdef>prefix</tdef> is a compact way of expressing a base 
+    <tref>IRI</tref> to a Web vocabulary.
+    Generally, these prefixes are used by concatenating the <em>prefix</em> and 
+    a <em>term</em> separated by a colon (<code>:</code>).
     The prefix is a short string that identifies a particular Web vocabulary.
     For example, the prefix <code>foaf</code> may be used as a short
     hand for the Friend-of-a-Friend Web Vocabulary, which is identified using
     the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append any of
     the FOAF Vocabulary terms to the end of the prefix to specify a short-hand
     version of the full IRI for the vocabulary term. For example,
-    <code>foaf:name</code> would be the CURIE for the IRI
+    <code>foaf:name</code> would be expanded out to the IRI
     <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember
-    and type out the entire IRI, the developer can instead use the CURIE in
+    and type out the entire IRI, the developer can instead use the prefix in
     their JSON-LD markup.
   </p>
   <p>
-    The ability to use CURIEs reduces the need for developers to declare
-    every vocabulary term that they intend to use in
+    The ability to use <tref>prefix</tref>es reduces the need for developers 
+    to declare every vocabulary term that they intend to use in
     the JSON-LD context. This reduces document serialization size because
-    every vocabulary term need not be declared in the context. CURIEs also
+    every vocabulary term need not be declared in the context. 
+    <tref>Prefix</tref> also
     reduce the cognitive load on the developer. It is far easier to
     remember <code>foaf:name</code> than it is to remember
-    <code>http://xmlns.com/foaf/0.1/name</code>. The use of CURIEs also
+    <code>http://xmlns.com/foaf/0.1/name</code>. The use of prefixes also
     ensures that a context document does not have to be updated in lock-step
-    with an externally defined Web Vocabulary. Without CURIEs, a developer
+    with an externally defined Web Vocabulary. Without prefixes, a developer
     would need to keep their application context terms in lock-step with an
     externally defined Web Vocabulary. Rather, by just declaring the
-    Web Vocabulary CURIE prefix, one can use new terms as they're declared
+    Web Vocabulary prefix, one can use new terms as they're declared
     without having to update the application's JSON-LD context.
   </p>
   <p>Consider the following example:</p>
@@ -1409,12 +1411,12 @@ features that are specific to JSON-LD.
 -->
   </pre>
   <p>
-    In this example, two different vocabularies are identified with
-    CURIE prefixes, and used as type and property values using the CURIE
-    notation.
+    In this example, two different vocabularies are referred to using
+    prefixes. Those prefixes are then used as type and property values using 
+    the <code>prefix:term</code> notation.
   </p>
   <p>
-    CURIEs are defined more formally in RDFa Core 1.1,
+    Prefixes, also known as CURIEs, are defined more formally in RDFa Core 1.1,
     <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">Section 6
     &quot;CURIE Syntax Definition&quot;</a></cite> [[RDFA-CORE]].
     JSON-LD does not support the square-bracketed CURIE syntax as the
@@ -1563,8 +1565,9 @@ being able to specify the subject. Typically, this type of node is called
 an unlabeled node or a blank node. In JSON-LD, unlabeled node identifiers are
 automatically created if a subject is not specified using the
 <code>@subject</code> keyword. However, authors may provide identifiers for
-unlabeled nodes by using the special <code>_</code> (underscore) <tref>CURIE</tref>
-prefix. This allows to reference the node locally within the document but not in an external document.</p>
+unlabeled nodes by using the special <code>_</code> (underscore) 
+<tref>prefix</tref>. This allows to reference the node locally within the 
+document but not in an external document.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1912,7 +1915,7 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@iri</code></dt><dd>Used to specify an IRI value.</dd>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
-  <dt><code>:</code></dt><dd>The separator for <tref>CURIE</tref>s when used in JSON keys or JSON values.</dd>
+  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   <dt><code>@subject</code></dt><dd>Sets the active subjects.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subjects.</dd>
   </dl>
@@ -1942,7 +1945,8 @@ language-native data structures MUST be used where applicable.</p>
     </dd>
     <dt><tdef>active context</tdef></dt>
     <dd>
-      a context that is used to resolve <tref>CURIE</tref>s while the processing
+      a context that is used to resolve <tref>prefix</tref>es and
+      <tref>term</tref>s while the processing
       algorithm is running. The <tref>active context</tref> is the context
       contained within the <tref>processor state</tref>.
     </dd>
@@ -2040,11 +2044,15 @@ language-native data structures MUST be used where applicable.</p>
       <code>@coerce</code> mapping into the <tref>active context</tref>'s
       <code>@coerce</code> mapping, overwriting any duplicate values in
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
-      The <code>@coerce</code> mapping has either a single <tref>CURIE</tref> or an
-      <tref>array</tref> of CURIEs. When merging with an existing mapping in the <tref>active context</tref>,
-      map all CURIE values to <tref>array</tref> form and replace with the union of the value from
-      the <tref>local context</tref> and the value of the <tref>active context</tref>. If the result is an <tref>array</tref>
-      with a single CURIE, the processor MAY represent this as a string value.
+      The <code>@coerce</code> mapping has either a single 
+      <code>prefix:term</code> value, a single <tref>term</tref> value or an
+      <tref>array</tref> of <code>prefix:term</code> or <tref>term</tref> values. 
+      When merging with an existing mapping in the <tref>active context</tref>,
+      map all <tref>prefix</tref> and <tref>term</tref> values to 
+      <tref>array</tref> form and replace with the union of the value from
+      the <tref>local context</tref> and the value of the 
+      <tref>active context</tref>. If the result is an <tref>array</tref>
+      with a single value, the processor MAY represent this as a string value.
     </p>
   </section>
 
@@ -2076,7 +2084,7 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an IRI. This section defines an algorithm for
     transforming a value representing an IRI into an actual IRI.</p>
-  <p>IRIs may be represented as an explicit string, as a <tref>CURIE</tref>, or as a value relative to <code>@base</code>
+  <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:<tref>term</tref> construct, or as a value relative to <code>@base</code>
     or <code>@vocab</code>.</p>
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
@@ -3731,7 +3739,7 @@ environments.</p>
 <p class="issue">MongoDB does not allow the '.' character to be used in
 key names. This prevents developers from storing IRIs as keys, which also
 prevents storage of the data in normalized form. While this issue can
-be avoided by using <tref>CURIE</tref>s for key values, it is not known if this
+be avoided by using <tref>prefix</tref>es for key values, it is not known if this
 mechanism is enough to allow JSON-LD to be used in MongoDB in a way that
 is useful to developers.
 </p>
@@ -4204,8 +4212,8 @@ with "<code>http://example.org/myvocab#</code>" when it
 is detected. In the example above, "<code>myvocab:personality</code>" would
 expand to "<code>http://example.org/myvocab#personality</code>".</p>
 
-<p>This mechanism is a short-hand for RDF, called a <tref>CURIE</tref>, and provides
-developers an unambiguous way to map any JSON value to RDF.<p>
+<p>This mechanism is a short-hand, called a Web Vocabulary <tref>prefix</tref>, 
+and provides developers an unambiguous way to map any JSON value to RDF.<p>
 
 </section>
 
