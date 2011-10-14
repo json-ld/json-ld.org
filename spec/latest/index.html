@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <title>JSON-LD 1.0</title>
@@ -319,8 +319,8 @@ allows to easily add meaning by adding context in a way that is either in-band o
 out-of-band. The syntax is designed to not disturb already deployed systems
 running on JSON, but provide a smooth upgrade path from JSON to JSON with
 added semantics. Finally, the format is intended to be easy to parse, efficient to
-generate, stream-based and document-based processing compatible, and require
-a very small memory footprint in order to operate.
+generate, convertible to RDF in one pass, and require a very small memory footprint
+in order to operate.
 </p>
 
 <section>
@@ -469,8 +469,8 @@ markup language:
  and support a simplified syntax instead. So, while Zero Edits is a goal,
  it is not always possible without adding great complexity to the language.
  </dd>
- <dt>Streaming</dt>
- <dd>The format supports both document-based and stream-based processing.</dd>
+ <dt>One-pass Conversion to RDF</dt>
+ <dd>JSON-LD supports one-pass conversion to RDF with a very small memory footprint.</dd>
 </dl>
 </section>
 
@@ -545,8 +545,8 @@ rest of this section:
 <p>In JSON-LD, a context is used to map <tref>term</tref>s, i.e., keys and values
   in an JSON document, to
   <tref>IRI</tref>s. A <tdef>term</tdef> is a short word that MAY be expanded
-to an <tref>IRI</tref>. The Web uses IRIs for unambiguous identification. The 
-idea is that these <tref>term</tref>s mean something that may be of use to 
+to an <tref>IRI</tref>. The Web uses IRIs for unambiguous identification. The
+idea is that these <tref>term</tref>s mean something that may be of use to
 other developers and that it is useful to give them an unambiguous identifier.
 That is, it is useful for <tref>term</tref>s to expand to IRIs so that
 developers don't accidentally step on each other's Web Vocabulary terms.
@@ -657,6 +657,11 @@ are unambiguous.
 <p>The context provides a collection of vocabulary <tref>term</tref>s and
 <tref>prefix</tref>es that can be used to expand JSON keys and values into
 <tref>IRI</tref>s.</p>
+
+<p class="note">To ensure the best possible performance, it is a best practice to
+put the context definition at the top of the JSON-LD document. If it isn't listed
+first, processors have to save each key-value pair until the context is processed.
+This creates a memory and complexity burden for one-pass processors.</p>
 
 </section>
 
@@ -840,6 +845,12 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 <p>The example above would set the subject to the IRI
 <code>http://example.org/people#joebob</code>.
 </p>
+
+<p class="note">To ensure the best possible performance, it is a best practice to
+put the <code>@subject</code> key before other key-value pairs in an object. If
+it isn't listed first, processors have to save each key-value pair until
+<code>@subject</code> is processed before they can create valid triples. This
+creates a memory and complexity burden for one-pass processors.</p>
 
 </section>
 
@@ -1356,9 +1367,9 @@ features that are specific to JSON-LD.
     application contexts. In order to address these issues, the concept of a
     <tref>prefix</tref> mechanism is introduced.</p>
   <p>
-    A <tdef>prefix</tdef> is a compact way of expressing a base 
+    A <tdef>prefix</tdef> is a compact way of expressing a base
     <tref>IRI</tref> to a <tref>Web Vocabulary</tref>.
-    Generally, these prefixes are used by concatenating the <em>prefix</em> and 
+    Generally, these prefixes are used by concatenating the <em>prefix</em> and
     a <em>term</em> separated by a colon (<code>:</code>).
     The prefix is a short string that identifies a particular Web vocabulary.
     For example, the prefix <code>foaf</code> may be used as a short
@@ -1372,10 +1383,10 @@ features that are specific to JSON-LD.
     their JSON-LD markup.
   </p>
   <p>
-    The ability to use <tref>prefix</tref>es reduces the need for developers 
+    The ability to use <tref>prefix</tref>es reduces the need for developers
     to declare every vocabulary term that they intend to use in
     the JSON-LD context. This reduces document serialization size because
-    every vocabulary term need not be declared in the context. 
+    every vocabulary term need not be declared in the context.
     <tref>Prefix</tref> also
     reduce the cognitive load on the developer. It is far easier to
     remember <code>foaf:name</code> than it is to remember
@@ -1414,7 +1425,7 @@ features that are specific to JSON-LD.
   </pre>
   <p>
     In this example, two different vocabularies are referred to using
-    prefixes. Those prefixes are then used as type and property values using 
+    prefixes. Those prefixes are then used as type and property values using
     the <code>prefix:term</code> notation.
   </p>
   <p>
@@ -1567,8 +1578,8 @@ being able to specify the subject. Typically, this type of node is called
 an unlabeled node or a blank node. In JSON-LD, unlabeled node identifiers are
 automatically created if a subject is not specified using the
 <code>@subject</code> keyword. However, authors may provide identifiers for
-unlabeled nodes by using the special <code>_</code> (underscore) 
-<tref>prefix</tref>. This allows to reference the node locally within the 
+unlabeled nodes by using the special <code>_</code> (underscore)
+<tref>prefix</tref>. This allows to reference the node locally within the
 document but not in an external document.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -1713,7 +1724,7 @@ environment, the entirety of the following API MUST be implemented.
     <a href="#expansion-algorithm">Expansion Algorithm</a>. The
     <code>input</code> MUST be copied, expanded and returned if there are
     no errors. If the expansion fails, an appropriate exception MUST be thrown.
-    
+
     <dl class="parameters">
      <dt>object input</dt>
      <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
@@ -1723,16 +1734,16 @@ environment, the entirety of the following API MUST be implemented.
 
     <dl class="exception" title="InvalidContext">
      <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>. 
-     For example, if a <code>@coerce</code> key maps to anything other than 
+     <dd>A general syntax error was detected in the <code>@context</code>.
+     For example, if a <code>@coerce</code> key maps to anything other than
      a string or an array of strings, this exception would be raised.</dd>
      <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single 
+     <dd>There is more than one target datatype specified for a single
      property in the list of coercion rules. This means that the processor
      does not know what the developer intended for the target datatype for a
      property.</dd>
     </dl>
-    
+
   </dd>
 
   <dt>object compact()</dt>
@@ -1751,11 +1762,11 @@ environment, the entirety of the following API MUST be implemented.
 
     <dl class="exception" title="InvalidContext">
      <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>. 
-     For example, if a <code>@coerce</code> key maps to anything other than 
+     <dd>A general syntax error was detected in the <code>@context</code>.
+     For example, if a <code>@coerce</code> key maps to anything other than
      a string or an array of strings, this exception would be raised.</dd>
      <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single 
+     <dd>There is more than one target datatype specified for a single
      property in the list of coercion rules. This means that the processor
      does not know what the developer intended for the target datatype for a
      property.</dd>
@@ -1777,8 +1788,8 @@ environment, the entirety of the following API MUST be implemented.
     using the <code>frame</code> according to the steps in the
     <a href="#framing-algorithm">Framing Algorithm</a>. The
     <code>input</code> is used to build the framed output and is returned if
-    there are no errors. If there are no matches for the frame, 
-    <code>null</code> MUST be returned. Exceptions MUST be thrown if there are 
+    there are no errors. If there are no matches for the frame,
+    <code>null</code> MUST be returned. Exceptions MUST be thrown if there are
     errors.
   <dl class="parameters">
      <dt>object input</dt>
@@ -1813,19 +1824,19 @@ environment, the entirety of the following API MUST be implemented.
      <dt>object optional? context</dt>
      <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
   </dl>
-  
+
     <dl class="exception" title="InvalidContext">
      <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>. 
-     For example, if a <code>@coerce</code> key maps to anything other than 
+     <dd>A general syntax error was detected in the <code>@context</code>.
+     For example, if a <code>@coerce</code> key maps to anything other than
      a string or an array of strings, this exception would be raised.</dd>
      <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single 
+     <dd>There is more than one target datatype specified for a single
      property in the list of coercion rules. This means that the processor
      does not know what the developer intended for the target datatype for a
      property.</dd>
     </dl>
-  
+
   </dd>
 
   <dt>object triples()</dt>
@@ -1846,11 +1857,11 @@ environment, the entirety of the following API MUST be implemented.
 
     <dl class="exception" title="InvalidContext">
      <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>. 
-     For example, if a <code>@coerce</code> key maps to anything other than 
+     <dd>A general syntax error was detected in the <code>@context</code>.
+     For example, if a <code>@coerce</code> key maps to anything other than
      a string or an array of strings, this exception would be raised.</dd>
      <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single 
+     <dd>There is more than one target datatype specified for a single
      property in the list of coercion rules. This means that the processor
      does not know what the developer intended for the target datatype for a
      property.</dd>
@@ -1918,8 +1929,8 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
-  <dt><code>@subject</code></dt><dd>Sets the active subjects.</dd>
-  <dt><code>@type</code></dt><dd>Used to set the type of the active subjects.</dd>
+  <dt><code>@subject</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
   </dl>
 </section>
 
@@ -2034,7 +2045,7 @@ language-native data structures MUST be used where applicable.</p>
       <tref>active context</tref>'s <code>@coerce</code> mapping as described <a href="#coerce">below</a>.
     </li>
     <li>
-      Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref>to the
+      Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref> to the
       <tref>active context</tref> overwriting any duplicate values.
     </li>
   </ol>
@@ -2046,13 +2057,13 @@ language-native data structures MUST be used where applicable.</p>
       <code>@coerce</code> mapping into the <tref>active context</tref>'s
       <code>@coerce</code> mapping, overwriting any duplicate values in
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
-      The <code>@coerce</code> mapping has either a single 
+      The <code>@coerce</code> mapping has either a single
       <code>prefix:term</code> value, a single <tref>term</tref> value or an
-      <tref>array</tref> of <code>prefix:term</code> or <tref>term</tref> values. 
+      <tref>array</tref> of <code>prefix:term</code> or <tref>term</tref> values.
       When merging with an existing mapping in the <tref>active context</tref>,
-      map all <tref>prefix</tref> and <tref>term</tref> values to 
+      map all <tref>prefix</tref> and <tref>term</tref> values to
       <tref>array</tref> form and replace with the union of the value from
-      the <tref>local context</tref> and the value of the 
+      the <tref>local context</tref> and the value of the
       <tref>active context</tref>. If the result is an <tref>array</tref>
       with a single value, the processor MAY represent this as a string value.
     </p>
@@ -2073,7 +2084,7 @@ language-native data structures MUST be used where applicable.</p>
     <!--
     {
         "@base": ****document-location****,
-        "@context": {
+        "@coerce": {
           "@iri": "@type"
         }
     }
@@ -2472,7 +2483,8 @@ are not labeled.
 
 <p>In time, there may be more than one normalization algorithm that will need
 to be identified. For identification purposes, this algorithm is named
-<abbr title="Universal Graph Normalization Algorithm 2011">UGNA2011</abbr>.
+"Universal Graph Normalization Algorithm 2011"
+(<abbr title="Universal Graph Normalization Algorithm 2011">UGNA2011</abbr>).
 </p>
 
 <section>
@@ -3458,12 +3470,12 @@ to the lossy nature of <strong>xsd:double</strong> values.</p>
 
 <p class="note">Some JSON serializers, such as PHP's native implementation,
 backslash-escapes the forward slash character. For example, the value
-<code>http://example.com/</code> would be serialized as 
+<code>http://example.com/</code> would be serialized as
 <code>http:\/\/example.com\/</code> in some
 versions of PHP. This is problematic when generating a byte
-stream for processes such as normalization. There is no need to 
+stream for processes such as normalization. There is no need to
 backslash-escape forward-slashes in JSON-LD. To aid interoperability between
-JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape 
+JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape
 forward slashes.</p>
 
 <p class="issue">Round-tripping data can be problematic if we mix and
@@ -3525,8 +3537,7 @@ implement the algorithm exactly as described.
   <p>
     JSON-LD is intended to have an easy to parse grammar that closely models existing
     practice in using JSON for describing object representations. This allows the use
-    of existing libraries for parsing JSON in a document-oriented fashion, or can allow
-    for stream-based parsing similar to SAX.
+    of existing libraries for parsing JSON.
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
@@ -4167,7 +4178,7 @@ instead refer to items by their full IRI.</p>
 
 <p>Developers would also benefit by allowing other vocabularies to be used
 automatically with their JSON API. There are over 200
-<tref>Web Vocabulary</tref> Documents that are available for use on the Web 
+<tref>Web Vocabulary</tref> Documents that are available for use on the Web
 today. Some of these vocabularies are:
 </p>
 
@@ -4224,7 +4235,7 @@ with "<code>http://example.org/myvocab#</code>" when it
 is detected. In the example above, "<code>myvocab:personality</code>" would
 expand to "<code>http://example.org/myvocab#personality</code>".</p>
 
-<p>This mechanism is a short-hand, called a <tref>Web Vocabulary</tref> <tref>prefix</tref>, 
+<p>This mechanism is a short-hand, called a <tref>Web Vocabulary</tref> <tref>prefix</tref>,
 and provides developers an unambiguous way to map any JSON value to RDF.<p>
 
 </section>
