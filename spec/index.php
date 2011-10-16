@@ -41,13 +41,13 @@ print <<< htmlcode
 
 htmlcode;
 
-$editorsDrafts = scandir('ED', 1);
+$editorsDrafts = scandir('ED/json-ld-syntax', 1);
 
 foreach($editorsDrafts as $draft)
 {
    if($draft != "." and $draft != "..")
    {
-     print("                 <li><a href=\"ED/$draft/\">$draft</a></li>");
+     print("                 <li><a href=\"ED/json-ld-syntax/$draft/\">$draft</a></li>");
    }
 }
 
@@ -57,12 +57,38 @@ print <<< htmlcode
                <h2>The JSON-LD API</h2>
                <ul>
                  <li><a href="latest/json-ld-api/">latest</a></li>
+htmlcode;
+
+$editorsDrafts = scandir('ED/json-ld-api', 1);
+
+foreach($editorsDrafts as $draft)
+{
+   if($draft != "." and $draft != "..")
+   {
+     print("                 <li><a href=\"ED/json-ld-api/$draft/\">$draft</a></li>");
+   }
+}
+
+print <<< htmlcode
                </ul>
 
 
                <h2>RDF Graph Normalization</h2>
                <ul>
                  <li><a href="latest/rdf-graph-normalization/">latest</a></li>
+htmlcode;
+
+$editorsDrafts = scandir('ED/rdf-graph-normalization', 1);
+
+foreach($editorsDrafts as $draft)
+{
+   if($draft != "." and $draft != "..")
+   {
+     print("                 <li><a href=\"ED/rdf-graph-normalization/$draft/\">$draft</a></li>");
+   }
+}
+
+print <<< htmlcode
                </ul>
 
             </div>
