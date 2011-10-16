@@ -1,0 +1,1361 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>RDF Graph Normalization</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<!--
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+<script type="text/javascript"
+  src="http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js" class="remove">
+ </script>
+<script type="text/javascript" class="remove">
+
+    var preProc = {
+          apply:  function(c) {
+                    // extend the bibliography entries
+                    berjon.biblio["MICRODATA"] = "Ian Hickson; et al. <a href=\"http://www.w3.org/TR/microdata/\"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/microdata/\">http://www.w3.org/TR/microdata/</a> ";
+                    berjon.biblio["HTML-RDFA"] = "Manu Sporny; et al. <a href=\"http://www.w3.org/TR/rdfa-in-html/\"><cite>HTML+RDFa</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/rdfa-in-html/\">http://www.w3.org/TR/rdfa-in-html/</a> ";
+                    berjon.biblio["BCP47"] = "A. Phillips, M. Davis. <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\"><cite>Tags for Identifying Languages</cite></a> September 2009. IETF Best Current Practice. URL: <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\">http://tools.ietf.org/rfc/bcp/bcp47.txt</a>";
+                    berjon.biblio["JSON-LD"] = "Manu Sporny, Gregg Kellogg, et al. <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\"><cite>The JSON-LD Syntax</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\">http://json-ld.org/spec/latest/json-ld-syntax/</a>";
+                    berjon.biblio["RDF-API"] = "Manu Sporny, Benjamin Adrian, Nathan Rixham; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\"><cite>RDF API</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\">http://www.w3.org/2010/02/rdfa/sources/rdf-api/</a>";
+                    berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
+
+                    // process the document before anything else is done
+                    var refs = document.querySelectorAll('adef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'dfn' ) ;
+                        var tit = item.getAttribute('title') ;
+                        if (!tit) {
+                            tit = con;
+                        }
+                        sp.className = 'adef' ;
+                        sp.title=tit ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    refs = document.querySelectorAll('aref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'aref' ;
+                        sp.setAttribute('title', con);
+                        sp.innerHTML = '@'+con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // local datatype references
+                    refs = document.querySelectorAll('ldtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'datatype';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // external datatype references
+                    refs = document.querySelectorAll('dtref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'a' ) ;
+                        sp.className = 'externalDFN';
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now do terms
+                    refs = document.querySelectorAll('tdef') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+                        var sp = document.createElement( 'dfn' ) ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                    // now term references
+                    refs = document.querySelectorAll('tref') ;
+                    for (var i = 0; i < refs.length; i++) {
+                        var item = refs[i];
+                        if (!item) continue ;
+                        var p = item.parentNode ;
+                        var con = item.innerHTML ;
+                        var ref = item.getAttribute('title') ;
+                        if (!ref) {
+                            ref = item.textContent ;
+                        }
+                        if (ref) {
+                            ref = ref.replace(/\n/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_') ;
+                        }
+
+                        var sp = document.createElement( 'a' ) ;
+                        var id = item.textContent ;
+                        sp.className = 'tref' ;
+                        sp.title = ref ;
+                        sp.innerHTML = con ;
+                        p.replaceChild(sp, item) ;
+                    }
+                }
+        } ;
+
+
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          //publishDate:          "2010-04-29",
+          copyrightStart:       "2010",
+
+          // the specification's short name, as in http://www.w3.org/TR/short-name/
+          shortName:            "rdf-graph-normalization",
+          subtitle:             "A Standard RDF Graph Normalization Algorithm",
+          // if you wish the publication date to be other than today, set this
+          // publishDate:  "2009-08-06",
+
+          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+          // and its maturity status
+          previousPublishDate:  "2011-08-17",
+          previousMaturity:     "ED",
+          previousDiffURI:      "http://json-ld.org/spec/ED/20110817/index.html",
+          diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
+
+          // if there a publicly available Editor's Draft, this is the link
+          edDraftURI:           "http://json-ld.org/spec/latest/rdf-graph-normalization/",
+
+          // if this is a LCWD, uncomment and set the end of its review period
+          // lcEnd: "2009-08-05",
+
+          // if you want to have extra CSS, append them to this list
+          // it is recommended that the respec.css stylesheet be kept
+          extraCSS: [
+              "http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css",
+              "spec.css"
+          ],
+
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              { name: "Manu Sporny", url: "http://manu.sporny.org/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+              { name: "Dave Longley", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"}
+          ],
+
+          // authors, add as many as you like.
+          // This is optional, uncomment if you have authors as well as editors.
+          // only "name" is required. Same format as editors.
+
+          authors:  [
+              { name: "Dave Longley", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
+              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+          ],
+
+          // name of the WG
+          wg:           "Linking Data in JSON Community Group",
+
+          // URI of the public WG page
+          wgURI:        "http://json-ld.org/",
+
+          // name (with the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "public-linked-json@w3c.org",
+
+          // URI of the patent status for this WG, for Rec-track documents
+          // !!!! IMPORTANT !!!!
+          // This is important for Rec-track documents, do not copy a patent URI from a random
+          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+          // Team Contact.
+          wgPatentURI:  "",
+          maxTocLevel: 4,
+          preProcess: [ preProc ],
+          //alternateFormats: [ {uri: "diff-20110817.html", label: "diff to previous version"} ],
+      };
+
+      function updateExample(doc, content) {
+        // perform transformations to make it render and prettier
+        content = content.replace(/<!--/, '');
+        content = content.replace(/-->/, '');
+        content = doc._esc(content);
+        content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="diff">$1</span>') ;
+        return content ;
+      }
+
+      function updateDTD(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="dtd">' + doc._esc(content) + '</pre>';
+        content = content.replace(/!ENTITY % ([^ \t\r\n]*)/g, '!ENTITY <span class="entity">% $1</span>');
+        content = content.replace(/!ELEMENT ([^ \t$]*)/mg, '!ELEMENT <span class="element">$1</span>');
+        return content;
+      }
+
+      function updateSchema(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="dtd">' + doc._esc(content) + '</pre>';
+        content = content.replace(/&lt;xs:element\s+name=&quot;([^&]*)&quot;/g, '&lt;xs:element name="<span class="element" id="schema_element_$1">$1</span>"') ;
+        return content;
+      }
+
+      function updateTTL(doc, content) {
+        // perform transformations to
+        // make it render and prettier
+        content = '<pre class="sh_sourceCode">' + doc._esc(content) + '</pre>';
+        content = content.replace(/@prefix/g, '<span class="sh_keyword">@prefix</span>');
+        return content;
+      }
+  </script>
+<style>
+.diff { font-weight:bold; color:#0a3; }
+ol.algorithm.update { margin-left: 2em; }
+ol.algorithm.update>li { list-style-type: none; }
+ol.algorithm.update>li>span.list-number {
+  display:block;
+  float: left;
+  margin-left: -3.5em;
+}
+</style>
+</head>
+
+<body>
+<section id="abstract">
+<p>
+RDF [[RDF-SYNTAX]] describes a graph-based data model for making claims about
+the world and provides the foundation for reasoning upon that graph of
+information. At times, it becomes necessary to compare the differences between
+graphs, digitally sign graphs, or generate short identifiers for graphs via
+hashing algorithms. This document outlines an algorithm for normalizing RDF
+graphs such that these operations can be performed on the normalized graphs.
+</p>
+</section>
+
+<section id='sotd'>
+<p>This document is an experimental work in progress.</p>
+<!-- <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p> -->
+</section>
+
+<section>
+<h1>Introduction</h1>
+
+<p>When data scientists discuss graph normalization, they
+do so in the context of achieving a particular set of goals. Since a directed 
+graph can express the same information in a variety of different ways, it 
+becomes necessary to be able to transform a graph of information into a
+standard form for the purposes of calculating differences between two graphs,
+generating a cryptographically-strong hash identifier for a graph, or digitally 
+signing a graph.</p>
+
+<p>Many RDF graphs, containing nodes with unique identifiers, can be normalized 
+quite easily. However, when a node does not have a unique identifier,
+graph normalization becomes exponentially more difficult. This problem is
+called the <tdef>graph isomorphism</tdef> problem, and it is believed to be a
+NP-hard problem in the worst cases. This means that the problem is very 
+difficult to solve in a reasonable timeframe for certain inputs. Luckily, these
+types of inputs are extremely rare in the real world. Graph isomorphisms are
+most commonly used as a denial of service attack and thus any software system
+attempting to solve the graph normalization problem should be able to detect
+graph isomorphisms correctly.</p>
+
+<p>This document outlines an algorithm for generating a normalized RDF 
+graph given an input RDF graph. The algorithm is called the
+<strong>Universal RDF Graph Normalization Algorithm 2011</strong> or
+<strong>URGNA2011</strong>.</p>
+
+<section>
+<h2>How to Read this Document</h2>
+
+<p>
+This document is a detailed specification for an RDF graph normalization
+algorithm. The document is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Software developers that want to implement an RDF graph normalization
+algorithm.</li>
+  <li>Masochists.</li>
+</ul>
+
+<p>
+To understand the basics in this specification you must be familiar with basic
+RDF concepts [[!RDF-CONCEPTS]]. A working knowledge of 
+<a href="http://en.wikipedia.org/wiki/Graph_theory">graph theory</a> is 
+also recommended.</p>
+</section>
+
+<section>
+<h2>Contributing</h2>
+
+<p>There are a number of ways that one may participate in the development of
+this specification:</p>
+
+<ul>
+<li>Technical discussion typically occurs on the public mailing list:
+<a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
+</li>
+
+<li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+on Tuesdays at 1500UTC on the second and fourth week of each month.
+</li>
+
+<li>Specification bugs and issues should be reported in the
+<a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+<li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+specification can be found on Github.</li>
+
+<li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
+IRC channel is available for real-time discussion on irc.freenode.net.</li>
+</ul>
+
+</section>
+
+</section>
+
+<section>
+<h1>Normalization</h1>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p>Normalization is the process of taking <tref>input graph</tref> and
+performing a transformation on that input that results in all
+aspects of the graph being arranged in a deterministic way in the
+<tref>output graph</tref>. That is, for two <tref>input graph</tref>s 
+containing the same 
+information, regardless of their arrangement, the <tref>output graph</tref>s
+will be identical. The problem is a fairly difficult technical
+problem to solve because it requires a directed graph to be ordered into a
+set of nodes and edges in a deterministic way. This is easy to do when all of
+the nodes have unique names, but very difficult to do when some of the nodes
+are not labeled and thus names must be generated for those nodes in a
+deterministic fashion.
+</p>
+
+<p>In time, there may be more than one normalization algorithm that will need
+to be identified. For identification purposes, this algorithm is named the
+"Universal RDF Graph Normalization Algorithm 2011"
+(<abbr title="Universal RDF Graph Normalization Algorithm 2011">URGNA2011</abbr>).
+</p>
+
+<section>
+<h3>Normalization Algorithm Terms</h3>
+ <dl>
+   <dt><tdef>input graph</tdef></dt>
+   <dd>
+     The data structure that is provided as input to the algorithm.
+   </dd>
+   <dt><tdef>output graph</tdef></dt>
+   <dd>
+     The data structure that is produced as output by the algorithm.
+   </dd>
+   <dt><tdef>label</tdef></dt>
+   <dd>
+     The subject IRI associated with a graph node.
+   </dd>
+   <dt><tdef>list of expanded nodes</tdef></dt>
+   <dd>
+     A list of all nodes in the <tref>input graph</tref>.
+   </dd>
+   <dt><tdef>alpha</tdef> and <tdef>beta</tdef> values</dt>
+   <dd>
+     The words <tref>alpha</tref> and <tref>beta</tref> refer to the first and
+     second nodes or values being examined in an algorithm. The names are
+     merely used to refer to each input value to a comparison algorithm.
+   </dd>
+   <dt><tdef>renaming counter</tdef></dt>
+   <dd>
+     A counter that is used during the
+     <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. The
+     counter typically starts at one (1) and counts up for every node that is
+     relabeled. There will be two such renaming counters in an implementation
+     of the normalization algorithm. The first is the
+     <tref>labeling counter</tref> and the second is the
+     <tref>deterministic labeling counter</tref>.
+   </dd>
+   <dt><tdef>serialization label</tdef></dt>
+   <dd>
+     An identifier that is created to aid in the normalization process in the
+     <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>. The
+     value typically takes the form of <code>s&lt;NUMBER&gt;</code> or
+     <code>c&lt;NUMBER&gt;</code>.
+   </dd>
+</dl>
+</section>
+
+<section>
+<h3>Normalization State</h3>
+
+<p>When performing the steps required by the normalization algorithm,
+it is helpful to track the many pieces of information in a
+data structure called the <tdef>normalization state</tdef>. Many of these
+pieces simply provide indexes into the graph. The information
+contained in the <tref>normalization state</tref> is described below.</p>
+
+<dl>
+   <dt><tdef>node state</tdef></dt>
+   <dd>
+     Each node in the graph will be assigned a <tref>node state</tref>. This
+     state contains the information necessary to deterministically
+     <tref>label</tref> all nodes in the graph. A <tref>node state</tref>
+     includes:
+     <dl>
+        <dt><tdef>node reference</tdef></dt>
+        <dd>
+          A <tref>node reference</tref> is a reference to a node in the graph.
+          For a given <tref>node state</tref>, its <tref>node reference</tref>
+          refers to the node that the state is for. When a
+          <tref>node state</tref> is created, its <tref>node reference</tref>
+          should be to the node it is created for.
+        </dd>
+        <dt><tdef>outgoing list</tdef></dt>
+        <dd>
+          Lists the <tref>label</tref>s for all nodes that are properties of
+          the <tref>node reference</tref>. This list should be initialized
+          by iterating over every object associated with a property in the
+          <tref>node reference</tref> adding its label if it is another node.
+        </dd>
+        <dt><tdef>incoming list</tdef></dt>
+        <dd>
+          Lists the <tref>label</tref>s for all nodes in the graph for which
+          the <tref>node reference</tref> is a property. This list is
+          initialized to an empty list.
+        </dd>
+        <dt><tdef>outgoing serialization map</tdef></dt>
+        <dd>
+          Maps node <tref>label</tref>s to <tref>serialization label</tref>s.
+          This map is initialized to an empty map. When this map is populated,
+          it will be filled with keys that are the <tref>label</tref>s of every node in the
+          graph with a label that begins with <code>_:</code> and that has a
+          path, via properties, that starts with the
+          <tref>node reference</tref>.
+        </dd>
+        <dt><tdef>outgoing serialization</tdef></dt>
+        <dd>
+          A string that can be lexicographically compared to the
+          <tref>outgoing serialization</tref>s of other
+          <tref>node state</tref>s. It is a representation of the
+          <tref>outgoing serialization map</tref> and other related
+          information. This string is initialized to an empty string.
+        </dd>
+        <dt><tdef>incoming serialization map</tdef></dt>
+        <dd>
+          Maps node <tref>label</tref>s to <tref>serialization label</tref>s.
+          This map is initialized to an empty map. When this map is populated,
+          it will be filled with keys that are the <tref>label</tref>s of every
+          node in the graph with a <tref>label</tref> that begins with
+          <code>_:</code> and that has a path, via properties, that ends with
+          the <tref>node reference</tref>.
+        </dd>
+        <dt><tdef>incoming serialization</tdef></dt>
+        <dd>
+          A string that can be lexicographically compared to the
+          <tref>outgoing serialization</tref>s of other
+          <tref>node state</tref>s. It is a representation of the
+          <tref>incoming serialization map</tref> and other related
+          information. This string is initialized to an empty string.
+        </dd>
+     </dl>
+   </dd>
+   <dt><tdef>node state map</tdef></dt>
+   <dd>
+     A mapping from a node's <tref>label</tref> to a <tref>node state</tref>.
+     It is initialized to an empty map.
+   </dd>
+   <dt><tdef>labeling prefix</tdef></dt>
+   <dd>
+     The labeling prefix is a string that is used as the beginning of a node
+     <tref>label</tref>. It should be initialized to a random base string that
+     starts with the characters <code>_:</code>, is not used by any other
+     node's <tref>label</tref> in the <tref>input graph</tref>, and does not
+     start with the characters <code>_:c14n</code>. The prefix has two uses.
+     First it is used to temporarily name nodes during the normalization
+     algorithm in a way that doesn't collide with the names that already
+     exist as well as the names that will be generated by the normalization
+     algorithm. Second, it will eventually be set to <code>_:c14n</code> to
+     generate the final, deterministic labels for nodes in the graph. This
+     prefix will be concatenated with the <tref>labeling counter</tref> to
+     produce a node <tref>label</tref>. For example, <code>_:j8r3k</code> is
+     a proper initial value for the <tref>labeling prefix</tref>.
+   </dd>
+   <dt><tdef>labeling counter</tdef></dt>
+   <dd>
+     A counter that is used to label nodes. It is appended to the
+     <tref>labeling prefix</tref> to create a node <tref>label</tref>. It is
+     initialized to <code>1</code>.
+   </dd>
+   <dt><tdef>map of flattened nodes</tdef></dt>
+   <dd>
+     A map containing a representation of all nodes in the graph where the
+     key is a node <tref>label</tref> and the value is a single
+     <tref>JSON object</tref> that has no nested sub-objects
+     and has had all properties for the same node merged into a single
+     <tref>JSON object</tref>.
+   </dd>
+</dl>
+
+</section>
+
+<section>
+<h3>Normalization Algorithm</h3>
+
+<p>The normalization algorithm expands the <tref>input graph</tref>,
+flattens the data structure, and creates an initial set of names for all
+nodes in the graph. The flattened data structure is then processed by a
+node labeling algorithm in order to get a fully expanded and named list of
+nodes which is then sorted. The result is a deterministically named and
+ordered list of graph nodes.
+</p>
+
+<ol class="algorithm">
+<li>Expand the <tref>input graph</tref> according to the steps in
+the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
+result as the <strong>expanded input</strong>.</li>
+<li>Create a <tref>normalization state</tref>.</li>
+<li>Initialize the <tref>map of flattened nodes</tref> by recursively
+processing every <tdef>expanded node</tdef> in the
+<strong>expanded input</strong> in depth-first order:
+  <ol class="algorithm">
+    <li>If the <tref>expanded node</tref> is an unlabeled node, add a
+      new key-value pair to the <tref>expanded node</tref>
+      where the key is <code>@subject</code> and the value is the
+      concatenation of the <tref>labeling prefix</tref>
+      and the string value of the <tref>labeling counter</tref>.
+      Increment the <tref>labeling counter</tref>.</li>
+    <li>Add the <tref>expanded node</tref> to the
+      <tref>map of flattened nodes</tref>:
+      <ol class="algorithm">
+        <li>If the <tref>expanded node</tref>'s <tref>label</tref> is already
+          in the
+          <tref>map of flattened nodes</tref> merge all properties from the
+          entry in the <tref>map of flattened nodes</tref> into the
+          <tref>expanded node</tref>.</li>
+        <li>Go through every property associated with an array in the
+          <tref>expanded node</tref> and remove any duplicate IRI entries from
+          the array. If the resulting array only has one IRI entry, change it
+          from an array to an object.</li>
+        <li>Set the entry for the <tref>expanded node</tref>'s <tref>label</tref>
+          in the <tref>map of flattened nodes</tref> to the
+          <tref>expanded node</tref>.
+        </li></ol></li>
+    <li>After exiting the recursive step, replace the reference to the
+      <tref>expanded node</tref> with an object containing a single
+       key-value pair where the key is <code>@iri</code> and the value is
+       the value of the <code>@subject</code> key in the node.</li>
+  </ol></li>
+<li>For every entry in the <tref>map of flattened nodes</tref>, insert a
+  key-value pair into the <tref>node state map</tref> where the key is the
+  key from the <tref>map of flattened nodes</tref> and the value is a
+  <tref>node state</tref> where its <tref>node reference</tref> refers to
+  the value from the <tref>map of flattened nodes</tref>.
+<li>Populate the <tref>incoming list</tref> for each <tref>node state</tref>
+  by iterating over every node in the graph and adding its <tref>label</tref>
+  to the <tref>incoming list</tref> associated with each node found in its
+  properties.</li>
+<li>For every entry in the <tref>node state map</tref> that has a
+<tref>label</tref> that begins with <code>_:c14n</code>, relabel the node
+using the <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
+<li>Label all of the nodes that contain a <code>@subject</code> key associated
+with a value starting with <code>_:</code> according to the steps in the
+<a href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.
+</li>
+</ol>
+</section>
+
+<section>
+<h4>Node Relabeling Algorithm</h4>
+
+<p>This algorithm renames a node by generating a unique
+<tdef>new label</tdef> and updating all references to that <tref>label</tref>
+in the <tref>node state map</tref>. The <tdef>old label</tdef> and the
+<tref>normalization state</tref> must be given as an input to the
+algorithm. The <tref>old label</tref> is the current <tref>label</tref> of
+the node that is to be relabeled.
+
+<p>The node relabeling algorithm is as follows:</p>
+
+<ol class="algorithm">
+  <li>If the <tref>labeling prefix</tref> is <code>_:c14n</code> and the
+    <tref>old label</tref> begins with <code>_:c14n</code> then return as
+    the node has already been renamed.
+  </li>
+  <li>Generate the <tdef>new label</tdef> by concatenating the
+    <tref>labeling prefix</tref> with the string value of the
+    <tref>labeling counter</tref>. Increment the <tref>labeling counter</tref>.
+  </li>
+  <li>For the <tref>node state</tref> associated with the
+  <tref>old label</tref>, update every node in the <tref>incoming list</tref>
+  by changing all the properties that reference the <tref>old label</tref> to
+  the <tref>new label</tref>.
+  </li>
+  <li>Change the <tref>old label</tref> key in the <tref>node state map</tref>
+    to the <tref>new label</tref> and set the associated
+    <tref>node reference</tref>'s <tref>label</tref> to the
+    <tref>new label</tref>.
+  </li>
+</ol>
+</section>
+
+<section>
+<h4>Deterministic Labeling Algorithm</h4>
+
+<p>The deterministic labeling algorithm takes the
+<tref>normalization state</tref>
+and produces a <tdef>list of finished nodes</tdef> that is sorted and
+contains deterministically named and expanded nodes from the graph.
+
+<ol class="algorithm">
+  <li>Set the <tref>labeling prefix</tref> to <code>_:c14n</code>, the
+    <tref>labeling counter</tref> to <code>1</code>,
+    the <tdef>list of finished nodes</tdef> to an empty array, and create
+    an empty array, the <tdef>list of unfinished nodes</tdef>.</li>
+  <li>For each <tref>node reference</tref> in the <tref>node state map</tref>:
+    <ol class="algorithm">
+      <li>If the node's <tref>label</tref> does not start with <code>_:</code>
+        then put the <tref>node reference</tref> in the
+        <tref>list of finished nodes</tref>.
+      </li>
+      <li>If the node's <tref>label</tref> does start with <code>_:</code>
+        then put the <tref>node reference</tref> in the
+        <tref>list of unfinished nodes</tref>.
+      </li>
+    </ol>
+  </li>
+  <li>Append to the <tref>list of finished nodes</tref> by processing
+    the remainder of the <tref>list of unfinished nodes</tref> until it is
+    empty:
+    <ol class="algorithm">
+      <li>Sort the <tref>list of unfinished nodes</tref> in descending order
+        according to the
+        <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+        determine the sort order.</li>
+      <li>Create a <tdef>list of labels</tdef> and initialize it to an
+        empty array.</li>
+      <li>For the first node from the <tref>list of unfinished nodes</tref>:
+        <ol class="algorithm">
+          <li>Add its <tref>label</tref> to the <tref>list of labels</tref>.
+          </li>
+          <li>For each key-value pair from its associated
+            <tref>outgoing serialization map</tref>, add the key to a list and
+            then sort the list according to the lexicographical order of the
+            keys' associated values. Append the list to the
+            <tref>list of nodes to label</tref>.
+          </li>
+          <li>For each key-value pair from its associated
+            <tref>incoming serialization map</tref>, add the key to a list and
+            then sort the list according to the lexicographical order of the
+            keys' associated values. Append the list to the
+            <tref>list of nodes to label</tref>.
+          </li></ol></li>
+      <li>For each <tref>label</tref> in the <tref>list of labels</tref>,
+        relabel the associated node according to the
+        <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. If
+        any <tref>outgoing serialization map</tref> contains a key that
+        matches the <tref>label</tref>, clear the map and set the associated
+        <tref>outgoing serialization</tref> to an empty string. If any
+        <tref>incoming serialization map</tref> contains a key that
+        matches the <tref>label</tref>, clear the map and set the associated
+        <tref>incoming serialization</tref> to an empty string.
+      </li>
+      <li>
+        Remove each node with a <tref>label</tref> that starts with
+        <code>_:c14n</code> from the <tref>list of unfinished nodes</tref> and
+        add it to the <tref>list of finished nodes</tref>.
+      </li>
+    </ol>
+  </li>
+  <li>Sort the <tref>list of finished nodes</tref> in descending order
+    according to the
+    <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+    determine the sort order.</li>
+</ol>
+</section>
+
+<section>
+<h4>Shallow Comparison Algorithm</h4>
+
+<p>
+The shallow comparison algorithm takes two unlabeled nodes,
+<tref>alpha</tref> and <tref>beta</tref>, as input and
+determines which one should come first in a sorted list. The following
+algorithm determines the steps that are executed in order to determine the
+node that should come first in a list:
+</p>
+
+<ol class="algorithm">
+  <li>Compare the total number of node properties. The node with fewer
+    properties is first.</li>
+  <li>Lexicographically sort the property IRIs for each node and compare
+    the sorted lists. If an IRI is found to be lexicographically smaller, the
+    node containing that IRI is first.</li>
+  <li>Compare the values of each property against one another:
+    <ol class="algorithm">
+      <li>The node associated with fewer property values is first.
+      </li>
+      <li>Create an <tdef>alpha list</tdef> by adding all values associated
+        with the <tref>alpha</tref> property that are not unlabeled nodes.
+      </li>
+      <li>Create a <tdef>beta list</tdef> by adding all values associated
+        with the <tref>beta</tref> property that is not an unlabeled node.
+      </li>
+      <li>Compare the length of <tref>alpha list</tref> and
+        <tref>beta list</tref>. The node associated with the list containing
+        the fewer number of items is first.</li>
+      <li>Sort <tref>alpha list</tref> and <tref>beta list</tref> according to
+        the
+        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
+        For each offset into the <tref>alpha list</tref>, compare the item
+        at the offset against the item at the same offset in the
+        <tref>beta list</tref> according to the
+        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
+        The node associated with the lesser item is first.
+    </ol></li>
+  <li>Process the <tref>incoming list</tref>s associated with each node to
+    determine order:
+    <ol class="algorithm">
+      <li>The node with the shortest <tref>incoming list</tref> is first.</li>
+      <li>Sort the <tref>incoming list</tref>s according to incoming property
+         and then incoming <tref>label</tref>.
+      <li>The node associated with the fewest number of incoming nodes is
+        first.</li>
+      <li>For each offset into the <tref>incoming list</tref>s,
+        compare the associated properties and <tref>label</tref>s:
+        <ol class="algorithm">
+          <li>The node associated with a <tref>label</tref> that does not begin with
+            <code>_:</code> is first.
+          </li>
+          <li>If the nodes' <tref>label</tref>s do not begin with
+            <code>_:</code>, then the node associated with the
+            lexicographically lesser <tref>label</tref> is first.</li>
+          </li>
+          <li>The node associated with the lexicographically lesser associated
+            property is first.
+          </li>
+          <li>The node with the <tref>label</tref> that does not begin with
+            <code>_:c14n</code> is first.
+          </li>
+          <li>The node with the lexicographically lesser <tref>label</tref>
+            is first.
+          </li>
+        </ol>
+    </ol></li>
+  <li>Otherwise, the nodes are equivalent.</li>
+</section>
+
+<section>
+<h4>Object Comparison Algorithm</h4>
+
+<p>
+The object comparison algorithm is designed to compare two graph node
+property values, <tref>alpha</tref> and <tref>beta</tref>, against the other.
+The algorithm is useful when sorting two lists of graph node properties.
+</p>
+
+<ol class="algorithm">
+  <li>If one of the values is a <tref>string</tref> and the other is not, the value that is
+    a string is first.
+  </li>
+  <li>If both values are <tref>string</tref>s, the lexicographically lesser string is
+    first.
+  </li>
+  <li>If one of the values is a literal and the other is not, the value that is
+    a literal is first.
+  </li>
+  <li>If both values are literals:
+    <ol class="algorithm">
+      <li>The lexicographically lesser string associated with
+        <code>@literal</code> is first.
+      </li>
+      <li>The lexicographically lesser string associated with
+        <code>@datatype</code> is first.
+      </li>
+      <li>The lexicographically lesser string associated with
+        <code>@language</code> is first.
+      </li>
+    </ol>
+  </li>
+  <li>If both values are expanded IRIs, the
+    lexicographically lesser string associated with <code>@iri</code>
+    is first.</li>
+  <li>Otherwise, the two values are equivalent.</li>
+</ol>
+
+</section>
+
+<section>
+<h4>Deep Comparison Algorithm</h4>
+
+<p>
+The deep comparison algorithm is used to compare the difference between two
+nodes, <tref>alpha</tref> and <tref>beta</tref>.
+A deep comparison takes the incoming and outgoing node edges in
+a graph into account if the number of properties and value of those properties
+are identical. The algorithm is helpful when sorting a list of nodes and will
+return whichever node should be placed first in a list if the two nodes are
+not truly equivalent.
+</p>
+
+<p>When performing the steps required by the deep comparison algorithm, it
+is helpful to track state information about mappings. The information
+contained in a <tref>mapping state</tref> is described below.</p>
+
+<dl class="algorithm">
+   <dt><tdef>mapping state</tdef></dt>
+   <dd>
+     <dl>
+        <dt><tdef>mapping counter</tdef></dt>
+        <dd>
+          Keeps track of the number of nodes that have been mapped to
+          <tref>serialization labels</tref>. It is initialized to
+          <code>1</code>.
+        </dd>
+        <dt><tdef>processed labels map</tdef></dt>
+        <dd>
+          Keeps track of the <tref>label</tref>s of nodes that have already
+          been assigned <tref>serialization label</tref>s. It is initialized
+          to an empty map.
+        </dd>
+        <dt><tdef>serialized labels map</tdef></dt>
+        <dd>
+          Maps a node <tref>label</tref> to its associated
+          <tref>serialization label</tref>. It is initialized to an empty map.
+        </dd>
+        <dt><tdef>adjacent info map</tdef></dt>
+        <dd>
+          Maps a <tref>serialization label</tref> to the node
+          <tref>label</tref> associated with it, the list of sorted
+          <tref>serialization label</tref>s for adjacent nodes, and the map of
+          adjacent node <tref>serialiation label</tref>s to their associated
+          node <tref>label</tref>s. It is initialized to an empty map.
+        </dd>
+        <dt><tdef>key stack</tdef></dt>
+        <dd>
+          A stack where each element contains an array of adjacent
+          <tref>serialization label</tref>s and an index into that array. It
+          is initialized to a stack containing a single element where its
+          array contains a single string element <code>s1</code> and its
+          index is set to <code>0</code>.
+        </dd>
+        <dt><tdef>serialized keys</tdef></dt>
+        <dd>
+          Keeps track of which <tref>serialization label</tref>s have already
+          been written at least once to the <tref>serialization string</tref>.
+          It is initialized to an empty map.
+        </dd>
+        <dt><tdef>serialization string</tdef></dt>
+        <dd>
+          A string that is incrementally updated as a serialization is built.
+          It is initialized to an empty string.
+        </dd>
+     </dl>
+   </dd>
+</dl>
+
+<p>The deep comparison algorithm is as follows:</p>
+
+<ol class="algorithm">
+  <li>Perform a comparison between <tref>alpha</tref> and <tref>beta</tref>
+    according to the
+    <a href="#shallow-comparison-algorithm">Shallow Comparison Algorithm</a>.
+    If the result does not show that the two nodes are equivalent, return
+    the result.
+    </li>
+  <li>Compare incoming and outgoing edges for each node, updating their
+    associated <tref>node state</tref> as each node is processed:
+    <ol class="algorithm">
+      <li>If the <tref>outgoing serialization map</tref> for <tref>alpha</tref>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>alpha</tref>'s <tref>node state</tref>, a new
+        <tref>mapping state</tref>,
+        <code>outgoing direction</code> to the algorithm as inputs.
+      <li>If the <tref>outgoing serialization map</tref> for <tref>beta</tref>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>beta</tref>'s <tref>node state</tref>, a new
+        <tref>mapping state</tref>, and
+        <code>outgoing direction</code> to the algorithm as inputs.
+      <li>If <tref>alpha</tref>'s <tref>outgoing serialization</tref> is
+        lexicographically less than <tref>beta</tref>'s, then
+        <tref>alpha</tref> is first. If it is greater, then <tref>beta</tref>
+        is first.</li>
+      <li>If the <tref>incoming serialization map</tref> for <tref>alpha</tref>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>alpha</tref>'s <tref>node state</tref>, a new
+        <tref>mapping state</tref> with its <tref>serialized labels map</tref>
+        set to a copy of <tref>alpha</tref>'s
+        <tref>outgoing serialization map</tref>, and
+        <code>incoming direction</code> to the algorithm as inputs.
+      <li>If the <tref>incoming serialization map</tref> for <tref>beta</tref>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <tref>beta</tref>'s <tref>node state</tref>, a new
+        <tref>mapping state</tref> with its <tref>serialized labels map</tref>
+        set to a copy of <tref>beta</tref>'s
+        <tref>outgoing serialization map</tref>, and
+        <code>incoming direction</code> to the algorithm as inputs.
+      <li>If <tref>alpha</tref>'s <tref>incoming serialization</tref> is
+        lexicographically less than <tref>beta</tref>'s, then
+        <tref>alpha</tref> is first. If it is greater, then <tref>beta</tref>
+        is first.</li>
+    </ol></li>
+</ol>
+</section>
+
+<section>
+<h4>Node Serialization Algorithm</h4>
+
+<p>
+The node serialization algorithm takes a <tref>node state</tref>, a
+<tref>mapping state</tref>, and a <tdef>direction</tdef> (either
+<code>outgoing direction</code> or <code>incoming direction</code>) as
+inputs and generates a deterministic serialization for the
+<tref>node reference</tref>.
+</p>
+
+<ol class="algorithm">
+<li>If the <tref>label</tref> exists in the
+  <tref>processed labels map</tref>, terminate the algorithm as the
+  <tref>serialization label</tref> has already been created.
+</li>
+<li>Set the value associated with the <tref>label</tref> in the
+  <tref>processed labels map</tref> to <code>true</code>.
+</li>
+<li>Generate the next <tdef>serialization label</tdef> for the
+  <tref>label</tref> according to the
+  <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+</li>
+<li>Create an empty map called the <tdef>adjacent serialized labels map</tdef>
+that will store mappings from <tref>serialized label</tref>s to adjacent
+node <tref>label</tref>s.</li>
+<li>Create an empty array called the
+<tdef>adjacent unserialized labels list</tdef> that will store
+<tref>label</tref>s of adjacent nodes that haven't been assigned
+<tref>serialization label</tref>s yet.
+</li>
+<li>For every <tref>label</tref> in a list, where the list the <tref>outgoing list</tref> if
+the <tref>direction</tref> is <code>outgoing direction</code> and the
+<tref>incoming list</tref> otherwise, if the <tref>label</tref> starts with
+<code>_:</code>, it is the <tdef>target node label</tdef>:
+  <ol class="algorithm">
+    <li>Look up the <tref>target node label</tref> in the
+      <tref>processed labels map</tref> and if a mapping exists,
+      update the <tref>adjacent serialized labels map</tref> where the key is
+      the value in the <tref>serialization map</tref> and the value is the
+      <tref>target node label</tref>.</li>
+    <li>Otherwise, add the <tref>target node label</tref> to the
+      <tref>adjacent unserialized labels list</tref>.
+  </ol>
+</li>
+<li>Set the <tdef>maximum serialization combinations</tdef> to
+  <code>1</code> or the length of the
+  <tref>adjacent unserialized labels list</tref>, whichever is greater.</li>
+<li>While the <tref>maximum serialization combinations</tref> is greater than
+  <code>0</code>, perform the
+  <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+  passing the <tref>node state</tref>, the <tref>mapping state</tref> for the
+  first iteration and a copy of it for each subsequent iteration, the
+  generated <tref>serialization label</tref>, the <tref>direction</tref>,
+  the <tref>adjacent serialized labels map</tref>, and the
+  <tref>adjacent unserialized labels list</tref>.
+  Decrement the <tref>maximum serialization combinations</tref> by
+  <code>1</code> for each iteration.
+</ol>
+
+</section>
+
+<section>
+<h4>Serialization Label Generation Algorithm</h4>
+
+<p>
+The algorithm generates a <tref>serialization label</tref> given a
+<tref>label</tref> and a <tref>mapping state</tref> and returns the
+<tref>serialization label</tref>.
+</p>
+
+ <ol class="algorithm">
+   <li>If the <tref>label</tref> is already in the
+     <tref>serialization labels map</tref>, return its associated value.
+   </li>
+   <li>If the <tref>label</tref> starts with the string <code>_:c14n</code>,
+     the <tref>serialization label</tref> is the letter <code>c</code>
+     followed by the number that follows <code>_:c14n</code> in the
+     <tref>label</tref>.
+   </li>
+   <li>Otherwise, the <tref>serialization label</tref> is the
+     letter <code>s</code> followed by the string value of
+     <tref>mapping count</tref>. Increment the <tref>mapping count</tref> by
+     <code>1</code>.
+   </li>
+   <li>Create a new key-value pair in the <tref>serialization labels map</tref>
+     where the key is the <tref>label</tref> and the value is the
+     generated <tref>serialization label</tref>.
+   </li>
+ </ol>
+</section>
+
+<section>
+<h4>Combinatorial Serialization Algorithm</h4>
+
+<p>
+The combinatorial serialization algorithm takes a <tref>node state</tref>, a
+<tref>mapping state</tref>, a <tref>serialization label</tref>, a
+<tref>direction</tref>, a <tref>adjacent serialized labels map</tref>,
+and a <tref>adjacent unserialized labels list</tref> as inputs and generates
+the lexicographically least serialization of nodes relating to the
+<tref>node reference</tref>.
+</p>
+
+<ol class="algorithm">
+  <li>If the <tref>adjacent unserialized labels list</tref> is not empty:
+    <ol class="algorithm">
+      <li>Copy the <tref>adjacent serialized labels map</tref> to the
+        <tdef>adjacent serialized labels map copy</tdef>.</li>
+      <li>Remove the first <tref>unserialized label</tref> from the
+        <tref>adjacent unserialized labels list</tref> and create a new
+        <tdef>new serialization label</tdef> according to the
+        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+      <li>Create a new key-value mapping in the
+        <tref>adjacent serialized labels map copy</tref>
+        where the key is the <tref>new serialization label</tref> and the value
+        is the <tref>unserialized label</tref>.
+      <li>Set the <tdef>maximum serialization rotations</tdef> to
+        <code>1</code> or the length of the
+        <tref>adjacent unserialized labels list</tref>, whichever is greater.
+      </li>
+      <li>While the <tref>maximum serialization rotations</tref> is greater than
+        <code>0</code>:
+        <ol class="algorithm">
+          <li>Recursively perform the
+            <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+            passing the <tref>mapping state</tref> for the first iteration of the
+            loop, and a copy of it for each subsequent iteration.
+          </li>
+          <li>Rotate the elements in the
+            <tref>adjacent unserialized labels list</tref> by shifting each of
+            them once to the right, moving the element at the end of the list
+            to the beginning of the list.
+          </li>
+          <li>Decrement the <tref>maximum serialization rotations</tref> by
+            <code>1</code> for each iteration.
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>If the <tref>adjacent unserialized labels list</tref> is empty:
+    <ol class="algorithm">
+      <li>Create a <tdef>list of keys</tdef> from the keys in the
+        <tref>adjacent serialized labels map</tref> and sort it
+        lexicographically.
+      </li>
+      <li>Add a key-value pair to the <tref>adjacent info map</tref> where
+        the key is the <tref>serialization label</tref> and the value is
+        an object containing the <tref>node reference</tref>'s label, the
+        <tref>list of keys</tref> and the
+        <tref>adjacent serialized labels map</tref>.
+      </li>
+      <li>Update the <tref>serialization string</tref> according to the
+        <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+      </li>
+      <li>If the <tref>direction</tref> is <code>outgoing direction</code>
+        then <tdef>directed serialization</tdef> refers to the
+        <tref>outgoing serialization</tref> and the
+        <tdef>directed serialization map</tdef> refers to the
+        <tref>outgoing serialization map</tref>, otherwise it refers to the
+        <tref>incoming serialization</tref> and the
+        <tref>directed serialization map</tref> refers to the
+        <tref>incoming serialization map</tref>. Compare the
+        <tref>serialization string</tref> to the
+        <tref>directed serialization</tref> according to the
+        <a href="#mapping-serialization-algorithm">Serialization Comparison Algorithm</a>.
+        If the <tref>serialization string</tref> is less than or equal to
+        the <tref>directed serialization</tref>:
+        <ol class="algorithm">
+          <li>For each value in the <tref>list of keys</tref>, run the
+            <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+          </li>
+	       <li>Update the <tref>serialization string</tref> according to the
+	         <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+	       </li>
+	       <li>Compare the <tref>serialization string</tref> to the
+	         <tref>directed serialization</tref> again and if it is less than
+	         or equal and the length of the <tref>serialization string</tref> is
+	         greater than or equal to the length of the
+	         <tref>directed serialization</tref>, then set the
+	         <tref>directed serialization</tref> to the
+	         <tref>serialization string</tref> and set the
+	         <tref>directed serialization map</tref> to the
+	         <tref>serialized labels map</tref>.
+	       </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+</section>
+
+<section>
+<h4>Serialization Comparison Algorithm</h4>
+
+<p>
+The serialization comparison algorithm takes two serializations,
+<tref>alpha</tref> and <tref>beta</tref> and returns either which of the two
+is less than the other or that they are equal.
+</p>
+
+<ol class="algorithm">
+  <li>Whichever serialization is an empty string is greater. If they are
+    both empty strings, they are equal.</li>
+  <li>Return the result of a lexicographical comparison of <tref>alpha</tref>
+    and <tref>beta</tref> up to the number of characters in the shortest of
+    the two serializations.
+  </li>
+</ol>
+</section>
+
+<section>
+<h4>Mapping Serialization Algorithm</h4>
+
+<p>
+The mapping serialization algorithm incrementally updates the
+<tref>serialization string</tref> in a <tref>mapping state</tref>.
+</p>
+
+<ol class="algorithm">
+  <li>If the <tref>key stack</tref> is not empty:
+    <ol class="algorithm">
+      <li>Pop the <tdef>serialization key info</tdef> off of the
+        <tref>key stack</tref>.
+      </li>
+      <li>For each <tdef>serialization key</tdef> in the
+        <tref>serialization key info</tref> array, starting at
+        the <tdef>serialization key index</tdef> from the
+        <tref>serialization key info</tref>:
+        <ol class="algorithm">
+          <li>If the <tref>serialization key</tref> is not in the
+            <tref>adjacent info map</tref>, push the
+            <tref>serialization key info</tref> onto the
+            <tref>key stack</tref> and exit from this loop.
+          </li>
+          <li>If the <tref>serialization key</tref> is a key in
+            <tref>serialized keys</tref>, a cycle has been detected. Append
+            the concatenation of the <code>_</code> character and the
+            <tref>serialization key</tref> to the
+            <tref>serialization string</tref>.
+          <li>Otherwise, serialize all outgoing and incoming edges in the
+            related node by performing the following steps:
+            <ol class="algorithm">
+              <li>Mark the <tref>serialization key</tref> as having
+                been processed by adding a new key-value pair to
+                <tref>serialized keys</tref> where the key
+                is the <tref>serialization key</tref> and the value is
+                <code>true</code>.
+              </li>
+              <li>Set the <tdef>serialization fragment</tdef> to the value of
+                the <tref>serialization key</tref>.</li>
+              <li>Set the <tref>adjacent info</tref> to the value of the
+                <tref>serialization key</tref> in the
+                <tref>adjacent info map</tref>.
+              </li>
+              <li>Set the <tref>adjacent node label</tref> to the node
+                <tref>label</tref> from the <tref>adjacent info</tref>.
+              </li>
+              <li>If a mapping for the <tref>adjacent node label</tref>
+                exists in the <tref>map of all labels</tref>:
+                <ol class="algorithm">
+                  <li>Append the result of the
+                    <a href="">Label Serialization Algorithm</a> to the
+                    <tref>serialization fragment</tref>.
+                  </li>
+                </ol>
+              </li>
+              <li>Append all of the keys in the <tref>adjacent info</tref>
+                to the <tref>serialization fragment</tref>.
+              </li>
+              <li>Append the <tref>serialization fragment</tref> to the
+                <tref>serialization string</tref>.
+              </li>
+              <li>Push a new key info object containing the keys from the
+                <tref>adjacent info</tref> and an index of <code>0</code>
+                onto the <tref>key stack</tref>.
+              </li>
+              <li>Recursively update the <tref>serialization string</tref>
+                according to the
+                <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+</section>
+
+<section>
+<h4>Label Serialization Algorithm</h4>
+
+<p>
+The label serialization algorithm serializes information about a node that
+has been assigned a particular <tref>serialization label</tref>.
+</p>
+
+<ol class="algorithm">
+  <li>Initialize the <tref>label serialization</tref> to an empty string.</li>
+  <li>Append the <code>[</code> character to the
+    <tref>label serialization</tref>.</li>
+  <li>Append all properties to the <tref>label serialization</tref> by
+    processing each key-value pair in the <tref>node reference</tref>,
+    excluding the
+    <code>@subject</code> property. The keys should be processed in
+    lexicographical order and their associated values should be processed
+    in the order produced by the
+    <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>:
+    <ol class="algorithm">
+      <li>Build a string using the pattern <code>&lt;</code><strong>KEY</strong><code>&gt;</code>
+        where <strong>KEY</strong> is the current key. Append string to the
+        <tref>label serialization</tref>.</li>
+      <li>The value may be a single object or an array of objects.
+        Process all of the objects that are associated with the key, building
+        an <tdef>object string</tdef> for each item:
+        <ol class="algorithm">
+          <li>If the object contains an <code>@iri</code> key with a
+            value that starts
+            with <code>_:</code>, set the <tref>object string</tref> to
+            the value <code>_:</code>. If the value does not
+            start with <code>_:</code>, build the <tref>object string</tref>
+            using the pattern
+            <code>&lt;</code><strong>IRI</strong><code>&gt;</code>
+            where <strong>IRI</strong> is the value associated with the
+            <code>@iri</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@datatype</code> key, build the <tref>object string</tref>
+            using the pattern
+            <code>"</code><strong>LITERAL</strong><code>"^^&lt;</code><strong>DATATYPE</strong><code>&gt;</code>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>DATATYPE</strong> is the
+            value associated with the <code>@datatype</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@language</code> key, build the <tref>object string</tref>
+            using the pattern
+            <code>"</code><strong>LITERAL</strong><code>"@</code><strong>LANGUAGE</strong>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>LANGUAGE</strong> is the
+            value associated with the <code>@language</code> key.</li>
+          <li>Otherwise, the value is a string. Build the
+            <tref>object string</tref> using the pattern
+            <code>"</code><strong>LITERAL</strong><code>"</code>
+            where <strong>LITERAL</strong> is the value associated with the
+            current key.</li>
+          <li>If this is the second iteration of the loop,
+            append a <code>|</code> separator character to the
+            <tref>label serialization</tref>.</li>
+          <li>Append the <tref>object string</tref> to the
+            <tref>label serialization</tref>.</li>
+        </ol>
+    </ol>
+  </li>
+  <li>Append the <code>]</code> character to the
+    <tref>label serialization</tref>.</li>
+  <li>Append the <code>[</code> character to the
+    <tref>label serialization</tref>.</li>
+  <li>Append all incoming references for the current
+    <tref>label</tref> to the <tref>label serialization</tref> by
+    processing all of the items associated with the <tref>incoming list</tref>:
+    <ol class="algorithm">
+      <li>Build a <tdef>reference string</tdef>
+        using the pattern <code>&lt;</code><strong>PROPERTY</strong><code>&gt;</code><code>&lt;</code><strong>REFERER</strong><code>&gt;</code>
+        where <strong>PROPERTY</strong> is the property associated with the
+        incoming reference and <strong>REFERER</strong> is either the subject of
+        the node referring to the <tref>label</tref> in the incoming reference
+        or <code>_:</code> if <strong>REFERER</strong> begins with
+        <code>_:</code>.
+      <li>If this is the second iteration of the loop,
+        append a <code>|</code> separator character to the
+        <tref>label serialization</tref>.</li>
+      <li>Append the <tref>reference string</tref> to the
+        <tref>label serialization</tref>.</li>
+    </ol>
+  <li>Append the <code>]</code> character to the
+    <tref>label serialization</tref>.</li>
+  <li>Append all <tref>adjacent node labels</tref> to the
+    <tref>label serialization</tref> by concatenating the string value
+    for all of them, one after the other, to the
+    <tref>label serialization</tref>.</li>
+  <li>Push the <tref>adjacent node labels</tref> onto the
+    <tref>key stack</tref> and append the result of the
+    <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>
+    to the <tref>label serialization</tref>.
+</ol>
+
+</section>
+
+</section>
+
+<section class="appendix">
+<h1>Acknowledgements</h1>
+
+<p>The editors would like to thank Jeremy Carroll for his work on the
+graph normalization problem. Gavin Carothers for providing valuable feedback
+and testing input for the algorithm defined in this specification. Sir
+Tim Berners Lee for his thoughts on graph normalization over the years.
+Jesús Arias Fisteus for his work on a similar algorithm. Finally, a huge thank 
+you goes out to Dave Longley who designed and implemented the algorithms 
+used in this specification, which turned out to be a monumentally difficult 
+design challenge.
+</p>
+
+</section>
+
+</body>
+</html>
