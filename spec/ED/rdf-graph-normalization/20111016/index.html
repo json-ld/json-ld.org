@@ -1,0 +1,1616 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>RDF Graph Normalization</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+   -->
+
+
+
+<style>
+.diff { font-weight:bold; color:#0a3; }
+ol.algorithm.update { margin-left: 2em; }
+ol.algorithm.update<li { list-style-type: none; }
+ol.algorithm.update<li<span.list-number {
+  display:block;
+  float: left;
+  margin-left: -3.5em;
+}
+</style>
+<style type="text/css">
+/*****************************************************************
+ * ReSpec CSS
+ * Robin Berjon (robin at berjon dot com)
+ * v0.05 - 2009-07-31
+ *****************************************************************/
+
+
+/* --- INLINES --- */
+em.rfc2119 { 
+    text-transform:     lowercase;
+    font-variant:       small-caps;
+    font-style:         normal;
+    color:              #900;
+}
+
+h1 acronym, h2 acronym, h3 acronym, h4 acronym, h5 acronym, h6 acronym, a acronym,
+h1 abbr, h2 abbr, h3 abbr, h4 abbr, h5 abbr, h6 abbr, a abbr {
+    border: none;
+}
+
+dfn {
+    font-weight:    bold;
+}
+
+a.internalDFN {
+    color:  inherit;
+    border-bottom:  1px solid #99c;
+    text-decoration:    none;
+}
+
+a.externalDFN {
+    color:  inherit;
+    border-bottom:  1px dotted #ccc;
+    text-decoration:    none;
+}
+
+a.bibref {
+    text-decoration:    none;
+}
+
+code {
+    color:  #ff4500;
+}
+
+
+/* --- WEB IDL --- */
+pre.idl {
+    border-top: 1px solid #90b8de;
+    border-bottom: 1px solid #90b8de;
+    padding:    1em;
+    line-height:    120%;
+}
+
+pre.idl::before {
+    content:    &quot;WebIDL&quot;;
+    display:    block;
+    width:      150px;
+    background: #90b8de;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+.idlType {
+    color:  #ff4500;
+    font-weight:    bold;
+    text-decoration:    none;
+}
+
+/*.idlModule*/
+/*.idlModuleID*/
+/*.idlInterface*/
+.idlInterfaceID, .idlDictionaryID {
+    font-weight:    bold;
+    color:  #005a9c;
+}
+
+.idlSuperclass {
+    font-style: italic;
+    color:  #005a9c;
+}
+
+/*.idlAttribute*/
+.idlAttrType, .idlFieldType, .idlMemberType {
+    color:  #005a9c;
+}
+.idlAttrName, .idlFieldName, .idlMemberName {
+    color:  #ff4500;
+}
+.idlAttrName a, .idlFieldName a, .idlMemberName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlMethod*/
+.idlMethType {
+    color:  #005a9c;
+}
+.idlMethName {
+    color:  #ff4500;
+}
+.idlMethName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlParam*/
+.idlParamType {
+    color:  #005a9c;
+}
+.idlParamName {
+    font-style: italic;
+}
+
+.extAttr {
+    color:  #666;
+}
+
+/*.idlConst*/
+.idlConstType {
+    color:  #005a9c;
+}
+.idlConstName {
+    color:  #ff4500;
+}
+.idlConstName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlException*/
+.idlExceptionID {
+    font-weight:    bold;
+    color:  #c00;
+}
+
+.idlTypedefID, .idlTypedefType {
+    color:  #005a9c;
+}
+
+.idlRaises, .idlRaises a.idlType, .idlRaises a.idlType code, .excName a, .excName a code {
+    color:  #c00;
+    font-weight:    normal;
+}
+
+.excName a {
+    font-family:    monospace;
+}
+
+.idlRaises a.idlType, .excName a.idlType {
+    border-bottom:  1px dotted #c00;
+}
+
+.excGetSetTrue, .excGetSetFalse, .prmNullTrue, .prmNullFalse, .prmOptTrue, .prmOptFalse {
+    width:  45px;
+    text-align: center;
+}
+.excGetSetTrue, .prmNullTrue, .prmOptTrue { color:  #0c0; }
+.excGetSetFalse, .prmNullFalse, .prmOptFalse { color:  #c00; }
+
+.idlImplements a {
+    font-weight:    bold;
+}
+
+dl.attributes, dl.methods, dl.constants, dl.fields, dl.dictionary-members {
+    margin-left:    2em;
+}
+
+.attributes dt, .methods dt, .constants dt, .fields dt, .dictionary-members dt {
+    font-weight:    normal;
+}
+
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code, .dictionary-members dt code {
+    font-weight:    bold;
+    color:  #000;
+    font-family:    monospace;
+}
+
+.attributes dt code, .fields dt code, .dictionary-members dt code {
+    background:  #ffffd2;
+}
+
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code, .dictionary-members dt .idlMemberType code {
+    color:  #005a9c;
+    background:  transparent;
+    font-family:    inherit;
+    font-weight:    normal;
+    font-style: italic;
+}
+
+.methods dt code {
+    background:  #d9e6f8;
+}
+
+.constants dt code {
+    background:  #ddffd2;
+}
+
+.attributes dd, .methods dd, .constants dd, .fields dd, .dictionary-members dd {
+    margin-bottom:  1em;
+}
+
+table.parameters, table.exceptions {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    margin: 0.5em 0;
+    width:  100%;
+}
+table.parameters { border-bottom:  1px solid #90b8de; }
+table.exceptions { border-bottom:  1px solid #deb890; }
+
+.parameters th, .exceptions th {
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+    font-family:    initial;
+    font-weight:    normal;
+    text-shadow:    #666 1px 1px 0;
+}
+.parameters th { background: #90b8de; }
+.exceptions th { background: #deb890; }
+
+.parameters td, .exceptions td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+    vertical-align: top;
+}
+
+.parameters tr:first-child td, .exceptions tr:first-child td {
+    border-top: none;
+}
+
+.parameters td.prmName, .exceptions td.excName, .exceptions td.excCodeName {
+    width:  100px;
+}
+
+.parameters td.prmType {
+    width:  120px;
+}
+
+table.exceptions table {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    width:  100%;
+}
+
+/* --- TOC --- */
+.toc a {
+    text-decoration:    none;
+}
+
+a .secno {
+    color:  #000;
+}
+
+/* --- TABLE --- */
+table.simple {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    border-bottom:  3px solid #005a9c;
+}
+
+.simple th {
+    background: #005a9c;
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+}
+
+.simple th[scope=&quot;row&quot;] {
+    background: inherit;
+    color:  inherit;
+    border-top: 1px solid #ddd;
+}
+
+.simple td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+}
+
+.simple tr:nth-child(even) {
+    background: #f0f6ff;
+}
+
+/* --- DL --- */
+.section dd &gt; p:first-child {
+    margin-top: 0;
+}
+
+.section dd &gt; p:last-child {
+    margin-bottom: 0;
+}
+
+.section dd {
+    margin-bottom:  1em;
+}
+
+.section dl.attrs dd, .section dl.eldef dd {
+    margin-bottom:  0;
+}
+
+/* --- EXAMPLES --- */
+pre.example {
+    border-top: 1px solid #ff4500;
+    border-bottom: 1px solid #ff4500;
+    padding:    1em;
+    margin-top: 1em;
+}
+
+pre.example::before {
+    content:    &quot;Example&quot;;
+    display:    block;
+    width:      150px;
+    background: #ff4500;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+/* --- EDITORIAL NOTES --- */
+.issue {
+    padding:    1em;
+    margin: 1em 0em 0em;
+    border: 1px solid #f00;
+    background: #ffc;
+}
+
+.issue::before {
+    content:    &quot;Issue&quot;;
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #f00;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+.note {
+    margin: 1em 0em 0em;
+    padding:    1em;
+    border: 2px solid #cff6d9;
+    background: #e2fff0;
+}
+
+.note::before {
+    content:    &quot;Note&quot;;
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #cff6d9;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+/* --- Best Practices --- */
+div.practice {
+    border: solid #bebebe 1px;
+    margin: 2em 1em 1em 2em;
+}
+
+span.practicelab {
+    margin: 1.5em 0.5em 1em 1em;
+    font-weight: bold;
+    font-style: italic;
+}
+
+span.practicelab   { background: #dfffff; }
+
+span.practicelab {
+    position: relative;
+    padding: 0 0.5em;
+    top: -1.5em;
+}
+
+p.practicedesc {
+    margin: 1.5em 0.5em 1em 1em;
+}
+
+@media screen {
+    p.practicedesc {
+        position: relative;
+        top: -2em;
+        padding: 0;
+        margin: 1.5em 0.5em -1em 1em;
+    }
+}
+
+/* --- SYNTAX HIGHLIGHTING --- */
+pre.sh_sourceCode {
+  background-color: white;
+  color: black;
+  font-style: normal;
+  font-weight: normal;
+}
+
+pre.sh_sourceCode .sh_keyword { color: #005a9c; font-weight: bold; }           /* language keywords */
+pre.sh_sourceCode .sh_type { color: #666; }                            /* basic types */
+pre.sh_sourceCode .sh_usertype { color: teal; }                             /* user defined types */
+pre.sh_sourceCode .sh_string { color: red; font-family: monospace; }        /* strings and chars */
+pre.sh_sourceCode .sh_regexp { color: orange; font-family: monospace; }     /* regular expressions */
+pre.sh_sourceCode .sh_specialchar { color: 	#ffc0cb; font-family: monospace; }  /* e.g., \n, \t, \\ */
+pre.sh_sourceCode .sh_comment { color: #A52A2A; font-style: italic; }         /* comments */
+pre.sh_sourceCode .sh_number { color: purple; }                             /* literal numbers */
+pre.sh_sourceCode .sh_preproc { color: #00008B; font-weight: bold; }       /* e.g., #include, import */
+pre.sh_sourceCode .sh_symbol { color: blue; }                            /* e.g., *, + */
+pre.sh_sourceCode .sh_function { color: black; font-weight: bold; }         /* function calls and declarations */
+pre.sh_sourceCode .sh_cbracket { color: red; }                              /* block brackets (e.g., {, }) */
+pre.sh_sourceCode .sh_todo { font-weight: bold; background-color: #00FFFF; }   /* TODO and FIXME */
+
+/* Predefined variables and functions (for instance glsl) */
+pre.sh_sourceCode .sh_predef_var { color: #00008B; }
+pre.sh_sourceCode .sh_predef_func { color: #00008B; font-weight: bold; }
+
+/* for OOP */
+pre.sh_sourceCode .sh_classname { color: teal; }
+
+/* line numbers (not yet implemented) */
+pre.sh_sourceCode .sh_linenum { display: none; }
+
+/* Internet related */
+pre.sh_sourceCode .sh_url { color: blue; text-decoration: underline; font-family: monospace; }
+
+/* for ChangeLog and Log files */
+pre.sh_sourceCode .sh_date { color: blue; font-weight: bold; }
+pre.sh_sourceCode .sh_time, pre.sh_sourceCode .sh_file { color: #00008B; font-weight: bold; }
+pre.sh_sourceCode .sh_ip, pre.sh_sourceCode .sh_name { color: #006400; }
+
+/* for Prolog, Perl... */
+pre.sh_sourceCode .sh_variable { color: #006400; }
+
+/* for LaTeX */
+pre.sh_sourceCode .sh_italics { color: #006400; font-style: italic; }
+pre.sh_sourceCode .sh_bold { color: #006400; font-weight: bold; }
+pre.sh_sourceCode .sh_underline { color: #006400; text-decoration: underline; }
+pre.sh_sourceCode .sh_fixed { color: green; font-family: monospace; }
+pre.sh_sourceCode .sh_argument { color: #006400; }
+pre.sh_sourceCode .sh_optionalargument { color: purple; }
+pre.sh_sourceCode .sh_math { color: orange; }
+pre.sh_sourceCode .sh_bibtex { color: blue; }
+
+/* for diffs */
+pre.sh_sourceCode .sh_oldfile { color: orange; }
+pre.sh_sourceCode .sh_newfile { color: #006400; }
+pre.sh_sourceCode .sh_difflines { color: blue; }
+
+/* for css */
+pre.sh_sourceCode .sh_selector { color: purple; }
+pre.sh_sourceCode .sh_property { color: blue; }
+pre.sh_sourceCode .sh_value { color: #006400; font-style: italic; }
+
+/* other */
+pre.sh_sourceCode .sh_section { color: black; font-weight: bold; }
+pre.sh_sourceCode .sh_paren { color: red; }
+pre.sh_sourceCode .sh_attribute { color: #006400; }
+
+</style><style type="text/css">ol.algorithm { counter-reset:numsection; list-style-type: none; }
+ol.algorithm li { margin: 0.5em 0; }
+ol.algorithm li:before { font-weight: bold; counter-increment: numsection; content: counters(numsection, ".") ") "; }
+
+</style><link href="http://www.w3.org/StyleSheets/TR/w3c-unofficial" rel="stylesheet" type="text/css" charset="utf-8" /></head>
+
+<body style="display: inherit; "><div class="head"><p></p><h1 class="title" id="title">RDF Graph Normalization</h1><h2 id="subtitle">A Standard RDF Graph Normalization Algorithm</h2><h2 id="unofficial-draft-16-october-2011">Unofficial Draft 16 October 2011</h2><dl><dt>Editors:</dt><dd><a href="http://manu.sporny.org/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dd><a href="http://digitalbazaar.com/">Dave Longley</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dt>Authors:</dt><dd><a href="http://digitalbazaar.com/">Dave Longley</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dd><a href="http://digitalbazaar.com/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+</dl><p class="copyright">This document is licensed under a <a class="subfoot" href="http://creativecommons.org/licenses/by/3.0/" rel="license">Creative Commons Attribution 3.0 License</a>.</p><hr /></div>
+<div id="abstract" class="introductory section"><h2>Abstract</h2>
+<p>
+RDF [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-SYNTAX">RDF-SYNTAX</a></cite>] describes a graph-based data model for making claims about
+the world and provides the foundation for reasoning upon that graph of
+information. At times, it becomes necessary to compare the differences between
+graphs, digitally sign graphs, or generate short identifiers for graphs via
+hashing algorithms. This document outlines an algorithm for normalizing RDF
+graphs such that these operations can be performed on the normalized graphs.
+</p>
+</div><div id="sotd" class="introductory section"><h2>Status of This Document</h2><p>This document is merely a public working draft of a potential specification. It has no official standing of any kind and does not represent the support or consensus of any standards organisation.</p>
+<p>This document is an experimental work in progress.</p>
+
+<!--  <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p>  -->
+
+</div><div id="toc" class="section"><h2 class="introductory">Table of Contents</h2><ul class="toc"><li class="tocline"><a href="#introduction" class="tocxref"><span class="secno">1. </span>Introduction</a><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno">1.1 </span>How to Read this Document</a></li><li class="tocline"><a href="#contributing" class="tocxref"><span class="secno">1.2 </span>Contributing</a></li></ul></li><li class="tocline"><a href="#normalization" class="tocxref"><span class="secno">2. </span>Normalization</a><ul class="toc"><li class="tocline"><a href="#normalization-algorithm-terms" class="tocxref"><span class="secno">2.1 </span>Normalization Algorithm Terms</a></li><li class="tocline"><a href="#normalization-state" class="tocxref"><span class="secno">2.2 </span>Normalization State</a></li><li class="tocline"><a href="#normalization-algorithm" class="tocxref"><span class="secno">2.3 </span>Normalization Algorithm</a></li><li class="tocline"><a href="#node-relabeling-algorithm" class="tocxref"><span class="secno">2.4 </span>Node Relabeling Algorithm</a></li><li class="tocline"><a href="#deterministic-labeling-algorithm" class="tocxref"><span class="secno">2.5 </span>Deterministic Labeling Algorithm</a></li><li class="tocline"><a href="#shallow-comparison-algorithm" class="tocxref"><span class="secno">2.6 </span>Shallow Comparison Algorithm</a></li><li class="tocline"><a href="#object-comparison-algorithm" class="tocxref"><span class="secno">2.7 </span>Object Comparison Algorithm</a></li><li class="tocline"><a href="#deep-comparison-algorithm" class="tocxref"><span class="secno">2.8 </span>Deep Comparison Algorithm</a></li><li class="tocline"><a href="#node-serialization-algorithm" class="tocxref"><span class="secno">2.9 </span>Node Serialization Algorithm</a></li><li class="tocline"><a href="#serialization-label-generation-algorithm" class="tocxref"><span class="secno">2.10 </span>Serialization Label Generation Algorithm</a></li><li class="tocline"><a href="#combinatorial-serialization-algorithm" class="tocxref"><span class="secno">2.11 </span>Combinatorial Serialization Algorithm</a></li><li class="tocline"><a href="#serialization-comparison-algorithm" class="tocxref"><span class="secno">2.12 </span>Serialization Comparison Algorithm</a></li><li class="tocline"><a href="#mapping-serialization-algorithm" class="tocxref"><span class="secno">2.13 </span>Mapping Serialization Algorithm</a></li><li class="tocline"><a href="#label-serialization-algorithm" class="tocxref"><span class="secno">2.14 </span>Label Serialization Algorithm</a></li></ul></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno">A. </span>Acknowledgements</a></li><li class="tocline"><a href="#references" class="tocxref"><span class="secno">B. </span>References</a><ul class="toc"><li class="tocline"><a href="#normative-references" class="tocxref"><span class="secno">B.1 </span>Normative references</a></li><li class="tocline"><a href="#informative-references" class="tocxref"><span class="secno">B.2 </span>Informative references</a></li></ul></li></ul></div>
+
+
+
+<div id="introduction" class="section">
+
+<!-- OddPage -->
+<h2><span class="secno">1. </span>Introduction</h2>
+
+<p>When data scientists discuss graph normalization, they
+do so in the context of achieving a particular set of goals. Since a directed 
+graph can express the same information in a variety of different ways, it 
+becomes necessary to be able to transform a graph of information into a
+standard form for the purposes of calculating differences between two graphs,
+generating a cryptographically-strong hash identifier for a graph, or digitally 
+signing a graph.</p>
+
+<p>Many RDF graphs, containing nodes with unique identifiers, can be normalized 
+quite easily. However, when a node does not have a unique identifier,
+graph normalization becomes exponentially more difficult. This problem is
+called the <dfn title="graph_isomorphism" id="dfn-graph_isomorphism">graph isomorphism</dfn> problem, and it is believed to be a
+NP-hard problem in the worst cases. This means that the problem is very 
+difficult to solve in a reasonable timeframe for certain inputs. Luckily, these
+types of inputs are extremely rare in the real world. Graph isomorphisms are
+most commonly used as a denial of service attack and thus any software system
+attempting to solve the graph normalization problem should be able to detect
+graph isomorphisms correctly.</p>
+
+<p>This document outlines an algorithm for generating a normalized RDF 
+graph given an input RDF graph. The algorithm is called the
+<strong>Universal RDF Graph Normalization Algorithm 2011</strong> or
+<strong>URGNA2011</strong>.</p>
+
+<div id="how-to-read-this-document" class="section">
+<h3><span class="secno">1.1 </span>How to Read this Document</h3>
+
+<p>
+This document is a detailed specification for an RDF graph normalization
+algorithm. The document is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Software developers that want to implement an RDF graph normalization
+algorithm.</li>
+  <li>Masochists.</li>
+</ul>
+
+<p>
+To understand the basics in this specification you must be familiar with basic
+RDF concepts [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS">RDF-CONCEPTS</a></cite>]. A working knowledge of 
+<a href="http://en.wikipedia.org/wiki/Graph_theory">graph theory</a> and 
+<a href="http://en.wikipedia.org/wiki/Graph_isomorphism">graph isomorphisms</a> 
+is also recommended.</p>
+</div>
+
+<div id="contributing" class="section">
+<h3><span class="secno">1.2 </span>Contributing</h3>
+
+<p>There are a number of ways that one may participate in the development of
+this specification:</p>
+
+<ul>
+<li>Technical discussion typically occurs on the public mailing list:
+<a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
+</li>
+
+<li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+on Tuesdays at 1500UTC on the second and fourth week of each month.
+</li>
+
+<li>Specification bugs and issues should be reported in the
+<a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+<li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+specification can be found on Github.</li>
+
+<li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
+IRC channel is available for real-time discussion on irc.freenode.net.</li>
+</ul>
+
+</div>
+
+</div>
+
+<div id="normalization" class="section">
+
+<!-- OddPage -->
+<h2><span class="secno">2. </span>Normalization</h2>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p>Normalization is the process of taking <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a> and
+performing a transformation on that input that results in all
+aspects of the graph being arranged in a deterministic way in the
+<a class="tref internalDFN" title="output_graph" href="#dfn-output_graph">output graph</a>. That is, for two <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a>s 
+containing the same 
+information, regardless of their arrangement, the <a class="tref internalDFN" title="output_graph" href="#dfn-output_graph">output graph</a>s
+will be identical. The problem is a fairly difficult technical
+problem to solve because it requires a directed graph to be ordered into a
+set of nodes and edges in a deterministic way. This is easy to do when all of
+the nodes have unique names, but very difficult to do when some of the nodes
+are not labeled and thus names must be generated for those nodes in a
+deterministic fashion.
+</p>
+
+<p>In time, there may be more than one normalization algorithm that will need
+to be identified. For identification purposes, this algorithm is named the
+&quot;Universal RDF Graph Normalization Algorithm 2011&quot;
+(<abbr title="Universal RDF Graph Normalization Algorithm 2011">URGNA2011</abbr>).
+</p>
+
+<div id="normalization-algorithm-terms" class="section">
+<h3><span class="secno">2.1 </span>Normalization Algorithm Terms</h3>
+ <dl>
+   <dt><dfn title="input_graph" id="dfn-input_graph">input graph</dfn></dt>
+   <dd>
+     The data structure that is provided as input to the algorithm.
+   </dd>
+   <dt><dfn title="output_graph" id="dfn-output_graph">output graph</dfn></dt>
+   <dd>
+     The data structure that is produced as output by the algorithm.
+   </dd>
+   <dt><dfn title="label" id="dfn-label">label</dfn></dt>
+   <dd>
+     The subject IRI associated with a graph node.
+   </dd>
+   <dt><dfn title="list_of_expanded_nodes" id="dfn-list_of_expanded_nodes">list of expanded nodes</dfn></dt>
+   <dd>
+     A list of all nodes in the <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a>.
+   </dd>
+   <dt><dfn title="alpha" id="dfn-alpha">alpha</dfn> and <dfn title="beta" id="dfn-beta">beta</dfn> values</dt>
+   <dd>
+     The words <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a> refer to the first and
+     second nodes or values being examined in an algorithm. The names are
+     merely used to refer to each input value to a comparison algorithm.
+   </dd>
+   <dt><dfn title="renaming_counter" id="dfn-renaming_counter">renaming counter</dfn></dt>
+   <dd>
+     A counter that is used during the
+     <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. The
+     counter typically starts at one (1) and counts up for every node that is
+     relabeled. There will be two such renaming counters in an implementation
+     of the normalization algorithm. The first is the
+     <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a> and the second is the
+     <a class="tref" title="deterministic_labeling_counter">deterministic labeling counter</a>.
+   </dd>
+   <dt><dfn title="serialization_label" id="dfn-serialization_label">serialization label</dfn></dt>
+   <dd>
+     An identifier that is created to aid in the normalization process in the
+     <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>. The
+     value typically takes the form of <code>s&lt;NUMBER&gt;</code> or
+     <code>c&lt;NUMBER&gt;</code>.
+   </dd>
+</dl>
+</div>
+
+<div id="normalization-state" class="section">
+<h3><span class="secno">2.2 </span>Normalization State</h3>
+
+<p>When performing the steps required by the normalization algorithm,
+it is helpful to track the many pieces of information in a
+data structure called the <dfn title="normalization_state" id="dfn-normalization_state">normalization state</dfn>. Many of these
+pieces simply provide indexes into the graph. The information
+contained in the <a class="tref internalDFN" title="normalization_state" href="#dfn-normalization_state">normalization state</a> is described below.</p>
+
+<dl>
+   <dt><dfn title="node_state" id="dfn-node_state">node state</dfn></dt>
+   <dd>
+     Each node in the graph will be assigned a <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>. This
+     state contains the information necessary to deterministically
+     <a class="tref internalDFN" title="label" href="#dfn-label">label</a> all nodes in the graph. A <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>
+     includes:
+     <dl>
+        <dt><dfn title="node_reference" id="dfn-node_reference">node reference</dfn></dt>
+        <dd>
+          A <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> is a reference to a node in the graph.
+          For a given <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, its <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>
+          refers to the node that the state is for. When a
+          <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a> is created, its <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>
+          should be to the node it is created for.
+        </dd>
+        <dt><dfn title="outgoing_list" id="dfn-outgoing_list">outgoing list</dfn></dt>
+        <dd>
+          Lists the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s for all nodes that are properties of
+          the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>. This list should be initialized
+          by iterating over every object associated with a property in the
+          <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> adding its label if it is another node.
+        </dd>
+        <dt><dfn title="incoming_list" id="dfn-incoming_list">incoming list</dfn></dt>
+        <dd>
+          Lists the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s for all nodes in the graph for which
+          the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> is a property. This list is
+          initialized to an empty list.
+        </dd>
+        <dt><dfn title="outgoing_serialization_map" id="dfn-outgoing_serialization_map">outgoing serialization map</dfn></dt>
+        <dd>
+          Maps node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s to <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s.
+          This map is initialized to an empty map. When this map is populated,
+          it will be filled with keys that are the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s of every node in the
+          graph with a label that begins with <code>_:</code> and that has a
+          path, via properties, that starts with the
+          <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>.
+        </dd>
+        <dt><dfn title="outgoing_serialization" id="dfn-outgoing_serialization">outgoing serialization</dfn></dt>
+        <dd>
+          A string that can be lexicographically compared to the
+          <a class="tref internalDFN" title="outgoing_serialization" href="#dfn-outgoing_serialization">outgoing serialization</a>s of other
+          <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>s. It is a representation of the
+          <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a> and other related
+          information. This string is initialized to an empty string.
+        </dd>
+        <dt><dfn title="incoming_serialization_map" id="dfn-incoming_serialization_map">incoming serialization map</dfn></dt>
+        <dd>
+          Maps node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s to <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s.
+          This map is initialized to an empty map. When this map is populated,
+          it will be filled with keys that are the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s of every
+          node in the graph with a <a class="tref internalDFN" title="label" href="#dfn-label">label</a> that begins with
+          <code>_:</code> and that has a path, via properties, that ends with
+          the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>.
+        </dd>
+        <dt><dfn title="incoming_serialization" id="dfn-incoming_serialization">incoming serialization</dfn></dt>
+        <dd>
+          A string that can be lexicographically compared to the
+          <a class="tref internalDFN" title="outgoing_serialization" href="#dfn-outgoing_serialization">outgoing serialization</a>s of other
+          <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>s. It is a representation of the
+          <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a> and other related
+          information. This string is initialized to an empty string.
+        </dd>
+     </dl>
+   </dd>
+   <dt><dfn title="node_state_map" id="dfn-node_state_map">node state map</dfn></dt>
+   <dd>
+     A mapping from a node's <a class="tref internalDFN" title="label" href="#dfn-label">label</a> to a <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>.
+     It is initialized to an empty map.
+   </dd>
+   <dt><dfn title="labeling_prefix" id="dfn-labeling_prefix">labeling prefix</dfn></dt>
+   <dd>
+     The labeling prefix is a string that is used as the beginning of a node
+     <a class="tref internalDFN" title="label" href="#dfn-label">label</a>. It should be initialized to a random base string that
+     starts with the characters <code>_:</code>, is not used by any other
+     node's <a class="tref internalDFN" title="label" href="#dfn-label">label</a> in the <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a>, and does not
+     start with the characters <code>_:c14n</code>. The prefix has two uses.
+     First it is used to temporarily name nodes during the normalization
+     algorithm in a way that doesn't collide with the names that already
+     exist as well as the names that will be generated by the normalization
+     algorithm. Second, it will eventually be set to <code>_:c14n</code> to
+     generate the final, deterministic labels for nodes in the graph. This
+     prefix will be concatenated with the <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a> to
+     produce a node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>. For example, <code>_:j8r3k</code> is
+     a proper initial value for the <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a>.
+   </dd>
+   <dt><dfn title="labeling_counter" id="dfn-labeling_counter">labeling counter</dfn></dt>
+   <dd>
+     A counter that is used to label nodes. It is appended to the
+     <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a> to create a node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>. It is
+     initialized to <code>1</code>.
+   </dd>
+   <dt><dfn title="map_of_flattened_nodes" id="dfn-map_of_flattened_nodes">map of flattened nodes</dfn></dt>
+   <dd>
+     A map containing a representation of all nodes in the graph where the
+     key is a node <a class="tref internalDFN" title="label" href="#dfn-label">label</a> and the value is a single
+     <a class="tref" title="JSON_object">JSON object</a> that has no nested sub-objects
+     and has had all properties for the same node merged into a single
+     <a class="tref" title="JSON_object">JSON object</a>.
+   </dd>
+</dl>
+
+</div>
+
+<div id="normalization-algorithm" class="section">
+<h3><span class="secno">2.3 </span>Normalization Algorithm</h3>
+
+<p>The normalization algorithm expands the <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a>,
+flattens the data structure, and creates an initial set of names for all
+nodes in the graph. The flattened data structure is then processed by a
+node labeling algorithm in order to get a fully expanded and named list of
+nodes which is then sorted. The result is a deterministically named and
+ordered list of graph nodes.
+</p>
+
+<ol class="algorithm">
+<li>Expand the <a class="tref internalDFN" title="input_graph" href="#dfn-input_graph">input graph</a> according to the steps in
+the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
+result as the <strong>expanded input</strong>.</li>
+<li>Create a <a class="tref internalDFN" title="normalization_state" href="#dfn-normalization_state">normalization state</a>.</li>
+<li>Initialize the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a> by recursively
+processing every <dfn title="expanded_node" id="dfn-expanded_node">expanded node</dfn> in the
+<strong>expanded input</strong> in depth-first order:
+  <ol class="algorithm">
+    <li>If the <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a> is an unlabeled node, add a
+      new key-value pair to the <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a>
+      where the key is <code>@subject</code> and the value is the
+      concatenation of the <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a>
+      and the string value of the <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a>.
+      Increment the <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a>.</li>
+    <li>Add the <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a> to the
+      <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a>:
+      <ol class="algorithm">
+        <li>If the <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a>'s <a class="tref internalDFN" title="label" href="#dfn-label">label</a> is already
+          in the
+          <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a> merge all properties from the
+          entry in the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a> into the
+          <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a>.</li>
+        <li>Go through every property associated with an array in the
+          <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a> and remove any duplicate IRI entries from
+          the array. If the resulting array only has one IRI entry, change it
+          from an array to an object.</li>
+        <li>Set the entry for the <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a>'s <a class="tref internalDFN" title="label" href="#dfn-label">label</a>
+          in the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a> to the
+          <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a>.
+        </li></ol></li>
+    <li>After exiting the recursive step, replace the reference to the
+      <a class="tref internalDFN" title="expanded_node" href="#dfn-expanded_node">expanded node</a> with an object containing a single
+       key-value pair where the key is <code>@iri</code> and the value is
+       the value of the <code>@subject</code> key in the node.</li>
+  </ol></li>
+<li>For every entry in the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a>, insert a
+  key-value pair into the <a class="tref internalDFN" title="node_state_map" href="#dfn-node_state_map">node state map</a> where the key is the
+  key from the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a> and the value is a
+  <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a> where its <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> refers to
+  the value from the <a class="tref internalDFN" title="map_of_flattened_nodes" href="#dfn-map_of_flattened_nodes">map of flattened nodes</a>.
+</li><li>Populate the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a> for each <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>
+  by iterating over every node in the graph and adding its <a class="tref internalDFN" title="label" href="#dfn-label">label</a>
+  to the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a> associated with each node found in its
+  properties.</li>
+<li>For every entry in the <a class="tref internalDFN" title="node_state_map" href="#dfn-node_state_map">node state map</a> that has a
+<a class="tref internalDFN" title="label" href="#dfn-label">label</a> that begins with <code>_:c14n</code>, relabel the node
+using the <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
+</li><li>Label all of the nodes that contain a <code>@subject</code> key associated
+with a value starting with <code>_:</code> according to the steps in the
+<a href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.
+</li>
+</ol>
+</div>
+
+<div id="node-relabeling-algorithm" class="section">
+<h3><span class="secno">2.4 </span>Node Relabeling Algorithm</h3>
+
+<p>This algorithm renames a node by generating a unique
+<dfn title="new_label" id="dfn-new_label">new label</dfn> and updating all references to that <a class="tref internalDFN" title="label" href="#dfn-label">label</a>
+in the <a class="tref internalDFN" title="node_state_map" href="#dfn-node_state_map">node state map</a>. The <dfn title="old_label" id="dfn-old_label">old label</dfn> and the
+<a class="tref internalDFN" title="normalization_state" href="#dfn-normalization_state">normalization state</a> must be given as an input to the
+algorithm. The <a class="tref internalDFN" title="old_label" href="#dfn-old_label">old label</a> is the current <a class="tref internalDFN" title="label" href="#dfn-label">label</a> of
+the node that is to be relabeled.
+
+</p><p>The node relabeling algorithm is as follows:</p>
+
+<ol class="algorithm">
+  <li>If the <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a> is <code>_:c14n</code> and the
+    <a class="tref internalDFN" title="old_label" href="#dfn-old_label">old label</a> begins with <code>_:c14n</code> then return as
+    the node has already been renamed.
+  </li>
+  <li>Generate the <dfn title="new_label" id="dfn-new_label-1">new label</dfn> by concatenating the
+    <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a> with the string value of the
+    <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a>. Increment the <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a>.
+  </li>
+  <li>For the <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a> associated with the
+  <a class="tref internalDFN" title="old_label" href="#dfn-old_label">old label</a>, update every node in the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a>
+  by changing all the properties that reference the <a class="tref internalDFN" title="old_label" href="#dfn-old_label">old label</a> to
+  the <a class="tref internalDFN" title="new_label" href="#dfn-new_label-1">new label</a>.
+  </li>
+  <li>Change the <a class="tref internalDFN" title="old_label" href="#dfn-old_label">old label</a> key in the <a class="tref internalDFN" title="node_state_map" href="#dfn-node_state_map">node state map</a>
+    to the <a class="tref internalDFN" title="new_label" href="#dfn-new_label-1">new label</a> and set the associated
+    <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>'s <a class="tref internalDFN" title="label" href="#dfn-label">label</a> to the
+    <a class="tref internalDFN" title="new_label" href="#dfn-new_label-1">new label</a>.
+  </li>
+</ol>
+</div>
+
+<div id="deterministic-labeling-algorithm" class="section">
+<h3><span class="secno">2.5 </span>Deterministic Labeling Algorithm</h3>
+
+<p>The deterministic labeling algorithm takes the
+<a class="tref internalDFN" title="normalization_state" href="#dfn-normalization_state">normalization state</a>
+and produces a <dfn title="list_of_finished_nodes" id="dfn-list_of_finished_nodes">list of finished nodes</dfn> that is sorted and
+contains deterministically named and expanded nodes from the graph.
+
+</p><ol class="algorithm">
+  <li>Set the <a class="tref internalDFN" title="labeling_prefix" href="#dfn-labeling_prefix">labeling prefix</a> to <code>_:c14n</code>, the
+    <a class="tref internalDFN" title="labeling_counter" href="#dfn-labeling_counter">labeling counter</a> to <code>1</code>,
+    the <dfn title="list_of_finished_nodes" id="dfn-list_of_finished_nodes-1">list of finished nodes</dfn> to an empty array, and create
+    an empty array, the <dfn title="list_of_unfinished_nodes" id="dfn-list_of_unfinished_nodes">list of unfinished nodes</dfn>.</li>
+  <li>For each <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> in the <a class="tref internalDFN" title="node_state_map" href="#dfn-node_state_map">node state map</a>:
+    <ol class="algorithm">
+      <li>If the node's <a class="tref internalDFN" title="label" href="#dfn-label">label</a> does not start with <code>_:</code>
+        then put the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> in the
+        <a class="tref internalDFN" title="list_of_finished_nodes" href="#dfn-list_of_finished_nodes-1">list of finished nodes</a>.
+      </li>
+      <li>If the node's <a class="tref internalDFN" title="label" href="#dfn-label">label</a> does start with <code>_:</code>
+        then put the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a> in the
+        <a class="tref internalDFN" title="list_of_unfinished_nodes" href="#dfn-list_of_unfinished_nodes">list of unfinished nodes</a>.
+      </li>
+    </ol>
+  </li>
+  <li>Append to the <a class="tref internalDFN" title="list_of_finished_nodes" href="#dfn-list_of_finished_nodes-1">list of finished nodes</a> by processing
+    the remainder of the <a class="tref internalDFN" title="list_of_unfinished_nodes" href="#dfn-list_of_unfinished_nodes">list of unfinished nodes</a> until it is
+    empty:
+    <ol class="algorithm">
+      <li>Sort the <a class="tref internalDFN" title="list_of_unfinished_nodes" href="#dfn-list_of_unfinished_nodes">list of unfinished nodes</a> in descending order
+        according to the
+        <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+        determine the sort order.</li>
+      <li>Create a <dfn title="list_of_labels" id="dfn-list_of_labels">list of labels</dfn> and initialize it to an
+        empty array.</li>
+      <li>For the first node from the <a class="tref internalDFN" title="list_of_unfinished_nodes" href="#dfn-list_of_unfinished_nodes">list of unfinished nodes</a>:
+        <ol class="algorithm">
+          <li>Add its <a class="tref internalDFN" title="label" href="#dfn-label">label</a> to the <a class="tref internalDFN" title="list_of_labels" href="#dfn-list_of_labels">list of labels</a>.
+          </li>
+          <li>For each key-value pair from its associated
+            <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a>, add the key to a list and
+            then sort the list according to the lexicographical order of the
+            keys' associated values. Append the list to the
+            <a class="tref" title="list_of_nodes_to_label">list of nodes to label</a>.
+          </li>
+          <li>For each key-value pair from its associated
+            <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a>, add the key to a list and
+            then sort the list according to the lexicographical order of the
+            keys' associated values. Append the list to the
+            <a class="tref" title="list_of_nodes_to_label">list of nodes to label</a>.
+          </li></ol></li>
+      <li>For each <a class="tref internalDFN" title="label" href="#dfn-label">label</a> in the <a class="tref internalDFN" title="list_of_labels" href="#dfn-list_of_labels">list of labels</a>,
+        relabel the associated node according to the
+        <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. If
+        any <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a> contains a key that
+        matches the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>, clear the map and set the associated
+        <a class="tref internalDFN" title="outgoing_serialization" href="#dfn-outgoing_serialization">outgoing serialization</a> to an empty string. If any
+        <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a> contains a key that
+        matches the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>, clear the map and set the associated
+        <a class="tref internalDFN" title="incoming_serialization" href="#dfn-incoming_serialization">incoming serialization</a> to an empty string.
+      </li>
+      <li>
+        Remove each node with a <a class="tref internalDFN" title="label" href="#dfn-label">label</a> that starts with
+        <code>_:c14n</code> from the <a class="tref internalDFN" title="list_of_unfinished_nodes" href="#dfn-list_of_unfinished_nodes">list of unfinished nodes</a> and
+        add it to the <a class="tref internalDFN" title="list_of_finished_nodes" href="#dfn-list_of_finished_nodes-1">list of finished nodes</a>.
+      </li>
+    </ol>
+  </li>
+  <li>Sort the <a class="tref internalDFN" title="list_of_finished_nodes" href="#dfn-list_of_finished_nodes-1">list of finished nodes</a> in descending order
+    according to the
+    <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a> to
+    determine the sort order.</li>
+</ol>
+</div>
+
+<div id="shallow-comparison-algorithm" class="section">
+<h3><span class="secno">2.6 </span>Shallow Comparison Algorithm</h3>
+
+<p>
+The shallow comparison algorithm takes two unlabeled nodes,
+<a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>, as input and
+determines which one should come first in a sorted list. The following
+algorithm determines the steps that are executed in order to determine the
+node that should come first in a list:
+</p>
+
+<ol class="algorithm">
+  <li>Compare the total number of node properties. The node with fewer
+    properties is first.</li>
+  <li>Lexicographically sort the property IRIs for each node and compare
+    the sorted lists. If an IRI is found to be lexicographically smaller, the
+    node containing that IRI is first.</li>
+  <li>Compare the values of each property against one another:
+    <ol class="algorithm">
+      <li>The node associated with fewer property values is first.
+      </li>
+      <li>Create an <dfn title="alpha_list" id="dfn-alpha_list">alpha list</dfn> by adding all values associated
+        with the <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> property that are not unlabeled nodes.
+      </li>
+      <li>Create a <dfn title="beta_list" id="dfn-beta_list">beta list</dfn> by adding all values associated
+        with the <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a> property that is not an unlabeled node.
+      </li>
+      <li>Compare the length of <a class="tref internalDFN" title="alpha_list" href="#dfn-alpha_list">alpha list</a> and
+        <a class="tref internalDFN" title="beta_list" href="#dfn-beta_list">beta list</a>. The node associated with the list containing
+        the fewer number of items is first.</li>
+      <li>Sort <a class="tref internalDFN" title="alpha_list" href="#dfn-alpha_list">alpha list</a> and <a class="tref internalDFN" title="beta_list" href="#dfn-beta_list">beta list</a> according to
+        the
+        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
+        For each offset into the <a class="tref internalDFN" title="alpha_list" href="#dfn-alpha_list">alpha list</a>, compare the item
+        at the offset against the item at the same offset in the
+        <a class="tref internalDFN" title="beta_list" href="#dfn-beta_list">beta list</a> according to the
+        <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>.
+        The node associated with the lesser item is first.
+    </li></ol></li>
+  <li>Process the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a>s associated with each node to
+    determine order:
+    <ol class="algorithm">
+      <li>The node with the shortest <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a> is first.</li>
+      <li>Sort the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a>s according to incoming property
+         and then incoming <a class="tref internalDFN" title="label" href="#dfn-label">label</a>.
+      </li><li>The node associated with the fewest number of incoming nodes is
+        first.</li>
+      <li>For each offset into the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a>s,
+        compare the associated properties and <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s:
+        <ol class="algorithm">
+          <li>The node associated with a <a class="tref internalDFN" title="label" href="#dfn-label">label</a> that does not begin with
+            <code>_:</code> is first.
+          </li>
+          <li>If the nodes' <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s do not begin with
+            <code>_:</code>, then the node associated with the
+            lexicographically lesser <a class="tref internalDFN" title="label" href="#dfn-label">label</a> is first.</li>
+          
+          <li>The node associated with the lexicographically lesser associated
+            property is first.
+          </li>
+          <li>The node with the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> that does not begin with
+            <code>_:c14n</code> is first.
+          </li>
+          <li>The node with the lexicographically lesser <a class="tref internalDFN" title="label" href="#dfn-label">label</a>
+            is first.
+          </li>
+        </ol>
+    </li></ol></li>
+  <li>Otherwise, the nodes are equivalent.</li>
+</ol></div>
+
+<div id="object-comparison-algorithm" class="section">
+<h3><span class="secno">2.7 </span>Object Comparison Algorithm</h3>
+
+<p>
+The object comparison algorithm is designed to compare two graph node
+property values, <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>, against the other.
+The algorithm is useful when sorting two lists of graph node properties.
+</p>
+
+<ol class="algorithm">
+  <li>If one of the values is a <a class="tref" title="string">string</a> and the other is not, the value that is
+    a string is first.
+  </li>
+  <li>If both values are <a class="tref" title="string">string</a>s, the lexicographically lesser string is
+    first.
+  </li>
+  <li>If one of the values is a literal and the other is not, the value that is
+    a literal is first.
+  </li>
+  <li>If both values are literals:
+    <ol class="algorithm">
+      <li>The lexicographically lesser string associated with
+        <code>@literal</code> is first.
+      </li>
+      <li>The lexicographically lesser string associated with
+        <code>@datatype</code> is first.
+      </li>
+      <li>The lexicographically lesser string associated with
+        <code>@language</code> is first.
+      </li>
+    </ol>
+  </li>
+  <li>If both values are expanded IRIs, the
+    lexicographically lesser string associated with <code>@iri</code>
+    is first.</li>
+  <li>Otherwise, the two values are equivalent.</li>
+</ol>
+
+</div>
+
+<div id="deep-comparison-algorithm" class="section">
+<h3><span class="secno">2.8 </span>Deep Comparison Algorithm</h3>
+
+<p>
+The deep comparison algorithm is used to compare the difference between two
+nodes, <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>.
+A deep comparison takes the incoming and outgoing node edges in
+a graph into account if the number of properties and value of those properties
+are identical. The algorithm is helpful when sorting a list of nodes and will
+return whichever node should be placed first in a list if the two nodes are
+not truly equivalent.
+</p>
+
+<p>When performing the steps required by the deep comparison algorithm, it
+is helpful to track state information about mappings. The information
+contained in a <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> is described below.</p>
+
+<dl class="algorithm">
+   <dt><dfn title="mapping_state" id="dfn-mapping_state">mapping state</dfn></dt>
+   <dd>
+     <dl>
+        <dt><dfn title="mapping_counter" id="dfn-mapping_counter">mapping counter</dfn></dt>
+        <dd>
+          Keeps track of the number of nodes that have been mapped to
+          <a class="tref" title="serialization_labels">serialization labels</a>. It is initialized to
+          <code>1</code>.
+        </dd>
+        <dt><dfn title="processed_labels_map" id="dfn-processed_labels_map">processed labels map</dfn></dt>
+        <dd>
+          Keeps track of the <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s of nodes that have already
+          been assigned <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s. It is initialized
+          to an empty map.
+        </dd>
+        <dt><dfn title="serialized_labels_map" id="dfn-serialized_labels_map">serialized labels map</dfn></dt>
+        <dd>
+          Maps a node <a class="tref internalDFN" title="label" href="#dfn-label">label</a> to its associated
+          <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>. It is initialized to an empty map.
+        </dd>
+        <dt><dfn title="adjacent_info_map" id="dfn-adjacent_info_map">adjacent info map</dfn></dt>
+        <dd>
+          Maps a <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> to the node
+          <a class="tref internalDFN" title="label" href="#dfn-label">label</a> associated with it, the list of sorted
+          <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s for adjacent nodes, and the map of
+          adjacent node <a class="tref" title="serialiation_label">serialiation label</a>s to their associated
+          node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s. It is initialized to an empty map.
+        </dd>
+        <dt><dfn title="key_stack" id="dfn-key_stack">key stack</dfn></dt>
+        <dd>
+          A stack where each element contains an array of adjacent
+          <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s and an index into that array. It
+          is initialized to a stack containing a single element where its
+          array contains a single string element <code>s1</code> and its
+          index is set to <code>0</code>.
+        </dd>
+        <dt><dfn title="serialized_keys" id="dfn-serialized_keys">serialized keys</dfn></dt>
+        <dd>
+          Keeps track of which <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s have already
+          been written at least once to the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a>.
+          It is initialized to an empty map.
+        </dd>
+        <dt><dfn title="serialization_string" id="dfn-serialization_string">serialization string</dfn></dt>
+        <dd>
+          A string that is incrementally updated as a serialization is built.
+          It is initialized to an empty string.
+        </dd>
+     </dl>
+   </dd>
+</dl>
+
+<p>The deep comparison algorithm is as follows:</p>
+
+<ol class="algorithm">
+  <li>Perform a comparison between <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>
+    according to the
+    <a href="#shallow-comparison-algorithm">Shallow Comparison Algorithm</a>.
+    If the result does not show that the two nodes are equivalent, return
+    the result.
+    </li>
+  <li>Compare incoming and outgoing edges for each node, updating their
+    associated <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a> as each node is processed:
+    <ol class="algorithm">
+      <li>If the <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a> for <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>'s <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a new
+        <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a>,
+        <code>outgoing direction</code> to the algorithm as inputs.
+      </li><li>If the <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a> for <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>'s <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a new
+        <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a>, and
+        <code>outgoing direction</code> to the algorithm as inputs.
+      </li><li>If <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>'s <a class="tref internalDFN" title="outgoing_serialization" href="#dfn-outgoing_serialization">outgoing serialization</a> is
+        lexicographically less than <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>'s, then
+        <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> is first. If it is greater, then <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>
+        is first.</li>
+      <li>If the <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a> for <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>'s <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a new
+        <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> with its <a class="tref internalDFN" title="serialized_labels_map" href="#dfn-serialized_labels_map">serialized labels map</a>
+        set to a copy of <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>'s
+        <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a>, and
+        <code>incoming direction</code> to the algorithm as inputs.
+      </li><li>If the <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a> for <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>
+        is empty, generate the serialization according to the
+        <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+        Provide <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>'s <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a new
+        <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> with its <a class="tref internalDFN" title="serialized_labels_map" href="#dfn-serialized_labels_map">serialized labels map</a>
+        set to a copy of <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>'s
+        <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a>, and
+        <code>incoming direction</code> to the algorithm as inputs.
+      </li><li>If <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>'s <a class="tref internalDFN" title="incoming_serialization" href="#dfn-incoming_serialization">incoming serialization</a> is
+        lexicographically less than <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>'s, then
+        <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> is first. If it is greater, then <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a>
+        is first.</li>
+    </ol></li>
+</ol>
+</div>
+
+<div id="node-serialization-algorithm" class="section">
+<h3><span class="secno">2.9 </span>Node Serialization Algorithm</h3>
+
+<p>
+The node serialization algorithm takes a <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a
+<a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a>, and a <dfn title="direction" id="dfn-direction">direction</dfn> (either
+<code>outgoing direction</code> or <code>incoming direction</code>) as
+inputs and generates a deterministic serialization for the
+<a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>.
+</p>
+
+<ol class="algorithm">
+<li>If the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> exists in the
+  <a class="tref internalDFN" title="processed_labels_map" href="#dfn-processed_labels_map">processed labels map</a>, terminate the algorithm as the
+  <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> has already been created.
+</li>
+<li>Set the value associated with the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> in the
+  <a class="tref internalDFN" title="processed_labels_map" href="#dfn-processed_labels_map">processed labels map</a> to <code>true</code>.
+</li>
+<li>Generate the next <dfn title="serialization_label" id="dfn-serialization_label-1">serialization label</dfn> for the
+  <a class="tref internalDFN" title="label" href="#dfn-label">label</a> according to the
+  <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+</li>
+<li>Create an empty map called the <dfn title="adjacent_serialized_labels_map" id="dfn-adjacent_serialized_labels_map">adjacent serialized labels map</dfn>
+that will store mappings from <a class="tref" title="serialized_label">serialized label</a>s to adjacent
+node <a class="tref internalDFN" title="label" href="#dfn-label">label</a>s.</li>
+<li>Create an empty array called the
+<dfn title="adjacent_unserialized_labels_list" id="dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</dfn> that will store
+<a class="tref internalDFN" title="label" href="#dfn-label">label</a>s of adjacent nodes that haven't been assigned
+<a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>s yet.
+</li>
+<li>For every <a class="tref internalDFN" title="label" href="#dfn-label">label</a> in a list, where the list the <a class="tref internalDFN" title="outgoing_list" href="#dfn-outgoing_list">outgoing list</a> if
+the <a class="tref internalDFN" title="direction" href="#dfn-direction">direction</a> is <code>outgoing direction</code> and the
+<a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a> otherwise, if the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> starts with
+<code>_:</code>, it is the <dfn title="target_node_label" id="dfn-target_node_label">target node label</dfn>:
+  <ol class="algorithm">
+    <li>Look up the <a class="tref internalDFN" title="target_node_label" href="#dfn-target_node_label">target node label</a> in the
+      <a class="tref internalDFN" title="processed_labels_map" href="#dfn-processed_labels_map">processed labels map</a> and if a mapping exists,
+      update the <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a> where the key is
+      the value in the <a class="tref" title="serialization_map">serialization map</a> and the value is the
+      <a class="tref internalDFN" title="target_node_label" href="#dfn-target_node_label">target node label</a>.</li>
+    <li>Otherwise, add the <a class="tref internalDFN" title="target_node_label" href="#dfn-target_node_label">target node label</a> to the
+      <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a>.
+  </li></ol>
+</li>
+<li>Set the <dfn title="maximum_serialization_combinations" id="dfn-maximum_serialization_combinations">maximum serialization combinations</dfn> to
+  <code>1</code> or the length of the
+  <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a>, whichever is greater.</li>
+<li>While the <a class="tref internalDFN" title="maximum_serialization_combinations" href="#dfn-maximum_serialization_combinations">maximum serialization combinations</a> is greater than
+  <code>0</code>, perform the
+  <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+  passing the <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, the <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> for the
+  first iteration and a copy of it for each subsequent iteration, the
+  generated <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>, the <a class="tref internalDFN" title="direction" href="#dfn-direction">direction</a>,
+  the <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a>, and the
+  <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a>.
+  Decrement the <a class="tref internalDFN" title="maximum_serialization_combinations" href="#dfn-maximum_serialization_combinations">maximum serialization combinations</a> by
+  <code>1</code> for each iteration.
+</li></ol>
+
+</div>
+
+<div id="serialization-label-generation-algorithm" class="section">
+<h3><span class="secno">2.10 </span>Serialization Label Generation Algorithm</h3>
+
+<p>
+The algorithm generates a <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> given a
+<a class="tref internalDFN" title="label" href="#dfn-label">label</a> and a <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> and returns the
+<a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>.
+</p>
+
+ <ol class="algorithm">
+   <li>If the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> is already in the
+     <a class="tref" title="serialization_labels_map">serialization labels map</a>, return its associated value.
+   </li>
+   <li>If the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> starts with the string <code>_:c14n</code>,
+     the <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> is the letter <code>c</code>
+     followed by the number that follows <code>_:c14n</code> in the
+     <a class="tref internalDFN" title="label" href="#dfn-label">label</a>.
+   </li>
+   <li>Otherwise, the <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> is the
+     letter <code>s</code> followed by the string value of
+     <a class="tref" title="mapping_count">mapping count</a>. Increment the <a class="tref" title="mapping_count">mapping count</a> by
+     <code>1</code>.
+   </li>
+   <li>Create a new key-value pair in the <a class="tref" title="serialization_labels_map">serialization labels map</a>
+     where the key is the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> and the value is the
+     generated <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>.
+   </li>
+ </ol>
+</div>
+
+<div id="combinatorial-serialization-algorithm" class="section">
+<h3><span class="secno">2.11 </span>Combinatorial Serialization Algorithm</h3>
+
+<p>
+The combinatorial serialization algorithm takes a <a class="tref internalDFN" title="node_state" href="#dfn-node_state">node state</a>, a
+<a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a>, a <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>, a
+<a class="tref internalDFN" title="direction" href="#dfn-direction">direction</a>, a <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a>,
+and a <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a> as inputs and generates
+the lexicographically least serialization of nodes relating to the
+<a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>.
+</p>
+
+<ol class="algorithm">
+  <li>If the <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a> is not empty:
+    <ol class="algorithm">
+      <li>Copy the <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a> to the
+        <dfn title="adjacent_serialized_labels_map_copy" id="dfn-adjacent_serialized_labels_map_copy">adjacent serialized labels map copy</dfn>.</li>
+      <li>Remove the first <a class="tref" title="unserialized_label">unserialized label</a> from the
+        <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a> and create a new
+        <dfn title="new_serialization_label" id="dfn-new_serialization_label">new serialization label</dfn> according to the
+        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+      </li><li>Create a new key-value mapping in the
+        <a class="tref internalDFN" title="adjacent_serialized_labels_map_copy" href="#dfn-adjacent_serialized_labels_map_copy">adjacent serialized labels map copy</a>
+        where the key is the <a class="tref internalDFN" title="new_serialization_label" href="#dfn-new_serialization_label">new serialization label</a> and the value
+        is the <a class="tref" title="unserialized_label">unserialized label</a>.
+      </li><li>Set the <dfn title="maximum_serialization_rotations" id="dfn-maximum_serialization_rotations">maximum serialization rotations</dfn> to
+        <code>1</code> or the length of the
+        <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a>, whichever is greater.
+      </li>
+      <li>While the <a class="tref internalDFN" title="maximum_serialization_rotations" href="#dfn-maximum_serialization_rotations">maximum serialization rotations</a> is greater than
+        <code>0</code>:
+        <ol class="algorithm">
+          <li>Recursively perform the
+            <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+            passing the <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a> for the first iteration of the
+            loop, and a copy of it for each subsequent iteration.
+          </li>
+          <li>Rotate the elements in the
+            <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a> by shifting each of
+            them once to the right, moving the element at the end of the list
+            to the beginning of the list.
+          </li>
+          <li>Decrement the <a class="tref internalDFN" title="maximum_serialization_rotations" href="#dfn-maximum_serialization_rotations">maximum serialization rotations</a> by
+            <code>1</code> for each iteration.
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>If the <a class="tref internalDFN" title="adjacent_unserialized_labels_list" href="#dfn-adjacent_unserialized_labels_list">adjacent unserialized labels list</a> is empty:
+    <ol class="algorithm">
+      <li>Create a <dfn title="list_of_keys" id="dfn-list_of_keys">list of keys</dfn> from the keys in the
+        <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a> and sort it
+        lexicographically.
+      </li>
+      <li>Add a key-value pair to the <a class="tref internalDFN" title="adjacent_info_map" href="#dfn-adjacent_info_map">adjacent info map</a> where
+        the key is the <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a> and the value is
+        an object containing the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>'s label, the
+        <a class="tref internalDFN" title="list_of_keys" href="#dfn-list_of_keys">list of keys</a> and the
+        <a class="tref internalDFN" title="adjacent_serialized_labels_map" href="#dfn-adjacent_serialized_labels_map">adjacent serialized labels map</a>.
+      </li>
+      <li>Update the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> according to the
+        <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+      </li>
+      <li>If the <a class="tref internalDFN" title="direction" href="#dfn-direction">direction</a> is <code>outgoing direction</code>
+        then <dfn title="directed_serialization" id="dfn-directed_serialization">directed serialization</dfn> refers to the
+        <a class="tref internalDFN" title="outgoing_serialization" href="#dfn-outgoing_serialization">outgoing serialization</a> and the
+        <dfn title="directed_serialization_map" id="dfn-directed_serialization_map">directed serialization map</dfn> refers to the
+        <a class="tref internalDFN" title="outgoing_serialization_map" href="#dfn-outgoing_serialization_map">outgoing serialization map</a>, otherwise it refers to the
+        <a class="tref internalDFN" title="incoming_serialization" href="#dfn-incoming_serialization">incoming serialization</a> and the
+        <a class="tref internalDFN" title="directed_serialization_map" href="#dfn-directed_serialization_map">directed serialization map</a> refers to the
+        <a class="tref internalDFN" title="incoming_serialization_map" href="#dfn-incoming_serialization_map">incoming serialization map</a>. Compare the
+        <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> to the
+        <a class="tref internalDFN" title="directed_serialization" href="#dfn-directed_serialization">directed serialization</a> according to the
+        <a href="#mapping-serialization-algorithm">Serialization Comparison Algorithm</a>.
+        If the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> is less than or equal to
+        the <a class="tref internalDFN" title="directed_serialization" href="#dfn-directed_serialization">directed serialization</a>:
+        <ol class="algorithm">
+          <li>For each value in the <a class="tref internalDFN" title="list_of_keys" href="#dfn-list_of_keys">list of keys</a>, run the
+            <a href="#node-serialization-algorithm">Node Serialization Algorithm</a>.
+          </li>
+	       <li>Update the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> according to the
+	         <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+	       </li>
+	       <li>Compare the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> to the
+	         <a class="tref internalDFN" title="directed_serialization" href="#dfn-directed_serialization">directed serialization</a> again and if it is less than
+	         or equal and the length of the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> is
+	         greater than or equal to the length of the
+	         <a class="tref internalDFN" title="directed_serialization" href="#dfn-directed_serialization">directed serialization</a>, then set the
+	         <a class="tref internalDFN" title="directed_serialization" href="#dfn-directed_serialization">directed serialization</a> to the
+	         <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> and set the
+	         <a class="tref internalDFN" title="directed_serialization_map" href="#dfn-directed_serialization_map">directed serialization map</a> to the
+	         <a class="tref internalDFN" title="serialized_labels_map" href="#dfn-serialized_labels_map">serialized labels map</a>.
+	       </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+</div>
+
+<div id="serialization-comparison-algorithm" class="section">
+<h3><span class="secno">2.12 </span>Serialization Comparison Algorithm</h3>
+
+<p>
+The serialization comparison algorithm takes two serializations,
+<a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a> and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a> and returns either which of the two
+is less than the other or that they are equal.
+</p>
+
+<ol class="algorithm">
+  <li>Whichever serialization is an empty string is greater. If they are
+    both empty strings, they are equal.</li>
+  <li>Return the result of a lexicographical comparison of <a class="tref internalDFN" title="alpha" href="#dfn-alpha">alpha</a>
+    and <a class="tref internalDFN" title="beta" href="#dfn-beta">beta</a> up to the number of characters in the shortest of
+    the two serializations.
+  </li>
+</ol>
+</div>
+
+<div id="mapping-serialization-algorithm" class="section">
+<h3><span class="secno">2.13 </span>Mapping Serialization Algorithm</h3>
+
+<p>
+The mapping serialization algorithm incrementally updates the
+<a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a> in a <a class="tref internalDFN" title="mapping_state" href="#dfn-mapping_state">mapping state</a>.
+</p>
+
+<ol class="algorithm">
+  <li>If the <a class="tref internalDFN" title="key_stack" href="#dfn-key_stack">key stack</a> is not empty:
+    <ol class="algorithm">
+      <li>Pop the <dfn title="serialization_key_info" id="dfn-serialization_key_info">serialization key info</dfn> off of the
+        <a class="tref internalDFN" title="key_stack" href="#dfn-key_stack">key stack</a>.
+      </li>
+      <li>For each <dfn title="serialization_key" id="dfn-serialization_key">serialization key</dfn> in the
+        <a class="tref internalDFN" title="serialization_key_info" href="#dfn-serialization_key_info">serialization key info</a> array, starting at
+        the <dfn title="serialization_key_index" id="dfn-serialization_key_index">serialization key index</dfn> from the
+        <a class="tref internalDFN" title="serialization_key_info" href="#dfn-serialization_key_info">serialization key info</a>:
+        <ol class="algorithm">
+          <li>If the <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> is not in the
+            <a class="tref internalDFN" title="adjacent_info_map" href="#dfn-adjacent_info_map">adjacent info map</a>, push the
+            <a class="tref internalDFN" title="serialization_key_info" href="#dfn-serialization_key_info">serialization key info</a> onto the
+            <a class="tref internalDFN" title="key_stack" href="#dfn-key_stack">key stack</a> and exit from this loop.
+          </li>
+          <li>If the <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> is a key in
+            <a class="tref internalDFN" title="serialized_keys" href="#dfn-serialized_keys">serialized keys</a>, a cycle has been detected. Append
+            the concatenation of the <code>_</code> character and the
+            <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> to the
+            <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a>.
+          </li><li>Otherwise, serialize all outgoing and incoming edges in the
+            related node by performing the following steps:
+            <ol class="algorithm">
+              <li>Mark the <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> as having
+                been processed by adding a new key-value pair to
+                <a class="tref internalDFN" title="serialized_keys" href="#dfn-serialized_keys">serialized keys</a> where the key
+                is the <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> and the value is
+                <code>true</code>.
+              </li>
+              <li>Set the <dfn title="serialization_fragment" id="dfn-serialization_fragment">serialization fragment</dfn> to the value of
+                the <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a>.</li>
+              <li>Set the <a class="tref" title="adjacent_info">adjacent info</a> to the value of the
+                <a class="tref internalDFN" title="serialization_key" href="#dfn-serialization_key">serialization key</a> in the
+                <a class="tref internalDFN" title="adjacent_info_map" href="#dfn-adjacent_info_map">adjacent info map</a>.
+              </li>
+              <li>Set the <a class="tref" title="adjacent_node_label">adjacent node label</a> to the node
+                <a class="tref internalDFN" title="label" href="#dfn-label">label</a> from the <a class="tref" title="adjacent_info">adjacent info</a>.
+              </li>
+              <li>If a mapping for the <a class="tref" title="adjacent_node_label">adjacent node label</a>
+                exists in the <a class="tref" title="map_of_all_labels">map of all labels</a>:
+                <ol class="algorithm">
+                  <li>Append the result of the
+                    <a href="">Label Serialization Algorithm</a> to the
+                    <a class="tref internalDFN" title="serialization_fragment" href="#dfn-serialization_fragment">serialization fragment</a>.
+                  </li>
+                </ol>
+              </li>
+              <li>Append all of the keys in the <a class="tref" title="adjacent_info">adjacent info</a>
+                to the <a class="tref internalDFN" title="serialization_fragment" href="#dfn-serialization_fragment">serialization fragment</a>.
+              </li>
+              <li>Append the <a class="tref internalDFN" title="serialization_fragment" href="#dfn-serialization_fragment">serialization fragment</a> to the
+                <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a>.
+              </li>
+              <li>Push a new key info object containing the keys from the
+                <a class="tref" title="adjacent_info">adjacent info</a> and an index of <code>0</code>
+                onto the <a class="tref internalDFN" title="key_stack" href="#dfn-key_stack">key stack</a>.
+              </li>
+              <li>Recursively update the <a class="tref internalDFN" title="serialization_string" href="#dfn-serialization_string">serialization string</a>
+                according to the
+                <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>.
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+</div>
+
+<div id="label-serialization-algorithm" class="section">
+<h3><span class="secno">2.14 </span>Label Serialization Algorithm</h3>
+
+<p>
+The label serialization algorithm serializes information about a node that
+has been assigned a particular <a class="tref internalDFN" title="serialization_label" href="#dfn-serialization_label-1">serialization label</a>.
+</p>
+
+<ol class="algorithm">
+  <li>Initialize the <a class="tref" title="label_serialization">label serialization</a> to an empty string.</li>
+  <li>Append the <code>[</code> character to the
+    <a class="tref" title="label_serialization">label serialization</a>.</li>
+  <li>Append all properties to the <a class="tref" title="label_serialization">label serialization</a> by
+    processing each key-value pair in the <a class="tref internalDFN" title="node_reference" href="#dfn-node_reference">node reference</a>,
+    excluding the
+    <code>@subject</code> property. The keys should be processed in
+    lexicographical order and their associated values should be processed
+    in the order produced by the
+    <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>:
+    <ol class="algorithm">
+      <li>Build a string using the pattern <code>&lt;</code><strong>KEY</strong><code>&gt;</code>
+        where <strong>KEY</strong> is the current key. Append string to the
+        <a class="tref" title="label_serialization">label serialization</a>.</li>
+      <li>The value may be a single object or an array of objects.
+        Process all of the objects that are associated with the key, building
+        an <dfn title="object_string" id="dfn-object_string">object string</dfn> for each item:
+        <ol class="algorithm">
+          <li>If the object contains an <code>@iri</code> key with a
+            value that starts
+            with <code>_:</code>, set the <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a> to
+            the value <code>_:</code>. If the value does not
+            start with <code>_:</code>, build the <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a>
+            using the pattern
+            <code>&lt;</code><strong>IRI</strong><code>&gt;</code>
+            where <strong>IRI</strong> is the value associated with the
+            <code>@iri</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@datatype</code> key, build the <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a>
+            using the pattern
+            <code>&quot;</code><strong>LITERAL</strong><code>&quot;^^&lt;</code><strong>DATATYPE</strong><code>&gt;</code>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>DATATYPE</strong> is the
+            value associated with the <code>@datatype</code> key.</li>
+          <li>If the object contains a <code>@literal</code> key and a
+            <code>@language</code> key, build the <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a>
+            using the pattern
+            <code>&quot;</code><strong>LITERAL</strong><code>&quot;@</code><strong>LANGUAGE</strong>
+            where <strong>LITERAL</strong> is the value associated with the
+            <code>@literal</code> key and <strong>LANGUAGE</strong> is the
+            value associated with the <code>@language</code> key.</li>
+          <li>Otherwise, the value is a string. Build the
+            <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a> using the pattern
+            <code>&quot;</code><strong>LITERAL</strong><code>&quot;</code>
+            where <strong>LITERAL</strong> is the value associated with the
+            current key.</li>
+          <li>If this is the second iteration of the loop,
+            append a <code>|</code> separator character to the
+            <a class="tref" title="label_serialization">label serialization</a>.</li>
+          <li>Append the <a class="tref internalDFN" title="object_string" href="#dfn-object_string">object string</a> to the
+            <a class="tref" title="label_serialization">label serialization</a>.</li>
+        </ol>
+    </li></ol>
+  </li>
+  <li>Append the <code>]</code> character to the
+    <a class="tref" title="label_serialization">label serialization</a>.</li>
+  <li>Append the <code>[</code> character to the
+    <a class="tref" title="label_serialization">label serialization</a>.</li>
+  <li>Append all incoming references for the current
+    <a class="tref internalDFN" title="label" href="#dfn-label">label</a> to the <a class="tref" title="label_serialization">label serialization</a> by
+    processing all of the items associated with the <a class="tref internalDFN" title="incoming_list" href="#dfn-incoming_list">incoming list</a>:
+    <ol class="algorithm">
+      <li>Build a <dfn title="reference_string" id="dfn-reference_string">reference string</dfn>
+        using the pattern <code>&lt;</code><strong>PROPERTY</strong><code>&gt;</code><code>&lt;</code><strong>REFERER</strong><code>&gt;</code>
+        where <strong>PROPERTY</strong> is the property associated with the
+        incoming reference and <strong>REFERER</strong> is either the subject of
+        the node referring to the <a class="tref internalDFN" title="label" href="#dfn-label">label</a> in the incoming reference
+        or <code>_:</code> if <strong>REFERER</strong> begins with
+        <code>_:</code>.
+      </li><li>If this is the second iteration of the loop,
+        append a <code>|</code> separator character to the
+        <a class="tref" title="label_serialization">label serialization</a>.</li>
+      <li>Append the <a class="tref internalDFN" title="reference_string" href="#dfn-reference_string">reference string</a> to the
+        <a class="tref" title="label_serialization">label serialization</a>.</li>
+    </ol>
+  </li><li>Append the <code>]</code> character to the
+    <a class="tref" title="label_serialization">label serialization</a>.</li>
+  <li>Append all <a class="tref" title="adjacent_node_labels">adjacent node labels</a> to the
+    <a class="tref" title="label_serialization">label serialization</a> by concatenating the string value
+    for all of them, one after the other, to the
+    <a class="tref" title="label_serialization">label serialization</a>.</li>
+  <li>Push the <a class="tref" title="adjacent_node_labels">adjacent node labels</a> onto the
+    <a class="tref internalDFN" title="key_stack" href="#dfn-key_stack">key stack</a> and append the result of the
+    <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>
+    to the <a class="tref" title="label_serialization">label serialization</a>.
+</li></ol>
+
+</div>
+
+</div>
+
+<div class="appendix section" id="acknowledgements">
+
+<!-- OddPage -->
+<h2><span class="secno">A. </span>Acknowledgements</h2>
+
+<p>The editors would like to thank Jeremy Carroll for his work on the
+graph normalization problem. Gavin Carothers for providing valuable feedback
+and testing input for the algorithm defined in this specification. Sir
+Tim Berners Lee for his thoughts on graph normalization over the years.
+Jesús Arias Fisteus for his work on a similar algorithm. Finally, a huge thank 
+you goes out to Dave Longley who designed and implemented the algorithms 
+used in this specification, which turned out to be a monumentally difficult 
+design challenge.
+</p>
+
+</div>
+
+
+
+<div id="references" class="appendix section">
+<!-- OddPage -->
+<h2><span class="secno">B. </span>References</h2><div id="normative-references" class="section"><h3><span class="secno">B.1 </span>Normative references</h3><dl class="bibliography"><dt id="bib-RDF-CONCEPTS">[RDF-CONCEPTS]</dt><dd>Graham Klyne; Jeremy J. Carroll. <a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210"><cite>Resource Description Framework (RDF): Concepts and Abstract Syntax.</cite></a> 10 February 2004. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210">http://www.w3.org/TR/2004/REC-rdf-concepts-20040210</a> 
+</dd></dl></div><div id="informative-references" class="section"><h3><span class="secno">B.2 </span>Informative references</h3><dl class="bibliography"><dt id="bib-RDF-SYNTAX">[RDF-SYNTAX]</dt><dd>Ora Lassila; Ralph R. Swick. <a href="http://www.w3.org/TR/1999/REC-rdf-syntax-19990222"><cite>Resource Description Framework (RDF) Model and Syntax Specification.</cite></a> 22 February 1999. W3C Recommendation. URL: <a href="http://www.w3.org/TR/1999/REC-rdf-syntax-19990222">http://www.w3.org/TR/1999/REC-rdf-syntax-19990222</a> 
+</dd></dl></div></div></body></html>
