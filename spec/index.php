@@ -33,9 +33,11 @@ print <<< htmlcode
             <div id="info"> 
                <h1>Specifications</h1> 
                <p>The following specifications are sorted in most recent to
-               least recent order:</p>
+               least recent order.</p>
+               
+               <h2>The JSON-LD Syntax</h2>
                <ul>
-                 <li><a href="latest/">latest</a></li>
+                 <li><a href="latest/json-ld-syntax/">latest</a></li>
 
 htmlcode;
 
@@ -51,6 +53,18 @@ foreach($editorsDrafts as $draft)
 
 print <<< htmlcode
                </ul>
+
+               <h2>The JSON-LD API</h2>
+               <ul>
+                 <li><a href="latest/json-ld-api/">latest</a></li>
+               </ul>
+
+
+               <h2>RDF Graph Normalization</h2>
+               <ul>
+                 <li><a href="latest/rdf-graph-normalization/">latest</a></li>
+               </ul>
+
             </div>
          </div>
  
