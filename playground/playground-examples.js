@@ -24,7 +24,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "@iri": ["homepage"]
+            "homepage": "@iri"
          }
       }
    };
@@ -51,8 +51,9 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "@iri": ["image"],
-            "xsd:float": ["latitude", "longitude"]
+            "image": "@iri",
+            "latitude": "xsd:float",
+            "longitude": "xsd:float"
          }
       }
    };
@@ -69,7 +70,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:dateTime": ["ical:dtstart"]
+            "ical:dtstart": "xsd:dateTime"
          }
       }
    };
@@ -102,8 +103,10 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "@iri": ["foaf:page", "gr:acceptedPaymentMethods", "gr:hasBusinessFunction"],
-            "xsd:float": ["gr:hasCurrencyValue"]
+            "foaf:page": "@iri",
+            "gr:acceptedPaymentMethods": "@iri",
+            "gr:hasBusinessFunction": "@iri",
+            "gr:hasCurrencyValue": "xsd:float"
          }
       }
    };
@@ -150,7 +153,7 @@
          "xsd": "http://www.w3.org/2001/XMLSchema#",
          "@coerce":
          {
-            "xsd:integer": ["step"]
+            "step": "xsd:integer"
          }
       }
    };
@@ -182,7 +185,7 @@
       {
          "@coerce": 
          {
-            "@iri": "ex:contains"
+            "ex:contains": "@iri"
          },
          "dc": "http://purl.org/dc/elements/1.1/",
          "ex": "http://example.org/vocab#",
