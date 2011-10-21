@@ -955,6 +955,8 @@ and typed literals fully expanded.
 </ol>
 </section>
 
+<p class="issue">What are the implications for expanding lists?</p>
+
 </section>
 
 <section>
@@ -985,6 +987,8 @@ typed literals are fully compacted.
   </li>
 </ol>
 </section>
+
+<p class="issue">What are the implications for compacting lists?</p>
 
 </section>
 
@@ -1181,6 +1185,8 @@ final output of the compaction algorithm and is what should be returned to the
 application.
 
 </section>
+
+<p class="issue">What are the implications for framing lists?</p>
 
 </section>
 
@@ -2341,6 +2347,10 @@ implement the algorithm exactly as described.
             </li>
           </ol>
         </li>
+        <li>
+          If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
+          process the value as a list starting at <a href="#processing-step-list">Step 4</a>.
+        </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@subject</code> key:
           <ol class="algorithm">
             <li>
@@ -2350,10 +2360,20 @@ implement the algorithm exactly as described.
               <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
             </li>
             <li>
-              Create a new <tref>processor state</tref> using copies of the <tref>active context</tref>,
-              <tref>active subject</tref> and <tref>active property</tref> and process the value
-              starting at <a href="#processing-step-associative">Step 2</a>, set the <tref>active
-              subject</tref> to the result and proceed using the previous <tref>processor state</tref>.
+              Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+              <tref>active subject</tref> and <tref>active property</tref>.
+              <ol class="algorithm">
+                <li>
+                  If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
+                  and the value is an <tref>array</tref>,
+                  process the value as a list starting at <a href="#processing-step-list">Step 4</a>.
+                </li>
+                <li>
+                  Otherwise, process the value starting at
+                  <a href="#processing-step-associative">Step 2</a>.
+                </li>
+                <li>Proceed using the previous <tref>processor state</tref>.</li>
+              </ol>
             </li>
           </ol>
         </li>
@@ -2398,6 +2418,31 @@ implement the algorithm exactly as described.
           context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
           starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
           <tref>processor state</tref>.
+        </li>
+      </ol>
+    </li>
+
+    <li id="processing-step-list">
+      Generate an RDF List by linking
+      each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
+      using the following sequence:
+      <ol class="algorithm">
+        <li>
+          If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
+          and <code>rdf:nil</code>.
+        </li>
+        <li>
+          Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+          and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
+        </li>
+        <li>
+          For each element other than the last element in the list:
+          <ol class="algorithm">
+            <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+            <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
+            <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
+            <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
+          </ol>
         </li>
       </ol>
     </li>
