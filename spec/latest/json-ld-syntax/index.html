@@ -186,7 +186,7 @@
               { name: "Dave Longley", url: "http://digitalbazaar.com/",
                 company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
-                company: "Kellogg Associates" },
+                company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
               { name: "Markus Lanthaler", url: "http://www.linkedin.com/in/markuslanthaler",
                 company: "Graz University of Technology", companyURL: "http://tugraz.at/" },
               { name: "Mark Birbeck", url: "http://webbackplane.com/",
@@ -390,6 +390,28 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </dd>
   </dl>
 </p>
+
+</section>
+
+<section>
+  <h2>Syntax Tokens and Keywords</h2>
+
+  <p>JSON-LD specifies a number of syntax tokens and keywords that are using
+  in all algorithms described in this section:</p>
+
+  <dl>
+  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
+  <dt><code>@base</code></dt><dd>Used to set the base IRI for all object IRIs affected  by the <tref>active context</tref>.</dd>
+  <dt><code>@vocab</code></dt><dd>Used to set the base IRI for all property IRIs affected by the <tref>active context</tref>.</dd>
+  <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
+  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
+  <dt><code>@iri</code></dt><dd>Used to specify an IRI value.</dd>
+  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
+  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
+  <dt><code>@subject</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
+  </dl>
 </section>
 
 <section>
@@ -561,9 +583,11 @@ resides.
 <pre class="example" data-transform="updateExample">
 <!--
 {
+  "@context": {
     "name": "http://xmlns.com/foaf/0.1/name",
     "homepage": "http://xmlns.com/foaf/0.1/homepage",
     "avatar": "http://xmlns.com/foaf/0.1/avatar"
+  }
 }
 -->
 </pre>
@@ -594,6 +618,7 @@ data without having to agree to how their data will inter-operate on a
 site-by-site basis. Contexts may also contain datatype information
 for certain <tref>term</tref>s as well as other processing instructions for
 the JSON-LD processor.</p>
+
 <p>Contexts may be specified in-line. This ensures that JSON-LD documents
 can be processed when a JSON-LD processor does not have access to the Web.</p>
 
@@ -605,6 +630,26 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
     "homepage": "http://xmlns.com/foaf/0.1/homepage",
     "avatar": "http://xmlns.com/foaf/0.1/avatar"
   },****
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+<p>Contexts may be used at any time a <tref>JSON object</tref> is defined, and a <tref>JSON object</tref>
+  may specify multiple contexts, to be processed in order, for example to include standard prefix
+  definitions along with a local language definition used to set the language of <tref>plain literal</tref>s:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": [
+    "http://example.org/json-ld-contexts/person",
+    {
+      "@language": "en"
+    }
+  ],****
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/",
   "avatar": "http://twitter.com/account/profile_image/manusporny"
@@ -663,6 +708,64 @@ are unambiguous.
 put the context definition at the top of the JSON-LD document. If it isn't listed
 first, processors have to save each key-value pair until the context is processed.
 This creates a memory and complexity burden for one-pass processors.</p>
+<section>
+  <h2>External Contexts</h2>
+
+  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external 
+documents to promote re-use of contexts as well as reduce the size of JSON-LD 
+documents.
+In order to use an external context, an author MAY specify an IRI to a valid
+JSON-LD document. The referenced document MUST have a top-level <tref>JSON Object</tref>.
+The value of any <code>@context</code> key within that object is substituted for
+the IRI within the referencing document to have the same effect as if the value were
+specified inline within the referencing document.</p>
+  <p>The following example demonstrates the use of an external context:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": "http://example.org/json-ld-contexts/person"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+<p>Authors may also import multiple contexts or a combination of external and local contexts by specifying a list of 
+contexts:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": ["http://example.org/json-ld-contexts/person", "http://example.org/json-ld-contexts/event"]****
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+  ****"celebrates":
+  {
+     "@type": "Event",
+     "description": "International Talk Like a Pirate Day",
+     "date": "R/2011-09-19"
+  }****
+}
+-->
+</pre>
+
+<p>Each context in a list will be evaluated in-order. Duplicate mappings within the contexts MUST be
+overwritten on a last-defined-overrides basis. The context list MUST contain
+either de-referenceable IRIs or <tref>JSON Object</tref>s that conform to the
+context syntax as described in this document.</p>
+
+<p>External JSON-LD context documents MAY contain extra information located
+outside of the <code>@context</code> key, such as
+documentation about the <tref>prefix</tref>es declared in the document. It is
+also RECOMMENDED that a human-readable document encoded in HTML+RDFa 
+[[HTML-RDFA]] or other Linked Data compatible format is served as well to
+explain the correct usage of the JSON-LD context document.
+</p>
+
+</section>
 
 </section>
 
@@ -811,6 +914,8 @@ a particular vocabulary term, an IRI is generated:</p>
 <p>Even though the value <code>http://manu.sporny.org/</code> is a <tref>string</tref>,
 the type coercion rules will transform the value into an IRI when processed
 by a JSON-LD Processor</p>
+
+<p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:<tref>term</tref> construct, or as a value relative to <code>@base</code> or <code>@vocab</code>.</p>
 
 </section>
 
@@ -1370,66 +1475,102 @@ the core functionality described above. The following sections outline the
 features that are specific to JSON-LD.
 </p>
 
+
 <section>
-  <h2>External Contexts</h2>
+<h3>Base URI</h3>
+<p>JSON-LD allows IRIs to be specified in a relative form. For <tref>subject</tref> and <tref>object</tref>
+  IRIs, relative IRIs are resolved against the document base using
+  <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
+  Base URI</a></cite> of [[RFC3986]]. This value may be explicitly
+  set with a context using the <code>@base</code> keyword.</p>
 
-  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external 
-documents to promote re-use of contexts as well as reduce the size of JSON-LD 
-documents.
-In order to use an external context, an author MAY specify an IRI to a valid
-JSON-LD document. If an IRI is specified, the external document MUST be 
-dereferenced and the top-level <code>@context</code> key in the 
-<tref>JSON Object</tref> MUST be overlayed on top of the current 
-active context.</p>
-
-  <p>The following example demonstrates the use of an external context:</p>
+<p>For example, if a JSON-LD document was retrieved from <code>http://manu.sporny.org/</code>,
+  relative IRIs would resolve against that URI:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": "http://example.org/json-ld-contexts/person"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "avatar": "http://twitter.com/account/profile_image/manusporny"
+  ****"@subject": "about/"****,
+  "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
+  "http://xmlns.com/foaf/0.1/homepage: ""
 }
 -->
 </pre>
 
-<p>Authors may also import multiple contexts by specifying a list of 
-contexts to import:</p>
+<p>This document uses an empty <code>@subject</code>, which resolves to the document base. However, if
+  the document is moved to a different location, the subject IRI would change. To prevent this, a context
+  may have a <code>@base</code> mapping, to set an absolute base for the document in spite of where
+  it actually is retrieved from. It MUST have a value of a simple
+  <tref>string</tref> with the lexical form of an absolute IRI.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": ["http://example.org/json-ld-contexts/person", "http://example.org/json-ld-contexts/event"]****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "avatar": "http://twitter.com/account/profile_image/manusporny"
-  ****"celebrates":
-  {
-     "@type": "Event",
-     "description": "International Talk Like a Pirate Day",
-     "date": "R/2011-09-19"
-  }****
+  ****"@context": { "@base": "http://manu.sporny.org/"}****,
+  "@subject": "about/",
+  "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
+  "http://xmlns.com/foaf/0.1/homepage: ""
 }
 -->
 </pre>
-
-<p>Each context in a list will be evaluated in-order. Duplicate values MUST be
-overwritten on a last-defined-overrides basis. The context list MUST contain
-either de-referenceable IRIs or <tref>JSON Object</tref>s that conform to the
-context syntax as described in this document.</p>
-
-<p>External JSON-LD context documents MAY contain extra information located
-outside of the <code>@context</code> key, such as
-documentation about the <tref>prefix</tref>es declared in the document. It is
-also RECOMMENDED that a human-readable document encoded in HTML+RDFa 
-[[HTML-RDFA]] or other Linked Data compatible format is served as well to
-explain the correct usage of the JSON-LD context document.
-</p>
-
 </section>
 
+<section>
+<h3>Default Vocabulary</h3>
+<p>It is often common that all types and properties come from the same vocabulary. JSON-LD provides
+  a way to set a base URI to be used for all properties and types that aren't based on terms,
+  prefixes or absolute IRIs. Much like the <code>@base</code> keyword, the <code>@vocab</code> keyword
+  can be used to set a base IRI to use for all types and properties that don't otherwise resolve to
+  an absolute IRI.
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": { "@vocab": "http://xmlns.com/foaf/1.0/" },****
+  ****"@type": "Person"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+</section>
+
+<section>
+<h3>Default Language</h3>
+<p>JSON-LD allows a default value to use as the language for <tref>plain literal</tref>s.
+  It is commonly the case that documents are written using a single language. As described in
+  <a href="string-internationalization">String Internationalization</a>, a language-tagged literal
+  may be specified as follows:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "name":
+  {
+    "@literal": "花澄",
+    "@language": "ja"
+  }
+...
+}
+-->
+</pre>
+
+<p>By specifying <code>@language</code> within a context, multiple language-tagged literals may be
+  marked up using a simple string form:</p>
+</section>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": { "@language": "ja"}****,
+...
+  "name": ****"花澄"****
+...
+}
+-->
+</pre>
 <section>
   <h2>Vocabulary Prefixes</h2>
   <p>
@@ -1612,6 +1753,51 @@ _:bnode1
       <http://example.org/home/> .
 -->
 </pre>
+
+<div class="issue">
+  <p>The mechanism for type coercion is still being debated. It may be that the key/value
+    positions are swapped, yielding a <code>@context</code> such as the following:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "age": "http://xmlns.com/foaf/0.1/age",
+    "homepage": "http://xmlns.com/foaf/0.1/homepage",
+    "currentProject": "http://xmlns.com/foaf/0.1/currentProject",
+    ****"@coerce": {
+      "age": "xsd:integer",
+      "homepage": "@iri",
+      "currentProject": ["@iri", "@list"]
+     }****
+  },
+  ...
+}
+-->
+</pre>
+
+<p>An alternative is to merge the coercion into term definitions:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context":
+  {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "age": ****{"@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer"}****,
+    "homepage": ****{"@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "@iri"}****,
+    "currentProject": ****{"@iri": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": ["@iri", "@list"]}****,
+  },
+  ...
+}
+-->
+</pre>
+</div>
 
 </section>
 

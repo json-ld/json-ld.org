@@ -22,6 +22,7 @@
                     berjon.biblio["JSON-LD"] = "Manu Sporny, Gregg Kellogg, et al. <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\"><cite>The JSON-LD Syntax</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\">http://json-ld.org/spec/latest/json-ld-syntax/</a>";
                     berjon.biblio["RDF-API"] = "Manu Sporny, Benjamin Adrian, Nathan Rixham; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\"><cite>RDF API</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\">http://www.w3.org/2010/02/rdfa/sources/rdf-api/</a>";
                     berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
+                    berjon.biblio["JSON-POINTER"] = "P. Bryan, Ed. <cite><a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">JSON Pointer</a></cite> Latest. IETF Draft. URL: <a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt</a>";
 
                     // process the document before anything else is done
                     var refs = document.querySelectorAll('adef') ;
@@ -192,7 +193,7 @@
               { name: "Manu Sporny", url: "http://digitalbazaar.com/",
                 company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
-                company: "Kellogg Associates" },
+                company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
           ],
 
           // name of the WG
@@ -724,42 +725,53 @@ language-native data structures MUST be used where applicable.</p>
   </p>
   <p>
     A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
-    <code>@context</code> with <tref>string</tref> or a <tref>JSON object</tref> value. When processing a <tref>local
-    context</tref>, special processing rules apply:
+    <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value. When processing a <tref>local context</tref>, special processing rules apply:
   </p>
   <ol class="algorithm">
     <li>Create a new, empty <tref>local context</tref>.</li>
-    <li>
-      If the value is a simple <tref>string</tref>, it MUST have a lexical form of IRI and used to initialize
-      a new JSON document which replaces the value for subsequent processing.
-    </li>
-    <li>If the value is a <tref>JSON object</tref>, perform the following steps:
+    <li>Let <em>value</em> be the value of <code>@context</code></li>
+    <ol id="process-context" class="algorithm">
+      <li>If <em>value</em> is an <tref>array</tref>, process
+        each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.
+      <li>
+        If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of IRI.
+        <ol class="algorithm">
+          <li>Set <em>value</em> to the result of performing <a href="#iri-expansion">IRI Expansion</a>
+            on <em>value</em>.
+          <li>If <em>value</em> does is not an absolute IRI, abort this processing step.
+            Otherwise, Dereference <em>value</em>.</li>
+          <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
+            element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>value</em>
+            to the extracted content, or an empty <tref>JSON Object</tref> if no value exists.</li>
+        </ol>
+      </li>
+    <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
         <li>
-          If the <tref>JSON object</tref> has a <code>@base</code> key, it MUST have a value of a simple
+          If <em>value</em> has a <code>@base</code> key, it MUST have a value of a simple
           <tref>string</tref> with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
           context</tref>. <p class="issue">Turtle allows @base to be relative. If we did this, we
           would have to add <a href="#iri-expansion">IRI Expansion</a>.</p>
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@vocab</code> key, it MUST have a value of a simple
+          If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple
           <tref>string</tref> with the lexical form of an absolute IRI. Add the vocabulary mapping to the
           <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
           the associated value.
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@coerce</code> key, it MUST have a value of a
+          If <em>value</em> has a <code>@coerce</code> key, it MUST have a value of a
           <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
           performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@language</code> key, it MUST have a value of a
+          If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
           simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.
         </li>
         <li>
-          Otherwise, the key MUST have the lexical form of <cite><a
-          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> and
-          MUST have the value of a simple <tref>string</tref> with the lexical form of IRI. Merge the key-value
+          Otherwise, for each key in <em>value</em>having the lexical form of <cite><a
+          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>, it's value
+          MUST have be a simple <tref>string</tref> with the lexical form of IRI. Merge the key-value
           pair into the <tref>local context</tref>.
         </li>
       </ol>
@@ -798,8 +810,8 @@ language-native data structures MUST be used where applicable.</p>
     <p>The <tref>initial context</tref> is initialized as follows:</p>
     <ul>
       <li>
-        <code>@base</code> is set using <cite><href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
-        Base URI</href="http://www.ietf.org/rfc/rfc2396.txt"></cite> of [[RFC3986]]. Processors MAY provide a means
+        <code>@base</code> is set using <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
+        Base URI<a></cite> of [[RFC3986]]. Processors MAY provide a means
         of setting the base IRI programatically.
       </li>
       <li><code>@coerce</code> is set with a single mapping from <code>@iri</code> to <code>@type</code>.</li>
