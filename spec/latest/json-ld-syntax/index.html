@@ -1226,6 +1226,93 @@ form for objects:</p>
 
 </section>
 
+<section>
+  <h2>Lists</h2>
+  <p>
+    Because graphs do not describe ordering for links between nodes,  in contrast to plain JSON, multi-valued properties
+    in JSON-LD do not provide an ordering of the listed objects. For example, consider the following
+    simple document:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This results in three triples being generated, each relating the subject to an individual
+    object, with no inherent order.</p>
+  <p>To preserve the order of the objects, RDF-based languages, such as [[TURTLE]]
+    use the concept of an <code>rdf:List</code> (as described in [[RDF-SCHEMA]]). This uses a sequence
+    of unlabeled nodes with properties describing a value, a null-terminated next property. Without
+    specific syntactical support, this could be represented in JSON-LD as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "nick": ****{****,
+      ****"@first": "joe"****,
+      ****"@rest": {****
+        ****"@first": "bob"****,
+        ****"@rest": {****
+          ****"@first": "jaybee"****,
+          ****"@rest": "@nil"****
+          ****}****
+        ****}****
+      ****}****
+    ****}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    As this notation is rather unwieldy and the notion of ordered collections is rather important
+    in data modeling, it is useful to have specific language support. In JSON-LD, a list may
+    be represented using the <code>@list</code> keyword as follows:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****{"@list": ["joe", "bob", "jaybee"]}****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    This describes the use of this <tref>array</tref> as being ordered, and order is maintained through normalization
+    and RDF conversion as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a list, this
+    may be abbreviated by adding an <code>@coerce</code> term:
+  </p>
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    ****"@context": {****
+      ...
+      ****"@coerce": {****
+        ****"@list": ["foaf:nick"]****
+      ****}****
+    ****}****,
+  ...
+    "@subject": "http://example.org/people#joebob",
+    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+  ...
+  }
+  -->
+  </pre>
+  <p>
+    The @list keyword can be used within the <code>@coerce</code> section of a <code>@context</code> to
+    cause value arrays to be coerced into an ordered list.
+  </p>
+</section>
+
 </section>
 
 <section>
@@ -1654,93 +1741,6 @@ keywords have been given the aliases <strong>url</strong> and
 <strong>a</strong>, respectively.
 </p>
 
-</section>
-
-<section>
-  <h2>Lists</h2>
-  <p>
-    Because graphs do not describe ordering for links between nodes,  in contrast to plain JSON, multi-valued properties
-    in JSON-LD do not provide an ordering of the listed objects. For example, consider the following
-    simple document:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-  ...
-    "@subject": "http://example.org/people#joebob",
-    "nick": ****["joe", "bob", "jaybee"]****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    This results in three triples being generated, each relating the subject to an individual
-    object, with no inherent order.</p>
-  <p>To preserve the order of the objects, RDF-based languages, such as [[TURTLE]]
-    use the concept of an <code>rdf:List</code> (as described in [[RDF-SCHEMA]]). This uses a sequence
-    of unlabeled nodes with properties describing a value, a null-terminated next property. Without
-    specific syntactical support, this could be represented in JSON-LD as follows:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-  ...
-    "@subject": "http://example.org/people#joebob",
-    "nick": ****{****,
-      ****"@first": "joe"****,
-      ****"@rest": {****
-        ****"@first": "bob"****,
-        ****"@rest": {****
-          ****"@first": "jaybee"****,
-          ****"@rest": "@nil"****
-          ****}****
-        ****}****
-      ****}****
-    ****}****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    As this notation is rather unwieldy and the notion of ordered collections is rather important
-    in data modeling, it is useful to have specific language support. In JSON-LD, a list may
-    be represented using the <code>@list</code> keyword as follows:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-  ...
-    "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****{"@list": ["joe", "bob", "jaybee"]}****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    This describes the use of this <tref>array</tref> as being ordered, and order is maintained through
-    normalization and RDF conversion as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a
-    list, this may be abbreviated by adding an <code>@coerce</code> term:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-    ****"@context": {****
-      ...
-      ****"@coerce": {****
-        ****"@list": ["foaf:nick"]****
-      ****}****
-    ****}****,
-  ...
-    "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****["joe", "bob", "jaybee"]****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    The @list keyword can be used within the <code>@coerce</code> section of a <code>@context</code> to
-    cause value arrays to be coerced into an ordered list.
-  </p>
 </section>
 
 </section>
