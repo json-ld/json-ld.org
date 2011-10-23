@@ -178,7 +178,7 @@
               { name: "Manu Sporny", url: "http://manu.sporny.org/",
                 company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
-                company: "Kellogg Associates" },
+                company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
               { name: "Dave Longley", url: "http://digitalbazaar.com/",
                 company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"}
           ],
@@ -935,16 +935,51 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h2>Expansion</h2>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+<p>Expansion is the process of taking a JSON-LD document and applying a
+context such that all IRI, datatypes, and literal values are expanded so
+that the context is no longer necessary. JSON-LD document expansion
+is typically used as a part of <a href="#normalization">Framing</a> or
+<a href="#normalization">Normalization</a>.</p>
 
-<p>As stated previously, expansion is the process of taking a JSON-LD
-input and expanding all IRIs and typed literals to their fully-expanded form.
-The output will not contain a single context declaration and will have all IRIs
-and typed literals fully expanded.
-</p>
+<p>For example, assume the following JSON-LD input document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "@context":
+   {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "homepage": "http://xmlns.com/foaf/0.1/homepage",
+      "@coerce":
+      {
+         "@iri": "homepage"
+      }
+   },
+   "name": "Manu Sporny",
+   "homepage": "http://manu.sporny.org/"
+}
+-->
+</pre>
+
+<p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
+provided above would result in the following output:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
+   "http://xmlns.com/foaf/0.1/homepage":
+   {
+      "@iri": "http://manu.sporny.org/"
+   }
+}
+-->
+</pre>
 
 <section>
 <h3>Expansion Algorithm</h3>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
 <ol class="algorithm">
   <li>If the top-level item in the <tref>JSON-LD input</tref> is an <tref>array</tref>,
@@ -978,17 +1013,76 @@ and typed literals fully expanded.
 <section>
 <h2>Compaction</h2>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+<p>Compaction is the process of taking a JSON-LD document and applying a
+context such that the most compact form of the document is generated. JSON
+is typically expressed in a very compact, key-value format. That is, full
+IRIs are rarely used as keys. At times, a JSON-LD document may be received
+that is not in its most compact form. JSON-LD, via the API, provides a way
+to compact a JSON-LD document.
+</p>
 
-<p>As stated previously, compaction is the process of taking a JSON-LD
-input and compacting all IRIs using a given context. The output
-will contain a single top-level context declaration and will only use
-<tref>term</tref>s and <tref>prefix</tref>es and will ensure that all
-typed literals are fully compacted.
+<p>For example, assume the following JSON-LD input document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
+   "http://xmlns.com/foaf/0.1/homepage":
+   {
+      "@iri": "http://manu.sporny.org/"
+   }
+}
+-->
+</pre>
+
+<p>Additionally, assume the following developer-supplied JSON-LD context:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "name": "http://xmlns.com/foaf/0.1/name",
+   "homepage": "http://xmlns.com/foaf/0.1/homepage",
+   "@coerce":
+   {
+      "@iri": "homepage"
+   }
+}
+-->
+</pre>
+
+<p>Running the JSON-LD Compaction algorithm given the context supplied above
+against the JSON-LD input document provided above would result in the following
+output:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "@context":
+   {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "homepage": "http://xmlns.com/foaf/0.1/homepage",
+      "@coerce":
+      {
+         "@iri": "homepage"
+      }
+   },
+   "name": "Manu Sporny",
+   "homepage": "http://manu.sporny.org/"
+}
+-->
+</pre>
+
+<p>The compaction algorithm also enables the developer to map any expanded
+format into an application-specific compacted format. While the context
+provided above mapped <code>http://xmlns.com/foaf/0.1/name</code> to
+<strong>name</strong>, it could have also mapped it to any arbitrary string
+provided by the developer.
 </p>
 
 <section>
 <h3>Compaction Algorithm</h3>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
 <ol class="algorithm">
   <li>Perform the <a href="#expansion-algorithm">Expansion Algorithm</a> on
@@ -1012,19 +1106,131 @@ typed literals are fully compacted.
 <section>
 <h2>Framing</h2>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+<p>JSON-LD Framing allows developers to query by example and
+force a specific tree layout to a JSON-LD document.
+</p>
 
 <p>A JSON-LD document is a representation of a directed graph. A single
 directed graph can have many different serializations, each expressing
-exactly the same information. Developers typically don't work directly with
-graphs, but rather, prefer trees when dealing with JSON. While mapping a graph
-to a tree can be done, the layout of the end result must be specified in
-advance. This section defines an algorithm for mapping a graph to
-a tree given a <tref>frame</tref>.
+exactly the same information. Developers typically work with trees, represented as
+<tref>JSON object</tref>s. While mapping a graph to
+a tree can be done, the layout of the end result must be specified in advance.
+A <tdef>Frame</tdef> can be used by a developer on a JSON-LD document to
+specify a deterministic layout for a graph.
 </p>
+
+<p>Framing is the process of taking a JSON-LD document, which expresses a
+graph of information, and applying a specific graph layout
+(called a <tref>Frame</tref>).
+</p>
+
+<p>The JSON-LD document below expresses a library, a book and a chapter:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title",
+    "@coerce":
+    {
+      "@iri": "contains"
+    },
+  },
+  "@subject":
+  [{
+    "@subject": "http://example.com/library",
+    "@type": "Library",
+    "contains": "http://example.org/library/the-republic"
+  },
+  {
+    "@subject": "http://example.org/library/the-republic",
+    "@type": "Book",
+    "creator": "Plato",
+    "title": "The Republic",
+    "contains": "http://example.org/library/the-republic#introduction"
+  },
+  {
+    "@subject": "http://example.org/library/the-republic#introduction",
+    "@type": "Chapter",
+    "description": "An introductory chapter on The Republic.",
+    "title": "The Introduction"
+  }]
+}-->
+</pre>
+
+<p>Developers typically like to operate on items in a hierarchical, tree-based
+fashion. Ideally, a developer would want the data above sorted into top-level
+libraries, then the books that are contained in each library, and then the
+chapters contained in each book. To achieve that layout, the developer can
+define the following <tref>frame</tref>:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title"
+  },
+  "@type": "Library",
+  "contains": {
+    "@type": "Book",
+    "contains": {
+      "@type": "Chapter"
+    }
+  }
+}
+-->
+</pre>
+
+<p>When the framing algorithm is run against the previously defined
+JSON-LD document, paired with the <tref>frame</tref> above, the following
+JSON-LD document is the end result:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "Book":         "http://example.org/vocab#Book",
+    "Chapter":      "http://example.org/vocab#Chapter",
+    "contains":     "http://example.org/vocab#contains",
+    "creator":      "http://purl.org/dc/terms/creator"
+    "description":  "http://purl.org/dc/terms/description"
+    "Library":      "http://example.org/vocab#Library",
+    "title":        "http://purl.org/dc/terms/title"
+  },
+  "@subject": "http://example.org/library",
+  "@type": "Library",
+  "contains": {
+    ****"@subject": "http://example.org/library/the-republic",****
+    "@type": "Book",
+    ****"creator": "Plato",****
+    ****"title": "The Republic",****
+    "contains": {
+      ****"@subject": "http://example.org/library/the-republic#introduction",****
+      "@type": "Chapter",
+      ****"description": "An introductory chapter on The Republic.",****
+      ****"title": "The Introduction"****
+    },
+  },
+}
+-->
+</pre>
 
 <section>
 <h3>Framing Algorithm Terms</h3>
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
  <dl>
    <dt><tdef>input frame</tdef></dt>
    <dd>
@@ -1222,6 +1428,61 @@ set of nodes and edges in a deterministic way. This is easy to do when all of
 the nodes have unique names, but very difficult to do when some of the nodes
 are not labeled.
 </p>
+
+<p>Normalization is useful when comparing two graphs against one another,
+when generating a detailed list of differences between two graphs, and
+when generating a cryptographic digital signature for information contained
+in a graph or when generating a hash of the information contained in a graph.
+</p>
+
+<p>The example below is an un-normalized JSON-LD document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+   "@context":
+   {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "homepage": "http://xmlns.com/foaf/0.1/homepage",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "@coerce":
+      {
+         "@iri": ["homepage"]
+      }
+   },
+   "name": "Manu Sporny",
+   "homepage": "http://manu.sporny.org/"
+}
+-->
+</pre>
+
+<p>The example below is the normalized form of the JSON-LD document above:</p>
+
+<p class="note">Whitespace is used below to aid readability. The normalization
+algorithm for JSON-LD removes all unnecessary whitespace in the fully
+normalized form.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[{
+    "@subject":
+    {
+        "@iri": "_:c14n0"
+    },
+    "http://xmlns.com/foaf/0.1/homepage":
+    {
+        "@iri": "http://manu.sporny.org/"
+    },
+    "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
+}]
+-->
+</pre>
+
+<p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
+alphabetical order. Also, notice how the <tref>subject</tref> has been
+labeled with a <tref>blank node identifier</tref>. Normalization ensures that any arbitrary
+graph containing exactly the same information would be normalized to exactly
+the same form shown above.</p>
 
 <p>In time, there may be more than one normalization algorithm that will need
 to be identified. For identification purposes, this algorithm is named
