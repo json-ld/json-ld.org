@@ -63,7 +63,6 @@
                             ref = item.textContent ;
                         }
                         if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
                             ref = ref.replace(/\s+/g, '_') ;
                         }
                         var sp = document.createElement( 'a' ) ;
@@ -84,7 +83,6 @@
                             ref = item.textContent ;
                         }
                         if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
                             ref = ref.replace(/\s+/g, '_') ;
                         }
                         var sp = document.createElement( 'a' ) ;
@@ -95,6 +93,7 @@
                     }
                     // now do terms
                     refs = document.querySelectorAll('tdef') ;
+                    var tdefs = [];
                     for (var i = 0; i < refs.length; i++) {
                         var item = refs[i];
                         if (!item) continue ;
@@ -105,10 +104,15 @@
                             ref = item.textContent ;
                         }
                         if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
-                            ref = ref.replace(/\s+/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_').toLowerCase() ;
                         }
+
+                        if ( tdefs[ref]) {
+                          throw "Duplicate definition of term '" + ref + "'" ;
+                        }
+
                         var sp = document.createElement( 'dfn' ) ;
+                        tdefs[ref] = sp ;
                         sp.title = ref ;
                         sp.innerHTML = con ;
                         p.replaceChild(sp, item) ;
@@ -125,10 +129,12 @@
                             ref = item.textContent ;
                         }
                         if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
-                            ref = ref.replace(/\s+/g, '_') ;
+                            ref = ref.replace(/\s+/g, '_').toLowerCase() ;
                         }
 
+                        if ( !tdefs[ref]) {
+                          throw "Reference to undefined term '" + ref + "'" ;
+                        }
                         var sp = document.createElement( 'a' ) ;
                         var id = item.textContent ;
                         sp.className = 'tref' ;
@@ -377,7 +383,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dd>
       An array is an ordered collection of values. An array structure is represented as square brackets surrounding zero or more values (or elements). Elements are separated by commas.  Within JSON-LD, array order is not preserved by default, unless
       specific markup is provided (see <a href="#lists">Lists</a>). This is because the basic data model of JSON-LD
-      is a directed <tref>graph</tref>, which is inherently unordered.
+      is a <tref>linked data graph</tref>, which is inherently unordered.
     </dd>
     <dt><tdef>string</tdef></dt><dd>
       A string is a sequence of zero or more Unicode characters, wrapped in double quotes, using backslash escapes. A
@@ -394,6 +400,36 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <div class="issue">Supporting <em>null</em> in JSON-LD might have a number of advantages and should be evaluated. This is currently an <a href="https://github.com/json-ld/json-ld.org/issues/11">open issue</a>.</div>
     </dd>
   </dl>
+</p>
+</section>
+
+<section>
+<h2>Linked Data</h2>
+<p>
+The following definition for <tref>Linked Data</tref> is the one that will
+be used for this specification.
+</p>
+<ol>
+  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a linked data graph.</li>
+  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where nodes are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.</li>
+  <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
+  <li>A <tref>subject</tref> SHOULD be labeled with an <tref>IRI</tref> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
+  <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
+  <li>An <tref>object</tref> MAY be labeled with an <tref>IRI</tref>.</li>
+  <li>An object MAY be a <tref>subject</tref> and <tref>object</tref> at the same time.</li>
+  <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.</li>
+  <li>A <tref>property</tref> SHOULD be labeled with an <tref>IRI</tref>.</li>
+  <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
+  <li>A <tdef>literal</tdef> is an <tref>object</tref> with a label that is not an <tref>IRI</tref></li>
+</ol>
+
+<p>
+Note that the definition for <tref>Linked Data</tref> above is silent on the
+topic of unlabeled nodes. Unlabeled nodes are not considered
+<tref>Linked Data</tref>. However, this specification allows for the expression
+of unlabled nodes, as most graph-based data sets on the Web contain a number
+of associated nodes that are not named and thus are not directly
+de-referenceable.
 </p>
 </section>
 
@@ -679,8 +715,7 @@ language-native data structures MUST be used where applicable.</p>
     </dd>
     <dt><tdef>active context</tdef></dt>
     <dd>
-      a context that is used to resolve <tref>prefix</tref>es and
-      <tref>term</tref>s while the processing
+      a context that is used to resolve <tref>term</tref>s while the processing
       algorithm is running. The <tref>active context</tref> is the context
       contained within the <tref>processor state</tref>.
     </dd>
@@ -692,8 +727,8 @@ language-native data structures MUST be used where applicable.</p>
     <dt><tdef>processor state</tdef></dt>
     <dd>
       the <tref>processor state</tref>, which includes the <tref>active
-      context</tref>, <tref>current subject</tref>, and
-      <tref>current property</tref>. The <tref>processor state</tref> is managed
+      context</tref>, <tref>active subject</tref>, and
+      <tref>active property</tref>. The <tref>processor state</tref> is managed
       as a stack with elements from the previous <tref>processor state</tref>
       copied into a new <tref>processor state</tref> when entering a new
       <tref>JSON object</tref>.
@@ -706,7 +741,22 @@ language-native data structures MUST be used where applicable.</p>
     <dd>
       The JSON-LD data structure that is produced as output by the algorithm.
     </dd>
-
+    <dt><tdef>term</tdef></dt><dd>
+      A <tref>term</tref> is a short word defined with a <a href="#context">context</a> that MAY be expanded
+    to an <tref>IRI</tref>
+    </dd>
+    <dt><tdef>prefix</tdef></dt><dd>
+      A <tref>prefix</tref> is a <tref>term</tref> that expands to a Web Vocabulary base IRI. It
+      is typically used along with a <em>suffix</em> to create an IRI within a Web Vocabulary.
+    </dd>
+    <dt><tdef>plain literal</tdef></dt><dd>
+      A <tref>plain literal</tref> is a <tref>literal</tref> without a datatype, possibly including
+      a language.
+    </dd>
+    <dt><tdef>typed literal</tdef></dt><dd>
+      A <tref>typed literal</tref> is a <tref>literal</tref> with an associated <tref>IRI</tref>
+      which indicates the literal's datatype.
+    </dd>
   </dl>
 </section>
 
@@ -794,10 +844,10 @@ language-native data structures MUST be used where applicable.</p>
       <code>@coerce</code> mapping, overwriting any duplicate values in
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
       The <code>@coerce</code> mapping has either a single
-      <code>prefix:term</code> value, a single <tref>term</tref> value or an
-      <tref>array</tref> of <code>prefix:term</code> or <tref>term</tref> values.
+      <code>prefix:suffix</code> value, a single <tref>term</tref> value or an
+      <tref>array</tref> of <code>prefix:suffix</code> or <tref>term</tref> values.
       When merging with an existing mapping in the <tref>active context</tref>,
-      map all <tref>prefix</tref> and <tref>term</tref> values to
+      map all <tref>term</tref> values to
       <tref>array</tref> form and replace with the union of the value from
       the <tref>local context</tref> and the value of the
       <tref>active context</tref>. If the result is an <tref>array</tref>
@@ -833,13 +883,13 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an IRI. This section defines an algorithm for
     transforming a value representing an IRI into an actual IRI.</p>
-  <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:<tref>term</tref> construct, or as a value relative to <code>@base</code>
+  <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:suffix construct, or as a value relative to <code>@base</code>
     or <code>@vocab</code>.</p>
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
       <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
       <li>If the prefix is a '_' (underscore), the IRI is unchanged.</li>
-      <li>If the <tref>active context</tref> contains a mapping for <em>prefix</em>, generate an IRI
+      <li>If the <tref>active context</tref> contains a term mapping for <em>prefix</em>, generate an IRI
         by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
       <li>If the IRI being processed is for a property (i.e., a key's value in a <tref>JSON object</tref>, or a
@@ -856,8 +906,7 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Compaction</h2>
   <p>Some keys and values are expressed using IRIs. This section defines an
     algorithm for transforming an IRI to a compact IRI using the
-    <tref>term</tref>s and <tref>prefix</tref>es specified in the
-    <tref>local context</tref>.</p>
+    <tref>term</tref>s specified in the <tref>local context</tref>.</p>
 
   <p>The algorithm for generating a compacted IRI is:
     <ol class="algorithm">
@@ -868,7 +917,7 @@ language-native data structures MUST be used where applicable.</p>
         <tref>active context</tref>.</li>
       <li>If a complete match is not found, search for a partial match from
         the beginning of the IRI. For all matches that are found, the resulting
-        compacted IRI is the <tref>prefix</tref> associated with the partially
+        compacted IRI is the <tref>term</tref> associated with the partially
         matched IRI in the <tref>active context</tref> concatenated with a
         colon (:) character and the unmatched part of the string. If there is
         more than one compacted IRI produced, the final value is the
@@ -1257,6 +1306,10 @@ JSON-LD document is the end result:</p>
      a flag specifying that properties that are missing from the
      <tref>JSON-LD input</tref> should be omitted from the output.
    </dd>
+   <dt><tdef>omit default flag</tdef></dt>
+   <dd class="issue">
+     Referenced from <tref>framing context</tref>, but not defined
+   </dd>
    <dt><tdef>match limit</tdef></dt>
    <dd>
      A value specifying the maximum number of matches to accept when building
@@ -1326,7 +1379,8 @@ portion of the framing algorithm:
        <li>The <strong>expanded frame</strong> does not have an
          <code>rdf:type</code> property, but every property in the
          <strong>expanded frame</strong> exists in the item.</li>
-    </ol></li>
+    </ol>
+    <p class="issue"><tdef>matches array</tdef> not defined anywhere.</p></li>
   <li>Process each item in the <tref>match array</tref> with its associated
     <tdef>match frame</tdef>:
     <ol class="algorithm">
@@ -1358,8 +1412,8 @@ portion of the framing algorithm:
               <tdef>recursion input list</tdef> using the object or objects
               associated with the key. If any object contains an
               <code>@iri</code> value that exists in the
-              <tref>normalized input</tref>, replace the object in the
-              <tref>recusion input list</tref> with a new object containing
+              <strong>normalized input</strong>, replace the object in the
+              <tref>recursion input list</tref> with a new object containing
               the <code>@subject</code> key where the value is the value of
               the <code>@iri</code>, and all of the other key-value pairs for
               that subject. Set the <tdef>recursion match frame</tdef> to the
@@ -1480,7 +1534,7 @@ normalized form.</p>
 
 <p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
 alphabetical order. Also, notice how the <tref>subject</tref> has been
-labeled with a <tref>blank node identifier</tref>. Normalization ensures that any arbitrary
+labeled with a <tdef>blank node identifier</tdef>. Normalization ensures that any arbitrary
 graph containing exactly the same information would be normalized to exactly
 the same form shown above.</p>
 
@@ -1495,7 +1549,7 @@ to be identified. For identification purposes, this algorithm is named
  <dl>
    <dt><tdef>label</tdef></dt>
    <dd>
-     The subject IRI associated with a graph node. The subject IRI is expressed
+     The subject <tref>IRI</tref> associated with a graph node. The subject IRI is expressed
      using a key-value pair in a <tref>JSON object</tref> where the key is
      <code>@subject</code> and the value is a string that is an IRI or
      a <tref>JSON object</tref> containing the key <code>@iri</code> and
@@ -1634,6 +1688,10 @@ contained in the <tref>normalization state</tref> is described below.</p>
      <tref>labeling prefix</tref> to create a node <tref>label</tref>. It is
      initialized to <code>1</code>.
    </dd>
+   <dt><tdef>deterministic labeling counter</tdef></dt>
+   <dd class="issue">
+     Not defined.
+   </dd>
    <dt><tdef>map of flattened nodes</tdef></dt>
    <dd>
      A map containing a representation of all nodes in the graph where the
@@ -1681,7 +1739,7 @@ processing every <tdef>expanded node</tdef> in the
           entry in the <tref>map of flattened nodes</tref> into the
           <tref>expanded node</tref>.</li>
         <li>Go through every property associated with an array in the
-          <tref>expanded node</tref> and remove any duplicate IRI entries from
+          <tref>expanded node</tref> and remove any duplicate <tref>IRI</tref> entries from
           the array. If the resulting array only has one IRI entry, change it
           from an array to an object.</li>
         <li>Set the entry for the <tref>expanded node</tref>'s <tref>label</tref>
@@ -1729,7 +1787,7 @@ the node that is to be relabeled.
     <tref>old label</tref> begins with <code>_:c14n</code> then return as
     the node has already been renamed.
   </li>
-  <li>Generate the <tdef>new label</tdef> by concatenating the
+  <li>Generate the <tref>new label</tref> by concatenating the
     <tref>labeling prefix</tref> with the string value of the
     <tref>labeling counter</tref>. Increment the <tref>labeling counter</tref>.
   </li>
@@ -1757,7 +1815,7 @@ contains deterministically named and expanded nodes from the graph.
 <ol class="algorithm">
   <li>Set the <tref>labeling prefix</tref> to <code>_:c14n</code>, the
     <tref>labeling counter</tref> to <code>1</code>,
-    the <tdef>list of finished nodes</tdef> to an empty array, and create
+    the <tref>list of finished nodes</tref> to an empty array, and create
     an empty array, the <tdef>list of unfinished nodes</tdef>.</li>
   <li>For each <tref>node reference</tref> in the <tref>node state map</tref>:
     <ol class="algorithm">
@@ -1790,6 +1848,7 @@ contains deterministically named and expanded nodes from the graph.
             then sort the list according to the lexicographical order of the
             keys' associated values. Append the list to the
             <tref>list of nodes to label</tref>.
+            <span class="issue"><tdef>list of nodes to label</tdef> not defined.</span>
           </li>
           <li>For each key-value pair from its associated
             <tref>incoming serialization map</tref>, add the key to a list and
@@ -1835,7 +1894,7 @@ node that should come first in a list:
 <ol class="algorithm">
   <li>Compare the total number of node properties. The node with fewer
     properties is first.</li>
-  <li>Lexicographically sort the property IRIs for each node and compare
+  <li>Lexicographically sort the property <tref>IRI</tref>s for each node and compare
     the sorted lists. If an IRI is found to be lexicographically smaller, the
     node containing that IRI is first.</li>
   <li>Compare the values of each property against one another:
@@ -1924,7 +1983,7 @@ The algorithm is useful when sorting two lists of graph node properties.
       </li>
     </ol>
   </li>
-  <li>If both values are expanded IRIs, the
+  <li>If both values are expanded <tref>IRI</tref>s, the
     lexicographically lesser string associated with <code>@iri</code>
     is first.</li>
   <li>Otherwise, the two values are equivalent.</li>
@@ -1956,7 +2015,7 @@ contained in a <tref>mapping state</tref> is described below.</p>
         <dt><tdef>mapping counter</tdef></dt>
         <dd>
           Keeps track of the number of nodes that have been mapped to
-          <tref>serialization labels</tref>. It is initialized to
+          <tref>serialization label</tref>s. It is initialized to
           <code>1</code>.
         </dd>
         <dt><tdef>processed labels map</tdef></dt>
@@ -1975,7 +2034,7 @@ contained in a <tref>mapping state</tref> is described below.</p>
           Maps a <tref>serialization label</tref> to the node
           <tref>label</tref> associated with it, the list of sorted
           <tref>serialization label</tref>s for adjacent nodes, and the map of
-          adjacent node <tref>serialiation label</tref>s to their associated
+          adjacent node <tref>serialization label</tref>s to their associated
           node <tref>label</tref>s. It is initialized to an empty map.
         </dd>
         <dt><tdef>key stack</tdef></dt>
@@ -2072,12 +2131,12 @@ inputs and generates a deterministic serialization for the
 <li>Set the value associated with the <tref>label</tref> in the
   <tref>processed labels map</tref> to <code>true</code>.
 </li>
-<li>Generate the next <tdef>serialization label</tdef> for the
+<li>Generate the next <tref>serialization label</tref> for the
   <tref>label</tref> according to the
   <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
 </li>
 <li>Create an empty map called the <tdef>adjacent serialized labels map</tdef>
-that will store mappings from <tref>serialized label</tref>s to adjacent
+that will store mappings from <tref>serialization label</tref>s to adjacent
 node <tref>label</tref>s.</li>
 <li>Create an empty array called the
 <tdef>adjacent unserialized labels list</tdef> that will store
@@ -2092,7 +2151,10 @@ the <tref>direction</tref> is <code>outgoing direction</code> and the
     <li>Look up the <tref>target node label</tref> in the
       <tref>processed labels map</tref> and if a mapping exists,
       update the <tref>adjacent serialized labels map</tref> where the key is
-      the value in the <tref>serialization map</tref> and the value is the
+      the value in the <tref>serialization map</tref>
+      (<span class="issue"><tdef>serialization map</tdef> is used, but should it be <tref>directed serialization map</tref>,
+         <tref>outgoing serialization map</tref>or <tref>incoming serialization map</tref>?</span>)
+      and the value is the
       <tref>target node label</tref>.</li>
     <li>Otherwise, add the <tref>target node label</tref> to the
       <tref>adjacent unserialized labels list</tref>.
@@ -2127,6 +2189,8 @@ The algorithm generates a <tref>serialization label</tref> given a
  <ol class="algorithm">
    <li>If the <tref>label</tref> is already in the
      <tref>serialization labels map</tref>, return its associated value.
+     (<span class="issue"><tdef>serialization labels map</tdef> is used, but should it be <tref>directed serialization map</tref>,
+        <tref>outgoing serialization map</tref>or <tref>incoming serialization map</tref>?</span>)
    </li>
    <li>If the <tref>label</tref> starts with the string <code>_:c14n</code>,
      the <tref>serialization label</tref> is the letter <code>c</code>
@@ -2135,7 +2199,7 @@ The algorithm generates a <tref>serialization label</tref> given a
    </li>
    <li>Otherwise, the <tref>serialization label</tref> is the
      letter <code>s</code> followed by the string value of
-     <tref>mapping count</tref>. Increment the <tref>mapping count</tref> by
+     <tref>mapping counter</tref>. Increment the <tref>mapping counter</tref> by
      <code>1</code>.
    </li>
    <li>Create a new key-value pair in the <tref>serialization labels map</tref>
@@ -2162,7 +2226,7 @@ the lexicographically least serialization of nodes relating to the
     <ol class="algorithm">
       <li>Copy the <tref>adjacent serialized labels map</tref> to the
         <tdef>adjacent serialized labels map copy</tdef>.</li>
-      <li>Remove the first <tref>unserialized label</tref> from the
+      <li>Remove the first <tdef>unserialized label</tdef> from the
         <tref>adjacent unserialized labels list</tref> and create a new
         <tdef>new serialization label</tdef> according to the
         <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
@@ -2306,12 +2370,12 @@ The mapping serialization algorithm incrementally updates the
               </li>
               <li>Set the <tdef>serialization fragment</tdef> to the value of
                 the <tref>serialization key</tref>.</li>
-              <li>Set the <tref>adjacent info</tref> to the value of the
+              <li>Set the <tdef>adjacent info</tdef> to the value of the
                 <tref>serialization key</tref> in the
                 <tref>adjacent info map</tref>.
               </li>
-              <li>Set the <tref>adjacent node label</tref> to the node
-                <tref>label</tref> from the <tref>adjacent info</tref>.
+              <li>Set the <tdef>adjacent node label</tdef> to the node
+                <tref>label</tref> from the <tref>adjacent info map</tref>.
               </li>
               <li>If a mapping for the <tref>adjacent node label</tref>
                 exists in the <tref>map of all labels</tref>:
@@ -2321,15 +2385,16 @@ The mapping serialization algorithm incrementally updates the
                     <tref>serialization fragment</tref>.
                   </li>
                 </ol>
+                <span class="issue"><tdef>map of all labels</tdef> referenced but not defined.</span>
               </li>
-              <li>Append all of the keys in the <tref>adjacent info</tref>
+              <li>Append all of the keys in the <tref>adjacent info map</tref>
                 to the <tref>serialization fragment</tref>.
               </li>
               <li>Append the <tref>serialization fragment</tref> to the
                 <tref>serialization string</tref>.
               </li>
               <li>Push a new key info object containing the keys from the
-                <tref>adjacent info</tref> and an index of <code>0</code>
+                <tref>adjacent info map</tref> and an index of <code>0</code>
                 onto the <tref>key stack</tref>.
               </li>
               <li>Recursively update the <tref>serialization string</tref>
@@ -2355,7 +2420,7 @@ has been assigned a particular <tref>serialization label</tref>.
 </p>
 
 <ol class="algorithm">
-  <li>Initialize the <tref>label serialization</tref> to an empty string.</li>
+  <li>Initialize the <tdef>label serialization</tdef> to an empty string.</li>
   <li>Append the <code>[</code> character to the
     <tref>label serialization</tref>.</li>
   <li>Append all properties to the <tref>label serialization</tref> by
@@ -2435,7 +2500,8 @@ has been assigned a particular <tref>serialization label</tref>.
   <li>Append all <tref>adjacent node labels</tref> to the
     <tref>label serialization</tref> by concatenating the string value
     for all of them, one after the other, to the
-    <tref>label serialization</tref>.</li>
+    <tref>label serialization</tref>.
+    <span class="issue"><tdef>adjacent node labels</tdef> referenced but not defined.</span></li>
   <li>Push the <tref>adjacent node labels</tref> onto the
     <tref>key stack</tref> and append the result of the
     <a href="#mapping-serialization-algorithm">Mapping Serialization Algorithm</a>
@@ -2544,11 +2610,19 @@ implement the algorithm exactly as described.
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
-    a <em>resource</em>. Resources may be of three basic types: <em>IRI</em>s, for describing
+    a <em>resource</em>. Resources may be of three basic types: <em><tref>IRI</tref></em>s, for describing
     externally named entities, <em>BNodes</em>, resources for which an external name does not
     exist, or is not known, and Literals, which describe terminal entities such as strings,
     dates and other representations having a lexical representation possibly including
     an explicit language or datatype.
+  </p>
+  <p>
+  An Internationalized Resource Identifier
+  (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>),
+  as described in [[!RFC3987]], is a mechanism for representing unique
+  identifiers on the web. In <tref>Linked Data</tref>, an IRI is commonly
+  used for expressing a <tref>subject</tref>, a <tref>property</tref> or an
+  <tref>object</tref>.
   </p>
   <p>
     Data described with JSON-LD may be considered to be the representation of a graph made
@@ -2656,7 +2730,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> does not have a <code>@subject</code> key, set the <tref>active
-          object</tref> to newly generated <tdef>blank node identifier</tdef>. Generate a triple
+          object</tref> to newly generated <tref>blank node identifier</tref>. Generate a triple
           representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
           object</tref>.
@@ -2710,15 +2784,15 @@ implement the algorithm exactly as described.
         </li>
         <li>
           Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-          and a newly generated BNode identified as <em>first <tdef>blank node identifier</tdef></em>.
+          and a newly generated BNode identified as <em>first <tref>blank node identifier</tref></em>.
         </li>
         <li>
           For each element other than the last element in the list:
           <ol class="algorithm">
-            <li>Create a processor state using the active context, <em>first <tdef>blank node identifier</tdef></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
-            <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tdef>blank node identifier</tdef></em>, otherwise use <code>rdf:nil</code>.</li>
-            <li>Generate a new triple using <em>first <tdef>blank node identifier</tdef></em>, <code>rdf:rest</code> and <em>rest <tdef>blank node identifier</tdef></em>.</li>
-            <li>Set <em>first <tdef>blank node identifier</tdef></em> to <em>rest <tdef>blank node identifier</tdef></em>.</li>
+            <li>Create a processor state using the active context, <em>first <tref>blank node identifier</tref></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
+            <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tref>blank node identifier</tref></em>, otherwise use <code>rdf:nil</code>.</li>
+            <li>Generate a new triple using <em>first <tref>blank node identifier</tref></em>, <code>rdf:rest</code> and <em>rest <tref>blank node identifier</tref></em>.</li>
+            <li>Set <em>first <tref>blank node identifier</tref></em> to <em>rest <tref>blank node identifier</tref></em>.</li>
           </ol>
         </li>
       </ol>
