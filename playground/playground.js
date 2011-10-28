@@ -188,7 +188,7 @@
          // treat param as a URL
          $.ajax({
             url: url,
-            dataType: 'application/ld+json',
+            dataType: 'json',
             success: function(data, textStatus, jqXHR)
             {
                callback(data);
