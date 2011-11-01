@@ -7,7 +7,7 @@
 {
    window.playground = window.playground || {};
    var playground = window.playground;
-   
+
    // setup the examples and frame examples
    playground.examples = {};
    playground.frames = {};
@@ -35,7 +35,7 @@
       "name": "The Empire State Building",
       "description": "The Empire State Building is a 102-story landmark in New York City.",
       "image": "http://www.civil.usherbrooke.ca/cours/gci215a/empire-state-building.jpg",
-      "geo": 
+      "geo":
       {
          "latitude": "40.75",
          "longitude": "73.98"
@@ -84,12 +84,12 @@
       "gr:description": "Need to sell fast and furiously",
       "gr:hasBusinessFunction": "gr:Sell",
       "gr:acceptedPaymentMethods": "gr:Cash",
-      "gr:hasPriceSpecification": 
+      "gr:hasPriceSpecification":
       {
          "gr:hasCurrencyValue": "85000",
-         "gr:hasCurrency": "USD",
+         "gr:hasCurrency": "USD"
       },
-      "gr:includes": 
+      "gr:includes":
       {
          "@type": ["gr:Individual", "pto:Vehicle"],
          "gr:name": "Tesla Roadster",
@@ -181,9 +181,9 @@
             "dc:title": "The Introduction"
          }
       ],
-      "@context": 
+      "@context":
       {
-         "@coerce": 
+         "@coerce":
          {
             "ex:contains": "@iri"
          },
@@ -196,16 +196,16 @@
    // add the frame example of a Library
    playground.frames["Library"] =
    {
-      "@context": 
+      "@context":
       {
          "dc": "http://purl.org/dc/elements/1.1/",
          "ex": "http://example.org/vocab#"
       },
       "@type": "ex:Library",
-      "ex:contains": 
+      "ex:contains":
       {
          "@type": "ex:Book",
-         "ex:contains": 
+         "ex:contains":
          {
             "@type": "ex:Chapter"
          }
@@ -213,4 +213,3 @@
    };
 
 })(jQuery);
-
