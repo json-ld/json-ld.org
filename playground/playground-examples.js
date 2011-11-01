@@ -15,8 +15,6 @@
    // add the example of a Person
    playground.examples["Person"] =
    {
-      "name": "Manu Sporny",
-      "homepage": "http://manu.sporny.org/",
       "@context":
       {
          "name": "http://xmlns.com/foaf/0.1/name",
@@ -26,20 +24,14 @@
          {
             "homepage": "@iri"
          }
-      }
+      },
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/"
    };
 
    // add the example of a Place
    playground.examples["Place"] =
    {
-      "name": "The Empire State Building",
-      "description": "The Empire State Building is a 102-story landmark in New York City.",
-      "image": "http://www.civil.usherbrooke.ca/cours/gci215a/empire-state-building.jpg",
-      "geo":
-      {
-         "latitude": "40.75",
-         "longitude": "73.98"
-      },
       "@context":
       {
          "name": "http://schema.org/name",
@@ -55,15 +47,20 @@
             "latitude": "xsd:float",
             "longitude": "xsd:float"
          }
+      },
+      "name": "The Empire State Building",
+      "description": "The Empire State Building is a 102-story landmark in New York City.",
+      "image": "http://www.civil.usherbrooke.ca/cours/gci215a/empire-state-building.jpg",
+      "geo":
+      {
+         "latitude": "40.75",
+         "longitude": "73.98"
       }
    };
 
    // add the example of a Event
    playground.examples["Event"] =
    {
-      "ical:summary": "Lady Gaga Concert",
-      "ical:location": "New Orleans Arena, New Orleans, Louisiana, USA",
-      "ical:dtstart": "2011-04-09T20:00Z",
       "@context":
       {
          "ical": "http://www.w3.org/2002/12/cal/ical#",
@@ -72,12 +69,29 @@
          {
             "ical:dtstart": "xsd:dateTime"
          }
-      }
+      },
+      "ical:summary": "Lady Gaga Concert",
+      "ical:location": "New Orleans Arena, New Orleans, Louisiana, USA",
+      "ical:dtstart": "2011-04-09T20:00Z"
    };
 
    // add the example of a Product
    playground.examples["Product"] =
    {
+      "@context":
+      {
+         "gr": "http://purl.org/goodrelations/v1#",
+         "pto": "http://www.productontology.org/id/",
+         "foaf": "http://xmlns.com/foaf/0.1/",
+         "xsd": "http://www.w3.org/2001/XMLSchema#",
+         "@coerce":
+         {
+            "foaf:page": "@iri",
+            "gr:acceptedPaymentMethods": "@iri",
+            "gr:hasBusinessFunction": "@iri",
+            "gr:hasCurrencyValue": "xsd:float"
+         }
+      },
       "@subject": "http://example.org/cars/for-sale#tesla",
       "@type": "gr:Offering",
       "gr:name": "Used Tesla Roadster",
@@ -94,26 +108,26 @@
          "@type": ["gr:Individual", "pto:Vehicle"],
          "gr:name": "Tesla Roadster",
          "foaf:page": "http://www.teslamotors.com/roadster"
-      },
-      "@context":
-      {
-         "gr": "http://purl.org/goodrelations/v1#",
-         "pto": "http://www.productontology.org/id/",
-         "foaf": "http://xmlns.com/foaf/0.1/",
-         "xsd": "http://www.w3.org/2001/XMLSchema#",
-         "@coerce":
-         {
-            "foaf:page": "@iri",
-            "gr:acceptedPaymentMethods": "@iri",
-            "gr:hasBusinessFunction": "@iri",
-            "gr:hasCurrencyValue": "xsd:float"
-         }
       }
    };
 
    // add the example of a Recipe
    playground.examples["Recipe"] =
    {
+      "@context":
+      {
+         "name": "http://rdf.data-vocabulary.org/#name",
+         "ingredient": "http://rdf.data-vocabulary.org/#ingredients",
+         "yield": "http://rdf.data-vocabulary.org/#yield",
+         "instructions": "http://rdf.data-vocabulary.org/#instructions",
+         "step": "http://rdf.data-vocabulary.org/#step",
+         "description": "http://rdf.data-vocabulary.org/#description",
+         "xsd": "http://www.w3.org/2001/XMLSchema#",
+         "@coerce":
+         {
+            "step": "xsd:integer"
+         }
+      },
       "name": "Mojito",
       "ingredient": ["12 fresh mint leaves", "1/2 lime, juiced with pulp",
          "1 tablespoons white sugar", "1 cup ice cubes",
@@ -141,26 +155,22 @@
             "step": 5,
             "description": "Garnish with a lime wedge."
          }
-      ],
-      "@context":
-      {
-         "name": "http://rdf.data-vocabulary.org/#name",
-         "ingredient": "http://rdf.data-vocabulary.org/#ingredients",
-         "yield": "http://rdf.data-vocabulary.org/#yield",
-         "instructions": "http://rdf.data-vocabulary.org/#instructions",
-         "step": "http://rdf.data-vocabulary.org/#step",
-         "description": "http://rdf.data-vocabulary.org/#description",
-         "xsd": "http://www.w3.org/2001/XMLSchema#",
-         "@coerce":
-         {
-            "step": "xsd:integer"
-         }
-      }
+      ]
    };
 
    // add the example of a Library
    playground.examples["Library"] =
    {
+      "@context":
+      {
+         "@coerce":
+         {
+            "ex:contains": "@iri"
+         },
+         "dc": "http://purl.org/dc/elements/1.1/",
+         "ex": "http://example.org/vocab#",
+         "xsd": "http://www.w3.org/2001/XMLSchema#"
+      },
       "@subject": [
          {
             "@subject": "http://example.org/library",
@@ -180,17 +190,7 @@
             "dc:description": "An introductory chapter on The Republic.",
             "dc:title": "The Introduction"
          }
-      ],
-      "@context":
-      {
-         "@coerce":
-         {
-            "ex:contains": "@iri"
-         },
-         "dc": "http://purl.org/dc/elements/1.1/",
-         "ex": "http://example.org/vocab#",
-         "xsd": "http://www.w3.org/2001/XMLSchema#"
-      }
+      ]
    };
 
    // add the frame example of a Library
