@@ -501,7 +501,7 @@ markup language:
  it is not always possible without adding great complexity to the language.
  </dd>
  <dt>One-pass Processing</dt>
- <dd>JSON-LD supports one-pass processing, which results in a very small memory 
+ <dd>JSON-LD supports one-pass processing, which results in a very small memory
  footprint when processing documents. For example, to convert a JSON-LD document
  into an RDF document of any kind, only one pass is required over the data.</dd>
 </dl>
@@ -585,7 +585,8 @@ rest of this section:
   developers don't accidentally step on each other's Web Vocabulary terms. For example, the term <code>name</code> may
   map directly to the IRI <code>http://xmlns.com/foaf/0.1/name</code>. This allows JSON-LD documents to be constructed
   using the common JSON practice of simple name/value pairs while ensuring that the data is useful outside of the
-  page, API or database in which it resides.</p>
+  page, API or database in which it resides. The value of a term mapping MUST be a simple string with the lexical form of an absolute <tref>IRI</tref>.
+</p></p>
 
 <p>These Linked Data <tref>term</tref>s are typically collected in a context document that would look something like this:</p>
 
@@ -601,8 +602,8 @@ rest of this section:
 -->
 </pre>
 
-<p>This context document can then be used in an JSON-LD document by adding a 
-single line. The JSON markup as shown in the previous section could be changed 
+<p>This context document can then be used in an JSON-LD document by adding a
+single line. The JSON markup as shown in the previous section could be changed
 as follows to link to the context document:</p>
 
 <pre class="example" data-transform="updateExample">
@@ -724,8 +725,8 @@ This creates a memory and complexity burden for one-pass processors.</p>
 <section>
   <h2>External Contexts</h2>
 
-  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external 
-documents to promote re-use of contexts as well as reduce the size of JSON-LD 
+  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
+documents to promote re-use of contexts as well as reduce the size of JSON-LD
 documents.
 In order to use an external context, an author MAY specify an <tref>IRI</tref> to a valid
 JSON-LD document. The referenced document MUST have a top-level <tref>JSON Object</tref>.
@@ -745,13 +746,13 @@ specified inline within the referencing document.</p>
 -->
 </pre>
 
-<p>Authors may also import multiple contexts or a combination of external and local contexts by specifying a list of 
+<p>Authors may also import multiple contexts or a combination of external and local contexts by specifying a list of
 contexts:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": ["http://example.org/json-ld-contexts/person", "http://example.org/json-ld-contexts/event"]****
+  ****"@context": [ "http://example.org/json-ld-contexts/person", "http://example.org/json-ld-contexts/event" ]****
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/",
   "avatar": "http://twitter.com/account/profile_image/manusporny"
@@ -773,7 +774,7 @@ either de-referenceable <tref>IRI</tref>s or <tref>JSON Object</tref>s that conf
 <p>External JSON-LD context documents MAY contain extra information located
 outside of the <code>@context</code> key, such as
 documentation about the <tref>prefix</tref>es declared in the document. It is
-also RECOMMENDED that a human-readable document encoded in HTML+RDFa 
+also RECOMMENDED that a human-readable document encoded in HTML+RDFa
 [[HTML-RDFA]] or other Linked Data compatible format is served as well to
 explain the correct usage of the JSON-LD context document.
 </p>
@@ -877,7 +878,7 @@ opposed to being interpreted as a string.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****@context****": {"****name****": "****http://xmlns.com/foaf/0.1/name****"},
+  "****@context****": { "****name****": "****http://xmlns.com/foaf/0.1/name****" },
 ...
   "****name****": "Manu Sporny",
 ...
@@ -885,13 +886,13 @@ opposed to being interpreted as a string.</p>
 -->
 </pre>
 
-<p><tref>Prefix</tref>es are expanded when if the form of the value is <code>prefix:suffix</code>, and the
+<p><tref>Prefix</tref>es are expanded when the form of the value is <code>prefix:suffix</code>, and the
   prefix matches a <tref>term</tref> defined within the <tref>active context</tref>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "****@context****": {"****foaf****": "****http://xmlns.com/foaf/0.1/****"},
+  "****@context****": { "****foaf****": "****http://xmlns.com/foaf/0.1/****" },
 ...
   "****foaf:name****": "Manu Sporny",
 ...
@@ -900,7 +901,7 @@ opposed to being interpreted as a string.</p>
 </pre>
 
 <p><code>foaf:name</code> above will automatically expand out to the IRI
-<code>http://xmlns.com/foaf/0.1/name</code>.</p>
+<code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#prefixes">Prefixes</a> for more details.</p>
 
 <p>An <tref>IRI</tref> is generated when a value is associated with a key using
 the <code>@iri</code> keyword:</p>
@@ -1179,7 +1180,7 @@ in JSON-LD, see <a href="#rdf-collection">Lists</a>.
 {
 ...
   "@subject": "http://example.org/people#joebob",
-  "nick": ****["joe", "bob", "jaybee"]****,
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
 ...
 }
 -->
@@ -1257,7 +1258,7 @@ form for objects:</p>
   {
   ...
     "@subject": "http://example.org/people#joebob",
-    "nick": ****["joe", "bob", "jaybee"]****,
+    "nick": ****[ "joe", "bob", "jaybee" ]****,
   ...
   }
   -->
@@ -1266,7 +1267,7 @@ form for objects:</p>
     This results in three triples being generated, each relating the subject to an individual
     object, with no inherent order.</p>
   <p>
-    As the notion of ordered collections is rather important in data modeling, it is useful to 
+    As the notion of ordered collections is rather important in data modeling, it is useful to
     have specific language support. In JSON-LD, a list may be represented using the
     <code>@list</code> keyword as follows:
   </p>
@@ -1275,7 +1276,7 @@ form for objects:</p>
   {
   ...
     "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****{"@list": ["joe", "bob", "jaybee"]}****,
+    "foaf:nick": ****{ "@list": [ "joe", "bob", "jaybee" ] }****,
   ...
   }
   -->
@@ -1291,12 +1292,12 @@ form for objects:</p>
     ****"@context": {****
       ...
       ****"@coerce": {****
-        ****"@list": ["foaf:nick"]****
+        ****"@list": [ "foaf:nick" ]****
       ****}****
     ****}****,
   ...
     "@subject": "http://example.org/people#joebob",
-    "foaf:nick": ****["joe", "bob", "jaybee"]****,
+    "foaf:nick": ****[ "joe", "bob", "jaybee" ]****,
   ...
   }
   -->
@@ -1323,7 +1324,7 @@ features that are specific to JSON-LD.
 
 
 <section>
-<h3>Base URI</h3>
+<h3>Base IRI</h3>
 <p>JSON-LD allows <tref>IRI</tref>s to be specified in a relative form. For <tref>subject</tref> and <tref>object</tref>
   IRIs, relative IRIs are resolved against the document base using
   <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
@@ -1331,7 +1332,7 @@ features that are specific to JSON-LD.
   set with a <tref>context</tref> using the <code>@base</code> keyword.</p>
 
 <p>For example, if a JSON-LD document was retrieved from <code>http://manu.sporny.org/</code>,
-  relative IRIs would resolve against that URI:</p>
+  relative IRIs would resolve against that IRI:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1352,7 +1353,7 @@ features that are specific to JSON-LD.
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": { "@base": "http://manu.sporny.org/"}****,
+  ****"@context": { "@base": "http://manu.sporny.org/" }****,
   "@subject": "about/",
   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
   "http://xmlns.com/foaf/0.1/homepage: ""
@@ -1364,10 +1365,11 @@ features that are specific to JSON-LD.
 <section>
 <h3>Default Vocabulary</h3>
 <p>It is often common that all types and properties come from the same vocabulary. JSON-LD provides
-  a way to set a base URI to be used for all properties and types that aren't based on terms,
+  a way to set a base IRI to be used for all properties and types that aren't based on terms,
   prefixes or absolute IRIs. Much like the <code>@base</code> keyword, the <code>@vocab</code> keyword
   can be used to set a base <tref>IRI</tref> to use for all types and properties that don't otherwise resolve to
-  an absolute <tref>IRI</tref>.
+  an absolute <tref>IRI</tref>. The <code>@vocab</code> mapping MUST have a value of a simple string with the
+  lexical form of an absolute IRI.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1410,7 +1412,7 @@ features that are specific to JSON-LD.
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": { "@language": "ja"}****,
+  ****"@context": { "@language": "ja" }****,
 ...
   "name": ****"花澄"****
 ...
@@ -1418,7 +1420,7 @@ features that are specific to JSON-LD.
 -->
 </pre>
 <section>
-  <h2>Vocabulary Prefixes</h2>
+  <h2>Prefixes</h2>
   <p>
     Vocabulary terms in <tref>Linked Data</tref> documents may draw from a number of
     different Web vocabularies. At times, declaring every single term that
@@ -1434,8 +1436,8 @@ features that are specific to JSON-LD.
     <tref>IRI</tref> to a <tref>Web Vocabulary</tref>.
     Generally, these prefixes are used by concatenating the <em>prefix</em> and
     a <em>suffix</em> separated by a colon (<code>:</code>).
-    The <tref>prefix</tref> is a <tref>term</tref> taken from the <tref>active context</tref>,
-    a short string that identifies a particular Web vocabulary.
+    The <tref>prefix</tref> is a <tref>term</tref> taken from the <tref>active context</tref>
+    and is a short string identifying a particular <tref>IRI</tref> in a JSON-LD document.
     For example, the prefix <code>foaf</code> may be used as a short
     hand for the Friend-of-a-Friend Web Vocabulary, which is identified using
     the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append any of
@@ -1445,6 +1447,17 @@ features that are specific to JSON-LD.
     <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember
     and type out the entire IRI, the developer can instead use the prefix in
     their JSON-LD markup.
+  </p>
+  <p>To generate an <tref>IRI</tref> out of a <code>prefix:suffix</code> construct,
+    the value is first split into a <em>prefix</em> and <em>suffix</em> at the first
+    occurrence of a colon (<code>:</code>). If the <tref>active context</tref> contains a term
+    mapping for <em>prefix</em>, an IRI is generated by prepending the mapped
+    <em>prefix</em> to the (possibly empty) <em>suffix</em> using textual concatenation.
+    If no prefix mapping is defined, the value is used directly as an IRI. If the
+    prefix is an underscore (<code>_</code>), the IRI remains unchanged. If the
+    IRI being processed has an empty prefix, the <em>suffix</em> is processed like a
+    relative IRI (see <a href="#base-iri">Base IRI</a> and
+    <a href="#default-vocabulary">Default Vocabulary</a> for details).
   </p>
   <p>
     The ability to use <tref>prefix</tref>es reduces the need for developers
@@ -1629,7 +1642,7 @@ _:bnode1
     ****"@coerce": {
       "age": "xsd:integer",
       "homepage": "@iri",
-      "currentProject": ["@iri", "@list"]
+      "currentProject": [ "@iri", "@list" ]
      }****
   },
   ...
@@ -1647,9 +1660,9 @@ _:bnode1
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "http://xmlns.com/foaf/0.1/name",
-    "age": ****{"@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer"}****,
-    "homepage": ****{"@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "@iri"}****,
-    "currentProject": ****{"@iri": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": ["@iri", "@list"]}****,
+    "age": ****{ "@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer" }****,
+    "homepage": ****{ "@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "@iri" }****,
+    "currentProject": ****{ "@iri": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": [ "@iri", "@list" ] }****,
   },
   ...
 }
@@ -1779,9 +1792,9 @@ keywords have been given the aliases <strong>url</strong> and
 
 <section>
   <h3>Turtle</h3>
-  
+
   <p>The following are examples of representing <tref>RDF</tref> as expressed in [[TURTLE]] into JSON-LD.</p>
-  
+
 <section>
 <h4>Prefix and Base definitions</h4>
 <p>The JSON-LD context has direct equivalents for Turtle <code>@base</code> and <code>@prefix</code> expressions:</p>
@@ -1807,7 +1820,7 @@ keywords have been given the aliases <strong>url</strong> and
   "@subject":       "#me",
   "@type":          "foaf:Person",
   "foaf:name":      "Manu Sporny",
-  "foaf:homepage":  {"@iri": ""}
+  "foaf:homepage":  { "@iri": "" }
 }
 -->
 </pre>
@@ -1840,7 +1853,7 @@ keywords have been given the aliases <strong>url</strong> and
   "@subject":       "#me",
   "@type":          "foaf:Person",
   "foaf:name":      "Manu Sporny",
-  "foaf:knows":  {
+  "foaf:knows": {
     "@type":          "foaf:Person",
     "foaf:name":      "Gregg Kellogg"
   }
@@ -1871,7 +1884,7 @@ keywords have been given the aliases <strong>url</strong> and
   "@subject":       "http://example.org/people#joebob",
   "@type":          "foaf:Person",
   "foaf:name":      "Joe Bob",
-  "foaf:nick":      {"@list": ["joe", "bob", "jaybe"]}
+  "foaf:nick":      { "@list": [ "joe", "bob", "jaybe" ] }
 }
 -->
 </pre>
@@ -1910,26 +1923,26 @@ repeated.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "@context": { "foaf": "http://xmlns.com/foaf/0.1/"},
+  "@context": { "foaf": "http://xmlns.com/foaf/0.1/" },
   "@subject": [
-   {
-     "@subject": "_:bnode1",
-     "@type": "foaf:Person",
-     "foaf:homepage": "http://example.com/bob/",
-     "foaf:name": "Bob"
-   },
-   {
-     "@subject": "_:bnode2",
-     "@type": "foaf:Person",
-     "foaf:homepage": "http://example.com/eve/",
-     "foaf:name": "Eve"
-   },
-   {
-     "@subject": "_:bnode3",
-     "@type": "foaf:Person",
-     "foaf:homepage": "http://example.com/manu/",
-     "foaf:name": "Manu"
-   }
+    {
+      "@subject": "_:bnode1",
+      "@type": "foaf:Person",
+      "foaf:homepage": "http://example.com/bob/",
+      "foaf:name": "Bob"
+    },
+    {
+      "@subject": "_:bnode2",
+      "@type": "foaf:Person",
+      "foaf:homepage": "http://example.com/eve/",
+      "foaf:name": "Eve"
+    },
+    {
+      "@subject": "_:bnode3",
+      "@type": "foaf:Person",
+      "foaf:homepage": "http://example.com/manu/",
+      "foaf:name": "Manu"
+    }
   ]
 }
 -->
@@ -2024,7 +2037,7 @@ instead refer to items by their full <tref>IRI</tref>.</p>
     "http://purl.org/dc/terms/title": "Just a Geek",
     "http://purl.org/dc/terms/creator": "Whil Wheaton",
     "http://purl.org/vocab/frbr/core#realization":
-      ["http://purl.oreilly.com/products/9780596007683.BOOK", "http://purl.oreilly.com/products/9780596802189.EBOOK"]
+      [ "http://purl.oreilly.com/products/9780596007683.BOOK", "http://purl.oreilly.com/products/9780596802189.EBOOK" ]
   },
   {
     "@subject": "http://purl.oreilly.com/products/9780596007683.BOOK",
