@@ -272,11 +272,11 @@ ol.algorithm.update>li>span.list-number {
 <section id="abstract">
 <p>
 JSON [[!RFC4627]] has proven to be a highly useful object serialization and
-messaging format. JSON-LD [[!JSON-LD]] harmonizes the representation of 
+messaging format. JSON-LD [[!JSON-LD]] harmonizes the representation of
 Linked Data in JSON by outlining a common JSON representation format for
 expressing directed graphs; mixing both Linked Data and non-Linked Data in
 a single document. This document outlines an Application Programming
-Interface and a set of algorithms for programmatically transforming 
+Interface and a set of algorithms for programmatically transforming
 JSON-LD documents.
 </p>
 </section>
@@ -340,7 +340,7 @@ Data in JSON. The document is primarily intended for the following audiences:
 </p>
 
 <ul>
-  <li>Authors that want a very detailed view of how JSON-LD processors 
+  <li>Authors that want a very detailed view of how JSON-LD processors
   operate.</li>
   <li>Software developers that want to implement processors and APIs for
   JSON-LD.</li>
@@ -719,6 +719,12 @@ language-native data structures MUST be used where applicable.</p>
       algorithm is running. The <tref>active context</tref> is the context
       contained within the <tref>processor state</tref>.
     </dd>
+    <dt><tdef>blank node</tdef></dt>
+    <dd>
+      a blank node is a <tref>resource</tref> which is neither an <tref>IRI</tref> nor a <tref>literal</tref>.
+      Blank nodes may be named or unnamed and often take on the role of a variable that may represent
+      either an <tref>IRI</tref> or a <tref>literal</tref>.
+    </dd>
     <dt><tdef>local context</tdef></dt>
     <dd>
       a context that is specified within a <tref>JSON object</tref>,
@@ -819,10 +825,10 @@ language-native data structures MUST be used where applicable.</p>
           simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.
         </li>
         <li>
-          Otherwise, for each key in <em>value</em>having the lexical form of <cite><a
-          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite>, it's value
-          MUST have be a simple <tref>string</tref> with the lexical form of IRI. Merge the key-value
-          pair into the <tref>local context</tref>.
+          Otherwise, for each key in <em>value</em> having the lexical form of <cite><a
+          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
+          it's value MUST have be a simple <tref>string</tref> with the lexical form of absolute IRI. Merge the
+          key-value pair into the <tref>local context</tref>.
         </li>
       </ol>
     </li>
@@ -852,6 +858,13 @@ language-native data structures MUST be used where applicable.</p>
       the <tref>local context</tref> and the value of the
       <tref>active context</tref>. If the result is an <tref>array</tref>
       with a single value, the processor MAY represent this as a string value.
+    </p>
+    <p class="issue">
+      There is active discussion on merging the @coerce mappings into <tref>term</tref>
+      definitions, in which case <tref>term</tref> or <tref>prefix</tref> expansion cannot
+      take place unless they are in the active context when processing a context
+      definition (i.e., they were previously defined in a context definition prior to
+      parsing a new context definition).
     </p>
   </section>
 
@@ -888,8 +901,8 @@ language-native data structures MUST be used where applicable.</p>
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
       <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
-      <li>If the prefix is a '_' (underscore), the IRI is unchanged.</li>
-      <li>If the <tref>active context</tref> contains a term mapping for <em>prefix</em>, generate an IRI
+      <li>If the prefix is a '_' (underscore), the value represents a named <tref>blank node</tref>.</li>
+      <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em>, generate an IRI
         by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
       <li>If the IRI being processed is represented as a <em>term</em> (or has an empty <em>prefix</em>) and is for a
@@ -1535,7 +1548,7 @@ normalized form.</p>
 
 <p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
 alphabetical order. Also, notice how the <tref>subject</tref> has been
-labeled with a <tdef>blank node identifier</tdef>. Normalization ensures that any arbitrary
+labeled with a named <tref>blank node</tref>. Normalization ensures that any arbitrary
 graph containing exactly the same information would be normalized to exactly
 the same form shown above.</p>
 
@@ -2611,7 +2624,7 @@ implement the algorithm exactly as described.
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
-    a <em>resource</em>. Resources may be of three basic types: <em><tref>IRI</tref></em>s, for describing
+    a <tdef>resource</tdef>. Resources may be of three basic types: <em><tref>IRI</tref></em>s, for describing
     externally named entities, <em>BNodes</em>, resources for which an external name does not
     exist, or is not known, and Literals, which describe terminal entities such as strings,
     dates and other representations having a lexical representation possibly including
@@ -2627,7 +2640,7 @@ implement the algorithm exactly as described.
   </p>
   <p>
     Data described with JSON-LD may be considered to be the representation of a graph made
-    up of <tref>subject</tref> and <tref>object</tref> resources related via a <tref>property</tref> resource.
+    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a <tref>property</tref> <tref>resource</tref>.
     However, specific implementations may choose to operate on the document as a normal
     JSON description of objects having attributes.
   </p>
@@ -2701,7 +2714,8 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
-          process the value as a list starting at <a href="#processing-step-list">Step 4</a>.
+          process the value as a list starting at <a href="#processing-step-list">Step 4</a> as if the
+          <tref>active property</tref> is the target of a <code>@list</code> coercion.
         </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@subject</code> key:
           <ol class="algorithm">
@@ -2731,7 +2745,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> does not have a <code>@subject</code> key, set the <tref>active
-          object</tref> to newly generated <tref>blank node identifier</tref>. Generate a triple
+          object</tref> to newly generated <tref>blank node</tref>. Generate a triple
           representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
           object</tref>.
@@ -2761,39 +2775,48 @@ implement the algorithm exactly as described.
     </li>
 
     <li>
-      If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref> by doing the following
-      returning the result of processing the last value in the <tref>array</tref>:
-
+      If a regular <tref>array</tref> is detected
       <ol class="algorithm">
-        <li>
-          Create a new <tref>processor state</tref> using copies of the <tref>active
-          context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
-          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
-          <tref>processor state</tref>.
-        </li>
-      </ol>
-    </li>
-
-    <li id="processing-step-list">
-      Generate an RDF List by linking
-      each element of the list using <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code>
-      using the following sequence:
-      <ol class="algorithm">
-        <li>
-          If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
-          and <code>rdf:nil</code>.
-        </li>
-        <li>
-          Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-          and a newly generated BNode identified as <em>first <tref>blank node identifier</tref></em>.
-        </li>
-        <li>
-          For each element other than the last element in the list:
+        <li id="processing-step-list">If the <tref>active property</tref> is the target of an
+          <code>@list</code> coercion Generate an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see [[!RDF-SCHEMA]]) by linking each element of the list using
+          <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code> using the
+          following sequence:
           <ol class="algorithm">
-            <li>Create a processor state using the active context, <em>first <tref>blank node identifier</tref></em> as the <tref>active subject</tref>, and <code>rdf:first</code> as the <tref>active property</tref>.</li>
-            <li>Unless this is the last element in the list, generate a new BNode identified as <em>rest <tref>blank node identifier</tref></em>, otherwise use <code>rdf:nil</code>.</li>
-            <li>Generate a new triple using <em>first <tref>blank node identifier</tref></em>, <code>rdf:rest</code> and <em>rest <tref>blank node identifier</tref></em>.</li>
-            <li>Set <em>first <tref>blank node identifier</tref></em> to <em>rest <tref>blank node identifier</tref></em>.</li>
+            <li>
+              If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active
+              property</tref> and <code>rdf:nil</code>.
+            </li>
+            <li>
+              Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+              and a newly generated BNode identified as <em>first <tref>blank node</tref></em>.
+            </li>
+            <li>
+              For each element other than the last element in the list:
+              <ol class="algorithm">
+                <li>Create a processor state using the active context,
+                  <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
+                  <code>rdf:first</code> as the <tref>active property</tref>.</li>
+                <li>Unless this is the last element in the list, generate a new BNode identified as<
+                  em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
+                <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
+                  <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
+                <li>Set <em>first <tref>blank node</tref></em> to
+                  <em>rest <tref>blank node</tref></em>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+
+        <li>
+          Otherwise, process each value in the <tref>array</tref> by doing the following returning the result of
+          processing the last value in the <tref>array</tref>:
+          <ol class="algorithm">
+            <li>
+              Create a new <tref>processor state</tref> using copies of the <tref>active
+              context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
+              starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+              <tref>processor state</tref>.
+            </li>
           </ol>
         </li>
       </ol>
