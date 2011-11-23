@@ -2707,14 +2707,15 @@ implement the algorithm exactly as described.
               a <code>@language</code> key, use it's value to set the language of the plain literal.
             </li>
             <li>
-              Generate a triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-              <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
+              If the neither the <tref>active subject</tref> nor the <tref>active property</tref>, generate a triple
+              representing the <tref>active subject</tref>, the <tref>active property</tref> and the <tref>active object</tref>.
             </li>
+            <li>Return the <tref>active object</tref> to the calling location.</li>
           </ol>
         </li>
         <li>
           If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
-          process the value as a list starting at <a href="#processing-step-list">Step 4</a> as if the
+          process the value as a list starting at <a href="#processing-step-list">Step 3.1</a> as if the
           <tref>active property</tref> is the target of a <code>@list</code> coercion.
         </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@subject</code> key:
@@ -2730,12 +2731,7 @@ implement the algorithm exactly as described.
               <tref>active subject</tref> and <tref>active property</tref>.
               <ol class="algorithm">
                 <li>
-                  If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
-                  and the value is an <tref>array</tref>,
-                  process the value as a list starting at <a href="#processing-step-list">Step 4</a>.
-                </li>
-                <li>
-                  Otherwise, process the value starting at
+                  Process the value starting at
                   <a href="#processing-step-associative">Step 2</a>.
                 </li>
                 <li>Proceed using the previous <tref>processor state</tref>.</li>
@@ -2761,7 +2757,12 @@ implement the algorithm exactly as described.
             <li>Otherwise, set the <tref>active property</tref> to the result of performing
             <a href="#iri-expansion">IRI Expansion</a> on the key.</li>
             <li>
-              Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+              If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
+              and the value is an <tref>array</tref>,
+              process the value as a list starting at <a href="#processing-step-list">Step 3.1</a>.
+            </li>
+            <li>
+              Otherwise, create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
               <tref>active subject</tref> and <tref>active property</tref> and process the value
               starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
               previous <tref>processor state</tref>.
@@ -2778,7 +2779,7 @@ implement the algorithm exactly as described.
       If a regular <tref>array</tref> is detected
       <ol class="algorithm">
         <li id="processing-step-list">If the <tref>active property</tref> is the target of an
-          <code>@list</code> coercion Generate an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see [[!RDF-SCHEMA]]) by linking each element of the list using
+          <code>@list</code> coercion generate an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see [[!RDF-SCHEMA]]) by linking each element of the list using
           <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code> using the
           following sequence:
           <ol class="algorithm">
@@ -2795,9 +2796,19 @@ implement the algorithm exactly as described.
               <ol class="algorithm">
                 <li>Create a processor state using the active context,
                   <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
-                  <code>rdf:first</code> as the <tref>active property</tref>.</li>
-                <li>Unless this is the last element in the list, generate a new BNode identified as<
-                  em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
+                  <code>rdf:first</code> as the <tref>active property</tref>.
+                  <ol class="algorithm">
+                    <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
+                    <li>Proceed using the previous <tref>processor state</tref>.</li>
+                  </ol>
+                  <div class="issue">There's a bug here, coercion can't take place without using the current
+                    <tref>active property</tref>, yet we need to pass <code>rdf:first</code> to have the
+                    appropriate triple changed. Might need a different strategy that relies on using a
+                    returned value to generate a triple within this context.
+                  </div>
+                </li>
+                <li>Unless this is the last element in the list, generate a new BNode identified as
+                  <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
                 <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
                   <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
                 <li>Set <em>first <tref>blank node</tref></em> to
