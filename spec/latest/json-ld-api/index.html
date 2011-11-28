@@ -434,231 +434,230 @@ de-referenceable.
 </section>
 
 <section>
-<h2>Contributing</h2>
+  <h2>Contributing</h2>
 
-<p>There are a number of ways that one may participate in the development of
-this specification:</p>
+  <p>There are a number of ways that one may participate in the development of
+    this specification:</p>
 
-<ul>
-<li>Technical discussion typically occurs on the public mailing list:
-<a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
-</li>
+  <ul>
+    <li>Technical discussion typically occurs on the public mailing list:
+      <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a></li>
 
-<li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
-on Tuesdays at 1500UTC on the second and fourth week of each month.
-</li>
+    <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+      on Tuesdays at 1500UTC on the second and fourth week of each month.</li>
 
-<li>Specification bugs and issues should be reported in the
-<a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+    <li>Specification bugs and issues should be reported in the
+      <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
 
-<li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
-specification can be found on Github.</li>
+    <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+      specification can be found on Github.</li>
 
-<li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
-IRC channel is available for real-time discussion on irc.freenode.net.</li>
-</ul>
+    <li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
+      IRC channel is available for real-time discussion on irc.freenode.net.</li>
+  </ul>
 
 </section>
 
 </section>
 
 <section>
-<h2>The Application Programming Interface</h2>
+  <h2>The Application Programming Interface</h2>
 
-<p>This API provides a clean mechanism that enables developers to convert
-JSON-LD data into a a variety of output formats that are easier to work with in
-various programming languages. If a JSON-LD API is provided in a programming
-environment, the entirety of the following API MUST be implemented.
-</p>
+  <p>This API provides a clean mechanism that enables developers to convert
+  JSON-LD data into a a variety of output formats that are easier to work with in
+  various programming languages. If a JSON-LD API is provided in a programming
+  environment, the entirety of the following API MUST be implemented.
+  </p>
 
-<section>
-<h3>JsonLdProcessor</h3>
-<dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
+  <section>
+    <h3>JsonLdProcessor</h3>
+    <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
 
-  <dt>object expand()</dt>
-  <dd><a href="#expansion">Expands</a> the given <code>input</code>
-    according to the steps in the
-    <a href="#expansion-algorithm">Expansion Algorithm</a>. The
-    <code>input</code> MUST be copied, expanded and returned if there are
-    no errors. If the expansion fails, an appropriate exception MUST be thrown.
+      <dt>object expand()</dt>
+      <dd><a href="#expansion">Expands</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+        <code>input</code> MUST be copied, expanded and returned if there are
+        no errors. If the expansion fails, an appropriate exception MUST be thrown.
 
-    <dl class="parameters">
-     <dt>object input</dt>
-     <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
-     <dt>object optional? context</dt>
-     <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
+        <dl class="parameters">
+         <dt>object input</dt>
+         <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
+         <dt>object optional? context</dt>
+         <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
+        </dl>
+
+        <dl class="exception" title="InvalidContext">
+         <dt>INVALID_SYNTAX</dt>
+         <dd>A general syntax error was detected in the <code>@context</code>.
+         For example, if a <code>@coerce</code> key maps to anything other than
+         a string or an array of strings, this exception would be raised.</dd>
+         <dt>MULTIPLE_DATATYPES</dt>
+         <dd>There is more than one target datatype specified for a single
+         property in the list of coercion rules. This means that the processor
+         does not know what the developer intended for the target datatype for a
+         property.</dd>
+        </dl>
+
+      </dd>
+
+      <dt>object compact()</dt>
+      <dd><a href="#compaction">Compacts</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#compaction-algorithm">Compaction Algorithm</a>. The
+        <code>input</code> MUST be copied, compacted and returned if there are
+        no errors. If the compaction fails, an appropirate exception MUST be
+        thrown.
+        <dl class="parameters">
+           <dt>object input</dt>
+           <dd>The JSON-LD object to perform compaction on.</dd>
+           <dt>object optional? context</dt>
+           <dd>The base context to use when compacting the <code>input</code>.</dd>
+        </dl>
+
+        <dl class="exception" title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@coerce</code> key maps to anything other than
+            a string or an array of strings, this exception would be raised.</dd>
+          <dt>MULTIPLE_DATATYPES</dt>
+          <dd>There is more than one target datatype specified for a single
+            property in the list of coercion rules. This means that the processor
+            does not know what the developer intended for the target datatype for a
+            property.</dd>
+        </dl>
+
+        <dl class="exception" title="ProcessingError">
+          <dt>LOSSY_COMPACTION</dt>
+          <dd>The compaction would lead to a loss of information, such as a
+            <code>@language</code> value.</dd>
+          <dt>CONFLICTING_DATATYPES</dt>
+          <dd>The target datatype specified in the coercion rule and the
+            datatype for the typed literal do not match.</dd>
+        </dl>
+
+      </dd>
+
+      <dt>object frame()</dt>
+      <dd><a href="#framing">Frames</a> the given <code>input</code>
+        using the <code>frame</code> according to the steps in the
+        <a href="#framing-algorithm">Framing Algorithm</a>. The
+        <code>input</code> is used to build the framed output and is returned if
+        there are no errors. If there are no matches for the frame,
+        <code>null</code> MUST be returned. Exceptions MUST be thrown if there are
+        errors.
+        <dl class="parameters">
+           <dt>object input</dt>
+           <dd>The JSON-LD object to perform framing on.</dd>
+           <dt>object frame</dt>
+           <dd>The frame to use when re-arranging the data.</dd>
+           <dt>object options</dt>
+           <dd>A set of options that will affect the framing algorithm.</dd>
+        </dl>
+
+        <dl class="exception" title="InvalidFrame">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A frame must be either an object or an array of objects, if the frame
+            is neither of these types, this exception is thrown.</dd>
+          <dt>MULTIPLE_EMBEDS</dt>
+          <dd>A subject IRI was specified in more than one place in the input
+            frame. More than one embed of a given subject IRI is not allowed, and if
+            requested, MUST result in this exception.</dd>
+        </dl>
+
+      </dd>
+
+      <dt>object normalize()</dt>
+      <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#normalization-algorithm">Normalization Algorithm</a>. The
+        <code>input</code> MUST be copied, normalized and returned if there are
+        no errors. If the compaction fails, <code>null</code> MUST be returned.
+        <dl class="parameters">
+          <dt>object input</dt>
+          <dd>The JSON-LD object to perform normalization upon.</dd>
+          <dt>object optional? context</dt>
+          <dd>An external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</dd>
+        </dl>
+
+        <dl class="exception" title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@coerce</code> key maps to anything other than
+            a string or an array of strings, this exception would be raised.</dd>
+          <dt>MULTIPLE_DATATYPES</dt>
+          <dd>There is more than one target datatype specified for a single
+            property in the list of coercion rules. This means that the processor
+            does not know what the developer intended for the target datatype for a
+            property.</dd>
+        </dl>
+
+      </dd>
+
+      <dt>object triples()</dt>
+      <dd>Processes the <code>input</code> according to the
+        <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
+        the provided <code>tripleCallback</code> for each triple generated.
+        <dl class="parameters">
+          <dt>object input</dt>
+          <dd>The JSON-LD object to process when outputting triples.</dd>
+          <dt>JsonLdTripleCallback tripleCallback</dt>
+          <dd>A callback that is called whenever a processing error occurs on
+          the given <code>input</code>.
+          <div class="issue">This callback should be aligned with the
+            RDF API.</div></dd>
+          <dt>object optional? context</dt>
+          <dd>An external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</dd>
+        </dl>
+
+        <dl class="exception" title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@coerce</code> key maps to anything other than
+            a string or an array of strings, this exception would be raised.</dd>
+          <dt>MULTIPLE_DATATYPES</dt>
+          <dd>There is more than one target datatype specified for a single
+            property in the list of coercion rules. This means that the processor
+            does not know what the developer intended for the target datatype for a
+            property.</dd>
+        </dl>
+
+      </dd>
+
     </dl>
 
-    <dl class="exception" title="InvalidContext">
-     <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>.
-     For example, if a <code>@coerce</code> key maps to anything other than
-     a string or an array of strings, this exception would be raised.</dd>
-     <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single
-     property in the list of coercion rules. This means that the processor
-     does not know what the developer intended for the target datatype for a
-     property.</dd>
+  </section>
+
+  <section>
+    <h3>JsonLdTripleCallback</h3>
+    <p>The JsonLdTripleCallback is called whenever the processor generates a
+    triple during the <code>triple()</code> call.</p>
+
+    <dl title="[NoInterfaceObject Callback] interface JsonLdTripleCallback"
+        class="idl">
+
+      <dt>void triple()</dt>
+      <dd>This callback is invoked whenever a triple is generated by the processor.
+      <dl class="parameters">
+         <dt>DOMString subject</dt>
+         <dd>The subject IRI that is associated with the triple.</dd>
+         <dt>DOMString property</dt>
+         <dd>The property IRI that is associated with the triple.</dd>
+         <dt>DOMString objectType</dt>
+         <dd>The type of object that is associated with the triple. Valid values
+           are <code>IRI</code> and <code>literal</code>.</dd>
+         <dt>DOMString object</dt>
+         <dd>The object value associated with the subject and the property.</dd>
+         <dt>DOMString? datatype</dt>
+         <dd>The datatype associated with the object.</dd>
+         <dt>DOMString? language</dt>
+         <dd>The language associated with the object in BCP47 format.</dd>
+      </dl>
+      </dd>
     </dl>
-
-  </dd>
-
-  <dt>object compact()</dt>
-  <dd><a href="#compaction">Compacts</a> the given <code>input</code>
-    according to the steps in the
-    <a href="#compaction-algorithm">Compaction Algorithm</a>. The
-    <code>input</code> MUST be copied, compacted and returned if there are
-    no errors. If the compaction fails, an appropirate exception MUST be
-    thrown.
-  <dl class="parameters">
-     <dt>object input</dt>
-     <dd>The JSON-LD object to perform compaction on.</dd>
-     <dt>object optional? context</dt>
-     <dd>The base context to use when compacting the <code>input</code>.</dd>
-  </dl>
-
-    <dl class="exception" title="InvalidContext">
-     <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>.
-     For example, if a <code>@coerce</code> key maps to anything other than
-     a string or an array of strings, this exception would be raised.</dd>
-     <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single
-     property in the list of coercion rules. This means that the processor
-     does not know what the developer intended for the target datatype for a
-     property.</dd>
-    </dl>
-
-    <dl class="exception" title="ProcessingError">
-     <dt>LOSSY_COMPACTION</dt>
-     <dd>The compaction would lead to a loss of information, such as a
-     <code>@language</code> value.</dd>
-     <dt>CONFLICTING_DATATYPES</dt>
-     <dd>The target datatype specified in the coercion rule and the
-     datatype for the typed literal do not match.</dd>
-    </dl>
-
-  </dd>
-
-  <dt>object frame()</dt>
-  <dd><a href="#framing">Frames</a> the given <code>input</code>
-    using the <code>frame</code> according to the steps in the
-    <a href="#framing-algorithm">Framing Algorithm</a>. The
-    <code>input</code> is used to build the framed output and is returned if
-    there are no errors. If there are no matches for the frame,
-    <code>null</code> MUST be returned. Exceptions MUST be thrown if there are
-    errors.
-  <dl class="parameters">
-     <dt>object input</dt>
-     <dd>The JSON-LD object to perform framing on.</dd>
-     <dt>object frame</dt>
-     <dd>The frame to use when re-arranging the data.</dd>
-     <dt>object options</dt>
-     <dd>A set of options that will affect the framing algorithm.</dd>
-  </dl>
-
-    <dl class="exception" title="InvalidFrame">
-    <dt>INVALID_SYNTAX</dt>
-    <dd>A frame must be either an object or an array of objects, if the frame
-    is neither of these types, this exception is thrown.</dd>
-    <dt>MULTIPLE_EMBEDS</dt>
-    <dd>A subject IRI was specified in more than one place in the input
-    frame. More than one embed of a given subject IRI is not allowed, and if
-    requested, MUST result in this exception.</dd>
-    </dl>
-
-  </dd>
-
-  <dt>object normalize()</dt>
-  <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
-    according to the steps in the
-    <a href="#normalization-algorithm">Normalization Algorithm</a>. The
-    <code>input</code> MUST be copied, normalized and returned if there are
-    no errors. If the compaction fails, <code>null</code> MUST be returned.
-  <dl class="parameters">
-     <dt>object input</dt>
-     <dd>The JSON-LD object to perform normalization upon.</dd>
-     <dt>object optional? context</dt>
-     <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
-  </dl>
-
-    <dl class="exception" title="InvalidContext">
-     <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>.
-     For example, if a <code>@coerce</code> key maps to anything other than
-     a string or an array of strings, this exception would be raised.</dd>
-     <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single
-     property in the list of coercion rules. This means that the processor
-     does not know what the developer intended for the target datatype for a
-     property.</dd>
-    </dl>
-
-  </dd>
-
-  <dt>object triples()</dt>
-  <dd>Processes the <code>input</code> according to the
-    <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
-    the provided <code>tripleCallback</code> for each triple generated.
-  <dl class="parameters">
-     <dt>object input</dt>
-     <dd>The JSON-LD object to process when outputting triples.</dd>
-     <dt>JsonLdTripleCallback tripleCallback</dt>
-     <dd>A callback that is called whenever a processing error occurs on
-     the given <code>input</code>.
-     <div class="issue">This callback should be aligned with the
-       RDF API.</div></dd>
-     <dt>object optional? context</dt>
-     <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
-  </dl>
-
-    <dl class="exception" title="InvalidContext">
-     <dt>INVALID_SYNTAX</dt>
-     <dd>A general syntax error was detected in the <code>@context</code>.
-     For example, if a <code>@coerce</code> key maps to anything other than
-     a string or an array of strings, this exception would be raised.</dd>
-     <dt>MULTIPLE_DATATYPES</dt>
-     <dd>There is more than one target datatype specified for a single
-     property in the list of coercion rules. This means that the processor
-     does not know what the developer intended for the target datatype for a
-     property.</dd>
-    </dl>
-
-  </dd>
-
-</dl>
-
-</section>
-
-<section>
-<h3>JsonLdTripleCallback</h3>
-<p>The JsonLdTripleCallback is called whenever the processor generates a
-triple during the <code>triple()</code> call.</p>
-
-<dl title="[NoInterfaceObject Callback] interface JsonLdTripleCallback"
-    class="idl">
-
-  <dt>void triple()</dt>
-  <dd>This callback is invoked whenever a triple is generated by the processor.
-  <dl class="parameters">
-     <dt>DOMString subject</dt>
-     <dd>The subject IRI that is associated with the triple.</dd>
-     <dt>DOMString property</dt>
-     <dd>The property IRI that is associated with the triple.</dd>
-     <dt>DOMString objectType</dt>
-     <dd>The type of object that is associated with the triple. Valid values
-       are <code>IRI</code> and <code>literal</code>.</dd>
-     <dt>DOMString object</dt>
-     <dd>The object value associated with the subject and the property.</dd>
-     <dt>DOMString? datatype</dt>
-     <dd>The datatype associated with the object.</dd>
-     <dt>DOMString? language</dt>
-     <dd>The language associated with the object in BCP47 format.</dd>
-  </dl>
-  </dd>
-</dl>
-</section>
-
+  </section>
 
 </section>
 
@@ -768,85 +767,68 @@ language-native data structures MUST be used where applicable.</p>
 
 <section>
   <h2 id="context">Context</h2>
-  <p>
-    Processing of JSON-LD data structure is managed recursively.
+  <p>Processing of JSON-LD data structure is managed recursively.
     During processing, each rule is applied using information provided by the <tref>active context</tref>.
     Processing begins by pushing a new <tref>processor state</tref> onto the <tref>processor state</tref> stack and
-    initializing the <tref>active context</tref> with the <tref>initial context</tref>. If a <tref>local context</tref> is encountered,
-    information from the <tref>local context</tref> is merged into the <tref>active context</tref>.
-  </p>
-  <p>
-    The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
-    of a list (see <span a="#list-processing">List Processing</span>)).
-  </p>
-  <p>
-    A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
-    <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value. When processing a <tref>local context</tref>, special processing rules apply:
-  </p>
+    initializing the <tref>active context</tref> with the <tref>initial context</tref>.
+    If a <tref>local context</tref> is encountered,
+    information from the <tref>local context</tref> is merged into the <tref>active context</tref>.</p>
+  <p>The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
+    of a list (see <span a="#list-processing">List Processing</span>)).</p>
+  <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
+    <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
+    When processing a <tref>local context</tref>, special processing rules apply:</p>
   <ol class="algorithm">
     <li>Create a new, empty <tref>local context</tref>.</li>
-    <li>Let <em>value</em> be the value of <code>@context</code></li>
-    <ol id="process-context" class="algorithm">
-      <li>If <em>value</em> is an <tref>array</tref>, process
-        each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.
-      <li>
-        If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of IRI.
-        <ol class="algorithm">
-          <li>Set <em>value</em> to the result of performing <a href="#iri-expansion">IRI Expansion</a>
-            on <em>value</em>.
-          <li>If <em>value</em> does is not an absolute IRI, abort this processing step.
-            Otherwise, Dereference <em>value</em>.</li>
-          <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
-            element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>value</em>
-            to the extracted content, or an empty <tref>JSON Object</tref> if no value exists.</li>
-        </ol>
-      </li>
-    <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
-      <ol class="algorithm">
-        <li>
-          If <em>value</em> has a <code>@base</code> key, it MUST have a value of a simple
-          <tref>string</tref> with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
-          context</tref>. <p class="issue">Turtle allows @base to be relative. If we did this, we
-          would have to add <a href="#iri-expansion">IRI Expansion</a>.</p>
-        </li>
-        <li>
-          If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple
-          <tref>string</tref> with the lexical form of an absolute IRI. Add the vocabulary mapping to the
-          <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
-          the associated value.
-        </li>
-        <li>
-          If <em>value</em> has a <code>@coerce</code> key, it MUST have a value of a
-          <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
-          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).
-        </li>
-        <li>
-          If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
-          simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.
-        </li>
-        <li>
-          Otherwise, for each key in <em>value</em> having the lexical form of <cite><a
-          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
-          or is an empty string,
-          it's value MUST have be a simple <tref>string</tref> with the lexical form of absolute IRI. Merge the
-          key-value pair into the <tref>local context</tref>.
+    <li>Let <em>value</em> be the value of <code>@context</code>
+      <ol id="process-context" class="algorithm">
+        <li>If <em>value</em> is an <tref>array</tref>, process
+          each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.
+        <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of IRI.
+          <ol class="algorithm">
+            <li>Set <em>value</em> to the result of performing <a href="#iri-expansion">IRI Expansion</a>
+              on <em>value</em>.
+            <li>If <em>value</em> does is not an absolute IRI, abort this processing step.
+              Otherwise, Dereference <em>value</em>.</li>
+            <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
+              element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>value</em>
+              to the extracted content, or an empty <tref>JSON Object</tref> if no value exists.</li>
+          </ol>
         </li>
       </ol>
     </li>
-    <li>
-      Merge the of <tref>local context</tref>'s <code>@coerce</code> mapping into  the
-      <tref>active context</tref>'s <code>@coerce</code> mapping as described <a href="#coerce">below</a>.
+    <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>value</em> has a <code>@base</code> key, it MUST have a value of a simple
+          <tref>string</tref> with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
+          context</tref>.
+          <p class="issue">Turtle allows @base to be relative. If we did this, we
+          would have to add <a href="#iri-expansion">IRI Expansion</a>.</p></li>
+        <li>If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple
+          <tref>string</tref> with the lexical form of an absolute IRI. Add the vocabulary mapping to the
+          <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
+          the associated value.</li>
+        <li>If <em>value</em> has a <code>@coerce</code> key, it MUST have a value of a
+          <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
+          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).</li>
+        <li>If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
+          simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.</li>
+        <li>Otherwise, for each key in <em>value</em> having the lexical form of <cite><a
+          href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
+          or is an empty string,
+          it's value MUST have be a simple <tref>string</tref> with the lexical form of absolute IRI. Merge the
+          key-value pair into the <tref>local context</tref>.</li>
+      </ol>
     </li>
-    <li>
-      Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref> to the
-      <tref>active context</tref> overwriting any duplicate values.
-    </li>
+    <li>Merge the of <tref>local context</tref>'s <code>@coerce</code> mapping into  the
+      <tref>active context</tref>'s <code>@coerce</code> mapping as described <a href="#coerce">below</a>.</li>
+    <li>Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref> to the
+      <tref>active context</tref> overwriting any duplicate values.</li>
   </ol>
 
   <section>
     <h3>Coerce</h3>
-    <p>
-      Map each key-value pair in the <tref>local context</tref>'s
+    <p>Map each key-value pair in the <tref>local context</tref>'s
       <code>@coerce</code> mapping into the <tref>active context</tref>'s
       <code>@coerce</code> mapping, overwriting any duplicate values in
       the <tref>active context</tref>'s <code>@coerce</code> mapping.
@@ -858,8 +840,7 @@ language-native data structures MUST be used where applicable.</p>
       <tref>array</tref> form and replace with the union of the value from
       the <tref>local context</tref> and the value of the
       <tref>active context</tref>. If the result is an <tref>array</tref>
-      with a single value, the processor MAY represent this as a string value.
-    </p>
+      with a single value, the processor MAY represent this as a string value.</p>
     <p class="issue">
       There is active discussion on merging the @coerce mappings into <tref>term</tref>
       definitions, in which case <tref>term</tref> or <tref>prefix</tref> expansion cannot
@@ -873,23 +854,20 @@ language-native data structures MUST be used where applicable.</p>
     <h3>Initial Context</h3>
     <p>The <tref>initial context</tref> is initialized as follows:</p>
     <ul>
-      <li>
-        <code>@base</code> is set using <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
-        Base URI<a></cite> of [[RFC3986]]. Processors MAY provide a means
-        of setting the base IRI programatically.
-      </li>
+      <li><code>@base</code> is set using <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
+        Base URI</a></cite> of [[RFC3986]]. Processors MAY provide a means
+        of setting the base IRI programatically.</li>
       <li><code>@coerce</code> is set with a single mapping from <code>@iri</code> to <code>@type</code>.</li>
     </ul>
     <pre class="example" data-transform="updateExample">
-    <!--
-    {
-        "@base": ****document-location****,
-        "@coerce": {
-          "@iri": "@type"
-        }
-    }
-    -->
-    </pre>
+<!--
+{
+  "@base": ****document-location****,
+  "@coerce": {
+    "@iri": "@type"
+  }
+}
+--></pre>
   </section>
 </section>
 
@@ -1000,10 +978,10 @@ language-native data structures MUST be used where applicable.</p>
 <h2>Expansion</h2>
 
 <p>Expansion is the process of taking a JSON-LD document and applying a
-context such that all IRI, datatypes, and literal values are expanded so
-that the context is no longer necessary. JSON-LD document expansion
-is typically used as a part of <a href="#normalization">Framing</a> or
-<a href="#normalization">Normalization</a>.</p>
+  context such that all IRI, datatypes, and literal values are expanded so
+  that the context is no longer necessary. JSON-LD document expansion
+  is typically used as a part of <a href="#normalization">Framing</a> or
+  <a href="#normalization">Normalization</a>.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -1026,7 +1004,7 @@ is typically used as a part of <a href="#normalization">Framing</a> or
 </pre>
 
 <p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
-provided above would result in the following output:</p>
+  provided above would result in the following output:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1047,26 +1025,26 @@ provided above would result in the following output:</p>
 
 <ol class="algorithm">
   <li>If the top-level item in the <tref>JSON-LD input</tref> is an <tref>array</tref>,
-  process each item in the <tref>array</tref> recursively using this algorithm.</li>
+    process each item in the <tref>array</tref> recursively using this algorithm.</li>
   <li>If the top-level item in the <tref>JSON-LD input</tref> is an object,
-  update the <tref>local context</tref> according to the steps outlined in
-  the <a href="#context">context</a> section. Process each key, expanding
-  the key according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-  <ol class="algorithm">
-    <li>Process each value associated with each key:
-      <ol class="algorithm">
-        <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
-        recursively using this algorithm.</li>
-        <li>If the value is an object, process the object recursively
-        using this algorithm.</li>
-        <li>Otherwise, check to see the associated key has an associated
-        coercion rule. If the value should be coerced, expand the value
-        according to the <a href="#value-expansion">Value Expansion</a> rules.
-        If the value does not need to be coerced, leave the value as-is.
-        </li>
-      </ol>
-    <li>Remove the context from the object.</li>
-  </ol>
+    update the <tref>local context</tref> according to the steps outlined in
+    the <a href="#context">context</a> section. Process each key, expanding
+    the key according to the <a href="#iri-expansion">IRI Expansion</a> rules.
+    <ol class="algorithm">
+      <li>Process each value associated with each key:
+        <ol class="algorithm">
+          <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
+            recursively using this algorithm.</li>
+          <li>If the value is an object, process the object recursively
+            using this algorithm.</li>
+          <li>Otherwise, check to see the associated key has an associated
+            coercion rule. If the value should be coerced, expand the value
+            according to the <a href="#value-expansion">Value Expansion</a> rules.
+            If the value does not need to be coerced, leave the value as-is.</li>
+        </ol>
+      <li>Remove the context from the object.</li>
+    </ol>
+  </li>
 </ol>
 </section>
 
@@ -1078,12 +1056,11 @@ provided above would result in the following output:</p>
 <h2>Compaction</h2>
 
 <p>Compaction is the process of taking a JSON-LD document and applying a
-context such that the most compact form of the document is generated. JSON
-is typically expressed in a very compact, key-value format. That is, full
-IRIs are rarely used as keys. At times, a JSON-LD document may be received
-that is not in its most compact form. JSON-LD, via the API, provides a way
-to compact a JSON-LD document.
-</p>
+  context such that the most compact form of the document is generated. JSON
+  is typically expressed in a very compact, key-value format. That is, full
+  IRIs are rarely used as keys. At times, a JSON-LD document may be received
+  that is not in its most compact form. JSON-LD, via the API, provides a way
+  to compact a JSON-LD document.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -1115,8 +1092,8 @@ to compact a JSON-LD document.
 </pre>
 
 <p>Running the JSON-LD Compaction algorithm given the context supplied above
-against the JSON-LD input document provided above would result in the following
-output:</p>
+  against the JSON-LD input document provided above would result in the following
+  output:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1137,11 +1114,10 @@ output:</p>
 </pre>
 
 <p>The compaction algorithm also enables the developer to map any expanded
-format into an application-specific compacted format. While the context
-provided above mapped <code>http://xmlns.com/foaf/0.1/name</code> to
-<strong>name</strong>, it could have also mapped it to any arbitrary string
-provided by the developer.
-</p>
+  format into an application-specific compacted format. While the context
+  provided above mapped <code>http://xmlns.com/foaf/0.1/name</code> to
+  <strong>name</strong>, it could have also mapped it to any arbitrary string
+  provided by the developer.</p>
 
 <section>
 <h3>Compaction Algorithm</h3>
@@ -1151,14 +1127,13 @@ provided by the developer.
 <ol class="algorithm">
   <li>Perform the <a href="#expansion-algorithm">Expansion Algorithm</a> on
   the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly applied.</li>
-  <li>Set the <tref>active context</tref> to the given context.
+  <li>Set the <tref>active context</tref> to the given context.</li>
   <li>If the top-level item is an <tref>array</tref>, process each item in the <tref>array</tref>
-    recursively, starting at this step.
+    recursively, starting at this step.</li>
   <li>If the top-level item is an object, compress each key using the steps
     defined in <a href="#iri-compaction">IRI Compaction</a> and compress each
     value using the steps defined in
     <a href="#value-compaction">Value Compaction</a>.</li>
-  </li>
 </ol>
 </section>
 
@@ -1171,22 +1146,19 @@ provided by the developer.
 <h2>Framing</h2>
 
 <p>JSON-LD Framing allows developers to query by example and
-force a specific tree layout to a JSON-LD document.
-</p>
+  force a specific tree layout to a JSON-LD document.</p>
 
 <p>A JSON-LD document is a representation of a directed graph. A single
-directed graph can have many different serializations, each expressing
-exactly the same information. Developers typically work with trees, represented as
-<tref>JSON object</tref>s. While mapping a graph to
-a tree can be done, the layout of the end result must be specified in advance.
-A <tdef>Frame</tdef> can be used by a developer on a JSON-LD document to
-specify a deterministic layout for a graph.
-</p>
+  directed graph can have many different serializations, each expressing
+  exactly the same information. Developers typically work with trees, represented as
+  <tref>JSON object</tref>s. While mapping a graph to
+  a tree can be done, the layout of the end result must be specified in advance.
+  A <tdef>Frame</tdef> can be used by a developer on a JSON-LD document to
+  specify a deterministic layout for a graph.</p>
 
 <p>Framing is the process of taking a JSON-LD document, which expresses a
-graph of information, and applying a specific graph layout
-(called a <tref>Frame</tref>).
-</p>
+  graph of information, and applying a specific graph layout
+  (called a <tref>Frame</tref>).</p>
 
 <p>The JSON-LD document below expresses a library, a book and a chapter:</p>
 
@@ -1229,10 +1201,10 @@ graph of information, and applying a specific graph layout
 </pre>
 
 <p>Developers typically like to operate on items in a hierarchical, tree-based
-fashion. Ideally, a developer would want the data above sorted into top-level
-libraries, then the books that are contained in each library, and then the
-chapters contained in each book. To achieve that layout, the developer can
-define the following <tref>frame</tref>:</p>
+  fashion. Ideally, a developer would want the data above sorted into top-level
+  libraries, then the books that are contained in each library, and then the
+  chapters contained in each book. To achieve that layout, the developer can
+  define the following <tref>frame</tref>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1258,8 +1230,8 @@ define the following <tref>frame</tref>:</p>
 </pre>
 
 <p>When the framing algorithm is run against the previously defined
-JSON-LD document, paired with the <tref>frame</tref> above, the following
-JSON-LD document is the end result:</p>
+  JSON-LD document, paired with the <tref>frame</tref> above, the following
+  JSON-LD document is the end result:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1293,50 +1265,38 @@ JSON-LD document is the end result:</p>
 
 <section>
 <h3>Framing Algorithm Terms</h3>
-<p class="issue">This algorithm is a work in progress, do not implement it. There was also a recent update to the algorithm in order to auto-embed frame-unspecified data (if the explicit inclusion flag is not set) in order to
-preserve graph information. This change is particularly important for comparing subgraphs (or verifying digital signatures on subgraphs). This change is not yet reflected in the algorithm below.</p>
+<p class="issue">This algorithm is a work in progress, do not implement it.
+  There was also a recent update to the algorithm in order to auto-embed
+  frame-unspecified data (if the explicit inclusion flag is not set) in order to
+  preserve graph information. This change is particularly important for comparing
+  subgraphs (or verifying digital signatures on subgraphs). This change is not yet
+  reflected in the algorithm below.</p>
 
  <dl>
    <dt><tdef>input frame</tdef></dt>
-   <dd>
-     the initial <tref>frame</tref> provided to the framing algorithm.
-   </dd>
+   <dd>the initial <tref>frame</tref> provided to the framing algorithm.</dd>
    <dt><tdef>framing context</tdef></dt>
-   <dd>
-     a context containing the <tref>object embed flag</tref>, the
+   <dd>a context containing the <tref>object embed flag</tref>, the
      <tref>explicit inclusion flag</tref> and the
-     <tref>omit default flag</tref>.
-   </dd>
+     <tref>omit default flag</tref>.</dd>
    <dt><tdef>object embed flag</tdef></dt>
-   <dd>
-     a flag specifying that objects should be directly embedded in the output,
-     instead of being referred to by their IRI.
-   </dd>
+   <dd>a flag specifying that objects should be directly embedded in the output,
+     instead of being referred to by their IRI.</dd>
    <dt><tdef>explicit inclusion flag</tdef></dt>
-   <dd>
-     a flag specifying that for properties to be included in the output, they
-     must be explicitly declared in the <tref>framing context</tref>.
-   </dd>
+   <dd>a flag specifying that for properties to be included in the output, they
+     must be explicitly declared in the <tref>framing context</tref>.</dd>
    <dt><tdef>omit missing properties flag</tdef></dt>
-   <dd>
-     a flag specifying that properties that are missing from the
-     <tref>JSON-LD input</tref> should be omitted from the output.
-   </dd>
+   <dd>a flag specifying that properties that are missing from the
+     <tref>JSON-LD input</tref> should be omitted from the output.</dd>
    <dt><tdef>omit default flag</tdef></dt>
-   <dd class="issue">
-     Referenced from <tref>framing context</tref>, but not defined
-   </dd>
+   <dd class="issue">Referenced from <tref>framing context</tref>, but not defined</dd>
    <dt><tdef>match limit</tdef></dt>
-   <dd>
-     A value specifying the maximum number of matches to accept when building
+   <dd>A value specifying the maximum number of matches to accept when building
      arrays of values during the framing algorithm. A value of -1 specifies
-     that there is no match limit.
-   </dd>
+     that there is no match limit.</dd>
    <dt><tdef>map of embedded subjects</tdef></dt>
-   <dd>
-     A map that tracks if a subject has been embedded in the output of the
-     <a href="#framing-algorithm">Framing Algorithm</a>.
-   </dd>
+   <dd>A map that tracks if a subject has been embedded in the output of the
+     <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
  </dl>
 </section>
 
@@ -1344,23 +1304,21 @@ preserve graph information. This change is particularly important for comparing 
 <h3>Framing Algorithm</h3>
 
 <p>The framing algorithm takes <tref>JSON-LD input</tref> that has been
-normalized according to the
-<a href="#normalization-algorithm">Normalization Algorithm</a>
-(<strong>normalized input</strong>), an
-<tref>input frame</tref> that has been expanded according to the
-<a href="#expansion-algorithm">Expansion Algorithm</a>
-(<strong>expanded frame</strong>), and a number of options and produces
-<tref>JSON-LD output</tref>. The following series of steps is the recursive
-portion of the framing algorithm:
-</p>
+  normalized according to the
+  <a href="#normalization-algorithm">Normalization Algorithm</a>
+  (<strong>normalized input</strong>), an
+  <tref>input frame</tref> that has been expanded according to the
+  <a href="#expansion-algorithm">Expansion Algorithm</a>
+  (<strong>expanded frame</strong>), and a number of options and produces
+  <tref>JSON-LD output</tref>. The following series of steps is the recursive
+  portion of the framing algorithm:</p>
 
 <ol class="algorithm">
   <li>Initialize the <tref>framing context</tref> by setting the
-   <tref>object embed flag</tref>, clearing the
-   <tref>explicit inclusion flag</tref>, and clearing the
-   <tref>omit missing properties flag</tref>. Override these values
-   based on input options provided to the algorithm by the application.
-  </li>
+    <tref>object embed flag</tref>, clearing the
+    <tref>explicit inclusion flag</tref>, and clearing the
+    <tref>omit missing properties flag</tref>. Override these values
+    based on input options provided to the algorithm by the application.</li>
   <li>Generate a <tdef>list of frames</tdef> by processing the
     <strong>expanded frame</strong>:
     <ol class="algorithm">
@@ -1376,7 +1334,8 @@ portion of the framing algorithm:
         each item in the <strong>expanded frame</strong> into the
         <tref>list of frames</tref>, set the <tref>JSON-LD output</tref> to an
         <tref>array</tref>, and set <tref>match limit</tref> to -1.</li>
-    </ol></li>
+    </ol>
+  </li>
   <li>Create a <tdef>match array</tdef> for each <strong>expanded frame</strong>
     in the <tref>list of frames</tref> halting when either the
     <tref>match limit</tref> is zero or the end of the
@@ -1396,7 +1355,8 @@ portion of the framing algorithm:
          <code>rdf:type</code> property, but every property in the
          <strong>expanded frame</strong> exists in the item.</li>
     </ol>
-    <p class="issue"><tdef>matches array</tdef> not defined anywhere.</p></li>
+    <p class="issue"><tdef>matches array</tdef> not defined anywhere.</p>
+  </li>
   <li>Process each item in the <tref>match array</tref> with its associated
     <tdef>match frame</tdef>:
     <ol class="algorithm">
@@ -1459,22 +1419,23 @@ portion of the framing algorithm:
                   <code>@default</code> keyword is set in the
                   <tref>property frame</tref> set the item's value to the value
                   of <code>@default</code>.</li>
-              </ol></li>
+              </ol>
+            </li>
           </ol></li>
         </ol>
       <li>If the <tref>JSON-LD output</tref> is <code>null</code> set it to
         the item, otherwise, append the item to the
-        <tref>JSON-LD output</tref>.
+        <tref>JSON-LD output</tref>.</li>
     </ol>
   <li>Return the <tref>JSON-LD output</tref>.</li>
 </ol>
 
-The final, non-recursive step of the framing algorithm requires the
-<tref>JSON-LD output</tref> to be compacted according to the
-<a href="#compaction-algorithm">Compaction Algorithm</a> by using the
-context provided in the <tref>input frame</tref>. The resulting value is the
-final output of the compaction algorithm and is what should be returned to the
-application.
+<p>The final, non-recursive step of the framing algorithm requires the
+  <tref>JSON-LD output</tref> to be compacted according to the
+  <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
+  context provided in the <tref>input frame</tref>. The resulting value is the
+  final output of the compaction algorithm and is what should be returned to the
+  application.</p>
 
 </section>
 
@@ -1488,22 +1449,20 @@ application.
 <p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
 <p>Normalization is the process of taking <tref>JSON-LD input</tref> and
-performing a deterministic transformation on that input that results in all
-aspects of the graph being fully expanded and named in the
-<tref>JSON-LD output</tref>. The normalized output is generated in such a way
-that any conforming JSON-LD processor will generate identical output
-given the same input. The problem is a fairly difficult technical
-problem to solve because it requires a directed graph to be ordered into a
-set of nodes and edges in a deterministic way. This is easy to do when all of
-the nodes have unique names, but very difficult to do when some of the nodes
-are not labeled.
-</p>
+  performing a deterministic transformation on that input that results in all
+  aspects of the graph being fully expanded and named in the
+  <tref>JSON-LD output</tref>. The normalized output is generated in such a way
+  that any conforming JSON-LD processor will generate identical output
+  given the same input. The problem is a fairly difficult technical
+  problem to solve because it requires a directed graph to be ordered into a
+  set of nodes and edges in a deterministic way. This is easy to do when all of
+  the nodes have unique names, but very difficult to do when some of the nodes
+  are not labeled.</p>
 
 <p>Normalization is useful when comparing two graphs against one another,
-when generating a detailed list of differences between two graphs, and
-when generating a cryptographic digital signature for information contained
-in a graph or when generating a hash of the information contained in a graph.
-</p>
+  when generating a detailed list of differences between two graphs, and
+  when generating a cryptographic digital signature for information contained
+  in a graph or when generating a hash of the information contained in a graph.</p>
 
 <p>The example below is an un-normalized JSON-LD document:</p>
 
@@ -1529,8 +1488,8 @@ in a graph or when generating a hash of the information contained in a graph.
 <p>The example below is the normalized form of the JSON-LD document above:</p>
 
 <p class="note">Whitespace is used below to aid readability. The normalization
-algorithm for JSON-LD removes all unnecessary whitespace in the fully
-normalized form.</p>
+  algorithm for JSON-LD removes all unnecessary whitespace in the fully
+  normalized form.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1549,16 +1508,15 @@ normalized form.</p>
 </pre>
 
 <p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
-alphabetical order. Also, notice how the <tref>subject</tref> has been
-labeled with a named <tref>blank node</tref>. Normalization ensures that any arbitrary
-graph containing exactly the same information would be normalized to exactly
-the same form shown above.</p>
+  alphabetical order. Also, notice how the <tref>subject</tref> has been labeled with a
+  named <tref>blank node</tref>. Normalization ensures that any arbitrary graph
+  containing exactly the same information would be normalized to exactly the same form
+  shown above.</p>
 
 <p>In time, there may be more than one normalization algorithm that will need
-to be identified. For identification purposes, this algorithm is named
-"Universal Graph Normalization Algorithm 2011"
-(<abbr title="Universal Graph Normalization Algorithm 2011">UGNA2011</abbr>).
-</p>
+  to be identified. For identification purposes, this algorithm is named
+  "Universal Graph Normalization Algorithm 2011"
+  (<abbr title="Universal Graph Normalization Algorithm 2011">UGNA2011</abbr>).</p>
 
 <section>
 <h3>Normalization Algorithm Terms</h3>
@@ -1607,10 +1565,10 @@ to be identified. For identification purposes, this algorithm is named
 <h3>Normalization State</h3>
 
 <p>When performing the steps required by the normalization algorithm,
-it is helpful to track the many pieces of information in a
-data structure called the <tdef>normalization state</tdef>. Many of these
-pieces simply provide indexes into the graph. The information
-contained in the <tref>normalization state</tref> is described below.</p>
+  it is helpful to track the many pieces of information in a
+  data structure called the <tdef>normalization state</tdef>. Many of these
+  pieces simply provide indexes into the graph. The information
+  contained in the <tref>normalization state</tref> is described below.</p>
 
 <dl>
    <dt><tdef>node state</tdef></dt>
@@ -1724,65 +1682,66 @@ contained in the <tref>normalization state</tref> is described below.</p>
 <h3>Normalization Algorithm</h3>
 
 <p>The normalization algorithm expands the <tref>JSON-LD input</tref>,
-flattens the data structure, and creates an initial set of names for all
-nodes in the graph. The flattened data structure is then processed by a
-node labeling algorithm in order to get a fully expanded and named list of
-nodes which is then sorted. The result is a deterministically named and
-ordered list of graph nodes.
-</p>
+  flattens the data structure, and creates an initial set of names for all
+  nodes in the graph. The flattened data structure is then processed by a
+  node labeling algorithm in order to get a fully expanded and named list of
+  nodes which is then sorted. The result is a deterministically named and
+  ordered list of graph nodes.</p>
 
 <ol class="algorithm">
-<li>Expand the <tref>JSON-LD input</tref> according to the steps in
-the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
-result as the <strong>expanded input</strong>.</li>
-<li>Create a <tref>normalization state</tref>.</li>
-<li>Initialize the <tref>map of flattened nodes</tref> by recursively
-processing every <tdef>expanded node</tdef> in the
-<strong>expanded input</strong> in depth-first order:
-  <ol class="algorithm">
-    <li>If the <tref>expanded node</tref> is an unlabeled node, add a
-      new key-value pair to the <tref>expanded node</tref>
-      where the key is <code>@subject</code> and the value is the
-      concatenation of the <tref>labeling prefix</tref>
-      and the string value of the <tref>labeling counter</tref>.
-      Increment the <tref>labeling counter</tref>.</li>
-    <li>Add the <tref>expanded node</tref> to the
-      <tref>map of flattened nodes</tref>:
-      <ol class="algorithm">
-        <li>If the <tref>expanded node</tref>'s <tref>label</tref> is already
-          in the
-          <tref>map of flattened nodes</tref> merge all properties from the
-          entry in the <tref>map of flattened nodes</tref> into the
-          <tref>expanded node</tref>.</li>
-        <li>Go through every property associated with an array in the
-          <tref>expanded node</tref> and remove any duplicate <tref>IRI</tref> entries from
-          the array. If the resulting array only has one IRI entry, change it
-          from an array to an object.</li>
-        <li>Set the entry for the <tref>expanded node</tref>'s <tref>label</tref>
-          in the <tref>map of flattened nodes</tref> to the
-          <tref>expanded node</tref>.
-        </li></ol></li>
-    <li>After exiting the recursive step, replace the reference to the
-      <tref>expanded node</tref> with an object containing a single
-       key-value pair where the key is <code>@iri</code> and the value is
-       the value of the <code>@subject</code> key in the node.</li>
-  </ol></li>
-<li>For every entry in the <tref>map of flattened nodes</tref>, insert a
-  key-value pair into the <tref>node state map</tref> where the key is the
-  key from the <tref>map of flattened nodes</tref> and the value is a
-  <tref>node state</tref> where its <tref>node reference</tref> refers to
-  the value from the <tref>map of flattened nodes</tref>.
-<li>Populate the <tref>incoming list</tref> for each <tref>node state</tref>
-  by iterating over every node in the graph and adding its <tref>label</tref>
-  to the <tref>incoming list</tref> associated with each node found in its
-  properties.</li>
-<li>For every entry in the <tref>node state map</tref> that has a
-<tref>label</tref> that begins with <code>_:c14n</code>, relabel the node
-using the <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>.
-<li>Label all of the nodes that contain a <code>@subject</code> key associated
-with a value starting with <code>_:</code> according to the steps in the
-<a href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.
-</li>
+  <li>Expand the <tref>JSON-LD input</tref> according to the steps in
+  the <a href="#expansion-algorithm">Expansion Algorithm</a> and store the
+  result as the <strong>expanded input</strong>.</li>
+  <li>Create a <tref>normalization state</tref>.</li>
+  <li>Initialize the <tref>map of flattened nodes</tref> by recursively
+  processing every <tdef>expanded node</tdef> in the
+  <strong>expanded input</strong> in depth-first order:
+    <ol class="algorithm">
+      <li>If the <tref>expanded node</tref> is an unlabeled node, add a
+        new key-value pair to the <tref>expanded node</tref>
+        where the key is <code>@subject</code> and the value is the
+        concatenation of the <tref>labeling prefix</tref>
+        and the string value of the <tref>labeling counter</tref>.
+        Increment the <tref>labeling counter</tref>.</li>
+      <li>Add the <tref>expanded node</tref> to the
+        <tref>map of flattened nodes</tref>:
+        <ol class="algorithm">
+          <li>If the <tref>expanded node</tref>'s <tref>label</tref> is already
+            in the
+            <tref>map of flattened nodes</tref> merge all properties from the
+            entry in the <tref>map of flattened nodes</tref> into the
+            <tref>expanded node</tref>.</li>
+          <li>Go through every property associated with an array in the
+            <tref>expanded node</tref> and remove any duplicate <tref>IRI</tref> entries from
+            the array. If the resulting array only has one IRI entry, change it
+            from an array to an object.</li>
+          <li>Set the entry for the <tref>expanded node</tref>'s <tref>label</tref>
+            in the <tref>map of flattened nodes</tref> to the
+            <tref>expanded node</tref>.
+          </li>
+        </ol>
+      </li>
+      <li>After exiting the recursive step, replace the reference to the
+        <tref>expanded node</tref> with an object containing a single
+         key-value pair where the key is <code>@iri</code> and the value is
+         the value of the <code>@subject</code> key in the node.</li>
+    </ol>
+  </li>
+  <li>For every entry in the <tref>map of flattened nodes</tref>, insert a
+    key-value pair into the <tref>node state map</tref> where the key is the
+    key from the <tref>map of flattened nodes</tref> and the value is a
+    <tref>node state</tref> where its <tref>node reference</tref> refers to
+    the value from the <tref>map of flattened nodes</tref>.
+  <li>Populate the <tref>incoming list</tref> for each <tref>node state</tref>
+    by iterating over every node in the graph and adding its <tref>label</tref>
+    to the <tref>incoming list</tref> associated with each node found in its
+    properties.</li>
+  <li>For every entry in the <tref>node state map</tref> that has a
+    <tref>label</tref> that begins with <code>_:c14n</code>, relabel the node using the
+    <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. <li>Label all
+    of the nodes that contain a <code>@subject</code> key associated with a value
+    starting with <code>_:</code> according to the steps in the <a
+    href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.</li>
 </ol>
 </section>
 
@@ -1808,9 +1767,9 @@ the node that is to be relabeled.
     <tref>labeling counter</tref>. Increment the <tref>labeling counter</tref>.
   </li>
   <li>For the <tref>node state</tref> associated with the
-  <tref>old label</tref>, update every node in the <tref>incoming list</tref>
-  by changing all the properties that reference the <tref>old label</tref> to
-  the <tref>new label</tref>.
+    <tref>old label</tref>, update every node in the <tref>incoming list</tref>
+    by changing all the properties that reference the <tref>old label</tref> to
+    the <tref>new label</tref>.
   </li>
   <li>Change the <tref>old label</tref> key in the <tref>node state map</tref>
     to the <tref>new label</tref> and set the associated
@@ -1900,12 +1859,11 @@ contains deterministically named and expanded nodes from the graph.
 <h4>Shallow Comparison Algorithm</h4>
 
 <p>
-The shallow comparison algorithm takes two unlabeled nodes,
-<tref>alpha</tref> and <tref>beta</tref>, as input and
-determines which one should come first in a sorted list. The following
-algorithm determines the steps that are executed in order to determine the
-node that should come first in a list:
-</p>
+  The shallow comparison algorithm takes two unlabeled nodes,
+  <tref>alpha</tref> and <tref>beta</tref>, as input and
+  determines which one should come first in a sorted list. The following
+  algorithm determines the steps that are executed in order to determine the
+  node that should come first in a list:</p>
 
 <ol class="algorithm">
   <li>Compare the total number of node properties. The node with fewer
@@ -1971,10 +1929,9 @@ node that should come first in a list:
 <h4>Object Comparison Algorithm</h4>
 
 <p>
-The object comparison algorithm is designed to compare two graph node
-property values, <tref>alpha</tref> and <tref>beta</tref>, against the other.
-The algorithm is useful when sorting two lists of graph node properties.
-</p>
+  The object comparison algorithm is designed to compare two graph node
+  property values, <tref>alpha</tref> and <tref>beta</tref>, against the other.
+  The algorithm is useful when sorting two lists of graph node properties.</p>
 
 <ol class="algorithm">
   <li>If one of the values is a <tref>string</tref> and the other is not, the value that is
@@ -2011,18 +1968,17 @@ The algorithm is useful when sorting two lists of graph node properties.
 <h4>Deep Comparison Algorithm</h4>
 
 <p>
-The deep comparison algorithm is used to compare the difference between two
-nodes, <tref>alpha</tref> and <tref>beta</tref>.
-A deep comparison takes the incoming and outgoing node edges in
-a graph into account if the number of properties and value of those properties
-are identical. The algorithm is helpful when sorting a list of nodes and will
-return whichever node should be placed first in a list if the two nodes are
-not truly equivalent.
-</p>
+  The deep comparison algorithm is used to compare the difference between two
+  nodes, <tref>alpha</tref> and <tref>beta</tref>.
+  A deep comparison takes the incoming and outgoing node edges in
+  a graph into account if the number of properties and value of those properties
+  are identical. The algorithm is helpful when sorting a list of nodes and will
+  return whichever node should be placed first in a list if the two nodes are
+  not truly equivalent.</p>
 
 <p>When performing the steps required by the deep comparison algorithm, it
-is helpful to track state information about mappings. The information
-contained in a <tref>mapping state</tref> is described below.</p>
+  is helpful to track state information about mappings. The information
+  contained in a <tref>mapping state</tref> is described below.</p>
 
 <dl class="algorithm">
    <dt><tdef>mapping state</tdef></dt>
@@ -2131,64 +2087,63 @@ contained in a <tref>mapping state</tref> is described below.</p>
 <section>
 <h4>Node Serialization Algorithm</h4>
 
-<p>
-The node serialization algorithm takes a <tref>node state</tref>, a
-<tref>mapping state</tref>, and a <tdef>direction</tdef> (either
-<code>outgoing direction</code> or <code>incoming direction</code>) as
-inputs and generates a deterministic serialization for the
-<tref>node reference</tref>.
-</p>
+<p>The node serialization algorithm takes a <tref>node state</tref>, a
+  <tref>mapping state</tref>, and a <tdef>direction</tdef> (either
+  <code>outgoing direction</code> or <code>incoming direction</code>) as
+  inputs and generates a deterministic serialization for the
+  <tref>node reference</tref>.</p>
 
 <ol class="algorithm">
-<li>If the <tref>label</tref> exists in the
-  <tref>processed labels map</tref>, terminate the algorithm as the
-  <tref>serialization label</tref> has already been created.
-</li>
-<li>Set the value associated with the <tref>label</tref> in the
-  <tref>processed labels map</tref> to <code>true</code>.
-</li>
-<li>Generate the next <tref>serialization label</tref> for the
-  <tref>label</tref> according to the
-  <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
-</li>
-<li>Create an empty map called the <tdef>adjacent serialized labels map</tdef>
-that will store mappings from <tref>serialization label</tref>s to adjacent
-node <tref>label</tref>s.</li>
-<li>Create an empty array called the
-<tdef>adjacent unserialized labels list</tdef> that will store
-<tref>label</tref>s of adjacent nodes that haven't been assigned
-<tref>serialization label</tref>s yet.
-</li>
-<li>For every <tref>label</tref> in a list, where the list the <tref>outgoing list</tref> if
-the <tref>direction</tref> is <code>outgoing direction</code> and the
-<tref>incoming list</tref> otherwise, if the <tref>label</tref> starts with
-<code>_:</code>, it is the <tdef>target node label</tdef>:
-  <ol class="algorithm">
-    <li>Look up the <tref>target node label</tref> in the
-      <tref>processed labels map</tref> and if a mapping exists,
-      update the <tref>adjacent serialized labels map</tref> where the key is
-      the value in the <tref>serialization map</tref>
-      (<span class="issue"><tdef>serialization map</tdef> is used, but should it be <tref>directed serialization map</tref>,
-         <tref>outgoing serialization map</tref>or <tref>incoming serialization map</tref>?</span>)
-      and the value is the
-      <tref>target node label</tref>.</li>
-    <li>Otherwise, add the <tref>target node label</tref> to the
-      <tref>adjacent unserialized labels list</tref>.
-  </ol>
-</li>
-<li>Set the <tdef>maximum serialization combinations</tdef> to
-  <code>1</code> or the length of the
-  <tref>adjacent unserialized labels list</tref>, whichever is greater.</li>
-<li>While the <tref>maximum serialization combinations</tref> is greater than
-  <code>0</code>, perform the
-  <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
-  passing the <tref>node state</tref>, the <tref>mapping state</tref> for the
-  first iteration and a copy of it for each subsequent iteration, the
-  generated <tref>serialization label</tref>, the <tref>direction</tref>,
-  the <tref>adjacent serialized labels map</tref>, and the
-  <tref>adjacent unserialized labels list</tref>.
-  Decrement the <tref>maximum serialization combinations</tref> by
-  <code>1</code> for each iteration.
+  <li>If the <tref>label</tref> exists in the
+    <tref>processed labels map</tref>, terminate the algorithm as the
+    <tref>serialization label</tref> has already been created.
+  </li>
+  <li>Set the value associated with the <tref>label</tref> in the
+    <tref>processed labels map</tref> to <code>true</code>.
+  </li>
+  <li>Generate the next <tref>serialization label</tref> for the
+    <tref>label</tref> according to the
+    <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+  </li>
+  <li>Create an empty map called the <tdef>adjacent serialized labels map</tdef>
+    that will store mappings from <tref>serialization label</tref>s to adjacent
+    node <tref>label</tref>s.</li>
+  <li>Create an empty array called the
+    <tdef>adjacent unserialized labels list</tdef> that will store
+    <tref>label</tref>s of adjacent nodes that haven't been assigned
+    <tref>serialization label</tref>s yet.
+  </li>
+  <li>For every <tref>label</tref> in a list, where the list the
+    <tref>outgoing list</tref> if
+    the <tref>direction</tref> is <code>outgoing direction</code> and the
+    <tref>incoming list</tref> otherwise, if the <tref>label</tref> starts with
+    <code>_:</code>, it is the <tdef>target node label</tdef>:
+    <ol class="algorithm">
+      <li>Look up the <tref>target node label</tref> in the
+        <tref>processed labels map</tref> and if a mapping exists,
+        update the <tref>adjacent serialized labels map</tref> where the key is
+        the value in the <tref>serialization map</tref>
+        (<span class="issue"><tdef>serialization map</tdef> is used, but should it be <tref>directed serialization map</tref>,
+           <tref>outgoing serialization map</tref>or <tref>incoming serialization map</tref>?</span>)
+        and the value is the
+        <tref>target node label</tref>.</li>
+      <li>Otherwise, add the <tref>target node label</tref> to the
+        <tref>adjacent unserialized labels list</tref>.</li>
+    </ol>
+  </li>
+  <li>Set the <tdef>maximum serialization combinations</tdef> to
+    <code>1</code> or the length of the
+    <tref>adjacent unserialized labels list</tref>, whichever is greater.</li>
+  <li>While the <tref>maximum serialization combinations</tref> is greater than
+    <code>0</code>, perform the
+    <a href="#combinatorial-serialization-algorithm">Combinatorial Serialization Algorithm</a>
+    passing the <tref>node state</tref>, the <tref>mapping state</tref> for the
+    first iteration and a copy of it for each subsequent iteration, the
+    generated <tref>serialization label</tref>, the <tref>direction</tref>,
+    the <tref>adjacent serialized labels map</tref>, and the
+    <tref>adjacent unserialized labels list</tref>.
+    Decrement the <tref>maximum serialization combinations</tref> by
+    <code>1</code> for each iteration.</li>
 </ol>
 
 </section>
@@ -2196,11 +2151,9 @@ the <tref>direction</tref> is <code>outgoing direction</code> and the
 <section>
 <h4>Serialization Label Generation Algorithm</h4>
 
-<p>
-The algorithm generates a <tref>serialization label</tref> given a
-<tref>label</tref> and a <tref>mapping state</tref> and returns the
-<tref>serialization label</tref>.
-</p>
+<p>The algorithm generates a <tref>serialization label</tref> given a
+  <tref>label</tref> and a <tref>mapping state</tref> and returns the
+  <tref>serialization label</tref>.</p>
 
  <ol class="algorithm">
    <li>If the <tref>label</tref> is already in the
@@ -2228,14 +2181,12 @@ The algorithm generates a <tref>serialization label</tref> given a
 <section>
 <h4>Combinatorial Serialization Algorithm</h4>
 
-<p>
-The combinatorial serialization algorithm takes a <tref>node state</tref>, a
-<tref>mapping state</tref>, a <tref>serialization label</tref>, a
-<tref>direction</tref>, a <tref>adjacent serialized labels map</tref>,
-and a <tref>adjacent unserialized labels list</tref> as inputs and generates
-the lexicographically least serialization of nodes relating to the
-<tref>node reference</tref>.
-</p>
+<p>The combinatorial serialization algorithm takes a <tref>node state</tref>, a
+  <tref>mapping state</tref>, a <tref>serialization label</tref>, a
+  <tref>direction</tref>, a <tref>adjacent serialized labels map</tref>,
+  and a <tref>adjacent unserialized labels list</tref> as inputs and generates
+  the lexicographically least serialization of nodes relating to the
+  <tref>node reference</tref>.</p>
 
 <ol class="algorithm">
   <li>If the <tref>adjacent unserialized labels list</tref> is not empty:
@@ -2245,11 +2196,11 @@ the lexicographically least serialization of nodes relating to the
       <li>Remove the first <tdef>unserialized label</tdef> from the
         <tref>adjacent unserialized labels list</tref> and create a new
         <tdef>new serialization label</tdef> according to the
-        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.
+        <a href="#serialization-label-generation-algorithm">Serialization Label Generation Algorithm</a>.</li>
       <li>Create a new key-value mapping in the
         <tref>adjacent serialized labels map copy</tref>
         where the key is the <tref>new serialization label</tref> and the value
-        is the <tref>unserialized label</tref>.
+        is the <tref>unserialized label</tref>.</li>
       <li>Set the <tdef>maximum serialization rotations</tdef> to
         <code>1</code> or the length of the
         <tref>adjacent unserialized labels list</tref>, whichever is greater.
@@ -2330,11 +2281,9 @@ the lexicographically least serialization of nodes relating to the
 <section>
 <h4>Serialization Comparison Algorithm</h4>
 
-<p>
-The serialization comparison algorithm takes two serializations,
-<tref>alpha</tref> and <tref>beta</tref> and returns either which of the two
-is less than the other or that they are equal.
-</p>
+<p>The serialization comparison algorithm takes two serializations,
+  <tref>alpha</tref> and <tref>beta</tref> and returns either which of the two
+  is less than the other or that they are equal.</p>
 
 <ol class="algorithm">
   <li>Whichever serialization is an empty string is greater. If they are
@@ -2349,10 +2298,8 @@ is less than the other or that they are equal.
 <section>
 <h4>Mapping Serialization Algorithm</h4>
 
-<p>
-The mapping serialization algorithm incrementally updates the
-<tref>serialization string</tref> in a <tref>mapping state</tref>.
-</p>
+<p>The mapping serialization algorithm incrementally updates the
+  <tref>serialization string</tref> in a <tref>mapping state</tref>.</p>
 
 <ol class="algorithm">
   <li>If the <tref>key stack</tref> is not empty:
@@ -2374,7 +2321,7 @@ The mapping serialization algorithm incrementally updates the
             <tref>serialized keys</tref>, a cycle has been detected. Append
             the concatenation of the <code>_</code> character and the
             <tref>serialization key</tref> to the
-            <tref>serialization string</tref>.
+            <tref>serialization string</tref>.</li>
           <li>Otherwise, serialize all outgoing and incoming edges in the
             related node by performing the following steps:
             <ol class="algorithm">
