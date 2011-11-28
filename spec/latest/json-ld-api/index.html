@@ -903,18 +903,26 @@ language-native data structures MUST be used where applicable.</p>
 
   <p>The algorithm for generating a compacted IRI is:
     <ol class="algorithm">
-      <li>Search every key-value pair in the <tref>active context</tref> for
+      <li>If the IRI is for a property, and <code>@vocab</code> is not
+        null and matches the beginning of the IRI, the resulting compacted
+        IRI is the unmatched portion of the original IRI.
+      <li>Otherwise, if the IRI is for a subject or object, and
+        <code>@base</code> is not null and matches the beginning of the IRI, the
+        resulting compacted IRI is the shortest subset of the original IRI such that
+        joining against <code>@base</code> using the method described in [[!RFC3986]]
+        results in the original IRI.</li>
+      <li>Otherwise, search every key-value pair in the <tref>active context</tref> for
         a <tref>term</tref> that is a complete match
         against the IRI. If a complete match is found, the resulting compacted
         IRI is the <tref>term</tref> associated with the IRI in the
         <tref>active context</tref>.</li>
       <li>If a complete match is not found, search for a partial match from
         the beginning of the IRI. For all matches that are found, the resulting
-        compacted IRI is the <tref>term</tref> associated with the partially
-        matched IRI in the <tref>active context</tref> concatenated with a
-        colon (:) character and the unmatched part of the string. If there is
-        more than one compacted IRI produced, the final value is the
-        shortest and lexicographically least value of the entire set of compacted IRIs.</li>
+        compacted IRI is the <tref>term</tref> associated with the partially matched
+        IRI in the <tref>active context</tref> concatenated with a colon (:) character
+        and the unmatched part of the string. If there is more than one compacted IRI
+        produced, the final value is the shortest and lexicographically least value of
+        the entire set of compacted IRIs.</li>
     </ol>
   </p>
 </section>
