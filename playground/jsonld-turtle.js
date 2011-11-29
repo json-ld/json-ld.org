@@ -10,7 +10,7 @@
 
 /**
  * Retrieves all of the properties that are a part of a JSON-LD object, 
- * ignoring the "@" special character.
+ * ignoring the "@subject" key.
  *
  * @param obj the JSON-LD object - the last part of the triple.
  *
@@ -20,7 +20,7 @@ function getProperties(obj)
 {
    var rval = [];
 
-   // accumulate the names of all non-JSON-LD special keys
+   // accumulate the names of all non-JSON-LD subjects
    for(var key in obj)
    {
       if(key != "@subject")
@@ -158,7 +158,15 @@ jsonld.turtle = function(input)
       {
          // serialize each property-object combination
          property = properties[p];
-         rval += "   <" + property + "> " + objectToString(subject[property]);
+         if(property == "@type")
+         {
+            rval += "   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ";
+         }
+         else
+         {
+            rval += "   <" + property + "> ";
+         }
+         rval += objectToString(subject[property]);
 
          if(count == 1)
          {
