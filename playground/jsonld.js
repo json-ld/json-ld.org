@@ -2737,10 +2737,10 @@ var _subframe = function(
    // 1. The frame OR default option specifies @embed as ON, AND
    // 2. There is no existing embed OR it is an autoembed, AND
    //    autoembed mode is off.
-   var embedOn =
+   var embedOn = (
       (('@embed' in frame && frame['@embed']) ||
       (!('@embed' in frame) && options.defaults.embedOn)) &&
-      (embed === null || (embed.autoembed && !autoembed));
+      (embed === null || (embed.autoembed && !autoembed)));
    
    if(!embedOn)
    {
@@ -2760,6 +2760,7 @@ var _subframe = function(
       {
          if(embed.parent[embed.key].constructor === Array)
          {
+            // find and replace embed in array
             var objs = embed.parent[embed.key];
             for(var i in objs)
             {
@@ -2775,6 +2776,23 @@ var _subframe = function(
          {
             embed.parent[embed.key] = value['@subject'];
          }
+         
+         // recursively remove any dependent dangling embeds
+         var removeDependents = function(iri)
+         {
+            var iris = Object.keys(embeds);
+            for(var i in iris)
+            {
+               i = iris[i];
+               if(i in embeds && embeds[i].parent !== null &&
+                  embeds[i].parent['@subject']['@iri'] === iri)
+               {
+                  delete embeds[i];
+                  removeDependents(i);
+               }
+            }
+         };
+         removeDependents(iri);
       }
       
       // update embed entry
