@@ -663,12 +663,12 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   ****"@context": [
     "http://example.org/json-ld-contexts/person",
     {
-      "@language": "en"
+      "pic": "http://xmlns.com/foaf/0.1/avatar"
     }
   ],****
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/",
-  "avatar": "http://twitter.com/account/profile_image/manusporny"
+  ****"pic": "http://twitter.com/account/profile_image/manusporny"****
 }
 -->
 </pre>
@@ -723,64 +723,6 @@ are unambiguous.
 put the <tref>context</tref> definition at the top of the JSON-LD document. If it isn't listed
 first, processors have to save each key-value pair until the <tref>context</tref> is processed.
 This creates a memory and complexity burden for one-pass processors.</p>
-<section>
-  <h2>External Contexts</h2>
-
-  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
-documents to promote re-use of contexts as well as reduce the size of JSON-LD
-documents.
-In order to use an external context, an author MAY specify an <tref>IRI</tref> to a valid
-JSON-LD document. The referenced document MUST have a top-level <tref>JSON Object</tref>.
-The value of any <code>@context</code> key within that object is substituted for
-the IRI within the referencing document to have the same effect as if the value were
-specified inline within the referencing document.</p>
-  <p>The following example demonstrates the use of an external context:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context": "http://example.org/json-ld-contexts/person"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "avatar": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>Authors may also import multiple contexts or a combination of external and local contexts by specifying a list of
-contexts:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context": [ "http://example.org/json-ld-contexts/person", "http://example.org/json-ld-contexts/event" ]****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "avatar": "http://twitter.com/account/profile_image/manusporny"
-  ****"celebrates":
-  {
-     "@type": "Event",
-     "description": "International Talk Like a Pirate Day",
-     "date": "R/2011-09-19"
-  }****
-}
--->
-</pre>
-
-<p>Each context in a list will be evaluated in-order. Duplicate mappings within the <tref>context</tref>s MUST be
-overwritten on a last-defined-overrides basis. The context list MUST contain
-either de-referenceable <tref>IRI</tref>s or <tref>JSON Object</tref>s that conform to the
-<tref>context</tref> syntax as described in this document.</p>
-
-<p>External JSON-LD context documents MAY contain extra information located
-outside of the <code>@context</code> key, such as
-documentation about the <tref>prefix</tref>es declared in the document. It is
-also RECOMMENDED that a human-readable document encoded in HTML+RDFa
-[[HTML-RDFA]] or other Linked Data compatible format is served as well to
-explain the correct usage of the JSON-LD context document.
-</p>
-
-</section>
 
 </section>
 
@@ -1063,22 +1005,8 @@ language information.</p>
 <em>花澄</em> and associate the <code>ja</code> language code with the triple
 that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 
-<p>It is also possible to set a language to use within a <code>@context</code>, to allow specify a language
-to apply to all <tref>plain literal</tref>s within the scope of the <tref>active context</tref></p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context:" {
-    "@language": "ja"
-  },****
-...
-  "name": ****"花澄"****
-...
-}
--->
-</pre>
 </section>
+
 
 <section>
 <h2>Typed Literals</h2>
@@ -1325,6 +1253,70 @@ features that are specific to JSON-LD.
 
 
 <section>
+<h2>External Contexts</h2>
+
+  <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
+documents to promote re-use of contexts as well as reduce the size of JSON-LD
+documents.
+In order to use an external context, an author MAY specify an <tref>IRI</tref> to a valid
+JSON-LD document. The referenced document MUST have a top-level <tref>JSON Object</tref>.
+The value of any <code>@context</code> key within that object is substituted for
+the IRI within the referencing document to have the same effect as if the value were
+specified inline within the referencing document.</p>
+  <p>The following example demonstrates the use of an external context:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": "http://example.org/json-ld-contexts/person"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+<p>Authors may also import multiple contexts or a combination of external and local contexts by specifying a list of
+contexts:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context": 
+  [ 
+    "http://example.org/json-ld-contexts/person", 
+    { "foaf": "http://xmlns.com/foaf/0.1/" },
+    "http://example.org/json-ld-contexts/event" 
+  ]****
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+  ****"celebrates":
+  {
+    "@type": "Event",
+    "description": "International Talk Like a Pirate Day",
+    "date": "R/2011-09-19"
+  }****
+}
+-->
+</pre>
+
+<p>Each context in a list will be evaluated in-order. Duplicate mappings within the <tref>context</tref>s MUST be
+overwritten on a last-defined-overrides basis. The context list MUST contain
+either de-referenceable <tref>IRI</tref>s or <tref>JSON Object</tref>s that conform to the
+<tref>context</tref> syntax as described in this document.</p>
+
+<p>External JSON-LD context documents MAY contain extra information located
+outside of the <code>@context</code> key, such as
+documentation about the <tref>prefix</tref>es declared in the document. It is
+also RECOMMENDED that a human-readable document encoded in HTML+RDFa
+[[HTML-RDFA]] or other Linked Data compatible format is served as well to
+explain the correct usage of the JSON-LD context document.
+</p>
+
+</section>
+
+<section>
 <h3>Base IRI</h3>
 <p>JSON-LD allows <tref>IRI</tref>s to be specified in a relative form. For <tref>subject</tref> and <tref>object</tref>
   IRIs, relative IRIs are resolved against the document base using
@@ -1387,6 +1379,7 @@ features that are specific to JSON-LD.
 
 <section>
 <h3>Default Language</h3>
+
 <p>JSON-LD allows a default value to use as the language for <tref>plain literal</tref>s.
   It is commonly the case that documents are written using a single language. As described in
   <a href="string-internationalization">String Internationalization</a>, a language-tagged literal
@@ -1406,20 +1399,75 @@ features that are specific to JSON-LD.
 -->
 </pre>
 
-<p>By specifying <code>@language</code> within a <tref>context</tref>, multiple language-tagged literals may be
-  marked up using a simple string form:</p>
-</section>
+<p>It is also possible to apply a particular language code to all
+plain literals by setting the <code>@language</code> key in the
+<code>@context</code>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@context": { "@language": "ja" }****,
+  ****"@context:" 
+  {
+    "@language": "ja"
+  },****
 ...
   "name": ****"花澄"****
+  "occupation": ****"科学者"****
 ...
 }
 -->
 </pre>
+
+<p>The example above would generate a <tref>plain literal</tref> for
+<em>花澄</em> and <em>科学者</em> and associate the <code>ja</code> language 
+code with each literal.</p>
+
+<p>It is possible to override the default language by using the expanded 
+form of a literal:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context:" 
+  {
+     "@language": "ja"
+  },
+...
+  "name": "花澄"
+  "occupation": ****
+  {
+    "@literal": "Scientist",
+    "@language": "en"
+  }****
+...
+}
+-->
+</pre>
+
+<p>It is also possible to override the default language and specify a plain 
+literal by omitting the <code>@language</code> tag when expressing the 
+expanded literal value:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context:" 
+  {
+     "@language": "ja"
+  },
+...
+  "name": "花澄"
+  "occupation": ****
+  {
+    "@literal": "Ninja"
+  }****
+...
+}
+-->
+</pre>
+
+</section>
+
 <section>
   <h2>Prefixes</h2>
   <p>
