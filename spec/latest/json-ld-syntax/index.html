@@ -650,12 +650,14 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
 
 <p>Contexts may be used at any time a <tref>JSON object</tref> is defined, and a <tref>JSON object</tref>
   may specify multiple contexts, to be processed in order, for example to include standard prefix
-  definitions along with a local language definition used to set the language of <tref>plain literal</tref>s:</p>
+  definitions along with an author-specific prefix definition.</p>
 
 <p>
   The set of contexts defined within a specific <tref>JSON Object</tref> is termed a <tdef>local context</tdef>.
   The <tdef>active context</tdef> refers to the accumulation of <tref>local context</tref>s that are in scope
-  at a specific point within the document.</p>
+  at a specific point within the document. The following example specifies
+  an external context and then layers a local context on top of the external
+  context:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1243,7 +1245,7 @@ features that are specific to JSON-LD.
 </p>
 
 <section>
-<h2>External Contexts</h2>
+<h2>Contexts</h2>
 
 <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
 documents to promote re-use of contexts as well as reduce the size of JSON-LD
@@ -1301,6 +1303,34 @@ the <tref>context</tref>s MUST be overwritten on a last-defined-overrides
 basis. The context list MUST contain either de-referenceable <tref>IRI</tref>s 
 or <tref>JSON Object</tref>s that conform to the <tref>context</tref> syntax 
 as described in this document.</p>
+
+<p>An author may nest contexts within <tref>JSON object</tref>s, with the
+more deeply nested contexts overriding the values in previously defined
+contexts:</p>
+
+<pre class="example" data-transform="updateExample">  
+<!--
+{
+  ****"@context": 
+  { 
+    "name": "http://example.com/person#name",
+    "details": "http://example.com/person#details"
+  },****
+  "****name****": "Markus",
+  ...
+  "details": 
+  {
+    ****"@context": { "name": "http://example.com/organization#name" },****
+    "****name****": "Acme, Ltd."
+  }
+}
+-->
+</pre>
+
+<p>In the example above, the <code>name</code> prefix is overridden in the
+more deeply nested <code>details</code> structure. Note that this is
+rarely a good authoring practice and is typically used when the
+JSON object has legacy applications using the structure of the object.</p>
 
 <p>External JSON-LD context documents MAY contain extra information located
 outside of the <code>@context</code> key, such as
