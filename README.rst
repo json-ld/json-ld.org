@@ -17,7 +17,7 @@ A Simple Example
 A simple example of a JSON object with added semantics:
 
 ::
- { 
+ {
    "@context": "http://purl.org/jsonld/Person",
    "@subject": "http://dbpedia.org/resource/John_Lennon",
    "name": "John Lennon",
@@ -40,11 +40,10 @@ http://json-ld.org/playground/
 The Specification
 -----------------
 
-If you are a developer, you may be interested in the latest WebID specification:
+If you are a developer, you may be interested in the latest JSON-LD specification:
 
 http://json-ld.org/spec/latest/
 
 A list of all previous specification drafts is also available.
 
 http://json-ld.org/spec/
-
