@@ -676,7 +676,6 @@ language-native data structures MUST be used where applicable.</p>
   in all algorithms described in this section:</p>
 
   <dl>
-  <dt><code>@base</code></dt><dd>Used to set the base <tref>IRI</tref> for all object IRIs affected  by the <tref>active context</tref>.</dd>
   <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
   <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
@@ -684,7 +683,6 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
-  <dt><code>@vocab</code></dt><dd>Used to set the base <tref>IRI</tref> for all property IRIs affected by the <tref>active context</tref>.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   </dl>
 </section>
@@ -798,15 +796,6 @@ language-native data structures MUST be used where applicable.</p>
     </li>
     <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
-        <li>If <em>value</em> has a <code>@base</code> key, it MUST have a value of a simple
-          <tref>string</tref> with the lexical form of an absolute IRI. Add the base mapping to the <tref>local
-          context</tref>.
-          <p class="issue">Turtle allows @base to be relative. If we did this, we
-          would have to add <a href="#iri-expansion">IRI Expansion</a>.</p></li>
-        <li>If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple
-          <tref>string</tref> with the lexical form of an absolute IRI. Add the vocabulary mapping to the
-          <tref>local context</tref> after performing <a href="#iri-expansion">IRI Expansion</a> on
-          the associated value.</li>
         <li>If <em>value</em> has a <code>@coerce</code> key, it MUST have a value of a
           <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
           performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).</li>
@@ -853,15 +842,11 @@ language-native data structures MUST be used where applicable.</p>
     <h3>Initial Context</h3>
     <p>The <tref>initial context</tref> is initialized as follows:</p>
     <ul>
-      <li><code>@base</code> is set using <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
-        Base URI</a></cite> of [[RFC3986]]. Processors MAY provide a means
-        of setting the base IRI programatically.</li>
       <li><code>@coerce</code> is set with a single mapping from <code>@id</code> to <code>@type</code>.</li>
     </ul>
     <pre class="example" data-transform="updateExample">
 <!--
 {
-  "@base": ****document-location****,
   "@coerce": {
     "@id": "@type"
   }
@@ -874,8 +859,7 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an IRI. This section defines an algorithm for
     transforming a value representing an IRI into an actual IRI.</p>
-  <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:suffix construct, or as a value relative to <code>@base</code>
-    or <code>@vocab</code>.</p>
+  <p>IRIs may be represented as an absolute IRI, a <tref>term</tref> or a <tref>prefix</tref>:suffix construct.</p>
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
       <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
@@ -883,14 +867,13 @@ language-native data structures MUST be used where applicable.</p>
       <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em>, generate an IRI
         by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
-      <li>If the IRI being processed is represented as a <em>term</em> (or has an empty <em>prefix</em>) and is for a
-        property (i.e., a key's value in a <tref>JSON object</tref>, or a value in a <code>@coerce</code> mapping) and
-        the active context has a <code>@vocab</code> mapping, join the mapped value to the suffix using textual concatenation.</li>
-      <li>If the IRI being processed is represented as a <em>term</em> (or has an empty <em>prefix</em>) and is for
-        a subject or object (i.e., not a property) and the active context has a <code>@base</code> mapping,
-        join the mapped value to the suffix using the method described in [[!RFC3986]].</li>
       <li>Otherwise, use the value directly as an IRI.</li>
     </ol>
+  </p>
+  <p class="note">
+    Previous versions of this specification used <code>@base</code> and <code>@vocab</code> to define IRI prefixes
+    used to resolve relative IRIs. It was determined that this added too much complexity, but the issue
+    can be re-examined in the future based on community input.
   </p>
 </section>
 
@@ -902,14 +885,6 @@ language-native data structures MUST be used where applicable.</p>
 
   <p>The algorithm for generating a compacted IRI is:
     <ol class="algorithm">
-      <li>If the IRI is for a property, and <code>@vocab</code> is not
-        null and matches the beginning of the IRI, the resulting compacted
-        IRI is the unmatched portion of the original IRI.
-      <li>Otherwise, if the IRI is for a subject or object, and
-        <code>@base</code> is not null and matches the beginning of the IRI, the
-        resulting compacted IRI is the shortest subset of the original IRI such that
-        joining against <code>@base</code> using the method described in [[!RFC3986]]
-        results in the original IRI.</li>
       <li>Otherwise, search every key-value pair in the <tref>active context</tref> for
         a <tref>term</tref> that is a complete match
         against the IRI. If a complete match is found, the resulting compacted
