@@ -490,7 +490,7 @@ de-referenceable.
         <dl class="exception" title="InvalidContext">
          <dt>INVALID_SYNTAX</dt>
          <dd>A general syntax error was detected in the <code>@context</code>.
-         For example, if a <code>@coerce</code> key maps to anything other than
+         For example, if a <code>@datatype</code> key maps to anything other than
          a string or an array of strings, this exception would be raised.</dd>
          <dt>MULTIPLE_DATATYPES</dt>
          <dd>There is more than one target datatype specified for a single
@@ -518,7 +518,7 @@ de-referenceable.
         <dl class="exception" title="InvalidContext">
           <dt>INVALID_SYNTAX</dt>
           <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@coerce</code> key maps to anything other than
+            For example, if a <code>@datatype</code> key maps to anything other than
             a string or an array of strings, this exception would be raised.</dd>
           <dt>MULTIPLE_DATATYPES</dt>
           <dd>There is more than one target datatype specified for a single
@@ -584,7 +584,7 @@ de-referenceable.
         <dl class="exception" title="InvalidContext">
           <dt>INVALID_SYNTAX</dt>
           <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@coerce</code> key maps to anything other than
+            For example, if a <code>@datatype</code> key maps to anything other than
             a string or an array of strings, this exception would be raised.</dd>
           <dt>MULTIPLE_DATATYPES</dt>
           <dd>There is more than one target datatype specified for a single
@@ -615,7 +615,7 @@ de-referenceable.
         <dl class="exception" title="InvalidContext">
           <dt>INVALID_SYNTAX</dt>
           <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@coerce</code> key maps to anything other than
+            For example, if a <code>@datatype</code> key maps to anything other than
             a string or an array of strings, this exception would be raised.</dd>
           <dt>MULTIPLE_DATATYPES</dt>
           <dd>There is more than one target datatype specified for a single
@@ -676,7 +676,6 @@ language-native data structures MUST be used where applicable.</p>
   in all algorithms described in this section:</p>
 
   <dl>
-  <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
   <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
   <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
@@ -771,7 +770,9 @@ language-native data structures MUST be used where applicable.</p>
     If a <tref>local context</tref> is encountered,
     information from the <tref>local context</tref> is merged into the <tref>active context</tref>.</p>
   <p>The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
-    of a list (see <span a="#list-processing">List Processing</span>)).</p>
+    of a list (see <span a="#list-processing">List Processing</span>)). It is also used to maintain
+    <tdef>coercion mapping</tdef>s from IRIs associated with terms to datatypes, and
+    <tdef>list mapping</tdef>s for IRIs associated with terms.</p>
   <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
     <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
     When processing a <tref>local context</tref>, special processing rules apply:</p>
@@ -796,63 +797,43 @@ language-native data structures MUST be used where applicable.</p>
     </li>
     <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
-        <li>If <em>value</em> has a <code>@coerce</code> key, it MUST have a value of a
-          <tref>JSON object</tref>. Add the <code>@coerce</code> mapping to the <tref>local context</tref>
-          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value(s).</li>
         <li>If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
           simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.</li>
         <li>Otherwise, for each key in <em>value</em> having the lexical form of <cite><a
           href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
           or is an empty string,
-          it's value MUST have be a simple <tref>string</tref> with the lexical form of absolute IRI. Merge the
-          key-value pair into the <tref>local context</tref>.</li>
+          <ol class="algorithm">
+            <li>If the key's value is a simple <tref>string</tref> it MUST have the lexical form of absolute IRI.
+              Merge the key-value pair into the <tref>local context</tref>.</li>
+            <li>Otherwise, the key's value MUST be a <tref>JSON object</tref>, having a <code>@id</code> key
+              with a value having the lexical form of absolute IRI. Merge the key-value pair into the
+              <tref>local context</tref>.</li>
+          </ol>
+        </li>
+        <li>Merge the of <tref>local context</tref>'s <tref>term</tref> mapping into  the
+          <tref>active context</tref>'s <tref>term</tref> mapping.</li>
+        <li>For each key in <em>value</em> having the lexical form of <code>NCName</code> or an empty string,
+          with a value that is a <tref>JSON object</tref>
+          <ol class="algorithm">
+            <li>If the value has a <code>@datatype</code> key, the value MUST have the form of <tref>term</tref>,
+              <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Add a <tref>coercion
+              mapping</tref> for the term to the <tref>local context</tref> performing <a href="#iri-expansion">IRI
+              Expansion</a> on the associated value using the <tref>active context</tref> as necessary.</li>
+            <li>If the value has a <code>@list</code> key, the value MUST be <code>true</code> Add a
+              <tref>list mapping</tref> for the term to the <tref>local context</tref>.</li>
+          </ol>
+        </li>
       </ol>
     </li>
-    <li>Merge the of <tref>local context</tref>'s <code>@coerce</code> mapping into  the
-      <tref>active context</tref>'s <code>@coerce</code> mapping as described <a href="#coerce">below</a>.</li>
-    <li>Merge all entries other than the <code>@coerce</code> mapping from the <tref>local context</tref> to the
-      <tref>active context</tref> overwriting any duplicate values.</li>
+    <li>Merge the of <tref>local context</tref>'s <tref>coercion mapping</tref> into  the
+      <tref>active context</tref>'s <tref>coercion mapping</tref>.</li>
+    <li>Merge the of <tref>local context</tref>'s <tref>list mapping</tref> into  the
+      <tref>active context</tref>'s <tref>list mapping</tref>.</li>
   </ol>
-
-  <section>
-    <h3>Coerce</h3>
-    <p>Map each key-value pair in the <tref>local context</tref>'s
-      <code>@coerce</code> mapping into the <tref>active context</tref>'s
-      <code>@coerce</code> mapping, overwriting any duplicate values in
-      the <tref>active context</tref>'s <code>@coerce</code> mapping.
-      The <code>@coerce</code> mapping has either a single
-      <code>prefix:suffix</code> value, a single <tref>term</tref> value or an
-      <tref>array</tref> of <code>prefix:suffix</code> or <tref>term</tref> values.
-      When merging with an existing mapping in the <tref>active context</tref>,
-      map all <tref>term</tref> values to
-      <tref>array</tref> form and replace with the union of the value from
-      the <tref>local context</tref> and the value of the
-      <tref>active context</tref>. If the result is an <tref>array</tref>
-      with a single value, the processor MAY represent this as a string value.</p>
-    <p class="issue">
-      There is active discussion on merging the @coerce mappings into <tref>term</tref>
-      definitions, in which case <tref>term</tref> or <tref>prefix</tref> expansion cannot
-      take place unless they are in the active context when processing a context
-      definition (i.e., they were previously defined in a context definition prior to
-      parsing a new context definition).
-    </p>
-  </section>
-
-  <section>
-    <h3>Initial Context</h3>
-    <p>The <tref>initial context</tref> is initialized as follows:</p>
-    <ul>
-      <li><code>@coerce</code> is set with a single mapping from <code>@id</code> to <code>@type</code>.</li>
-    </ul>
-    <pre class="example" data-transform="updateExample">
-<!--
-{
-  "@coerce": {
-    "@id": "@type"
-  }
-}
---></pre>
-  </section>
+  
+  <p class="note">Rules for looking up <code>@datatype</code> coercion is performed
+    after merging local term definitions into the <tref>active context</tref>. This allows datatype
+    IRIs to be specified using <tref>term</tref> or <tref>prefix</tref> defined within the same context.</p>
 </section>
 
 <section>
@@ -973,10 +954,9 @@ language-native data structures MUST be used where applicable.</p>
    "@context":
    {
       "name": "http://xmlns.com/foaf/0.1/name",
-      "homepage": "http://xmlns.com/foaf/0.1/homepage",
-      "@coerce":
-      {
-         "@id": "homepage"
+      "homepage": {
+        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@datatype", "@id"
       }
    },
    "name": "Manu Sporny",
@@ -992,8 +972,7 @@ language-native data structures MUST be used where applicable.</p>
 <!--
 {
    "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
-   "http://xmlns.com/foaf/0.1/homepage":
-   {
+   "http://xmlns.com/foaf/0.1/homepage": {
       "@id": "http://manu.sporny.org/"
    }
 }
@@ -1049,11 +1028,10 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
-   "http://xmlns.com/foaf/0.1/homepage":
-   {
-      "@id": "http://manu.sporny.org/"
-   }
+  "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
+  "http://xmlns.com/foaf/0.1/homepage": {
+    "@id": "http://manu.sporny.org/"
+  }
 }
 -->
 </pre>
@@ -1063,12 +1041,11 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "name": "http://xmlns.com/foaf/0.1/name",
-   "homepage": "http://xmlns.com/foaf/0.1/homepage",
-   "@coerce":
-   {
-      "@id": "homepage"
-   }
+  "name": "http://xmlns.com/foaf/0.1/name",
+  "homepage": {
+    "@id": "http://xmlns.com/foaf/0.1/homepage",
+    "@datatype": "@id"
+  }
 }
 -->
 </pre>
@@ -1080,17 +1057,15 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "@context":
-   {
-      "name": "http://xmlns.com/foaf/0.1/name",
-      "homepage": "http://xmlns.com/foaf/0.1/homepage",
-      "@coerce":
-      {
-         "@id": "homepage"
-      }
-   },
-   "name": "Manu Sporny",
-   "homepage": "http://manu.sporny.org/"
+  "@context": {
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": {
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@datatype": "@id"
+    }
+  },
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
 }
 -->
 </pre>
@@ -1123,7 +1098,6 @@ language-native data structures MUST be used where applicable.</p>
 
 </section>
 
-
 <section>
 <h2>Framing</h2>
 
@@ -1150,15 +1124,14 @@ language-native data structures MUST be used where applicable.</p>
   "@context": {
     "Book":         "http://example.org/vocab#Book",
     "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
+    "contains":     {
+      "@id": "http://example.org/vocab#contains",
+      "@datatype": "@id"
+    },
     "creator":      "http://purl.org/dc/terms/creator",
     "description":  "http://purl.org/dc/terms/description",
     "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title",
-    "@coerce":
-    {
-      "@id": "contains"
-    },
+    "title":        "http://purl.org/dc/terms/title"
   },
   "@id":
   [{
@@ -1451,18 +1424,16 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-   "@context":
-   {
-      "name": "http://xmlns.com/foaf/0.1/name",
-      "homepage": "http://xmlns.com/foaf/0.1/homepage",
-      "xsd": "http://www.w3.org/2001/XMLSchema#",
-      "@coerce":
-      {
-         "@id": ["homepage"]
-      }
-   },
-   "name": "Manu Sporny",
-   "homepage": "http://manu.sporny.org/"
+  "@context": {
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": {
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@datatype": "@id"
+    },
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
 }
 -->
 </pre>
@@ -1476,12 +1447,11 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 [{
-    "@id": "_:c14n0",
-    "http://xmlns.com/foaf/0.1/homepage":
-    {
-        "@id": "http://manu.sporny.org/"
-    },
-    "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
+  "@id": "_:c14n0",
+  "http://xmlns.com/foaf/0.1/homepage": {
+    "@id": "http://manu.sporny.org/"
+  },
+  "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
 }]
 -->
 </pre>
@@ -2490,15 +2460,15 @@ JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape
 forward slashes.</p>
 
 <p class="issue">Round-tripping data can be problematic if we mix and
-match @coerce rules with JSON-native datatypes, like integers. Consider the
+match coercion rules with JSON-native datatypes, like integers. Consider the
 following code example:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 var myObj = { "@context" : {
-                "number" : "http://example.com/vocab#number",
-                "@coerce": {
-                   "xsd:nonNegativeInteger": "number"
+                "number" : {
+                  "@id": "http://example.com/vocab#number",
+                  "@datatype": "xsd:nonNegativeInteger"
                 }
               },
               "number" : 42 };
@@ -2515,7 +2485,7 @@ var myObj2 = jsonld.parse(jsonldText);
 values for the "number" value. myObj will be the number 42, while
 myObj2 will be the string "42". This type of data round-tripping
 error can bite developers. We are currently wondering if having a
-"coerce validation" phase in the parsing/normalization phases would be a
+"coercion validation" phase in the parsing/normalization phases would be a
 good idea. It would prevent data round-tripping issues like the
 one mentioned above.</p>
 

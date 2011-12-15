@@ -412,7 +412,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   in all algorithms described in this section:</p>
 
   <dl>
-  <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
   <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
   <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
@@ -773,30 +772,15 @@ expressed in a variety of different ways in JSON-LD.</p>
 
 <ol>
   <li>Except within a <tref>context</tref> definition, <tref>term</tref>s in the key position in
-    a <tref>JSON object</tref> that have a mapping to an <tref>IRI</tref> or another key in the
+    a <tref>JSON object</tref> that have a mapping to an <tref>IRI</tref> or another <tref>term</tref> in the
     <tref>active context</tref> are expanded to an IRI by JSON-LD processors.</li>
   <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
     <code>@id</code> or <code>@type</code>.</li>
-  <li>An <tref>IRI</tref> is generated for any key or <tref>string</tref> value with the <code>@coerce</code>,
-    section of a <tref>context</tref> definition.
-  <li>An <tref>IRI</tref> is generated for the value of any other key if there are <code>@coerce</code> rules in
-    effect for that key that identify it as a <code>@id</code>.</li>
+  <li>An <tref>IRI</tref> is generated for the value of any key if there are <tref>coercion</tref> rules in
+    effect for that key that identify it as an <code>@id</code>.</li>
 </ol>
 
 <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, or a <tref>prefix</tref>:suffix construct.</p>
-
-<p class="note">
-  As there it is possible to confuse <tref>term</tref>s or <tref>prefix</tref>es with relative IRIs, as
-  a best practice, relative IRIs SHOULD begin with './', '#' or '/', as these are not valid for use within
-  <tref>term</tref> definitions.
-</p>
-
-<p class="issue">
-  There is active discussion on merging the @coerce mappings into <tref>term</tref> definitions, in which case
-  <tref>term</tref> or <tref>prefix</tref> expansion cannot take place unless they are in the active context when processing
-  a context definition (i.e., they were previously defined in a context definition prior to parsing
-  a new context definition).
-</p>
 
 <p>IRIs can be expressed directly in the key position like so:</p>
 
@@ -863,19 +847,18 @@ the <code>@id</code> keyword:</p>
   This is an example of <tref>chaining</tref> in JSON-LD, an issue covered further in <a
   href="#chaining">Chaining</a>.</p>
 
-<p>If type coercion rules are specified in the <code>@context</code> for
+<p>If type <tref>coercion</tref> rules are specified in the <code>@context</code> for
 a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {****
-  "@context":
-  {
+  "@context": {
     ...
-    "@coerce":
-    {
-      "@id": "homepage"
+    "homepage": {
+      "@id": "http://xmlns.com/foaf/0.1/homepage", "@datatype": "@id"
     }
+    ...
   }****
 ...
   "homepage": "http://manu.sporny.org/",
@@ -885,7 +868,7 @@ a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
 </pre>
 
 <p>Even though the value <code>http://manu.sporny.org/</code> is a <tref>string</tref>,
-the type coercion rules will transform the value into an IRI when processed
+the type <tref>coercion</tref> rules will transform the value into an IRI when processed
 by a JSON-LD Processor</p>
 
 </section>
@@ -1023,24 +1006,22 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 </p>
 
 <ol>
-  <li>By utilizing the <code>@coerce</code> keyword.</li>
+  <li>By utilizing the <code>@datatype</code> keyword when defining a <tref>term</tref> within a
+    <code>@context</code> section.</li>
   <li>By utilizing the expanded form for specifying objects.</li>
   <li>By using a native JSON datatype.</li>
 </ol>
 
-<p>The first example uses the <code>@coerce</code> keyword to express a
-typed literal:</p>
+<p>The first example uses the <code>@datatype</code> keyword to express a typed literal:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-{****
-  "@context":
-  {
-    "modified":  "http://purl.org/dc/terms/modified",
-    "dateTime": "http://www.w3.org/2001/XMLSchema#dateTime"
-    "@coerce":
+{
+  ****"@context": {
+    "modified":
     {
-      "dateTime": "modified"
+      "@id": "http://purl.org/dc/terms/modified",
+      "@datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
     }
   }****
 ...
@@ -1208,28 +1189,30 @@ form for objects:</p>
   <p>
     This describes the use of this <tref>array</tref> as being ordered, and order is maintained through normalization
     and RDF conversion as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a list, this
-    may be abbreviated by adding an <code>@coerce</code> term:
+    may be abbreviated by adding an <code>@datatype</code> <tref>coercion</tref>:
   </p>
   <pre class="example" data-transform="updateExample">
   <!--
   {
-    ****"@context": {****
+    ****"@context": {
       ...
-      ****"@coerce": {****
-        ****"@list": [ "foaf:nick" ]****
-      ****}****
-    ****}****,
+      "nick": {
+        "@id": "http://xmlns.com/foaf/0.1/nick",
+        "@list": true
+      }
+  }****,
   ...
     "@id": "http://example.org/people#joebob",
-    "foaf:nick": ****[ "joe", "bob", "jaybee" ]****,
+    "nick": ****[ "joe", "bob", "jaybee" ]****,
   ...
   }
   -->
   </pre>
-  <p>
-    The @list keyword can be used within the <code>@coerce</code> section of a <code>@context</code> to
-    cause value arrays to be coerced into an ordered list.
-  </p>
+  <p>List coercion is specified within an expanded <tref>term</tref> definition using the <code>@list</code> key.
+    The value of this key, if present, MUST be <code>true</code>.
+    This indicates that array values of keys coerced as <code>@list</code> are to be serialized
+    as a <a href="#rdf-collection">List</a>.</p>
+
   <p>
     In RDF, a list is described as an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF
     Collection</a></cite> as defined in [[!RDF-SCHEMA]].
@@ -1247,7 +1230,7 @@ features that are specific to JSON-LD.
 </p>
 
 <section>
-<h2>Contexts</h2>
+<h2>External Contexts</h2>
 
 <p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
 documents to promote re-use of contexts as well as reduce the size of JSON-LD
@@ -1345,6 +1328,36 @@ also RECOMMENDED that a human-readable document encoded in HTML+RDFa
 explain the correct usage of the JSON-LD context document.
 </p>
 
+</section>
+
+<section>
+  <h3>Expanded Term Definition</h3>
+  <p>Within a context definition, <tref>term</tref>s MAY be defined using an expanded notation to allow
+    for additional information associated with the term to be specified (see <a href="#type-coerceion">Type
+    Coercion</a> and <a href="#rdf-collection">Lists</a>).</p>
+    
+  <p>Instead of using a string representation of an IRI, the IRI is specified using an object having
+    an <code>@id</code> key. The value of this key MUST be an absolute IRI.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "name": ****{"@id": "http://xmlns.com/foaf/0.1/name"}****,
+    "homepage": ****{"@id": "http://xmlns.com/foaf/0.1/homepage"}****,
+    "avatar": ****{"@id": "http://xmlns.com/foaf/0.1/avatar"}****
+  },
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+  <p class="issue">There is an open issue
+    (<a href="https://github.com/json-ld/json-ld.org/issues/43" target="_blank">#43</a>)
+    on allowing non-terms in the key position to allow <tref>coercion</tref> to be specified
+    for CURIEs or absolute IRIs.</p>
 </section>
 
 <section>
@@ -1583,24 +1596,22 @@ to a language native type.
 <h2>Type Coercion</h2>
 
 <p>JSON-LD supports the coercion of values to particular data types.
-Type coercion allows someone deploying JSON-LD to coerce the incoming or
+Type <tdef>coercion</tdef> allows someone deploying JSON-LD to coerce the incoming or
 outgoing types to the proper data type based on a mapping of data type <tref>IRI</tref>s to
 property types. Using type coercion, one may convert simple JSON data to
 properly typed RDF data.</p>
 
-<p>Keys within a <code>@coerce</code> definition represent datatype IRIs and MUST take the form
-  of <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI or the keywords <code>@id</code> or <code>@list</code>.
-  Specifying <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
-  <code>@id</code> are to be interpreted as <tref>IRI</tref>s, and are subject to IRI expansion. Specifying
-  <code>@list</code> indicates that array values of keys coerced as <code>@list</code> are to be serialized
-  as a <a href="#rdf-collection">List</a>.</p>
+<p>Type coercion is specified within an <a href="#expanded-term-definition">expanded term definition</a>
+  using the <code>@datatype</code> key. The values of this key represent datatype IRIs and MUST take the form of
+  <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Specifying
+  <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
+  <code>@id</code> are to be interpreted as <tref>IRI</tref>s, or labeled nodes and are subject to IRI expansion.</p>
 
-<p>Values within a <code>@coerce</code> definition represent property IRIs and MUST take the form
-  of <tref>term</tref>, <tref>prefix</tref>:suffix or <tref>array</tref>. Multiple values may be represented using
-  array form, where each element of the <tref>array</tref> must be a <tref>string</tref> interpreted as <tref>term</tref> or <tref>prefix</tref>:suffix.</p>
+<p><tref title="term">Terms</tref> or <tref title="prefix">prefixes</tref> used as the value of a
+  <code>@datatype</code> key MAY be defined within the same context.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
-<tref>plain literal</tref>s, <tref>typed literal</tref>s and IRIs.</p>
+<tref>plain literal</tref>s, <tref>typed literal</tref>s, IRIs and lists.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1610,13 +1621,8 @@ properly typed RDF data.</p>
      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
      "xsd": "http://www.w3.org/2001/XMLSchema#",
      "name": "http://xmlns.com/foaf/0.1/name",
-     "age": "http://xmlns.com/foaf/0.1/age",
-     "homepage": "http://xmlns.com/foaf/0.1/homepage",
-****     "@coerce":
-     {
-        "xsd:integer": "age",
-        "@id": "homepage"
-     }****
+     "age": ****{"@id": "http://xmlns.com/foaf/0.1/age", "@datatype": "xsd:integer"}****,
+     "homepage": ****{"@id": "http://xmlns.com/foaf/0.1/homepage", "@datatype": "@id"}****
   },
   "name": "John Smith",
   "age": ****"41"****,
@@ -1625,67 +1631,19 @@ properly typed RDF data.</p>
 -->
 </pre>
 
-<p>The example above would generate the following triples:</p>
+<p>The example above would generate the following turtle:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-_:bnode1
-   <http://xmlns.com/foaf/0.1/name>
-      "John Smith" .
-_:bnode1
-   <http://xmlns.com/foaf/0.1/age>
-      "41"^^http://www.w3.org/2001/XMLSchema#integer .
-_:bnode1
-   <http://xmlns.com/foaf/0.1/homepage>
-      <http://example.org/home/> .
+@prefix rdf: <> .
+@prefix xsd: <> .
+
+[ foaf:name "John Smith";
+  foaf:age  "41"^^xsd:integer;
+  foaf:homepage <http://example.org/home>
+] .
 -->
 </pre>
-
-<div class="issue">
-  <p>The mechanism for type coercion is still being debated. It may be that the key/value
-    positions are swapped, yielding a <code>@context</code> such as the following:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "age": "http://xmlns.com/foaf/0.1/age",
-    "homepage": "http://xmlns.com/foaf/0.1/homepage",
-    "currentProject": "http://xmlns.com/foaf/0.1/currentProject",
-    ****"@coerce": {
-      "age": "xsd:integer",
-      "homepage": "@id",
-      "currentProject": [ "@id", "@list" ]
-     }****
-  },
-  ...
-}
--->
-</pre>
-
-<p>An alternative is to merge the coercion into term definitions:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "age": ****{ "@id": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer" }****,
-    "homepage": ****{ "@id": "http://xmlns.com/foaf/0.1/age", "@coerce": "@id" }****,
-    "currentProject": ****{ "@id": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": [ "@id", "@list" ] }****,
-  },
-  ...
-}
--->
-</pre>
-</div>
-
 </section>
 
 <section>
@@ -2008,9 +1966,8 @@ generated the proper URL type for <code>http://tantek.com</code>.</p>
   "@context":
   {
     "vcard": "http://microformats.org/profile/hcard#vcard",
-    "url": "http://microformats.org/profile/hcard#url",
-    "fn": "http://microformats.org/profile/hcard#fn",
-    "@coerce": { "@id": "url" }
+    "url": {"@id": "http://microformats.org/profile/hcard#url", "@datatype": "@id"},
+    "fn": "http://microformats.org/profile/hcard#fn"
   },
   "@id": "_:bnode1",
   "@type": "vcard",
