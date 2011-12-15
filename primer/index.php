@@ -39,13 +39,16 @@ print <<< htmlcode
 
 htmlcode;
 
-$editorsDrafts = scandir('ED', 1);
-
-foreach($editorsDrafts as $draft)
+if(is_dir('ED'))
 {
-   if($draft != "." and $draft != "..")
+   $editorsDrafts = scandir('ED', 1);
+
+   foreach($editorsDrafts as $draft)
    {
-     print("                 <li><a href=\"ED/$draft/\">$draft</a></li>");
+      if($draft != "." and $draft != "..")
+      {
+         print("                 <li><a href=\"ED/$draft/\">$draft</a></li>");
+      }
    }
 }
 
