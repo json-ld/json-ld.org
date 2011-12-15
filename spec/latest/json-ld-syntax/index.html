@@ -413,11 +413,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
   <dl>
   <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
-  <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
   <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
-  <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
+  <dt><code>@type</code></dt><dd>Used to set the type of the active subject or the datatype of a literal.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   </dl>
 </section>
@@ -856,7 +855,7 @@ a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
   "@context": {
     ...
     "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage", "@datatype": "@id"
+      "@id": "http://xmlns.com/foaf/0.1/homepage", "@type": "@id"
     }
     ...
   }****
@@ -945,7 +944,6 @@ document is mapped to RDF (in N-Triples notation):</p>
       <http://xmlns.com/foaf/0.1/Person> .
 -->
 </pre>
-
 </section>
 
 <section>
@@ -1006,22 +1004,22 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 </p>
 
 <ol>
-  <li>By utilizing the <code>@datatype</code> keyword when defining a <tref>term</tref> within a
+  <li>By utilizing the <code>@type</code> keyword when defining a <tref>term</tref> within a
     <code>@context</code> section.</li>
   <li>By utilizing the expanded form for specifying objects.</li>
   <li>By using a native JSON datatype.</li>
 </ol>
 
-<p>The first example uses the <code>@datatype</code> keyword to express a typed literal:</p>
+<p>The first example uses the <code>@type</code> keyword to express a typed literal:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
   ****"@context": {
-    "modified":
-    {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "modified": {
       "@id": "http://purl.org/dc/terms/modified",
-      "@datatype": "http://www.w3.org/2001/XMLSchema#dateTime"
+      "@type": "xsd:dateTime"
     }
   }****
 ...
@@ -1037,10 +1035,9 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 <!--
 {
 ...
-  "modified": ****
-  {
+  "modified": ****{
     "@literal": "2010-05-29T14:17:39+02:00",
-    "@datatype": "dateTime"
+    "@type": "xsd:dateTime"
   }****
 ...
 }
@@ -1074,6 +1071,13 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
       "31"^^<http://www.w3.org/2001/XMLSchema#integer> .
 -->
 </pre>
+
+<p class="note">
+  The <code>@type</code> keyword is also used to associate a type with an object. Although the same keyword
+  is used in both places, the concept of object type and literal datatype are, in fact, different. This is similar
+  to object-oriented programming languages where both scalar and structured types use the same class inheritance
+  mechanism, even though scalar types and structured types are inherently different.
+</p>
 
 </section>
 
@@ -1189,7 +1193,7 @@ form for objects:</p>
   <p>
     This describes the use of this <tref>array</tref> as being ordered, and order is maintained through normalization
     and RDF conversion as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a list, this
-    may be abbreviated by adding an <code>@datatype</code> <tref>coercion</tref>:
+    may be abbreviated by adding an <code>@type</code> <tref>coercion</tref>:
   </p>
   <pre class="example" data-transform="updateExample">
   <!--
@@ -1562,7 +1566,7 @@ information to create <tref>typed literal</tref>s:</p>
   // The following value is automatically converted to a type of xsd:double as well
   "space:astronomicUnits": ****6.5e73****,
   // The following value should never be converted to a language-native type
-  "measure:stones": ****{ "@literal": "4.8", "@datatype": "xsd:decimal" }****,
+  "measure:stones": ****{ "@literal": "4.8", "@type": "xsd:decimal" }****,
   // This value is automatically converted to having a type of xsd:integer
   "chem:protons": ****12****,
   // This value is automatically converted to having a type of xsd:boolean
@@ -1602,13 +1606,13 @@ property types. Using type coercion, one may convert simple JSON data to
 properly typed RDF data.</p>
 
 <p>Type coercion is specified within an <a href="#expanded-term-definition">expanded term definition</a>
-  using the <code>@datatype</code> key. The values of this key represent datatype IRIs and MUST take the form of
+  using the <code>@type</code> key. The values of this key represent datatype IRIs and MUST take the form of
   <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Specifying
   <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
   <code>@id</code> are to be interpreted as <tref>IRI</tref>s, or labeled nodes and are subject to IRI expansion.</p>
 
 <p><tref title="term">Terms</tref> or <tref title="prefix">prefixes</tref> used as the value of a
-  <code>@datatype</code> key MAY be defined within the same context.</p>
+  <code>@type</code> key MAY be defined within the same context.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
 <tref>plain literal</tref>s, <tref>typed literal</tref>s, IRIs and lists.</p>
@@ -1621,8 +1625,8 @@ properly typed RDF data.</p>
      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
      "xsd": "http://www.w3.org/2001/XMLSchema#",
      "name": "http://xmlns.com/foaf/0.1/name",
-     "age": ****{"@id": "http://xmlns.com/foaf/0.1/age", "@datatype": "xsd:integer"}****,
-     "homepage": ****{"@id": "http://xmlns.com/foaf/0.1/homepage", "@datatype": "@id"}****
+     "age": ****{"@id": "http://xmlns.com/foaf/0.1/age", "@type": "xsd:integer"}****,
+     "homepage": ****{"@id": "http://xmlns.com/foaf/0.1/homepage", "@type": "@id"}****
   },
   "name": "John Smith",
   "age": ****"41"****,
@@ -1966,7 +1970,7 @@ generated the proper URL type for <code>http://tantek.com</code>.</p>
   "@context":
   {
     "vcard": "http://microformats.org/profile/hcard#vcard",
-    "url": {"@id": "http://microformats.org/profile/hcard#url", "@datatype": "@id"},
+    "url": {"@id": "http://microformats.org/profile/hcard#url", "@type": "@id"},
     "fn": "http://microformats.org/profile/hcard#fn"
   },
   "@id": "_:bnode1",
