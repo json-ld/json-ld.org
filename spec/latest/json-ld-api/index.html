@@ -676,17 +676,16 @@ language-native data structures MUST be used where applicable.</p>
   in all algorithms described in this section:</p>
 
   <dl>
-  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
-  <dt><code>@base</code></dt><dd>Used to set the base IRI for all object IRIs affected  by the <tref>active context</tref>.</dd>
-  <dt><code>@vocab</code></dt><dd>Used to set the base IRI for all property IRIs affected by the <tref>active context</tref>.</dd>
+  <dt><code>@base</code></dt><dd>Used to set the base <tref>IRI</tref> for all object IRIs affected  by the <tref>active context</tref>.</dd>
   <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
-  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
-  <dt><code>@iri</code></dt><dd>Used to specify an IRI value.</dd>
-  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
-  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
-  <dt><code>@subject</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
+  <dt><code>@vocab</code></dt><dd>Used to set the base <tref>IRI</tref> for all property IRIs affected by the <tref>active context</tref>.</dd>
+  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   </dl>
 </section>
 
@@ -857,14 +856,14 @@ language-native data structures MUST be used where applicable.</p>
       <li><code>@base</code> is set using <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a
         Base URI</a></cite> of [[RFC3986]]. Processors MAY provide a means
         of setting the base IRI programatically.</li>
-      <li><code>@coerce</code> is set with a single mapping from <code>@iri</code> to <code>@type</code>.</li>
+      <li><code>@coerce</code> is set with a single mapping from <code>@id</code> to <code>@type</code>.</li>
     </ul>
     <pre class="example" data-transform="updateExample">
 <!--
 {
   "@base": ****document-location****,
   "@coerce": {
-    "@iri": "@type"
+    "@id": "@type"
   }
 }
 --></pre>
@@ -939,8 +938,8 @@ language-native data structures MUST be used where applicable.</p>
         coercion entry in the <tref>local context</tref>, the resulting
         expansion is an object populated according to the following steps:
         <ol class="algorithm">
-          <li>If the coercion target is <code>@iri</code>, expand the value
-            by adding a new key-value pair where the key is <code>@iri</code>
+          <li>If the coercion target is <code>@id</code>, expand the value
+            by adding a new key-value pair where the key is <code>@id</code>
             and the value is the expanded IRI according to the
             <a href="#iri-expansion">IRI Expansion</a> rules.</li>
           <li>If the coercion target is a typed literal, expand the value
@@ -968,8 +967,8 @@ language-native data structures MUST be used where applicable.</p>
         key that is associated with the value, compact the value using the
         following steps:
         <ol class="algorithm">
-          <li>If the coercion target is an <code>@iri</code>, the compacted
-            value is the value associated with the <code>@iri</code> key,
+          <li>If the coercion target is an <code>@id</code>, the compacted
+            value is the value associated with the <code>@id</code> key,
             processed according to the
             <a href="#iri-compaction">IRI Compaction</a> steps.</li>
           <li>If the coercion target is a typed literal, the compacted
@@ -1002,7 +1001,7 @@ language-native data structures MUST be used where applicable.</p>
       "homepage": "http://xmlns.com/foaf/0.1/homepage",
       "@coerce":
       {
-         "@iri": "homepage"
+         "@id": "homepage"
       }
    },
    "name": "Manu Sporny",
@@ -1020,7 +1019,7 @@ language-native data structures MUST be used where applicable.</p>
    "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
    "http://xmlns.com/foaf/0.1/homepage":
    {
-      "@iri": "http://manu.sporny.org/"
+      "@id": "http://manu.sporny.org/"
    }
 }
 -->
@@ -1078,7 +1077,7 @@ language-native data structures MUST be used where applicable.</p>
    "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
    "http://xmlns.com/foaf/0.1/homepage":
    {
-      "@iri": "http://manu.sporny.org/"
+      "@id": "http://manu.sporny.org/"
    }
 }
 -->
@@ -1093,7 +1092,7 @@ language-native data structures MUST be used where applicable.</p>
    "homepage": "http://xmlns.com/foaf/0.1/homepage",
    "@coerce":
    {
-      "@iri": "homepage"
+      "@id": "homepage"
    }
 }
 -->
@@ -1112,7 +1111,7 @@ language-native data structures MUST be used where applicable.</p>
       "homepage": "http://xmlns.com/foaf/0.1/homepage",
       "@coerce":
       {
-         "@iri": "homepage"
+         "@id": "homepage"
       }
    },
    "name": "Manu Sporny",
@@ -1183,24 +1182,24 @@ language-native data structures MUST be used where applicable.</p>
     "title":        "http://purl.org/dc/terms/title",
     "@coerce":
     {
-      "@iri": "contains"
+      "@id": "contains"
     },
   },
-  "@subject":
+  "@id":
   [{
-    "@subject": "http://example.com/library",
+    "@id": "http://example.com/library",
     "@type": "Library",
     "contains": "http://example.org/library/the-republic"
   },
   {
-    "@subject": "http://example.org/library/the-republic",
+    "@id": "http://example.org/library/the-republic",
     "@type": "Book",
     "creator": "Plato",
     "title": "The Republic",
     "contains": "http://example.org/library/the-republic#introduction"
   },
   {
-    "@subject": "http://example.org/library/the-republic#introduction",
+    "@id": "http://example.org/library/the-republic#introduction",
     "@type": "Chapter",
     "description": "An introductory chapter on The Republic.",
     "title": "The Introduction"
@@ -1253,15 +1252,15 @@ language-native data structures MUST be used where applicable.</p>
     "Library":      "http://example.org/vocab#Library",
     "title":        "http://purl.org/dc/terms/title"
   },
-  "@subject": "http://example.org/library",
+  "@id": "http://example.org/library",
   "@type": "Library",
   "contains": {
-    ****"@subject": "http://example.org/library/the-republic",****
+    ****"@id": "http://example.org/library/the-republic",****
     "@type": "Book",
     ****"creator": "Plato",****
     ****"title": "The Republic",****
     "contains": {
-      ****"@subject": "http://example.org/library/the-republic#introduction",****
+      ****"@id": "http://example.org/library/the-republic#introduction",****
       "@type": "Chapter",
       ****"description": "An introductory chapter on The Republic.",****
       ****"title": "The Introduction"****
@@ -1376,30 +1375,30 @@ language-native data structures MUST be used where applicable.</p>
         <code>true</code> or <code>false</code>, set the associated flag to
         <code>true</code>.</li>
       <li>If the <tref>object embed flag</tref> is cleared and the item has
-        the <code>@subject</code> property, replace the item with the value
-        of the <code>@subject</code> property.</li>
+        the <code>@id</code> property, replace the item with the value
+        of the <code>@id</code> property.</li>
       <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@subject</code> property, and its IRI is in the
+        the <code>@id</code> property, and its IRI is in the
         <tref>map of embedded subjects</tref>, throw a
         <code>Duplicate Embed</code> exception.</li>
       <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@subject</code> property and its IRI is not in the
+        the <code>@id</code> property and its IRI is not in the
         <tref>map of embedded subjects</tref>:
         <ol class="algorithm">
           <li>If the <tref>explicit inclusion flag</tref> is set,
             then delete any key from the item that does not exist in the
-            <tref>match frame</tref>, except <code>@subject</code>.</li>
+            <tref>match frame</tref>, except <code>@id</code>.</li>
           <li>For each key in the <tref>match frame</tref>, except for
             keywords and <code>rdf:type</code>:
           <ol class="algorithm">
             <li>If the key is in the item, then build a new
               <tdef>recursion input list</tdef> using the object or objects
               associated with the key. If any object contains an
-              <code>@iri</code> value that exists in the
+              <code>@id</code> value that exists in the
               <strong>normalized input</strong>, replace the object in the
               <tref>recursion input list</tref> with a new object containing
-              the <code>@subject</code> key where the value is the value of
-              the <code>@iri</code>, and all of the other key-value pairs for
+              the <code>@id</code> key where the value is the value of
+              the <code>@id</code>, and all of the other key-value pairs for
               that subject. Set the <tdef>recursion match frame</tdef> to the
               value associated with the <tref>match frame</tref>'s key. Replace
               the value associated with the key by recursively calling this
@@ -1484,7 +1483,7 @@ language-native data structures MUST be used where applicable.</p>
       "xsd": "http://www.w3.org/2001/XMLSchema#",
       "@coerce":
       {
-         "@iri": ["homepage"]
+         "@id": ["homepage"]
       }
    },
    "name": "Manu Sporny",
@@ -1502,13 +1501,10 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 [{
-    "@subject":
-    {
-        "@iri": "_:c14n0"
-    },
+    "@id": "_:c14n0",
     "http://xmlns.com/foaf/0.1/homepage":
     {
-        "@iri": "http://manu.sporny.org/"
+        "@id": "http://manu.sporny.org/"
     },
     "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
 }]
@@ -1533,8 +1529,8 @@ language-native data structures MUST be used where applicable.</p>
    <dd>
      The subject <tref>IRI</tref> associated with a graph node. The subject IRI is expressed
      using a key-value pair in a <tref>JSON object</tref> where the key is
-     <code>@subject</code> and the value is a string that is an IRI or
-     a <tref>JSON object</tref> containing the key <code>@iri</code> and
+     <code>@id</code> and the value is a string that is an IRI or
+     a <tref>JSON object</tref> containing the key <code>@id</code> and
      a value that is a string that is an IRI.
    </dd>
    <dt><tdef>list of expanded nodes</tdef></dt>
@@ -1707,7 +1703,7 @@ language-native data structures MUST be used where applicable.</p>
     <ol class="algorithm">
       <li>If the <tref>expanded node</tref> is an unlabeled node, add a
         new key-value pair to the <tref>expanded node</tref>
-        where the key is <code>@subject</code> and the value is the
+        where the key is <code>@id</code> and the value is the
         concatenation of the <tref>labeling prefix</tref>
         and the string value of the <tref>labeling counter</tref>.
         Increment the <tref>labeling counter</tref>.</li>
@@ -1731,8 +1727,8 @@ language-native data structures MUST be used where applicable.</p>
       </li>
       <li>After exiting the recursive step, replace the reference to the
         <tref>expanded node</tref> with an object containing a single
-         key-value pair where the key is <code>@iri</code> and the value is
-         the value of the <code>@subject</code> key in the node.</li>
+         key-value pair where the key is <code>@id</code> and the value is
+         the value of the <code>@id</code> key in the node.</li>
     </ol>
   </li>
   <li>For every entry in the <tref>map of flattened nodes</tref>, insert a
@@ -1747,7 +1743,7 @@ language-native data structures MUST be used where applicable.</p>
   <li>For every entry in the <tref>node state map</tref> that has a
     <tref>label</tref> that begins with <code>_:c14n</code>, relabel the node using the
     <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. <li>Label all
-    of the nodes that contain a <code>@subject</code> key associated with a value
+    of the nodes that contain a <code>@id</code> key associated with a value
     starting with <code>_:</code> according to the steps in the <a
     href="#deterministic-labeling-algorithm">Deterministic Labeling Algorithm</a>.</li>
 </ol>
@@ -1965,7 +1961,7 @@ contains deterministically named and expanded nodes from the graph.
     </ol>
   </li>
   <li>If both values are expanded <tref>IRI</tref>s, the
-    lexicographically lesser string associated with <code>@iri</code>
+    lexicographically lesser string associated with <code>@id</code>
     is first.</li>
   <li>Otherwise, the two values are equivalent.</li>
 </ol>
@@ -2397,7 +2393,7 @@ has been assigned a particular <tref>serialization label</tref>.
   <li>Append all properties to the <tref>label serialization</tref> by
     processing each key-value pair in the <tref>node reference</tref>,
     excluding the
-    <code>@subject</code> property. The keys should be processed in
+    <code>@id</code> property. The keys should be processed in
     lexicographical order and their associated values should be processed
     in the order produced by the
     <a href="#object-comparison-algorithm">Object Comparison Algorithm</a>:
@@ -2409,7 +2405,7 @@ has been assigned a particular <tref>serialization label</tref>.
         Process all of the objects that are associated with the key, building
         an <tdef>object string</tdef> for each item:
         <ol class="algorithm">
-          <li>If the object contains an <code>@iri</code> key with a
+          <li>If the object contains an <code>@id</code> key with a
             value that starts
             with <code>_:</code>, set the <tref>object string</tref> to
             the value <code>_:</code>. If the value does not
@@ -2417,7 +2413,7 @@ has been assigned a particular <tref>serialization label</tref>.
             using the pattern
             <code>&lt;</code><strong>IRI</strong><code>&gt;</code>
             where <strong>IRI</strong> is the value associated with the
-            <code>@iri</code> key.</li>
+            <code>@id</code> key.</li>
           <li>If the object contains a <code>@literal</code> key and a
             <code>@datatype</code> key, build the <tref>object string</tref>
             using the pattern
@@ -2643,13 +2639,6 @@ implement the algorithm exactly as described.
           with those keywords. Use the new <tref>JSON object</tref> in subsequent steps.
         </li>
         <li>
-          If the <tref>JSON object</tref> has an <code>@iri</code> key, set the <tref>active object</tref> by
-          performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. Generate a
-          triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-          <tref>active object</tref>. Return the <tref>active object</tref> to the calling location.
-          <p class="issue"><code>@iri</code> really just behaves the same as <code>@subject</code>, consider consolidating them.</p>
-        </li>
-        <li>
           If the <tref>JSON object</tref> has a <code>@literal</code> key, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
@@ -2673,7 +2662,7 @@ implement the algorithm exactly as described.
           process the value as a list starting at <a href="#processing-step-list">Step 3.1</a> as if the
           <tref>active property</tref> is the target of a <code>@list</code> coercion.
         </li>
-        <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@subject</code> key:
+        <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@id</code> key:
           <ol class="algorithm">
             <li>
               If the value is a <tref>string</tref>, set the <tref>active object</tref> to the result of performing
@@ -2695,7 +2684,7 @@ implement the algorithm exactly as described.
           </ol>
         </li>
         <li>
-          If the <tref>JSON object</tref> does not have a <code>@subject</code> key, set the <tref>active
+          If the <tref>JSON object</tref> does not have a <code>@id</code> key, set the <tref>active
           object</tref> to newly generated <tref>blank node</tref>. Generate a triple
           representing the <tref>active subject</tref>, the <tref>active property</tref> and the
           <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
@@ -2792,7 +2781,7 @@ implement the algorithm exactly as described.
       If a <tref>string</tref> is detected:
       <ol class="algorithm">
         <li>
-          If the <tref>active property</tref> is the target of a <code>@iri</code> coercion,
+          If the <tref>active property</tref> is the target of a <code>@id</code> coercion,
           set the <tref>active object</tref> by
           performing <a href="#iri-expansion">IRI Expansion</a> on the string.
         </li>
@@ -2844,6 +2833,7 @@ to Dave Longley who designed many of the algorithms used in this specification,
 including the normalization algorithm which was a monumentally difficult
 design challenge.
 </p>
+<p class="issue">Dave is an editor, and probably shouldn't also be in acknowledgments.</p>
 </section>
 
 </body>

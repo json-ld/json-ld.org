@@ -412,17 +412,16 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   in all algorithms described in this section:</p>
 
   <dl>
-  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@base</code></dt><dd>Used to set the base <tref>IRI</tref> for all object IRIs affected  by the <tref>active context</tref>.</dd>
-  <dt><code>@vocab</code></dt><dd>Used to set the base <tref>IRI</tref> for all property IRIs affected by the <tref>active context</tref>.</dd>
   <dt><code>@coerce</code></dt><dd>Used to specify type coercion rules.</dd>
-  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
-  <dt><code>@iri</code></dt><dd>Used to specify an <tref>IRI</tref> value.</dd>
-  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@datatype</code></dt><dd>Used to specify the datatype for a literal.</dd>
-  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
-  <dt><code>@subject</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subject.</dd>
+  <dt><code>@vocab</code></dt><dd>Used to set the base <tref>IRI</tref> for all property IRIs affected by the <tref>active context</tref>.</dd>
+  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   </dl>
 </section>
 
@@ -776,14 +775,14 @@ expressed in a variety of different ways in JSON-LD.</p>
 
 <ol>
   <li>Except within a <tref>context</tref> definition, <tref>term</tref>s in the key position in
-    a <tref>JSON object</tref> that have a mapping to an <tref>IRI</tref> or another key in the <tref>active
-    context</tref> are expanded to an IRI by JSON-LD processors.</li>
-  <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using <code>@subject</code>,
-    <code>@type</code> or <code>@iri</code>.</li>
+    a <tref>JSON object</tref> that have a mapping to an <tref>IRI</tref> or another key in the
+    <tref>active context</tref> are expanded to an IRI by JSON-LD processors.</li>
+  <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
+    <code>@id</code> or <code>@type</code>.</li>
   <li>An <tref>IRI</tref> is generated for any key or <tref>string</tref> value with the <code>@coerce</code>,
     section of a <tref>context</tref> definition.
   <li>An <tref>IRI</tref> is generated for the value of any other key if there are <code>@coerce</code> rules in
-    effect for that key that identify it as a <code>@iri</code>.</li>
+    effect for that key that identify it as a <code>@id</code>.</li>
 </ol>
 
 <p>IRIs may be represented as an absolute IRI, a <tref>term</tref>, a <tref>prefix</tref>:suffix construct, or as a value relative to <code>@base</code> or <code>@vocab</code>. Relative IRIs are resolved against <code>@vocab</code> if they are in a key position, or the value of <code>@type</code> key, otherwise they are resolved against <code>@base</code>.</p>
@@ -849,17 +848,22 @@ opposed to being interpreted as a string.</p>
 <code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#prefixes">Prefixes</a> for more details.</p>
 
 <p>An <tref>IRI</tref> is generated when a value is associated with a key using
-the <code>@iri</code> keyword:</p>
+the <code>@id</code> keyword:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "homepage": { "****@iri****": "http://manu.sporny.org" }
+  "homepage": { "****@id****": "http://manu.sporny.org" }
 ...
 }
 -->
 </pre>
+
+<p class="note">Specifying a <tref>JSON Object</tref> with an <code>@id</code> key is
+  used to represent an IRI, but it also is the mechanism by which a <tref>subject</tref> is defined.
+  This is an example of <tref>chaining</tref> in JSON-LD, an issue covered further in <a
+  href="#chaining">Chaining</a>.</p>
 
 <p>If type coercion rules are specified in the <code>@context</code> for
 a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
@@ -872,7 +876,7 @@ a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
     ...
     "@coerce":
     {
-      "@iri": "homepage"
+      "@id": "homepage"
     }
   }****
 ...
@@ -903,7 +907,7 @@ by a JSON-LD Processor</p>
   uniquely identify each node which may be externally referenced.
 </p>
 <p>A <tref>subject</tref>
-   of an object in JSON is declared using the <code>@subject</code> key. The subject is the
+   of an object in JSON is declared using the <code>@id</code> key. The subject is the
 first piece of information needed by the JSON-LD processor in order to
 create the (subject, property, object) tuple, also known as a triple.</p>
 
@@ -911,7 +915,7 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 <!--
 {
 ...
-  "****@subject****": "****http://example.org/people#joebob****",
+  "****@id****": "****http://example.org/people#joebob****",
 ...
 }
 -->
@@ -922,9 +926,9 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 </p>
 
 <p class="note">To ensure the best possible performance, it is a best practice to
-put the <code>@subject</code> key before other key-value pairs in an object. If
+put the <code>@id</code> key before other key-value pairs in an object. If
 it isn't listed first, processors have to save each key-value pair until
-<code>@subject</code> is processed before they can create valid triples. This
+<code>@id</code> is processed before they can create valid triples. This
 creates a memory and complexity burden for one-pass processors.</p>
 
 </section>
@@ -943,7 +947,7 @@ triple of the form (subject, type, type-iri).</p>
 <!--
 {
 ...
-  "@subject": "http://example.org/people#joebob",
+  "@id": "http://example.org/people#joebob",
   "****@type****": "****http://xmlns.com/foaf/0.1/Person****",
 ...
 }
@@ -1075,7 +1079,7 @@ typed literal:</p>
 <!--
 {
 ...
-  "@subject": "http://example.org/people#joebob",
+  "@id": "http://example.org/people#joebob",
   "age": ****31****
 ...
 }
@@ -1110,7 +1114,7 @@ in JSON-LD, see <a href="#rdf-collection">Lists</a>.
 <!--
 {
 ...
-  "@subject": "http://example.org/people#joebob",
+  "@id": "http://example.org/people#joebob",
   "nick": ****[ "joe", "bob", "jaybee" ]****,
 ...
 }
@@ -1144,7 +1148,7 @@ form for objects:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "@subject": "http://example.org/articles/8",
+  "@id": "http://example.org/articles/8",
   "dc:title": ****
   [
     {"@literal": "Das Kapital", "@language": "de"},
@@ -1179,7 +1183,7 @@ form for objects:</p>
   <!--
   {
   ...
-    "@subject": "http://example.org/people#joebob",
+    "@id": "http://example.org/people#joebob",
     "nick": ****[ "joe", "bob", "jaybee" ]****,
   ...
   }
@@ -1197,7 +1201,7 @@ form for objects:</p>
   <!--
   {
   ...
-    "@subject": "http://example.org/people#joebob",
+    "@id": "http://example.org/people#joebob",
     "foaf:nick": ****{ "@list": [ "joe", "bob", "jaybee" ] }****,
   ...
   }
@@ -1218,7 +1222,7 @@ form for objects:</p>
       ****}****
     ****}****,
   ...
-    "@subject": "http://example.org/people#joebob",
+    "@id": "http://example.org/people#joebob",
     "foaf:nick": ****[ "joe", "bob", "jaybee" ]****,
   ...
   }
@@ -1359,14 +1363,14 @@ explain the correct usage of the JSON-LD context document.
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  ****"@subject": "about/"****,
+  ****"@id": "about/"****,
   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
   "http://xmlns.com/foaf/0.1/homepage: ""
 }
 -->
 </pre>
 
-<p>This document uses an empty <code>@subject</code>, which resolves to the document base. However, if
+<p>This document uses an empty <code>@id</code>, which resolves to the document base. However, if
   the document is moved to a different location, the subject IRI would change. To prevent this, a <tref>context</tref>
   may have a <code>@base</code> mapping, to set an absolute base for the document in spite of where
   it actually is retrieved from. It MUST have a value of a simple
@@ -1376,7 +1380,7 @@ explain the correct usage of the JSON-LD context document.
 <!--
 {
   ****"@context": { "@base": "http://manu.sporny.org/" }****,
-  "@subject": "about/",
+  "@id": "about/",
   "http://xmlns.com/foaf/0.1/name": "Manu Sporny",
   "http://xmlns.com/foaf/0.1/homepage: ""
 }
@@ -1561,15 +1565,15 @@ expanded literal value:</p>
     ****"dc": "http://purl.org/dc/elements/1.1/",****
     ****"ex": "http://example.org/vocab#"****
   },
-  "@subject": "http://example.org/library",
+  "@id": "http://example.org/library",
   "@type": ****"ex:Library"****,
   ****"ex:contains"****: {
-    "@subject": "http://example.org/library/the-republic",
+    "@id": "http://example.org/library/the-republic",
     "@type": ****"ex:Book"****,
     ****"dc:creator"****: "Plato",
     ****"dc:title"****: "The Republic",
     ****"ex:contains"****: {
-      "@subject": "http://example.org/library/the-republic#introduction",
+      "@id": "http://example.org/library/the-republic#introduction",
       "@type": ****"ex:Chapter"****,
       ****"dc:description"****: "An introductory chapter on The Republic.",
       ****"dc:title"****: "The Introduction"
@@ -1651,9 +1655,9 @@ property types. Using type coercion, one may convert simple JSON data to
 properly typed RDF data.</p>
 
 <p>Keys within a <code>@coerce</code> definition represent datatype IRIs and MUST take the form
-  of <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI or the keywords <code>@iri</code> or <code>@list</code>.
-  Specifying <code>@iri</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
-  <code>@iri</code> are to be interpreted as <tref>IRI</tref>s, and are subject to IRI expansion. Specifying
+  of <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI or the keywords <code>@id</code> or <code>@list</code>.
+  Specifying <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
+  <code>@id</code> are to be interpreted as <tref>IRI</tref>s, and are subject to IRI expansion. Specifying
   <code>@list</code> indicates that array values of keys coerced as <code>@list</code> are to be serialized
   as a <a href="#rdf-collection">List</a>.</p>
 
@@ -1677,7 +1681,7 @@ properly typed RDF data.</p>
 ****     "@coerce":
      {
         "xsd:integer": "age",
-        "@iri": "homepage"
+        "@id": "homepage"
      }****
   },
   "name": "John Smith",
@@ -1719,8 +1723,8 @@ _:bnode1
     "currentProject": "http://xmlns.com/foaf/0.1/currentProject",
     ****"@coerce": {
       "age": "xsd:integer",
-      "homepage": "@iri",
-      "currentProject": [ "@iri", "@list" ]
+      "homepage": "@id",
+      "currentProject": [ "@id", "@list" ]
      }****
   },
   ...
@@ -1738,9 +1742,9 @@ _:bnode1
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "http://xmlns.com/foaf/0.1/name",
-    "age": ****{ "@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer" }****,
-    "homepage": ****{ "@iri": "http://xmlns.com/foaf/0.1/age", "@coerce": "@iri" }****,
-    "currentProject": ****{ "@iri": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": [ "@iri", "@list" ] }****,
+    "age": ****{ "@id": "http://xmlns.com/foaf/0.1/age", "@coerce": "xsd:integer" }****,
+    "homepage": ****{ "@id": "http://xmlns.com/foaf/0.1/age", "@coerce": "@id" }****,
+    "currentProject": ****{ "@id": "http://xmlns.com/foaf/0.1/currentProject", "@coerce": [ "@id", "@list" ] }****,
   },
   ...
 }
@@ -1788,7 +1792,7 @@ _:bnode1
 being able to specify the subject. Typically, this type of node is called
 an unlabeled node or a blank node. In JSON-LD, unlabeled node identifiers are
 automatically created if a subject is not specified using the
-<code>@subject</code> keyword. However, authors may provide identifiers for
+<code>@id</code> keyword. However, authors may provide identifiers for
 unlabeled nodes by using the special <code>_</code> (underscore)
 <tref>prefix</tref>. This allows to reference the node locally within the
 document but not in an external document.</p>
@@ -1797,7 +1801,7 @@ document but not in an external document.</p>
 <!--
 {
 ...
-  "@subject": "****_:foo****",
+  "@id": "****_:foo****",
 ...
 }
  -->
@@ -1826,7 +1830,7 @@ using only the JSON-LD <tref>context</tref>.</p>
 {
   "@context":
   {
-     ****"url": "@subject"****,
+     ****"url": "@id"****,
      ****"a": "@type"****,
      "name": "http://schema.org/name"
   },
@@ -1837,7 +1841,7 @@ using only the JSON-LD <tref>context</tref>.</p>
 -->
 </pre>
 
-<p>In the example above, the <code>@subject</code> and <code>@type</code>
+<p>In the example above, the <code>@id</code> and <code>@type</code>
 keywords have been given the aliases <strong>url</strong> and
 <strong>a</strong>, respectively.
 </p>
@@ -1851,7 +1855,7 @@ keywords have been given the aliases <strong>url</strong> and
 
   <p>JSON-LD is a specification for representing <tref>Linked Data</tref> in JSON. A common
     way of working with Linked Data is through <tdef>RDF</tdef>, the Resource Description Framework.
-    RDF can be expressed using JSON-LD by associating JSON-LD concepts such as <code>@subject</code>
+    RDF can be expressed using JSON-LD by associating JSON-LD concepts such as <code>@id</code>
     and <code>@type</code> with the equivalent <tref>IRI</tref>s in RDF. Further information about
     RDF may be found in [[RDF-PRIMER]].</p>
 
@@ -1895,10 +1899,10 @@ keywords have been given the aliases <strong>url</strong> and
     "@base":  "http://manu.sporny.org/",
     "foaf":   "http://xmlns.com/foaf/0.1/"
   },
-  "@subject":       "#me",
+  "@id":            "#me",
   "@type":          "foaf:Person",
   "foaf:name":      "Manu Sporny",
-  "foaf:homepage":  { "@iri": "" }
+  "foaf:homepage":  { "@id": "" }
 }
 -->
 </pre>
@@ -1928,12 +1932,12 @@ keywords have been given the aliases <strong>url</strong> and
     "@base":  "http://manu.sporny.org/",
     "foaf":   "http://xmlns.com/foaf/0.1/"
   },
-  "@subject":       "#me",
+  "@id":            "#me",
   "@type":          "foaf:Person",
   "foaf:name":      "Manu Sporny",
   "foaf:knows": {
-    "@type":          "foaf:Person",
-    "foaf:name":      "Gregg Kellogg"
+    "@type":        "foaf:Person",
+    "foaf:name":    "Gregg Kellogg"
   }
 }
 -->
@@ -1959,10 +1963,10 @@ keywords have been given the aliases <strong>url</strong> and
     "@base":  "http://manu.sporny.org/",
     "foaf":   "http://xmlns.com/foaf/0.1/"
   },
-  "@subject":       "http://example.org/people#joebob",
-  "@type":          "foaf:Person",
-  "foaf:name":      "Joe Bob",
-  "foaf:nick":      { "@list": [ "joe", "bob", "jaybe" ] }
+  "@id":        "http://example.org/people#joebob",
+  "@type":      "foaf:Person",
+  "foaf:name":  "Joe Bob",
+  "foaf:nick":  { "@list": [ "joe", "bob", "jaybe" ] }
 }
 -->
 </pre>
@@ -2002,21 +2006,21 @@ repeated.</p>
 <!--
 {
   "@context": { "foaf": "http://xmlns.com/foaf/0.1/" },
-  "@subject": [
+  "@id": [
     {
-      "@subject": "_:bnode1",
+      "@id": "_:bnode1",
       "@type": "foaf:Person",
       "foaf:homepage": "http://example.com/bob/",
       "foaf:name": "Bob"
     },
     {
-      "@subject": "_:bnode2",
+      "@id": "_:bnode2",
       "@type": "foaf:Person",
       "foaf:homepage": "http://example.com/eve/",
       "foaf:name": "Eve"
     },
     {
-      "@subject": "_:bnode3",
+      "@id": "_:bnode3",
       "@type": "foaf:Person",
       "foaf:homepage": "http://example.com/manu/",
       "foaf:name": "Manu"
@@ -2055,9 +2059,9 @@ generated the proper URL type for <code>http://tantek.com</code>.</p>
     "vcard": "http://microformats.org/profile/hcard#vcard",
     "url": "http://microformats.org/profile/hcard#url",
     "fn": "http://microformats.org/profile/hcard#fn",
-    "@coerce": { "@iri": "url" }
+    "@coerce": { "@id": "url" }
   },
-  "@subject": "_:bnode1",
+  "@id": "_:bnode1",
   "@type": "vcard",
   "url": "http://tantek.com/",
   "fn": "Tantek Çelik"
@@ -2110,7 +2114,7 @@ instead refer to items by their full <tref>IRI</tref>.</p>
 <!--
 [
   {
-    "@subject": "http://purl.oreilly.com/works/45U8QJGZSQKDH8N",
+    "@id": "http://purl.oreilly.com/works/45U8QJGZSQKDH8N",
     "@type": "http://purl.org/vocab/frbr/core#Work",
     "http://purl.org/dc/terms/title": "Just a Geek",
     "http://purl.org/dc/terms/creator": "Whil Wheaton",
@@ -2118,12 +2122,12 @@ instead refer to items by their full <tref>IRI</tref>.</p>
       [ "http://purl.oreilly.com/products/9780596007683.BOOK", "http://purl.oreilly.com/products/9780596802189.EBOOK" ]
   },
   {
-    "@subject": "http://purl.oreilly.com/products/9780596007683.BOOK",
+    "@id": "http://purl.oreilly.com/products/9780596007683.BOOK",
     "@type": "http://purl.org/vocab/frbr/core#Expression",
     "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/BOOK"
   },
   {
-    "@subject": "http://purl.oreilly.com/products/9780596802189.EBOOK",
+    "@id": "http://purl.oreilly.com/products/9780596802189.EBOOK",
     "@type": "http://purl.org/vocab/frbr/core#Expression",
     "http://purl.org/dc/terms/type": "http://purl.oreilly.com/product-types/EBOOK"
   }
