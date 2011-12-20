@@ -10,7 +10,7 @@
 
 /**
  * Retrieves all of the properties that are a part of a JSON-LD object, 
- * ignoring the "@subject" key.
+ * ignoring the "@id" key.
  *
  * @param obj the JSON-LD object - the last part of the triple.
  *
@@ -23,7 +23,7 @@ function getProperties(obj)
    // accumulate the names of all non-JSON-LD subjects
    for(var key in obj)
    {
-      if(key != "@subject")
+      if(key != "@id")
       {
          rval.push(key);
       }
@@ -105,17 +105,17 @@ function objectToString(obj)
    else if(obj instanceof Object)
    {
       // the object is an IRI, typed literal or language-tagged literal
-      if("@literal" in obj && "@datatype" in obj)
+      if("@literal" in obj && "@type" in obj)
       {
-         rval = "\"" + obj["@literal"] + "\"^^<" + obj["@datatype"] + ">";
+         rval = "\"" + obj["@literal"] + "\"^^<" + obj["@type"] + ">";
       }
       else if("@literal" in obj && "@language" in obj)
       {
          rval = "\"" + obj["@literal"] + "\"@" + obj["@language"];
       }
-      else if("@iri" in obj)
+      else if("@id" in obj)
       {
-         var iri = obj["@iri"];
+         var iri = obj["@id"];
          rval = iriToTurtle(iri);
       }
    }
@@ -144,7 +144,13 @@ jsonld.turtle = function(input)
    {
       // print out each key in the normalized array (the subjects)
       var subject = normalized[s];
-      var iri = subject["@subject"]["@iri"];
+      var iri = subject["@id"];
+      
+      // skip subjects with no properties (no triples to generate)
+      if(Object.keys(subject).length === 1)
+      {
+         continue;
+      }
 
       rval += iriToTurtle(iri) + "\n";
 
