@@ -12,6 +12,7 @@
   src="http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js" class="remove">
  </script>
 <script type="text/javascript" class="remove">
+//<![CDATA[
     var preProc = {
           apply:  function(c) {
                     // extend the bibliography entries
@@ -254,6 +255,7 @@
         content = content.replace(/@prefix/g, '<span class="sh_keyword">@prefix</span>');
         return content;
       }
+//]]>
   </script>
 <style>
 .diff { font-weight:bold; color:#0a3; }
@@ -2608,8 +2610,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
-          process the value as a list starting at <a href="#processing-step-list">Step 3.1</a> as if the
-          <tref>active property</tref> is the target of a <code>@list</code> coercion.
+          process the value as a list as described in <a href="#list-conversion">List Conversion</a>.
         </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@id</code> key:
           <ol class="algorithm">
@@ -2652,7 +2653,7 @@ implement the algorithm exactly as described.
             <li>
               If the <tref>active property</tref> is the target of a <code>@list</code> coercion,
               and the value is an <tref>array</tref>,
-              process the value as a list starting at <a href="#processing-step-list">Step 3.1</a>.
+              process the value as a list as described in in <a href="#list-conversion">List Conversion</a>.
             </li>
             <li>
               Otherwise, create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
@@ -2668,60 +2669,14 @@ implement the algorithm exactly as described.
       </ol>
     </li>
 
-    <li>
-      If a regular <tref>array</tref> is detected
+    <li>If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref>
+      by doing the following returning the result of processing the last value in the <tref>array</tref>:
       <ol class="algorithm">
-        <li id="processing-step-list">If the <tref>active property</tref> is the target of an
-          <code>@list</code> coercion generate an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see [[!RDF-SCHEMA]]) by linking each element of the list using
-          <code>rdf:first</code> and <code>rdf:next</code>, terminating the list with <code>rdf:nil</code> using the
-          following sequence:
-          <ol class="algorithm">
-            <li>
-              If the list has no element, generate a triple using the <tref>active subject</tref>, <tref>active
-              property</tref> and <code>rdf:nil</code>.
-            </li>
-            <li>
-              Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-              and a newly generated BNode identified as <em>first <tref>blank node</tref></em>.
-            </li>
-            <li>
-              For each element other than the last element in the list:
-              <ol class="algorithm">
-                <li>Create a processor state using the active context,
-                  <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
-                  <code>rdf:first</code> as the <tref>active property</tref>.
-                  <ol class="algorithm">
-                    <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
-                    <li>Proceed using the previous <tref>processor state</tref>.</li>
-                  </ol>
-                  <div class="issue">There's a bug here, coercion can't take place without using the current
-                    <tref>active property</tref>, yet we need to pass <code>rdf:first</code> to have the
-                    appropriate triple changed. Might need a different strategy that relies on using a
-                    returned value to generate a triple within this context.
-                  </div>
-                </li>
-                <li>Unless this is the last element in the list, generate a new BNode identified as
-                  <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
-                <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
-                  <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
-                <li>Set <em>first <tref>blank node</tref></em> to
-                  <em>rest <tref>blank node</tref></em>.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-
         <li>
-          Otherwise, process each value in the <tref>array</tref> by doing the following returning the result of
-          processing the last value in the <tref>array</tref>:
-          <ol class="algorithm">
-            <li>
-              Create a new <tref>processor state</tref> using copies of the <tref>active
-              context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
-              starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
-              <tref>processor state</tref>.
-            </li>
-          </ol>
+          Create a new <tref>processor state</tref> using copies of the <tref>active
+          context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
+          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+          <tref>processor state</tref>.
         </li>
       </ol>
     </li>
@@ -2763,6 +2718,46 @@ implement the algorithm exactly as described.
       generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
       and a <tref>typed literal</tref> value created from the string representation of the
       value with datatype set to <code>xsd:boolean</code>.
+    </li>
+  </ol>
+</section>
+<section id="list-conversion">
+  <h3>List Conversion</h3>
+
+  <p>List Conversion is the process of taking an <tref>array</tref> of values and adding them to a newly
+    created <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see
+    [[!RDF-SCHEMA]]) by linking each element of the list using <code>rdf:first</code> and <code>rdf:next</code>,
+    terminating the list with <code>rdf:nil</code> using the following sequence:</p>
+  <p>The algorithm is invoked with an <tref>array</tref> <em>array</em>, the <tref>active property</tref>,
+    and the <tref>active context</tref> and returns a value to be used as an <tref>active object</tref>.</p>
+  <div class="note">This algorithm does not support lists containing lists.</div>
+  <ol class="algorithm">
+    <li>
+      If <em>array</em> is empty return <code>rdf:nil</code>.
+    </li>
+    <li>
+      Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+      and a newly generated BNode identified as <em>first <tref>blank node</tref></em>.
+    </li>
+    <li>
+      For each element in <em>array</em> other than the last element:
+      <ol class="algorithm">
+        <li>Create a processor state using the <tref>active context</tref>,
+          <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
+          <code>rdf:first</code> as the <tref>active property</tref>.
+          <ol class="algorithm">
+            <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
+            <li>Proceed using the previous <tref>processor state</tref>.</li>
+          </ol>
+        </li>
+        <li>Unless this is the last element in <em>array</em>, generate a new BNode identified as
+          <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
+        <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
+          <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
+        <li>Set <em>first <tref>blank node</tref></em> to
+          <em>rest <tref>blank node</tref></em>.</li>
+        <li>Return <em>first <tref>blank node</tref></em>.</li>
+      </ol>
     </li>
   </ol>
 </section>
