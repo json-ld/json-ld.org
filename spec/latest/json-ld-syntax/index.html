@@ -1335,7 +1335,7 @@ explain the correct usage of the JSON-LD context document.
 
 <section>
   <h3>Expanded Term Definition</h3>
-  <p>Within a context definition, <tref>term</tref>s MAY be defined using an expanded notation to allow
+  <p>Within a <tref>context</tref> definition, <tref>term</tref>s MAY be defined using an expanded notation to allow
     for additional information associated with the term to be specified (see <a href="#type-coerceion">Type
     Coercion</a> and <a href="#rdf-collection">Lists</a>).</p>
     
@@ -1545,6 +1545,64 @@ expanded literal value:</p>
     mechanism is not required to disambiguate <tref>IRI</tref>s in a JSON-LD document like
     it is in HTML documents.
   </p>
+</section>
+
+<section>
+  <h3>IRI Expansion within Context</h3>
+  <p>To be consistent with JSON-LD in general, anywhere an IRI is expected, normal IRI expansion rules
+    apply (see <a href="#iris">IRIs</a>). Within a <tref>context</tref> definition, this can mean that terms defined
+    within a given context MAY also be used within that context, as long as there are no circular dependencies.
+    For example, it is common to use the <code>xsd</code> namespace when defining <tref>typed literal</tref>s:
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    ****"xsd": "http://www.w3.org/2001/XMLSchema#"****,
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "age": {"@id": "http://xmlns.com/foaf/0.1/age", "@type": ****"xsd:integer"****},
+    "homepage": {"@id": "http://xmlns.com/foaf/0.1/homepage", "@type": "@id"}
+  },
+  ...
+}
+-->
+</pre>
+<p>In this example, the <code>xsd</code> <tref>term</tref> is defined, and used as a <tref>prefix</tref>
+  for the <code>@type</code> coercion of the <code>age</code> property.</p>
+
+<p><tref>Term</tref>s MAY also be used when defining the IRI of another <tref>term</tref>:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context":
+  {
+    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "name": ****"foaf:name"****,
+    "age": {"@id": ****"foaf:age"****, "@type": xsd:integer"},
+    "homepage": {"@id": ****"foaf:homepage"****, "@type": "@id"}
+  },
+  ...
+}
+-->
+</pre>
+
+<p>The only exception is that terms MUST NOT be used in a circular manner, meaning that the definition of
+  <em>term-1</em> may not depend on the definition of <em>term-2</em> if <em>term-2</em> also depends on
+  <em>term-1</em>. For example, the following <tref>context</tref> definition is illegal:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context":
+  {
+    ****"term1": {"@id": "term2:foo"},
+    "term2": {"@id": "term1:bar"}****
+  },
+  ...
+}
+-->
+</pre>
 </section>
 
 <section>

@@ -771,7 +771,8 @@ language-native data structures MUST be used where applicable.</p>
     If a <tref>local context</tref> is encountered,
     information from the <tref>local context</tref> is merged into the <tref>active context</tref>.</p>
   <p>The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
-    of a list (see <span a="#list-processing">List Processing</span>)). It is also used to maintain
+    of a list (see <span a="#list-processing">List Processing</span>)) using a <tdef>term mapping</tdef>.
+    It is also used to maintain
     <tdef>coercion mapping</tdef>s from IRIs associated with terms to datatypes, and
     <tdef>list mapping</tdef>s for IRIs associated with terms.</p>
   <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
@@ -783,15 +784,13 @@ language-native data structures MUST be used where applicable.</p>
       <ol id="process-context" class="algorithm">
         <li>If <em>value</em> is an <tref>array</tref>, process
           each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.</li>
-        <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of IRI.
+        <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of absolute IRI.
           <ol class="algorithm">
-            <li>Set <em>value</em> to the result of performing <a href="#iri-expansion">IRI Expansion</a>
-              on <em>value</em></li>.
-            <li>If <em>value</em> is not an absolute IRI, abort this processing step.
-              Otherwise, Dereference <em>value</em>.</li>
+            <li>Dereference <em>value</em>.</li>
             <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
               element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>value</em>
               to the extracted content, or an empty <tref>JSON Object</tref> if no value exists.</li>
+            <li>Merge the of <tref>local context</tref> into the <tref>active context</tref>.</li>
           </ol>
         </li>
       </ol>
@@ -804,37 +803,40 @@ language-native data structures MUST be used where applicable.</p>
           href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
           or is an empty string,
           <ol class="algorithm">
-            <li>If the key's value is a simple <tref>string</tref> it MUST have the lexical form of absolute IRI.
-              Merge the key-value pair into the <tref>local context</tref>.</li>
-            <li>Otherwise, the key's value MUST be a <tref>JSON object</tref>, having a <code>@id</code> key
-              with a value having the lexical form of absolute IRI. Merge the key-value pair into the
-              <tref>local context</tref>.</li>
-          </ol>
-        </li>
-        <li>Merge the of <tref>local context</tref>'s <tref>term</tref> mapping into  the
-          <tref>active context</tref>'s <tref>term</tref> mapping.</li>
-        <li>For each key in <em>value</em> having the lexical form of <code>NCName</code> or an empty string,
-          with a value that is a <tref>JSON object</tref>
-          <ol class="algorithm">
-            <li>If the value has a <code>@type</code> key, the value MUST have the form of <tref>term</tref>,
-              <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Add a <tref>coercion
-              mapping</tref> for the term to the <tref>local context</tref> performing <a href="#iri-expansion">IRI
-              Expansion</a> on the associated value using the <tref>active context</tref> as necessary.</li>
-            <li>If the value has a <code>@list</code> key, the value MUST be <code>true</code> Add a
-              <tref>list mapping</tref> for the term to the <tref>local context</tref>.</li>
+            <li>If the key's value is a simple <tref>string</tref>, the value MUST have the form of
+              <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI. Determine the IRI mapping value by
+              performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
+              mapping is an absolute IRI, merge the key-value pair into the <tref>local context</tref>
+              <tref>term mapping</tref>.</li>
+            <li id="object-context">Otherwise, the key's value MUST be a <tref>JSON object</tref>.
+              <ol class="algorithm">
+                <li>The value MUST have a <code>@id</code> key with a string value, the value MUST have the
+                  form of <tref>term</tref>, <tref>prefix</tref>:suffix, absolute IRI. Determine the IRI mapping value
+                  by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of
+                  the IRI mapping is an absolute IRI, merge the key-value pair into the <tref>local context</tref>
+                  <tref>term mapping</tref>.</li>
+                <li>If the value has a <code>@type</code> key, the value MUST have the form of <tref>term</tref>,
+                  <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Determine the IRI by
+                  performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
+                  IRI mapping is an absolute IRI or <code>@id</code>, merge into the <tref>local context</tref>
+                  <tref>coercion mapping</tref>.</li>
+                <li>If the value has a <code>@list</code> key, the value MUST be
+                  <code>true</code> or <code>false</code>. Merge into the <tref>local context</tref> <tref>list
+                  mapping</tref>.</li>
+              </ol>
+            </li>
+            <li>If the <tref>local context</tref> is not empty, merge the of <tref>local context</tref>
+              into the <tref>active context</tref>. Set <tref>local context</tref> to a new empty context and repeat
+              the <a href="#object-context">Step 3.2</a> until no entries are added to the <tref>local
+              context</tref>.</li>
           </ol>
         </li>
       </ol>
     </li>
-    <li>Merge the of <tref>local context</tref>'s <tref>coercion mapping</tref> into  the
-      <tref>active context</tref>'s <tref>coercion mapping</tref>.</li>
-    <li>Merge the of <tref>local context</tref>'s <tref>list mapping</tref> into  the
-      <tref>active context</tref>'s <tref>list mapping</tref>.</li>
   </ol>
   
-  <p class="note">Rules for looking up <code>@type</code> coercion is performed
-    after merging local term definitions into the <tref>active context</tref>. This allows datatype
-    IRIs to be specified using <tref>term</tref> or <tref>prefix</tref> defined within the same context.</p>
+  <p class="issue"><a href="https://github.com/json-ld/json-ld.org/issues/43">Issue 43</a>
+    concerns performing IRI expansion in the key position of a context definition.</p>
 </section>
 
 <section>
@@ -2516,8 +2518,6 @@ Conformant implementations are only required to produce the same type and
 number of triples during the output process and are not required to
 implement the algorithm exactly as described.
 </p>
-
-<p class="issue">The RDF Conversion Algorithm is a work in progress.</p>
 
 <section class="informative">
   <h4>Overview</h4>
