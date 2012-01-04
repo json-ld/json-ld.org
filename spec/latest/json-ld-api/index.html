@@ -661,7 +661,7 @@ language-native data structures MUST be used where applicable.</p>
 <section>
   <h2>Syntax Tokens and Keywords</h2>
 
-  <p>JSON-LD specifies a number of syntax tokens and keywords that are using
+  <p>JSON-LD specifies a number of syntax tokens and <tdef>keyword</tdef>s that are using
   in all algorithms described in this section:</p>
 
   <dl>
@@ -714,7 +714,7 @@ language-native data structures MUST be used where applicable.</p>
     <dt><tdef>local context</tdef></dt>
     <dd>
       a context that is specified within a <tref>JSON object</tref>,
-      specified via the <code>@context</code> keyword.
+      specified via the <code>@context</code> <tref>keyword</tref>.
     </dd>
     <dt><tdef>processor state</tdef></dt>
     <dd>
@@ -806,7 +806,7 @@ language-native data structures MUST be used where applicable.</p>
                   the IRI mapping is an absolute IRI, merge the key-value pair into the <tref>local context</tref>
                   <tref>term mapping</tref>.</li>
                 <li>If the value has a <code>@type</code> key, the value MUST have the form of <tref>term</tref>,
-                  <tref>prefix</tref>:suffix, absolute IRI or the keyword <code>@id</code>. Determine the IRI by
+                  <tref>prefix</tref>:suffix, absolute IRI or the <tref>keyword</tref> <code>@id</code>. Determine the IRI by
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
                   IRI mapping is an absolute IRI or <code>@id</code>, merge into the <tref>local context</tref>
                   <tref>coercion mapping</tref>.</li>
@@ -994,7 +994,6 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Expansion Algorithm</h3>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
 <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
   and a <em>value</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
   context</tref>, <tref>active property</tref> is set to nil, and <em>value</em> is set to the <tref>JSON-LD
@@ -1013,7 +1012,7 @@ language-native data structures MUST be used where applicable.</p>
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
           <li>Otherwise, if the key is <code>@literal</code>, the value MUST be a <tref>string</tref> and
             is not subject to further expansion.</li>
-          <li>Otherwise, if the key is not a keyword, expand the key according to
+          <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
             <a href="#iri-expansion">IRI Expansion</a> rules and set as <tref>active property</tref>.</li>
           <li>If the value is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
             expansion, replace the value with a new key-value key where the key is <code>@list</code> and value
@@ -1106,22 +1105,52 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Compaction Algorithm</h3>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+<p>The algorithm takes two input variables: an <tref>active property</tref>,
+  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to nil, and <em>value</em> is
+  set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
+    the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
+    applied. The <tref>active context</tref> to the given context.</p>
+
 
 <ol class="algorithm">
-  <li>Perform the <a href="#expansion-algorithm">Expansion Algorithm</a> on
-  the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly applied.</li>
-  <li>Set the <tref>active context</tref> to the given context.</li>
-  <li>If the top-level item is an <tref>array</tref>, process each item in the <tref>array</tref>
-    recursively, starting at this step.</li>
-  <li>If the top-level item is an object, compress each key using the steps
-    defined in <a href="#iri-compaction">IRI Compaction</a> and compress each
-    value using the steps defined in
-    <a href="#value-compaction">Value Compaction</a>.</li>
+  <li>If <em>value</em> is an <tref>array</tref>, process each item in <em>value</em> recursively
+    using this algorithm, passing a copy of the <tref>active property</tref>.</li>
+  <li>Otherwise, if <em>value</em> is an object, for each key and value in <em>value</em>
+    <ol class="algorithm">
+      <li>If the key is <code>@id</code> or <code>@type</code>
+        <ol class="algorithm">
+          <li>If the value of the key is a <tref>string</tref>,
+            the compacted value is the result of performing <a href="#iri-compaction">IRI Compaction</a>
+            on the value.</li>
+          <li>Otherwise, the compacted value is the result of performing this algorithm on the value
+            with the current <tref>active property</tref>.</li>
+        </ol>
+      </li>
+      <li>Otherwise:
+        <ol class="algorithm">
+          <li>If the key is not a <tref>keyword</tref>, set as <tref>active property</tref> and
+            compact according to <a href="#iri-compaction">IRI Compaction</a>.
+          <li>If the value is an object
+            <ol class="algorithm">
+              <li>If the value contains only an <code>@id</code> key or the value contains a
+                <code>@literal</code> key, the compacted value is the result of performing
+                <a href="#value-compaction">Value Compaction</a> on the value.</li>
+              <li>Otherwise, if the value contains only a <code>@list</code> key, and the
+                <tref>active property</tref> is subject to list coercion, the compacted value is the result of
+                performing this algorithm on that value.</li>
+              <li>Otherwise, the compacted value is the result of performing this algorithm on the value.</li>
+            </ol>
+          </li>
+          <li>Otherwise, if the value is an <tref>array</tref>, the compacted value is the result of
+            performing this algorithm on the value.</li>
+          <li>Otherwise, the value is already compacted.
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>Otherwise, the compacted value is the <em>value</em>.</li>
 </ol>
 </section>
-
-<p class="issue">What are the implications for compacting lists?</p>
 
 </section>
 
@@ -1343,10 +1372,10 @@ language-native data structures MUST be used where applicable.</p>
     <tdef>match frame</tdef>:
     <ol class="algorithm">
       <li>If the <tref>match frame</tref> contains an <code>@embed</code>
-        keyword, set the <tref>object embed flag</tref> to its value.
+        <tref>keyword</tref>, set the <tref>object embed flag</tref> to its value.
         If the <tref>match frame</tref> contains an <code>@explicit</code>
-        keyword, set the <tref>explicit inclusion flag</tref> to its value.
-        Note: if the keyword exists, but the value is neither
+        <tref>keyword</tref>, set the <tref>explicit inclusion flag</tref> to its value.
+        Note: if the <tref>keyword</tref> exists, but the value is neither
         <code>true</code> or <code>false</code>, set the associated flag to
         <code>true</code>.</li>
       <li>If the <tref>object embed flag</tref> is cleared and the item has
@@ -1364,7 +1393,7 @@ language-native data structures MUST be used where applicable.</p>
             then delete any key from the item that does not exist in the
             <tref>match frame</tref>, except <code>@id</code>.</li>
           <li>For each key in the <tref>match frame</tref>, except for
-            keywords and <code>rdf:type</code>:
+            <tref>keyword</tref>s and <code>rdf:type</code>:
           <ol class="algorithm">
             <li>If the key is in the item, then build a new
               <tdef>recursion input list</tdef> using the object or objects
@@ -1391,14 +1420,14 @@ language-native data structures MUST be used where applicable.</p>
                   from the array as the <tdef>property frame</tdef>, otherwise
                   set the <tref>property frame</tref> to an empty object.</li>
                 <li>If the <tref>property frame</tref> contains an
-                <code>@omitDefault</code> keyword, set the
+                <code>@omitDefault</code> <tref>keyword</tref>, set the
                 <tref>omit missing properties flag</tref> to its value.
-                Note: if the keyword exists, but the value is neither
+                Note: if the <tref>keyword</tref> exists, but the value is neither
                 <code>true</code> or <code>false</code>, set the associated
                 flag to <code>true</code>.</li>
                 <li>If the <tref>omit missing properties flag</tref> is set,
                   delete the key in the item. Otherwise, if the
-                  <code>@default</code> keyword is set in the
+                  <code>@default</code> <tref>keyword</tref> is set in the
                   <tref>property frame</tref> set the item's value to the value
                   of <code>@default</code>.</li>
               </ol>
@@ -2609,8 +2638,8 @@ implement the algorithm exactly as described.
           described in <a href="#context">Context</a>.
         </li>
         <li>
-          Create a copy of the current <tref>JSON object</tref>, changing keys that map to JSON-LD keywords
-          with those keywords. Use the new <tref>JSON object</tref> in subsequent steps.
+          Create a copy of the current <tref>JSON object</tref>, changing keys that map to JSON-LD <tref>keyword</tref>s
+          with those <tref>keyword</tref>s. Use the new <tref>JSON object</tref> in subsequent steps.
         </li>
         <li>
           If the <tref>JSON object</tref> has a <code>@literal</code> key, set the <tref>active object</tref>
