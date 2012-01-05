@@ -1,144 +1,87 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <title>The JSON-LD Test Harness (Crazy Ivan)</title>
-  <link rel="stylesheet" type="text/css" href="css/screen.css" />
-  <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
-  <script type="text/javascript" src="crazyivan.js"></script>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
+  <title>JSON-LD - Test Suite</title>
+  <link href="../site.css" rel="stylesheet" type="text/css" /> 
+  <link rel="shortcut icon" href="../favicon.ico" /> 
 </head>
+<body>
+  <div id="container"> 
+     <div id="header"> 
+        <span class="col"> 
+           <img class="banner" src="../images/json-ld-logo-1.png" />
+           <img class="banner" src="../images/json-ld-logo-2.png" />
+           <img class="banner" src="../images/json-ld-logo-3.png" />
+           <h1>Test Suite</h1>
+        </span> 
+     </div> 
 
-<body onload="javascript:updateConfigurationDisplay();retrieveUnitTests()">
+     <div id="content"> 
+        <div class="breadcrumbs"><a href="../">JSON-LD</a> &gt; Test Suite</div>
+        <h2 id="introduction">Introduction</h2>
 
-<h1 style="text-align: center;">JSON-LD Test Suite</h1>
+        <p>The JSON-LD Test Suite is a set of tests that can 
+        be used to verify JSON-LD Processor conformance to the set of specifications
+        that constitute JSON-LD. The goal of the suite is to provide an easy and 
+        comprehensive JSON-LD testing solution for developers creating JSON-LD Processors.</p>
 
-<h2>Overview</h2>
-<noscript>
-<p>WARNING: You need Javascript enabled to use this web page!</p>
-</noscript>
-<p>
-The JSON-LD Test Suite provides an interactive mechanism to check the 
-conformance of an JSON-LD processor and SPARQL query engine. 
-This service is intended for anybody that wants to see how JSON-LD works as 
-well as developers that want to do conformance testing on their own 
-JSON-LD/SPARQL implementations.
-</p>
-<p>
-There are several things that you can do on this web page:
-</p>
+        <h2 id="design">Design</h2>
 
-<ul>
- <li>To run a unit test, click on the [TEST] link.</li>
- <li>To see the details of a unit test, click on the [show details] link.</li>
- <li>You can execute every unit test by clicking on the 
-   [Run All Unit Tests] button.</li>
- <li>You can modify the Test Suite, Approval Status, JSON-LD Extractor Service 
-   and SPARQL Engine URLs.</li>
-</ul>
+        <p>Tests are defined into <em>compact</em>, <em>expand</em>, <em>frame</em>, <em>normalize</em>, and <em>rdf</em> sections:
+        * <em>compact</em> tests have <em>input</em>, <em>expected</em> and <em>context</em> documents. The <em>expected</em> results
+          can be compared using JSON object comparison with the processor output.
+        * <em>expand</em> tests have <em>input</em> and <em>expected</em> documents. The <em>expected</em> results
+          can be compared using JSON object comparison with the processor output.
+        * <em>expand</em> tests have <em>input</em> and <em>expected</em> documents. The <em>expected</em> results
+          can be compared using JSON object comparison with the processor output.
+        * <em>frame</em> tests have <em>input</em>, <em>frame</em> and <em>expected</em> documents. The <em>expected</em> results
+          can be compared using JSON object comparison with the processor output.
+        * <em>normalize</em> tests have <em>input</em> and <em>expected</em> documents. The <em>expected</em> results
+          can be compared using string comparison with the processor output.
+        * <em>rdf</em> tests have <em>input</em> and <em>sparql</em> documents. The results are tested
+          by performing the RDF conversion and using this as the default document for an <code>ASK</code> query
+          contained within the <em>sparql</em> document using a SPARQL endpoint. The end result is a
+          yes/no on whether the expected triples were extracted by the JSON-LD processor.</p>
 
-<h2>Status</h2>
-<ul>
-<li>These tests are in active development by the 
-<a href="http:fixme">JSON-LD Working Group</a> at
-  the <a href="http://www.w3c.org">World Wide Web Consortium</a>.</li>
-<li>These tests may be used to check conformance for an JSON-LD processor.</li>
-<li>The tests are subject to change at any point between now and June 2011.</li>
-<li>All bugs, suggestions and thoughts about The JSON-LD Test Suite
-  should be sent to the 
-  <a href="http://lists.w3.org/Archives/Public/public-linked-json/">
-  JSON-LD Working Group mailing list</a>.</li>
-</ul>
+        <h2 id="contributing">Contributing</h2>
 
-<h2>Configuration</h2>
+        <p>If you would like to contribute a new test or a fix to an existing test,
+        please follow these steps:</p>
 
-<form action="crazyivan.py" method="get">
-<div class="form-input">
-<p>
-Test Suite: 
-<select id="test-suite-selection"
-        onchange="javascript:updateConfigurationDisplay();retrieveUnitTests()">
-  <option value="json-ld">JSON-LD</option>
-</select>
-<span id="test-suite-selection-value"></span>
-</p>
-<p>
-RDFa extractor URL: 
-<select id="jsonld-extractor-selection"
-        onchange="javascript:updateConfigurationDisplay()">
-  <option value="RDF.rb">RDF.rb (rdf.kellogg-assoc.com) - Ruby</option>
-  <option value="other">Other JSON-LD Extractor:</option>
-</select>
-<input type="text" id="jsonld-extractor-selection-value" size="32" />
-</p>
-<p>
-SPARQL engine URL: 
-<select id="sparql-engine-selection"
-        onchange="javascript:updateConfigurationDisplay()">
-  <option value="sparqler">SPARQLer (sparql.org)</option>
-  <option value="virtuoso">Virtuoso (openlinksw.com)</option>
-  <option value="graphene">Graphene (rdfa.digitalbazaar.com)</option>
-  <option value="other">Other SPARQL Processor:</option>
-</select>
-<input type="text" id="sparql-engine-selection-value" size="32" />
-</p>
+        <ol>
+        <li>Notify the JSON-LD mailing list, public-linked-json@w3.org, 
+        that you will be creating a new test or fix and the purpose of the
+        change.</li>
+        <li>Clone the git repository: git://github.com/json-ld/json-ld.org.git</li>
+        <li>Make your changes and submit them via github, or via a &#8216;git format-patch&#8217;
+        to the <a href="mailto:public-linked-json@w3.org">JSON-LD mailing list</a>.</li>
+        </ol>
 
-<p>
-<input type="button" onclick="javascript:performAllUnitTests()" value="Run All Unit Tests" />
-</p>
-</div>
-</form>
+        <p>Optionally, you can ask for direct access to the repository and may make
+        changes directly to the JSON-LD Test Suite source code. All updates to the test 
+        suite go live on Digital Bazaar&#8217;s JSON-LD Test Suite site within seconds of 
+        committing changes to github via a WebHook call.</p>
 
-<h2>Test Cases</h2>
-<div id="unit-tests">
-</div>
+        <h2 id="how_to_add_a_unit_test">How to Add a Unit Test</h2>
 
-<!--h1>EARL Report</h1>
+        <p>In order to add a unit test, you must follow these steps:</p>
 
-<p>
-You can generate an EARL report of the currently selected JSON-LD parser by clicking the "Generate EARL Report" button. Make sure that you have run all of the unit tests above by clicking the "Run All Unit Tests" button.
-</p>
-<p>
-<input type="button" onclick="javascript:generateEarlReport()" value="Generate EARL Report" />
-</p>
-<pre id="earl-report">
-</pre-->
+        <ol>
+        <li>Pick a new unit test number. For example - 250. To be consistent, please use
+        the next available unit test number.</li>
+        <li>Create a markup file in the tests/ directory with a .jsonld extension. 
+        For example: tests/rdf-250.jsonld</li>
+        <li>Create a SPARQL query file in the tests/ directory with a .jsonld or .sparql extension.
+        For example: tests/rdf-250.sparql</li>
+        <li>Add your test to manifest.jsonld.</li>
+        </ol>
 
-<h1>Useful JSON-LD Resources</h1>
-<ul>
-  <li>The <a href="http://json-ld.org/">JSON-LD Interest Group</a></li>
- <li>The <a href="http://lists.w3.org/Archives/Public/public-linked-json/">JSON-LD Mailing List</a></li>
- <li>The <a href="http://json-ld.org/spec/latest/">JSON-LD Specification</a></li>
-</ul>
-
-<hr />
-<address>
- Last modified: 2011-05-21, Gregg Kellogg
-</address>
-
-<p><a rel="Copyright"
-href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a>
-&copy; 1994-2007 <a href="http://www.w3.org/"><acronym
-title="World Wide Web Consortium">W3C</acronym></a><sup>&reg;</sup> (<a
-href="http://www.csail.mit.edu/"><acronym
-title="Massachusetts Institute of Technology">MIT</acronym></a>, <a
-href="http://www.ercim.org/"><acronym
-title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>,
-<a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a
-href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
-<a
-href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a>,
-<a rel="Copyright"
-href="http://www.w3.org/Consortium/Legal/copyright-documents">document
-use</a> and <a rel="Copyright"
-href="http://www.w3.org/Consortium/Legal/copyright-software">software
-licensing</a> rules apply. Your interactions with this site are in accordance
-with our <a
-href="http://www.w3.org/Consortium/Legal/privacy-statement#Public">public</a>
-and <a
-href="http://www.w3.org/Consortium/Legal/privacy-statement#Members">Member</a>
-privacy statements.</p>
-
+        <p>The test suite is designed to empower JSON-LD processor maintainers to create
+        and add tests as they see fit. This may mean that the test suite may become
+        unstable from time to time, but this approach has been taken so that the 
+        long-term goal of having a comprehensive test suite for JSON-LD can be achieved
+        by the JSON-LD community.</p>
+</div></div></div>
 </body>
 </html>
