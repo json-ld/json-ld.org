@@ -668,11 +668,11 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
   <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
-  <dt><code>@literal</code></dt><dd>Used to specify a literal value.</dd>
+  <dt><code>@value</code></dt><dd>Used to specify the value of a literal.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subject or the datatype of a literal.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <tref>prefix</tref> mechanism.</dd>
   </dl>
-  
+
   <p>All JSON-LD tokens and keywords are case-sensitive.</p>
 </section>
 
@@ -823,7 +823,7 @@ language-native data structures MUST be used where applicable.</p>
       </ol>
     </li>
   </ol>
-  
+
   <p class="note">It can be difficult to distinguish between a <code>prefix:suffix</code> and an absolute IRI,
     as a <tref>prefix</tref> may seem to be a valid IRI <em>scheme</em>. When performing repeated IRI expansion,
     a term used as a prefix may not have a valid mapping due to dependencies in resolving term definitions. By
@@ -887,11 +887,11 @@ language-native data structures MUST be used where applicable.</p>
     are required to be expanded at times when processing JSON-LD documents.
   </p>
 
-  <p>The algorithm for expanding a value <em>value</em> takes an <tref>active property</tref>
+  <p>The algorithm for expanding a <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
     <ol class="algorithm">
       <li>If <em>value</em> is <tref>true</tref>, <tref>false</tref> or <tref>number</tref>, expand the value by
-        adding a two new key-value pairs. The first key-value pair will be <code>@literal</code> and
+        adding a two new key-value pairs. The first key-value pair will be <code>@value</code> and
         the string representation of <em>value</em>. The second key-value pair will be <code>@type></code>,
         and the expanded version of <code>xsd:boolean</code>, <code>xsd:integer</code>, or <code>xsd:double</code>,
         depending on <em>value</em>.
@@ -900,11 +900,11 @@ language-native data structures MUST be used where applicable.</p>
         key is <code>@id</code> and the value is the expanded IRI according to the <a href="#iri-expansion">IRI
         Expansion</a> rules.</li>
       <li>Otherwise, if <tref>active property</tref> is the target of typed literal coercion,
-        expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@literal</code>
+        expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
         and the unexpanded value. The second key-value pair will be <code>@type</code> and the associated coercion
         datatype expanded according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-      <li>Otherwise, if the <tref>active context</tref> has a <code>@language</code>, 
-        expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@literal</code>
+      <li>Otherwise, if the <tref>active context</tref> has a <code>@language</code>,
+        expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
         and the unexpanded value. The second key-value pair will be <code>@language</code> and value of
         <code>@language</code> from the <tref>active context</tref>.</li> <li>Otherwise, <em>value</em> is already
         expanded.</li>
@@ -923,7 +923,7 @@ language-native data structures MUST be used where applicable.</p>
     and <tref>active context</tref>. It is implemented as follows:</p>
   <ol class="algorithm">
     <li>If the value may be expressed as <tref>true</tref>, <tref>false</tref> or <tref>number</tref>,
-      the value is the native representation of the <code>@literal</code> value.</li>
+      the value is the native representation of the <code>@value</code> value.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a coercion target for the
       key that matches the expression of the value, compact the value using the
       following steps:
@@ -933,15 +933,15 @@ language-native data structures MUST be used where applicable.</p>
           processed according to the
           <a href="#iri-compaction">IRI Compaction</a> steps.</li>
         <li>If the coercion target is a typed literal, the compacted
-          value is the value associated with the <code>@literal</code> key.</li>
+          value is the value associated with the <code>@value</code> key.</li>
       </ol>
     </li>
     <li>Otherwise, if <em>value</em> contains an <code>@id</code> key, the compacted value is <em>value</em> with
       the value of <code>@id</code> processed according to the
       <a href="#iri-compaction">IRI Compaction</a> steps.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a <code>@language</code>, which
-      matches the <code>@language</code> of the value, or the value has only a <code>@literal</code> key, the compacted
-      value is the value associated with the <code>@literal</code> key.</li>
+      matches the <code>@language</code> of the value, or the value has only a <code>@value</code> key, the compacted
+      value is the value associated with the <code>@value</code> key.</li>
     <li>Otherwise, if the value contains a <code>@type</code> key, the compacted value
       is <em>value</em> with the <code>@type</code> value processed according to the
       <a href="#iri-compaction">IRI Compaction</a> steps.</li>
@@ -1010,7 +1010,7 @@ language-native data structures MUST be used where applicable.</p>
         <ol class="algorithm">
           <li>If the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the key is <code>@literal</code>, the value MUST be a <tref>string</tref> and
+          <li>Otherwise, if the key is <code>@value</code>, the value MUST be a <tref>string</tref> and
             is not subject to further expansion.</li>
           <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
             <a href="#iri-expansion">IRI Expansion</a> rules and set as <tref>active property</tref>.</li>
@@ -1133,7 +1133,7 @@ language-native data structures MUST be used where applicable.</p>
           <li>If the value is an object
             <ol class="algorithm">
               <li>If the value contains only an <code>@id</code> key or the value contains a
-                <code>@literal</code> key, the compacted value is the result of performing
+                <code>@value</code> key, the compacted value is the result of performing
                 <a href="#value-compaction">Value Compaction</a> on the value.</li>
               <li>Otherwise, if the value contains only a <code>@list</code> key, and the
                 <tref>active property</tref> is subject to list coercion, the compacted value is the result of
@@ -1953,7 +1953,7 @@ contains deterministically named and expanded nodes from the graph.</p>
   <li>If both values are literals:
     <ol class="algorithm">
       <li>The lexicographically lesser string associated with
-        <code>@literal</code> is first.
+        <code>@value</code> is first.
       </li>
       <li>The lexicographically lesser string associated with
         <code>@type</code> is first.
@@ -2417,24 +2417,24 @@ has been assigned a particular <tref>serialization label</tref>.
             <code>&lt;</code><strong>IRI</strong><code>&gt;</code>
             where <strong>IRI</strong> is the value associated with the
             <code>@id</code> key.</li>
-          <li>If the object contains a <code>@literal</code> key and a
+          <li>If the object contains a <code>@value</code> key and a
             <code>@type</code> key, build the <tref>object string</tref>
             using the pattern
-            <code>"</code><strong>LITERAL</strong><code>"^^&lt;</code><strong>DATATYPE</strong><code>&gt;</code>
-            where <strong>LITERAL</strong> is the value associated with the
-            <code>@literal</code> key and <strong>DATATYPE</strong> is the
+            <code>"</code><strong>VALUE</strong><code>"^^&lt;</code><strong>DATATYPE</strong><code>&gt;</code>
+            where <strong>VALUE</strong> is the value associated with the
+            <code>@value</code> key and <strong>DATATYPE</strong> is the
             value associated with the <code>@type</code> key.</li>
-          <li>If the object contains a <code>@literal</code> key and a
+          <li>If the object contains a <code>@value</code> key and a
             <code>@language</code> key, build the <tref>object string</tref>
             using the pattern
-            <code>"</code><strong>LITERAL</strong><code>"@</code><strong>LANGUAGE</strong>
-            where <strong>LITERAL</strong> is the value associated with the
-            <code>@literal</code> key and <strong>LANGUAGE</strong> is the
+            <code>"</code><strong>VALUE</strong><code>"@</code><strong>LANGUAGE</strong>
+            where <strong>VALUE</strong> is the value associated with the
+            <code>@value</code> key and <strong>LANGUAGE</strong> is the
             value associated with the <code>@language</code> key.</li>
           <li>Otherwise, the value is a string. Build the
             <tref>object string</tref> using the pattern
-            <code>"</code><strong>LITERAL</strong><code>"</code>
-            where <strong>LITERAL</strong> is the value associated with the
+            <code>"</code><strong>VALUE</strong><code>"</code>
+            where <strong>VALUE</strong> is the value associated with the
             current key.</li>
           <li>If this is the second iteration of the loop,
             append a <code>|</code> separator character to the
@@ -2642,7 +2642,7 @@ implement the algorithm exactly as described.
           with those <tref>keyword</tref>s. Use the new <tref>JSON object</tref> in subsequent steps.
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@literal</code> key, set the <tref>active object</tref>
+          If the <tref>JSON object</tref> has a <code>@value</code> key, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
             <li>
