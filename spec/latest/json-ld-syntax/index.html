@@ -328,8 +328,7 @@ allows to easily add meaning by adding context in a way that is either in-band o
 out-of-band. The syntax is designed to not disturb already deployed systems
 running on JSON, but provide a smooth upgrade path from JSON to JSON with
 added semantics. Finally, the format is intended to be easy to parse, efficient to
-generate, convertible to RDF in one pass, and require a very small memory footprint
-in order to operate.
+generate, and require a very small memory footprint in order to operate.
 </p>
 
 <section>
@@ -357,22 +356,7 @@ To understand the basics in this specification you must first be familiar with
 JSON, which is detailed in [[!RFC4627]]. To understand the API and how it is
 intended to operate  in a programming environment, it is useful to have working
 knowledge of the JavaScript programming language [[ECMA-262]] and
-WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
-familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
-
-<p>
-  Examples may contain references to existing vocabularies and use <tref>prefix</tref>es to refer to Web Vocabularies. The following is a list of all vocabularies and their <tref>prefix</tref> abbreviations, as used in this document:
-</p>
-<ul>
-  <li>The <a href="http://purl.org/dc/terms/">Dublin Core</a>
-  vocabulary (abbreviation: <code>dc</code>, e.g., <code>dc:title</code>)</li>
-  <li>The <a href="http://xmlns.com/foaf/0.1/">Friend of a Friend</a>
-  vocabulary (abbreviation: <code>foaf</code>, e.g., <code>foaf:knows</code>)</li>
-  <li>The <a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#">RDF</a>
-  vocabulary (abbreviation: <code>rdf</code>, e.g., <code>rdf:type</code>)</li>
-  <li>The <a href="http://www.w3.org/2001/XMLSchema#">XSD</a>
-  vocabulary (abbreviation: <code>xsd</code>, e.g., <code>xsd:integer</code>)</li>
-</ul>
+WebIDL [[!WEBIDL]].</p>
 
 <p>
   JSON [[RFC4627]] defines several terms which are used throughout this document:
@@ -500,8 +484,8 @@ markup language:
  </dd>
  <dt>One-pass Processing</dt>
  <dd>JSON-LD supports one-pass processing, which results in a very small memory
- footprint when processing documents. For example, to convert a JSON-LD document
- into an RDF document of any kind, only one pass is required over the data.</dd>
+ footprint when processing documents. For example, to expand a JSON-LD document
+ from a compacted form, only one pass is required over the data.</dd>
 </dl>
 </section>
 
@@ -936,17 +920,6 @@ triple of the form (subject, type, type-iri).</p>
 }
 -->
 </pre>
-
-<p>The example above would generate the following triple if the JSON-LD
-document is mapped to RDF (in N-Triples notation):</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/people#joebob>
-   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-      <http://xmlns.com/foaf/0.1/Person> .
--->
-</pre>
 </section>
 
 <section>
@@ -1065,13 +1038,19 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 -->
 </pre>
 
-<p>The example above would generate the following triple:</p>
+<p>The example above is really just a short-and for the following:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/age>
-      "31"^^<http://www.w3.org/2001/XMLSchema#integer> .
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "age": ****{
+    "@value": "31",
+    "@type": "http://www.w3.org/2001/XMLSchema#integer"
+  }****
+...
+}
 -->
 </pre>
 
@@ -1194,8 +1173,8 @@ form for objects:</p>
   -->
   </pre>
   <p>
-    This describes the use of this <tref>array</tref> as being ordered, and order is maintained through normalization
-    and RDF conversion as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a list, this
+    This describes the use of this <tref>array</tref> as being ordered, and order is maintained through
+    alternate representations as described in [[JSON-LD-API]]. If every use of a given multi-valued property is a list, this
     may be abbreviated by adding an <code>@type</code> <tref>coercion</tref>:
   </p>
   <pre class="example" data-transform="updateExample">
@@ -1219,11 +1198,6 @@ form for objects:</p>
     The value of this key, if present, MUST be <code>true</code>.
     This indicates that array values of keys coerced as <code>@list</code> are to be serialized
     as a <a href="#rdf-collection">List</a>.</p>
-
-  <p>
-    In RDF, a list is described as an <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF
-    Collection</a></cite> as defined in [[!RDF-SCHEMA]].
-  </p>
 </section>
 
 </section>
@@ -1561,7 +1535,6 @@ expanded literal value:</p>
 <!--
 {
   "@context": {
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     ****"xsd": "http://www.w3.org/2001/XMLSchema#"****,
     "name": "http://xmlns.com/foaf/0.1/name",
     "age": {"@id": "http://xmlns.com/foaf/0.1/age", "@type": ****"xsd:integer"****},
@@ -1581,7 +1554,6 @@ expanded literal value:</p>
   "@context":
   {
     ****"foaf": "http://xmlns.com/foaf/0.1/"****,
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": ****"foaf:name"****,
     "age": {"@id": ****"foaf:age"****, "@type": xsd:integer"},
@@ -1663,8 +1635,8 @@ to a language native type.
 <p>JSON-LD supports the coercion of values to particular data types.
 Type <tdef>coercion</tdef> allows someone deploying JSON-LD to coerce the incoming or
 outgoing types to the proper data type based on a mapping of data type <tref>IRI</tref>s to
-property types. Using type coercion, one may convert simple JSON data to
-properly typed RDF data.</p>
+property types. Using type coercion, value representation is preserved without requiring
+the data type to be specified with each usage.</p>
 
 <p>Type coercion is specified within an <a href="#expanded-term-definition">expanded term definition</a>
   using the <code>@type</code> key. The values of this key represent datatype IRIs and MUST take the form of
@@ -1683,7 +1655,6 @@ properly typed RDF data.</p>
 {
   "@context":
   {
-     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
      "xsd": "http://www.w3.org/2001/XMLSchema#",
      "name": "http://xmlns.com/foaf/0.1/name",
      "age": ****{"@id": "http://xmlns.com/foaf/0.1/age", "@type": "xsd:integer"}****,
@@ -1700,8 +1671,7 @@ properly typed RDF data.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-@prefix rdf: <> .
-@prefix xsd: <> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 [ foaf:name "John Smith";
   foaf:age  "41"^^xsd:integer;
