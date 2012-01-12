@@ -571,6 +571,9 @@ de-referenceable.
         no errors. If the compaction fails, <code>null</code> MUST be returned.
         The output is the serialized representation returned from the
         <a href="#normalization-algorithm">Normalization Algorithm</a>.
+        <span class="issue">It's still an open question if the result is a DOMString
+          representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
+          which is in normalized form.</span>
         <dl class="parameters">
           <dt>object input</dt>
           <dd>The JSON-LD object to perform normalization upon.</dd>
@@ -1323,10 +1326,6 @@ language-native data structures MUST be used where applicable.</p>
   <tref>JSON-LD output</tref>. The following series of steps is the recursive
   portion of the framing algorithm:</p>
 
-<p class="issue">Doubtful that the Framing Algorithm requires the
-  <a href="#normalization-algorithm">Normalization Algorithm</a>
-  any longer, perhaps needs to be a <em>Flattening Algorithm</em> instead.</p>
-
 <ol class="algorithm">
   <li>Initialize the <tref>framing context</tref> by setting the
     <tref>object embed flag</tref>, clearing the
@@ -1466,10 +1465,7 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>Normalization is the process of taking <tref>JSON-LD input</tref> and
   performing a deterministic transformation on that input that results in
-  a normalized and serialized RDF representation.
-  The normalized output is generated in such a way
-  that any conforming JSON-LD (or other RDF) processor will generate identical serialized output
-  given the same input.</p>
+  a normalized and serialized JSON-LD representation.</p>
 
 <p>Normalization is achieved by transforming <tref>JSON-LD input</tref> to RDF,
   as described in <a href="#rdf-conversion">RDF Conversion</a>, invoking the normalization procedure
@@ -1513,25 +1509,93 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>The example below is the normalized form of the JSON-LD document above:</p>
 
+<p class="note">Whitespace is used below to aid readability. The normalization
+  algorithm for JSON-LD removes all unnecessary whitespace in the fully
+  normalized form.</p>
+<p class="issue">Not clear that whitespace must be normalized, as the JSON-LD
+  representation can't be used directly to create a signature, but would be based
+  on the serialized result of [[!RDF-NORMALIZATION]].</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
-_:c14n0 <http://xmlns.com/foaf/0.1/homepage> <http://manu.sporny.org/> .
-_:c14n0 <http://xmlns.com/foaf/0.1/name> "Manu Sporny" .
+[{
+  "@id": "_:c14n0",
+  "http://xmlns.com/foaf/0.1/homepage": {
+    "@id": "http://manu.sporny.org/"
+  },
+  "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
+}]
 -->
 </pre>
 
+<p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
+  alphabetical order. Also, notice how the <tref>subject</tref> has been labeled with a
+  named <tref>blank node</tref>. Normalization ensures that any arbitrary graph
+  containing exactly the same information would be normalized to exactly the same form
+  shown above.</p>
 <section>
 <h3>Normalization Algorithm</h3>
 
 <p>The normalization algorithm transforms the <tref>JSON-LD input</tref>
-  into RDF, normalizes it according to [[!RDF-NORMALIZATION]]. The result
-  is a serialized representation that represents a deterministically
-  RDF graph.</p>
+  into RDF, normalizes it according to [[!RDF-NORMALIZATION]] and then
+  transforms back to JSON-LD. The result is an object representation that
+  deterministically represents a RDF graph.</p>
 
 <ol class="algorithm">
   <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
     the <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>.</li>
-  <li>Return the result of [[!RDF-NORMALIZATION]] on that RDF.</li>
+  <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create a serialized N-Triples
+    representation of the RDF graph.</li>
+  <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
+  <li>For each triple in the N-Triples document having <em>subject</em>, <em>predicate</em>,
+    and <em>object</em>:
+    <ol class="algorithm">
+      <li>If <em>predicate</em> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#first</code>,
+        let <em>object representation</em> be <em>object</em> represented in expanded
+        form as described in <a href="#value-expansion">Value Expansion</a>.
+        <ol class="algorithm">
+          <li>Set <em>value</em> as the last entry in <em>array</em>.</li>
+          <li>If the last entry in <em>value</em> is <em>subject</em>, replace it with
+            the a <tref>JSON object</tref> having a key/value pair of <code>@list</code> and an
+            <tref>array</tref> containing <em>object representation</em>.</li>
+          <li>Otherwise, the last key/value entry in <em>value</em> MUST be a <tref>JSON object</tref>
+            having a single key of <em>@list</em> with a value that is an <tref>array</tref>.
+            Append <em>object representation</em>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, if <em>predicate</em> is
+        <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#rest</code>, ignore this triple.</li>
+      <li>Otherwise, if the last entry in <em>array</em> is not a <tref>JSON Object</tref> with an
+        <code>@id</code> having a value of <em>subject</em>:
+        <ol class="algorithm">
+          <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
+            a string representation of <em>subject</em> and use as <em>value</em>.</li>
+          <li>Otherwise, set <em>value</em> to that value.</li>
+        </ol>
+      </li>
+      <li>If <code>predicate</code> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>:
+        <ol class="algorithm">
+          <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <tref>array</tref>,
+            append the string representation of <tref>object</tref> to that array.</li>
+          <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
+            with a new array containing the existing value and a string representation of
+            <em>object</em>.</li>
+          <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
+            string representation of <em>object</em>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, let <em>key</em> by the string representation of <em>predicate</em> and
+        let <em>object representation</em> be <em>object</em> represented in expanded
+        form as described in <a href="#value-expansion">Value Expansion</a>.</li>
+      <li>If <em>value</em> has an key/value pair of <em>key</em> and an <tref>array</tref>,
+        append <em>object representation</em> to that array.</li>
+      <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
+        with a new array containing the existing value and <em>object representation</em>.</li>
+      <li>Otherwise, create a new entry in value with a key of <em>key</em> and
+        <em>object representation</em>.</li>
+    </ol>
+  </li>
+  <li>Return <em>array</em> as the normalized graph representation.</li>
 </ol>
 </section>
 
