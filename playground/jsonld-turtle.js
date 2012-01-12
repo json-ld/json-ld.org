@@ -3,7 +3,7 @@
  *
  * @author Manu Sporny
  *
- * Copyright (c) 2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2011-2012 Digital Bazaar, Inc. All rights reserved.
  */
 (function()
 {
@@ -105,13 +105,13 @@ function objectToString(obj)
    else if(obj instanceof Object)
    {
       // the object is an IRI, typed literal or language-tagged literal
-      if("@literal" in obj && "@type" in obj)
+      if("@value" in obj && "@type" in obj)
       {
-         rval = "\"" + obj["@literal"] + "\"^^<" + obj["@type"] + ">";
+         rval = "\"" + obj["@value"] + "\"^^<" + obj["@type"] + ">";
       }
-      else if("@literal" in obj && "@language" in obj)
+      else if("@value" in obj && "@language" in obj)
       {
-         rval = "\"" + obj["@literal"] + "\"@" + obj["@language"];
+         rval = "\"" + obj["@value"] + "\"@" + obj["@language"];
       }
       else if("@id" in obj)
       {
