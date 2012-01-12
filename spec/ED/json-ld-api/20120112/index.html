@@ -1,0 +1,2091 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>The JSON-LD API 1.0</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+<!-- 
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+   -->
+
+
+
+<style>
+.diff { font-weight:bold; color:#0a3; }
+ol.algorithm.update { margin-left: 2em; }
+ol.algorithm.update>li { list-style-type: none; }
+ol.algorithm.update>li>span.list-number {
+  display:block;
+  float: left;
+  margin-left: -3.5em;
+}
+</style>
+<style type="text/css">
+/*****************************************************************
+ * ReSpec CSS
+ * Robin Berjon (robin at berjon dot com)
+ * v0.05 - 2009-07-31
+ *****************************************************************/
+
+
+/* --- INLINES --- */
+em.rfc2119 { 
+    text-transform:     lowercase;
+    font-variant:       small-caps;
+    font-style:         normal;
+    color:              #900;
+}
+
+h1 acronym, h2 acronym, h3 acronym, h4 acronym, h5 acronym, h6 acronym, a acronym,
+h1 abbr, h2 abbr, h3 abbr, h4 abbr, h5 abbr, h6 abbr, a abbr {
+    border: none;
+}
+
+dfn {
+    font-weight:    bold;
+}
+
+a.internalDFN {
+    color:  inherit;
+    border-bottom:  1px solid #99c;
+    text-decoration:    none;
+}
+
+a.externalDFN {
+    color:  inherit;
+    border-bottom:  1px dotted #ccc;
+    text-decoration:    none;
+}
+
+a.bibref {
+    text-decoration:    none;
+}
+
+code {
+    color:  #ff4500;
+}
+
+
+/* --- WEB IDL --- */
+pre.idl {
+    border-top: 1px solid #90b8de;
+    border-bottom: 1px solid #90b8de;
+    padding:    1em;
+    line-height:    120%;
+}
+
+pre.idl::before {
+    content:    "WebIDL";
+    display:    block;
+    width:      150px;
+    background: #90b8de;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+.idlType {
+    color:  #ff4500;
+    font-weight:    bold;
+    text-decoration:    none;
+}
+
+/*.idlModule*/
+/*.idlModuleID*/
+/*.idlInterface*/
+.idlInterfaceID, .idlDictionaryID {
+    font-weight:    bold;
+    color:  #005a9c;
+}
+
+.idlSuperclass {
+    font-style: italic;
+    color:  #005a9c;
+}
+
+/*.idlAttribute*/
+.idlAttrType, .idlFieldType, .idlMemberType {
+    color:  #005a9c;
+}
+.idlAttrName, .idlFieldName, .idlMemberName {
+    color:  #ff4500;
+}
+.idlAttrName a, .idlFieldName a, .idlMemberName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlMethod*/
+.idlMethType {
+    color:  #005a9c;
+}
+.idlMethName {
+    color:  #ff4500;
+}
+.idlMethName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlParam*/
+.idlParamType {
+    color:  #005a9c;
+}
+.idlParamName {
+    font-style: italic;
+}
+
+.extAttr {
+    color:  #666;
+}
+
+/*.idlConst*/
+.idlConstType {
+    color:  #005a9c;
+}
+.idlConstName {
+    color:  #ff4500;
+}
+.idlConstName a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+}
+
+/*.idlException*/
+.idlExceptionID {
+    font-weight:    bold;
+    color:  #c00;
+}
+
+.idlTypedefID, .idlTypedefType {
+    color:  #005a9c;
+}
+
+.idlRaises, .idlRaises a.idlType, .idlRaises a.idlType code, .excName a, .excName a code {
+    color:  #c00;
+    font-weight:    normal;
+}
+
+.excName a {
+    font-family:    monospace;
+}
+
+.idlRaises a.idlType, .excName a.idlType {
+    border-bottom:  1px dotted #c00;
+}
+
+.excGetSetTrue, .excGetSetFalse, .prmNullTrue, .prmNullFalse, .prmOptTrue, .prmOptFalse {
+    width:  45px;
+    text-align: center;
+}
+.excGetSetTrue, .prmNullTrue, .prmOptTrue { color:  #0c0; }
+.excGetSetFalse, .prmNullFalse, .prmOptFalse { color:  #c00; }
+
+.idlImplements a {
+    font-weight:    bold;
+}
+
+dl.attributes, dl.methods, dl.constants, dl.fields, dl.dictionary-members {
+    margin-left:    2em;
+}
+
+.attributes dt, .methods dt, .constants dt, .fields dt, .dictionary-members dt {
+    font-weight:    normal;
+}
+
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code, .dictionary-members dt code {
+    font-weight:    bold;
+    color:  #000;
+    font-family:    monospace;
+}
+
+.attributes dt code, .fields dt code, .dictionary-members dt code {
+    background:  #ffffd2;
+}
+
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code, .dictionary-members dt .idlMemberType code {
+    color:  #005a9c;
+    background:  transparent;
+    font-family:    inherit;
+    font-weight:    normal;
+    font-style: italic;
+}
+
+.methods dt code {
+    background:  #d9e6f8;
+}
+
+.constants dt code {
+    background:  #ddffd2;
+}
+
+.attributes dd, .methods dd, .constants dd, .fields dd, .dictionary-members dd {
+    margin-bottom:  1em;
+}
+
+table.parameters, table.exceptions {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    margin: 0.5em 0;
+    width:  100%;
+}
+table.parameters { border-bottom:  1px solid #90b8de; }
+table.exceptions { border-bottom:  1px solid #deb890; }
+
+.parameters th, .exceptions th {
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+    font-family:    initial;
+    font-weight:    normal;
+    text-shadow:    #666 1px 1px 0;
+}
+.parameters th { background: #90b8de; }
+.exceptions th { background: #deb890; }
+
+.parameters td, .exceptions td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+    vertical-align: top;
+}
+
+.parameters tr:first-child td, .exceptions tr:first-child td {
+    border-top: none;
+}
+
+.parameters td.prmName, .exceptions td.excName, .exceptions td.excCodeName {
+    width:  100px;
+}
+
+.parameters td.prmType {
+    width:  120px;
+}
+
+table.exceptions table {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    width:  100%;
+}
+
+/* --- TOC --- */
+.toc a {
+    text-decoration:    none;
+}
+
+a .secno {
+    color:  #000;
+}
+
+/* --- TABLE --- */
+table.simple {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    border-bottom:  3px solid #005a9c;
+}
+
+.simple th {
+    background: #005a9c;
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+}
+
+.simple th[scope="row"] {
+    background: inherit;
+    color:  inherit;
+    border-top: 1px solid #ddd;
+}
+
+.simple td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+}
+
+.simple tr:nth-child(even) {
+    background: #f0f6ff;
+}
+
+/* --- DL --- */
+.section dd > p:first-child {
+    margin-top: 0;
+}
+
+.section dd > p:last-child {
+    margin-bottom: 0;
+}
+
+.section dd {
+    margin-bottom:  1em;
+}
+
+.section dl.attrs dd, .section dl.eldef dd {
+    margin-bottom:  0;
+}
+
+/* --- EXAMPLES --- */
+pre.example {
+    border-top: 1px solid #ff4500;
+    border-bottom: 1px solid #ff4500;
+    padding:    1em;
+    margin-top: 1em;
+}
+
+pre.example::before {
+    content:    "Example";
+    display:    block;
+    width:      150px;
+    background: #ff4500;
+    color:  #fff;
+    font-family:    initial;
+    padding:    3px;
+    font-weight:    bold;
+    margin: -1em 0 1em -1em;
+}
+
+/* --- EDITORIAL NOTES --- */
+.issue {
+    padding:    1em;
+    margin: 1em 0em 0em;
+    border: 1px solid #f00;
+    background: #ffc;
+}
+
+.issue::before {
+    content:    "Issue";
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #f00;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+.note {
+    margin: 1em 0em 0em;
+    padding:    1em;
+    border: 2px solid #cff6d9;
+    background: #e2fff0;
+}
+
+.note::before {
+    content:    "Note";
+    display:    block;
+    width:  150px;
+    margin: -1.5em 0 0.5em 0;
+    font-weight:    bold;
+    border: 1px solid #cff6d9;
+    background: #fff;
+    padding:    3px 1em;
+}
+
+/* --- Best Practices --- */
+div.practice {
+    border: solid #bebebe 1px;
+    margin: 2em 1em 1em 2em;
+}
+
+span.practicelab {
+    margin: 1.5em 0.5em 1em 1em;
+    font-weight: bold;
+    font-style: italic;
+}
+
+span.practicelab   { background: #dfffff; }
+
+span.practicelab {
+    position: relative;
+    padding: 0 0.5em;
+    top: -1.5em;
+}
+
+p.practicedesc {
+    margin: 1.5em 0.5em 1em 1em;
+}
+
+@media screen {
+    p.practicedesc {
+        position: relative;
+        top: -2em;
+        padding: 0;
+        margin: 1.5em 0.5em -1em 1em;
+    }
+}
+
+/* --- SYNTAX HIGHLIGHTING --- */
+pre.sh_sourceCode {
+  background-color: white;
+  color: black;
+  font-style: normal;
+  font-weight: normal;
+}
+
+pre.sh_sourceCode .sh_keyword { color: #005a9c; font-weight: bold; }           /* language keywords */
+pre.sh_sourceCode .sh_type { color: #666; }                            /* basic types */
+pre.sh_sourceCode .sh_usertype { color: teal; }                             /* user defined types */
+pre.sh_sourceCode .sh_string { color: red; font-family: monospace; }        /* strings and chars */
+pre.sh_sourceCode .sh_regexp { color: orange; font-family: monospace; }     /* regular expressions */
+pre.sh_sourceCode .sh_specialchar { color: 	#ffc0cb; font-family: monospace; }  /* e.g., \n, \t, \\ */
+pre.sh_sourceCode .sh_comment { color: #A52A2A; font-style: italic; }         /* comments */
+pre.sh_sourceCode .sh_number { color: purple; }                             /* literal numbers */
+pre.sh_sourceCode .sh_preproc { color: #00008B; font-weight: bold; }       /* e.g., #include, import */
+pre.sh_sourceCode .sh_symbol { color: blue; }                            /* e.g., *, + */
+pre.sh_sourceCode .sh_function { color: black; font-weight: bold; }         /* function calls and declarations */
+pre.sh_sourceCode .sh_cbracket { color: red; }                              /* block brackets (e.g., {, }) */
+pre.sh_sourceCode .sh_todo { font-weight: bold; background-color: #00FFFF; }   /* TODO and FIXME */
+
+/* Predefined variables and functions (for instance glsl) */
+pre.sh_sourceCode .sh_predef_var { color: #00008B; }
+pre.sh_sourceCode .sh_predef_func { color: #00008B; font-weight: bold; }
+
+/* for OOP */
+pre.sh_sourceCode .sh_classname { color: teal; }
+
+/* line numbers (not yet implemented) */
+pre.sh_sourceCode .sh_linenum { display: none; }
+
+/* Internet related */
+pre.sh_sourceCode .sh_url { color: blue; text-decoration: underline; font-family: monospace; }
+
+/* for ChangeLog and Log files */
+pre.sh_sourceCode .sh_date { color: blue; font-weight: bold; }
+pre.sh_sourceCode .sh_time, pre.sh_sourceCode .sh_file { color: #00008B; font-weight: bold; }
+pre.sh_sourceCode .sh_ip, pre.sh_sourceCode .sh_name { color: #006400; }
+
+/* for Prolog, Perl... */
+pre.sh_sourceCode .sh_variable { color: #006400; }
+
+/* for LaTeX */
+pre.sh_sourceCode .sh_italics { color: #006400; font-style: italic; }
+pre.sh_sourceCode .sh_bold { color: #006400; font-weight: bold; }
+pre.sh_sourceCode .sh_underline { color: #006400; text-decoration: underline; }
+pre.sh_sourceCode .sh_fixed { color: green; font-family: monospace; }
+pre.sh_sourceCode .sh_argument { color: #006400; }
+pre.sh_sourceCode .sh_optionalargument { color: purple; }
+pre.sh_sourceCode .sh_math { color: orange; }
+pre.sh_sourceCode .sh_bibtex { color: blue; }
+
+/* for diffs */
+pre.sh_sourceCode .sh_oldfile { color: orange; }
+pre.sh_sourceCode .sh_newfile { color: #006400; }
+pre.sh_sourceCode .sh_difflines { color: blue; }
+
+/* for css */
+pre.sh_sourceCode .sh_selector { color: purple; }
+pre.sh_sourceCode .sh_property { color: blue; }
+pre.sh_sourceCode .sh_value { color: #006400; font-style: italic; }
+
+/* other */
+pre.sh_sourceCode .sh_section { color: black; font-weight: bold; }
+pre.sh_sourceCode .sh_paren { color: red; }
+pre.sh_sourceCode .sh_attribute { color: #006400; }
+
+</style><style type="text/css">ol.algorithm { counter-reset:numsection; list-style-type: none; }
+ol.algorithm li { margin: 0.5em 0; }
+ol.algorithm li:before { font-weight: bold; counter-increment: numsection; content: counters(numsection, ".") ") "; }
+
+</style><link href="http://www.w3.org/StyleSheets/TR/w3c-unofficial" rel="stylesheet" type="text/css" charset="utf-8" /></head>
+
+<body style="display: inherit; "><div class="head"><p></p><h1 class="title" id="title">The JSON-LD API 1.0</h1><h2 id="subtitle">An Application Programming Interface for the JSON-LD Syntax</h2><h2 id="unofficial-draft-12-january-2012">Unofficial Draft 12 January 2012</h2><dl><dt>Editors:</dt><dd><a href="http://manu.sporny.org/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dd><a href="http://greggkellogg.net/">Gregg Kellogg</a>, <a href="http://kellogg-assoc.com/">Kellogg Associates</a></dd>
+<dd><a href="http://digitalbazaar.com/">Dave Longley</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dt>Authors:</dt><dd><a href="http://digitalbazaar.com/">Dave Longley</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dd><a href="http://digitalbazaar.com/">Manu Sporny</a>, <a href="http://digitalbazaar.com/">Digital Bazaar</a></dd>
+<dd><a href="http://greggkellogg.net/">Gregg Kellogg</a>, <a href="http://kellogg-assoc.com/">Kellogg Associates</a></dd>
+</dl><p>This document is also available in this non-normative format: <a href="diff-20111023.html">diff to previous version</a>.</p><p class="copyright">This document is licensed under a <a class="subfoot" href="http://creativecommons.org/licenses/by/3.0/" rel="license">Creative Commons Attribution 3.0 License</a>.</p><hr /></div>
+<div id="abstract" class="introductory section"><h2>Abstract</h2>
+<p>
+JSON [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC4627">RFC4627</a></cite>] has proven to be a highly useful object serialization and
+messaging format. JSON-LD [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-LD">JSON-LD</a></cite>] harmonizes the representation of
+Linked Data in JSON by outlining a common JSON representation format for
+expressing directed graphs; mixing both Linked Data and non-Linked Data in
+a single document. This document outlines an Application Programming
+Interface and a set of algorithms for programmatically transforming
+JSON-LD documents.
+</p>
+</div><div id="sotd" class="introductory section"><h2>Status of This Document</h2><p>This document is merely a public working draft of a potential specification. It has no official standing of any kind and does not represent the support or consensus of any standards organisation.</p>
+<p>This document is an experimental work in progress.</p>
+
+<!--  <p>
+This document has been reviewed by W3C Members, by software
+developers, and by other W3C groups and interested parties, and is
+endorsed by the Director as a W3C Recommendation. It is a stable
+document and may be used as reference material or cited from another
+document. W3C's role in making the Recommendation is to draw attention
+to the specification and to promote its widespread deployment. This
+enhances the functionality and interoperability of the Web.
+</p>  -->
+
+</div><div id="toc" class="section"><h2 class="introductory">Table of Contents</h2><ul class="toc"><li class="tocline"><a href="#introduction" class="tocxref"><span class="secno">1. </span>Introduction</a><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno">1.1 </span>How to Read this Document</a></li><li class="tocline"><a href="#linked-data" class="tocxref"><span class="secno">1.2 </span>Linked Data</a></li><li class="tocline"><a href="#contributing" class="tocxref"><span class="secno">1.3 </span>Contributing</a></li></ul></li><li class="tocline"><a href="#the-application-programming-interface" class="tocxref"><span class="secno">2. </span>The Application Programming Interface</a><ul class="toc"><li class="tocline"><a href="#jsonldprocessor" class="tocxref"><span class="secno">2.1 </span>JsonLdProcessor</a><ul class="toc"><li class="tocline"><a href="#methods" class="tocxref"><span class="secno">2.1.1 </span>Methods</a></li></ul></li><li class="tocline"><a href="#jsonldtriplecallback" class="tocxref"><span class="secno">2.2 </span>JsonLdTripleCallback</a><ul class="toc"><li class="tocline"><a href="#methods-1" class="tocxref"><span class="secno">2.2.1 </span>Methods</a></li></ul></li></ul></li><li class="tocline"><a href="#algorithms" class="tocxref"><span class="secno">3. </span>Algorithms</a><ul class="toc"><li class="tocline"><a href="#syntax-tokens-and-keywords" class="tocxref"><span class="secno">3.1 </span>Syntax Tokens and Keywords</a></li><li class="tocline"><a href="#algorithm-terms" class="tocxref"><span class="secno">3.2 </span>Algorithm Terms</a></li><li class="tocline"><a href="#context-1" class="tocxref"><span class="secno">3.3 </span>Context</a></li><li class="tocline"><a href="#iri-expansion" class="tocxref"><span class="secno">3.4 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a></li><li class="tocline"><a href="#iri-compaction" class="tocxref"><span class="secno">3.5 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a></li><li class="tocline"><a href="#value-expansion" class="tocxref"><span class="secno">3.6 </span>Value Expansion</a></li><li class="tocline"><a href="#value-compaction" class="tocxref"><span class="secno">3.7 </span>Value Compaction</a></li><li class="tocline"><a href="#expansion" class="tocxref"><span class="secno">3.8 </span>Expansion</a><ul class="toc"><li class="tocline"><a href="#expansion-algorithm" class="tocxref"><span class="secno">3.8.1 </span>Expansion Algorithm</a></li></ul></li><li class="tocline"><a href="#compaction" class="tocxref"><span class="secno">3.9 </span>Compaction</a><ul class="toc"><li class="tocline"><a href="#compaction-algorithm" class="tocxref"><span class="secno">3.9.1 </span>Compaction Algorithm</a></li></ul></li><li class="tocline"><a href="#framing" class="tocxref"><span class="secno">3.10 </span>Framing</a><ul class="toc"><li class="tocline"><a href="#framing-algorithm-terms" class="tocxref"><span class="secno">3.10.1 </span>Framing Algorithm Terms</a></li><li class="tocline"><a href="#framing-algorithm" class="tocxref"><span class="secno">3.10.2 </span>Framing Algorithm</a></li></ul></li><li class="tocline"><a href="#normalization" class="tocxref"><span class="secno">3.11 </span>Normalization</a><ul class="toc"><li class="tocline"><a href="#normalization-algorithm" class="tocxref"><span class="secno">3.11.1 </span>Normalization Algorithm</a></li></ul></li><li class="tocline"><a href="#data-round-tripping" class="tocxref"><span class="secno">3.12 </span>Data Round Tripping</a></li><li class="tocline"><a href="#rdf-conversion" class="tocxref"><span class="secno">3.13 </span>RDF Conversion</a><ul class="toc"><li class="tocline"><a href="#overview" class="tocxref"><span class="secno">3.13.1 </span>Overview</a></li><li class="tocline"><a href="#rdf-conversion-algorithm-terms" class="tocxref"><span class="secno">3.13.2 </span>RDF Conversion Algorithm Terms</a></li><li class="tocline"><a href="#rdf-conversion-algorithm" class="tocxref"><span class="secno">3.13.3 </span>RDF Conversion Algorithm</a></li><li class="tocline"><a href="#list-conversion" class="tocxref"><span class="secno">3.13.4 </span>List Conversion</a></li></ul></li></ul></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno">A. </span>Acknowledgements</a></li><li class="tocline"><a href="#appendix-b" class="tocxref"><span class="secno">B. </span>Initial Context</a></li><li class="tocline"><a href="#references" class="tocxref"><span class="secno">C. </span>References</a><ul class="toc"><li class="tocline"><a href="#normative-references" class="tocxref"><span class="secno">C.1 </span>Normative references</a></li><li class="tocline"><a href="#informative-references" class="tocxref"><span class="secno">C.2 </span>Informative references</a></li></ul></li></ul></div>
+
+
+
+<div id="introduction" class="section">
+
+<!-- OddPage -->
+<h2><span class="secno">1. </span>Introduction</h2>
+
+<p>
+JSON, as specified in [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC4627">RFC4627</a></cite>], is a simple language for representing
+data on the Web. Linked Data is a technique for creating a graph of interlinked data across
+different
+documents or Web sites. Data entities are described using <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>s,
+which are typically dereferencable and thus may be used to find more
+information about an entity, creating a &quot;Web of Knowledge&quot;. JSON-LD is intended to be a simple
+publishing method for expressing not only Linked Data in JSON, but also for adding
+semantics to existing JSON.
+</p>
+
+<p>
+JSON-LD is designed as a light-weight syntax that can be used to express
+Linked Data. It is primarily intended to be a way to use Linked Data
+in Javascript and other Web-based programming environments. It is also
+useful when building interoperable Web services and when storing Linked
+Data in JSON-based document storage engines. It is practical and designed
+to be as simple as possible, utilizing the large number of JSON parsers
+and libraries available today. It is designed to be able to
+express key-value pairs, RDF data, RDFa [<cite><a class="bibref" rel="biblioentry" href="#bib-RDFA-CORE">RDFA-CORE</a></cite>] data, Microformats
+[<cite><a class="bibref" rel="biblioentry" href="#bib-MICROFORMATS">MICROFORMATS</a></cite>] data, and Microdata [<cite><a class="bibref" rel="biblioentry" href="#bib-MICRODATA">MICRODATA</a></cite>]. That is, it supports
+every major Web-based structured data model in use today.
+</p>
+
+<p>
+The syntax does not necessarily require applications to change their JSON, but
+allows to easily add meaning by adding context in a way that is either in-band or
+out-of-band. The syntax is designed to not disturb already deployed systems
+running on JSON, but provide a smooth upgrade path from JSON to JSON with
+added semantics. Finally, the format is intended to be easy to parse, efficient to
+generate, convertible to RDF in one pass, and require a very small memory footprint
+in order to operate.
+</p>
+
+<div id="how-to-read-this-document" class="section">
+<h3><span class="secno">1.1 </span>How to Read this Document</h3>
+
+<p>
+This document is a detailed specification for a serialization of Linked
+Data in JSON. The document is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Authors that want a very detailed view of how JSON-LD processors
+  operate.</li>
+  <li>Software developers that want to implement processors and APIs for
+  JSON-LD.</li>
+</ul>
+
+<p>
+To understand the basics in this specification you must first be familiar with
+JSON, which is detailed in [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC4627">RFC4627</a></cite>]. You must also understand the
+JSON-LD Syntax [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-LD">JSON-LD</a></cite>], which is the base syntax used by all of the
+algorithms in this document. To understand the API and how it is
+intended to operate  in a programming environment, it is useful to have working
+knowledge of the JavaScript programming language [<cite><a class="bibref" rel="biblioentry" href="#bib-ECMA-262">ECMA-262</a></cite>] and
+WebIDL [<cite><a class="bibref" rel="biblioentry" href="#bib-WEBIDL">WEBIDL</a></cite>]. To understand how JSON-LD maps to RDF, it is helpful to be
+familiar with the basic RDF concepts [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS">RDF-CONCEPTS</a></cite>].</p>
+
+<p>
+  Examples may contain references to existing vocabularies and use <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>es to refer to Web Vocabularies. The following is a list of all vocabularies and their <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a> abbreviations, as used in this document:
+</p>
+<ul>
+  <li>The <a href="http://purl.org/dc/terms/">Dublin Core</a>
+  vocabulary (abbreviation: <code>dc</code>, e.g., <code>dc:title</code>)</li>
+  <li>The <a href="http://xmlns.com/foaf/0.1/">Friend of a Friend</a>
+  vocabulary (abbreviation: <code>foaf</code>, e.g., <code>foaf:knows</code>)</li>
+  <li>The <a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#">RDF</a>
+  vocabulary (abbreviation: <code>rdf</code>, e.g., <code>rdf:type</code>)</li>
+  <li>The <a href="http://www.w3.org/2001/XMLSchema#">XSD</a>
+  vocabulary (abbreviation: <code>xsd</code>, e.g., <code>xsd:integer</code>)</li>
+</ul>
+
+<p>
+  JSON [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC4627">RFC4627</a></cite>] defines several terms which are used throughout this document:
+  </p><dl>
+    <dt><dfn title="json_object" id="dfn-json_object">JSON Object</dfn></dt><dd>
+      An object structure is represented as a pair of curly brackets surrounding zero or
+      more name/value pairs (or members). A name is a <a class="tref internalDFN" title="string" href="#dfn-string">string</a>. A single colon comes after
+      each name, separating the name from the value. A single comma separates a value
+      from a following name. The names within an object <em class="rfc2119" title="should">should</em> be unique.
+    </dd>
+    <dt><dfn title="array" id="dfn-array">array</dfn></dt>
+    <dd>
+      An array is an ordered collection of values. An array structure is represented as square brackets surrounding zero or more values (or elements). Elements are separated by commas.  Within JSON-LD, array order is not preserved by default, unless
+      specific markup is provided (see <a href="#lists">Lists</a>). This is because the basic data model of JSON-LD
+      is a <a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">linked data graph</a>, which is inherently unordered.
+    </dd>
+    <dt><dfn title="string" id="dfn-string">string</dfn></dt><dd>
+      A string is a sequence of zero or more Unicode characters, wrapped in double quotes, using backslash escapes. A
+      character is represented as a single character string.
+    </dd>
+    <dt><dfn title="number" id="dfn-number">number</dfn></dt>
+    <dd>
+      A number is is similar to that used in most programming languages, except that the octal and hexadecimal formats are not used and that leading zeros are not allowed.</dd>
+    <dt><dfn title="true" id="dfn-true">true</dfn> and <dfn title="false" id="dfn-false">false</dfn></dt><dd>
+      Boolean values.
+    </dd>
+    <dt><dfn title="null" id="dfn-null">null</dfn></dt><dd>
+      The use of the <em>null</em> value is undefined within JSON-LD.
+      <div class="issue">Supporting <em>null</em> in JSON-LD might have a number of advantages and should be evaluated. This is currently an <a href="https://github.com/json-ld/json-ld.org/issues/11">open issue</a>.</div>
+    </dd>
+  </dl>
+<p></p>
+</div>
+
+<div id="linked-data" class="section">
+<h3><span class="secno">1.2 </span>Linked Data</h3>
+<p>
+The following definition for <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a> is the one that will
+be used for this specification.
+</p>
+<ol>
+  <li><dfn title="linked_data" id="dfn-linked_data">Linked Data</dfn> is a set of documents, each containing a representation of a linked data graph.</li>
+  <li>A <dfn title="linked_data_graph" id="dfn-linked_data_graph">linked data graph</dfn> is an unordered labeled directed graph, where nodes are <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a>s or <a class="tref internalDFN" title="object" href="#dfn-object">object</a>s, and edges are properties.</li>
+  <li>A <dfn title="subject" id="dfn-subject">subject</dfn> is any node in a <a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">linked data graph</a> with at least one outgoing edge.</li>
+  <li>A <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a> <em class="rfc2119" title="should">should</em> be labeled with an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> (an Internationalized Resource Identifier as described in [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC3987">RFC3987</a></cite>]).</li>
+  <li>An <dfn title="object" id="dfn-object">object</dfn> is a node in a <a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">linked data graph</a> with at least one incoming edge.</li>
+  <li>An <a class="tref internalDFN" title="object" href="#dfn-object">object</a> <em class="rfc2119" title="may">may</em> be labeled with an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>.</li>
+  <li>An object <em class="rfc2119" title="may">may</em> be a <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a> and <a class="tref internalDFN" title="object" href="#dfn-object">object</a> at the same time.</li>
+  <li>A <dfn title="property" id="dfn-property">property</dfn> is an edge of the <a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">linked data graph</a>.</li>
+  <li>A <a class="tref internalDFN" title="property" href="#dfn-property">property</a> <em class="rfc2119" title="should">should</em> be labeled with an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>.</li>
+  <li>An <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> that is a label in a <a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">linked data graph</a> <em class="rfc2119" title="should">should</em> be dereferencable to a <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a> document describing the labeled <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a>, <a class="tref internalDFN" title="object" href="#dfn-object">object</a> or <a class="tref internalDFN" title="property" href="#dfn-property">property</a>.</li>
+  <li>A <dfn title="literal" id="dfn-literal">literal</dfn> is an <a class="tref internalDFN" title="object" href="#dfn-object">object</a> with a label that is not an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a></li>
+</ol>
+
+<p>
+Note that the definition for <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a> above is silent on the
+topic of unlabeled nodes. Unlabeled nodes are not considered
+<a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a>. However, this specification allows for the expression
+of unlabled nodes, as most graph-based data sets on the Web contain a number
+of associated nodes that are not named and thus are not directly
+de-referenceable.
+</p>
+</div>
+
+<div id="contributing" class="section">
+  <h3><span class="secno">1.3 </span>Contributing</h3>
+
+  <p>There are a number of ways that one may participate in the development of
+    this specification:</p>
+
+  <ul>
+    <li>Technical discussion typically occurs on the public mailing list:
+      <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a></li>
+
+    <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+      on Tuesdays at 1500UTC on the second and fourth week of each month.</li>
+
+    <li>Specification bugs and issues should be reported in the
+      <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+    <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+      specification can be found on Github.</li>
+
+    <li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
+      IRC channel is available for real-time discussion on irc.freenode.net.</li>
+  </ul>
+
+</div>
+
+</div>
+
+<div id="the-application-programming-interface" class="section">
+  
+<!-- OddPage -->
+<h2><span class="secno">2. </span>The Application Programming Interface</h2>
+
+  <p>This API provides a clean mechanism that enables developers to convert
+  JSON-LD data into a a variety of output formats that are easier to work with in
+  various programming languages. If a JSON-LD API is provided in a programming
+  environment, the entirety of the following API <em class="rfc2119" title="must">must</em> be implemented.
+  </p>
+
+  <div id="jsonldprocessor" class="section">
+    <h3><span class="secno">2.1 </span>JsonLdProcessor</h3>
+    <pre class="idl"><span class="idlInterface" id="idl-def-JsonLdProcessor">[<span class="extAttr">NoInterfaceObject</span>]
+interface <span class="idlInterfaceID">JsonLdProcessor</span> {
+<span class="idlMethod">    <span class="idlMethType"><a>object</a></span>    <span class="idlMethName"><a href="#widl-JsonLdProcessor-expand-object-object-input-object-context">expand</a></span> (<span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">input</span></span>, <span class="idlParam">optional <span class="idlParamType"><a>object</a>?</span> <span class="idlParamName">context</span></span>) raises (<span class="idlRaises"><a>InvalidContext</a></span>);</span>
+<span class="idlMethod">    <span class="idlMethType"><a>object</a></span>    <span class="idlMethName"><a href="#widl-JsonLdProcessor-compact-object-object-input-object-context">compact</a></span> (<span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">input</span></span>, <span class="idlParam">optional <span class="idlParamType"><a>object</a>?</span> <span class="idlParamName">context</span></span>) raises (<span class="idlRaises"><a>InvalidContext</a></span>, <span class="idlRaises"><a>ProcessingError</a></span>);</span>
+<span class="idlMethod">    <span class="idlMethType"><a>object</a></span>    <span class="idlMethName"><a href="#widl-JsonLdProcessor-frame-object-object-input-object-frame-object-options">frame</a></span> (<span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">input</span></span>, <span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">frame</span></span>, <span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">options</span></span>) raises (<span class="idlRaises"><a>InvalidFrame</a></span>);</span>
+<span class="idlMethod">    <span class="idlMethType"><a>DOMString</a></span> <span class="idlMethName"><a href="#widl-JsonLdProcessor-normalize-DOMString-object-input-object-context">normalize</a></span> (<span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">input</span></span>, <span class="idlParam">optional <span class="idlParamType"><a>object</a>?</span> <span class="idlParamName">context</span></span>) raises (<span class="idlRaises"><a>InvalidContext</a></span>);</span>
+<span class="idlMethod">    <span class="idlMethType"><a>void</a></span>      <span class="idlMethName"><a href="#widl-JsonLdProcessor-triples-void-object-input-JsonLdTripleCallback-tripleCallback-object-context">triples</a></span> (<span class="idlParam"><span class="idlParamType"><a>object</a></span> <span class="idlParamName">input</span></span>, <span class="idlParam"><span class="idlParamType"><a href="#idl-def-JsonLdTripleCallback" class="idlType"><code>JsonLdTripleCallback</code></a></span> <span class="idlParamName">tripleCallback</span></span>, <span class="idlParam">optional <span class="idlParamType"><a>object</a>?</span> <span class="idlParamName">context</span></span>) raises (<span class="idlRaises"><a>InvalidContext</a></span>);</span>
+};</span>
+</pre><div id="methods" class="section"><h4><span class="secno">2.1.1 </span>Methods</h4><dl class="methods"><dt id="widl-JsonLdProcessor-compact-object-object-input-object-context"><code>compact</code></dt><dd><a href="#compaction">Compacts</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#compaction-algorithm">Compaction Algorithm</a>. The
+        <code>input</code> <em class="rfc2119" title="must">must</em> be copied, compacted and returned if there are
+        no errors. If the compaction fails, an appropirate exception <em class="rfc2119" title="must">must</em> be
+        thrown.
+        
+
+        
+
+        
+
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">input</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The JSON-LD object to perform compaction on.</td></tr><tr><td class="prmName">context</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptTrue">✔</td><td class="prmDesc">The base context to use when compacting the <code>input</code>.</td></tr></table><table class="exceptions"><tr><th>Exception</th><th>Description</th></tr><tr><td class="excName"><a>InvalidContext</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>INVALID_SYNTAX</code></td><td class="excCodeDesc">A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, this exception would be raised.</td></tr><tr><td class="excCodeName"><code>LOAD_ERROR</code></td><td class="excCodeDesc">There was a problem encountered loading a remote context.</td></tr></table></td></tr><tr><td class="excName"><a>ProcessingError</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>LOSSY_COMPACTION</code></td><td class="excCodeDesc">The compaction would lead to a loss of information, such as a
+            <code>@language</code> value.</td></tr><tr><td class="excCodeName"><code>CONFLICTING_DATATYPES</code></td><td class="excCodeDesc">The target datatype specified in the coercion rule and the
+            datatype for the typed literal do not match.</td></tr></table></td></tr></table><div><em>Return type: </em><code><a>object</a></code></div></dd><dt id="widl-JsonLdProcessor-expand-object-object-input-object-context"><code>expand</code></dt><dd><a href="#expansion">Expands</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+        <code>input</code> <em class="rfc2119" title="must">must</em> be copied, expanded and returned if there are
+        no errors. If the expansion fails, an appropriate exception <em class="rfc2119" title="must">must</em> be thrown.
+
+        
+
+        
+
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">input</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The JSON-LD object to copy and perform the expansion upon.</td></tr><tr><td class="prmName">context</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptTrue">✔</td><td class="prmDesc">An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</td></tr></table><table class="exceptions"><tr><th>Exception</th><th>Description</th></tr><tr><td class="excName"><a>InvalidContext</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>INVALID_SYNTAX</code></td><td class="excCodeDesc">A general syntax error was detected in the <code>@context</code>.
+         For example, if a <code>@type</code> key maps to anything other than
+         <code>@id</code> or an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, this exception would be raised.</td></tr><tr><td class="excCodeName"><code>LOAD_ERROR</code></td><td class="excCodeDesc">There was a problem encountered loading a remote context.</td></tr></table></td></tr></table><div><em>Return type: </em><code><a>object</a></code></div></dd><dt id="widl-JsonLdProcessor-frame-object-object-input-object-frame-object-options"><code>frame</code></dt><dd><a href="#framing">Frames</a> the given <code>input</code>
+        using the <code>frame</code> according to the steps in the
+        <a href="#framing-algorithm">Framing Algorithm</a>. The
+        <code>input</code> is used to build the framed output and is returned if
+        there are no errors. If there are no matches for the frame,
+        <code>null</code> <em class="rfc2119" title="must">must</em> be returned. Exceptions <em class="rfc2119" title="must">must</em> be thrown if there are
+        errors.
+        
+
+        
+
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">input</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The JSON-LD object to perform framing on.</td></tr><tr><td class="prmName">frame</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The frame to use when re-arranging the data.</td></tr><tr><td class="prmName">options</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">A set of options that will affect the framing algorithm.</td></tr></table><table class="exceptions"><tr><th>Exception</th><th>Description</th></tr><tr><td class="excName"><a>InvalidFrame</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>INVALID_SYNTAX</code></td><td class="excCodeDesc">A frame must be either an object or an array of objects, if the frame
+            is neither of these types, this exception is thrown.</td></tr><tr><td class="excCodeName"><code>MULTIPLE_EMBEDS</code></td><td class="excCodeDesc">A subject <abbr title="Internationalized Resource Identifier">IRI</abbr> was specified in more than one place in the input
+            frame. More than one embed of a given subject <abbr title="Internationalized Resource Identifier">IRI</abbr> is not allowed, and if
+            requested, <em class="rfc2119" title="must">must</em> result in this exception.</td></tr></table></td></tr></table><div><em>Return type: </em><code><a>object</a></code></div></dd><dt id="widl-JsonLdProcessor-normalize-DOMString-object-input-object-context"><code>normalize</code></dt><dd><a href="#normalization">Normalizes</a> the given <code>input</code>
+        according to the steps in the
+        <a href="#normalization-algorithm">Normalization Algorithm</a>. The
+        <code>input</code> <em class="rfc2119" title="must">must</em> be copied, normalized and returned if there are
+        no errors. If the compaction fails, <code>null</code> <em class="rfc2119" title="must">must</em> be returned.
+        The output is the serialized representation returned from the
+        <a href="#normalization-algorithm">Normalization Algorithm</a>.
+        <span class="issue">It's still an open question if the result is a DOMString
+          representing the serialized graph in JSON-LD, or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> representation
+          which is in normalized form.</span>
+        
+
+        
+
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">input</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The JSON-LD object to perform normalization upon.</td></tr><tr><td class="prmName">context</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptTrue">✔</td><td class="prmDesc">An external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</td></tr></table><table class="exceptions"><tr><th>Exception</th><th>Description</th></tr><tr><td class="excName"><a>InvalidContext</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>INVALID_SYNTAX</code></td><td class="excCodeDesc">A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, this exception would be raised.</td></tr><tr><td class="excCodeName"><code>LOAD_ERROR</code></td><td class="excCodeDesc">There was a problem encountered loading a remote context.</td></tr></table></td></tr></table><div><em>Return type: </em><code><a>DOMString</a></code></div></dd><dt id="widl-JsonLdProcessor-triples-void-object-input-JsonLdTripleCallback-tripleCallback-object-context"><code>triples</code></dt><dd>Processes the <code>input</code> according to the
+        <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
+        the provided <code>tripleCallback</code> for each triple generated.
+        
+
+        
+
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">input</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The JSON-LD object to process when outputting triples.</td></tr><tr><td class="prmName">tripleCallback</td><td class="prmType"><code><a href="#idl-def-JsonLdTripleCallback" class="idlType"><code>JsonLdTripleCallback</code></a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">A callback that is called whenever a processing error occurs on
+          the given <code>input</code>.
+          <div class="issue">This callback should be aligned with the
+            RDF API.</div></td></tr><tr><td class="prmName">context</td><td class="prmType"><code><a>object</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptTrue">✔</td><td class="prmDesc">An external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</td></tr></table><table class="exceptions"><tr><th>Exception</th><th>Description</th></tr><tr><td class="excName"><a>InvalidContext</a></td><td class="excDesc"><table class="exceptionCodes"><tr><td class="excCodeName"><code>INVALID_SYNTAX</code></td><td class="excCodeDesc">A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, this exception would be raised.</td></tr><tr><td class="excCodeName"><code>LOAD_ERROR</code></td><td class="excCodeDesc">There was a problem encountered loading a remote context.</td></tr></table></td></tr></table><div><em>Return type: </em><code><a>void</a></code></div></dd></dl></div>
+
+  </div>
+
+  <div id="jsonldtriplecallback" class="section">
+    <h3><span class="secno">2.2 </span>JsonLdTripleCallback</h3>
+    <p>The JsonLdTripleCallback is called whenever the processor generates a
+    triple during the <code>triple()</code> call.</p>
+
+    <pre class="idl"><span class="idlInterface" id="idl-def-JsonLdTripleCallback">[<span class="extAttr">NoInterfaceObject Callback</span>]
+interface <span class="idlInterfaceID">JsonLdTripleCallback</span> {
+<span class="idlMethod">    <span class="idlMethType"><a>void</a></span> <span class="idlMethName"><a href="#widl-JsonLdTripleCallback-triple-void-DOMString-subject-DOMString-property-DOMString-objectType-DOMString-object-DOMString-datatype-DOMString-language">triple</a></span> (<span class="idlParam"><span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">subject</span></span>, <span class="idlParam"><span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">property</span></span>, <span class="idlParam"><span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">objectType</span></span>, <span class="idlParam"><span class="idlParamType"><a>DOMString</a></span> <span class="idlParamName">object</span></span>, <span class="idlParam"><span class="idlParamType"><a>DOMString</a>?</span> <span class="idlParamName">datatype</span></span>, <span class="idlParam"><span class="idlParamType"><a>DOMString</a>?</span> <span class="idlParamName">language</span></span>);</span>
+};</span>
+</pre><div id="methods-1" class="section"><h4><span class="secno">2.2.1 </span>Methods</h4><dl class="methods"><dt id="widl-JsonLdTripleCallback-triple-void-DOMString-subject-DOMString-property-DOMString-objectType-DOMString-object-DOMString-datatype-DOMString-language"><code>triple</code></dt><dd>This callback is invoked whenever a triple is generated by the processor.
+      
+      <table class="parameters"><tr><th>Parameter</th><th>Type</th><th>Nullable</th><th>Optional</th><th>Description</th></tr><tr><td class="prmName">subject</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The subject <abbr title="Internationalized Resource Identifier">IRI</abbr> that is associated with the triple.</td></tr><tr><td class="prmName">property</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The property <abbr title="Internationalized Resource Identifier">IRI</abbr> that is associated with the triple.</td></tr><tr><td class="prmName">objectType</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The type of object that is associated with the triple. Valid values
+           are <code><abbr title="Internationalized Resource Identifier">IRI</abbr></code> and <code>literal</code>.</td></tr><tr><td class="prmName">object</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullFalse">✘</td><td class="prmOptFalse">✘</td><td class="prmDesc">The object value associated with the subject and the property.</td></tr><tr><td class="prmName">datatype</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptFalse">✘</td><td class="prmDesc">The datatype associated with the object.</td></tr><tr><td class="prmName">language</td><td class="prmType"><code><a>DOMString</a></code></td><td class="prmNullTrue">✔</td><td class="prmOptFalse">✘</td><td class="prmDesc">The language associated with the object in BCP47 format.</td></tr></table><div><em>No exceptions.</em></div><div><em>Return type: </em><code><a>void</a></code></div></dd></dl></div>
+  </div>
+
+</div>
+
+<div id="algorithms" class="section">
+
+<!-- OddPage -->
+<h2><span class="secno">3. </span>Algorithms</h2>
+
+<p>All algorithms described in this section are intended to operate on
+language-native data structures. That is, the serialization to a text-based
+JSON document isn't required as input or output to any of these algorithms and
+language-native data structures <em class="rfc2119" title="must">must</em> be used where applicable.</p>
+
+<div id="syntax-tokens-and-keywords" class="section">
+  <h3><span class="secno">3.1 </span>Syntax Tokens and Keywords</h3>
+
+  <p>JSON-LD specifies a number of syntax tokens and <dfn title="keyword" id="dfn-keyword">keyword</dfn>s that are using
+  in all algorithms described in this section:</p>
+
+  <dl>
+  <dt><code>@context</code></dt><dd>Used to set the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>.</dd>
+  <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
+  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
+  <dt><code>@type</code></dt><dd>Used to set the type of the active subject or the datatype of a literal.</dd>
+  <dt><code>@value</code></dt><dd>Used to specify the value of a literal.</dd>
+  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use the <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a> mechanism.</dd>
+  </dl>
+
+  <p>All JSON-LD tokens and keywords are case-sensitive.</p>
+</div>
+
+<div id="algorithm-terms" class="section">
+  <h3><span class="secno">3.2 </span>Algorithm Terms</h3>
+  <dl>
+    <dt><dfn title="initial_context" id="dfn-initial_context">initial context</dfn></dt>
+    <dd>
+      a context that is specified to the algorithm before processing begins. The contents of the
+      initial context is defined in <a href="#appendix-b">Appendix B</a>.
+    </dd>
+    <dt><dfn title="active_subject" id="dfn-active_subject">active subject</dfn></dt>
+    <dd>
+      the currently active subject that the processor should use when
+      processing.
+    </dd>
+    <dt><dfn title="active_property" id="dfn-active_property">active property</dfn></dt>
+    <dd>
+      the currently active property that the processor should use when
+      processing.
+    </dd>
+    <dt><dfn title="active_object" id="dfn-active_object">active object</dfn></dt>
+    <dd>
+      the currently active object that the processor should use when
+      processing.
+    </dd>
+    <dt><dfn title="active_context" id="dfn-active_context">active context</dfn></dt>
+    <dd>
+      a context that is used to resolve <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s while the processing
+      algorithm is running. The <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> is the context
+      contained within the <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>.
+    </dd>
+    <dt><dfn title="blank_node" id="dfn-blank_node">blank node</dfn></dt>
+    <dd>
+      a blank node is a <a class="tref internalDFN" title="resource" href="#dfn-resource">resource</a> which is neither an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> nor a <a class="tref internalDFN" title="literal" href="#dfn-literal">literal</a>.
+      Blank nodes may be named or unnamed and often take on the role of a variable that may represent
+      either an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> or a <a class="tref internalDFN" title="literal" href="#dfn-literal">literal</a>.
+    </dd>
+    <dt><dfn title="local_context" id="dfn-local_context">local context</dfn></dt>
+    <dd>
+      a context that is specified within a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>,
+      specified via the <code>@context</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>.
+    </dd>
+    <dt><dfn title="processor_state" id="dfn-processor_state">processor state</dfn></dt>
+    <dd>
+      the <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>, which includes the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active
+      context</a>, <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, and
+      <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>. The <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> is managed
+      as a stack with elements from the previous <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>
+      copied into a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> when entering a new
+      <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.
+    </dd>
+    <dt><dfn title="json-ld_input" id="dfn-json-ld_input">JSON-LD input</dfn></dt>
+    <dd>
+      The JSON-LD data structure that is provided as input to the algorithm.
+    </dd>
+    <dt><dfn title="json-ld_output" id="dfn-json-ld_output">JSON-LD output</dfn></dt>
+    <dd>
+      The JSON-LD data structure that is produced as output by the algorithm.
+    </dd>
+    <dt><dfn title="term" id="dfn-term">term</dfn></dt><dd>
+      A <a class="tref internalDFN" title="term" href="#dfn-term">term</a> is a short word defined with a <a href="#context">context</a> that <em class="rfc2119" title="may">may</em> be expanded
+    to an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>
+    </dd>
+    <dt><dfn title="prefix" id="dfn-prefix">prefix</dfn></dt><dd>
+      A <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a> is a <a class="tref internalDFN" title="term" href="#dfn-term">term</a> that expands to a Web Vocabulary base <abbr title="Internationalized Resource Identifier">IRI</abbr>. It
+      is typically used along with a <em>suffix</em> to create an <abbr title="Internationalized Resource Identifier">IRI</abbr> within a Web Vocabulary.
+    </dd>
+    <dt><dfn title="plain_literal" id="dfn-plain_literal">plain literal</dfn></dt><dd>
+      A <a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal">plain literal</a> is a <a class="tref internalDFN" title="literal" href="#dfn-literal">literal</a> without a datatype, possibly including
+      a language.
+    </dd>
+    <dt><dfn title="typed_literal" id="dfn-typed_literal">typed literal</dfn></dt><dd>
+      A <a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal">typed literal</a> is a <a class="tref internalDFN" title="literal" href="#dfn-literal">literal</a> with an associated <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>
+      which indicates the literal's datatype.
+    </dd>
+  </dl>
+</div>
+
+<div id="context-1" class="section">
+  <h3 id="context"><span class="secno">3.3 </span>Context</h3>
+  <p>Processing of JSON-LD data structure is managed recursively.
+    During processing, each rule is applied using information provided by the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.
+    Processing begins by pushing a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> onto the <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> stack and
+    initializing the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> with the <a class="tref internalDFN" title="initial_context" href="#dfn-initial_context">initial context</a>.
+    If a <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> is encountered,
+    information from the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> is merged into the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.</p>
+  <p>The <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> is used for expanding keys and values of a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> (or elements
+    of a list (see <span a="#list-processing">List Processing</span>)) using a <dfn title="term_mapping" id="dfn-term_mapping">term mapping</dfn>.
+    It is also used to maintain
+    <dfn title="coercion_mapping" id="dfn-coercion_mapping">coercion mapping</dfn>s from IRIs associated with terms to datatypes, and
+    <dfn title="list_mapping" id="dfn-list_mapping">list mapping</dfn>s for IRIs associated with terms.</p>
+  <p>A <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> is identified within a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> having a key of
+    <code>@context</code> with <a class="tref internalDFN" title="string" href="#dfn-string">string</a>, <a class="tref internalDFN" title="array" href="#dfn-array">array</a> or a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> value.
+    When processing a <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>, special processing rules apply:</p>
+  <ol class="algorithm">
+    <li>Create a new, empty <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>.</li>
+    <li>Let <em>value</em> be the value of <code>@context</code>
+      <ol id="process-context" class="algorithm">
+        <li>If <em>value</em> is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, process
+          each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.</li>
+        <li>If <em>value</em> is a simple <a class="tref internalDFN" title="string" href="#dfn-string">string</a>, it <em class="rfc2119" title="must">must</em> have a lexical form of absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>.
+          <ol class="algorithm">
+            <li>Dereference <em>value</em>.</li>
+            <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
+              element using the JSON Pointer &quot;/@context&quot; as described in [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-POINTER">JSON-POINTER</a></cite>]. Set <em>value</em>
+              to the extracted content, or an empty <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON Object</a> if no value exists.</li>
+            <li>Merge the of <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> into the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>If <em>value</em> is a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>value</em> has a <code>@language</code> key, it <em class="rfc2119" title="must">must</em> have a value of a
+          simple <a class="tref internalDFN" title="string" href="#dfn-string">string</a> or <code>null</code>. Add the language to the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>.</li>
+        <li>Otherwise, for each key in <em>value</em> having the lexical form of <cite><a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [<cite><a class="bibref" rel="biblioentry" href="#bib-XML-NAMES">XML-NAMES</a></cite>]),
+          or is an empty string,
+          <ol class="algorithm">
+            <li>If the key's value is a simple <a class="tref internalDFN" title="string" href="#dfn-string">string</a>, the value <em class="rfc2119" title="must">must</em> have the form of
+              <a class="tref internalDFN" title="term" href="#dfn-term">term</a>, <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>:suffix, absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>. Determine the <abbr title="Internationalized Resource Identifier">IRI</abbr> mapping value by
+              performing <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the associated value. If the result of the <abbr title="Internationalized Resource Identifier">IRI</abbr>
+              mapping is an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, merge the key-value pair into the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>
+              <a class="tref internalDFN" title="term_mapping" href="#dfn-term_mapping">term mapping</a>.</li>
+            <li id="object-context">Otherwise, the key's value <em class="rfc2119" title="must">must</em> be a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.
+              <ol class="algorithm">
+                <li>The value <em class="rfc2119" title="must">must</em> have a <code>@id</code> key with a string value, the value <em class="rfc2119" title="must">must</em> have the
+                  form of <a class="tref internalDFN" title="term" href="#dfn-term">term</a>, <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>:suffix, absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>. Determine the <abbr title="Internationalized Resource Identifier">IRI</abbr> mapping value
+                  by performing <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the associated value. If the result of
+                  the <abbr title="Internationalized Resource Identifier">IRI</abbr> mapping is an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, merge the key-value pair into the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>
+                  <a class="tref internalDFN" title="term_mapping" href="#dfn-term_mapping">term mapping</a>.</li>
+                <li>If the value has a <code>@type</code> key, the value <em class="rfc2119" title="must">must</em> have the form of <a class="tref internalDFN" title="term" href="#dfn-term">term</a>,
+                  <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>:suffix, absolute <abbr title="Internationalized Resource Identifier">IRI</abbr> or the <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> <code>@id</code>. Determine the <abbr title="Internationalized Resource Identifier">IRI</abbr> by
+                  performing <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the associated value. If the result of the
+                  <abbr title="Internationalized Resource Identifier">IRI</abbr> mapping is an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr> or <code>@id</code>, merge into the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>
+                  <a class="tref internalDFN" title="coercion_mapping" href="#dfn-coercion_mapping">coercion mapping</a>.</li>
+                <li>If the value has a <code>@list</code> key, the value <em class="rfc2119" title="must">must</em> be
+                  <code>true</code> or <code>false</code>. Merge into the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> <a class="tref internalDFN" title="list_mapping" href="#dfn-list_mapping">list
+                  mapping</a>.</li>
+              </ol>
+            </li>
+            <li>Merge the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> into the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.</li>
+            <li>Repeat <a href="#object-context">Step 3.2</a> until no entries are added to the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local
+              context</a>.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <p class="note">It can be difficult to distinguish between a <code>prefix:suffix</code> and an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>,
+    as a <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a> may seem to be a valid <abbr title="Internationalized Resource Identifier">IRI</abbr> <em>scheme</em>. When performing repeated <abbr title="Internationalized Resource Identifier">IRI</abbr> expansion,
+    a term used as a prefix may not have a valid mapping due to dependencies in resolving term definitions. By
+    continuing <a href="#object-context">Step 3.2</a> until no changes are made, mappings to IRIs created
+    using an undefined term prefix will eventually resolve to absolute IRIs.</p>
+
+  <p class="issue"><a href="https://github.com/json-ld/json-ld.org/issues/43">Issue 43</a>
+    concerns performing <abbr title="Internationalized Resource Identifier">IRI</abbr> expansion in the key position of a context definition.</p>
+</div>
+
+<div id="iri-expansion" class="section">
+  <h3><span class="secno">3.4 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</h3>
+  <p>Keys and some values are evaluated to produce an <abbr title="Internationalized Resource Identifier">IRI</abbr>. This section defines an algorithm for
+    transforming a value representing an <abbr title="Internationalized Resource Identifier">IRI</abbr> into an actual <abbr title="Internationalized Resource Identifier">IRI</abbr>.</p>
+  <p>IRIs may be represented as an absolute <abbr title="Internationalized Resource Identifier">IRI</abbr>, a <a class="tref internalDFN" title="term" href="#dfn-term">term</a> or a <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>:suffix construct.</p>
+  <p>The algorithm for generating an <abbr title="Internationalized Resource Identifier">IRI</abbr> is:
+    </p><ol class="algorithm">
+      <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
+      <li>If the prefix is a '_' (underscore), the value represents a named <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a>.</li>
+      <li>If the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> contains a <a class="tref internalDFN" title="term" href="#dfn-term">term</a> mapping for <em>prefix</em> using
+        a case-sensitive comparison, generate an <abbr title="Internationalized Resource Identifier">IRI</abbr>
+        by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
+        suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
+      <li>Otherwise, use the value directly as an <abbr title="Internationalized Resource Identifier">IRI</abbr>.</li>
+    </ol>
+  <p></p>
+  <p class="note">
+    Previous versions of this specification used <code>@base</code> and <code>@vocab</code> to define <abbr title="Internationalized Resource Identifier">IRI</abbr> prefixes
+    used to resolve relative IRIs. It was determined that this added too much complexity, but the issue
+    can be re-examined in the future based on community input.
+  </p>
+</div>
+
+<div id="iri-compaction" class="section">
+  <h3><span class="secno">3.5 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</h3>
+  <p>Some keys and values are expressed using IRIs. This section defines an
+    algorithm for transforming an <abbr title="Internationalized Resource Identifier">IRI</abbr> to a compact <abbr title="Internationalized Resource Identifier">IRI</abbr> using the
+    <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s specified in the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a>.</p>
+
+  <p>The algorithm for generating a compacted <abbr title="Internationalized Resource Identifier">IRI</abbr> is:
+    </p><ol class="algorithm">
+      <li>Search every key-value pair in the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> for
+        a <a class="tref internalDFN" title="term" href="#dfn-term">term</a> that is a complete match
+        against the <abbr title="Internationalized Resource Identifier">IRI</abbr>. If a complete match is found, the resulting compacted
+        <abbr title="Internationalized Resource Identifier">IRI</abbr> is the <a class="tref internalDFN" title="term" href="#dfn-term">term</a> associated with the <abbr title="Internationalized Resource Identifier">IRI</abbr> in the
+        <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.</li>
+      <li>If a complete match is not found, search for a partial match from
+        the beginning of the <abbr title="Internationalized Resource Identifier">IRI</abbr>. For all matches that are found, the resulting
+        compacted <abbr title="Internationalized Resource Identifier">IRI</abbr> is the <a class="tref internalDFN" title="term" href="#dfn-term">term</a> associated with the partially matched
+        <abbr title="Internationalized Resource Identifier">IRI</abbr> in the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> concatenated with a colon (:) character
+        and the unmatched part of the string. If there is more than one compacted <abbr title="Internationalized Resource Identifier">IRI</abbr>
+        produced, the final value is the shortest and lexicographically least value of
+        the entire set of compacted IRIs.</li>
+    </ol>
+  <p></p>
+</div>
+
+<div id="value-expansion" class="section">
+  <h3><span class="secno">3.6 </span>Value Expansion</h3>
+  <p>Some values in JSON-LD can be expressed in a compact form. These values
+    are required to be expanded at times when processing JSON-LD documents.</p>
+
+  <p>The algorithm for expanding a <em>value</em> takes an <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+    and <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>. It is implemented as follows:</p>
+  <ol class="algorithm">
+    <li>If <em>value</em> is <a class="tref internalDFN" title="true" href="#dfn-true">true</a>, <a class="tref internalDFN" title="false" href="#dfn-false">false</a> or <a class="tref internalDFN" title="number" href="#dfn-number">number</a>, expand the value by
+      adding a two new key-value pairs. The first key-value pair will be <code>@value</code> and
+      the string representation of <em>value</em>. The second key-value pair will be <code>@type&gt;</code>,
+      and the expanded version of <code>xsd:boolean</code>, <code>xsd:integer</code>, or <code>xsd:double</code>,
+      depending on <em>value</em>.</li>
+    <li>Otherwise, if <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is the target of an <code>@id</code> coercion,
+      expand the value by adding a new key-value pair where the
+      key is <code>@id</code> and the value is the expanded <abbr title="Internationalized Resource Identifier">IRI</abbr> according to the <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr>
+      Expansion</a> rules.</li>
+    <li>Otherwise, if <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is the target of typed literal coercion,
+      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
+      and the unexpanded value. The second key-value pair will be <code>@type</code> and the associated coercion
+      datatype expanded according to the <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> rules.</li>
+    <li>Otherwise, if the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> has a <code>@language</code>,
+      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
+      and the unexpanded value. The second key-value pair will be <code>@language</code> and value of
+      <code>@language</code> from the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>.</li> <li>Otherwise, <em>value</em> is already
+      expanded.</li>
+  </ol>
+</div>
+
+<div id="value-compaction" class="section">
+  <h3><span class="secno">3.7 </span>Value Compaction</h3>
+  <p>Some values, such as IRIs and typed literals, may be expressed in an
+    expanded form in JSON-LD. These values are required to be compacted at
+    times when processing JSON-LD documents.
+  </p>
+
+  <p>The algorithm for compacting an expanded value <em>value</em> takes an <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+    and <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>. It is implemented as follows:</p>
+  <ol class="algorithm">
+    <li>If the value may be expressed as <a class="tref internalDFN" title="true" href="#dfn-true">true</a>, <a class="tref internalDFN" title="false" href="#dfn-false">false</a> or <a class="tref internalDFN" title="number" href="#dfn-number">number</a>,
+      the value is the native representation of the <code>@value</code> value.</li>
+    <li>Otherwise, if the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> contains a coercion target for the
+      key that matches the expression of the value, compact the value using the
+      following steps:
+      <ol class="algorithm">
+        <li>If the coercion target is an <code>@id</code>, the compacted
+          value is the value associated with the <code>@id</code> key,
+          processed according to the
+          <a href="#iri-compaction"><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a> steps.</li>
+        <li>If the coercion target is a typed literal, the compacted
+          value is the value associated with the <code>@value</code> key.</li>
+      </ol>
+    </li>
+    <li>Otherwise, if <em>value</em> contains an <code>@id</code> key, the compacted value is <em>value</em> with
+      the value of <code>@id</code> processed according to the
+      <a href="#iri-compaction"><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a> steps.</li>
+    <li>Otherwise, if the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> contains a <code>@language</code>, which
+      matches the <code>@language</code> of the value, or the value has only a <code>@value</code> key, the compacted
+      value is the value associated with the <code>@value</code> key.</li>
+    <li>Otherwise, if the value contains a <code>@type</code> key, the compacted value
+      is <em>value</em> with the <code>@type</code> value processed according to the
+      <a href="#iri-compaction"><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a> steps.</li>
+    <li>Otherwise, the value is not modified.</li>
+  </ol>
+</div>
+
+<div id="expansion" class="section">
+<h3><span class="secno">3.8 </span>Expansion</h3>
+
+<p>Expansion is the process of taking a JSON-LD document and applying a
+  context such that all <abbr title="Internationalized Resource Identifier">IRI</abbr>, datatypes, and literal values are expanded so
+  that the context is no longer necessary. JSON-LD document expansion
+  is typically used as a part of <a href="#framing">Framing</a> or
+  <a href="#normalization">Normalization</a>.</p>
+
+<p>For example, assume the following JSON-LD input document:</p>
+
+<pre class="example">{
+   &quot;@context&quot;:
+   {
+      &quot;name&quot;: &quot;http://xmlns.com/foaf/0.1/name&quot;,
+      &quot;homepage&quot;: {
+        &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+        &quot;@type&quot;, &quot;@id&quot;
+      }
+   },
+   &quot;name&quot;: &quot;Manu Sporny&quot;,
+   &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;
+}</pre>
+
+<p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
+  provided above would result in the following output:</p>
+
+<pre class="example">{
+   &quot;http://xmlns.com/foaf/0.1/name&quot;: &quot;Manu Sporny&quot;,
+   &quot;http://xmlns.com/foaf/0.1/homepage&quot;: {
+      &quot;@id&quot;: &quot;http://manu.sporny.org/&quot;
+   }
+}</pre>
+
+<div id="expansion-algorithm" class="section">
+<h4><span class="secno">3.8.1 </span>Expansion Algorithm</h4>
+
+<p>The algorithm takes three input variables: an <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>, an <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>,
+  and a <em>value</em> to be expanded. To begin, the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> is set to the <a class="tref internalDFN" title="initial_context" href="#dfn-initial_context">initial
+  context</a>, <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is set to nil, and <em>value</em> is set to the <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD
+  input</a>.</p>
+
+<ol class="algorithm">
+  <li>If <em>value</em> is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, process each item in <em>value</em> recursively
+    using this algorithm, passing copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+  <li>Otherwise, if <em>value</em> is an object
+    <ol class="algorithm">
+      <li>Update the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> according to the steps outlined in
+      the <a href="#context">context</a> section and remove it from the expanded result.</li>
+      <li>For each key and value in <em>value</em>:
+        <ol class="algorithm">
+          <li>If the key is <code>@id</code> or <code>@type</code> and the value is a <a class="tref internalDFN" title="string" href="#dfn-string">string</a>,
+            expand the value according to <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a>.</li>
+          <li>Otherwise, if the key is <code>@value</code>, the value <em class="rfc2119" title="must">must</em> be a <a class="tref internalDFN" title="string" href="#dfn-string">string</a> and
+            is not subject to further expansion.</li>
+          <li>Otherwise, if the key is not a <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>, expand the key according to
+            <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> rules and set as <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+          <li>If the value is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is subject to <code>@list</code>
+            expansion, replace the value with a new key-value key where the key is <code>@list</code> and value
+            set to the current value.</li>
+          <li>If the value is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, process each item in the <a class="tref internalDFN" title="array" href="#dfn-array">array</a>
+            recursively using this algorithm, passing copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active
+            property</a>.</li>
+          <li>If the value is an object, process the object recursively
+            using this algorithm, passing copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active
+            property</a>.</li>
+          <li>Otherwise, expand the value according to the <a href="#value-expansion">Value Expansion</a> rules,
+            passing <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+        </ol>
+      </li>
+      <li>Remove the context from the object.</li>
+    </ol>
+  </li>
+  <li>Otherwise, expand <em>value</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
+    passing <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+</ol>
+</div>
+
+</div>
+
+<div id="compaction" class="section">
+<h3><span class="secno">3.9 </span>Compaction</h3>
+
+<p>Compaction is the process of taking a JSON-LD document and applying a
+  context such that the most compact form of the document is generated. JSON
+  is typically expressed in a very compact, key-value format. That is, full
+  IRIs are rarely used as keys. At times, a JSON-LD document may be received
+  that is not in its most compact form. JSON-LD, via the API, provides a way
+  to compact a JSON-LD document.</p>
+
+<p>For example, assume the following JSON-LD input document:</p>
+
+<pre class="example">{
+  &quot;http://xmlns.com/foaf/0.1/name&quot;: &quot;Manu Sporny&quot;,
+  &quot;http://xmlns.com/foaf/0.1/homepage&quot;: {
+    &quot;@id&quot;: &quot;http://manu.sporny.org/&quot;
+  }
+}</pre>
+
+<p>Additionally, assume the following developer-supplied JSON-LD context:</p>
+
+<pre class="example">{
+  &quot;name&quot;: &quot;http://xmlns.com/foaf/0.1/name&quot;,
+  &quot;homepage&quot;: {
+    &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+    &quot;@type&quot;: &quot;@id&quot;
+  }
+}</pre>
+
+<p>Running the JSON-LD Compaction algorithm given the context supplied above
+  against the JSON-LD input document provided above would result in the following
+  output:</p>
+
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;name&quot;: &quot;http://xmlns.com/foaf/0.1/name&quot;,
+    &quot;homepage&quot;: {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+      &quot;@type&quot;: &quot;@id&quot;
+    }
+  },
+  &quot;name&quot;: &quot;Manu Sporny&quot;,
+  &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;
+}</pre>
+
+<p>The compaction algorithm also enables the developer to map any expanded
+  format into an application-specific compacted format. While the context
+  provided above mapped <code>http://xmlns.com/foaf/0.1/name</code> to
+  <strong>name</strong>, it could have also mapped it to any arbitrary string
+  provided by the developer.</p>
+
+<div id="compaction-algorithm" class="section">
+<h4><span class="secno">3.9.1 </span>Compaction Algorithm</h4>
+
+<p>The algorithm takes two input variables: an <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>,
+  and a <em>value</em> to be expanded. To begin, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is set to nil, and <em>value</em> is
+  set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
+    the <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a>. This removes any existing context to allow the given context to be cleanly
+    applied. The <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> to the given context.</p>
+
+
+<ol class="algorithm">
+  <li>If <em>value</em> is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, process each item in <em>value</em> recursively
+    using this algorithm, passing a copy of the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+  <li>Otherwise, if <em>value</em> is an object, for each key and value in <em>value</em>
+    <ol class="algorithm">
+      <li>If the key is <code>@id</code> or <code>@type</code>
+        <ol class="algorithm">
+          <li>If the value of the key is a <a class="tref internalDFN" title="string" href="#dfn-string">string</a>,
+            the compacted value is the result of performing <a href="#iri-compaction"><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a>
+            on the value.</li>
+          <li>Otherwise, the compacted value is the result of performing this algorithm on the value
+            with the current <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.</li>
+        </ol>
+      </li>
+      <li>Otherwise:
+        <ol class="algorithm">
+          <li>If the key is not a <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>, set as <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and
+            compact according to <a href="#iri-compaction"><abbr title="Internationalized Resource Identifier">IRI</abbr> Compaction</a>.</li>
+          <li>If the value is an object
+            <ol class="algorithm">
+              <li>If the value contains only an <code>@id</code> key or the value contains a
+                <code>@value</code> key, the compacted value is the result of performing
+                <a href="#value-compaction">Value Compaction</a> on the value.</li>
+              <li>Otherwise, if the value contains only a <code>@list</code> key, and the
+                <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is subject to list coercion, the compacted value is the result of
+                performing this algorithm on that value.</li>
+              <li>Otherwise, the compacted value is the result of performing this algorithm on the value.</li>
+            </ol>
+          </li>
+          <li>Otherwise, if the value is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, the compacted value is the result of
+            performing this algorithm on the value.</li>
+          <li>Otherwise, the value is already compacted.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>Otherwise, the compacted value is the <em>value</em>.</li>
+</ol>
+</div>
+
+</div>
+
+<div id="framing" class="section">
+<h3><span class="secno">3.10 </span>Framing</h3>
+
+<p>JSON-LD Framing allows developers to query by example and
+  force a specific tree layout to a JSON-LD document.</p>
+
+<p>A JSON-LD document is a representation of a directed graph. A single
+  directed graph can have many different serializations, each expressing
+  exactly the same information. Developers typically work with trees, represented as
+  <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>s. While mapping a graph to
+  a tree can be done, the layout of the end result must be specified in advance.
+  A <dfn title="frame" id="dfn-frame">Frame</dfn> can be used by a developer on a JSON-LD document to
+  specify a deterministic layout for a graph.</p>
+
+<p>Framing is the process of taking a JSON-LD document, which expresses a
+  graph of information, and applying a specific graph layout
+  (called a <a class="tref internalDFN" title="frame" href="#dfn-frame">Frame</a>).</p>
+
+<p>The JSON-LD document below expresses a library, a book and a chapter:</p>
+
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;Book&quot;:         &quot;http://example.org/vocab#Book&quot;,
+    &quot;Chapter&quot;:      &quot;http://example.org/vocab#Chapter&quot;,
+    &quot;contains&quot;:     {
+      &quot;@id&quot;: &quot;http://example.org/vocab#contains&quot;,
+      &quot;@type&quot;: &quot;@id&quot;
+    },
+    &quot;creator&quot;:      &quot;http://purl.org/dc/terms/creator&quot;,
+    &quot;description&quot;:  &quot;http://purl.org/dc/terms/description&quot;,
+    &quot;Library&quot;:      &quot;http://example.org/vocab#Library&quot;,
+    &quot;title&quot;:        &quot;http://purl.org/dc/terms/title&quot;
+  },
+  &quot;@id&quot;:
+  [{
+    &quot;@id&quot;: &quot;http://example.com/library&quot;,
+    &quot;@type&quot;: &quot;Library&quot;,
+    &quot;contains&quot;: &quot;http://example.org/library/the-republic&quot;
+  },
+  {
+    &quot;@id&quot;: &quot;http://example.org/library/the-republic&quot;,
+    &quot;@type&quot;: &quot;Book&quot;,
+    &quot;creator&quot;: &quot;Plato&quot;,
+    &quot;title&quot;: &quot;The Republic&quot;,
+    &quot;contains&quot;: &quot;http://example.org/library/the-republic#introduction&quot;
+  },
+  {
+    &quot;@id&quot;: &quot;http://example.org/library/the-republic#introduction&quot;,
+    &quot;@type&quot;: &quot;Chapter&quot;,
+    &quot;description&quot;: &quot;An introductory chapter on The Republic.&quot;,
+    &quot;title&quot;: &quot;The Introduction&quot;
+  }]
+}</pre>
+
+<p>Developers typically like to operate on items in a hierarchical, tree-based
+  fashion. Ideally, a developer would want the data above sorted into top-level
+  libraries, then the books that are contained in each library, and then the
+  chapters contained in each book. To achieve that layout, the developer can
+  define the following <a class="tref internalDFN" title="frame" href="#dfn-frame">frame</a>:</p>
+
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;Book&quot;:         &quot;http://example.org/vocab#Book&quot;,
+    &quot;Chapter&quot;:      &quot;http://example.org/vocab#Chapter&quot;,
+    &quot;contains&quot;:     &quot;http://example.org/vocab#contains&quot;,
+    &quot;creator&quot;:      &quot;http://purl.org/dc/terms/creator&quot;
+    &quot;description&quot;:  &quot;http://purl.org/dc/terms/description&quot;
+    &quot;Library&quot;:      &quot;http://example.org/vocab#Library&quot;,
+    &quot;title&quot;:        &quot;http://purl.org/dc/terms/title&quot;
+  },
+  &quot;@type&quot;: &quot;Library&quot;,
+  &quot;contains&quot;: {
+    &quot;@type&quot;: &quot;Book&quot;,
+    &quot;contains&quot;: {
+      &quot;@type&quot;: &quot;Chapter&quot;
+    }
+  }
+}</pre>
+
+<p>When the framing algorithm is run against the previously defined
+  JSON-LD document, paired with the <a class="tref internalDFN" title="frame" href="#dfn-frame">frame</a> above, the following
+  JSON-LD document is the end result:</p>
+
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;Book&quot;:         &quot;http://example.org/vocab#Book&quot;,
+    &quot;Chapter&quot;:      &quot;http://example.org/vocab#Chapter&quot;,
+    &quot;contains&quot;:     &quot;http://example.org/vocab#contains&quot;,
+    &quot;creator&quot;:      &quot;http://purl.org/dc/terms/creator&quot;
+    &quot;description&quot;:  &quot;http://purl.org/dc/terms/description&quot;
+    &quot;Library&quot;:      &quot;http://example.org/vocab#Library&quot;,
+    &quot;title&quot;:        &quot;http://purl.org/dc/terms/title&quot;
+  },
+  &quot;@id&quot;: &quot;http://example.org/library&quot;,
+  &quot;@type&quot;: &quot;Library&quot;,
+  &quot;contains&quot;: {
+    <span class="diff">&quot;@id&quot;: &quot;http://example.org/library/the-republic&quot;,</span>
+    &quot;@type&quot;: &quot;Book&quot;,
+    <span class="diff">&quot;creator&quot;: &quot;Plato&quot;,</span>
+    <span class="diff">&quot;title&quot;: &quot;The Republic&quot;,</span>
+    &quot;contains&quot;: {
+      <span class="diff">&quot;@id&quot;: &quot;http://example.org/library/the-republic#introduction&quot;,</span>
+      &quot;@type&quot;: &quot;Chapter&quot;,
+      <span class="diff">&quot;description&quot;: &quot;An introductory chapter on The Republic.&quot;,</span>
+      <span class="diff">&quot;title&quot;: &quot;The Introduction&quot;</span>
+    },
+  },
+}</pre>
+
+<div id="framing-algorithm-terms" class="section">
+<h4><span class="secno">3.10.1 </span>Framing Algorithm Terms</h4>
+<p class="issue">This algorithm is a work in progress, do not implement it.
+  There was also a recent update to the algorithm in order to auto-embed
+  frame-unspecified data (if the explicit inclusion flag is not set) in order to
+  preserve graph information. This change is particularly important for comparing
+  subgraphs (or verifying digital signatures on subgraphs). This change is not yet
+  reflected in the algorithm below.</p>
+
+ <dl>
+   <dt><dfn title="input_frame" id="dfn-input_frame">input frame</dfn></dt>
+   <dd>the initial <a class="tref internalDFN" title="frame" href="#dfn-frame">frame</a> provided to the framing algorithm.</dd>
+   <dt><dfn title="framing_context" id="dfn-framing_context">framing context</dfn></dt>
+   <dd>a context containing the <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a>, the
+     <a class="tref internalDFN" title="explicit_inclusion_flag" href="#dfn-explicit_inclusion_flag">explicit inclusion flag</a> and the
+     <a class="tref internalDFN" title="omit_default_flag" href="#dfn-omit_default_flag">omit default flag</a>.</dd>
+   <dt><dfn title="object_embed_flag" id="dfn-object_embed_flag">object embed flag</dfn></dt>
+   <dd>a flag specifying that objects should be directly embedded in the output,
+     instead of being referred to by their <abbr title="Internationalized Resource Identifier">IRI</abbr>.</dd>
+   <dt><dfn title="explicit_inclusion_flag" id="dfn-explicit_inclusion_flag">explicit inclusion flag</dfn></dt>
+   <dd>a flag specifying that for properties to be included in the output, they
+     must be explicitly declared in the <a class="tref internalDFN" title="framing_context" href="#dfn-framing_context">framing context</a>.</dd>
+   <dt><dfn title="omit_missing_properties_flag" id="dfn-omit_missing_properties_flag">omit missing properties flag</dfn></dt>
+   <dd>a flag specifying that properties that are missing from the
+     <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a> should be omitted from the output.</dd>
+   <dt><dfn title="omit_default_flag" id="dfn-omit_default_flag">omit default flag</dfn></dt>
+   <dd class="issue">Referenced from <a class="tref internalDFN" title="framing_context" href="#dfn-framing_context">framing context</a>, but not defined</dd>
+   <dt><dfn title="match_limit" id="dfn-match_limit">match limit</dfn></dt>
+   <dd>A value specifying the maximum number of matches to accept when building
+     arrays of values during the framing algorithm. A value of -1 specifies
+     that there is no match limit.</dd>
+   <dt><dfn title="map_of_embedded_subjects" id="dfn-map_of_embedded_subjects">map of embedded subjects</dfn></dt>
+   <dd>A map that tracks if a subject has been embedded in the output of the
+     <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
+ </dl>
+</div>
+
+<div id="framing-algorithm" class="section">
+<h4><span class="secno">3.10.2 </span>Framing Algorithm</h4>
+
+<p>The framing algorithm takes <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a> that has been
+  normalized according to the
+  <a href="#normalization-algorithm">Normalization Algorithm</a>
+  (<strong>normalized input</strong>), an
+  <a class="tref internalDFN" title="input_frame" href="#dfn-input_frame">input frame</a> that has been expanded according to the
+  <a href="#expansion-algorithm">Expansion Algorithm</a>
+  (<strong>expanded frame</strong>), and a number of options and produces
+  <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a>. The following series of steps is the recursive
+  portion of the framing algorithm:</p>
+
+<ol class="algorithm">
+  <li>Initialize the <a class="tref internalDFN" title="framing_context" href="#dfn-framing_context">framing context</a> by setting the
+    <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a>, clearing the
+    <a class="tref internalDFN" title="explicit_inclusion_flag" href="#dfn-explicit_inclusion_flag">explicit inclusion flag</a>, and clearing the
+    <a class="tref internalDFN" title="omit_missing_properties_flag" href="#dfn-omit_missing_properties_flag">omit missing properties flag</a>. Override these values
+    based on input options provided to the algorithm by the application.</li>
+  <li>Generate a <dfn title="list_of_frames" id="dfn-list_of_frames">list of frames</dfn> by processing the
+    <strong>expanded frame</strong>:
+    <ol class="algorithm">
+      <li>If the <strong>expanded frame</strong> is not an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, set
+        <a class="tref internalDFN" title="match_limit" href="#dfn-match_limit">match limit</a> to 1, place the
+        <strong>expanded frame</strong> into the <a class="tref internalDFN" title="list_of_frames" href="#dfn-list_of_frames">list of frames</a>,
+        and set the <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a> to <code>null</code>.</li>
+      <li>If the <strong>expanded frame</strong> is an empty <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, place an
+        empty object into the <a class="tref internalDFN" title="list_of_frames" href="#dfn-list_of_frames">list of frames</a>,
+        set the <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a> to an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, and set
+        <a class="tref internalDFN" title="match_limit" href="#dfn-match_limit">match limit</a> to -1.</li>
+      <li>If the <strong>expanded frame</strong> is a non-empty <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, add
+        each item in the <strong>expanded frame</strong> into the
+        <a class="tref internalDFN" title="list_of_frames" href="#dfn-list_of_frames">list of frames</a>, set the <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a> to an
+        <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, and set <a class="tref internalDFN" title="match_limit" href="#dfn-match_limit">match limit</a> to -1.</li>
+    </ol>
+  </li>
+  <li>Create a <dfn title="match_array" id="dfn-match_array">match array</dfn> for each <strong>expanded frame</strong>
+    in the <a class="tref internalDFN" title="list_of_frames" href="#dfn-list_of_frames">list of frames</a> halting when either the
+    <a class="tref internalDFN" title="match_limit" href="#dfn-match_limit">match limit</a> is zero or the end of the
+    <a class="tref internalDFN" title="list_of_frames" href="#dfn-list_of_frames">list of frames</a> is reached. If an
+    <strong>expanded frame</strong> is
+    not an object, the processor <em class="rfc2119" title="must">must</em> throw a <code>Invalid Frame Format</code>
+    exception. Add each matching item from the <strong>normalized input</strong>
+    to the <a class="tref internalDFN" title="matches_array" href="#dfn-matches_array">matches array</a> and decrement the
+    <a class="tref internalDFN" title="match_limit" href="#dfn-match_limit">match limit</a> by 1 if:
+    <ol class="algorithm">
+       <li>The <strong>expanded frame</strong> has an <code>rdf:type</code>
+         that exists in the item's list of <code>rdf:type</code>s. Note:
+         the <code>rdf:type</code> can be an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, but only one value needs
+         to be in common between the item and the
+         <strong>expanded frame</strong> for a match.</li>
+       <li>The <strong>expanded frame</strong> does not have an
+         <code>rdf:type</code> property, but every property in the
+         <strong>expanded frame</strong> exists in the item.</li>
+    </ol>
+    <p class="issue"><dfn title="matches_array" id="dfn-matches_array">matches array</dfn> not defined anywhere.</p>
+  </li>
+  <li>Process each item in the <a class="tref internalDFN" title="match_array" href="#dfn-match_array">match array</a> with its associated
+    <dfn title="match_frame" id="dfn-match_frame">match frame</dfn>:
+    <ol class="algorithm">
+      <li>If the <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a> contains an <code>@embed</code>
+        <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>, set the <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a> to its value.
+        If the <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a> contains an <code>@explicit</code>
+        <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>, set the <a class="tref internalDFN" title="explicit_inclusion_flag" href="#dfn-explicit_inclusion_flag">explicit inclusion flag</a> to its value.
+        Note: if the <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> exists, but the value is neither
+        <code>true</code> or <code>false</code>, set the associated flag to
+        <code>true</code>.</li>
+      <li>If the <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a> is cleared and the item has
+        the <code>@id</code> property, replace the item with the value
+        of the <code>@id</code> property.</li>
+      <li>If the <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a> is set and the item has
+        the <code>@id</code> property, and its <abbr title="Internationalized Resource Identifier">IRI</abbr> is in the
+        <a class="tref internalDFN" title="map_of_embedded_subjects" href="#dfn-map_of_embedded_subjects">map of embedded subjects</a>, throw a
+        <code>Duplicate Embed</code> exception.</li>
+      <li>If the <a class="tref internalDFN" title="object_embed_flag" href="#dfn-object_embed_flag">object embed flag</a> is set and the item has
+        the <code>@id</code> property and its <abbr title="Internationalized Resource Identifier">IRI</abbr> is not in the
+        <a class="tref internalDFN" title="map_of_embedded_subjects" href="#dfn-map_of_embedded_subjects">map of embedded subjects</a>:
+        <ol class="algorithm">
+          <li>If the <a class="tref internalDFN" title="explicit_inclusion_flag" href="#dfn-explicit_inclusion_flag">explicit inclusion flag</a> is set,
+            then delete any key from the item that does not exist in the
+            <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a>, except <code>@id</code>.</li>
+          <li>For each key in the <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a>, except for
+            <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>s and <code>rdf:type</code>:
+          <ol class="algorithm">
+            <li>If the key is in the item, then build a new
+              <dfn title="recursion_input_list" id="dfn-recursion_input_list">recursion input list</dfn> using the object or objects
+              associated with the key. If any object contains an
+              <code>@id</code> value that exists in the
+              <strong>normalized input</strong>, replace the object in the
+              <a class="tref internalDFN" title="recursion_input_list" href="#dfn-recursion_input_list">recursion input list</a> with a new object containing
+              the <code>@id</code> key where the value is the value of
+              the <code>@id</code>, and all of the other key-value pairs for
+              that subject. Set the <dfn title="recursion_match_frame" id="dfn-recursion_match_frame">recursion match frame</dfn> to the
+              value associated with the <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a>'s key. Replace
+              the value associated with the key by recursively calling this
+              algorithm using <a class="tref internalDFN" title="recursion_input_list" href="#dfn-recursion_input_list">recursion input list</a>,
+              <a class="tref internalDFN" title="recursion_match_frame" href="#dfn-recursion_match_frame">recursion match frame</a> as input.</li>
+            <li>If the key is not in the item, add the key to the item and
+              set the associated value to an empty array if the
+              <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a> key's value is an array
+              or <code>null</code> otherwise.</li>
+            <li>If value associated with the item's key is <code>null</code>,
+              process the <a class="tref internalDFN" title="omit_missing_properties_flag" href="#dfn-omit_missing_properties_flag">omit missing properties flag</a>:
+              <ol class="algorithm">
+                <li>If the value associated with the key in the
+                  <a class="tref internalDFN" title="match_frame" href="#dfn-match_frame">match frame</a> is an array, use the first frame
+                  from the array as the <dfn title="property_frame" id="dfn-property_frame">property frame</dfn>, otherwise
+                  set the <a class="tref internalDFN" title="property_frame" href="#dfn-property_frame">property frame</a> to an empty object.</li>
+                <li>If the <a class="tref internalDFN" title="property_frame" href="#dfn-property_frame">property frame</a> contains an
+                <code>@omitDefault</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>, set the
+                <a class="tref internalDFN" title="omit_missing_properties_flag" href="#dfn-omit_missing_properties_flag">omit missing properties flag</a> to its value.
+                Note: if the <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> exists, but the value is neither
+                <code>true</code> or <code>false</code>, set the associated
+                flag to <code>true</code>.</li>
+                <li>If the <a class="tref internalDFN" title="omit_missing_properties_flag" href="#dfn-omit_missing_properties_flag">omit missing properties flag</a> is set,
+                  delete the key in the item. Otherwise, if the
+                  <code>@default</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> is set in the
+                  <a class="tref internalDFN" title="property_frame" href="#dfn-property_frame">property frame</a> set the item's value to the value
+                  of <code>@default</code>.</li>
+              </ol>
+            </li>
+          </ol></li>
+        </ol>
+      </li>
+      <li>If the <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a> is <code>null</code> set it to
+        the item, otherwise, append the item to the
+        <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a>.</li>
+    </ol>
+  </li>
+  <li>Return the <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a>.</li>
+</ol>
+
+<p>The final, non-recursive step of the framing algorithm requires the
+  <a class="tref internalDFN" title="json-ld_output" href="#dfn-json-ld_output">JSON-LD output</a> to be compacted according to the
+  <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
+  context provided in the <a class="tref internalDFN" title="input_frame" href="#dfn-input_frame">input frame</a>. The resulting value is the
+  final output of the compaction algorithm and is what should be returned to the
+  application.</p>
+
+</div>
+
+<p class="issue">What are the implications for framing lists?</p>
+
+</div>
+
+<div id="normalization" class="section">
+<h3><span class="secno">3.11 </span>Normalization</h3>
+
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p>Normalization is the process of taking <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a> and
+  performing a deterministic transformation on that input that results in
+  a normalized and serialized JSON-LD representation.</p>
+
+<p>Normalization is achieved by transforming <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a> to RDF,
+  as described in <a href="#rdf-conversion">RDF Conversion</a>, invoking the normalization procedure
+  as described in [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-NORMALIZATION">RDF-NORMALIZATION</a></cite>], returning the serialized results.</p>
+
+<div class="issue">
+  <p>There an open issue (<a href="https://github.com/json-ld/json-ld.org/issues/53">ISSUE-53</a>)
+    on the purpose and results of performing normalization. Previous versions of the
+    specification generated JSON-LD as the result of the normalization algorithm, however
+    normalization is a process required across different linked data serializations. To be useful,
+    a graph requires an identical normalized representation that is independent of the
+    data format originally used for markup, or the way in which language features or publisher
+    preferences create differences in the markup of identical graphs.</p>
+  <p>It may be that the need for either or both of flattening algorithm or to retrieve such a
+    cryptographic signature.</p>
+</div>
+
+<p>Normalization is useful when comparing two graphs against one another,
+  when generating a detailed list of differences between two graphs, and
+  when generating a cryptographic digital signature for information contained
+  in a graph or when generating a hash of the information contained in a graph.</p>
+
+<p>The example below is an un-normalized JSON-LD document:</p>
+
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;name&quot;: &quot;http://xmlns.com/foaf/0.1/name&quot;,
+    &quot;homepage&quot;: {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+      &quot;@type&quot;: &quot;@id&quot;
+    },
+    &quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;
+  },
+  &quot;name&quot;: &quot;Manu Sporny&quot;,
+  &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;
+}</pre>
+
+<p>The example below is the normalized form of the JSON-LD document above:</p>
+
+<p class="note">Whitespace is used below to aid readability. The normalization
+  algorithm for JSON-LD removes all unnecessary whitespace in the fully
+  normalized form.</p>
+<p class="issue">Not clear that whitespace must be normalized, as the JSON-LD
+  representation can't be used directly to create a signature, but would be based
+  on the serialized result of [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-NORMALIZATION">RDF-NORMALIZATION</a></cite>].</p>
+
+<pre class="example">[{
+  &quot;@id&quot;: &quot;_:c14n0&quot;,
+  &quot;http://xmlns.com/foaf/0.1/homepage&quot;: {
+    &quot;@id&quot;: &quot;http://manu.sporny.org/&quot;
+  },
+  &quot;http://xmlns.com/foaf/0.1/name&quot;: &quot;Manu Sporny&quot;
+}]</pre>
+
+<p>Notice how all of the <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s have been expanded and sorted in
+  alphabetical order. Also, notice how the <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a> has been labeled with a
+  named <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a>. Normalization ensures that any arbitrary graph
+  containing exactly the same information would be normalized to exactly the same form
+  shown above.</p>
+<div id="normalization-algorithm" class="section">
+<h4><span class="secno">3.11.1 </span>Normalization Algorithm</h4>
+
+<p>The normalization algorithm transforms the <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a>
+  into RDF, normalizes it according to [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-NORMALIZATION">RDF-NORMALIZATION</a></cite>] and then
+  transforms back to JSON-LD. The result is an object representation that
+  deterministically represents a RDF graph.</p>
+
+<ol class="algorithm">
+  <li>Transform the <a class="tref internalDFN" title="json-ld_input" href="#dfn-json-ld_input">JSON-LD input</a> to RDF according to the steps in
+    the <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>.</li>
+  <li>Perform [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-NORMALIZATION">RDF-NORMALIZATION</a></cite>] of that RDF to create a serialized N-Triples
+    representation of the RDF graph.</li>
+  <li>Construct a JSON <a class="tref internalDFN" title="array" href="#dfn-array">array</a> <em>array</em> to serve as the output object.</li>
+  <li>For each triple in the N-Triples document having <em>subject</em>, <em>predicate</em>,
+    and <em>object</em>:
+    <ol class="algorithm">
+      <li>If <em>predicate</em> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#first</code>,
+        let <em>object representation</em> be <em>object</em> represented in expanded
+        form as described in <a href="#value-expansion">Value Expansion</a>.
+        <ol class="algorithm">
+          <li>Set <em>value</em> as the last entry in <em>array</em>.</li>
+          <li>If the last entry in <em>value</em> is <em>subject</em>, replace it with
+            the a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> having a key/value pair of <code>@list</code> and an
+            <a class="tref internalDFN" title="array" href="#dfn-array">array</a> containing <em>object representation</em>.</li>
+          <li>Otherwise, the last key/value entry in <em>value</em> <em class="rfc2119" title="must">must</em> be a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>
+            having a single key of <em>@list</em> with a value that is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>.
+            Append <em>object representation</em>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, if <em>predicate</em> is
+        <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#rest</code>, ignore this triple.</li>
+      <li>Otherwise, if the last entry in <em>array</em> is not a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON Object</a> with an
+        <code>@id</code> having a value of <em>subject</em>:
+        <ol class="algorithm">
+          <li>Create a new <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON Object</a> with key/value pair of <code>@id</code> and
+            a string representation of <em>subject</em> and use as <em>value</em>.</li>
+          <li>Otherwise, set <em>value</em> to that value.</li>
+        </ol>
+      </li>
+      <li>If <code>predicate</code> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>:
+        <ol class="algorithm">
+          <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>,
+            append the string representation of <a class="tref internalDFN" title="object" href="#dfn-object">object</a> to that array.</li>
+          <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
+            with a new array containing the existing value and a string representation of
+            <em>object</em>.</li>
+          <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
+            string representation of <em>object</em>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, let <em>key</em> by the string representation of <em>predicate</em> and
+        let <em>object representation</em> be <em>object</em> represented in expanded
+        form as described in <a href="#value-expansion">Value Expansion</a>.</li>
+      <li>If <em>value</em> has an key/value pair of <em>key</em> and an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>,
+        append <em>object representation</em> to that array.</li>
+      <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
+        with a new array containing the existing value and <em>object representation</em>.</li>
+      <li>Otherwise, create a new entry in value with a key of <em>key</em> and
+        <em>object representation</em>.</li>
+    </ol>
+  </li>
+  <li>Return <em>array</em> as the normalized graph representation.</li>
+</ol>
+</div>
+
+</div>
+
+<div id="data-round-tripping" class="section">
+
+<h3><span class="secno">3.12 </span>Data Round Tripping</h3>
+
+<p>When normalizing <strong>xsd:double</strong> values, implementers <em class="rfc2119" title="must">must</em>
+ensure that the normalized value is a string. In order to generate the
+string from a <strong>double</strong> value, output equivalent to the
+<code>printf(&quot;%1.6e&quot;, value)</code> function in C <em class="rfc2119" title="must">must</em> be used where
+<strong>&quot;%1.6e&quot;</strong> is the string formatter and <strong>value</strong>
+is the value to be converted.</p>
+
+<p>To convert the a double value in JavaScript, implementers can use the
+following snippet of code:</p>
+
+<pre class="example">// the variable 'value' below is the JavaScript native double value that is to be converted
+(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/, '$10$2')</pre>
+
+<p class="note">When data needs to be normalized, JSON-LD authors should
+not use values that are going to undergo automatic conversion. This is due
+to the lossy nature of <strong>xsd:double</strong> values.</p>
+
+<p class="note">Some JSON serializers, such as PHP's native implementation,
+backslash-escapes the forward slash character. For example, the value
+<code>http://example.com/</code> would be serialized as
+<code>http:\/\/example.com\/</code> in some
+versions of PHP. This is problematic when generating a byte
+stream for processes such as normalization. There is no need to
+backslash-escape forward-slashes in JSON-LD. To aid interoperability between
+JSON-LD processors, a JSON-LD serializer <em class="rfc2119" title="must not">must not</em> backslash-escape
+forward slashes.</p>
+
+<p class="issue">Round-tripping data can be problematic if we mix and
+match coercion rules with JSON-native datatypes, like integers. Consider the
+following code example:</p>
+
+<pre class="example">var myObj = { &quot;@context&quot; : {
+                &quot;number&quot; : {
+                  &quot;@id&quot;: &quot;http://example.com/vocab#number&quot;,
+                  &quot;@type&quot;: &quot;xsd:nonNegativeInteger&quot;
+                }
+              },
+              &quot;number&quot; : 42 };
+
+// Map the language-native object to JSON-LD
+var jsonldText = jsonld.normalize(myObj);
+
+// Convert the normalized object back to a JavaScript object
+var myObj2 = jsonld.parse(jsonldText);</pre>
+
+<p class="issue">At this point, myObj2 and myObj will have different
+values for the &quot;number&quot; value. myObj will be the number 42, while
+myObj2 will be the string &quot;42&quot;. This type of data round-tripping
+error can bite developers. We are currently wondering if having a
+&quot;coercion validation&quot; phase in the parsing/normalization phases would be a
+good idea. It would prevent data round-tripping issues like the
+one mentioned above.</p>
+
+</div>
+
+<div id="rdf-conversion" class="section">
+<h3><span class="secno">3.13 </span>RDF Conversion</h3>
+
+<p>A JSON-LD document <em class="rfc2119" title="may">may</em> be converted to any other RDF-compatible document
+format using the algorithm specified in this section.</p>
+
+<p>
+  The JSON-LD Processing Model describes processing rules for extracting RDF
+  from a JSON-LD document. Note that many uses of JSON-LD may not require
+  generation of RDF.
+</p>
+
+<p>
+The processing algorithm described in this section is provided in
+order to demonstrate how one might implement a JSON-LD to RDF processor.
+Conformant implementations are only required to produce the same type and
+number of triples during the output process and are not required to
+implement the algorithm exactly as described.
+</p>
+
+<div class="informative section" id="overview">
+  <h4><span class="secno">3.13.1 </span>Overview</h4><p><em>This section is non-normative.</em></p>
+  <p>
+    JSON-LD is intended to have an easy to parse grammar that closely models existing
+    practice in using JSON for describing object representations. This allows the use
+    of existing libraries for parsing JSON.
+  </p>
+  <p>
+    As with other grammars used for describing <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a>, a key concept is that of
+    a <dfn title="resource" id="dfn-resource">resource</dfn>. Resources may be of three basic types: <em><a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a></em>s, for describing
+    externally named entities, <em>BNodes</em>, resources for which an external name does not
+    exist, or is not known, and Literals, which describe terminal entities such as strings,
+    dates and other representations having a lexical representation possibly including
+    an explicit language or datatype.
+  </p>
+  <p>
+  An Internationalized Resource Identifier
+  (<dfn title="iri" id="dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></dfn>),
+  as described in [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC3987">RFC3987</a></cite>], is a mechanism for representing unique
+  identifiers on the web. In <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a>, an <abbr title="Internationalized Resource Identifier">IRI</abbr> is commonly
+  used for expressing a <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a>, a <a class="tref internalDFN" title="property" href="#dfn-property">property</a> or an
+  <a class="tref internalDFN" title="object" href="#dfn-object">object</a>.
+  </p>
+  <p>
+    Data described with JSON-LD may be considered to be the representation of a graph made
+    up of <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a> and <a class="tref internalDFN" title="object" href="#dfn-object">object</a> <a class="tref internalDFN" title="resource" href="#dfn-resource">resource</a>s related via a <a class="tref internalDFN" title="property" href="#dfn-property">property</a> <a class="tref internalDFN" title="resource" href="#dfn-resource">resource</a>.
+    However, specific implementations may choose to operate on the document as a normal
+    JSON description of objects having attributes.
+  </p>
+</div>
+
+<div id="rdf-conversion-algorithm-terms" class="section">
+  <h4><span class="secno">3.13.2 </span>RDF Conversion Algorithm Terms</h4>
+  <dl>
+    <dt><dfn title="default_graph" id="dfn-default_graph">default graph</dfn></dt>
+    <dd>
+      the destination graph for all triples generated by JSON-LD markup.
+    </dd>
+  </dl>
+</div>
+
+<div id="rdf-conversion-algorithm" class="section">
+  <h4><span class="secno">3.13.3 </span>RDF Conversion Algorithm</h4>
+  <p>
+    The algorithm below is designed for in-memory implementations with random access to <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> elements.
+  </p>
+  <p>
+    A conforming JSON-LD processor implementing RDF conversion <em class="rfc2119" title="must">must</em> implement a
+    processing algorithm that results in the same <a class="tref internalDFN" title="default_graph" href="#dfn-default_graph">default graph</a> that the following
+    algorithm generates:
+  </p>
+
+  <ol class="algorithm">
+    <li id="processing-step-default-context">
+      Create a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> with with the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> set to the
+      <a class="tref internalDFN" title="initial_context" href="#dfn-initial_context">initial context</a> and <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+      initialized to NULL.
+    </li>
+
+    <li id="processing-step-associative">
+      If a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> is detected, perform the following steps:
+      <ol class="algorithm">
+        <li>
+          If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> has a <code>@context</code> key, process the local context as
+          described in <a href="#context">Context</a>.
+        </li>
+        <li>
+          Create a copy of the current <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, changing keys that map to JSON-LD <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>s
+          with those <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>s. Use the new <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> in subsequent steps.
+        </li>
+        <li>
+          If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> has a <code>@value</code> key, set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>
+          to a literal value as follows:
+          <ol class="algorithm">
+            <li>
+              as a <a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal">typed literal</a> if the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> contains a <code>@type</code> key
+              after performing <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the specified<code>@type</code>.
+            </li>
+            <li>
+              otherwise, as a <a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal">plain literal</a>. If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> contains
+              a <code>@language</code> key, use it's value to set the language of the plain literal.
+            </li>
+            <li>
+              If the neither the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> nor the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>, generate a triple
+              representing the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>.
+            </li>
+            <li>Return the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> to the calling location.</li>
+          </ol>
+        </li>
+        <li>
+          If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> has a <code>@list</code> key and the value is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>
+          process the value as a list as described in <a href="#list-conversion">List Conversion</a>.
+        </li>
+        <li id="processing-step-subject">If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> has a <code>@id</code> key:
+          <ol class="algorithm">
+            <li>
+              If the value is a <a class="tref internalDFN" title="string" href="#dfn-string">string</a>, set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> to the result of performing
+              <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a>. Generate a
+              triple representing the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and the
+              <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>. Set the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> to the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>.
+            </li>
+            <li>
+              Create a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>,
+              <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.
+              <ol class="algorithm">
+                <li>
+                  Process the value starting at
+                  <a href="#processing-step-associative">Step 2</a>.
+                </li>
+                <li>Proceed using the previous <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>
+          If the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> does not have a <code>@id</code> key, set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active
+          object</a> to newly generated <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a>. Generate a triple
+          representing the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and the
+          <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>. Set the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> to the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active
+          object</a>.
+        </li>
+        <li>
+          For each key in the <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> that has not already been processed, perform
+          the following steps:
+          <ol class="algorithm">
+            <li>
+              If the key is <code>@type</code>, set the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+              to <code>rdf:type</code>.
+            </li>
+            <li>Otherwise, set the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> to the result of performing
+            <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the key.</li>
+            <li>
+              If the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is the target of a <code>@list</code> coercion,
+              and the value is an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>,
+              process the value as a list as described in in <a href="#list-conversion">List Conversion</a>.
+            </li>
+            <li>
+              Otherwise, create a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>,
+              <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and process the value
+              starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
+              previous <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>.
+            </li>
+          </ol>
+        </li>
+        <li>
+          Return the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> to the calling location.
+        </li>
+      </ol>
+    </li>
+
+    <li>If a regular <a class="tref internalDFN" title="array" href="#dfn-array">array</a> is detected, process each value in the <a class="tref internalDFN" title="array" href="#dfn-array">array</a>
+      by doing the following returning the result of processing the last value in the <a class="tref internalDFN" title="array" href="#dfn-array">array</a>:
+      <ol class="algorithm">
+        <li>
+          Create a new <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a> using copies of the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active
+          context</a>, <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a> and <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and process the value
+          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+          <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>.
+        </li>
+      </ol>
+    </li>
+
+    <li>
+      If a <a class="tref internalDFN" title="string" href="#dfn-string">string</a> is detected:
+      <ol class="algorithm">
+        <li>
+          If the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is the target of a <code>@id</code> coercion,
+          set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> by
+          performing <a href="#iri-expansion"><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion</a> on the string.
+        </li>
+        <li>
+          Otherwise, if the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> is the target of coercion,
+          set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> by creating a <a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal">typed literal</a> using
+          the string and the coercion key as the datatype <abbr title="Internationalized Resource Identifier">IRI</abbr>.
+        </li>
+        <li>
+          Otherwise, set the <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a> to a <a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal">plain literal</a> value created from the string.
+          If the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> contains a <code>language</code> key with a non-<code>null</code> value,
+          use it's value to set the language of the <a class="tref internalDFN" title="plain_literal" href="#dfn-plain_literal">plain literal</a>.
+        </li>
+      </ol>
+      Generate a
+      triple representing the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and the
+      <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>.
+    </li>
+
+    <li>
+      If a <a class="tref internalDFN" title="number" href="#dfn-number">number</a> is detected, generate a <a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal">typed literal</a> using a string representation of
+      the value with datatype set to either <code>xsd:integer</code> or
+      <code>xsd:double</code>, depending on if the value contains a
+      fractional and/or an exponential component. Generate a triple using the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active
+      subject</a>, <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a> and the generated typed literal.
+    </li>
+
+    <li>
+      Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
+      generate a triple using the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+      and a <a class="tref internalDFN" title="typed_literal" href="#dfn-typed_literal">typed literal</a> value created from the string representation of the
+      value with datatype set to <code>xsd:boolean</code>.
+    </li>
+  </ol>
+</div>
+<div id="list-conversion" class="section">
+  <h4><span class="secno">3.13.4 </span>List Conversion</h4>
+
+  <p>List Conversion is the process of taking an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> of values and adding them to a newly
+    created <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see
+    [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-SCHEMA">RDF-SCHEMA</a></cite>]) by linking each element of the list using <code>rdf:first</code> and <code>rdf:next</code>,
+    terminating the list with <code>rdf:nil</code> using the following sequence:</p>
+  <p>The algorithm is invoked with an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> <em>array</em>, the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>,
+    and the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a> and returns a value to be used as an <a class="tref internalDFN" title="active_object" href="#dfn-active_object">active object</a>.</p>
+  <div class="note">This algorithm does not support lists containing lists.</div>
+  <ol class="algorithm">
+    <li>
+      If <em>array</em> is empty return <code>rdf:nil</code>.
+    </li>
+    <li>
+      Otherwise, generate a triple using using the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>
+      and a newly generated BNode identified as <em>first <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>.
+    </li>
+    <li>
+      For each element in <em>array</em> other than the last element:
+      <ol class="algorithm">
+        <li>Create a processor state using the <a class="tref internalDFN" title="active_context" href="#dfn-active_context">active context</a>,
+          <em>first <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em> as the <a class="tref internalDFN" title="active_subject" href="#dfn-active_subject">active subject</a>, and
+          <code>rdf:first</code> as the <a class="tref internalDFN" title="active_property" href="#dfn-active_property">active property</a>.
+          <ol class="algorithm">
+            <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
+            <li>Proceed using the previous <a class="tref internalDFN" title="processor_state" href="#dfn-processor_state">processor state</a>.</li>
+          </ol>
+        </li>
+        <li>Unless this is the last element in <em>array</em>, generate a new BNode identified as
+          <em>rest <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>, otherwise use <code>rdf:nil</code>.</li>
+        <li>Generate a new triple using <em>first <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>,
+          <code>rdf:rest</code> and <em>rest <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>.</li>
+        <li>Set <em>first <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em> to
+          <em>rest <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>.</li>
+        <li>Return <em>first <a class="tref internalDFN" title="blank_node" href="#dfn-blank_node">blank node</a></em>.</li>
+      </ol>
+    </li>
+  </ol>
+</div>
+</div>
+</div>
+
+<div class="appendix section" id="acknowledgements">
+
+<!-- OddPage -->
+<h2><span class="secno">A. </span>Acknowledgements</h2>
+
+<p>The editors would like to thank Mark Birbeck, who provided a great deal of
+the initial push behind the JSON-LD work via his work on RDFj,
+Dave Lehn and Mike Johnson who reviewed, provided feedback, and
+performed several implementations of the specification, and Ian Davis, who
+created RDF/JSON. Thanks also to Nathan Rixham, Bradley P. Allen,
+Kingsley Idehen, Glenn McDonald, Alexandre Passant, Danny Ayers, Ted
+Thibodeau Jr., Olivier Grisel, Niklas Lindström, Markus Lanthaler, and Richard
+Cyganiak for their input on the specification.
+</p>
+</div>
+
+<div class="appendix section" id="appendix-b">
+  
+<!-- OddPage -->
+<h2><span class="secno">B. </span>Initial Context</h2>
+  <p>The <a class="tref internalDFN" title="initial_context" href="#dfn-initial_context">initial context</a> is defined with the following default entries:</p>
+<pre class="example">{
+  &quot;@context&quot;: {
+    &quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&quot;: { &quot;@type&quot;: &quot;@id&quot;}
+  }
+}</pre>
+  <p>Processors <em class="rfc2119" title="must">must</em> act as if the initial context is defined in the outer-most level when processing
+    JSON-LD documents.</p>
+  <p class="issue">Should we define other default prefixes?</p>
+</div>
+
+
+<div id="references" class="appendix section">
+<!-- OddPage -->
+<h2><span class="secno">C. </span>References</h2><div id="normative-references" class="section"><h3><span class="secno">C.1 </span>Normative references</h3><dl class="bibliography"><dt id="bib-JSON-LD">[JSON-LD]</dt><dd>Manu Sporny, Gregg Kellogg. <a href="http://json-ld.org/spec/latest/json-ld-syntax/"><cite>The JSON-LD Syntax</cite></a> Latest. W3C Editor's Draft. URL: <a href="http://json-ld.org/spec/latest/json-ld-syntax/">http://json-ld.org/spec/latest/json-ld-syntax/</a>
+</dd><dt id="bib-JSON-POINTER">[JSON-POINTER]</dt><dd>P. Bryan, Ed. <cite><a href="http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt">JSON Pointer</a></cite> Latest. IETF Draft. URL: <a href="http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt">http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt</a>
+</dd><dt id="bib-RDF-CONCEPTS">[RDF-CONCEPTS]</dt><dd>Graham Klyne; Jeremy J. Carroll. <a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210"><cite>Resource Description Framework (RDF): Concepts and Abstract Syntax.</cite></a> 10 February 2004. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2004/REC-rdf-concepts-20040210">http://www.w3.org/TR/2004/REC-rdf-concepts-20040210</a> 
+</dd><dt id="bib-RDF-NORMALIZATION">[RDF-NORMALIZATION]</dt><dd>Manu Sporny, Dave Longley. <a href="http://json-ld.org/spec/latest/rdf-graph-normalization/"><cite>RDF Graph Normalization</cite></a> Latest. W3C Editor's Draft. URL: <a href="http://json-ld.org/spec/latest/rdf-graph-normalization/">http://json-ld.org/spec/latest/rdf-graph-normalization/</a>
+</dd><dt id="bib-RDF-SCHEMA">[RDF-SCHEMA]</dt><dd>Dan Brickley; Ramanathan V. Guha. <a href="http://www.w3.org/TR/2004/REC-rdf-schema-20040210"><cite>RDF Vocabulary Description Language 1.0: RDF Schema.</cite></a> 10 February 2004. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2004/REC-rdf-schema-20040210">http://www.w3.org/TR/2004/REC-rdf-schema-20040210</a> 
+</dd><dt id="bib-RFC3987">[RFC3987]</dt><dd>M. Dürst; M. Suignard. <a href="http://www.ietf.org/rfc/rfc3987.txt"><cite>Internationalized Resource Identifiers (IRIs).</cite></a> January 2005. Internet RFC 3987. URL: <a href="http://www.ietf.org/rfc/rfc3987.txt">http://www.ietf.org/rfc/rfc3987.txt</a> 
+</dd><dt id="bib-RFC4627">[RFC4627]</dt><dd>D. Crockford. <a href="http://www.ietf.org/rfc/rfc4627.txt"><cite>The application/json Media Type for JavaScript Object Notation (JSON)</cite></a> July 2006. Internet RFC 4627. URL: <a href="http://www.ietf.org/rfc/rfc4627.txt">http://www.ietf.org/rfc/rfc4627.txt</a>
+</dd><dt id="bib-WEBIDL">[WEBIDL]</dt><dd>Cameron McCormack. <a href="http://www.w3.org/TR/2011/WD-WebIDL-20110927/"><cite>Web IDL.</cite></a> 27 September 2011. W3C Working Draft. (Work in progress.) URL: <a href="http://www.w3.org/TR/2011/WD-WebIDL-20110927/">http://www.w3.org/TR/2011/WD-WebIDL-20110927/</a> 
+</dd></dl></div><div id="informative-references" class="section"><h3><span class="secno">C.2 </span>Informative references</h3><dl class="bibliography"><dt id="bib-ECMA-262">[ECMA-262]</dt><dd><a href="http://www.ecma-international.org/publications/standards/Ecma-262.htm"><cite>ECMAScript Language Specification.</cite></a> December 1999. URL: <a href="http://www.ecma-international.org/publications/standards/Ecma-262.htm">http://www.ecma-international.org/publications/standards/Ecma-262.htm</a> 
+</dd><dt id="bib-MICRODATA">[MICRODATA]</dt><dd>Ian Hickson; et al. <a href="http://www.w3.org/TR/microdata/"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href="http://www.w3.org/TR/microdata/">http://www.w3.org/TR/microdata/</a> 
+</dd><dt id="bib-MICROFORMATS">[MICROFORMATS]</dt><dd><a href="http://microformats.org"><cite>Microformats</cite></a>. URL: <a href="http://microformats.org">http://microformats.org</a> 
+</dd><dt id="bib-RDFA-CORE">[RDFA-CORE]</dt><dd>Shane McCarron; et al. <a href="http://www.w3.org/TR/2011/WD-rdfa-core-20111215"><cite>RDFa Core 1.1: Syntax and processing rules for embedding RDF through attributes.</cite></a> 15 December 2011. W3C Working Draft. URL: <a href="http://www.w3.org/TR/2011/WD-rdfa-core-20111215">http://www.w3.org/TR/2011/WD-rdfa-core-20111215</a> 
+</dd><dt id="bib-XML-NAMES">[XML-NAMES]</dt><dd>Richard Tobin; et al. <a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/"><cite>Namespaces in XML 1.0 (Third Edition).</cite></a> 8 December 2009. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2009/REC-xml-names-20091208/">http://www.w3.org/TR/2009/REC-xml-names-20091208/</a> 
+</dd></dl></div></div></body></html>
