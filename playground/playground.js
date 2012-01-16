@@ -189,6 +189,7 @@
          $.ajax({
             url: url,
             dataType: 'json',
+            crossDomain: true,
             success: function(data, textStatus, jqXHR)
             {
                callback(data);
