@@ -104,14 +104,20 @@ function objectToString(obj)
    }
    else if(obj instanceof Object)
    {
-      // the object is an IRI, typed literal or language-tagged literal
       if("@value" in obj && "@type" in obj)
       {
+         // object is a typed literal
          rval = "\"" + obj["@value"] + "\"^^<" + obj["@type"] + ">";
       }
       else if("@value" in obj && "@language" in obj)
       {
+         // object is a plain literal with a language
          rval = "\"" + obj["@value"] + "\"@" + obj["@language"];
+      }
+      else if("@value" in obj)
+      {
+         // object is a plain literal
+         rval = "\"" + obj["@value"] + "\"";
       }
       else if("@id" in obj)
       {
