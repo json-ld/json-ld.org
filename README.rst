@@ -19,7 +19,7 @@ A simple example of a JSON object with added semantics:
 ::
  {
    "@context": "http://purl.org/jsonld/Person",
-   "@subject": "http://dbpedia.org/resource/John_Lennon",
+   "@id": "http://dbpedia.org/resource/John_Lennon",
    "name": "John Lennon",
    "birthday": "10-09",
    "member": "http://dbpedia.org/resource/The_Beatles"
