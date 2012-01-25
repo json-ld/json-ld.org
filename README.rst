@@ -14,9 +14,8 @@ CouchDB and MongoDB.
 A Simple Example
 ----------------
 
-A simple example of a JSON object with added semantics:
+A simple example of a JSON object with added semantics::
 
-::
  {
    "@context": "http://purl.org/jsonld/Person",
    "@id": "http://dbpedia.org/resource/John_Lennon",
