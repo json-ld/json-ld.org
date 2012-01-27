@@ -802,6 +802,7 @@ language-native data structures MUST be used where applicable.</p>
               simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each key in <em>value</em> having the lexical form of an <cite><a
               href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
+              <tref>compact IRI</tref>, absolute <tref>IRI</tref>,
               or being an empty string, perform the following steps:
               <ol class="algorithm">
                 <li>If the key's value is a simple <tref>string</tref>, the value MUST have the form of
@@ -811,11 +812,20 @@ language-native data structures MUST be used where applicable.</p>
                   <tref>term mapping</tref>.</li>
                 <li>Otherwise, the key's value MUST be a <tref>JSON object</tref>.
                   <ol class="algorithm">
-                    <li>The value MUST have a <code>@id</code> key with a string value, the value MUST have the
-                      form of <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref>. Determine the IRI mapping value
-                      by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of
-                      the IRI mapping is an <tref>absolute IRI</tref>, merge the key-value pair into the <tref>local context</tref>
-                      <tref>term mapping</tref>.</li>
+                    <li>If the key has the form of <tref>term</tref>, the value MUST have a <code>@id</code>
+                      key with a string value, the value MUST have the
+                      form of <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref>.
+                      Determine the IRI mapping value
+                      by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
+                      If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
+                      key-value pair into the <tref>local context</tref> <tref>term mapping</tref>.</li>
+                    <li>If the key has the form of <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
+                      the value MAY have a <code>@id</code> key with a string value, this value MUST have the
+                      form of <tref>term</tref>, <tref>compact IRI</tref>, absolute <tref>IRI</tref>.
+                      Determine the IRI mapping value
+                      by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
+                      If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
+                      key-value pair into the <tref>local context</tref> <tref>term mapping</tref>.</li>
                     <li>If the value has a <code>@type</code> key, the value MUST have the form of <tref>term</tref>,
                       <tref>compact IRI</tref>, <tref>absolute IRI</tref> or the <tref>keyword</tref> <code>@id</code>. Determine the IRI by
                       performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
@@ -859,7 +869,9 @@ language-native data structures MUST be used where applicable.</p>
 
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
-      <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
+      <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for the value using
+        a case-sensitive comparison, use the mapped value as an IRI.</li>
+      <li>Otherwise, split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
       <li>If the prefix is a '_' (underscore), the value represents a named <tref>blank node</tref>.</li>
       <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em> using
         a case-sensitive comparison, generate an <tref>IRI</tref>
@@ -878,7 +890,7 @@ language-native data structures MUST be used where applicable.</p>
 <section>
   <h2>IRI Compaction</h2>
   <p>Some keys and values are expressed using <tref>IRI</tref>s. This section defines an
-    algorithm for transforming an IRI to a compact IRI using the
+    algorithm for transforming an IRI to a <tref>term</tref> or <tref>compact IRI</tref> using the
     <tref>term</tref>s specified in the <tref>local context</tref>.</p>
 
   <p>The algorithm for generating a <tref>compact IRI</tref> is:
