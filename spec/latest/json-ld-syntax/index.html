@@ -558,7 +558,7 @@ rest of this section:
   in an JSON document, to <tref>IRI</tref>s. A <tdef>term</tdef> is a short word that MAY be expanded to an
   <tref>IRI</tref>. A <tref>term</tref> MUST have the lexical form of <cite><a
   href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
-  <tref>compact IRI</tref>, absolute <tref>IRI</tref>, or
+  <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or
   be an empty string.</p>
 <p>The Web uses <tref title="IRI">IRIs</tref> for unambiguous identification. The
   idea is that these <tref>term</tref>s mean something that may be of use to other developers and that it is useful to
@@ -703,7 +703,7 @@ specifies a <tref>vocabulary</tref> which may be represented using the
 <code>foaf</code> <tref>prefix</tref>. The <code>foaf</code> vocabulary
 contains a term called <strong>name</strong>. If you join the
 <code>foaf</code> <tref>prefix</tref> with the <strong>name</strong> suffix,
-you can build a <tref>compact IRI</tref> that will expand out into an absolute IRI for the
+you can build a <tref>compact IRI</tref> that will expand out into an <tref>absolute IRI</tref> for the
 <code>http://xmlns.com/foaf/0.1/name</code> <tref>vocabulary</tref> term.
 That is, the compact IRI (or short-form), is <code>foaf:name</code> and the
 expanded-form is <code>http://xmlns.com/foaf/0.1/name</code>. This vocabulary
@@ -783,7 +783,7 @@ in JSON-LD.</p>
 
 <ol>
   <li>Except within a <tref>context</tref> definition, <tref>term</tref>s in the key position in
-    a <tref>JSON object</tref> that have a mapping to an <tref>IRI</tref> or another <tref>term</tref> in the
+    a <tref>JSON object</tref> that have a mapping to an <tref>absolute IRI</tref> or another <tref>term</tref> in the
     <tref>active context</tref> are expanded to an IRI by JSON-LD processors.</li>
   <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
     <code>@id</code> or <code>@type</code>.</li>
@@ -791,8 +791,12 @@ in JSON-LD.</p>
     are <tref>coercion</tref> rules in effect that identify the value as an <code>@id</code>.</li>
 </ol>
 
-<p>IRIs may be represented as an absolute IRI, an IRI that is relative to the
-base location of the document, a <tref>term</tref>, or a <tref>compact IRI</tref>.</p>
+<p>IRIs may be represented as an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>, a <tref>term</tref>, or a <tref>compact IRI</tref>.</p>
+
+<p>An <tdef>absolute IRI</tdef> is defined in [[!RFC3987]] containing a <em>scheme</em> along with
+  <em>path</em> and optional <em>query</em> and fragment segments. A <tdef>relative IRI</tdef> is an IRI
+  that is relative some other <tref>absolute IRI</tref>; in the case of JSON-LD this is the base location
+  of the document.</p>
 
 <p>IRIs can be expressed directly in the key position like so:</p>
 
@@ -846,6 +850,10 @@ opposed to being interpreted as a string.</p>
 </pre>
 
 <p><tref>Term</tref>s are case sensitive, and MUST be matched using a case-sensitive comparison.</p>
+
+<p>Keys that do not expand to an absolute IRI are ignored.</p>
+<p class="issue">It is not determined if processing proceeds into values of undefined keys. If so,
+  this would result in a graph which is not <tref title="embedding">embedded</tref>.</p>
 
 <p><code>foaf:name</code> above will automatically expand out to the IRI
 <code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#compact-iris">Compact IRIs</a> for more details.</p>
@@ -1300,7 +1308,7 @@ features that are specific to JSON-LD.
     hand for the Friend-of-a-Friend vocabulary, which is identified using
     the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append
     any of the FOAF <tref>vocabulary</tref> terms to the end of the prefix
-    to specify a short-hand version of the absolute IRI for the
+    to specify a short-hand version of the <tref>absolute IRI</tref> for the
     <tref>vocabulary</tref> term. For example, <code>foaf:name</code> would
     be expanded out to the IRI <code>http://xmlns.com/foaf/0.1/name</code>.
     Instead of having to remember and type out the entire IRI, the developer
@@ -1668,7 +1676,7 @@ the data type to be specified with each usage.</p>
 
 <p>Type coercion is specified within an <a href="#expanded-term-definition">expanded term definition</a>
   using the <code>@type</code> key. The values of this key represent type IRIs and MUST take the form of
-  <tref>term</tref>, <tref>compact IRI</tref>, absolute <tref>IRI</tref> or the keyword <code>@id</code>. Specifying
+  <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref> or the keyword <code>@id</code>. Specifying
   <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
   <code>@id</code> are to be interpreted as <tref>IRI</tref>s.</p>
 
@@ -2303,7 +2311,7 @@ keywords have been given the aliases <strong>url</strong> and
 
 <div class="note">
 <p>JSON-LD has no equivalent for the Turtle <code>@base</code> declaration. Authors could, of course,
-  use a prefix definition to resolve relative IRIs. For example, an empty prefix could be used
+  use a prefix definition to resolve <tref>relative IRI</tref>s. For example, an empty prefix could be used
   to get a similar effect to <code>@base</code>:</p>
 <pre class="example" data-transform="updateExample">
 <!--
