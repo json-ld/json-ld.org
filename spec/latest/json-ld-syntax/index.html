@@ -22,6 +22,7 @@
                     berjon.biblio["RDF-API"] = "Manu Sporny, Benjamin Adrian, Nathan Rixham; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\"><cite>RDF API</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\">http://www.w3.org/2010/02/rdfa/sources/rdf-api/</a>";
                     berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
                     berjon.biblio["JSON-LD-API"] = "Manu Sporny, Gregg Kellogg, Dave Longley, Eds. <cite><a href=\"http://json-ld.org/spec/latest/json-ld-api/\">JSON-LD API</a></cite> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/json-ld-api/\">http://json-ld.org/spec/latest/json-ld-api/</a>";
+                    berjon.biblio["RFC5988"] = "M. Nottingham. <a href=\"http://tools.ietf.org/rfc/rfc5988\"><cite>Web Linking</cite></a> October 2010. IETF Standard. URL: <a href=\"http://tools.ietf.org/rfc/rfc5988.txt\">http://tools.ietf.org/rfc/rfc5988.txt</a>";
 
                     // process the document before anything else is done
                     var refs = document.querySelectorAll('adef') ;
@@ -1394,7 +1395,7 @@ documents.
 </p>
 
 <p>
-In order to use an external context, an author MAY specify an <tref>IRI</tref>
+In order to use an external context, an author MUST specify an <tref>IRI</tref>
 to a valid JSON-LD document. The referenced document MUST have a
 top-level <tref>JSON Object</tref>. The value of any <code>@context</code> key
 within that object is substituted for the IRI within the referencing document
@@ -1485,7 +1486,60 @@ also RECOMMENDED that a human-readable document encoded in HTML+RDFa
 [[HTML-RDFA]] or other Linked Data compatible format is served as well to
 explain the correct usage of the JSON-LD context document.
 </p>
+</section>
 
+<section>
+<h2>Referencing Contexts from JSON Documents</h2>
+
+<p>Ordinary JSON documents can be transformed in JSON-LD documents by referencing
+to an external JSON-LD <tref>context</tref> in an HTTP Link Header. Doing this
+allows JSON to be unambiguously machine-readable without requiring developers to
+drastically change their workflow and provides an upgrade path for existing
+infrastructure without breaking existing clients that rely on the <code>application/json</code>
+media type.
+</p>
+
+<p>
+In order to use an external context with an ordinary JSON document, an author
+MUST specify an <tref>IRI</tref> to a valid JSON-LD document in an HTTP Link
+Header [[!RFC5988]] using the <code>describedby</code> link relation.
+
+The referenced document MUST have a top-level <tref>JSON Object</tref>. The
+<code>@context</code> subtree within that object is added to the top-level
+object of the referencing document. If an array is at the top-level of the
+referencing document and its items are objects, the <code>@context</code>
+subtree is added to all array items. All extra information located outside
+of the <code>@context</code> subtree in the referenced document MUST be
+discarded.
+</p>
+
+<p>The following example demonstrates the use of an external context with an
+ordinary JSON document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+
+GET /ordinary-json-document.json HTTP/1.1
+Host: example.com
+Accept: application/json,*/*;q=0.1
+
+----------------------------------------------------
+
+HTTP/1.0 200 OK
+...
+Content-Type: application/json
+****Link: <http://json-ld.org/contexts/person>; rel="describedby"; type="application/ld+json"****
+
+{
+  "name": "Markus Lanthaler",
+  "homepage": "http://www.markus-lanthaler.com/",
+  "depiction": "http://twitter.com/account/profile_image/markuslanthaler"
+}
+-->
+</pre>
+
+<p class="note">JSON-LD documents MUST have all context information, including
+references to external contexts, within the body of the document.</p>
 </section>
 
 <section>
