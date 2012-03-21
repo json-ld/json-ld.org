@@ -956,24 +956,24 @@ language-native data structures MUST be used where applicable.</p>
   <p>The algorithm for expanding a <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
   <ol class="algorithm">
-    <li>If <em>value</em> is <tref>true</tref>, <tref>false</tref> or <tref>number</tref>, expand the value by
-      adding a two new key-value pairs. The first key-value pair will be <code>@value</code> and
-      the string representation of <em>value</em>. The second key-value pair will be <code>@type></code>,
-      and the expanded version of <code>xsd:boolean</code>, <code>xsd:integer</code>, or <code>xsd:double</code>,
-      depending on <em>value</em>.</li>
-    <li>Otherwise, if <tref>active property</tref> is the target of an <code>@id</code> coercion,
-      expand the value by adding a new key-value pair where the
-      key is <code>@id</code> and the value is the expanded IRI according to the <a href="#iri-expansion">IRI
-      Expansion</a> rules.</li>
+    <li>If <em>value</em> is a <tref>number</tref> and the <tref>active property</tref> is the target of typed literal
+      coercion to <code>xsd:integer</code> or <code>xsd:double</code>, expand the value into an object with
+      two key-value pairs. The first key-value pair will be <code>@value</code> and the string representation of
+      <em>value</em> as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>. The second
+      key-value pair will be <code>@type</code> and the associated coercion datatype expanded according to the
+      <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+    <li>Otherwise, if <tref>active property</tref> is the target of an <code>@id</code> coercion, expand the value
+      into an object with a key-value pair where the key is <code>@id</code> and the value is the expanded
+      IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
     <li>Otherwise, if <tref>active property</tref> is the target of typed literal coercion,
-      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
-      and the unexpanded value. The second key-value pair will be <code>@type</code> and the associated coercion
+      expand <em>value</em> into an object with key-value pairs. The first key-value pair will be <code>@value</code>
+      and the unexpanded <em>value</em>. The second key-value pair will be <code>@type</code> and the associated coercion
       datatype expanded according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if the <tref>active context</tref> has a <code>@language</code>,
-      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
-      and the unexpanded value. The second key-value pair will be <code>@language</code> and value of
-      <code>@language</code> from the <tref>active context</tref>.</li> <li>Otherwise, <em>value</em> is already
-      expanded.</li>
+    <li>Otherwise, if <em>value</em> is a <tref>string</tref> and the <tref>active property</tref> is not the target of
+      typed literal coercion but target of language tagging, expand <em>value</em> into an object with two
+      key-value pairs. The first key-value pair will be <code>@value</code> and the unexpanded <em>value</em>.
+      The second key-value pair will be <code>@language</code> and value of the language tagging from the <tref>active context</tref>.</li>
+    <li>Otherwise, <em>value</em> is already expanded.</li>
   </ol>
 </section>
 
@@ -1668,20 +1668,23 @@ language-native data structures MUST be used where applicable.</p>
 
 <h3>Data Round Tripping</h3>
 
-<p>When normalizing <strong>xsd:double</strong> values, implementers MUST
-ensure that the normalized value is a string. In order to generate the
-string from a <strong>double</strong> value, output equivalent to the
-<code>printf("%1.6e", value)</code> function in C MUST be used where
-<strong>"%1.6e"</strong> is the string formatter and <strong>value</strong>
-is the value to be converted.</p>
+<p>When normalizing numbers with fractions or coercing numbers to <strong>xsd:integer</strong>
+or <strong>xsd:double</strong>, implementers MUST ensure that the resulting value is a string.
+In order to generate the string from a <tref>number</tref>, an algorithm creating an output
+equivalent to the <code>printf("%1.16e", value)</code> function in C MUST be used where
+<strong>"%1.16e"</strong> is the string formatter and <strong>value</strong>
+is the number to be converted.</p>
 
-<p>To convert the a double value in JavaScript, implementers can use the
+<p class="issue"><a href="https://github.com/json-ld/json-ld.org/issues/81">ISSUE-81</a>:
+  This information might be wrong. We might need to use the canonical form of xsd:double.</p>
+
+<p>To convert the number in JavaScript, implementers can use the
 following snippet of code:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 // the variable 'value' below is the JavaScript native double value that is to be converted
-(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
+(value).toExponential(16).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
 -->
 </pre>
 
