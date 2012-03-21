@@ -398,9 +398,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       Boolean values.
     </dd>
     <dt><tdef>null</tdef></dt><dd>
-      The use of the <em>null</em> value is undefined within JSON-LD.
-      <div class="issue">Supporting <em>null</em> in JSON-LD might have a number of advantages and should be evaluated. This is currently an <a href="https://github.com/json-ld/json-ld.org/issues/11">open issue</a>.</div>
-    </dd>
+      The use of the <tref>null</tref> value within JSON-LD use used to ignore or reset values.
   </dl>
 </p>
 </section>
@@ -556,7 +554,7 @@ de-referenceable.
         <a href="#framing-algorithm">Framing Algorithm</a>. The
         <code>input</code> is used to build the framed output and is returned if
         there are no errors. If there are no matches for the frame,
-        <code>null</code> MUST be returned. Exceptions MUST be thrown if there are
+        <tref>null</tref> MUST be returned. Exceptions MUST be thrown if there are
         errors.
         <dl class="parameters">
            <dt>object input</dt>
@@ -590,7 +588,7 @@ de-referenceable.
         according to the steps in the
         <a href="#normalization-algorithm">Normalization Algorithm</a>. The
         <code>input</code> MUST be copied, normalized and returned if there are
-        no errors. If the compaction fails, <code>null</code> MUST be returned.
+        no errors. If the compaction fails, <tref>null</tref> MUST be returned.
         The output is the serialized representation returned from the
         <a href="#normalization-algorithm">Normalization Algorithm</a>.
         <span class="issue">It's still an open question if the result is a DOMString
@@ -821,7 +819,7 @@ language-native data structures MUST be used where applicable.</p>
     <li>Create a new, empty <tref>local context</tref>.</li>
     <li>Let <em>value</em> be the value of <code>@context</code>
       <ol id="process-context" class="algorithm">
-        <li>If <em>value</em> equals <code>null</code>, reset the <tref>active context</tref> to the <tref>initial context</tref></li>
+        <li>If <em>value</em> equals <tref>null</tref>, reset the <tref>active context</tref> to the <tref>initial context</tref></li>
         <li>If <em>value</em> is an <tref>array</tref>, process
           each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.</li>
         <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of <tref>absolute IRI</tref>.
@@ -836,7 +834,7 @@ language-native data structures MUST be used where applicable.</p>
         <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
             <li>If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
-              simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.</li>
+              simple <tref>string</tref> or <tref>null</tref>. Add the language to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each key in <em>value</em> having the lexical form of an <cite><a
               href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
               <tref>compact IRI</tref>, absolute <tref>IRI</tref>,
@@ -1061,7 +1059,7 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
   and a <em>value</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
-  context</tref>, <tref>active property</tref> is set to nil, and <em>value</em> is set to the <tref>JSON-LD
+  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is set to the <tref>JSON-LD
   input</tref>.</p>
 
 <ol class="algorithm">
@@ -1073,8 +1071,12 @@ language-native data structures MUST be used where applicable.</p>
       the <a href="#context">context</a> section and remove it from the expanded result.</li>
       <li>For each key and value in <em>value</em>:
         <ol class="algorithm">
-          <li>If the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
+          <li>If value is <tref>null</tref>, skip this key/value pair and remove key from <em>value</em></li>
+          <li>Otherwise, if value is a <tref>JSON object</tref> having either a <code>@value</code> or
+            <code>@list</code> key with a <tref>null</tref> value, skip this key/value pair and
+          <li>Otherwise, if the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
+            remove key from <em>value</em></li>
           <li>Otherwise, if the key is <code>@value</code>, the value MUST be a <tref>string</tref> and
             is not subject to further expansion.</li>
           <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
@@ -1084,10 +1086,11 @@ language-native data structures MUST be used where applicable.</p>
             set to the current value.</li>
           <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
             recursively using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>.</li>
+            property</tref> removing items which expand to <tref>null</tref>.</li>
           <li>If the value is an object, process the object recursively
             using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>.</li>
+            property</tref>. If <tref>null</tref> is returned, skip this key/value pair and remove
+            key from <em>value</em>.</li>
           <li>Otherwise, expand the value according to the <a href="#value-expansion">Value Expansion</a> rules,
             passing <tref>active property</tref>.</li>
         </ol>
@@ -1171,7 +1174,7 @@ language-native data structures MUST be used where applicable.</p>
 <h3>Compaction Algorithm</h3>
 
 <p>The algorithm takes two input variables: an <tref>active property</tref>,
-  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to nil, and <em>value</em> is
+  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is
   set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
     the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
     applied. The <tref>active context</tref> to the given context.</p>
@@ -1401,7 +1404,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>If the <strong>expanded frame</strong> is not an <tref>array</tref>, set
         <tref>match limit</tref> to 1, place the
         <strong>expanded frame</strong> into the <tref>list of frames</tref>,
-        and set the <tref>JSON-LD output</tref> to <code>null</code>.</li>
+        and set the <tref>JSON-LD output</tref> to <tref>null</tref>.</li>
       <li>If the <strong>expanded frame</strong> is an empty <tref>array</tref>, place an
         empty object into the <tref>list of frames</tref>,
         set the <tref>JSON-LD output</tref> to an <tref>array</tref>, and set
@@ -1476,8 +1479,8 @@ language-native data structures MUST be used where applicable.</p>
             <li>If the key is not in the item, add the key to the item and
               set the associated value to an empty array if the
               <tref>match frame</tref> key's value is an array
-              or <code>null</code> otherwise.</li>
-            <li>If value associated with the item's key is <code>null</code>,
+              or <tref>null</tref> otherwise.</li>
+            <li>If value associated with the item's key is <tref>null</tref>,
               process the <tref>omit missing properties flag</tref>:
               <ol class="algorithm">
                 <li>If the value associated with the key in the
@@ -1500,7 +1503,7 @@ language-native data structures MUST be used where applicable.</p>
           </ol></li>
         </ol>
       </li>
-      <li>If the <tref>JSON-LD output</tref> is <code>null</code> set it to
+      <li>If the <tref>JSON-LD output</tref> is <tref>null</tref> set it to
         the item, otherwise, append the item to the
         <tref>JSON-LD output</tref>.</li>
     </ol>
@@ -1808,7 +1811,7 @@ implement the algorithm exactly as described.
   
   <p>The algorithm takes four input variables: a <em>value</em> to be converted, an
     <tref>active subject</tref> and an <tref>active property</tref>.
-    To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to nil, and <em>value</em> is
+    To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to <tref>null</tref>, and <em>value</em> is
     set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
     the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
     applied.</p>
@@ -1817,7 +1820,7 @@ implement the algorithm exactly as described.
     <li id="processing-step-associative">
       If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
-        <li>Set <tref>active object</tref> to nil.</li>
+        <li>Set <tref>active object</tref> to <tref>null</tref>.</li>
         <li>
           If the <tref>JSON object</tref> has a <code>@value</code> key, set the <tref>active object</tref>
           to a literal value as follows:
@@ -1837,9 +1840,9 @@ implement the algorithm exactly as described.
           Process the value as a list as described in <a href="#list-conversion">List Conversion</a> using
           the return value as the <tref>active object</tref>
         </li>
-        <li>If <tref>active object</tref> is not nil:
+        <li>If <tref>active object</tref> is not <tref>null</tref>:
           <ol class="algorithm">
-            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are nil, generate a triple
+            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>, generate a triple
               representing the <tref>active subject</tref>, the <tref>active property</tref> and the
               <tref>active object</tref>.</li>
             <li>Return the <tref>active object</tref> to the calling location.</li>
@@ -1919,7 +1922,7 @@ implement the algorithm exactly as described.
     </li>
     <li>
       If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
-      nor <tref>active property</tref> are nil, generate a triple using <tref>active subject</tref>,
+      nor <tref>active property</tref> are <tref>null</tref>, generate a triple using <tref>active subject</tref>,
       <tref>active property</tref> and <tref>active object</tref>
     </li>
     <li>Return <tref>active object</tref> to the calling location.</li>
