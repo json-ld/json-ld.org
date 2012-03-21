@@ -1801,63 +1801,59 @@ implement the algorithm exactly as described.
     processing algorithm that results in the same <tref>default graph</tref> that the following
     algorithm generates:
   </p>
+  
+  <p>The algorithm takes four input variables: a <em>value</em> to be converted, an
+    <tref>active subject</tref> and an <tref>active property</tref>.
+    To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to nil, and <em>value</em> is
+    set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
+    the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
+    applied.</p>
 
   <ol class="algorithm">
-    <li id="processing-step-default-context">
-      Create a new <tref>processor state</tref> with with the <tref>active context</tref> set to the
-      <tref>initial context</tref> and <tref>active subject</tref> and <tref>active property</tref>
-      initialized to NULL.
-    </li>
-
     <li id="processing-step-associative">
-      If a <tref>JSON object</tref> is detected, perform the following steps:
+      If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
-        <li>
-          If the <tref>JSON object</tref> has a <code>@context</code> key, process the local context as
-          described in <a href="#context">Context</a>.
-        </li>
-        <li>
-          Create a copy of the current <tref>JSON object</tref>, changing keys that map to JSON-LD <tref>keyword</tref>s
-          with those <tref>keyword</tref>s. Use the new <tref>JSON object</tref> in subsequent steps.
-        </li>
+        <li>Set <tref>active object</tref> to nil.</li>
         <li>
           If the <tref>JSON object</tref> has a <code>@value</code> key, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
             <li>
               as a <tref>typed literal</tref> if the <tref>JSON object</tref> contains a <code>@type</code> key
-              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified<code>@type</code>.
+              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified <code>@type</code>.
             </li>
             <li>
               otherwise, as a <tref>plain literal</tref>. If the <tref>JSON object</tref> contains
               a <code>@language</code> key, use it's value to set the language of the plain literal.
             </li>
-            <li>
-              If the neither the <tref>active subject</tref> nor the <tref>active property</tref>, generate a triple
-              representing the <tref>active subject</tref>, the <tref>active property</tref> and the <tref>active object</tref>.
-            </li>
-            <li>Return the <tref>active object</tref> to the calling location.</li>
           </ol>
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
-          process the value as a list as described in <a href="#list-conversion">List Conversion</a>.
+          If the <tref>JSON object</tref> has a <code>@list</code> key the value MUST be an <tref>array</tref>.
+          Process the value as a list as described in <a href="#list-conversion">List Conversion</a> using
+          the return value as the <tref>active object</tref>
+        </li>
+        <li>If <tref>active object</tref> is not nil:
+          <ol class="algorithm">
+            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are nil, generate a triple
+              representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+              <tref>active object</tref>.</li>
+            <li>Return the <tref>active object</tref> to the calling location.</li>
+          </ol>
         </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@id</code> key:
           <ol class="algorithm">
             <li>
-              If the value is a <tref>string</tref>, set the <tref>active object</tref> to the result of performing
-              <a href="#iri-expansion">IRI Expansion</a>. Generate a
-              triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-              <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
-            </li>
-            <li>
-              Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
-              <tref>active subject</tref> and <tref>active property</tref>.
+              If the value is a <tref>string</tref>, set the <tref>active subject</tref> to the previously
+              expanded value (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
+            <li>Otherwise, 
+              Generate a create a new <tref>processor state</tref> copies of the <tref>active subject</tref>
+              and <tref>active property</tref>.
               <ol class="algorithm">
                 <li>
                   Process the value starting at
-                  <a href="#processing-step-associative">Step 2</a>.
+                  <a href="#processing-step-associative">Step 1</a> using the returned value as
+                  <tref>active subject</tref>.
                 </li>
                 <li>Proceed using the previous <tref>processor state</tref>.</li>
               </ol>
@@ -1866,11 +1862,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> does not have a <code>@id</code> key, set the <tref>active
-          object</tref> to newly generated <tref>blank node</tref>. Generate a triple
-          representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-          <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
-          object</tref>.
-        </li>
+          object</tref> to newly generated <tref>blank node</tref>.</li>
         <li>
           For each key in the <tref>JSON object</tref> that has not already been processed, perform
           the following steps:
@@ -1879,78 +1871,54 @@ implement the algorithm exactly as described.
               If the key is <code>@type</code>, set the <tref>active property</tref>
               to <code>rdf:type</code>.
             </li>
-            <li>Otherwise, set the <tref>active property</tref> to the result of performing
-            <a href="#iri-expansion">IRI Expansion</a> on the key.</li>
+            <li>Otherwise, if the key is a <tref>keyword</tref>, skip this step.</li>
+            <li>Otherwise, set <tref>active property</tref> to the value of the key.</li>
             <li>
-              If the <tref>active property</tref> is an <tref>absolute IRI</tref> and is the
-              target of a <code>@list</code> coercion, and the value is an <tref>array</tref>,
-              process the value as a list as described in in <a href="#list-conversion">List Conversion</a>.
-            </li>
-            <li>
-              Otherwise, If the <tref>active property</tref> is an <tref>absolute IRI</tref>,
-              create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+              Create a new <tref>processor state</tref> copies of
               <tref>active subject</tref> and <tref>active property</tref> and process the value
-              starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
+              starting at <a href="#processing-step-associative">Step 1</a> and proceed using the
               previous <tref>processor state</tref>.
             </li>
           </ol>
         </li>
         <li>
-          Return the <tref>active object</tref> to the calling location.
+          Return the <tref>active subject</tref> to the calling location.
         </li>
       </ol>
     </li>
 
     <li>If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref>
       by doing the following returning the result of processing the last value in the <tref>array</tref>:
+      <div class="issue">Update based on decision of what value, if any, of array to use.</div>
       <ol class="algorithm">
         <li>
-          Create a new <tref>processor state</tref> using copies of the <tref>active
-          context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
-          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+          Create a new <tref>processor state</tref> using copies of <tref>active subject</tref> and
+          <tref>active property</tref> and process the value
+          starting at <a href="#processing-step-associative">Step 1</a> then proceed using the previous
           <tref>processor state</tref>.
         </li>
       </ol>
     </li>
 
     <li>
-      If a <tref>string</tref> is detected:
-      <ol class="algorithm">
-        <li>
-          If the <tref>active property</tref> is the target of a <code>@id</code> coercion,
-          set the <tref>active object</tref> by
-          performing <a href="#iri-expansion">IRI Expansion</a> on the string.
-        </li>
-        <li>
-          Otherwise, if the <tref>active property</tref> is the target of coercion,
-          set the <tref>active object</tref> by creating a <tref>typed literal</tref> using
-          the string and the coercion key as the datatype IRI.
-        </li>
-        <li>
-          Otherwise, set the <tref>active object</tref> to a <tref>plain literal</tref> value created from the string.
-          If the <tref>active context</tref> contains a <code>language</code> key with a non-<code>null</code> value,
-          use it's value to set the language of the <tref>plain literal</tref>.
-        </li>
-      </ol>
-      Generate a
-      triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-      <tref>active object</tref>.
-    </li>
-
+      If a <tref>string</tref> is detected, set the <tref>active object</tref>
+      to a <tref>plain literal</tref> value created from the string.</li>
     <li>
-      If a <tref>number</tref> is detected, generate a <tref>typed literal</tref> using a string representation of
-      the value with datatype set to either <code>xsd:integer</code> or
-      <code>xsd:double</code>, depending on if the value contains a
-      fractional and/or an exponential component. Generate a triple using the <tref>active
-      subject</tref>, <tref>active property</tref> and the generated typed literal.
-    </li>
-
+      If a <tref>number</tref> is detected, set the <tref>active object</tref> to a
+      <tref>typed literal</tref> using a string representation of the value with datatype set
+      to either <code>xsd:integer</code> or <code>xsd:double</code>, depending on if the value
+      contains a fractional and/or an exponential component.</li>
     <li>
       Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
-      generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
-      and a <tref>typed literal</tref> value created from the string representation of the
-      value with datatype set to <code>xsd:boolean</code>.
+      set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
+      string representation of the value with datatype set to <code>xsd:boolean</code>.
     </li>
+    <li>
+      If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
+      nor <tref>active property</tref> are nil, generate a triple using <tref>active subject</tref>,
+      <tref>active property</tref> and <tref>active object</tref>
+    </li>
+    <li>Return <tref>active object</tref> to the calling location.</li>
   </ol>
 </section>
 <section id="list-conversion">
@@ -1960,8 +1928,8 @@ implement the algorithm exactly as described.
     created <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see
     [[!RDF-SCHEMA]]) by linking each element of the list using <code>rdf:first</code> and <code>rdf:next</code>,
     terminating the list with <code>rdf:nil</code> using the following sequence:</p>
-  <p>The algorithm is invoked with an <tref>array</tref> <em>array</em>, the <tref>active property</tref>,
-    and the <tref>active context</tref> and returns a value to be used as an <tref>active object</tref>.</p>
+  <p>The algorithm is invoked with an <tref>array</tref> <em>array</em>, the <tref>active property</tref>
+    and returns a value to be used as an <tref>active object</tref> in the calling location.</p>
   <div class="note">This algorithm does not support lists containing lists.</div>
   <ol class="algorithm">
     <li>
@@ -1969,20 +1937,20 @@ implement the algorithm exactly as described.
     </li>
     <li>
       Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-      and a newly generated BNode identified as <em>first <tref>blank node</tref></em>.
+      and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
     </li>
     <li>
       For each element in <em>array</em> other than the last element:
       <ol class="algorithm">
-        <li>Create a processor state using the <tref>active context</tref>,
+        <li>Create a processor state using
           <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
           <code>rdf:first</code> as the <tref>active property</tref>.
           <ol class="algorithm">
-            <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
+            <li>Process the value starting at <a href="#processing-step-associative">Step 1</a>.</li>
             <li>Proceed using the previous <tref>processor state</tref>.</li>
           </ol>
         </li>
-        <li>Unless this is the last element in <em>array</em>, generate a new BNode identified as
+        <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
           <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
         <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
           <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
