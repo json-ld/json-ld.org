@@ -24,6 +24,7 @@
                     berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
                     berjon.biblio["JSON-POINTER"] = "P. Bryan, Ed. <cite><a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">JSON Pointer</a></cite> Latest. IETF Draft. URL: <a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt</a>";
                     berjon.biblio["RDF-NORMALIZATION"] = "Manu Sporny, Dave Longley. <a href=\"http://json-ld.org/spec/latest/rdf-graph-normalization/\"><cite>RDF Graph Normalization</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/rdf-graph-normalization/\">http://json-ld.org/spec/latest/rdf-graph-normalization/</a>";
+                    berjon.biblio["IEEE-754-1985"] = "IEEE. <cite>IEEE Standard for Binary Floating-Point Arithmetic.</cite> See <a href=\"http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html\">http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html</a>";
 
                     // process the document before anything else is done
                     var refs = document.querySelectorAll('adef') ;
@@ -1671,69 +1672,83 @@ language-native data structures MUST be used where applicable.</p>
 
 <h3>Data Round Tripping</h3>
 
-<p>When normalizing numbers with fractions or coercing numbers to <strong>xsd:integer</strong>
-or <strong>xsd:double</strong>, implementers MUST ensure that the resulting value is a string.
-In order to generate the string from a <tref>number</tref>, an algorithm creating an output
-equivalent to the <code>printf("%1.16e", value)</code> function in C MUST be used where
-<strong>"%1.16e"</strong> is the string formatter and <strong>value</strong>
-is the number to be converted.</p>
-
-<p class="issue"><a href="https://github.com/json-ld/json-ld.org/issues/81">ISSUE-81</a>:
-  This information might be wrong. We might need to use the canonical form of xsd:double.</p>
-
-<p>To convert the number in JavaScript, implementers can use the
-following snippet of code:</p>
-
+<p>When coercing numbers to <strong>xsd:integer</strong> or <strong>xsd:double</strong>
+  as it, e.g., happens during <a href="#normalization">normalization</a>, implementers MUST
+  ensure that the result is a canonical lexical representation in the form of a
+  <tref>string</tref>. A <tdef>canonical lexical representation</tdef> is a set of literals
+  from among the valid set of literals for a datatype such that there is a one-to-one mapping
+  between the canonical lexical representation and a value in the value space as defined in
+  [[!XMLSCHEMA-2]]. In other words, every value MUST be converted to a deterministic string
+  representation.</p>
+<p>
+<p>The canonical lexical representation of an <em>integer</em>, i.e., a number without fractions
+  or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
+  digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
+  To convert the number in JavaScript, implementers can use the following snippet of code:</p>
 <pre class="example" data-transform="updateExample">
 <!--
-// the variable 'value' below is the JavaScript native double value that is to be converted
-(value).toExponential(16).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
+(value).toFixed(0).toString()
 -->
 </pre>
+<p>The canonical lexical representation of a <em>double</em>, i.e., a number with fractions
+  or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
+  character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
+  MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
+  in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
+  For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
+  required. Leading and trailing zeroes are prohibited subject to the following: number
+  representations must be normalized such that there is a single digit which is non-zero to the
+  left of the decimal point and at least a single digit to the right of the decimal point unless
+  the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
+  To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+(value).toExponential().replace(/e\+?/,'E')
+-->
+</pre>
+<p><strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
+floating point type [[!IEEE-754-1985]].</p>
 
-<p class="note">When data needs to be normalized, JSON-LD authors should
-not use values that are going to undergo automatic conversion. This is due
-to the lossy nature of <strong>xsd:double</strong> values.</p>
+<p class="note">When data such as decimals need to be normalized, JSON-LD authors should
+not use values that are going to undergo automatic conversion. This is due to the lossy nature
+of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
+set the canonical lexical representation directly.</p>
 
-<p class="note">Some JSON serializers, such as PHP's native implementation,
-backslash-escapes the forward slash character. For example, the value
-<code>http://example.com/</code> would be serialized as
-<code>http:\/\/example.com\/</code> in some
-versions of PHP. This is problematic when generating a byte
-stream for processes such as normalization. There is no need to
-backslash-escape forward-slashes in JSON-LD. To aid interoperability between
-JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape
-forward slashes.</p>
-
-<p class="issue">Round-tripping data can be problematic if we mix and
-match coercion rules with JSON-native datatypes, like integers. Consider the
-following code example:</p>
+<p class="note">When JSON-native datatypes, like <tref>number</tref>s, are type coerced, lossless
+data round-tripping can not be guaranted. Consider the following code example:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-var myObj = { "@context" : {
-                "number" : {
-                  "@id": "http://example.com/vocab#number",
-                  "@type": "xsd:nonNegativeInteger"
-                }
-              },
-              "number" : 42 };
+var myObj1 = {
+               "@context": {
+                 "number": {
+                   "@id": "http://example.com/vocab#number",
+                   ****"@type": "xsd:nonNegativeInteger"****
+                 }
+               },
+               "number" : ****42****
+             };
 
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
+// Normalize the JSON-LD document, this converts 42 to a string
+var jsonldText = jsonld.normalize(myObj1);
 
 // Convert the normalized object back to a JavaScript object
 var myObj2 = jsonld.parse(jsonldText);
 -->
 </pre>
 
-<p class="issue">At this point, myObj2 and myObj will have different
-values for the "number" value. myObj will be the number 42, while
-myObj2 will be the string "42". This type of data round-tripping
-error can bite developers. We are currently wondering if having a
-"coercion validation" phase in the parsing/normalization phases would be a
-good idea. It would prevent data round-tripping issues like the
-one mentioned above.</p>
+<p>At this point, <code>myObj1</code> and <code>myObj2</code> will have different
+  values for the "number" property. <code>myObj1</code> will have the number
+  <code>42</code>, while <code>myObj2</code> have an object consisting of
+  <code>@value</code> set to the string <code>"42"</code> and <code>@type</code>
+  set to the expanded value of <em>xsd:nonNegativeInteger</em>.</p>
+
+<p class="note">Some JSON serializers, such as PHP's native implementation in some versions,
+  backslash-escape the forward slash character. For example, the value
+  <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
+  This is problematic as other JSON parsers might not understand those escaping characters.
+  There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
+  between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
 
 </section>
 
@@ -1808,7 +1823,7 @@ implement the algorithm exactly as described.
     processing algorithm that results in the same <tref>default graph</tref> that the following
     algorithm generates:
   </p>
-  
+
   <p>The algorithm takes four input variables: a <em>value</em> to be converted, an
     <tref>active subject</tref> and an <tref>active property</tref>.
     To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to <tref>null</tref>, and <em>value</em> is
@@ -1853,7 +1868,7 @@ implement the algorithm exactly as described.
             <li>
               If the value is a <tref>string</tref>, set the <tref>active subject</tref> to the previously
               expanded value (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
-            <li>Otherwise, 
+            <li>Otherwise,
               Generate a create a new <tref>processor state</tref> copies of the <tref>active subject</tref>
               and <tref>active property</tref>.
               <ol class="algorithm">
