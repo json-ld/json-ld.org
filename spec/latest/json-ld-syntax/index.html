@@ -370,7 +370,7 @@ WebIDL [[!WEBIDL]].</p>
     <dt><tdef>array</tdef></dt>
     <dd>
       An array is an ordered collection of values. An array structure is represented as square brackets surrounding zero or more values (or elements). Elements are separated by commas.  Within JSON-LD, array order is not preserved by default, unless
-      specific markup is provided (see <a href="#lists">Lists</a>). This is because the basic data model of JSON-LD
+      specific markup is provided (see <a href="#sets-and-lists">Sets and Lists</a>). This is because the basic data model of JSON-LD
       is a <tref>linked data graph</tref>, which is inherently unordered.
     </dd>
     <dt><tdef>string</tdef></dt><dd>
@@ -384,7 +384,10 @@ WebIDL [[!WEBIDL]].</p>
       Values that are used to express one of two possible boolean states.
     </dd>
     <dt><tdef>null</tdef></dt><dd>
-      The use of the <em>null</em> value is undefined within JSON-LD.
+      Unless otherwise specified, a JSON-LD processor MUST act as if a key-value pair in the body of a JSON-LD document was never declared when the value equals <em>null</em>.
+      If <code>@value</code> or <code>@list</code> is set to <em>null</em> in expanded form, then the entire JSON object is ignored.
+      If <code>@context</code> is set to <em>null</em>, the <tref>active context</tref> is reset and when used
+      within a <tref>context</tref>, it removes any definition associated with the key, unless otherwise specified.
     </dd>
   </dl>
 </p>
@@ -415,8 +418,8 @@ WebIDL [[!WEBIDL]].</p>
     <a href="#string-internationalization">String Internationalization</a> and
     <a href="#typed-values">Typed Values</a>.</dd>
   <dt><code>@language</code></dt>
-  <dd>Used to specify the native language for a particular value.
-    This keyword is described in the section titled
+  <dd>Used to specify the native language for a particular value or the default
+    language of a JSON-LD document. This keyword is described in the section titled
     <a href="#string-internationalization">String Internationalization</a>.</dd>
   <dt><code>@type</code></dt>
   <dd>Used to set the data type of a <tref>subject</tref> or
@@ -424,10 +427,13 @@ WebIDL [[!WEBIDL]].</p>
     <a href="#typed-values">Typed Values</a>.</dd>
   <dt><code>@container</code></dt>
   <dd>Used to set the container of a particular value.
-    This keyword is described in the section titled <a href="#lists">Lists</a>.</dd>
+    This keyword is described in the section titled <a href="#sets-and-lists">Sets and Lists</a>.</dd>
   <dt><code>@list</code></dt>
   <dd>Used to express an ordered set of data.
-    This keyword is described in the section titled <a href="#lists">Lists</a>.</dd>
+    This keyword is described in the section titled <a href="#sets-and-lists">Sets and Lists</a>.</dd>
+  <dt><code>@set</code></dt>
+  <dd>Used to express an unordered set of data.
+    This keyword is described in the section titled <a href="#sets-and-lists">Sets and Lists</a>.</dd>
   <dt><code>:</code></dt>
   <dd>The separator for JSON keys and values that use
     <tref title="compact_iri">compact IRIs</tref>.</dd>
@@ -467,19 +473,10 @@ IRC channel is available for real-time discussion on irc.freenode.net.</li>
 </section>
 
 <section class="informative">
-<h1>Design</h1>
+<h1>Design Goals and Rationale</h1>
 
-<p>The following section outlines the design goals and rationale behind the
-JSON-LD markup language.
-</p>
-
-<section>
-<h2>Goals and Rationale</h2>
-
-<p>
-A number of design considerations were explored during the creation of this
-markup language:
-</p>
+<p>A number of design considerations were explored during the creation of this
+  markup language:</p>
 
 <dl>
  <dt>Simplicity</dt>
@@ -518,6 +515,15 @@ markup language:
  from a compacted form, only one pass is required over the data.</dd>
 </dl>
 </section>
+
+<section>
+<h1>Basic Concepts</h1>
+
+<p>JSON-LD is designed to ensure that <tref>Linked Data</tref> concepts can be
+marked up in a way that is simple to understand and create by Web authors.
+In many cases, regular JSON markup can become Linked Data with the
+simple addition of a <tref>context</tref>. As more JSON-LD features are
+used, more semantics are added to the JSON markup.</p>
 
 <section>
 <h2>Linking Data</h2>
@@ -560,7 +566,7 @@ rest of this section:
   in an JSON document, to <tref>IRI</tref>s. A <tdef>term</tdef> is a short word that MAY be expanded to an
   <tref>IRI</tref>. A <tref>term</tref> MUST have the lexical form of <cite><a
   href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
-  <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or
+  an '@' followed by an NCName (other than <code>@context</code>), <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or
   be an empty string.</p>
 <p>The Web uses <tref title="IRI">IRIs</tref> for unambiguous identification. The
   idea is that these <tref>term</tref>s mean something that may be of use to other developers and that it is useful to
@@ -730,16 +736,6 @@ from other data sets.</p>
 
 </section>
 </section>
-</section>
-
-<section>
-<h1>Basic Concepts</h1>
-
-<p>JSON-LD is designed to ensure that <tref>Linked Data</tref> concepts can be
-marked up in a way that is simple to understand and create by Web authors.
-In many cases, regular JSON markup can become Linked Data with the
-simple addition of a <tref>context</tref>. As more JSON-LD features are
-used, more semantics are added to the JSON markup.</p>
 
 <section>
 <h2>IRIs</h2>
@@ -942,51 +938,248 @@ an <tref>IRI</tref>.</p>
 </section>
 
 <section>
-<h2>Strings</h2>
+<h2>String Internationalization</h2>
 
-<p>Regular text strings, also referred to as <tdef>string value</tdef>s, are
-easily expressed using regular JSON <tref>string</tref>s.</p>
+<p>In different scenarios it is important to annotate a <tref>string</tref>
+  with its language. In JSON-LD this is possible in a variety of ways.
+  Firstly, it is possible to define a default language for a JSON-LD document
+  by setting the <code>@language</code> key in the <code>@context</code>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-...
-  "name": "****Mark Birbeck****",
-...
+  ****"@context":
+  {
+    ...
+    "@language": "ja"
+  },****
+  "name": ****"花澄"****,
+  "occupation": ****"科学者"****
 }
- -->
+-->
 </pre>
+
+<p>The example above would associate the <code>ja</code> language
+  code with the two <tref>string</tref>s <em>花澄</em> and <em>科学者</em>.
+  Languages MUST be expressed in [[!BCP47]] format.</p>
+
+<p>It is possible to override the default language by using the expanded
+form of a value:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": "花澄",
+  "occupation": ****{
+    "@value": "Scientist",
+    "@language": "en"
+  }****
+}
+-->
+</pre>
+
+<p>It is also possible to override the default language or specify a plain
+value by omitting the <code>@language</code> tag or setting it to
+<code>null</code> when expressing the expanded value:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": ****{
+    "@value": "花澄"
+  },****
+  "occupation": **** {
+    "@value": "Ninja",
+    "@language": "en"
+  }****,
+  "speciality": "手裏剣"
+}
+-->
+</pre>
+
+<p class="note">Please note that language associations MUST only be applied
+  to plain literal <tref>string</tref>s. That is, <tref>typed value</tref>s
+  or values that are subject to <a href="#type-coercion">type coercion</a>
+  won't be language tagged.</p>
+
+<p>To clear the default language for a subtree, <code>@language</code> can
+be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": "花澄",
+  "details": {
+****    "@context": {
+      "@language": null
+    },****
+    "occupation": "Ninja"
+  }
+}
+-->
+</pre>
+
+<p class="note">JSON-LD allows to associate language information with terms.
+  See <a href="#expanded-term-definition">Expanded Term Definition</a> for
+  more details.</p>
 
 </section>
 
 <section>
-<h2>String Internationalization</h2>
+<h2>Sets and Lists</h2>
 
-<p>JSON-LD makes an assumption that strings with associated language encoding
-information are not very common when used in JavaScript and Web Services.
-Thus, it takes a little more effort to express strings with associated
-language information.</p>
-
+<p>A JSON-LD author can express multiple values in a compact way by using
+  <tref>array</tref>s. But, because graphs do not describe ordering for links
+  between nodes, in contrast to plain JSON, arrays in JSON-LD do not provide
+  an ordering of the listed objects by default. For example, consider the
+  following
+  simple document:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
 ...
-  "name": ****
-  {
-    "@value": "花澄",
-    "@language": "ja"
-  }****
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
 ...
 }
 -->
 </pre>
 
-<p>The example above would generate a <tref>string value</tref> for
-<em>花澄</em> and associate the <code>ja</code> language code with the triple
-that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
+<p>The markup shown above would result in three triples being generated,
+  each relating the subject to an individual object, with no inherent order:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "joe" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "bob" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "jaybee" .
+-->
+</pre>
+
+<p>Multiple values may also be expressed using the expanded object form:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@id": "http://example.org/articles/8",
+  "dc:title": ****
+  [
+    {
+      "@value": "Das Kapital",
+      "@language": "de"
+    },
+    {
+      "@value": "Capital",
+      "@language": "en"
+    }
+  ]****
+}-->
+</pre>
+
+<p>The markup shown above would generate the following triples, again with
+  no inherent order:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Das Kapital"@de .
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Capital"@en .
+-->
+</pre>
+
+
+<p>As the notion of ordered collections is rather important in data
+  modeling, it is useful to have specific language support. In JSON-LD,
+  a list may be represented using the <code>@list</code> keyword as follows:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "foaf:nick":
+  ****{
+    "@list": [ "joe", "bob", "jaybee" ]
+  }****,
+...
+}
+-->
+</pre>
+
+<p>This describes the use of this <tref>array</tref> as being ordered,
+  and order is maintained through operations such as
+  <a href="expansion">Expansion</a>, <a href="compaction">Compaction</a>,
+  <a href="framing">Framing</a>, and <a href="normalization">Normalization</a>.
+  If every use of a given multi-valued property is a list, this may be
+  abbreviated by setting <code>@container</code> to <code>@list</code> in
+  the <tref>context</tref>:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context":
+  {
+    ...
+    "nick":
+    {
+      "@id": "http://xmlns.com/foaf/0.1/nick",
+      "@container": "@list"
+    }
+  }****,
+...
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
+...
+}
+-->
+</pre>
+
+<p class="note">List of lists are not allowed in this version of JSON-LD.
+  If a list of lists is detected, a JSON-LD processor will throw an exception.</p>
+
+<p>Similarly to <code>@list</code>, there exists the keyword <code>@set</code> to
+  describe unordered sets. While its use in the body of a JSON-LD document
+  represents just syntactic sugar that MUST be optimized away when processing
+  the document, it is very helpful for <a href="compaction">Compaction</a>
+  and <a href="framing">Framing</a>. The value of terms associated with a
+  <code>@set</code> or <code>@list</code> <code>@container</code> are always
+  represented in the form of an <tref>array</tref> - even if there is just a
+  single value. This makes post-processing of the data easier as the data is
+  in a deterministic form. If no such <code>@container</code> is specified,
+  single values are optimized to a non-array form.</p>
+
+<p class="note">The use of <code>@container</code> in the body of a JSON-LD
+  document, i.e., outside <code>@context</code> is ignored by JSON-LD processors.</p>
 
 </section>
 
+</section>
+
+<section>
+<h1>Advanced Concepts</h1>
+
+<p>JSON-LD has a number of features that provide functionality above and beyond
+the core functionality described above. The following sections outline the
+features that are specific to JSON-LD.
+</p>
 
 <section>
 <h2>Typed Values</h2>
@@ -1088,170 +1281,6 @@ that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
 </p>
 
 </section>
-
-<section>
-<h2>Multiple Objects for a Single Property</h2>
-
-<p>A JSON-LD author can express multiple values in a compact way by using
-<tref>array</tref>s. If a subject has multiple values for the same property,
-the author MAY express each property as an <tref>array</tref>.</p>
-
-<p class="note">In JSON-LD, multiple objects on a property are not ordered.
-This is because graphs are inherently unordered data structures. To learn
-more about creating ordered collections in JSON-LD, see the
-section on <a href="#lists">Lists</a>.
-</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
-...
-}
--->
-</pre>
-
-<p>The markup shown above would generate the following triples:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "joe" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "bob" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "jaybee" .
--->
-</pre>
-
-</section>
-
-<section>
-<h2>Multiple Values for a Single Property</h2>
-
-<p>Multiple <tref>value</tref>s may also be expressed using the expanded
-form for <tref>object</tref>s:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@id": "http://example.org/articles/8",
-  "dc:title": ****
-  [
-    {
-      "@value": "Das Kapital",
-      "@language": "de"
-    },
-    {
-      "@value": "Capital",
-      "@language": "en"
-    }
-  ]****
-}-->
-</pre>
-
-<p>The markup shown above would generate the following triples:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Das Kapital"@de .
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Capital"@en .
--->
-</pre>
-
-</section>
-
-<section>
-  <h2>Lists</h2>
-  <p>
-    Because graphs do not describe ordering for links between nodes, in contrast to plain JSON, multi-valued properties
-    in JSON-LD do not provide an ordering of the listed objects. For example, consider the following
-    simple document:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-  ...
-    "@id": "http://example.org/people#joebob",
-    "nick": ****[ "joe", "bob", "jaybee" ]****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    This results in three triples being generated, each relating the subject
-    to an individual object, with no inherent order.</p>
-  <p>
-    As the notion of ordered collections is rather important in data
-    modeling, it is useful to have specific language support. In JSON-LD,
-    a list may be represented using the <code>@list</code> keyword as follows:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-  ...
-    "@id": "http://example.org/people#joebob",
-    "foaf:nick":
-    ****{
-      "@list": [ "joe", "bob", "jaybee" ]
-    }****,
-  ...
-  }
-  -->
-  </pre>
-  <p>
-    This describes the use of this <tref>array</tref> as being ordered,
-    and order is maintained through alternate representations as
-    described in [[JSON-LD-API]]. If every use of a given multi-valued property
-    is a list, this may be abbreviated by setting <code>@container</code> to
-    <code>@list</code> in the <tref>context</tref>:
-  </p>
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-    ****"@context":
-    {
-      ...
-      "nick":
-      {
-        "@id": "http://xmlns.com/foaf/0.1/nick",
-        "@container": "@list"
-      }
-    }****,
-  ...
-    "@id": "http://example.org/people#joebob",
-    "nick": ****[ "joe", "bob", "jaybee" ]****,
-  ...
-  }
-  -->
-  </pre>
-  <p>List coercion is specified within an expanded <tref>term</tref>
-    definition using the <code>@container</code> key. The value of this key,
-    if present, MUST be <code>@list</code>. This indicates that array values
-    of keys coerced as <code>@list</code> are to be serialized as a
-    <a href="#lists">List</a>.</p>
-  <p class="note">List of lists are not allowed in this version of JSON-LD.
-    If a list of lists is detected, a JSON-LD processor will throw an exception.</p>
-</section>
-
-</section>
-
-<section>
-<h1>Advanced Concepts</h1>
-
-<p>JSON-LD has a number of features that provide functionality above and beyond
-the core functionality described above. The following sections outline the
-features that are specific to JSON-LD.
-</p>
 
 <section>
   <h2>Compact IRIs</h2>
@@ -1536,138 +1565,19 @@ references to external contexts, within the body of the document.</p>
 </section>
 
 <section>
-<h3>Default Language</h3>
+<h3>Expanded Term Definition</h3>
 
-<p>JSON-LD allows a default value to use as the language for
-<tref>string value</tref>s. It is commonly the case that documents are
-written using a single language. As described in
-<a href="string-internationalization">String Internationalization</a>, a
-language-tagged value MAY be specified as follows:</p>
+<p>Within a <tref>context</tref> definition, <tref>term</tref>s MAY be
+   defined using an expanded notation to allow for additional information
+   associated with the term to be specified (see also
+   <a href="#type-coercion">Type Coercion</a> and
+   <a href="#sets-and-lists">Sets and Lists</a>).</p>
 
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ...
-  "name":
-  ****{
-    "@value": "花澄",
-    "@language": "ja"
-  }****
-}
--->
-</pre>
-
-<p>It is also possible to apply a particular language code to all
-<tref>string value</tref>s by setting the <code>@language</code> key in the
-<code>@context</code>:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context":
-  {
-    ...
-    "@language": "ja"
-  },****
-  "name": ****"花澄"****,
-  "occupation": ****"科学者"****
-}
--->
-</pre>
-
-<p>The example above would generate a <tref>string value</tref> for
-<em>花澄</em> and <em>科学者</em> and associate the <code>ja</code> language
-code with each value.</p>
-
-<p>It is possible to override the default language by using the expanded
-form of a value:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "occupation":
-  ****{
-    "@value": "Scientist",
-    "@language": "en"
-  }****
-}
--->
-</pre>
-
-<p>It is also possible to override the default language and specify a plain
-value by omitting the <code>@language</code> tag when expressing the
-expanded value:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "occupation": ****
-  {
-    "@value": "Ninja"
-  }****
-}
--->
-</pre>
-
-<p>Object <tref title="property">properties</tref> that use the expanded form
-are considered explicitly defined. The <code>@language</code> keyword,
-when used in the <tref>context</tref>, MUST only be applied to
-<tref>string value</tref>s. That is, <tref>string value</tref>s expressed in
-expanded form are not affected by the <code>@language</code> keyword, when
-it is used in the <tref>context</tref>.
-</p>
-
-<p>To clear the default language for a subtree, <code>@language</code> can
-be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "details":
-  {
-****    "@context":
-    {
-      "@language": null
-    },****
-    "occupation": "Ninja"
-  }
-}
--->
-</pre>
-
-</section>
-
-<section>
-  <h3>Expanded Term Definition</h3>
-  <p>Within a <tref>context</tref> definition, <tref>term</tref>s MAY be
-     defined using an expanded notation to allow for additional information
-     associated with the term to be specified (see
-     <a href="#type-coerceion">Type Coercion</a> and
-     <a href="#lists">Lists</a>).</p>
-
-  <p>Instead of using a string representation of an IRI, the IRI MAY be
-  specified using an object having an <code>@id</code> key.
-  The value of the <code>@id</code> key MUST be either a
-  <tref>prefix</tref>:suffix value, an <tref>IRI</tref>. Type information
-  may be specified</p>
+<p>Instead of using a string representation of an IRI, the IRI MAY be
+specified using an object having an <code>@id</code> key.
+The value of the <code>@id</code> key MUST be either a
+<tref>prefix</tref>:suffix value, an <tref>IRI</tref>. Type information
+may be specified</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1686,53 +1596,38 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 -->
 </pre>
 
-</section>
-
-<section>
-<h2>Automatic Typing</h2>
-
-<p>Since JSON is capable of expressing typed information such as doubles,
-integers, and boolean values. As demonstrated below, JSON-LD utilizes that
-information to create <tref>typed value</tref>s:</p>
+<p>This allows additional information to be associated with the term. This
+  MAY be used for <a href="#type-coercion">Type Coercion</a>,
+  <a href="#sets-and-lists">Sets and Lists</a>), or to associate language
+  information with a term as shown in the following example:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-...
-  // The following two values are automatically converted to a type of xsd:double
-  // and both values are equivalent to each other.
-  "measure:cups": ****5.3****,
-  "measure:cups": ****5.3e0****,
-  // The following value is automatically converted to a type of xsd:double as well
-  "space:astronomicUnits": ****6.5e73****,
-  // The following value is never converted to a language-native type
-  "measure:stones": ****{ "@value": "4.8", "@type": "xsd:decimal" }****,
-  // This value is automatically converted to having a type of xsd:integer
-  "chem:protons": ****12****,
-  // This value is automatically converted to having a type of xsd:boolean
-  "sensor:active": ****true****,
-...
+  "@context": {
+    ...
+    "ex": "http://example.com/",
+    "@language": "ja",
+    "name": { "@id": "ex:name", ****"@language": "null"**** },
+    "occupation": { "@id": "ex:occupation" },
+    "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
+    "occupation_de": { "@id": "ex:occupation", ****"@language": "cs"**** }
+  },
+  ****"name": "Yagyū Muneyoshi",
+  "occupation": "忍者",
+  "occupation_en": "Ninja",
+  "occupation_cs": "Nindža",****
+  ...
 }
 -->
 </pre>
 
-<p class="note">When dealing with a number of modern programming languages,
-including JavaScript ECMA-262, there is no distinction between
-<strong>xsd:decimal</strong> and <strong>xsd:double</strong> values. That is,
-the <tref>number</tref> <code>5.3</code> and the <tref>number</tref>
-<code>5.3e0</code> are treated as if they were the same. When converting from
-JSON-LD to a language-native format and back, type information is lost in a
-number of these languages. Thus, one could say that <code>5.3</code> is a
-<strong>xsd:decimal</strong> and <code>5.3e0</code> is an
-<strong>xsd:double</strong> in JSON-LD, but when both values are
-converted to a language-native format the type difference between the two
-is lost because the machine-level representation will almost always be a
-<strong>double</strong>.
-Implementers should be aware of this potential round-tripping issue between
-<strong>xsd:decimal</strong> and <strong>xsd:double</strong>. Specifically
-objects with a type of <strong>xsd:decimal</strong> MUST NOT be converted
-to a language native type.
-</p>
+<p>The example above would associate <em>忍者</em> with the specified default
+  language code <code>ja</code>, <em>Ninja</em> with the language code
+  <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
+  The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
+  associated with any language code since it was reset in the expanded term
+  definition.</p>
 
 </section>
 
