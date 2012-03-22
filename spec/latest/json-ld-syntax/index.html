@@ -418,8 +418,8 @@ WebIDL [[!WEBIDL]].</p>
     <a href="#string-internationalization">String Internationalization</a> and
     <a href="#typed-values">Typed Values</a>.</dd>
   <dt><code>@language</code></dt>
-  <dd>Used to specify the native language for a particular value.
-    This keyword is described in the section titled
+  <dd>Used to specify the native language for a particular value or the default
+    language of a JSON-LD document. This keyword is described in the section titled
     <a href="#string-internationalization">String Internationalization</a>.</dd>
   <dt><code>@type</code></dt>
   <dd>Used to set the data type of a <tref>subject</tref> or
@@ -948,48 +948,102 @@ an <tref>IRI</tref>.</p>
 </section>
 
 <section>
-<h2>Strings</h2>
-
-<p>Regular text strings, also referred to as <tdef>string value</tdef>s, are
-easily expressed using regular JSON <tref>string</tref>s.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "name": "****Mark Birbeck****",
-...
-}
- -->
-</pre>
-
-</section>
-
-<section>
 <h2>String Internationalization</h2>
 
-<p>JSON-LD makes an assumption that strings with associated language encoding
-information are not very common when used in JavaScript and Web Services.
-Thus, it takes a little more effort to express strings with associated
-language information.</p>
+<p>In different scenarios it is important to annotate a <tref>string</tref>
+  with its language. In JSON-LD this is possible in a variety of ways.
+  Firstly, it is possible to define a default language for a JSON-LD document
+  by setting the <code>@language</code> key in the <code>@context</code>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-...
-  "name": ****
+  ****"@context":
   {
-    "@value": "花澄",
+    ...
     "@language": "ja"
-  }****
-...
+  },****
+  "name": ****"花澄"****,
+  "occupation": ****"科学者"****
 }
 -->
 </pre>
 
-<p>The example above would generate a <tref>string value</tref> for
-<em>花澄</em> and associate the <code>ja</code> language code with the triple
-that is generated. Languages MUST be expressed in [[!BCP47]] format.</p>
+<p>The example above would associate the <code>ja</code> language
+  code with the two <tref>string</tref>s <em>花澄</em> and <em>科学者</em>.
+  Languages MUST be expressed in [[!BCP47]] format.</p>
+
+<p>It is possible to override the default language by using the expanded
+form of a value:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": "花澄",
+  "occupation": ****{
+    "@value": "Scientist",
+    "@language": "en"
+  }****
+}
+-->
+</pre>
+
+<p>It is also possible to override the default language or specify a plain
+value by omitting the <code>@language</code> tag or setting it to
+<code>null</code> when expressing the expanded value:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": ****{
+    "@value": "花澄"
+  },****
+  "occupation": **** {
+    "@value": "Ninja",
+    "@language": "en"
+  }****,
+  "speciality": "手裏剣"
+}
+-->
+</pre>
+
+<p class="note">Please note that language associations MUST only be applied
+  to plain literal <tref>string</tref>s. That is, <tref>typed value</tref>s
+  or values that are subject to <a href="#type-coercion">type coercion</a>
+  won't be language tagged.</p>
+
+<p>To clear the default language for a subtree, <code>@language</code> can
+be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "@language": "ja"
+  },
+  "name": "花澄",
+  "details": {
+****    "@context": {
+      "@language": null
+    },****
+    "occupation": "Ninja"
+  }
+}
+-->
+</pre>
+
+<p class="note">JSON-LD allows to associate language information with terms.
+  See <a href="#expanded-term-definition">Expanded Term Definition</a> for
+  more details.</p>
 
 </section>
 
@@ -1522,138 +1576,19 @@ references to external contexts, within the body of the document.</p>
 </section>
 
 <section>
-<h3>Default Language</h3>
+<h3>Expanded Term Definition</h3>
 
-<p>JSON-LD allows a default value to use as the language for
-<tref>string value</tref>s. It is commonly the case that documents are
-written using a single language. As described in
-<a href="string-internationalization">String Internationalization</a>, a
-language-tagged value MAY be specified as follows:</p>
+<p>Within a <tref>context</tref> definition, <tref>term</tref>s MAY be
+   defined using an expanded notation to allow for additional information
+   associated with the term to be specified (see also
+   <a href="#type-coercion">Type Coercion</a> and
+   <a href="#sets-and-lists">Sets and Lists</a>).</p>
 
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ...
-  "name":
-  ****{
-    "@value": "花澄",
-    "@language": "ja"
-  }****
-}
--->
-</pre>
-
-<p>It is also possible to apply a particular language code to all
-<tref>string value</tref>s by setting the <code>@language</code> key in the
-<code>@context</code>:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context":
-  {
-    ...
-    "@language": "ja"
-  },****
-  "name": ****"花澄"****,
-  "occupation": ****"科学者"****
-}
--->
-</pre>
-
-<p>The example above would generate a <tref>string value</tref> for
-<em>花澄</em> and <em>科学者</em> and associate the <code>ja</code> language
-code with each value.</p>
-
-<p>It is possible to override the default language by using the expanded
-form of a value:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "occupation":
-  ****{
-    "@value": "Scientist",
-    "@language": "en"
-  }****
-}
--->
-</pre>
-
-<p>It is also possible to override the default language and specify a plain
-value by omitting the <code>@language</code> tag when expressing the
-expanded value:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "occupation": ****
-  {
-    "@value": "Ninja"
-  }****
-}
--->
-</pre>
-
-<p>Object <tref title="property">properties</tref> that use the expanded form
-are considered explicitly defined. The <code>@language</code> keyword,
-when used in the <tref>context</tref>, MUST only be applied to
-<tref>string value</tref>s. That is, <tref>string value</tref>s expressed in
-expanded form are not affected by the <code>@language</code> keyword, when
-it is used in the <tref>context</tref>.
-</p>
-
-<p>To clear the default language for a subtree, <code>@language</code> can
-be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context":
-  {
-    ...
-    "@language": "ja"
-  },
-  "name": "花澄",
-  "details":
-  {
-****    "@context":
-    {
-      "@language": null
-    },****
-    "occupation": "Ninja"
-  }
-}
--->
-</pre>
-
-</section>
-
-<section>
-  <h3>Expanded Term Definition</h3>
-  <p>Within a <tref>context</tref> definition, <tref>term</tref>s MAY be
-     defined using an expanded notation to allow for additional information
-     associated with the term to be specified (see
-     <a href="#type-coerceion">Type Coercion</a> and
-     <a href="#sets-and-lists">Sets and Lists</a>).</p>
-
-  <p>Instead of using a string representation of an IRI, the IRI MAY be
-  specified using an object having an <code>@id</code> key.
-  The value of the <code>@id</code> key MUST be either a
-  <tref>prefix</tref>:suffix value, an <tref>IRI</tref>. Type information
-  may be specified</p>
+<p>Instead of using a string representation of an IRI, the IRI MAY be
+specified using an object having an <code>@id</code> key.
+The value of the <code>@id</code> key MUST be either a
+<tref>prefix</tref>:suffix value, an <tref>IRI</tref>. Type information
+may be specified</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1671,6 +1606,39 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 }
 -->
 </pre>
+
+<p>This allows additional information to be associated with the term. This
+  MAY be used for <a href="#type-coercion">Type Coercion</a>,
+  <a href="#sets-and-lists">Sets and Lists</a>), or to associate language
+  information with a term as shown in the following example:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {
+    ...
+    "ex": "http://example.com/",
+    "@language": "ja",
+    "name": { "@id": "ex:name", ****"@language": "null"**** },
+    "occupation": { "@id": "ex:occupation" },
+    "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
+    "occupation_de": { "@id": "ex:occupation", ****"@language": "cs"**** }
+  },
+  ****"name": "Yagyū Muneyoshi",
+  "occupation": "忍者",
+  "occupation_en": "Ninja",
+  "occupation_cs": "Nindža",****
+  ...
+}
+-->
+</pre>
+
+<p>The example above would associate <em>忍者</em> with the specified default
+  language code <code>ja</code>, <em>Ninja</em> with the language code
+  <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
+  The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
+  associated with any language code since it was reset in the expanded term
+  definition.</p>
 
 </section>
 
