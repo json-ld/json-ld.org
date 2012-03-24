@@ -24,6 +24,7 @@
                     berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
                     berjon.biblio["JSON-POINTER"] = "P. Bryan, Ed. <cite><a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">JSON Pointer</a></cite> Latest. IETF Draft. URL: <a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt</a>";
                     berjon.biblio["RDF-NORMALIZATION"] = "Manu Sporny, Dave Longley. <a href=\"http://json-ld.org/spec/latest/rdf-graph-normalization/\"><cite>RDF Graph Normalization</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/rdf-graph-normalization/\">http://json-ld.org/spec/latest/rdf-graph-normalization/</a>";
+                    berjon.biblio["IEEE-754-1985"] = "IEEE. <cite>IEEE Standard for Binary Floating-Point Arithmetic.</cite> See <a href=\"http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html\">http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html</a>";
 
                     // process the document before anything else is done
                     var refs = document.querySelectorAll('adef') ;
@@ -398,8 +399,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       Boolean values.
     </dd>
     <dt><tdef>null</tdef></dt><dd>
-      The use of the <em>null</em> value is undefined within JSON-LD.
-      <div class="issue">Supporting <em>null</em> in JSON-LD might have a number of advantages and should be evaluated. This is currently an <a href="https://github.com/json-ld/json-ld.org/issues/11">open issue</a>.</div>
+      The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.
     </dd>
   </dl>
 </p>
@@ -498,6 +498,12 @@ de-referenceable.
          <dd>There was a problem encountered loading a remote context.</dd>
         </dl>
 
+        <dl class="exception" title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
       </dd>
 
       <dt>object compact()</dt>
@@ -537,6 +543,9 @@ de-referenceable.
           <dt>CONFLICTING_DATATYPES</dt>
           <dd>The target datatype specified in the coercion rule and the
             datatype for the typed literal do not match.</dd>
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
         </dl>
 
       </dd>
@@ -547,7 +556,7 @@ de-referenceable.
         <a href="#framing-algorithm">Framing Algorithm</a>. The
         <code>input</code> is used to build the framed output and is returned if
         there are no errors. If there are no matches for the frame,
-        <code>null</code> MUST be returned. Exceptions MUST be thrown if there are
+        <tref>null</tref> MUST be returned. Exceptions MUST be thrown if there are
         errors.
         <dl class="parameters">
            <dt>object input</dt>
@@ -568,15 +577,21 @@ de-referenceable.
             requested, MUST result in this exception.</dd>
         </dl>
 
+        <dl class="exception" title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
       </dd>
 
-      <dt>DOMString normalize()</dt>
+      <dt>object normalize()</dt>
       <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
         according to the steps in the
         <a href="#normalization-algorithm">Normalization Algorithm</a>. The
         <code>input</code> MUST be copied, normalized and returned if there are
-        no errors. If the compaction fails, <code>null</code> MUST be returned.
-        The output is the serialized representation returned from the
+        no errors. If the compaction fails, <tref>null</tref> MUST be returned.
+        The output is an array of <tref>JSON Object</tref> definitions normalized by the
         <a href="#normalization-algorithm">Normalization Algorithm</a>.
         <span class="issue">It's still an open question if the result is a DOMString
           representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
@@ -598,20 +613,32 @@ de-referenceable.
           <dd>There was a problem encountered loading a remote context.</dd>
         </dl>
 
+        <dl class="exception" title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
       </dd>
 
-      <dt>void triples()</dt>
+      <dt>object fromTriples()</dt>
+      <dd>Creates a JSON-LD document given an set of <a>Triple</a>s, in the form of an iterator.
+        <dl class="parameters">
+          <dt>Triple[] input</dt>
+          <dd>An array of triples, ordered by <code>subject</code>.</dd>
+        </dl>
+      </dd>
+
+      <dt>void toTriples()</dt>
       <dd>Processes the <code>input</code> according to the
-        <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
-        the provided <code>tripleCallback</code> for each triple generated.
+        <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
+        the provided <code>tripleCallback</code> for each <a>Triple</a> generated.
         <dl class="parameters">
           <dt>object input</dt>
           <dd>The JSON-LD object to process when outputting triples.</dd>
-          <dt>JsonLdTripleCallback tripleCallback</dt>
-          <dd>A callback that is called whenever a processing error occurs on
-          the given <code>input</code>.
-          <div class="issue">This callback should be aligned with the
-            RDF API.</div></dd>
+          <dt>TripleCallback tripleCallback</dt>
+          <dd>A callback that is called a <a>Triple</a> is created from processing
+          the given <code>input</code>.</dd>
           <dt>object optional? context</dt>
           <dd>An external context to use additionally to the context embedded in
             <code>input</code> when expanding the <code>input</code>.</dd>
@@ -626,6 +653,12 @@ de-referenceable.
           <dd>There was a problem encountered loading a remote context.</dd>
         </dl>
 
+        <dl class="exception" title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
       </dd>
 
     </dl>
@@ -633,32 +666,123 @@ de-referenceable.
   </section>
 
   <section>
-    <h3>JsonLdTripleCallback</h3>
-    <p>The JsonLdTripleCallback is called whenever the processor generates a
+    <h3>TripleCallback</h3>
+    <p>The TripleCallback is called whenever the processor generates a
     triple during the <code>triple()</code> call.</p>
 
-    <dl title="[NoInterfaceObject Callback] interface JsonLdTripleCallback"
+    <dl title="[NoInterfaceObject Callback] interface TripleCallback"
         class="idl">
 
       <dt>void triple()</dt>
       <dd>This callback is invoked whenever a triple is generated by the processor.
       <dl class="parameters">
-         <dt>DOMString subject</dt>
-         <dd>The subject <tref>IRI</tref> that is associated with the triple.</dd>
-         <dt>DOMString property</dt>
-         <dd>The property <tref>IRI</tref> that is associated with the triple.</dd>
-         <dt>DOMString objectType</dt>
-         <dd>The type of object that is associated with the triple. Valid values
-           are <code>IRI</code> and <code>literal</code>.</dd>
-         <dt>DOMString object</dt>
-         <dd>The object value associated with the subject and the property.</dd>
-         <dt>DOMString? datatype</dt>
-         <dd>The datatype associated with the object.</dd>
-         <dt>DOMString? language</dt>
-         <dd>The language associated with the object in BCP47 format.</dd>
+         <dt>Triple triple</dt>
+         <dd>The triple.</dd>
       </dl>
       </dd>
     </dl>
+  </section>
+
+  <section>
+    <h3>Data Structures</h3>
+    <p>The following data structures are used for representing data about RDF Triples. They
+      are used for normalization, triples, and from Triples interfaces.</p>
+
+    <section>
+    <h3>Triple</h3>
+    <p>The <a>Triple</a> interface represents an RDF Triple.</p>
+    <dl title="[NoInterfaceObject] interface Triple" class="idl">
+        <dt>readonly attribute Node subject</dt>
+        <dd>The subject associated with the <a>Triple</a>.</dd>
+        <dt>readonly attribute Node property</dt>
+        <dd>The property associated with the <a>Triple</a>.</dd>
+        <dt>readonly attribute Node object</dt>
+        <dd>The object associated with the <a>Triple</a>.</dd>
+    </dl>
+    </section>
+
+    <section class="normative">
+    <h3>Node</h3>
+    <p><a>Node</a> is the base class of <a>NamedNode</a>,
+    <a>BlankNode</a>, and <a>LiteralNode</a>.</p>
+    <dl title="[NoInterfaceObject] interface Node" class="idl">
+      <dt>readonly attribute DOMString nominalValue</dt>
+      <dd>
+        <p>The <code>nominalValue</code> of an <a>Node</a> is refined by
+        each interface which extends <a>Node</a>.</p>
+      </dd>
+      <dt>readonly attribute DOMString interfaceName</dt>
+      <dd>
+        <p>Provides access to the string name of the current interface,
+        normally one of <code>"IRI"</code>, <code>"BlankNode"</code> or <code>"LiteralNode"</code>.</p>
+        <p>This method serves to disambiguate instances of <a>Node</a> which
+        are otherwise identical, such as <a>NamedNode</a> and <a>BlankNode</a>.</p>
+      </dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>NamedNode</h3>
+    <p>A node identified by an <tref>IRI</tref>. NamedNodes are defined by International
+    Resource Identifier [[!IRI]].</p>
+    <dl title="[NoInterfaceObject] interface NamedNode : Node"
+        class="idl">
+        <dt>readonly attribute DOMString nominalValue</dt>
+        <dd>The IRI identifier of the node.</dd>
+    </dl>
+    </section>
+
+    <section class="normative">
+    <h3>Blank Node</h3>
+    <p>A <a>BlankNode</a> is a reference to an unnamed resource
+    (one for which an IRI is not known), and may be used in a <a>Triple</a>
+    as a unique reference to that unnamed resource.</p>
+    <dl title="[NoInterfaceObject] interface BlankNode : Node"
+        class="idl">
+        <dt>readonly attribute DOMString nominalValue</dt>
+        <dd>
+        <p>The temporary identifier of the <a>BlankNode</a>.</p>
+        <p>The nominalValue MUST NOT be relied upon in any way between two
+        separate processing runs of the same document.</p>
+        </dd>
+    </dl>
+    <p class="note">Developers and authors must not assume that the
+    nominalValue of a <a>BlankNode</a> will remain the same between two
+    processing runs. <a>BlankNode</a> nominalValues are only valid for the
+    most recent processing run on the document. <a>BlankNode</a>s
+    nominalValues will often be generated differently by different processors.</p>
+
+    <p class="note">Implementers MUST ensure that <a>BlankNode</a> nominalValues are unique
+    within the current environment, two <a>BlankNode</a>s are considered equal if, and only if,
+    their nominalValues are strictly equal.</p>
+    </section>
+
+    <section class="normative">
+    <h3>LiteralNode</h3>
+    <p>LiteralNodes represent values such as numbers, dates and strings in
+    RDF data. A <a>LiteralNode</a> is comprised of three attributes:</p>
+    <ul>
+      <li>a lexical representation of the <code>nominalValue</code></li>
+      <li>an optional <code>language</code> represented by a string token</li>
+      <li>an optional <code>datatype</code> specified by a <a>NamedNode</a></li>
+    </ul>
+
+    <p>LiteralNodes representing plain text in a natural language may have a
+    <code>language</code> attribute specified by a text string token, as
+    specified in [[!BCP47]], normalized to lowercase (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
+    They may also have a datatype attribute such as <code>xsd:string</code>.</p>
+    <p>LiteralNodes representing values with a specific datatype, such as
+    the integer 72, may have a <code>datatype</code> attribute specified in
+    the form of a <a>NamedNode</a> (e.g., <code>&lt;http://www.w3.org/2001/XMLSchema#integer></code>).</p>
+    <dl title="[NoInterfaceObject] interface LiteralNode : Node" class="idl">
+      <dt>readonly attribute DOMString nominalValue</dt>
+      <dd>The lexical representation of the LiteralNodes value.</dd>
+      <dt>readonly attribute DOMString? language</dt>
+      <dd>An optional language string as defined in [[!BCP47]], normalized to lowercase.</dd>
+      <dt>readonly attribute NamedNode? datatype</dt>
+      <dd>An optional datatype identified by a NamedNode.</dd>
+    </dl>
+    </section>
   </section>
 
 </section>
@@ -683,6 +807,9 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
   <dt><code>@type</code></dt><dd>Used to set the type of the active subject or the datatype of a literal.</dd>
   <dt><code>@value</code></dt><dd>Used to specify the value of a literal.</dd>
+  <dt><code>@container</code></dt><dd>Used to set the container of a particular value.</dd>
+  <dt><code>@list</code></dt><dd>Used to express an ordered set of data.</dd>
+  <dt><code>@set</code></dt><dd>Used to express an unordered set of data.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use <tref title="compact_iri">compact IRIs</tref>.</dd>
   </dl>
 
@@ -783,8 +910,8 @@ language-native data structures MUST be used where applicable.</p>
   <p>The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
     of a list (see <span a="#list-processing">List Processing</span>)) using a <tdef>term mapping</tdef>.
     It is also used to maintain
-    <tdef>coercion mapping</tdef>s from <tref>IRI</tref>s associated with terms to datatypes, and
-    <tdef>list mapping</tdef>s for IRIs associated with terms.</p>
+    <tdef>coercion mapping</tdef>s from terms to datatypes, <tdef>language mapping</tdef>s from terms to language codes,
+    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms.</p>
   <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
     <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
     When processing a <tref>local context</tref>, special processing rules apply:</p>
@@ -792,6 +919,7 @@ language-native data structures MUST be used where applicable.</p>
     <li>Create a new, empty <tref>local context</tref>.</li>
     <li>Let <em>value</em> be the value of <code>@context</code>
       <ol id="process-context" class="algorithm">
+        <li>If <em>value</em> equals <tref>null</tref>, reset the <tref>active context</tref> to the <tref>initial context</tref></li>
         <li>If <em>value</em> is an <tref>array</tref>, process
           each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.</li>
         <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of <tref>absolute IRI</tref>.
@@ -806,7 +934,7 @@ language-native data structures MUST be used where applicable.</p>
         <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
             <li>If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
-              simple <tref>string</tref> or <code>null</code>. Add the language to the <tref>local context</tref>.</li>
+              simple <tref>string</tref> or <tref>null</tref>. Add the language to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each key in <em>value</em> having the lexical form of an <cite><a
               href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
               <tref>compact IRI</tref>, absolute <tref>IRI</tref>,
@@ -838,13 +966,16 @@ language-native data structures MUST be used where applicable.</p>
                       performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
                       IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the <tref>local context</tref>
                       <tref>coercion mapping</tref>.</li>
-                    <li>If the value has a <code>@list</code> key, the value MUST be
-                      <code>true</code> or <code>false</code>. Merge into the <tref>local context</tref> <tref>list
-                      mapping</tref>.</li>
+                    <li>If the value has a <code>@container</code> key, the value MUST be
+                      <code>@list</code> or <code>@set</code>. Merge the <tref>list mapping</tref> or
+                      <tref>set mapping</tref> into the <tref>local context</tref>.</li>
+                    <li>If the value has a <code>@language</code> key but no <code>@type</code> key, the value of the
+                      <code>@language</code> key MUST be a <tref>string</tref> or <tref>null</tref>.
+                      Merge the <tref>language mapping</tref> into the <tref>local context</tref>.</li>
                   </ol>
                 </li>
                 <li>Merge the <tref>local context</tref> into the <tref>active context</tref>.</li>
-                <li>Repeat <a href="#object-context">Step 2.3.2</a> until no entries are added to the <tref>local
+                <li>Repeat <a href="#object-context">Step 3.3.2</a> until no entries are added to the <tref>local
                   context</tref>.</li>
               </ol>
             </li>
@@ -926,24 +1057,24 @@ language-native data structures MUST be used where applicable.</p>
   <p>The algorithm for expanding a <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
   <ol class="algorithm">
-    <li>If <em>value</em> is <tref>true</tref>, <tref>false</tref> or <tref>number</tref>, expand the value by
-      adding a two new key-value pairs. The first key-value pair will be <code>@value</code> and
-      the string representation of <em>value</em>. The second key-value pair will be <code>@type></code>,
-      and the expanded version of <code>xsd:boolean</code>, <code>xsd:integer</code>, or <code>xsd:double</code>,
-      depending on <em>value</em>.</li>
-    <li>Otherwise, if <tref>active property</tref> is the target of an <code>@id</code> coercion,
-      expand the value by adding a new key-value pair where the
-      key is <code>@id</code> and the value is the expanded IRI according to the <a href="#iri-expansion">IRI
-      Expansion</a> rules.</li>
+    <li>If <em>value</em> is a <tref>number</tref> and the <tref>active property</tref> is the target of typed literal
+      coercion to <code>xsd:integer</code> or <code>xsd:double</code>, expand the value into an object with
+      two key-value pairs. The first key-value pair will be <code>@value</code> and the string representation of
+      <em>value</em> as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>. The second
+      key-value pair will be <code>@type</code> and the associated coercion datatype expanded according to the
+      <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+    <li>Otherwise, if <tref>active property</tref> is the target of an <code>@id</code> coercion, expand the value
+      into an object with a key-value pair where the key is <code>@id</code> and the value is the expanded
+      IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
     <li>Otherwise, if <tref>active property</tref> is the target of typed literal coercion,
-      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
-      and the unexpanded value. The second key-value pair will be <code>@type</code> and the associated coercion
+      expand <em>value</em> into an object with key-value pairs. The first key-value pair will be <code>@value</code>
+      and the unexpanded <em>value</em>. The second key-value pair will be <code>@type</code> and the associated coercion
       datatype expanded according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if the <tref>active context</tref> has a <code>@language</code>,
-      expand <em>value</em> by adding two new key-value pairs. The first key-value pair will be <code>@value</code>
-      and the unexpanded value. The second key-value pair will be <code>@language</code> and value of
-      <code>@language</code> from the <tref>active context</tref>.</li> <li>Otherwise, <em>value</em> is already
-      expanded.</li>
+    <li>Otherwise, if <em>value</em> is a <tref>string</tref> and the <tref>active property</tref> is not the target of
+      typed literal coercion but target of language tagging, expand <em>value</em> into an object with two
+      key-value pairs. The first key-value pair will be <code>@value</code> and the unexpanded <em>value</em>.
+      The second key-value pair will be <code>@language</code> and value of the language tagging from the <tref>active context</tref>.</li>
+    <li>Otherwise, <em>value</em> is already expanded.</li>
   </ol>
 </section>
 
@@ -1031,7 +1162,7 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
   and a <em>value</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
-  context</tref>, <tref>active property</tref> is set to nil, and <em>value</em> is set to the <tref>JSON-LD
+  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is set to the <tref>JSON-LD
   input</tref>.</p>
 
 <ol class="algorithm">
@@ -1043,10 +1174,15 @@ language-native data structures MUST be used where applicable.</p>
       the <a href="#context">context</a> section and remove it from the expanded result.</li>
       <li>For each key and value in <em>value</em>:
         <ol class="algorithm">
-          <li>If the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
+          <li>If value is <tref>null</tref>, skip this key/value pair and remove key from <em>value</em></li>
+          <li>Otherwise, if value is a <tref>JSON object</tref> having either a <code>@value</code>,
+            <code>@list</code>, or <code>@set</code> key with a <tref>null</tref> value, skip this key/value pair.</li>
+          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code> key with a
+            non-<tref>null</tref> value, replace <em>value</em> with the value of <code>@set</code>.
+          <li>Otherwise, if the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the key is <code>@value</code>, the value MUST be a <tref>string</tref> and
-            is not subject to further expansion.</li>
+            remove key from <em>value</em></li>
+          <li>Otherwise, if the key is <code>@value</code>, the value is not subject to further expansion.</li>
           <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
             <a href="#iri-expansion">IRI Expansion</a> rules and set as <tref>active property</tref>.</li>
           <li>If the value is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
@@ -1054,10 +1190,11 @@ language-native data structures MUST be used where applicable.</p>
             set to the current value.</li>
           <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
             recursively using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>.</li>
+            property</tref> removing items which expand to <tref>null</tref>.</li>
           <li>If the value is an object, process the object recursively
             using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>.</li>
+            property</tref>. If <tref>null</tref> is returned, skip this key/value pair and remove
+            key from <em>value</em>.</li>
           <li>Otherwise, expand the value according to the <a href="#value-expansion">Value Expansion</a> rules,
             passing <tref>active property</tref>.</li>
         </ol>
@@ -1100,10 +1237,12 @@ language-native data structures MUST be used where applicable.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
-  "name": "http://xmlns.com/foaf/0.1/name",
-  "homepage": {
-    "@id": "http://xmlns.com/foaf/0.1/homepage",
-    "@type": "@id"
+  "@context": {
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": {
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@type": "@id"
+    }
   }
 }
 -->
@@ -1139,7 +1278,7 @@ language-native data structures MUST be used where applicable.</p>
 <h3>Compaction Algorithm</h3>
 
 <p>The algorithm takes two input variables: an <tref>active property</tref>,
-  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to nil, and <em>value</em> is
+  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is
   set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
     the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
     applied. The <tref>active context</tref> to the given context.</p>
@@ -1171,6 +1310,8 @@ language-native data structures MUST be used where applicable.</p>
               <li>Otherwise, if the value contains only a <code>@list</code> key, and the
                 <tref>active property</tref> is subject to list coercion, the compacted value is the result of
                 performing this algorithm on that value.</li>
+              <li>Otherwise, if the value contains only a <code>@set</code> key, the compacted value is the
+                value of <code>@set</code>.</li>
               <li>Otherwise, the compacted value is the result of performing this algorithm on the value.</li>
             </ol>
           </li>
@@ -1185,6 +1326,7 @@ language-native data structures MUST be used where applicable.</p>
 </ol>
 </section>
 
+</section>
 </section>
 
 <section>
@@ -1369,7 +1511,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>If the <strong>expanded frame</strong> is not an <tref>array</tref>, set
         <tref>match limit</tref> to 1, place the
         <strong>expanded frame</strong> into the <tref>list of frames</tref>,
-        and set the <tref>JSON-LD output</tref> to <code>null</code>.</li>
+        and set the <tref>JSON-LD output</tref> to <tref>null</tref>.</li>
       <li>If the <strong>expanded frame</strong> is an empty <tref>array</tref>, place an
         empty object into the <tref>list of frames</tref>,
         set the <tref>JSON-LD output</tref> to an <tref>array</tref>, and set
@@ -1444,8 +1586,8 @@ language-native data structures MUST be used where applicable.</p>
             <li>If the key is not in the item, add the key to the item and
               set the associated value to an empty array if the
               <tref>match frame</tref> key's value is an array
-              or <code>null</code> otherwise.</li>
-            <li>If value associated with the item's key is <code>null</code>,
+              or <tref>null</tref> otherwise.</li>
+            <li>If value associated with the item's key is <tref>null</tref>,
               process the <tref>omit missing properties flag</tref>:
               <ol class="algorithm">
                 <li>If the value associated with the key in the
@@ -1468,7 +1610,7 @@ language-native data structures MUST be used where applicable.</p>
           </ol></li>
         </ol>
       </li>
-      <li>If the <tref>JSON-LD output</tref> is <code>null</code> set it to
+      <li>If the <tref>JSON-LD output</tref> is <tref>null</tref> set it to
         the item, otherwise, append the item to the
         <tref>JSON-LD output</tref>.</li>
     </ol>
@@ -1565,159 +1707,126 @@ language-native data structures MUST be used where applicable.</p>
   containing exactly the same information would be normalized to exactly the same form
   shown above.</p>
 <section>
-<h3>Normalization Algorithm</h3>
+  <h3>Normalization Algorithm</h3>
 
-<p>The normalization algorithm transforms the <tref>JSON-LD input</tref>
-  into RDF, normalizes it according to [[!RDF-NORMALIZATION]] and then
-  transforms back to JSON-LD. The result is an object representation that
-  deterministically represents a RDF graph.</p>
+  <p>The normalization algorithm transforms the <tref>JSON-LD input</tref>
+    into RDF, normalizes it according to [[!RDF-NORMALIZATION]] and then
+    transforms back to JSON-LD. The result is an object representation that
+    deterministically represents a RDF graph.</p>
 
-<ol class="algorithm">
-  <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
-    the <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>.</li>
-  <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create a serialized N-Triples
-    representation of the RDF graph.</li>
-  <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
-  <li>For each triple in the N-Triples document having <em>subject</em>, <em>predicate</em>,
-    and <em>object</em>:
-    <ol class="algorithm">
-      <li>If <em>predicate</em> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#first</code>,
-        let <em>object representation</em> be <em>object</em> represented in expanded
-        form as described in <a href="#value-expansion">Value Expansion</a>.
-        <ol class="algorithm">
-          <li>Set <em>value</em> as the last entry in <em>array</em>.</li>
-          <li>If the last entry in <em>value</em> is <em>subject</em>, replace it with
-            the a <tref>JSON object</tref> having a key/value pair of <code>@list</code> and an
-            <tref>array</tref> containing <em>object representation</em>.</li>
-          <li>Otherwise, the last key/value entry in <em>value</em> MUST be a <tref>JSON object</tref>
-            having a single key of <em>@list</em> with a value that is an <tref>array</tref>.
-            Append <em>object representation</em>.</li>
-        </ol>
-      </li>
-      <li>Otherwise, if <em>predicate</em> is
-        <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#rest</code>, ignore this triple.</li>
-      <li>Otherwise, if the last entry in <em>array</em> is not a <tref>JSON Object</tref> with an
-        <code>@id</code> having a value of <em>subject</em>:
-        <ol class="algorithm">
-          <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
-            a string representation of <em>subject</em> and use as <em>value</em>.</li>
-          <li>Otherwise, set <em>value</em> to that value.</li>
-        </ol>
-      </li>
-      <li>If <code>predicate</code> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>:
-        <ol class="algorithm">
-          <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <tref>array</tref>,
-            append the string representation of <tref>object</tref> to that array.</li>
-          <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
-            with a new array containing the existing value and a string representation of
-            <em>object</em>.</li>
-          <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
-            string representation of <em>object</em>.</li>
-        </ol>
-      </li>
-      <li>Otherwise, let <em>key</em> by the string representation of <em>predicate</em> and
-        let <em>object representation</em> be <em>object</em> represented in expanded
-        form as described in <a href="#value-expansion">Value Expansion</a>.</li>
-      <li>If <em>value</em> has an key/value pair of <em>key</em> and an <tref>array</tref>,
-        append <em>object representation</em> to that array.</li>
-      <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
-        with a new array containing the existing value and <em>object representation</em>.</li>
-      <li>Otherwise, create a new entry in value with a key of <em>key</em> and
-        <em>object representation</em>.</li>
-    </ol>
-  </li>
-  <li>Return <em>array</em> as the normalized graph representation.</li>
-</ol>
+  <ol class="algorithm">
+    <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
+      the <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</li>
+    <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create an array of <a>Triple</a>s
+      representation of the RDF graph.</li>
+    <li>Transform the array of <a>Triple</a>s to a JSON <tref>array</tref> with
+      <tref>JSON Object</tref> definitions using
+      <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>
+      and return as the normalized form of the
+      <tref>JSON-LD input</tref>.</li>
+  </ol>
 </section>
 
 </section>
 
 <section>
-
 <h3>Data Round Tripping</h3>
 
-<p>When normalizing <strong>xsd:double</strong> values, implementers MUST
-ensure that the normalized value is a string. In order to generate the
-string from a <strong>double</strong> value, output equivalent to the
-<code>printf("%1.6e", value)</code> function in C MUST be used where
-<strong>"%1.6e"</strong> is the string formatter and <strong>value</strong>
-is the value to be converted.</p>
-
-<p>To convert the a double value in JavaScript, implementers can use the
-following snippet of code:</p>
-
+<p>When coercing numbers to <strong>xsd:integer</strong> or <strong>xsd:double</strong>
+  as it, e.g., happens during <a href="#normalization">normalization</a>, implementers MUST
+  ensure that the result is a canonical lexical representation in the form of a
+  <tref>string</tref>. A <tdef>canonical lexical representation</tdef> is a set of literals
+  from among the valid set of literals for a datatype such that there is a one-to-one mapping
+  between the canonical lexical representation and a value in the value space as defined in
+  [[!XMLSCHEMA-2]]. In other words, every value MUST be converted to a deterministic string
+  representation.</p>
+<p>The canonical lexical representation of an <em>integer</em>, i.e., a number without fractions
+  or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
+  digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
+  To convert the number in JavaScript, implementers can use the following snippet of code:</p>
 <pre class="example" data-transform="updateExample">
 <!--
-// the variable 'value' below is the JavaScript native double value that is to be converted
-(value).toExponential(6).replace(/(e(?:\+|-))([0-9])$/, '$10$2')
+(value).toFixed(0).toString()
 -->
 </pre>
+<p>The canonical lexical representation of a <em>double</em>, i.e., a number with fractions
+  or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
+  character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
+  MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
+  in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
+  For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
+  required. Leading and trailing zeroes are prohibited subject to the following: number
+  representations must be normalized such that there is a single digit which is non-zero to the
+  left of the decimal point and at least a single digit to the right of the decimal point unless
+  the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
+  To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+(value).toExponential().replace(/e\+?/,'E')
+-->
+</pre>
+<p><strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
+floating point type [[!IEEE-754-1985]].</p>
 
-<p class="note">When data needs to be normalized, JSON-LD authors should
-not use values that are going to undergo automatic conversion. This is due
-to the lossy nature of <strong>xsd:double</strong> values.</p>
+<p class="note">When data such as decimals need to be normalized, JSON-LD authors should
+not use values that are going to undergo automatic conversion. This is due to the lossy nature
+of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
+set the canonical lexical representation directly.</p>
 
-<p class="note">Some JSON serializers, such as PHP's native implementation,
-backslash-escapes the forward slash character. For example, the value
-<code>http://example.com/</code> would be serialized as
-<code>http:\/\/example.com\/</code> in some
-versions of PHP. This is problematic when generating a byte
-stream for processes such as normalization. There is no need to
-backslash-escape forward-slashes in JSON-LD. To aid interoperability between
-JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape
-forward slashes.</p>
-
-<p class="issue">Round-tripping data can be problematic if we mix and
-match coercion rules with JSON-native datatypes, like integers. Consider the
-following code example:</p>
+<p class="note">When JSON-native datatypes, like <tref>number</tref>s, are type coerced, lossless
+data round-tripping can not be guaranted. Consider the following code example:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
-var myObj = { "@context" : {
-                "number" : {
-                  "@id": "http://example.com/vocab#number",
-                  "@type": "xsd:nonNegativeInteger"
-                }
-              },
-              "number" : 42 };
+var myObj1 = {
+               "@context": {
+                 "number": {
+                   "@id": "http://example.com/vocab#number",
+                   ****"@type": "xsd:nonNegativeInteger"****
+                 }
+               },
+               "number" : ****42****
+             };
 
-// Map the language-native object to JSON-LD
-var jsonldText = jsonld.normalize(myObj);
+// Normalize the JSON-LD document, this converts 42 to a string
+var jsonldText = jsonld.normalize(myObj1);
 
 // Convert the normalized object back to a JavaScript object
 var myObj2 = jsonld.parse(jsonldText);
 -->
 </pre>
 
-<p class="issue">At this point, myObj2 and myObj will have different
-values for the "number" value. myObj will be the number 42, while
-myObj2 will be the string "42". This type of data round-tripping
-error can bite developers. We are currently wondering if having a
-"coercion validation" phase in the parsing/normalization phases would be a
-good idea. It would prevent data round-tripping issues like the
-one mentioned above.</p>
+<p>At this point, <code>myObj1</code> and <code>myObj2</code> will have different
+  values for the "number" property. <code>myObj1</code> will have the number
+  <code>42</code>, while <code>myObj2</code> have an object consisting of
+  <code>@value</code> set to the string <code>"42"</code> and <code>@type</code>
+  set to the expanded value of <em>xsd:nonNegativeInteger</em>.</p>
+
+<p class="note">Some JSON serializers, such as PHP's native implementation in some versions,
+  backslash-escape the forward slash character. For example, the value
+  <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
+  This is problematic as other JSON parsers might not understand those escaping characters.
+  There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
+  between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
 
 </section>
 
 <section>
 <h2>RDF Conversion</h2>
 
-<p>A JSON-LD document MAY be converted to any other RDF-compatible document
-format using the algorithm specified in this section.</p>
+<p>A JSON-LD document MAY be converted between other RDF-compatible document
+  formats using the algorithms specified in this section.</p>
 
-<p>
-  The JSON-LD Processing Model describes processing rules for extracting RDF
-  from a JSON-LD document. Note that many uses of JSON-LD may not require
-  generation of RDF.
-</p>
+<p>The JSON-LD Processing Model describes processing rules for extracting RDF
+  from a JSON-LD document, and for transforming an array of <a>Triple</a> retrieved by processing
+  another serialization format into JSON-LD. Note that many uses of JSON-LD may not require
+  generation of RDF.</p>
 
-<p>
-The processing algorithm described in this section is provided in
-order to demonstrate how one might implement a JSON-LD to RDF processor.
-Conformant implementations are only required to produce the same type and
-number of triples during the output process and are not required to
-implement the algorithm exactly as described.
-</p>
+<p>The processing algorithms described in this section are provided in
+  order to demonstrate how one might implement a JSON-LD to RDF processor.
+  Conformant implementations are only required to produce the same type and
+  number of triples during the output process and are not required to
+  implement the algorithm exactly as described.</p>
 
 <section class="informative">
   <h4>Overview</h4>
@@ -1728,26 +1837,24 @@ implement the algorithm exactly as described.
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
-    a <tdef>resource</tdef>. Resources may be of three basic types: <em><tref>IRI</tref></em>s, for describing
-    externally named entities, <em>BNodes</em>, resources for which an external name does not
-    exist, or is not known, and Literals, which describe terminal entities such as strings,
+    a <tdef>resource</tdef>. Resources may be of three basic types: <a>NamedNode</a>, representing
+    IRIs for describing
+    externally named entities, <a>BlankNode</a>, resources for which an external name does not
+    exist, or is not known, and <a>LiteralNode</a>, which describe terminal entities such as strings,
     dates and other representations having a lexical representation possibly including
     an explicit language or datatype.
   </p>
-  <p>
-  An Internationalized Resource Identifier
-  (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>),
-  as described in [[!RFC3987]], is a mechanism for representing unique
-  identifiers on the web. In <tref>Linked Data</tref>, an IRI is commonly
-  used for expressing a <tref>subject</tref>, a <tref>property</tref> or an
-  <tref>object</tref>.
-  </p>
-  <p>
-    Data described with JSON-LD may be considered to be the representation of a graph made
-    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a <tref>property</tref> <tref>resource</tref>.
+  <p>An Internationalized Resource Identifier
+    (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>),
+    as described in [[!RFC3987]], is a mechanism for representing unique
+    identifiers on the web. In <tref>Linked Data</tref>, an IRI is commonly
+    used for expressing a <tref>subject</tref>, a <tref>property</tref> or an
+    <tref>object</tref>.</p>
+  <p>Data described with JSON-LD may be considered to be the representation of a graph made
+    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a
+    <tref>property</tref> <tref>resource</tref>.
     However, specific implementations may choose to operate on the document as a normal
-    JSON description of objects having attributes.
-  </p>
+    JSON description of objects having attributes.</p>
 </section>
 
 <section>
@@ -1761,7 +1868,7 @@ implement the algorithm exactly as described.
 </section>
 
 <section>
-  <h3>RDF Conversion Algorithm</h3>
+  <h3>Convert to RDF Algorithm</h3>
   <p>
     The algorithm below is designed for in-memory implementations with random access to <tref>JSON object</tref> elements.
   </p>
@@ -1771,62 +1878,58 @@ implement the algorithm exactly as described.
     algorithm generates:
   </p>
 
-  <ol class="algorithm">
-    <li id="processing-step-default-context">
-      Create a new <tref>processor state</tref> with with the <tref>active context</tref> set to the
-      <tref>initial context</tref> and <tref>active subject</tref> and <tref>active property</tref>
-      initialized to NULL.
-    </li>
+  <p>The algorithm takes four input variables: a <em>value</em> to be converted, an
+    <tref>active subject</tref> and an <tref>active property</tref>.
+    To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to <tref>null</tref>, and <em>value</em> is
+    set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
+    the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
+    applied.</p>
 
+  <ol class="algorithm">
     <li id="processing-step-associative">
-      If a <tref>JSON object</tref> is detected, perform the following steps:
+      If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
-        <li>
-          If the <tref>JSON object</tref> has a <code>@context</code> key, process the local context as
-          described in <a href="#context">Context</a>.
-        </li>
-        <li>
-          Create a copy of the current <tref>JSON object</tref>, changing keys that map to JSON-LD <tref>keyword</tref>s
-          with those <tref>keyword</tref>s. Use the new <tref>JSON object</tref> in subsequent steps.
-        </li>
+        <li>Set <tref>active object</tref> to <tref>null</tref>.</li>
         <li>
           If the <tref>JSON object</tref> has a <code>@value</code> key, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
             <li>
               as a <tref>typed literal</tref> if the <tref>JSON object</tref> contains a <code>@type</code> key
-              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified<code>@type</code>.
+              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified <code>@type</code>.
             </li>
             <li>
               otherwise, as a <tref>plain literal</tref>. If the <tref>JSON object</tref> contains
               a <code>@language</code> key, use it's value to set the language of the plain literal.
             </li>
-            <li>
-              If the neither the <tref>active subject</tref> nor the <tref>active property</tref>, generate a triple
-              representing the <tref>active subject</tref>, the <tref>active property</tref> and the <tref>active object</tref>.
-            </li>
-            <li>Return the <tref>active object</tref> to the calling location.</li>
           </ol>
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@list</code> key and the value is an <tref>array</tref>
-          process the value as a list as described in <a href="#list-conversion">List Conversion</a>.
+          If the <tref>JSON object</tref> has a <code>@list</code> key the value MUST be an <tref>array</tref>.
+          Process the value as a list as described in <a href="#list-conversion">List Conversion</a> using
+          the return value as the <tref>active object</tref>
+        </li>
+        <li>If <tref>active object</tref> is not <tref>null</tref>:
+          <ol class="algorithm">
+            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>, generate a triple
+              representing the <tref>active subject</tref>, the <tref>active property</tref> and the
+              <tref>active object</tref>.</li>
+            <li>Return the <tref>active object</tref> to the calling location.</li>
+          </ol>
         </li>
         <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@id</code> key:
           <ol class="algorithm">
             <li>
-              If the value is a <tref>string</tref>, set the <tref>active object</tref> to the result of performing
-              <a href="#iri-expansion">IRI Expansion</a>. Generate a
-              triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-              <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active object</tref>.
-            </li>
-            <li>
-              Create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
-              <tref>active subject</tref> and <tref>active property</tref>.
+              If the value is a <tref>string</tref>, set the <tref>active subject</tref> to the previously
+              expanded value (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
+            <li>Otherwise,
+              Generate a create a new <tref>processor state</tref> copies of the <tref>active subject</tref>
+              and <tref>active property</tref>.
               <ol class="algorithm">
                 <li>
                   Process the value starting at
-                  <a href="#processing-step-associative">Step 2</a>.
+                  <a href="#processing-step-associative">Step 1</a> using the returned value as
+                  <tref>active subject</tref>.
                 </li>
                 <li>Proceed using the previous <tref>processor state</tref>.</li>
               </ol>
@@ -1835,11 +1938,7 @@ implement the algorithm exactly as described.
         </li>
         <li>
           If the <tref>JSON object</tref> does not have a <code>@id</code> key, set the <tref>active
-          object</tref> to newly generated <tref>blank node</tref>. Generate a triple
-          representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-          <tref>active object</tref>. Set the <tref>active subject</tref> to the <tref>active
-          object</tref>.
-        </li>
+          object</tref> to newly generated <tref>blank node</tref>.</li>
         <li>
           For each key in the <tref>JSON object</tref> that has not already been processed, perform
           the following steps:
@@ -1848,78 +1947,54 @@ implement the algorithm exactly as described.
               If the key is <code>@type</code>, set the <tref>active property</tref>
               to <code>rdf:type</code>.
             </li>
-            <li>Otherwise, set the <tref>active property</tref> to the result of performing
-            <a href="#iri-expansion">IRI Expansion</a> on the key.</li>
+            <li>Otherwise, if the key is a <tref>keyword</tref>, skip this step.</li>
+            <li>Otherwise, set <tref>active property</tref> to the value of the key.</li>
             <li>
-              If the <tref>active property</tref> is an <tref>absolute IRI</tref> and is the
-              target of a <code>@list</code> coercion, and the value is an <tref>array</tref>,
-              process the value as a list as described in in <a href="#list-conversion">List Conversion</a>.
-            </li>
-            <li>
-              Otherwise, If the <tref>active property</tref> is an <tref>absolute IRI</tref>,
-              create a new <tref>processor state</tref> copies of the <tref>active context</tref>,
+              Create a new <tref>processor state</tref> copies of
               <tref>active subject</tref> and <tref>active property</tref> and process the value
-              starting at <a href="#processing-step-associative">Step 2</a> and proceed using the
+              starting at <a href="#processing-step-associative">Step 1</a> and proceed using the
               previous <tref>processor state</tref>.
             </li>
           </ol>
         </li>
         <li>
-          Return the <tref>active object</tref> to the calling location.
+          Return the <tref>active subject</tref> to the calling location.
         </li>
       </ol>
     </li>
 
     <li>If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref>
       by doing the following returning the result of processing the last value in the <tref>array</tref>:
+      <div class="issue">Update based on decision of what value, if any, of array to use.</div>
       <ol class="algorithm">
         <li>
-          Create a new <tref>processor state</tref> using copies of the <tref>active
-          context</tref>, <tref>active subject</tref> and <tref>active property</tref> and process the value
-          starting at <a href="#processing-step-associative">Step 2</a> then proceed using the previous
+          Create a new <tref>processor state</tref> using copies of <tref>active subject</tref> and
+          <tref>active property</tref> and process the value
+          starting at <a href="#processing-step-associative">Step 1</a> then proceed using the previous
           <tref>processor state</tref>.
         </li>
       </ol>
     </li>
 
     <li>
-      If a <tref>string</tref> is detected:
-      <ol class="algorithm">
-        <li>
-          If the <tref>active property</tref> is the target of a <code>@id</code> coercion,
-          set the <tref>active object</tref> by
-          performing <a href="#iri-expansion">IRI Expansion</a> on the string.
-        </li>
-        <li>
-          Otherwise, if the <tref>active property</tref> is the target of coercion,
-          set the <tref>active object</tref> by creating a <tref>typed literal</tref> using
-          the string and the coercion key as the datatype IRI.
-        </li>
-        <li>
-          Otherwise, set the <tref>active object</tref> to a <tref>plain literal</tref> value created from the string.
-          If the <tref>active context</tref> contains a <code>language</code> key with a non-<code>null</code> value,
-          use it's value to set the language of the <tref>plain literal</tref>.
-        </li>
-      </ol>
-      Generate a
-      triple representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-      <tref>active object</tref>.
-    </li>
-
+      If a <tref>string</tref> is detected, set the <tref>active object</tref>
+      to a <tref>plain literal</tref> value created from the string.</li>
     <li>
-      If a <tref>number</tref> is detected, generate a <tref>typed literal</tref> using a string representation of
-      the value with datatype set to either <code>xsd:integer</code> or
-      <code>xsd:double</code>, depending on if the value contains a
-      fractional and/or an exponential component. Generate a triple using the <tref>active
-      subject</tref>, <tref>active property</tref> and the generated typed literal.
-    </li>
-
+      If a <tref>number</tref> is detected, set the <tref>active object</tref> to a
+      <tref>typed literal</tref> using a string representation of the value with datatype set
+      to either <code>xsd:integer</code> or <code>xsd:double</code>, depending on if the value
+      contains a fractional and/or an exponential component.</li>
     <li>
       Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
-      generate a triple using the <tref>active subject</tref>, <tref>active property</tref>
-      and a <tref>typed literal</tref> value created from the string representation of the
-      value with datatype set to <code>xsd:boolean</code>.
+      set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
+      string representation of the value with datatype set to <code>xsd:boolean</code>.
     </li>
+    <li>
+      If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
+      nor <tref>active property</tref> are <tref>null</tref>, generate a triple using <tref>active subject</tref>,
+      <tref>active property</tref> and <tref>active object</tref>
+    </li>
+    <li>Return <tref>active object</tref> to the calling location.</li>
   </ol>
 </section>
 <section id="list-conversion">
@@ -1929,8 +2004,8 @@ implement the algorithm exactly as described.
     created <cite><a href="http://www.w3.org/TR/rdf-schema/#ch_collectionvocab">RDF Collection</a></cite> (see
     [[!RDF-SCHEMA]]) by linking each element of the list using <code>rdf:first</code> and <code>rdf:next</code>,
     terminating the list with <code>rdf:nil</code> using the following sequence:</p>
-  <p>The algorithm is invoked with an <tref>array</tref> <em>array</em>, the <tref>active property</tref>,
-    and the <tref>active context</tref> and returns a value to be used as an <tref>active object</tref>.</p>
+  <p>The algorithm is invoked with an <tref>array</tref> <em>array</em>, the <tref>active property</tref>
+    and returns a value to be used as an <tref>active object</tref> in the calling location.</p>
   <div class="note">This algorithm does not support lists containing lists.</div>
   <ol class="algorithm">
     <li>
@@ -1938,20 +2013,20 @@ implement the algorithm exactly as described.
     </li>
     <li>
       Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
-      and a newly generated BNode identified as <em>first <tref>blank node</tref></em>.
+      and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
     </li>
     <li>
       For each element in <em>array</em> other than the last element:
       <ol class="algorithm">
-        <li>Create a processor state using the <tref>active context</tref>,
+        <li>Create a processor state using
           <em>first <tref>blank node</tref></em> as the <tref>active subject</tref>, and
           <code>rdf:first</code> as the <tref>active property</tref>.
           <ol class="algorithm">
-            <li>Process the value starting at <a href="#processing-step-associative">Step 2</a>.</li>
+            <li>Process the value starting at <a href="#processing-step-associative">Step 1</a>.</li>
             <li>Proceed using the previous <tref>processor state</tref>.</li>
           </ol>
         </li>
-        <li>Unless this is the last element in <em>array</em>, generate a new BNode identified as
+        <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
           <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
         <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
           <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
@@ -1962,6 +2037,76 @@ implement the algorithm exactly as described.
     </li>
   </ol>
 </section>
+
+<section>
+  <h2>Convert from RDF Algorithm</h2>
+  <p>In some cases, data exists natively in Triples form; for example, if the data was originally
+    represented in an RDF graph or triple store. This algorithm is designed to simply translate
+    an array of triples into a JSON-LD document.</p>
+  <p>The <a href="#normalization-algorithm">Normalization Algorithm</a> also depends on returning
+    an ordered array of <a>Triple</a> objects.</p>
+  <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
+    array of <a>Triple</a> representations.</p>
+  <ol class="algorithm">
+    <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
+    <li>Construct a <tref>JSON object</tref> <em>listMap</em> to contain objects derived from
+      triples having a property of <code>rdf:first</code>.</li>
+    <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map subjects to objects
+      derived from triples having a property of <code>rdf:rest</code>.</li>
+    <li>For each triple in <em>input</em>:
+      <ol class="algorithm">
+        <li>If <em>property</em> is <code>rdf:first</code>,
+          create a new entry in <em>listMap</em> with a key of <em>subject</em> and an array value
+          containing the object representation and skip to the next statement.</li>
+        <li>If <em>property</em> is <code>rdf:rest</code>,
+          and <em>object</em> is a <a>BlankNode</a>,
+          create a new entry in <em>restMap</em> with a key of <em>subject</em> and value being the
+          result of <a href="#iri-expansion">IRI expansion</a> on the object and skip to the next statement.</li>
+        <li>If the last entry in <em>array</em> is not a <tref>JSON Object</tref> with an
+          <code>@id</code> having a value of <em>subject</em>:
+          <ol class="algorithm">
+            <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
+              a string representation of <em>subject</em> and use as <em>value</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, set <em>value</em> to the last entry in <em>array</em>.</li>
+        <li>If <code>property</code> is <code>rdf:type</code>:
+          <ol class="algorithm">
+            <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <tref>array</tref>,
+              append the string representation of <tref>object</tref> to that array.</li>
+            <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
+              with a new array containing the existing value and a string representation of
+              <em>object</em>.</li>
+            <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
+              string representation of <em>object</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise,
+          <ol class="algorithm">
+            <li>Let <em>key</em> be the string representation of <em>property</em> and let
+              <em>object representation</em>
+              be <em>object</em> represented in expanded form as described in
+              <a href="#value-expansion">Value Expansion</a>.</li>
+            <li>If object is <code>rdf:nil</code>, replace
+              <em>object representation</em> with <code>{"@list": []}</code>.</li>
+            <li>If <em>value</em> has an key/value pair of <em>key</em> and an <tref>array</tref>,
+              append <em>object representation</em> to that array.</li>
+            <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
+              with a new array containing the existing value and <em>object representation</em>.</li>
+            <li>Otherwise, create a new entry in <em>value</em> with a key of <em>key</em> and
+              <em>object representation</em>.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>For each key/value <em>prev</em>, <em>rest</em> entry in <em>restMap</em>,
+      append to the <em>listMap</em> value identified
+      by <em>prev</em> the <em>listMap</em> value identified by <em>rest</em>.</li>
+    <li>For each key/value <em>node</em>, <em>list</em>, in <em>listMap</em> where <em>list</em>
+      exists as a value of an object in <em>array</em>,
+      replace the object value with <em>list</em>.</li>
+    <li>Return array as the graph representation.</li>
+  </ol>
 </section>
 </section>
 
