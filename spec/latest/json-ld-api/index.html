@@ -481,10 +481,14 @@ de-referenceable.
         <a href="#expansion-algorithm">Expansion Algorithm</a>. The
         <code>input</code> MUST be copied, expanded and returned if there are
         no errors. If the expansion fails, an appropriate exception MUST be thrown.
-
+        <div class="issue">This might always return object[].</div>
         <dl class="parameters">
          <dt>object input</dt>
-         <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
+         <dd>The JSON-LD object to copy and perform the expansion upon.
+           <div class="issue">This can be (object or object[]), but the WebIDL processor does not
+             accept this.
+           </div>
+         </dd>
          <dt>object optional? context</dt>
          <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
         </dl>
@@ -515,7 +519,11 @@ de-referenceable.
         thrown.
         <dl class="parameters">
            <dt>object input</dt>
-           <dd>The JSON-LD object to perform compaction on.</dd>
+           <dd>The JSON-LD object to perform compaction on.
+             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
+               accept this.
+             </div>
+           </dd>
            <dt>object? context</dt>
            <dd>The context to use when compacting the <code>input</code>.</dd>
            <dt>boolean optional optimize</dt>
@@ -560,7 +568,11 @@ de-referenceable.
         errors.
         <dl class="parameters">
            <dt>object input</dt>
-           <dd>The JSON-LD object to perform framing on.</dd>
+           <dd>The JSON-LD object to perform framing on.
+             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
+               accept this.
+             </div>
+           </dd>
            <dt>object frame</dt>
            <dd>The frame to use when re-arranging the data.</dd>
            <dt>object options</dt>
@@ -585,7 +597,7 @@ de-referenceable.
 
       </dd>
 
-      <dt>object normalize()</dt>
+      <dt>object[] normalize()</dt>
       <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
         according to the steps in the
         <a href="#normalization-algorithm">Normalization Algorithm</a>. The
@@ -593,9 +605,9 @@ de-referenceable.
         no errors. If the compaction fails, <tref>null</tref> MUST be returned.
         The output is an array of <tref>JSON Object</tref> definitions normalized by the
         <a href="#normalization-algorithm">Normalization Algorithm</a>.
-        <span class="issue">It's still an open question if the result is a DOMString
+        <div class="issue">It's still an open question if the result is a DOMString
           representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
-          which is in normalized form.</span>
+          which is in normalized form.</div>
         <dl class="parameters">
           <dt>object input</dt>
           <dd>The JSON-LD object to perform normalization upon.</dd>
@@ -621,7 +633,7 @@ de-referenceable.
 
       </dd>
 
-      <dt>object fromTriples()</dt>
+      <dt>object[] fromTriples()</dt>
       <dd>Creates a JSON-LD document given an set of <a>Triple</a>s, in the form of an iterator.
         <dl class="parameters">
           <dt>Triple[] input</dt>
@@ -635,7 +647,11 @@ de-referenceable.
         the provided <code>tripleCallback</code> for each <a>Triple</a> generated.
         <dl class="parameters">
           <dt>object input</dt>
-          <dd>The JSON-LD object to process when outputting triples.</dd>
+          <dd>The JSON-LD object to process when outputting triples.
+            <div class="issue">This can be (object or object[]), but the WebIDL processor does not
+              accept this.
+            </div>
+          </dd>
           <dt>TripleCallback tripleCallback</dt>
           <dd>A callback that is called a <a>Triple</a> is created from processing
           the given <code>input</code>.</dd>
@@ -832,7 +848,8 @@ language-native data structures MUST be used where applicable.</p>
     <dt><tdef>active property</tdef></dt>
     <dd>
       the currently active property that the processor should use when
-      processing.
+      processing. The active property is represented in the original lexical form, which
+      is used for finding coercion mappings in the <tref>active context</tref>.
     </dd>
     <dt><tdef>active object</tdef></dt>
     <dd>
@@ -911,7 +928,9 @@ language-native data structures MUST be used where applicable.</p>
     of a list (see <span a="#list-processing">List Processing</span>)) using a <tdef>term mapping</tdef>.
     It is also used to maintain
     <tdef>coercion mapping</tdef>s from terms to datatypes, <tdef>language mapping</tdef>s from terms to language codes,
-    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms.</p>
+    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms. Processors MUST use the
+    lexical form of the key when creating a mapping, as lookup is performed on lexical key representations, not
+    expanded IRI representations.</p>
   <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
     <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
     When processing a <tref>local context</tref>, special processing rules apply:</p>
@@ -965,13 +984,13 @@ language-native data structures MUST be used where applicable.</p>
                       <tref>compact IRI</tref>, <tref>absolute IRI</tref> or the <tref>keyword</tref> <code>@id</code>. Determine the IRI by
                       performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
                       IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the <tref>local context</tref>
-                      <tref>coercion mapping</tref>.</li>
+                      <tref>coercion mapping</tref> using the lexical value of the key..</li>
                     <li>If the value has a <code>@container</code> key, the value MUST be
                       <code>@list</code> or <code>@set</code>. Merge the <tref>list mapping</tref> or
-                      <tref>set mapping</tref> into the <tref>local context</tref>.</li>
+                      <tref>set mapping</tref> into the <tref>local context</tref> using the lexical value of the key..</li>
                     <li>If the value has a <code>@language</code> key but no <code>@type</code> key, the value of the
                       <code>@language</code> key MUST be a <tref>string</tref> or <tref>null</tref>.
-                      Merge the <tref>language mapping</tref> into the <tref>local context</tref>.</li>
+                      Merge the <tref>language mapping</tref> into the <tref>local context</tref> using the lexical value of the key..</li>
                   </ol>
                 </li>
                 <li>Merge the <tref>local context</tref> into the <tref>active context</tref>.</li>
