@@ -1179,45 +1179,44 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Expansion Algorithm</h3>
 
-<p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
-  and a <em>value</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
-  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is set to the <tref>JSON-LD
-  input</tref>.</p>
+<p>The algorithm takes two input variables: an <tref>active context</tref> and an <em>element</em> to be expanded.
+  To begin, the <tref>active context</tref> is set to the <tref>initial context</tref> and <em>element</em> is set
+  to the <tref>JSON-LD input</tref>.</p>
 
 <ol class="algorithm">
-  <li>If <em>value</em> is an <tref>array</tref>, process each item in <em>value</em> recursively
-    using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
-  <li>Otherwise, if <em>value</em> is an object
+  <li>If <em>element</em> is an <tref>array</tref>, process each item in <em>element</em> recursively
+    using this algorithm, passing copies of the <tref>active context</tref>.</li>
+  <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
-      <li>Update the <tref>active context</tref> according to the steps outlined in
-      the <a href="#context">context</a> section and remove it from the expanded result.</li>
-      <li>For each key and value in <em>value</em>:
+      <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according
+      to the steps outlined in the <a href="#context">context</a> section and remove the <code>@context</code> property.</li>
+      <li>For each <em>property</em> and <em>value</em> in <em>element</em>:
         <ol class="algorithm">
-          <li>If value is <tref>null</tref>, skip this key/value pair and remove key from <em>value</em></li>
-          <li>Otherwise, if value is a <tref>JSON object</tref> having either a <code>@value</code>,
-            <code>@list</code>, or <code>@set</code> key with a <tref>null</tref> value, skip this key/value pair and remove key from <em>value</em>.</li>
-          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code> key with a
+          <li>Set <em>property</em> as <tref>active property</tref>.</li>
+          <li>If <em>value</em> is <tref>null</tref>, skip this proporty/value pair and remove <em>property</em> from <em>element</em></li>
+          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having either a <code>@value</code>,
+            <code>@list</code>, or <code>@set</code> key with a <tref>null</tref> value, skip this property/value pair and remove
+            <em>property</em> from <em>element</em>.</li>
+          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code> property with a
             non-<tref>null</tref> value, replace <em>value</em> with the value of <code>@set</code>.
-          <li>Otherwise, if the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
+          <li>Otherwise, if the <em>property</em> is <code>@id</code> or <code>@type</code> and the <em>value</em> is a <tref>string</tref>,
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the key is <code>@value</code>, the value is not subject to further expansion.</li>
-          <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
-            <a href="#iri-expansion">IRI Expansion</a> rules and set as <tref>active property</tref>.</li>
-          <li>If the value is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
-            expansion, replace the value with a new key-value key where the key is <code>@list</code> and value
-            set to the current value.</li>
-          <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
-            recursively using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref> removing items which expand to <tref>null</tref>.</li>
-          <li>If the value is an object, process the object recursively
-            using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>. If <tref>null</tref> is returned, skip this key/value pair and remove
-            key from <em>value</em>.</li>
-          <li>Otherwise, expand the value according to the <a href="#value-expansion">Value Expansion</a> rules,
+          <li>Otherwise, if the <em>property</em> is <code>@value</code>, the value is not subject to further expansion.</li>
+          <li>Otherwise, if the <em>property</em> is not a <tref>keyword</tref>, expand the <em>property</em> according to
+            <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+          <li>If the <em>value</em> is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
+            expansion, replace the <em>value</em> with an object having a <code>@list</code> property whose value is
+            set to the current <em>value</em>.</li>
+          <li>If the <em>value</em> is an <tref>array</tref>, process each item in the <tref>array</tref>
+            recursively using this algorithm, passing a copy of the <tref>active context</tref> removing items which
+            expand to <tref>null</tref>.</li>
+          <li>If the <em>value</em> is an object, process the object recursively using this algorithm, passing a copy
+            of the <tref>active context</tref>. If <tref>null</tref> is returned, skip this property/value pair and remove
+            <tref>active property</tref> from <em>element</em>.</li>
+          <li>Otherwise, expand the <em>value</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
             passing <tref>active property</tref>.</li>
         </ol>
       </li>
-      <li>Remove the context from the object.</li>
     </ol>
   </li>
   <li>Otherwise, expand <em>value</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
