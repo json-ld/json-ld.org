@@ -1,35 +1,30 @@
 /**
- * Javascript implementation of TURTLE output for JSON-LD Forge project.
+ * Javascript implementation of TURTLE output for JSON-LD.
  *
- * @author Manu Sporny
+ * @author Manu Sporny <msporny@digitalbazaar.com>
+ * @author Dave Longley <dlongley@digitalbazaar.com>
  *
  * Copyright (c) 2011-2012 Digital Bazaar, Inc. All rights reserved.
  */
-(function()
-{
+(function() {
 
 /**
- * Retrieves all of the properties that are a part of a JSON-LD object, 
+ * Retrieves all of the properties that are a part of a JSON-LD object,
  * ignoring the "@id" key.
  *
  * @param obj the JSON-LD object - the last part of the triple.
  *
  * @return an array of cleaned keys for the JSON-LD object.
  */
-function getProperties(obj)
-{
-   var rval = [];
-
-   // accumulate the names of all non-JSON-LD subjects
-   for(var key in obj)
-   {
-      if(key != "@id")
-      {
-         rval.push(key);
-      }
-   }
-
-   return rval;
+function getProperties(obj) {
+  // accumulate the names of all non-JSON-LD subjects
+  var rval = [];
+  for(var key in obj) {
+    if(key !== '@id') {
+      rval.push(key);
+    }
+  }
+  return rval;
 };
 
 /**
@@ -39,11 +34,8 @@ function getProperties(obj)
  *
  * @return true if the iri is a Blank Node, false otherwise.
  */
-function isBnode(iri)
-{
-   var bnodePrefix = "_:";
-   
-   return (iri.substring(0, bnodePrefix.length) === bnodePrefix);
+function isBnode(iri) {
+  return iri.indexOf('_:') === 0;
 };
 
 /**
@@ -55,110 +47,81 @@ function isBnode(iri)
  *
  * @return the TURTLE-formatted IRI.
  */
-function iriToTurtle(iri)
-{
-   var rval = undefined;
-
-   // place angle brackets around anything that is not a Blank Node
-   if(isBnode(iri))
-   {
-      rval = iri;
-   }
-   else
-   {
-      rval = "<" + iri + ">";
-   }
-
-   return rval;
+function iriToTurtle(iri) {
+  // place angle brackets around anything that is not a Blank Node
+  return isBnode(iri) ? iri : ('<' + iri + '>');
 };
 
 /**
- * Converts the 'object' part of a 'subject', 'property', 'object' triple 
+ * Converts the 'object' part of a 'subject', 'property', 'object' triple
  * into a text string.
  *
  * @param obj the object to convert to a string.
  *
  * @return the string representation of the object.
  */
-function objectToString(obj)
-{
-   var rval = undefined;
+function objectToString(obj) {
+  var rval;
 
-   if(obj instanceof Array)
-   {
-      // if the object is an array, convert each object in the list
-      var firstItem = true;
-      for(i in obj)
-      {
-         if(firstItem == true)
-         {
-            firstItem = false;
-            rval = "\n      ";
-         }
-         else
-         {
-            rval += ",\n      ";
-         }
-         rval += objectToString(obj[i]);
+  if(obj instanceof Array) {
+    // if the object is an array, convert each object in the list
+    var firstItem = true;
+    for(i in obj) {
+      if(firstItem) {
+        firstItem = false;
+        rval = '\n      ';
       }
-   }
-   else if(obj instanceof Object)
-   {
-      if("@value" in obj && "@type" in obj)
-      {
-         // object is a typed literal
-         rval = "\"" + obj["@value"] + "\"^^<" + obj["@type"] + ">";
+      else {
+        rval += ',\n      ';
       }
-      else if("@value" in obj && "@language" in obj)
-      {
-         // object is a plain literal with a language
-         rval = "\"" + obj["@value"] + "\"@" + obj["@language"];
-      }
-      else if("@value" in obj)
-      {
-         // object is a plain literal
-         rval = "\"" + obj["@value"] + "\"";
-      }
-      else if("@id" in obj)
-      {
-         var iri = obj["@id"];
-         rval = iriToTurtle(iri);
-      }
-   }
-   else
-   {
-      // the object is a plain literal
-      rval = "\"" + obj + "\"";
-   }
+      rval += objectToString(obj[i]);
+    }
+  }
+  else if(obj instanceof Object) {
+    if('@value' in obj) {
+      rval = '"' + obj['@value'] + '"';
 
-   return rval;
+      if('@type' in obj) {
+        // object is a typed literal
+        rval += '^^<' + obj['@type'] + '>';
+      }
+      else if('@language' in obj) {
+        // object is a plain literal with a language
+        rval += '@' + obj['@language'];
+      }
+    }
+    else if('@id' in obj) {
+      rval = iriToTurtle(obj['@id']);
+    }
+  }
+  else {
+    // the object is a plain literal
+    rval = '"' + obj + '"';
+  }
+
+  return rval;
 };
 
 /**
  * Converts JSON-LD input to a TURTLE formatted string.
  *
  * @param input the JSON-LD object as a JavaScript object.
- *
- * @return a TURTLE formatted string.
+ * @param callback(err, turtle) called once the operation completes.
  */
-jsonld.turtle = function(input)
-{
-   var normalized = jsonld.normalize(input);
-   var rval = "";
-
-   for(s in normalized)
-   {
+jsonld.turtle = function(input, callback) {
+  jsonld.normalize(input, function(err, normalized) {
+    var output = '';
+    for(s in normalized) {
       // print out each key in the normalized array (the subjects)
       var subject = normalized[s];
-      var iri = subject["@id"];
-      
+      var iri = subject['@id'];
+
       // skip subjects with no properties (no triples to generate)
-      if(Object.keys(subject).length === 1)
-      {
-         continue;
+      if(Object.keys(subject).length === 1) {
+        continue;
       }
 
-      rval += iriToTurtle(iri) + "\n";
+      output += iriToTurtle(iri) + '\n';
 
       // get all properties and perform a count on them
       var properties = getProperties(subject);
@@ -166,36 +129,30 @@ jsonld.turtle = function(input)
 
       // iterate through all properties and serialize them
       var count = numProperties;
-      for(p in properties)
-      {
-         // serialize each property-object combination
-         property = properties[p];
-         if(property == "@type")
-         {
-            rval += "   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ";
-         }
-         else
-         {
-            rval += "   <" + property + "> ";
-         }
-         rval += objectToString(subject[property]);
+      for(p in properties) {
+        // serialize each property-object combination
+        property = properties[p];
+        if(property === '@type') {
+          output += '   <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ';
+        }
+        else {
+          output += '   <' + property + '> ';
+        }
+        output += objectToString(subject[property]);
 
-         if(count == 1)
-         {
-            // if the item is the last item for this subject, end it with a '.'
-            rval += ".\n";
-         }
-         else
-         {
-            // if the item is the last item for this subject, end it with a ';'
-            rval += ";\n";
-         }
-         count -= 1;
+        if(count === 1) {
+          // if the item is the last item for this subject, end it with a '.'
+          output += '.\n';
+        }
+        else {
+          // if the item is the last item for this subject, end it with a ';'
+          output += ';\n';
+        }
+        count -= 1;
       }
-   }
-
-   return rval;
+    }
+    callback(null, output);
+  });
 };
 
 })();
-
