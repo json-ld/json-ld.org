@@ -1180,47 +1180,51 @@ language-native data structures MUST be used where applicable.</p>
 
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each item in <em>element</em> recursively
-    using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
+    using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>
+    and removing null entries.</li>
   <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
       <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according
       to the steps outlined in <a href="#context-processing">Context Processing</a> and remove the <code>@context</code> property.</li>
       <li>For each <em>property</em> and <em>value</em> in <em>element</em>:
         <ol class="algorithm">
-          <li>Set <em>property</em> as <tref>active property</tref>.</li>
+          <li>Set <em>property</em> as <tref>active property</tref> and the result
+            of performing <a href="#iri-expansion">IRI Expansion</a> on <em>property</em> as <em>expanded property</em>.</li>
           <li>If <em>value</em> is <tref>null</tref>, skip this property/value pair and remove <em>property</em> from <em>element</em></li>
           <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having either a <code>@value</code>,
             <code>@list</code>, or <code>@set</code> key with a <tref>null</tref> value, skip this property/value pair and remove
             <em>property</em> from <em>element</em>.</li>
           <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code> property with a
-            non-<tref>null</tref> value, replace <em>value</em> with the value of <code>@set</code>.
-          <li>If the <em>property</em> is <code>@id</code> and the <em>value</em> is a <tref>string</tref>,
+            non-<tref>null</tref> value, replace <em>value</em> with the value of <code>@set</code>.</li>
+          <li>If the <em>expanded property</em> is <code>@id</code> and the <em>value</em> is a <tref>string</tref>,
             expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@type</code> and the <em>value</em> is a <tref>string</tref>
+          <li>Otherwise, if the <em>expanded property</em> is <code>@type</code> and the <em>value</em> is a <tref>string</tref>
             expand <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>. If <em>element</em> has no
             <code>@value</code> property, replace <em>value</em> with an array whose only value is the expanded <em>value</em>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@type</code> and the <em>value</em> is an <tref>array</tref>,
+          <li>Otherwise, if the <em>expanded property</em> is <code>@type</code> and the <em>value</em> is an <tref>array</tref>,
             expand every item according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@list</code> and the <em>value</em> is not an array, wrap <em>value</em> in an array.
+          <li>Otherwise, if the <em>expanded property</em> is <code>@list</code> and the <em>value</em> is not an array,
+            wrap <em>value</em> in an array.
             Process each item of <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
             <tref>active property</tref> removing all items that equal to <tref>null</tref>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@value</code>, the value is not subject to further expansion.</li>
-          <li>Otherwise, if the <em>property</em> has a <tref>term mapping</tref> or has the form of an <tref>compact IRI</tref>
-            or <tref>absolute IRI</tref>, expand the <em>property</em> according to the <a href="#iri-expansion">IRI Expansion</a>
-            rules and process <em>value</em> as follows:
+          <li>Otherwise, if the <em>expanded property</em> is <code>@value</code>, the value is not subject to further expansion.</li>
+          <li>Otherwise, if the <em>expanded property</em> is <code>@graph</code>, replace the entire object with the result of
+            performing this algorithm on the members of the value and terminate further processing of this object.</li>
+          <li>Process <em>value</em> as follows:
             <ol class="algorithm">
               <li>If the <em>value</em> is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
-                expansion, replace the <em>value</em> with array containing an object having a <code>@list</code> property whose value is
+                expansion, replace the <em>value</em> with an object having a <code>@list</code> property whose value is
                 set to the current <em>value</em>.</li>
-              <li>If the <em>value</em> is an <tref>array</tref>, process each item in the <tref>array</tref>
-                recursively using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>
-                removing all items that equal to <tref>null</tref>.</li>
-              <li>If the <em>value</em> is an object, process the object recursively using this algorithm, passing copies
-                of the <tref>active context</tref> and <tref>active property</tref>.</li>
-              <li>Otherwise, expand the <em>value</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
-                passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
+              <li>Otherwise, if <em>value</em> is not an <tref>array</tref>, replace <em>value</em> with an array containing
+                <em>value</em>.</li>
+              <li>If <em>value</em> is an <tref>array</tref>, process each item in the <tref>array</tref>
+                recursively using this algorithm, passing copies of the <tref>active context</tref> and
+                <tref>active property</tref>.</li>
             </ol>
           </li>
+          <li>If output object already contains an entry for <em>expanded property</em>, append <em>value</em> to
+            the existing value, which MUST be an <tref>array</tref>.</li>
+          <li>Otherwise, add <em>expanded property</em> to output object with <em>value</em>.</li>
         </ol>
       </li>
     </ol>
