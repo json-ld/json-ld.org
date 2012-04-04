@@ -637,7 +637,7 @@ de-referenceable.
       <dd>Creates a JSON-LD document given an set of <a>Triple</a>s, in the form of an iterator.
         <dl class="parameters">
           <dt>Triple[] input</dt>
-          <dd>An array of triples, ordered by <code>subject</code>.</dd>
+          <dd>An array of triples.</dd>
         </dl>
       </dd>
 
@@ -2091,6 +2091,8 @@ var myObj2 = jsonld.parse(jsonldText);
       triples having a property of <code>rdf:first</code>.</li>
     <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map subjects to objects
       derived from triples having a property of <code>rdf:rest</code>.</li>
+    <li>Construct a <tref>JSON object</tref> <em>subjectMap</em> to map subjects to
+      <tref>JSON Object</tref> instances contained in <em>array</em>.</li>
     <li>For each triple in <em>input</em>:
       <ol class="algorithm">
         <li>If <em>property</em> is <code>rdf:first</code>,
@@ -2100,23 +2102,26 @@ var myObj2 = jsonld.parse(jsonldText);
           and <em>object</em> is a <a>BlankNode</a>,
           create a new entry in <em>restMap</em> with a key of <em>subject</em> and value being the
           result of <a href="#iri-expansion">IRI expansion</a> on the object and skip to the next statement.</li>
-        <li>If the last entry in <em>array</em> is not a <tref>JSON Object</tref> with an
-          <code>@id</code> having a value of <em>subject</em>:
+        <li>If <em>subjectMap</em> does not have an entry for <em>subject</em>:
           <ol class="algorithm">
             <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
               a string representation of <em>subject</em> and use as <em>value</em>.</li>
+            <li>Save <em>value</em> in <em>subjectMap</em> for <em>subject</em> and append to
+              <em>array</em>.</li>
           </ol>
         </li>
-        <li>Otherwise, set <em>value</em> to the last entry in <em>array</em>.</li>
-        <li>If <code>property</code> is <code>rdf:type</code>:
+        <li>Otherwise, set <em>value</em> the value for <em>subject</em> in <em>subjectMap</em>.</li>
+        <li>If <em>property</em> is <code>rdf:type</code>:
           <ol class="algorithm">
-            <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <tref>array</tref>,
-              append the string representation of <tref>object</tref> to that array.</li>
-            <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
-              with a new array containing the existing value and a string representation of
-              <em>object</em>.</li>
-            <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
-              string representation of <em>object</em>.</li>
+            <li>Append the string representation of <em>object</em> to the array value for the
+              key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
+          <ol class="algorithm">
+            <li>Let <em>key</em> be the string representation of <em>property</em>.</li>
+            <li>Set the value for <em>key</em> in <em>value</em> to an empty <code>@list</code>
+              representation: <code>{"@list": []}</code>.</li>
           </ol>
         </li>
         <li>Otherwise,
@@ -2125,14 +2130,8 @@ var myObj2 = jsonld.parse(jsonldText);
               <em>object representation</em>
               be <em>object</em> represented in expanded form as described in
               <a href="#value-expansion">Value Expansion</a>.</li>
-            <li>If object is <code>rdf:nil</code>, replace
-              <em>object representation</em> with <code>{"@list": []}</code>.</li>
-            <li>If <em>value</em> has an key/value pair of <em>key</em> and an <tref>array</tref>,
-              append <em>object representation</em> to that array.</li>
-            <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
-              with a new array containing the existing value and <em>object representation</em>.</li>
-            <li>Otherwise, create a new entry in <em>value</em> with a key of <em>key</em> and
-              <em>object representation</em>.</li>
+            <li>Append <em>object representation</em> to the array value for
+              <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
           </ol>
         </li>
       </ol>
@@ -2143,7 +2142,7 @@ var myObj2 = jsonld.parse(jsonldText);
     <li>For each key/value <em>node</em>, <em>list</em>, in <em>listMap</em> where <em>list</em>
       exists as a value of an object in <em>array</em>,
       replace the object value with <em>list</em>.</li>
-    <li>Return array as the graph representation.</li>
+    <li>Return array as the graph representation in expanded form.</li>
   </ol>
 </section>
 </section>
