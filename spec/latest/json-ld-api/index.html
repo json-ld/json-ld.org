@@ -1180,7 +1180,8 @@ language-native data structures MUST be used where applicable.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each item in <em>element</em> recursively
     using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>
-    and removing null entries.</li>
+    and removing null entries. If any result is a <tref>JSON Object</tref> with a property of <code>@set</code>
+    (or alias thereof), remove that object, and append the array value to <em>element</em>.</li>
   <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
       <li>If <em>element</em> has a <code>@context</code> property, update the
@@ -1189,13 +1190,19 @@ language-native data structures MUST be used where applicable.</p>
         property.</li>
       <li>For each <em>property</em> and <em>value</em> in <em>element</em>:
         <ol class="algorithm">
+          <li>Set <em>property</em> as <tref>active property</tref> and the result
+            of performing <a href="#iri-expansion">IRI Expansion</a> on <em>property</em> as
+          <li>If <em>property</em> does not expand to a keyword or <tref>absolute IRI</tref>, remove
+            <em>property</em> from <em>element</em> and continue to the next property from
+            <em>element</em>.</li>
+          <li>If <em>expanded property</em> is <em>@value</em> and <em>value</em> is <code>null</code>,
+            skip further processing and return <code>null</code> as the expanded version of
+            <em>element</em>.</li>
           <li>If <em>value</em> is <tref>null</tref>, remove <em>property</em> from <em>element</em>
             and continue with the next property from <em>element</em>.</li>
           <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having either a <code>@value</code>,
             <code>@list</code>, or <code>@set</code> property (or an alias thereof) with a <tref>null</tref> value,
             remove <em>property</em> from <em>element</em> and continue with the next property from <em>element</em>.</li>
-          <li>Set <em>property</em> as <tref>active property</tref> and the result
-            of performing <a href="#iri-expansion">IRI Expansion</a> on <em>property</em> as
             <em>expanded property</em>.</li>
           <li>If <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code>
             property (or an alias thereof) with a non-<tref>null</tref> value, replace <em>value</em> with the
@@ -1212,13 +1219,19 @@ language-native data structures MUST be used where applicable.</p>
           </li>
           <li>If the <em>expanded property</em> is <code>@id</code> the <em>value</em> MUST be a <tref>string</tref>.
             Expand the <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the <em>expanded property</em> is <code>@type</code> and the <em>value</em>
-            is a <tref>string</tref> expand <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>.
-            If <em>element</em> has no <code>@value</code> property (or an alias thereof), replace <em>value</em>
-            with an array whose only value is the expanded <em>value</em>.</li>
-          <li>Otherwise, if the <em>expanded property</em> is <code>@type</code> and the
-            <em>value</em> is an <tref>array</tref>, expand every entry according to
-            <a href="#iri-expansion">IRI Expansion</a>. Element MUST NOT have a <code>@value</code> property in this case.</li>
+          <li>Otherwise, if the <em>expanded property</em> is <code>@type</code>:
+            <ol class="algorithm">
+              <li>If <em>value</em> is a <tref>string</tref> expand <em>value</em>
+                according to <a href="#iri-expansion">IRI Expansion</a>.
+                If <em>element</em> has no <code>@value</code> property (or an alias thereof),
+                replace <em>value</em> with an array whose only value is the expanded <em>value</em>.</li>
+              <li>Otherwise, if <em>value</em> is an <tref>array</tref>, expand every entry according to
+                <a href="#iri-expansion">IRI Expansion</a>.
+                Element MUST NOT have a <code>@value</code> property in this case.</li>
+              <li>If <em>value</em> expands to <code>nil</code>, remove <em>property</em>
+                from <em>element</em> and continue to next property.</li>
+            </ol>
+          </li>
           <li>Otherwise, if the <em>expanded property</em> is <code>@value</code> or <code>@language</code>, the <em>value</em>
             is not subject to further expansion.</li>
           <li>Otherwise, if the <em>expanded property</em> is <code>@graph</code>,
@@ -1232,7 +1245,9 @@ language-native data structures MUST be used where applicable.</p>
                 current <em>value</em> updated by recursively using this algorithm.</li>
               <li>Otherwise, if <em>value</em> is not an <tref>array</tref>, replace <em>value</em>
                 with an array containing <em>value</em>.</li>
-              <li>If <em>value</em> is an <tref>array</tref>, process it recursively using this algorithm,
+              <li>If <em>value</em> is an <tref>array</tref>, replace <em>value</em> with
+                an array containing <em>value</em>.</li>
+              <li>Process each item in <em>value</em> recursively using this algorithm,
                 passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
             </ol>
           </li>
