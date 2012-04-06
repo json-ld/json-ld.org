@@ -1338,37 +1338,53 @@ language-native data structures MUST be used where applicable.</p>
 
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
-    using this algorithm, passing a copy of the <tref>active property</tref>.</li>
-  <li>Otherwise, if <em>element</em> is an object, for each <em>property</em> and <em>value</em> in <em>element:</em>
+    using this algorithm, passing a copy of the <tref>active property</tref>. If <em>element</em>
+    has a single member, the compacted value is that member; otherwise the compacted value
+    is <em>element</em>.</li>
+  <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
-      <li>If the <em>property</em> is <code>@id</code> or <code>@type</code>
+      <li>Set <em>property</em> to one of <code>@list</code>, <code>@set</code> or <code>@value</code>
+        if <em>element</em> contains any such property.</li>
+      <li>Otherwise, if <em>element</em> contains only the property <code>@id</code> set <em>property</em>
+        to <code>@id</code>.</li>
+      <li>If <em>property</em> is <code>@id</code> or <code>@value</code>, the compacted value
+        is the result of performing <a href="#value-compaction">Value Compaction</a> on the
+        property value.</li>
+      <li>Otherwise, if <em>property</em> is <code>@list</code>, compact the array value
+        by performing this algorithm, ensuring that the result remains an array.
+        If <tref>active property</tref> is subject to <code>@list</code> coercion, the compacted
+        value is the compacted array. Otherwise, the compacted value is a new <tref>JSON Object</tref>
+        using the compacted representation of <code>@list</code> as the property and the compacted
+        array as the value.</li>
+      <li>Otherwise, for each <em>property</em> and <em>value</em> in <em>element:</em>
         <ol class="algorithm">
-          <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
-            <a href="#iri-compaction">IRI Compaction</a> on <em>value</em>.</li>
-          <li>Otherwise, <em>value</em> MUST be an array of strings. The compacted <em>value</em> is the result of
-            performing <a href="#iri-compaction">IRI Compaction</a> on every entry of <em>value</em>. If the array
-            contains just one entry, <em>value</em> is set to that entry's value.</li>
-        </ol>
-      </li>
-      <li>Otherwise:
-        <ol class="algorithm">
-          <li>If <em>property</em> is not a <tref>keyword</tref>, set as <tref>active property</tref> and
-            compact according to <a href="#iri-compaction">IRI Compaction</a>.</li>
-          <li>If <em>value</em> is an object
+          <li>If the <em>property</em> is <code>@id</code> or <code>@type</code>
             <ol class="algorithm">
-              <li>If <em>value</em> contains only an <code>@id</code> property or <em>value</em> contains a
-                <code>@value</code> property, the compacted <em>value</em> is the result of performing
-                <a href="#value-compaction">Value Compaction</a> on <em>value</em>.</li>
-              <li>Otherwise, if <em>value</em> contains only a <code>@list</code> property, and the
-                <tref>active property</tref> is subject to list coercion, the compacted <em>value</em> is the
-                result of performing this algorithm on the <code>@list</code> property's value.</li>
-              <li>Otherwise, the compacted <em>value</em> is the result of performing this algorithm on
-                <em>value</em>.</li>
+              <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em>
+                is the result of performing <a href="#iri-compaction">IRI Compaction</a>
+                on <em>value</em>.</li>
+              <li>Otherwise, if <em>value</em> is an object having only the <code>@id</code>
+                property, the compacted <em>value</em> is the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on that value.</li>
+              <li>Otherwise, the compacted <em>value</em> is the result of performing
+                either <a href="#iri-compaction">IRI Compaction</a>
+                or <a href="#value-compaction">Value Compaction</a> on every entry of <em>value</em>
+                depending on if it is a <tref>string</tref> or <tref>JSON Object</tref>.
+                If <em>value</em>contains just one entry, <em>value</em> is set to that entry.</li>
             </ol>
           </li>
-          <li>Otherwise, if <em>value</em> is an <tref>array</tref>, the compacted <em>value</em> is the result of
-            performing this algorithm on <em>value</em>.</li>
-          <li>Otherwise, <em>value</em> is already compacted.</li>
+          <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>, the compacted value is the
+            result of performing this algorithm on <em>value</em> using the compacted
+            form of <em>property</em> as <tref>active property</tref>.
+            <div class="note">This must include looking for possible aliases for <em>property</em>
+              and splitting into separate arrays with different value compaction
+              for each.</div>
+          </li>
+          <li>If the compacted value is not an <tref>array</tref> and the compacted <em>property</em>
+            is subject to <code>@set</code> coercion, set the compacted value to an <tref>array</tref>
+            containing that value.</li>
+          <li>Replace <em>property</em> in <em>element</em> with the compacted property
+            using the compacted value.</li>
         </ol>
       </li>
     </ol>
