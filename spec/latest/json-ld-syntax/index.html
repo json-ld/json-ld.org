@@ -407,6 +407,7 @@ WebIDL [[!WEBIDL]].</p>
     developers express specific identifiers in a compact manner. The
     <code>@context</code> keyword is described in detail in the section titled
     <a href="#the-context">The Context</a>.</dd>
+  <dt><code>@graph</code></dt><dd>Used to explicitly express a <tref>linked data graph</tref>.</dd>
   <dt><code>@id</code></dt>
   <dd>Used to uniquely identify things that are being described in the document.
     This keyword is described in the section titled
@@ -678,7 +679,7 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
 <p>
   The set of contexts defined within a specific <tref>JSON Object</tref> are
   referred to as <tdef>local context</tdef>s. Setting the context to <code>null</code>
-  effectively sets the <tdef>local context</tdef> to it's initial state. The
+  effectively sets the <tref>local context</tref> to it's initial state. The
   <tdef>active context</tdef> refers to the accumulation of
   <tref>local context</tref>s that are in scope at a specific point within
   the document. The following example specifies an external context and then
@@ -1929,11 +1930,108 @@ processor will use direct string comparison when looking up
 </section>
 
 <section>
+  <h2>Named Graphs</h2>
+  <p class="issue">This section is provisional, as the group has not yet decided to include
+    support for named graphs. However, the use of the <code>@graph</code> keyword does have
+    meaning for a top-level object definition.</p>
+  <p>The <code>@graph</code> is used to identify a set of JSON-LD object definitions that may not be directly
+    related through a property, or where <tref>embedding</tref> is not appropriate. For example:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": ...,
+    "@graph":
+    [
+      {
+        "@id": "http://manu.sporny.org/i/public",
+        "@type": "foaf:Person",
+        "name": "Manu Sporny",
+        "knows" "http://greggkellogg.net/foaf#me"
+      },
+      {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "@type": "foaf:Person",
+        "name": "Gregg Kellogg",
+        "knows" "http://manu.sporny.org/i/public"
+      }
+    ]
+  }
+  -->
+  </pre>
+  
+  <p>In this case, embedding doesn't work as each JSON-LD object references the other.
+    Using the <code>@graph</code>
+    keyword allows multiple resources to be defined within an <tref>array</tref>, and allows the use
+    of a shared <tref>context</tref>. This is equivalent to using multiple <tref>JSON Object</tref>
+    definitions in array and defining the <code>@context</code> within each object:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  ****[****
+    {
+      ****"@context": ...,****
+      "@id": "http://manu.sporny.org/i/public",
+      "@type": "foaf:Person",
+      "name": "Manu Sporny",
+      "knows" "http://greggkellogg.net/foaf#me"
+    },
+    {
+      ****"@context": ...,****
+      "@id": "http://greggkellogg.net/foaf#me",
+      "@type": "foaf:Person",
+      "name": "Gregg Kellogg",
+      "knows" "http://manu.sporny.org/i/public"
+    }
+  ****]****
+  -->
+  </pre>
+
+  <p>The <code>@graph</code> keyword takes on additional meaning when it is used along with
+    other properties, or is used within an embedded JSON-LD object. In this case, the set
+    of JSON-LD objects contained within a <code>@graph</code> is given a <em>name</em>, based
+    on the label of the JSON-LD object containing a <code>@graph</code> property, either an
+    <tref>IRI</tref>, or an <tref>unlabeled node</tref>. This allows statements to be
+    made about an entire <tref>linked data graph</tref>, rather than just a single JSON-LD object.</p>
+    
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": ...,
+    ****"@id": "http://example.org/linked-data-graph",
+    "@type": "Graph",
+    "asOf": {"@value": "2012-04-09", "@type": "xsd:date"},****
+    "@graph":
+    [
+      {
+        "@id": "http://manu.sporny.org/i/public",
+        "@type": "foaf:Person",
+        "name": "Manu Sporny",
+        "knows" "http://greggkellogg.net/foaf#me"
+      },
+      {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "@type": "foaf:Person",
+        "name": "Gregg Kellogg",
+        "knows" "http://manu.sporny.org/i/public"
+      }
+    ]
+  }
+  -->
+  </pre>
+  
+  <p>This example says that there is a <tref>linked data graph</tref> identified by
+    <code>http://example.org/linked-data-graph</code> which is composed of the statements
+    about Manu and Gregg. Additionally, there is information about the graph itself, which
+    indicates a time at which this information as asserted to be true.</p>
+</section>
+
+<section>
 <h2>Identifying Unlabeled Nodes</h2>
 
 <p>At times, it becomes necessary to be able to express information without
 being able to specify the subject. Typically, this type of node is called
-an unlabeled node or a blank node. In JSON-LD, unlabeled node identifiers are
+an <tref>unlabeled node</tref> or a blank node. In JSON-LD, <tref>unlabeled node</tref> identifiers are
 automatically created if a subject is not specified using the
 <code>@id</code> keyword. However, authors may provide identifiers for
 unlabeled nodes by using the special <code>_</code> (underscore)
@@ -1952,7 +2050,7 @@ document but not in an external document.</p>
 
 <p>The example above would set the subject to <code>_:foo</code>, which can
 then be used later on in the JSON-LD markup to refer back to the
-unlabeled node. This practice, however, is usually frowned upon when
+<tref>unlabeled node</tref>. This practice, however, is usually frowned upon when
 generating <tref>Linked Data</tref>. If a developer finds that they refer to the unlabeled
 node more than once, they should consider naming the node using a resolve-able
 <tref>IRI</tref>.
