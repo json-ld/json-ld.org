@@ -135,7 +135,7 @@
                         }
 
                         if ( !tdefs[ref]) {
-                          throw "Reference to undefined term '" + ref + "'" ;
+                            throw "Reference to undefined term '" + ref + "'" ;
                         }
                         var sp = document.createElement( 'a' ) ;
                         var id = item.textContent ;
@@ -475,22 +475,24 @@ de-referenceable.
     <h3>JsonLdProcessor</h3>
     <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
 
-      <dt>object expand()</dt>
+      <dt>void expand()</dt>
       <dd><a href="#expansion">Expands</a> the given <code>input</code>
         according to the steps in the
         <a href="#expansion-algorithm">Expansion Algorithm</a>. The
         <code>input</code> MUST be copied, expanded and returned if there are
         no errors. If the expansion fails, an appropriate exception MUST be thrown.
-        <div class="issue">This might always return object[].</div>
         <dl class="parameters">
-         <dt>object input</dt>
-         <dd>The JSON-LD object to copy and perform the expansion upon.
-           <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-             accept this.
-           </div>
-         </dd>
-         <dt>object optional? context</dt>
-         <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>ObjectOrObjectArrayOrURL input</dt>
+          <dd>The <tref>JSON object</tref>, <tref>array</tref> or <tref>IRI</tref>
+            to copy and perform the expansion upon.</dd>
+          <dt>ObjectOrObjectArrayOrURL? context</dt>
+          <dd>An optional external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that will affect the algorithm.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -510,7 +512,7 @@ de-referenceable.
 
       </dd>
 
-      <dt>object compact()</dt>
+      <dt>void compact()</dt>
       <dd><a href="#compaction">Compacts</a> the given <code>input</code>
         using the <code>context</code> according to the steps in the
         <a href="#compaction-algorithm">Compaction Algorithm</a>. The
@@ -518,21 +520,16 @@ de-referenceable.
         no errors. If the compaction fails, an appropirate exception MUST be
         thrown.
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform compaction on.
-             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-               accept this.
-             </div>
-           </dd>
-           <dt>object? context</dt>
-           <dd>The context to use when compacting the <code>input</code>.</dd>
-           <dt>boolean optional optimize</dt>
-           <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
-           optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
-           to produce even compacter representations. The algorithm for compaction
-           optimization is beyond the scope of this specification and thus
-           not defined. Consequently, different implementations MAY implement
-           different optimization algorithms.</dd>
+          <dt>ObjectOrObjectArrayOrURL input</dt>
+          <dd>The <tref>JSON object</tref>, <tref>array</tref> or <tref>IRI</tref>
+            to perform compaction on.</dd>
+          <dt>ObjectOrObjectArrayOrURL context</dt>
+          <dd>The context to use when compacting the <code>input</code>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+         <dd>A set of options that will affect the algorithm.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -558,7 +555,7 @@ de-referenceable.
 
       </dd>
 
-      <dt>object frame()</dt>
+      <dt>void frame()</dt>
       <dd><a href="#framing">Frames</a> the given <code>input</code>
         using the <code>frame</code> according to the steps in the
         <a href="#framing-algorithm">Framing Algorithm</a>. The
@@ -567,16 +564,16 @@ de-referenceable.
         <tref>null</tref> MUST be returned. Exceptions MUST be thrown if there are
         errors.
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform framing on.
-             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-               accept this.
-             </div>
-           </dd>
-           <dt>object frame</dt>
-           <dd>The frame to use when re-arranging the data.</dd>
-           <dt>object options</dt>
-           <dd>A set of options that will affect the framing algorithm.</dd>
+          <dt>ObjectOrObjectArrayOrURL input</dt>
+          <dd>The <tref>JSON object</tref>, <tref>array</tref> or <tref>IRI</tref>
+            to perform framing on.</dd>
+          <dt>ObjectOrURL frame</dt>
+          <dd>The frame to use when re-arranging the data.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that will affect the algorithm.</dd>
         </dl>
 
         <dl class="exception" title="InvalidFrame">
@@ -597,67 +594,35 @@ de-referenceable.
 
       </dd>
 
-      <dt>object[] normalize()</dt>
-      <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
-        according to the steps in the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>. The
-        <code>input</code> MUST be copied, normalized and returned if there are
-        no errors. If the compaction fails, <tref>null</tref> MUST be returned.
-        The output is an array of <tref>JSON Object</tref> definitions normalized by the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>.
-        <div class="issue">It's still an open question if the result is a DOMString
-          representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
-          which is in normalized form.</div>
+      <dt>void fromRDF()</dt>
+      <dd>Creates a JSON-LD document given an set of <a>Statement</a>s.
         <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to perform normalization upon.</dd>
-          <dt>object optional? context</dt>
-          <dd>An external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
-        </dl>
-
-        <dl class="exception" title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl class="exception" title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. This is not supported in this
-            version of JSON-LD.</dd>
-        </dl>
-
-      </dd>
-
-      <dt>object[] fromTriples()</dt>
-      <dd>Creates a JSON-LD document given an set of <a>Triple</a>s, in the form of an iterator.
-        <dl class="parameters">
-          <dt>Triple[] input</dt>
-          <dd>An array of triples.</dd>
+          <dt>Statement[] input</dt>
+          <dd>An array of statements.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that will affect the algorithm.</dd>
         </dl>
       </dd>
 
-      <dt>void toTriples()</dt>
+      <dt>void toRDF()</dt>
       <dd>Processes the <code>input</code> according to the
         <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
-        the provided <code>tripleCallback</code> for each <a>Triple</a> generated.
+        the provided <code>callback</code> for each <a>Statement</a> generated.
         <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to process when outputting triples.
-            <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-              accept this.
-            </div>
-          </dd>
-          <dt>TripleCallback tripleCallback</dt>
-          <dd>A callback that is called a <a>Triple</a> is created from processing
-          the given <code>input</code>.</dd>
-          <dt>object optional? context</dt>
+          <dt>ObjectOrObjectArrayOrURL input</dt>
+          <dd>The <tref>JSON object</tref>, <tref>array</tref> or <tref>IRI</tref>
+            to process when outputting <a>Statement</a>s.</dd>
+          <dt>ObjectOrURL? context</dt>
           <dd>An external context to use additionally to the context embedded in
             <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>StatementCallback callback</dt>
+          <dd>A callback that is called when a <a>Statement</a> is created from processing
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that will affect the algorithm.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -682,42 +647,137 @@ de-referenceable.
   </section>
 
   <section>
-    <h3>TripleCallback</h3>
-    <p>The TripleCallback is called whenever the processor generates a
-    triple during the <code>triple()</code> call.</p>
+    <h3>Callbacks</h3>
+  <section>
+    <h3>JsonLdCallback</h3>
+    <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD representation
+      as the result of processing an API method.</p>
 
-    <dl title="[NoInterfaceObject Callback] interface TripleCallback"
+    <dl title="[NoInterfaceObject Callback] interface JsonLdCallback"
         class="idl">
 
-      <dt>void triple()</dt>
-      <dd>This callback is invoked whenever a triple is generated by the processor.
+      <dt>void jsonLd()</dt>
+      <dd>This callback is invoked when processing is complete.
       <dl class="parameters">
-         <dt>Triple triple</dt>
-         <dd>The triple.</dd>
+         <dt>ObjectOrObjectArray jsonld</dt>
+         <dd>The processed JSON-LD document.</dd>
       </dl>
       </dd>
     </dl>
   </section>
+  <section>
+    <h3>StatementCallback</h3>
+    <p>The <a>StatementCallback</a> is called whenever the processor generates a
+    statement during the <code>statement()</code> call.</p>
+
+    <dl title="[NoInterfaceObject Callback] interface StatementCallback"
+        class="idl">
+
+      <dt>void statement()</dt>
+      <dd>This callback is invoked whenever a statement is generated by the processor.
+      <dl class="parameters">
+         <dt>Statement statement</dt>
+         <dd>The statement.</dd>
+      </dl>
+      </dd>
+    </dl>
+  </section>
+  </section>
 
   <section>
     <h3>Data Structures</h3>
-    <p>The following data structures are used for representing data about RDF Triples. They
-      are used for normalization, triples, and from Triples interfaces.</p>
+    <p>This section describes datatype definitions used within the JSON-LD API.</p>
 
     <section>
-    <h3>Triple</h3>
-    <p>The <a>Triple</a> interface represents an RDF Triple.</p>
-    <dl title="[NoInterfaceObject] interface Triple" class="idl">
-        <dt>readonly attribute Node subject</dt>
-        <dd>The subject associated with the <a>Triple</a>.</dd>
-        <dt>readonly attribute Node property</dt>
-        <dd>The property associated with the <a>Triple</a>.</dd>
-        <dt>readonly attribute Node object</dt>
-        <dd>The object associated with the <a>Triple</a>.</dd>
+    <h3>ObjectOrObjectArrayOrURL</h3>
+    <p>The <a>ObjectOrObjectArrayOrURL</a> datatype is a union type used
+      to indicate that a parameter datatype can be any of the base datatypes.</p>
+    <div title="typedef (object or object[] or URL) ObjectOrObjectArrayOrURL" class="idl">
+      This datatype indicates that either a <tref>JSON Object</tref>, <tref>array</tref>,
+      or <tref>absolute IRI</tref> may be used as an argument.
+      In the case of an <a>URL</a>, the <tref>IRI</tref> is interpreted as a URL
+      identifying a document, which when parsed as JSON yields either a <code>JSON Object</code>
+      or <code>array</code>.
+    </div>
+    </section>
+
+    <section>
+    <h3>ObjectOrURL</h3>
+    <p>The <a>ObjectOrURL</a> datatype is a union type used
+      to indicate that a parameter datatype can be any of the base datatypes.</p>
+    <div title="typedef (object or URL) ObjectOrURL" class="idl">
+      This datatype indicates that either a <tref>JSON Object</tref>, <tref>array</tref>,
+      or <tref>absolute IRI</tref> may be used as an argument.
+      In the case of an <a>URL</a>, the <tref>IRI</tref> is interpreted as a URL
+      identifying a document, which when parsed as JSON yields either a <code>JSON Object</code>
+      or <code>array</code>.
+    </div>
+    </section>
+
+    <section>
+    <h3>ObjectOrObjectArray</h3>
+    <p>The <a>ObjectOrObjectArray</a> datatype is a union type used
+      to indicate that a return datatype can be any of the base datatypes.</p>
+
+    <div title="typedef (object or object[]) ObjectOrObjectArray" class="idl">
+      This datatype indicates that either a <tref>JSON Object</tref> or <tref>array</tref>
+      may be returned as a value.
+    </div>
+    </section>
+
+    <section>
+    <h3>URL</h3>
+    <p>The <a>URL</a> datatype is a string representation of an <tref>IRI</tref>.</p>
+    <div title="typedef DOMString URL" class="idl">
+      This datatype indicates that the <tref>IRI</tref> is interpreted as a Universal Resource
+      Locator
+      identifying a document, which when parsed as JSON yields either a <code>JSON Object</code>
+      or <code>array</code>.
+    </div>
+    </section>
+    
+    <section>
+    <h3>JsonLdOptions</h3>
+    <p>The <a>JsonLdOptiones</a> type is used to convery a set of options to an interface method.</p>
+    <dl title="typedef object JsonLdOptions" class="idl">
+      <dt><a>URL</a> base</dt>
+      <dd>The Base IRI to use when expanding the document. This overrides the value of
+        <em>input</em> if it is a <a>URL</a> or if it is a <code>object</code> or <code>object[]</code>.</dd>
+      <dt>boolean optimize</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
+        optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
+        to produce even compacter representations. The algorithm for compaction
+        optimization is beyond the scope of this specification and thus
+        not defined. Consequently, different implementations MAY implement
+        different optimization algorithms.</dd>
     </dl>
     </section>
 
-    <section class="normative">
+    <p>The following data structures are used for representing data about
+      RDF triples (or quads). They are used for normalization, <a>fromRDF</a>,
+      and from <a>toRDF</a> interfaces.
+    </p>
+
+    <section>
+    <h3>Statement</h3>
+    <p>The <a>Statement</a> interface represents an RDF Statement.</p>
+    <dl title="[NoInterfaceObject] interface Statement" class="idl">
+      <dt>readonly attribute Node subject</dt>
+      <dd>The subject associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node property</dt>
+      <dd>The property associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node object</dt>
+      <dd>The object associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node? name</dt>
+      <dd>The name associated with the <a>Statement</a> identifying
+        it as a member of a named graph. If the attribute is present,
+        it indicates that this statement is a member of a <em>named graph</em>
+        associated with <em>name</em>. If it is missing, the statement
+        is a member of the <em>default graph</em>.</dd>
+    </dl>
+    </section>
+
+    <section>
     <h3>Node</h3>
     <p><a>Node</a> is the base class of <a>NamedNode</a>,
     <a>BlankNode</a>, and <a>LiteralNode</a>.</p>
@@ -748,20 +808,20 @@ de-referenceable.
     </dl>
     </section>
 
-    <section class="normative">
+    <section>
     <h3>Blank Node</h3>
+
     <p>A <a>BlankNode</a> is a reference to an unnamed resource
-    (one for which an IRI is not known), and may be used in a <a>Triple</a>
-    as a unique reference to that unnamed resource.</p>
-    <dl title="[NoInterfaceObject] interface BlankNode : Node"
-        class="idl">
-        <dt>readonly attribute DOMString nominalValue</dt>
-        <dd>
-        <p>The temporary identifier of the <a>BlankNode</a>.</p>
-        <p>The nominalValue MUST NOT be relied upon in any way between two
-        separate processing runs of the same document.</p>
-        </dd>
+      (one for which an IRI is not known), and may be used in a <a>Statement</a>
+      as a unique reference to that unnamed resource.</p>
+
+    <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
+      <dt>readonly attribute DOMString nominalValue</dt>
+      <dd>The temporary identifier of the <a>BlankNode</a>.
+        The nominalValue MUST NOT be relied upon in any way between two
+        separate processing runs of the same document.</dd>
     </dl>
+
     <p class="note">Developers and authors must not assume that the
     nominalValue of a <a>BlankNode</a> will remain the same between two
     processing runs. <a>BlankNode</a> nominalValues are only valid for the
@@ -773,31 +833,38 @@ de-referenceable.
     their nominalValues are strictly equal.</p>
     </section>
 
-    <section class="normative">
-    <h3>LiteralNode</h3>
-    <p>LiteralNodes represent values such as numbers, dates and strings in
-    RDF data. A <a>LiteralNode</a> is comprised of three attributes:</p>
-    <ul>
-      <li>a lexical representation of the <code>nominalValue</code></li>
-      <li>an optional <code>language</code> represented by a string token</li>
-      <li>an optional <code>datatype</code> specified by a <a>NamedNode</a></li>
-    </ul>
+    <section>
+      <h3>LiteralNode</h3>
+      <p>LiteralNodes represent values such as numbers, dates and strings in
+        RDF data. A <a>LiteralNode</a> is comprised of three attributes:
+      </p>
 
-    <p>LiteralNodes representing plain text in a natural language may have a
-    <code>language</code> attribute specified by a text string token, as
-    specified in [[!BCP47]], normalized to lowercase (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
-    They may also have a datatype attribute such as <code>xsd:string</code>.</p>
-    <p>LiteralNodes representing values with a specific datatype, such as
-    the integer 72, may have a <code>datatype</code> attribute specified in
-    the form of a <a>NamedNode</a> (e.g., <code>&lt;http://www.w3.org/2001/XMLSchema#integer></code>).</p>
-    <dl title="[NoInterfaceObject] interface LiteralNode : Node" class="idl">
-      <dt>readonly attribute DOMString nominalValue</dt>
-      <dd>The lexical representation of the LiteralNodes value.</dd>
-      <dt>readonly attribute DOMString? language</dt>
-      <dd>An optional language string as defined in [[!BCP47]], normalized to lowercase.</dd>
-      <dt>readonly attribute NamedNode? datatype</dt>
-      <dd>An optional datatype identified by a NamedNode.</dd>
-    </dl>
+      <ul>
+        <li>a lexical representation of the <code>nominalValue</code></li>
+        <li>an optional <code>language</code> represented by a string token</li>
+        <li>an optional <code>datatype</code> specified by a <a>NamedNode</a></li>
+      </ul>
+
+      <p>LiteralNodes representing plain text in a natural language may have a
+        <code>language</code> attribute specified by a text string token, as specified in
+        [[!BCP47]], normalized to lowercase
+        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
+        They may also have a datatype attribute such as <code>xsd:string</code>.
+      </p>
+
+      <p>LiteralNodes representing values with a specific datatype, such as
+        the integer 72, may have a <code>datatype</code> attribute specified in the form
+        of a <a>NamedNode</a> (e.g.,
+        <code>&lt;http://www.w3.org/2001/XMLSchema#integer></code>).</p>
+
+      <dl title="[NoInterfaceObject] interface LiteralNode : Node" class="idl">
+        <dt>readonly attribute DOMString nominalValue</dt>
+        <dd>The lexical representation of the LiteralNodes value.</dd>
+        <dt>readonly attribute DOMString? language</dt>
+        <dd>An optional language string as defined in [[!BCP47]], normalized to lowercase.</dd>
+        <dt>readonly attribute NamedNode? datatype</dt>
+        <dd>An optional datatype identified by a NamedNode.</dd>
+      </dl>
     </section>
   </section>
 
@@ -1768,9 +1835,9 @@ language-native data structures MUST be used where applicable.</p>
   <ol class="algorithm">
     <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
       the <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</li>
-    <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create an array of <a>Triple</a>s
+    <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create an array of <a>Statement</a>s
       representation of the RDF graph.</li>
-    <li>Transform the array of <a>Triple</a>s to a JSON <tref>array</tref> with
+    <li>Transform the array of <a>Statement</a>s to a JSON <tref>array</tref> with
       <tref>JSON Object</tref> definitions using
       <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>
       and return as the normalized form of the
@@ -1869,14 +1936,14 @@ var myObj2 = jsonld.parse(jsonldText);
   formats using the algorithms specified in this section.</p>
 
 <p>The JSON-LD Processing Model describes processing rules for extracting RDF
-  from a JSON-LD document, and for transforming an array of <a>Triple</a> retrieved by processing
+  from a JSON-LD document, and for transforming an array of <a>Statement</a> retrieved by processing
   another serialization format into JSON-LD. Note that many uses of JSON-LD may not require
   generation of RDF.</p>
 
 <p>The processing algorithms described in this section are provided in
   order to demonstrate how one might implement a JSON-LD to RDF processor.
   Conformant implementations are only required to produce the same type and
-  number of triples during the output process and are not required to
+  number of statements during the output process and are not required to
   implement the algorithm exactly as described.</p>
 
 <section class="informative">
@@ -1913,7 +1980,7 @@ var myObj2 = jsonld.parse(jsonldText);
   <dl>
     <dt><tdef>default graph</tdef></dt>
     <dd>
-      the destination graph for all triples generated by JSON-LD markup.
+      the destination graph for all <a>Statement</a>s (triples or quads) generated by JSON-LD markup.
     </dd>
   </dl>
 </section>
@@ -1962,7 +2029,7 @@ var myObj2 = jsonld.parse(jsonldText);
         </li>
         <li>If <tref>active object</tref> is not <tref>null</tref>:
           <ol class="algorithm">
-            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>, generate a triple
+            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>, generate a <a>Statement</a>
               representing the <tref>active subject</tref>, the <tref>active property</tref> and the
               <tref>active object</tref>.</li>
             <li>Return the <tref>active object</tref> to the calling location.</li>
@@ -2042,7 +2109,7 @@ var myObj2 = jsonld.parse(jsonldText);
     </li>
     <li>
       If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
-      nor <tref>active property</tref> are <tref>null</tref>, generate a triple using <tref>active subject</tref>,
+      nor <tref>active property</tref> are <tref>null</tref>, generate a <a>Statement</a> using <tref>active subject</tref>,
       <tref>active property</tref> and <tref>active object</tref>
     </li>
     <li>Return <tref>active object</tref> to the calling location.</li>
@@ -2063,7 +2130,7 @@ var myObj2 = jsonld.parse(jsonldText);
       If <em>array</em> is empty return <code>rdf:nil</code>.
     </li>
     <li>
-      Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+      Otherwise, generate a <a>Statement</a> using using the <tref>active subject</tref>, <tref>active property</tref>
       and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
     </li>
     <li>
@@ -2079,7 +2146,7 @@ var myObj2 = jsonld.parse(jsonldText);
         </li>
         <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
           <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
-        <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
+        <li>Generate a new <a>Statement</a> using <em>first <tref>blank node</tref></em>,
           <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
         <li>Set <em>first <tref>blank node</tref></em> to
           <em>rest <tref>blank node</tref></em>.</li>
@@ -2091,22 +2158,22 @@ var myObj2 = jsonld.parse(jsonldText);
 
 <section>
   <h2>Convert from RDF Algorithm</h2>
-  <p>In some cases, data exists natively in Triples form; for example, if the data was originally
-    represented in an RDF graph or triple store. This algorithm is designed to simply translate
-    an array of triples into a JSON-LD document.</p>
+  <p>In some cases, data exists natively in Triples or Quads form; for example, if the data was originally
+    represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
+    an array of <a>Statement</a>s into a JSON-LD document.</p>
   <p>The <a href="#normalization-algorithm">Normalization Algorithm</a> also depends on returning
-    an ordered array of <a>Triple</a> objects.</p>
+    an ordered array of <a>Statement</a> objects.</p>
   <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
-    array of <a>Triple</a> representations.</p>
+    array of <a>Statement</a> representations.</p>
   <ol class="algorithm">
     <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
     <li>Construct a <tref>JSON object</tref> <em>listMap</em> to contain objects derived from
-      triples having a property of <code>rdf:first</code>.</li>
+      statements having a property of <code>rdf:first</code>.</li>
     <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map subjects to objects
-      derived from triples having a property of <code>rdf:rest</code>.</li>
+      derived from statements having a property of <code>rdf:rest</code>.</li>
     <li>Construct a <tref>JSON object</tref> <em>subjectMap</em> to map subjects to
       <tref>JSON Object</tref> instances contained in <em>array</em>.</li>
-    <li>For each triple in <em>input</em>:
+    <li>For each statement in <em>input</em>:
       <ol class="algorithm">
         <li>If <em>property</em> is <code>rdf:first</code>,
           create a new entry in <em>listMap</em> with a key of <em>subject</em> and an array value
