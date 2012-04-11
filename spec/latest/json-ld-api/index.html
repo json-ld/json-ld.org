@@ -1179,15 +1179,13 @@ language-native data structures MUST be used where applicable.</p>
 <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
   and an <em>element</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
   context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the <tref>JSON-LD
-  input</tref>. If the <tref>JSON-LD input</tref> is not in the form of an <tref>array</tref> it is wrapped in an array.</p>
-
+  input</tref>.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
     using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.
     If the expanded entry is null, drop it. If it's an array, merge it's entries with <em>element</em>'s entries
     unless the <tref>active property</tref> equals <code>@list</code> or has a <code>@container</code> set to <code>@list</code>;
     in that case throw an exception as lists of lists are not allowed.</li>
-
   <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
       <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according to
@@ -1232,16 +1230,19 @@ language-native data structures MUST be used where applicable.</p>
       </li>
       <li>Otherwise, if <em>element</em> has an <code>@type</code> property and it's value is not in the form of an
         <tref>array</tref>, convert it to an <tref>array</tref>.</li>
-      <li>If <em>element</em> has an <code>@set</code>, <code>@list</code>, or <code>@graph</code> property, it MUST be the only property.
-        Set <em>element</em> to the value of <code>@set</code> or <code>@graph</code>; leave <code>@list</code> untouched.
-        <p class="issue">Whether <code>@graph</code> should always be dropped or not is currently being discussed in <a href="https://github.com/json-ld/json-ld.org/issues/99">ISSUE-99</a></p>
-      </li>
+      <li>If <em>element</em> has an <code>@set</code> or <code>@list</code> property, it MUST be the only property.
+        Set <em>element</em> to the value of <code>@set</code>; leave <code>@list</code> untouched.</li>
       <li>If <em>element</em> has just a <code>@language</code> property, set <em>element</em> to <tref>null</tref>.</li>
     </ol>
   </li>
   <li>Otherwise, expand <em>element</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
     passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
 </ol>
+
+<p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>JSON object</tref> with just a <code>@graph</code>
+  property, <em>element</em> is set to the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
+  it is wrapped into an <tref>array</tref>.</p>
+
 </section>
 
 </section>
