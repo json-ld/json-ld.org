@@ -475,31 +475,29 @@ de-referenceable.
     <h3>JsonLdProcessor</h3>
     <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
 
-      <dt>object expand()</dt>
-      <dd><a href="#expansion">Expands</a> the given <code>input</code>
-        according to the steps in the
-        <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+      <dt>object[] expand()</dt>
+      <dd>
+        <a href="#expansion">Expands</a> the given <code>input</code> according to
+        the steps in the <a href="#expansion-algorithm">Expansion Algorithm</a>. The
         <code>input</code> MUST be copied, expanded and returned if there are
         no errors. If the expansion fails, an appropriate exception MUST be thrown.
-        <div class="issue">This might always return object[].</div>
+
         <dl class="parameters">
-         <dt>object input</dt>
-         <dd>The JSON-LD object to copy and perform the expansion upon.
-           <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-             accept this.
-           </div>
-         </dd>
-         <dt>object optional? context</dt>
-         <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>object or object[] or DOMString input</dt>
+          <dd>The JSON-LD object or array to perform the expansion upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dt>object optional? options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
-         <dt>INVALID_SYNTAX</dt>
-         <dd>A general syntax error was detected in the <code>@context</code>.
-         For example, if a <code>@type</code> key maps to anything other than
-         <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
-         <dt>LOAD_ERROR</dt>
-         <dd>There was a problem encountered loading a remote context.</dd>
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
         </dl>
 
         <dl class="exception" title="ProcessingError">
@@ -507,32 +505,34 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
       </dd>
 
       <dt>object compact()</dt>
-      <dd><a href="#compaction">Compacts</a> the given <code>input</code>
-        using the <code>context</code> according to the steps in the
+      <dd>
+        <a href="#compaction">Compacts</a> the given <code>input</code> using the
+        <code>context</code> according to the steps in the
         <a href="#compaction-algorithm">Compaction Algorithm</a>. The
         <code>input</code> MUST be copied, compacted and returned if there are
         no errors. If the compaction fails, an appropirate exception MUST be
         thrown.
+
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform compaction on.
-             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-               accept this.
-             </div>
-           </dd>
-           <dt>object? context</dt>
-           <dd>The context to use when compacting the <code>input</code>.</dd>
-           <dt>boolean optional optimize</dt>
-           <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
-           optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
-           to produce even compacter representations. The algorithm for compaction
-           optimization is beyond the scope of this specification and thus
-           not defined. Consequently, different implementations MAY implement
-           different optimization algorithms.</dd>
+          <dt>object or object[] or DOMString input</dt>
+          <dd>The JSON-LD object or array to perform the compaction upon or an
+           <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
+          <dt>object or DOMString context</dt>
+          <dd>The context to use when compacting the <code>input</code>; either in the
+            form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>boolean optional optimize=false</dt>
+          <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
+            optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
+            to produce even compacter representations. The algorithm for compaction
+            optimization is beyond the scope of this specification and thus
+            not defined. Consequently, different implementations MAY implement
+            different optimization algorithms.</dd>
+          <dt>object optional? options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -555,28 +555,27 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
       </dd>
 
-      <dt>object frame()</dt>
-      <dd><a href="#framing">Frames</a> the given <code>input</code>
-        using the <code>frame</code> according to the steps in the
-        <a href="#framing-algorithm">Framing Algorithm</a>. The
-        <code>input</code> is used to build the framed output and is returned if
-        there are no errors. If there are no matches for the frame,
-        <tref>null</tref> MUST be returned. Exceptions MUST be thrown if there are
-        errors.
+      <dt>object? frame()</dt>
+      <dd>
+        <a href="#framing">Frames</a> the given <code>input</code> using the
+        <code>frame</code> according to the steps in the
+        <a href="#framing-algorithm">Framing Algorithm</a>. The <code>input</code>
+        is used to build the framed output and is returned if there are no errors.
+        If there are no matches for the frame, <tref>null</tref> MUST be
+        returned. Exceptions MUST be thrown if there are errors.
+
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform framing on.
-             <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-               accept this.
-             </div>
-           </dd>
-           <dt>object frame</dt>
-           <dd>The frame to use when re-arranging the data.</dd>
-           <dt>object options</dt>
-           <dd>A set of options that will affect the framing algorithm.</dd>
+          <dt>object or object[] or DOMString input</dt>
+          <dd>The JSON-LD object or array to perform framing on or an <tref>IRI</tref>
+            referencing the JSON-LD document to perform framing on.</dd>
+          <dt>object or DOMString frame</dt>
+          <dd>The frame to use when re-arranging the data of <code>input</code>; either
+            in the form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>object optional? options</dt>
+          <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidFrame">
@@ -594,43 +593,6 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
-      </dd>
-
-      <dt>object[] normalize()</dt>
-      <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
-        according to the steps in the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>. The
-        <code>input</code> MUST be copied, normalized and returned if there are
-        no errors. If the compaction fails, <tref>null</tref> MUST be returned.
-        The output is an array of <tref>JSON Object</tref> definitions normalized by the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>.
-        <div class="issue">It's still an open question if the result is a DOMString
-          representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
-          which is in normalized form.</div>
-        <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to perform normalization upon.</dd>
-          <dt>object optional? context</dt>
-          <dd>An external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
-        </dl>
-
-        <dl class="exception" title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl class="exception" title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. This is not supported in this
-            version of JSON-LD.</dd>
-        </dl>
-
       </dd>
 
       <dt>object[] fromRDF()</dt>
@@ -642,22 +604,20 @@ de-referenceable.
       </dd>
 
       <dt>void toRDF()</dt>
-      <dd>Processes the <code>input</code> according to the
+      <dd>
+        Processes the <code>input</code> according to the
         <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
         the provided <code>tripleCallback</code> for each <a>Triple</a> generated.
         <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to process when outputting triples.
-            <div class="issue">This can be (object or object[]), but the WebIDL processor does not
-              accept this.
-            </div>
-          </dd>
+          <dt>object or object[] or DOMString input</dt>
+          <dd>The JSON-LD object or array to convert to triples or an <tref>IRI</tref>
+            referencing the JSON-LD document to convert to triples.</dd>
           <dt>TripleCallback tripleCallback</dt>
           <dd>A callback that is called a <a>Triple</a> is created from processing
-          the given <code>input</code>.</dd>
-          <dt>object optional? context</dt>
-          <dd>An external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
+            the given <code>input</code>.</dd>
+          <dt>object optional? options</dt>
+          <dd>A set of options that MAY affect the conversion to triples such as, e.g.,
+            the input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
