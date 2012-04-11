@@ -662,7 +662,8 @@ de-referenceable.
   <section>
     <h3>Data Structures</h3>
     <p>The following data structures are used for representing data about RDF Triples. They
-      are used for normalization, triples, and from Triples interfaces.</p>
+      are used in the <code>toRDF()</code> and <code>fromRDF()</code>
+      <a href="#methods">API methods</a>.</p>
 
     <section>
     <h3>Triple</h3>
@@ -1097,8 +1098,7 @@ language-native data structures MUST be used where applicable.</p>
 <p>Expansion is the process of taking a JSON-LD document and applying a
   context such that all IRI, datatypes, and literal values are expanded so
   that the context is no longer necessary. JSON-LD document expansion
-  is typically used as a part of <a href="#framing">Framing</a> or
-  <a href="#normalization">Normalization</a>.</p>
+  is typically used as a part of <a href="#framing">Framing</a>.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -1462,45 +1462,43 @@ language-native data structures MUST be used where applicable.</p>
   subgraphs (or verifying digital signatures on subgraphs). This change is not yet
   reflected in the algorithm below.</p>
 
- <dl>
-   <dt><tdef>input frame</tdef></dt>
-   <dd>the initial <tref>frame</tref> provided to the framing algorithm.</dd>
-   <dt><tdef>framing context</tdef></dt>
-   <dd>a context containing the <tref>object embed flag</tref>, the
-     <tref>explicit inclusion flag</tref> and the
-     <tref>omit default flag</tref>.</dd>
-   <dt><tdef>object embed flag</tdef></dt>
-   <dd>a flag specifying that objects should be directly embedded in the output,
-     instead of being referred to by their IRI.</dd>
-   <dt><tdef>explicit inclusion flag</tdef></dt>
-   <dd>a flag specifying that for properties to be included in the output, they
-     must be explicitly declared in the <tref>framing context</tref>.</dd>
-   <dt><tdef>omit missing properties flag</tdef></dt>
-   <dd>a flag specifying that properties that are missing from the
-     <tref>JSON-LD input</tref> should be omitted from the output.</dd>
-   <dt><tdef>omit default flag</tdef></dt>
-   <dd class="issue">Referenced from <tref>framing context</tref>, but not defined</dd>
-   <dt><tdef>match limit</tdef></dt>
-   <dd>A value specifying the maximum number of matches to accept when building
-     arrays of values during the framing algorithm. A value of -1 specifies
-     that there is no match limit.</dd>
-   <dt><tdef>map of embedded subjects</tdef></dt>
-   <dd>A map that tracks if a subject has been embedded in the output of the
-     <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
- </dl>
+<dl>
+  <dt><tdef>input frame</tdef></dt>
+  <dd>the initial <tref>frame</tref> provided to the framing algorithm.</dd>
+  <dt><tdef>framing context</tdef></dt>
+  <dd>a context containing the <tref>object embed flag</tref>, the
+    <tref>explicit inclusion flag</tref> and the
+    <tref>omit default flag</tref>.</dd>
+  <dt><tdef>object embed flag</tdef></dt>
+  <dd>a flag specifying that objects should be directly embedded in the output,
+    instead of being referred to by their IRI.</dd>
+  <dt><tdef>explicit inclusion flag</tdef></dt>
+  <dd>a flag specifying that for properties to be included in the output, they
+    must be explicitly declared in the <tref>framing context</tref>.</dd>
+  <dt><tdef>omit missing properties flag</tdef></dt>
+  <dd>a flag specifying that properties that are missing from the
+    <tref>JSON-LD input</tref> should be omitted from the output.</dd>
+  <dt><tdef>omit default flag</tdef></dt>
+  <dd class="issue">Referenced from <tref>framing context</tref>, but not defined</dd>
+  <dt><tdef>match limit</tdef></dt>
+  <dd>A value specifying the maximum number of matches to accept when building
+    arrays of values during the framing algorithm. A value of -1 specifies
+    that there is no match limit.</dd>
+  <dt><tdef>map of embedded subjects</tdef></dt>
+  <dd>A map that tracks if a subject has been embedded in the output of the
+    <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
+</dl>
 </section>
 
 <section>
 <h3>Framing Algorithm</h3>
 
-<p>The framing algorithm takes <tref>JSON-LD input</tref> that has been
-  normalized according to the
-  <a href="#normalization-algorithm">Normalization Algorithm</a>
-  (<strong>normalized input</strong>), an
-  <tref>input frame</tref> that has been expanded according to the
-  <a href="#expansion-algorithm">Expansion Algorithm</a>
-  (<strong>expanded frame</strong>), and a number of options and produces
-  <tref>JSON-LD output</tref>. The following series of steps is the recursive
+<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+
+<p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
+  and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
+  according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
+  options and produces <tref>JSON-LD output</tref>. The following series of steps is the recursive
   portion of the framing algorithm:</p>
 
 <ol class="algorithm">
@@ -1532,7 +1530,7 @@ language-native data structures MUST be used where applicable.</p>
     <tref>list of frames</tref> is reached. If an
     <strong>expanded frame</strong> is
     not an object, the processor MUST throw a <code>Invalid Frame Format</code>
-    exception. Add each matching item from the <strong>normalized input</strong>
+    exception. Add each matching item from the <strong>expanded input</strong>
     to the <tref>matches array</tref> and decrement the
     <tref>match limit</tref> by 1 if:
     <ol class="algorithm">
@@ -1578,7 +1576,7 @@ language-native data structures MUST be used where applicable.</p>
               <tdef>recursion input list</tdef> using the object or objects
               associated with the key. If any object contains an
               <code>@id</code> value that exists in the
-              <strong>normalized input</strong>, replace the object in the
+              <strong>expanded input</strong>, replace the object in the
               <tref>recursion input list</tref> with a new object containing
               the <code>@id</code> key where the value is the value of
               the <code>@id</code>, and all of the other key-value pairs for
@@ -1636,108 +1634,10 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
-<h2>Normalization</h2>
-
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
-
-<p>Normalization is the process of taking <tref>JSON-LD input</tref> and
-  performing a deterministic transformation on that input that results in
-  a normalized and serialized JSON-LD representation.</p>
-
-<p>Normalization is achieved by transforming <tref>JSON-LD input</tref> to RDF,
-  as described in <a href="#rdf-conversion">RDF Conversion</a>, invoking the normalization procedure
-  as described in [[!RDF-NORMALIZATION]], returning the serialized results.</p>
-
-<div class="issue">
-  <p>There an open issue (<a href="https://github.com/json-ld/json-ld.org/issues/53">ISSUE-53</a>)
-    on the purpose and results of performing normalization. Previous versions of the
-    specification generated JSON-LD as the result of the normalization algorithm, however
-    normalization is a process required across different linked data serializations. To be useful,
-    a graph requires an identical normalized representation that is independent of the
-    data format originally used for markup, or the way in which language features or publisher
-    preferences create differences in the markup of identical graphs.</p>
-  <p>It may be that the need for either or both of flattening algorithm or to retrieve such a
-    cryptographic signature.</p>
-</div>
-
-<p>Normalization is useful when comparing two graphs against one another,
-  when generating a detailed list of differences between two graphs, and
-  when generating a cryptographic digital signature for information contained
-  in a graph or when generating a hash of the information contained in a graph.</p>
-
-<p>The example below is an un-normalized JSON-LD document:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    },
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
-  },
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
-}
--->
-</pre>
-
-<p>The example below is the normalized form of the JSON-LD document above:</p>
-
-<p class="note">Whitespace is used below to aid readability. The normalization
-  algorithm for JSON-LD removes all unnecessary whitespace in the fully
-  normalized form.</p>
-<p class="issue">Not clear that whitespace must be normalized, as the JSON-LD
-  representation can't be used directly to create a signature, but would be based
-  on the serialized result of [[!RDF-NORMALIZATION]].</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[{
-  "@id": "_:c14n0",
-  "http://xmlns.com/foaf/0.1/homepage": {
-    "@id": "http://manu.sporny.org/"
-  },
-  "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
-}]
--->
-</pre>
-
-<p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
-  alphabetical order. Also, notice how the <tref>subject</tref> has been labeled with a
-  named <tref>blank node</tref>. Normalization ensures that any arbitrary graph
-  containing exactly the same information would be normalized to exactly the same form
-  shown above.</p>
-<section>
-  <h3>Normalization Algorithm</h3>
-
-  <p>The normalization algorithm transforms the <tref>JSON-LD input</tref>
-    into RDF, normalizes it according to [[!RDF-NORMALIZATION]] and then
-    transforms back to JSON-LD. The result is an object representation that
-    deterministically represents a RDF graph.</p>
-
-  <ol class="algorithm">
-    <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
-      the <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</li>
-    <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create an array of <a>Triple</a>s
-      representation of the RDF graph.</li>
-    <li>Transform the array of <a>Triple</a>s to a JSON <tref>array</tref> with
-      <tref>JSON Object</tref> definitions using
-      <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>
-      and return as the normalized form of the
-      <tref>JSON-LD input</tref>.</li>
-  </ol>
-</section>
-
-</section>
-
-<section>
 <h3>Data Round Tripping</h3>
 
 <p>When coercing numbers to <strong>xsd:integer</strong> or <strong>xsd:double</strong>
-  as it, e.g., happens during <a href="#normalization">normalization</a>, implementers MUST
+  as it, e.g., happens during <a href="#rdf-conversion">RDF Conversion</a>, implementers MUST
   ensure that the result is a canonical lexical representation in the form of a
   <tref>string</tref>. A <tdef>canonical lexical representation</tdef> is a set of literals
   from among the valid set of literals for a datatype such that there is a one-to-one mapping
@@ -1792,11 +1692,11 @@ var myObj1 = {
                "number" : ****42****
              };
 
-// Normalize the JSON-LD document, this converts 42 to a string
-var jsonldText = jsonld.normalize(myObj1);
+// Convert the JSON-LD document to RDF; this converts 42 to a string
+var jsonldText = jsonld.toRDF(myObj1, myRdfTripleCollector);
 
-// Convert the normalized object back to a JavaScript object
-var myObj2 = jsonld.parse(jsonldText);
+// Convert the RDF triples back to a JavaScript object
+var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
 -->
 </pre>
 
@@ -2047,8 +1947,6 @@ var myObj2 = jsonld.parse(jsonldText);
   <p>In some cases, data exists natively in Triples form; for example, if the data was originally
     represented in an RDF graph or triple store. This algorithm is designed to simply translate
     an array of triples into a JSON-LD document.</p>
-  <p>The <a href="#normalization-algorithm">Normalization Algorithm</a> also depends on returning
-    an ordered array of <a>Triple</a> objects.</p>
   <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
     array of <a>Triple</a> representations.</p>
   <ol class="algorithm">
