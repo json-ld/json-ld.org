@@ -1219,9 +1219,10 @@ language-native data structures MUST be used where applicable.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
     using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.
-    If the expanded entry is null, drop it. If it's an array, merge it's entries with <em>element</em>'s entries
-    unless the <tref>active property</tref> equals <code>@list</code> or has a <code>@container</code> set to <code>@list</code>;
-    in that case throw an exception as lists of lists are not allowed.</li>
+    If has a <code>@container</code> set to <code>@list</code> and any entry in <em>element</em> is an
+    <tref>array</tref>, or is a <tref>JSON object</tref> containing a <code>@list</code> property,
+    throw an exception, as lists of lists are not allowed.
+    If the expanded entry is null, drop it. If it's an array, merge it's entries with <em>element</em>'s entries.</li>
   <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
       <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according to
@@ -1229,8 +1230,10 @@ language-native data structures MUST be used where applicable.</p>
         property.</li>
       <li>Then, proceed and process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
         <ol class="algorithm">
-          <li>Remove <em>property</em> from <em>element</em>, set the <tref>active property</tref> to <em>property</em> and expand
-            <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a>.</li>
+          <li>Remove <em>property</em> from <em>element</em>, expand
+            <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a>.
+            Set the <tref>active property</tref> to the original un-expanded <em>property</em> if
+            <em>property</em> is not a <tref>keyword</tref>.</li>
           <li>If <em>property</em> does not expand to a keyword or an <tref>absolute IRI</tref> (i.e., it doesn't contain a colon),
             continue with the next property from <em>element</em>.</li>
           <li>If <em>value</em> is <tref>null</tref> and <em>property</em> is not <code>@value</code>, continue with the next
@@ -1244,12 +1247,17 @@ language-native data structures MUST be used where applicable.</p>
           <li>Otherwise, if the <em>property</em> is <code>@value</code> or <code>@language</code> the <em>value</em> MUST NOT be a
             <tref>JSON object</tref> or an <tref>array</tref>.</li>
           <li>Otherwise, if the <em>property</em> is <code>@list</code>, <code>@set</code>, or <code>@graph</code>, expand <em>value</em>
-            recursively using this algorithm, passing copies of the <tref>active context</tref> and <em>property</em>. If the expanded
-            <em>value</em> is not an <tref>array</tref>, convert it to an <tref>array</tref>.</li>
+            recursively using this algorithm, passing copies of the <tref>active context</tref> and <em>active property</em>. If the expanded
+            <em>value</em> is not an <tref>array</tref>, convert it to an <tref>array</tref>.
+            If <em>property</em> is <code>@list</code> and any entry in <em>value</em> is a
+            <tref>JSON object</tref> containing an <code>@list</code> property, throw an exception, as
+            lists of lists are not supported.</li>
           <li>Otherwise, expand <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
             <tref>active property</tref>.</li>
-          <li>If the <tref>active property</tref> has a <code>@container</code> set to <code>@list</code> and the expanded <em>value</em>
-            is not <tref>null</tref>, convert <em>value</em> to an <tref>object</tref> with an <code>@list</code> property whose value is
+          <li>If <em>property</em> is not a keyword
+            and <tref>active property</tref> has a <code>@container</code> <code>@list</code>
+            and the expanded <em>value</em> is not <tref>null</tref>,
+            convert <em>value</em> to an <tref>object</tref> with an <code>@list</code> property whose value is
             set to <em>value</em> (unless <em>value</em> is already in that form).</li>
           <li>Convert <em>value</em> to <tref>array</tref> form unless <em>value</em> is <tref>null</tref> or <em>property</em> is
             <code>@id</code>, <code>@type</code>, <code>@value</code>, or <code>@language</code>.</li>
