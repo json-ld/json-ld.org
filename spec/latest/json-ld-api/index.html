@@ -997,7 +997,7 @@ language-native data structures MUST be used where applicable.</p>
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
                   mapping is an <tref>absolute IRI</tref>, merge the property into the <tref>local context</tref>
                   <tref>term mapping</tref>.</li>
-                <li>Otherwise, if the property's value is <code>null</code> remove mapping, coercion,
+                <li>Otherwise, if the property's value is <tref>null</tref> remove mapping, coercion,
                   container and language information associated with property from the
                   <tref>local context</tref>.</li>
                 <li>Otherwise, the <em>property</em>'s <em>value</em> MUST be a <tref>JSON object</tref>.
@@ -2009,36 +2009,55 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
   <p>In some cases, data exists natively in Triples or Quads form; for example, if the data was originally
     represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
     an array of <a>Statement</a>s into a JSON-LD document.</p>
-  <p>The <a href="#normalization-algorithm">Normalization Algorithm</a> also depends on returning
-    an ordered array of <a>Statement</a> objects.</p>
   <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
     array of <a>Statement</a> representations.</p>
   <ol class="algorithm">
     <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
-    <li>Construct a <tref>JSON object</tref> <em>listMap</em> to contain objects derived from
+    <li>Construct a <tref>JSON object</tref> <em>listMap</em> to map graph names and subjects to objects derived from
       statements having a property of <code>rdf:first</code>.</li>
-    <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map subjects to objects
+    <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map graph names and subjects to objects
       derived from statements having a property of <code>rdf:rest</code>.</li>
-    <li>Construct a <tref>JSON object</tref> <em>subjectMap</em> to map subjects to
+    <li>Construct a <tref>JSON object</tref> <em>subjectMap</em> to map graph names and subjects to
       <tref>JSON Object</tref> instances contained in <em>array</em>.</li>
     <li>For each statement in <em>input</em>:
       <ol class="algorithm">
         <li>If <em>property</em> is <code>rdf:first</code>,
-          create a new entry in <em>listMap</em> with a key of <em>subject</em> and an array value
-          containing the object representation and skip to the next statement.</li>
+          create a new entry in <em>listMap</em> with for <em>name</em> and <em>subject</em> and an array value
+          containing <em>object</em> representation and skip to the next statement.</li>
         <li>If <em>property</em> is <code>rdf:rest</code>,
           and <em>object</em> is a <a>BlankNode</a>,
-          create a new entry in <em>restMap</em> with a key of <em>subject</em> and value being the
-          result of <a href="#iri-expansion">IRI expansion</a> on the object and skip to the next statement.</li>
-        <li>If <em>subjectMap</em> does not have an entry for <em>subject</em>:
+          create a new entry in <em>restMap</em> to map <em>name</em> and <em>subject</em> to a value being the
+          result of <a href="#iri-expansion">IRI expansion</a> on <em>object</em> and skip to the next statement.</li>
+        <li>If <em>name</em> is not <tref>null</tref>:
+          <ol class="algorithm">
+            <li>If <em>subjectMap</em> does not have an entry for <tref>null</tref> as name and <em>name</em> as subject:
+              <ol class="algorithm">
+                <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
+                  a string representation of <em>name</em> and use as <em>value</em>.</li>
+                <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>array</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, use that entry as <em>value</em>.</li>
+            <li>If <em>value</em> does not have an entry for <code>@graph</code>, initialize it as a new <tref>array</tref> <em>ary</em>.</li>
+            <li>Otherwise, let <em>ary</em> be that array.</li>
+            <li>If <em>subjectMap</em> does not have an entry for <code>name</code> and <em>subject</em>:
+              <ol class="algorithm">
+                <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
+                  a string representation of <em>subject</em> and use as <em>value</em>.</li>
+                <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>ary</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, use that entry as <em>value</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if <em>subjectMap</em> does not have an entry for <tref>null</tref> as name and <em>subject</em>:
           <ol class="algorithm">
             <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
               a string representation of <em>subject</em> and use as <em>value</em>.</li>
-            <li>Save <em>value</em> in <em>subjectMap</em> for <em>subject</em> and append to
-              <em>array</em>.</li>
+            <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>array</em>.</li>
           </ol>
         </li>
-        <li>Otherwise, set <em>value</em> the value for <em>subject</em> in <em>subjectMap</em>.</li>
+        <li>Otherwise, use that entry as <em>value</em>.</li>
         <li>If <em>property</em> is <code>rdf:type</code>:
           <ol class="algorithm">
             <li>Append the string representation of <em>object</em> to the array value for the
@@ -2064,12 +2083,20 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
         </li>
       </ol>
     </li>
-    <li>For each key/value <em>prev</em>, <em>rest</em> entry in <em>restMap</em>,
-      append to the <em>listMap</em> value identified
-      by <em>prev</em> the <em>listMap</em> value identified by <em>rest</em>.</li>
-    <li>For each key/value <em>node</em>, <em>list</em>, in <em>listMap</em> where <em>list</em>
-      exists as a value of an object in <em>array</em>,
-      replace the object value with <em>list</em>.</li>
+    <li>For each <em>name</em>, <em>map</em> in <em>restMap</em>:
+      <ol class="algorithm">
+        <li>For each key/value <em>prev</em>, <em>rest</em> entry in <em>map</em>,
+          append to the <em>listMap</em> value identified
+          by <em>name</em> and <em>prev</em> the <em>listMap</em> value identified by <em>name</em> and <em>rest</em>.</li>
+      </ol>
+    </li>
+    <li>For each <em>name</em>, <em>map</em> in <em>listMap</em>:
+      <ol class="algorithm">
+        <li>For each key/value <em>node</em>, <em>list</em>, in <em>map</em> where <em>list</em>
+          exists as a value of an object in <em>array</em>,
+          replace the object value with <em>list</em>.</li>
+      </ol>
+    </li>
     <li>Return array as the graph representation in expanded form.</li>
   </ol>
 </section>
