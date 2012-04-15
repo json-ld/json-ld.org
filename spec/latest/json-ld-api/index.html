@@ -401,6 +401,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><tdef>null</tdef></dt><dd>
       The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.
     </dd>
+    <dt><tdef>subject definition</tdef></dt><dd>
+      A <tref>JSON Object</tref> used to represent a <tref>subject</tref> and one or more properties
+      of that subject. A <tref>JSON Object</tref> is a subject definition if it does not contain they keys
+      <code>@value</code>, <code>@list</code> or <code>@set</code> and it has one or more keys other than <code>@id</code>.</dd>
+    <dt><tdef>subject reference</tdef></dt><dd>
+      A <tref>JSON Object</tref> used to reference a subject having only the <code>@id</code> key.</dd>
   </dl>
 </p>
 </section>
@@ -1169,6 +1175,24 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
+<h3>Generate Blank Node Identifier</h3>
+<p>This algorithm is used by the <a href="#framing-algorithm">Framing Algorithm</a> and
+  <a href="#convert-from-rdf-algorithm">Convert From RDF Algorithm</a> to deterministicly name
+  <tref>blank node</tref> identifiers. It uses a <em>identifier map</em> and <em>prefix</em>
+  and takes a possibly <tref>null</tref> identifier and returns a new identifier based on <em>prefix</em>.</p>
+<p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>.</p>
+
+<ol class="algorithm">
+  <li>If the old identifier is not null and is in <em>identifier map</em> return the mapped identifier.</li>
+  <li>Otherwise, if old identifier is not null, create a new entry in <em>identifier map</em> initialized
+    to the current value of <em>next identifier</em>. Increment <em>next identifier</em> by adding one
+    to the integer suffix. Return the mapped identifier.</li>
+  <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
+    original value.</li>
+</ol>
+</section>
+
+<section>
 <h2>Expansion</h2>
 
 <p>Expansion is the process of taking a JSON-LD document and applying a
@@ -1436,116 +1460,14 @@ language-native data structures MUST be used where applicable.</p>
   graph of information, and applying a specific graph layout
   (called a <tref>Frame</tref>).</p>
 
-<p>The JSON-LD document below expresses a library, a book and a chapter:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     {
-      "@id": "http://example.org/vocab#contains",
-      "@type": "@id"
-    },
-    "creator":      "http://purl.org/dc/terms/creator",
-    "description":  "http://purl.org/dc/terms/description",
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@graph":
-  [{
-    "@id": "http://example.com/library",
-    "@type": "Library",
-    "contains": "http://example.org/library/the-republic"
-  },
-  {
-    "@id": "http://example.org/library/the-republic",
-    "@type": "Book",
-    "creator": "Plato",
-    "title": "The Republic",
-    "contains": "http://example.org/library/the-republic#introduction"
-  },
-  {
-    "@id": "http://example.org/library/the-republic#introduction",
-    "@type": "Chapter",
-    "description": "An introductory chapter on The Republic.",
-    "title": "The Introduction"
-  }]
-}-->
-</pre>
-
-<p>Developers typically like to operate on items in a hierarchical, tree-based
-  fashion. Ideally, a developer would want the data above sorted into top-level
-  libraries, then the books that are contained in each library, and then the
-  chapters contained in each book. To achieve that layout, the developer can
-  define the following <tref>frame</tref>:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator"
-    "description":  "http://purl.org/dc/terms/description"
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@type": "Library",
-  "contains": {
-    "@type": "Book",
-    "contains": {
-      "@type": "Chapter"
-    }
-  }
-}
--->
-</pre>
-
-<p>When the framing algorithm is run against the previously defined
-  JSON-LD document, paired with the <tref>frame</tref> above, the following
-  JSON-LD document is the end result:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator"
-    "description":  "http://purl.org/dc/terms/description"
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@id": "http://example.org/library",
-  "@type": "Library",
-  "contains": {
-    ****"@id": "http://example.org/library/the-republic",****
-    "@type": "Book",
-    ****"creator": "Plato",****
-    ****"title": "The Republic",****
-    "contains": {
-      ****"@id": "http://example.org/library/the-republic#introduction",****
-      "@type": "Chapter",
-      ****"description": "An introductory chapter on The Republic.",****
-      ****"title": "The Introduction"****
-    },
-  },
-}
--->
-</pre>
+<p>Framing makes use of the <a href="#subject-flattening">Subject Flattening</a> algorithm
+  to place each object defined in the JSON-LD document into a flat list of objects, allowing
+  them to be operated upon by the framing algorithm.</p>
 
 <section>
 <h3>Framing Algorithm Terms</h3>
-<p class="issue">This algorithm is a work in progress, do not implement it.
-  There was also a recent update to the algorithm in order to auto-embed
-  frame-unspecified data (if the explicit inclusion flag is not set) in order to
-  preserve graph information. This change is particularly important for comparing
-  subgraphs (or verifying digital signatures on subgraphs). This change is not yet
-  reflected in the algorithm below.</p>
+<p class="issue">This algorithm is a work in progress. Presently, it only works
+  for documents without named graphs.</p>
 
 <dl>
   <dt><tdef>input frame</tdef></dt>
@@ -1560,19 +1482,65 @@ language-native data structures MUST be used where applicable.</p>
   <dt><tdef>explicit inclusion flag</tdef></dt>
   <dd>a flag specifying that for properties to be included in the output, they
     must be explicitly declared in the <tref>framing context</tref>.</dd>
-  <dt><tdef>omit missing properties flag</tdef></dt>
+  <dt><tdef>omit default flag</tdef></dt>
   <dd>a flag specifying that properties that are missing from the
     <tref>JSON-LD input</tref> should be omitted from the output.</dd>
-  <dt><tdef>omit default flag</tdef></dt>
-  <dd class="issue">Referenced from <tref>framing context</tref>, but not defined</dd>
-  <dt><tdef>match limit</tdef></dt>
-  <dd>A value specifying the maximum number of matches to accept when building
-    arrays of values during the framing algorithm. A value of -1 specifies
-    that there is no match limit.</dd>
   <dt><tdef>map of embedded subjects</tdef></dt>
   <dd>A map that tracks if a subject has been embedded in the output of the
     <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
 </dl>
+</section>
+
+<section>
+<h3>Subject Flattening</h3>
+<p>Subject Flattening takes as input an expanded JSON-LD document, and results in a <tref>JSON Object</tref>
+  <em>subjects</em> with a mapping from each object represented in the document to a single entry within
+  the input document, assigning <tref>blank node</tref> identifiers to objects without a @id, or with an @id that
+  references a blank node identifier.</p>
+
+<p>The algorithm operates on the initially empty <em>subjects</em> and takes as input the
+  current document <em>element</em>.</p>
+
+<ol class="algorithm">
+  <li>If <em>element</em> is an array, process each entry in element recursively, using this algorithm.</li>
+  <li>Otherwise, if element is a JSON Object:
+    <ol class="algorithm">
+      <li>If element is a <tref>subject definition</tref> or <tref>subject reference</tref>:
+        <ol class="algorithm">
+          <li>If the property <cide>@id</cide> is not an <tref>IRI</tref>, return a
+            <tref>blank node</tref> identifer using<a 
+            href="generate-blank-node-identifier">Generate Blank Node Identifier</a> as 
+            <em>name</em>, otherwise use the value of the @id property as 
+            <em>name</em>.</li>
+          <li>Unless <em>subjects</em> as an entry for <em>name</em> create a new entry in 
+            <em>subjects</em> initialized using a new <tref>JSON Object</tref> 
+            with <code>@id</code> set to <em>name</em> as <em>subject</em>. 
+            Otherwise, use that existing entrpy as <em>subject</em>.</li>
+          <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code>:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a keyword, copy <code>property</code> and <code>value</code>
+                to <code>subject</code>.</li>
+              <li>Otherwise, if value is a <tref>JSON Object</tref>, it MUST only have the key <code>@list.</code>
+                Create a new <tref>JSON Object</tref> containing 
+                <code>@list</code> and an <tref>array</tref> created by 
+                performing this algorithm recursively on each item in the list 
+                and add to <em>subject</em> along with <em>property</em>.</li>
+              <li>Otherwise, value MUST be an <tref>array</tref>. Add property to <em>subject</em>
+                and an array value created by performing this algorithm 
+                recursively on each item in the array.</li>
+            </ol>
+          </li>
+          <li>Return a new <tref>JSON Object</tref> created as a <tref>subject reference</tref> to <em>name</em>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, return <em>element</em>.</li>
+    </ol>
+  </li>
+  <li>Otherwise, return <em>element</em>.</li>
+</ol>
+
+<p class="issue">The algorithm states to set the property in <em>subject</em> using the mapped values,
+  but it really should merge, if the property already exists in <em>subject</em>.</p>
 </section>
 
 <section>
@@ -1583,126 +1551,75 @@ language-native data structures MUST be used where applicable.</p>
 <p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
   and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
   according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
-  options and produces <tref>JSON-LD output</tref>. The following series of steps is the recursive
+  options and produces <tref>JSON-LD output</tref>.</p>
+
+<p>Create <tref>framing context</tref> using the <tref>object embed flag</tref>, the
+    <tref>explicit inclusion flag</tref> and the
+    <tref>omit default flag</tref> along with <tref>map of embedded subjects</tref>
+    set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
+    <strong>expanded input</strong>.</p>
+
+<p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
+  <strong>expanded frame</strong> (<em>frame</em>),
+  and the keys from <tref>map of embedded subjects</tref> (<em>subjects</em>).
+  The algorithm also takes <em>parent</em> and <em>property</em> initially set to <tref>null</tref>.</p>
+
+<p>The following series of steps is the recursive
   portion of the framing algorithm:</p>
 
+<p class="note">Just a sketch for now</p>
 <ol class="algorithm">
-  <li>Initialize the <tref>framing context</tref> by setting the
-    <tref>object embed flag</tref>, clearing the
-    <tref>explicit inclusion flag</tref>, and clearing the
-    <tref>omit missing properties flag</tref>. Override these values
-    based on input options provided to the algorithm by the application.</li>
-  <li>Generate a <tdef>list of frames</tdef> by processing the
-    <strong>expanded frame</strong>:
+  <li>Validate <strong>expanded frame</strong>.</li>
+  <li>Create a set of matched subjects by filtering <em>subjects</em>.</li>
+  <li>Get values for <em>embed</em> and <em>explicit</em> by looking in <em>frame</em>
+    for the keys <code>@embed</code> and <code>@explicit</code> using the current values
+    from <em>state</em> if not found.</li>
+  <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects:
     <ol class="algorithm">
-      <li>If the <strong>expanded frame</strong> is not an <tref>array</tref>, set
-        <tref>match limit</tref> to 1, place the
-        <strong>expanded frame</strong> into the <tref>list of frames</tref>,
-        and set the <tref>JSON-LD output</tref> to <tref>null</tref>.</li>
-      <li>If the <strong>expanded frame</strong> is an empty <tref>array</tref>, place an
-        empty object into the <tref>list of frames</tref>,
-        set the <tref>JSON-LD output</tref> to an <tref>array</tref>, and set
-        <tref>match limit</tref> to -1.</li>
-      <li>If the <strong>expanded frame</strong> is a non-empty <tref>array</tref>, add
-        each item in the <strong>expanded frame</strong> into the
-        <tref>list of frames</tref>, set the <tref>JSON-LD output</tref> to an
-        <tref>array</tref>, and set <tref>match limit</tref> to -1.</li>
-    </ol>
-  </li>
-  <li>Create a <tdef>match array</tdef> for each <strong>expanded frame</strong>
-    in the <tref>list of frames</tref> halting when either the
-    <tref>match limit</tref> is zero or the end of the
-    <tref>list of frames</tref> is reached. If an
-    <strong>expanded frame</strong> is
-    not an object, the processor MUST throw a <code>Invalid Frame Format</code>
-    exception. Add each matching item from the <strong>expanded input</strong>
-    to the <tref>matches array</tref> and decrement the
-    <tref>match limit</tref> by 1 if:
-    <ol class="algorithm">
-       <li>The <strong>expanded frame</strong> has an <code>rdf:type</code>
-         that exists in the item's list of <code>rdf:type</code>s. Note:
-         the <code>rdf:type</code> can be an <tref>array</tref>, but only one value needs
-         to be in common between the item and the
-         <strong>expanded frame</strong> for a match.</li>
-       <li>The <strong>expanded frame</strong> does not have an
-         <code>rdf:type</code> property, but every property in the
-         <strong>expanded frame</strong> exists in the item.</li>
-    </ol>
-    <p class="issue"><tdef>matches array</tdef> not defined anywhere.</p>
-  </li>
-  <li>Process each item in the <tref>match array</tref> with its associated
-    <tdef>match frame</tdef>:
-    <ol class="algorithm">
-      <li>If the <tref>match frame</tref> contains an <code>@embed</code>
-        <tref>keyword</tref>, set the <tref>object embed flag</tref> to its value.
-        If the <tref>match frame</tref> contains an <code>@explicit</code>
-        <tref>keyword</tref>, set the <tref>explicit inclusion flag</tref> to its value.
-        Note: if the <tref>keyword</tref> exists, but the value is neither
-        <code>true</code> or <code>false</code>, set the associated flag to
-        <code>true</code>.</li>
-      <li>If the <tref>object embed flag</tref> is cleared and the item has
-        the <code>@id</code> property, replace the item with the value
-        of the <code>@id</code> property.</li>
-      <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@id</code> property, and its IRI is in the
-        <tref>map of embedded subjects</tref>, throw a
-        <code>Duplicate Embed</code> exception.</li>
-      <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@id</code> property and its IRI is not in the
-        <tref>map of embedded subjects</tref>:
+      <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
+      <li>Initialize <em>embed object</em> with <em>parent</em> and <em>property</em>.</li>
+      <li>If <em>embed</em> is <tref>true</tref>, and <em>id</em> is in <tref>map of embedded subjects</tref>
+        from <em>state</em>:
         <ol class="algorithm">
-          <li>If the <tref>explicit inclusion flag</tref> is set,
-            then delete any key from the item that does not exist in the
-            <tref>match frame</tref>, except <code>@id</code>.</li>
-          <li>For each key in the <tref>match frame</tref>, except for
-            <tref>keyword</tref>s and <code>rdf:type</code>:
-          <ol class="algorithm">
-            <li>If the key is in the item, then build a new
-              <tdef>recursion input list</tdef> using the object or objects
-              associated with the key. If any object contains an
-              <code>@id</code> value that exists in the
-              <strong>expanded input</strong>, replace the object in the
-              <tref>recursion input list</tref> with a new object containing
-              the <code>@id</code> key where the value is the value of
-              the <code>@id</code>, and all of the other key-value pairs for
-              that subject. Set the <tdef>recursion match frame</tdef> to the
-              value associated with the <tref>match frame</tref>'s key. Replace
-              the value associated with the key by recursively calling this
-              algorithm using <tref>recursion input list</tref>,
-              <tref>recursion match frame</tref> as input.</li>
-            <li>If the key is not in the item, add the key to the item and
-              set the associated value to an empty array if the
-              <tref>match frame</tref> key's value is an array
-              or <tref>null</tref> otherwise.</li>
-            <li>If value associated with the item's key is <tref>null</tref>,
-              process the <tref>omit missing properties flag</tref>:
-              <ol class="algorithm">
-                <li>If the value associated with the key in the
-                  <tref>match frame</tref> is an array, use the first frame
-                  from the array as the <tdef>property frame</tdef>, otherwise
-                  set the <tref>property frame</tref> to an empty object.</li>
-                <li>If the <tref>property frame</tref> contains an
-                <code>@omitDefault</code> <tref>keyword</tref>, set the
-                <tref>omit missing properties flag</tref> to its value.
-                Note: if the <tref>keyword</tref> exists, but the value is neither
-                <code>true</code> or <code>false</code>, set the associated
-                flag to <code>true</code>.</li>
-                <li>If the <tref>omit missing properties flag</tref> is set,
-                  delete the key in the item. Otherwise, if the
-                  <code>@default</code> <tref>keyword</tref> is set in the
-                  <tref>property frame</tref> set the item's value to the value
-                  of <code>@default</code>.</li>
-              </ol>
-            </li>
-          </ol></li>
+          <li>Set <em>existing</em> to the value of <em>id</em> in <tref>map of embedded subjects</tref>
+            and set <em>embed</em> to <tref>false</tref>.</li>
+          <li>If <em>existing</em> has a parent which is an <tref>array</tref> contains <em>object</em>
+            set <em>embed</em> to <tref>true</tref>.</li>
+          <li>Otherwise, compare the values of the parent and property in <em>existing</em> and set
+            <em>embed</em> if the comparison is found to be true.
+            <div class="issue">Expand algorithm based on <code>has_value?</code>.</div>
+          </li>
+          <li>If <em>embed</em> is <tref>true</tref>, <em>existing</em> is already embedded,
+            replace definitions of <em>embed</em> within <em>subject</em> with a <tref>subject reference</tref>.
+            <div class="issue">Expand algorithm based on <code>remove_embed</code>.</div>
+          </li>
         </ol>
       </li>
-      <li>If the <tref>JSON-LD output</tref> is <tref>null</tref> set it to
-        the item, otherwise, append the item to the
-        <tref>JSON-LD output</tref>.</li>
+      <li>If <em>embed</em> is <tref>false</tref>, Add framing output to <em>parent</em>.
+        <div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div>
+      </li>
+      <li>Otherwise:
+        <ol class="algorithm">
+          <li class="issue">More stuff here:
+            <pre>
+              add embed meta info
+              iterate over subject properties
+                Embed values if explcit is off and the frame doesn't have the property
+                only look at values which are references to subjects
+              iterate over frame properties
+                skip keywords
+                If the key is not in the item, add the key to the item and set the associated value to an
+                  empty array if the match frame key's value is an empty array or null otherwise
+                If omit default is off, then include default values for properties
+                  that appear in the next frame but are not in the matching subject
+              Add output to parent
+            </pre>
+          </li>
+        </ol>
+      </li>
+      <li>Return <em>output</em>.</li>
     </ol>
   </li>
-  <li>Return the <tref>JSON-LD output</tref>.</li>
 </ol>
 
 <p>The final, non-recursive step of the framing algorithm requires the
