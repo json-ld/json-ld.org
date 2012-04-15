@@ -871,6 +871,16 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@set</code></dt><dd>Used to express an unordered set of data.</dd>
   <dt><code>@graph</code></dt><dd>Used to explicitly express a <tref>linked data graph</tref>.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use <tref title="compact_iri">compact IRIs</tref>.</dd>
+  <dt><code>@default</code></dt><dd>Used in <a href="#framing">Framing</a> to set the defeault value for
+    an output property when the framed <tref>subject definition</tref> does not include such a property.</dd>
+  <dt><code>@explicit</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>explicit inclusion flag</tref> within a specific frame.</dd>
+  <dt><code>@omitDefault</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>omit default flag</tref> within a specific frame.</dd>
+  <dt><code>@embed</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>object embed flag</tref> within a specific frame.</dd>
+  <dt><code>@null</code></dt><dd>>Used in <a href="#framing">Framing</a> when a value of <tref>null</tref>
+    should be returned, which would otherwise be removed when <a href="#compaction">Compacting</a>.</dd>
   </dl>
 
   <p>All JSON-LD tokens and keywords are case-sensitive.</p>
@@ -1466,8 +1476,6 @@ language-native data structures MUST be used where applicable.</p>
 
 <section>
 <h3>Framing Algorithm Terms</h3>
-<p class="issue">This algorithm is a work in progress. Presently, it only works
-  for documents without named graphs.</p>
 
 <dl>
   <dt><tdef>input frame</tdef></dt>
@@ -1546,7 +1554,8 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Framing Algorithm</h3>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
+<p class="issue">This algorithm is a work in progress. Presently, it only works
+  for documents without named graphs.</p>
 
 <p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
   and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
@@ -1557,12 +1566,12 @@ language-native data structures MUST be used where applicable.</p>
     <tref>explicit inclusion flag</tref> and the
     <tref>omit default flag</tref> along with <tref>map of embedded subjects</tref>
     set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
-    <strong>expanded input</strong>.</p>
+    <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
 
 <p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
-  <strong>expanded frame</strong> (<em>frame</em>),
-  and the keys from <tref>map of embedded subjects</tref> (<em>subjects</em>).
-  The algorithm also takes <em>parent</em> and <em>property</em> initially set to <tref>null</tref>.</p>
+  the keys from <tref>map of embedded subjects</tref> (<em>subjects</em>),
+  <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
+  <tref>null</tref> as <tref>active property</tref>..</p>
 
 <p>The following series of steps is the recursive
   portion of the framing algorithm:</p>
@@ -1573,11 +1582,11 @@ language-native data structures MUST be used where applicable.</p>
   <li>Create a set of matched subjects by filtering <em>subjects</em>.</li>
   <li>Get values for <em>embed</em> and <em>explicit</em> by looking in <em>frame</em>
     for the keys <code>@embed</code> and <code>@explicit</code> using the current values
-    from <em>state</em> if not found.</li>
+    for <tref>object embed flag</tref> and <tref>explicit inclusion flag</tref> from <em>state</em> if not found.</li>
   <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects:
     <ol class="algorithm">
       <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
-      <li>Initialize <em>embed object</em> with <em>parent</em> and <em>property</em>.</li>
+      <li>Initialize <em>embed object</em> with <em>parent</em> and <tref>active property</tref> as <em>property</em>.</li>
       <li>If <em>embed</em> is <tref>true</tref>, and <em>id</em> is in <tref>map of embedded subjects</tref>
         from <em>state</em>:
         <ol class="algorithm">
@@ -1600,38 +1609,64 @@ language-native data structures MUST be used where applicable.</p>
       </li>
       <li>Otherwise:
         <ol class="algorithm">
-          <li class="issue">More stuff here:
-            <pre>
-              add embed meta info
-              iterate over subject properties
-                Embed values if explcit is off and the frame doesn't have the property
-                only look at values which are references to subjects
-              iterate over frame properties
-                skip keywords
-                If the key is not in the item, add the key to the item and set the associated value to an
-                  empty array if the match frame key's value is an empty array or null otherwise
-                If omit default is off, then include default values for properties
-                  that appear in the next frame but are not in the matching subject
-              Add output to parent
-            </pre>
+          <li>Add <em>embed</em> to <tref>map of embedded subjects</tref>.</li>
+          <li>Process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a keyword, add <em>property</em> add a copy of <em>value</em>
+                to <em>output</em> and continue with the next property from <em>element</em>.</li>
+              <li>If <em>property</em> is not in <em>frame</em>:
+                <ol class="algorithm">
+                  <li class="issue">Expand algorithm based on <code>embed_values</code> unless
+                    <em>explicit</em> is true.</li>
+                  </li>
+                  <li>Continue to next property from <em>element</em>.</li>
+                </ol>
+              </li>
+              <li id="frm-process-prop-item">Process each <em>item</em> from <em>value</em> as follows:
+                <ol class="algorithm">
+                  <li>If <em>item</em> a <tref>subject definition</tref> or <tref>subject reference</tref>
+                    and <em>subjects</em> contains an entry for the value of <code>@id</code> (<em>id</em>)
+                    in <em>item</em>, process <em>item</em> recursively using this algorithm using
+                    an <tref>array</tref> containing <em>id</em> as <em>subjects</em>, the first
+                    value from <em>frame</em> for <em>property</em> as <em>frame</em> and <em>property</em>
+                    as <tref>active property</tref>.</li>
+                  <li>Otherwise, <div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div></li>
+                </ol>
+              </li>
+            </ol>
           </li>
+          <li>Process each <em>property</em> and <em>value</em> in <em>frame</em>,
+            where <em>property</em> is not a <em>keyword</em> or <em>property</em>
+            was processed in <a href="#frm-process-prop-item">XXX</a> above, as follows:
+            <ol class="algorithm">
+              <li>Set <em>property frame</em> to the first item in <em>value</em> or a newly created
+                <tref>JSON object</tref> if <em>value</em> is empty.</li>
+              <li>Skip to the next property in <em>frame</em> if <em>property frame</em> contains
+                <code>@omitDefault</code> which is <tref>true</tref> or the value of <tref>omit default flag</tref>
+                from <em>frame</em> is <tref>true</tref>.</li>
+              <li>Set the value of <em>property</em> in <em>output</em> to the value of <code>@default</code>
+                in <em>frame</em> if it exists, or <code>@null</code> otherwise.</li>
+            </ol>
+          </li>
+          <li><div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div></li>
         </ol>
       </li>
-      <li>Return <em>output</em>.</li>
     </ol>
   </li>
 </ol>
 
-<p>The final, non-recursive step of the framing algorithm requires the
-  <tref>JSON-LD output</tref> to be compacted according to the
+<p>At the completion of the recursive algorithm, <em>results</em> will contain the top-level
+  <tref>subject definition</tref>s.
+<p>The final two, non-recursive steps of the framing algorithm requires
+  <em>results</em> to be compacted according to the
   <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
-  context provided in the <tref>input frame</tref>. The resulting value is the
-  final output of the compaction algorithm and is what should be returned to the
-  application.</p>
+  context provided in the <tref>input frame</tref>. Subsequently, replace all values containing
+  <code>@null</code> with <tref>null</tref>. The resulting value is the
+  final <tref>JSON-LD output</tref>.</p>
 
+<p class="issu">There is an issue if the result is a somple compaction, or an array of results, each of which
+  is compacted and includes its own <code>@context</code>.</p>
 </section>
-
-<p class="issue">What are the implications for framing lists?</p>
 
 </section>
 
