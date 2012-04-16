@@ -1500,6 +1500,129 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
+<h3>Framing Algorithm</h3>
+
+<p class="issue">This algorithm is a work in progress. Presently, it only works
+  for documents without named graphs.</p>
+
+<p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
+  and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
+  according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
+  options and produces <tref>JSON-LD output</tref>.</p>
+
+<p>Create <tref>framing context</tref> using the <tref>object embed flag</tref>, the
+    <tref>explicit inclusion flag</tref> and the
+    <tref>omit default flag</tref> along with <tref>map of embedded subjects</tref>
+    set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
+    <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
+
+<p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
+  the keys from <tref>map of embedded subjects</tref> (<em>subjects</em>),
+  <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
+  <tref>null</tref> as <tref>active property</tref>..</p>
+
+<p>The following series of steps is the recursive
+  portion of the framing algorithm:</p>
+
+<p class="note">Just a sketch for now</p>
+<ol class="algorithm">
+  <li>Validate <strong>expanded frame</strong>.</li>
+  <li>Create a set of matched subjects by filtering <em>subjects</em>.</li>
+  <li>Get values for <em>embed</em> and <em>explicit</em> by looking in <em>frame</em>
+    for the keys <code>@embed</code> and <code>@explicit</code> using the current values
+    for <tref>object embed flag</tref> and <tref>explicit inclusion flag</tref> from <em>state</em> if not found.</li>
+  <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects:
+    <ol class="algorithm">
+      <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
+      <li>Initialize <em>embedded subject</em> with <em>parent</em> and <tref>active property</tref> as <em>property</em>.</li>
+      <li>If <em>embed</em> is <tref>true</tref>, and <em>id</em> is in <tref>map of embedded subjects</tref>
+        from <em>state</em>:
+        <ol class="algorithm">
+          <li>Set <em>existing</em> to the value of <em>id</em> in <tref>map of embedded subjects</tref>
+            and set <em>embed</em> to <tref>false</tref>.</li>
+          <li>If <em>existing</em> has a <em>parent</em> which is an <tref>array</tref> containing a
+            <tref>JSON object</tref> with <code>@id</code> equal to <em>id</em>, <em>element</em> has
+            already been embedded,
+            set <em>embed</em> to <tref>true</tref>.</li>
+          <li>Otherwise, <em>existing</em> has a <em>parent</em> which is a <tref>subject definition</tref>.
+            Set <em>embed</em> to <tref>true</tref> if any of the items in <em>parent</em> <em>property</em>
+            is a <tref>subject definition</tref>
+            or <tref>subject reference</tref> for <em>id</em>.
+            
+          </li>
+          <li>If <em>embed</em> is <tref>true</tref>, <em>existing</em> is already embedded,
+            <a href="#remove-embed">Remove Embedded Definition</a> for <em>id</em>.
+          </li>
+        </ol>
+      </li>
+      <li>If <em>embed</em> is <tref>false</tref>, Add framing output to <em>parent</em>.
+        by either appending to <em>parent</em> if is an <tref>array</tref>, or appending
+        to <tref>active property</tref> in <em>parent</em>.</li>
+      <li>Otherwise:
+        <ol class="algorithm">
+          <li>Add <em>embedded subject</em> to <tref>map of embedded subjects</tref> for <em>id</em>.</li>
+          <li>Process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a <tref>keyword</tref>, add <em>property</em> and a copy of <em>value</em>
+                to <em>output</em> and continue with the next property from <em>element</em>.</li>
+              <li>If <em>property</em> is not in <em>frame</em>:
+                <ol class="algorithm">
+                  <li>If <em>explicit</em> is <tref>true</tref>, <a href="#embed-values">Embed value</a>
+                    in <em>output</em> using <em>element</em> and <em>property</em>.</li>
+                  <li>Continue to next property.</li>
+                </ol>
+              </li>
+              <li id="frm-process-prop-item">Process each <em>item</em> from <em>value</em> as follows:
+                <ol class="algorithm">
+                  <li>If <em>item</em> a <tref>subject reference</tref>
+                    and <em>subjects</em> contains an entry for the value of <code>@id</code> (<em>itemId</em>)
+                    in <em>item</em>, process <em>item</em> recursively using this algorithm using
+                    an <tref>array</tref> containing <em>itemId</em> as <em>subjects</em>, the first
+                    value from <em>frame</em> for <em>property</em> as <em>frame</em> and <em>property</em>
+                    as <tref>active property</tref>.</li>
+                  <li>Otherwise, add <em>item</em> to <em>parent</em>.
+                    If <em>parent</em> is an <tref>array</tref>, append a copy of <em>item</em>, otherwise
+                    append a copy of <em>item</em> to <tref>active property</tref> in <em>parent</em>.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>Process each <em>property</em> and <em>value</em> in <em>frame</em>,
+            where <em>property</em> is not a <em>keyword</em> or <em>property</em>
+            was processed in <a href="#frm-process-prop-item">XXX</a> above, as follows:
+            <ol class="algorithm">
+              <li>Set <em>property frame</em> to the first item in <em>value</em> or a newly created
+                <tref>JSON object</tref> if <em>value</em> is empty.</li>
+              <li>Skip to the next property in <em>frame</em> if <em>property frame</em> contains
+                <code>@omitDefault</code> which is <tref>true</tref> or the value of <tref>omit default flag</tref>
+                from <em>frame</em> is <tref>true</tref>.</li>
+              <li>Set the value of <em>property</em> in <em>output</em> to the value of <code>@default</code>
+                in <em>frame</em> if it exists, or <code>@null</code> otherwise.</li>
+            </ol>
+          </li>
+          <li>Add <em>output</em> to <em>parent</em>.
+            If <em>parent</em> is an <tref>array</tref>, append a copy of <em>output</em>, otherwise
+            append a copy of <em>output</em> to <tref>active property</tref> in <em>parent</em>.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<p>At the completion of the recursive algorithm, <em>results</em> will contain the top-level
+  <tref>subject definition</tref>s.</p>
+<p>The final two, non-recursive steps of the framing algorithm requires
+  <em>results</em> to be compacted according to the
+  <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
+  context provided in the <tref>input frame</tref>. Subsequently, replace all values containing
+  <code>@null</code> with <tref>null</tref>. The resulting value is the
+  final <tref>JSON-LD output</tref>.</p>
+
+<p class="issu">There is an issue if the result is a somple compaction, or an array of results, each of which
+  is compacted and includes its own <code>@context</code>.</p>
+</section>
+
+<section>
 <h3>Subject Flattening</h3>
 <p>Subject Flattening takes as input an expanded JSON-LD document, and results in a <tref>JSON Object</tref>
   <em>subjects</em> with a mapping from each object represented in the document to a single entry within
@@ -1551,121 +1674,63 @@ language-native data structures MUST be used where applicable.</p>
   but it really should merge, if the property already exists in <em>subject</em>.</p>
 </section>
 
-<section>
-<h3>Framing Algorithm</h3>
-
-<p class="issue">This algorithm is a work in progress. Presently, it only works
-  for documents without named graphs.</p>
-
-<p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
-  and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
-  according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
-  options and produces <tref>JSON-LD output</tref>.</p>
-
-<p>Create <tref>framing context</tref> using the <tref>object embed flag</tref>, the
-    <tref>explicit inclusion flag</tref> and the
-    <tref>omit default flag</tref> along with <tref>map of embedded subjects</tref>
-    set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
-    <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
-
-<p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
-  the keys from <tref>map of embedded subjects</tref> (<em>subjects</em>),
-  <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
-  <tref>null</tref> as <tref>active property</tref>..</p>
-
-<p>The following series of steps is the recursive
-  portion of the framing algorithm:</p>
-
-<p class="note">Just a sketch for now</p>
+<section id="remove-embed">
+<h3>Remove Embedded Definition</h3>
+<p>This algorithm replaces an embedded <tref>subject definition</tref> from an already embedded
+  <tref>subject definition</tref> with a <tref>subject reference</tref> and then recursively
+  <tref>subject reference</tref>s to for subjects which are in the parent chain of a given subject.
+  <div class="issue">About as clear as mud</div></p>
+<p>The algorithm is invoked with a <tref>framing context</tref> and subject id <em>id</em>.</p>
 <ol class="algorithm">
-  <li>Validate <strong>expanded frame</strong>.</li>
-  <li>Create a set of matched subjects by filtering <em>subjects</em>.</li>
-  <li>Get values for <em>embed</em> and <em>explicit</em> by looking in <em>frame</em>
-    for the keys <code>@embed</code> and <code>@explicit</code> using the current values
-    for <tref>object embed flag</tref> and <tref>explicit inclusion flag</tref> from <em>state</em> if not found.</li>
-  <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects:
+  <li>Find <em>embed</em> from <tref>map of embedded subjects</tref> for <em>id</em>.</li>
+  <li>Let <em>parent</em> and <em>property</em> be from <em>embed</em>.</li>
+  <li>If <em>parent</em> is a <tref>subject definition</tref>, for each <em>item</em>
+    in <em>parent</em> <em>property</em>, if <em>item</em> is a <tref>subject definition</tref> for <em>id</em>,
+    replace it with a <tref>subject reference</tref> for <em>id</em>.</li>
+  <li>Remove dependents for <em>id</em> in <tref>map of embedded subjects</tref> recursively
+    by scanning the map for entries with <em>parent</em> which has an <code>@id</code> of <em>id</em>,
+    removing that definition from the map, and then removing the dependents for the <em>parent</em> id
+    recursively by repeating this step until no <tref>subject definition</tref> is found having
+    a referenece to it's parent.</li>
+</ol>
+</section>
+
+<section id="embed-values">
+<h3>Embed Values</h3>
+<p>This algorithm embeds property values in a <tref>subject definition</tref> given a <tref>framing context</tref>,
+  input <tref>subject definition</tref> <em>element</em>, <tref>active property</tref> and <em>output</em>.</p>
+<ol class="algorithm">
+  <li>For each <em>item</em> in <tref>active property</tref> of <em>element</em>:
     <ol class="algorithm">
-      <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
-      <li>Initialize <em>embed object</em> with <em>parent</em> and <tref>active property</tref> as <em>property</em>.</li>
-      <li>If <em>embed</em> is <tref>true</tref>, and <em>id</em> is in <tref>map of embedded subjects</tref>
-        from <em>state</em>:
+      <li>If <em>item</em> is a <tref>subject reference</tref>:
         <ol class="algorithm">
-          <li>Set <em>existing</em> to the value of <em>id</em> in <tref>map of embedded subjects</tref>
-            and set <em>embed</em> to <tref>false</tref>.</li>
-          <li>If <em>existing</em> has a parent which is an <tref>array</tref> contains <em>object</em>
-            set <em>embed</em> to <tref>true</tref>.</li>
-          <li>Otherwise, compare the values of the parent and property in <em>existing</em> and set
-            <em>embed</em> if the comparison is found to be true.
-            <div class="issue">Expand algorithm based on <code>has_value?</code>.</div>
-          </li>
-          <li>If <em>embed</em> is <tref>true</tref>, <em>existing</em> is already embedded,
-            replace definitions of <em>embed</em> within <em>subject</em> with a <tref>subject reference</tref>.
-            <div class="issue">Expand algorithm based on <code>remove_embed</code>.</div>
-          </li>
-        </ol>
-      </li>
-      <li>If <em>embed</em> is <tref>false</tref>, Add framing output to <em>parent</em>.
-        <div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div>
-      </li>
-      <li>Otherwise:
-        <ol class="algorithm">
-          <li>Add <em>embed</em> to <tref>map of embedded subjects</tref>.</li>
-          <li>Process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
+          <li>Unless <tref>map of embedded subjects</tref> already contains an entry for <em>item</em>:
             <ol class="algorithm">
-              <li>If <em>property</em> is a keyword, add <em>property</em> add a copy of <em>value</em>
-                to <em>output</em> and continue with the next property from <em>element</em>.</li>
-              <li>If <em>property</em> is not in <em>frame</em>:
+              <li>Initialize <em>embedded subject</em> with <em>output</em> as <em>parent</em> and
+                <tref>active property</tref> as <em>property</em>
+                and add to <tref>map of embedded subjects</tref>.</li>
+              <li>Initialize a new <tref>subject definition</tref> <em>o</em> to act as the
+                embedded <tref>subject definition</tref>.</li>
+              <li>For each <em>property</em> and <em>value</em> in the expanded definition for
+                <em>item</em> in <em>subjects</em>:
                 <ol class="algorithm">
-                  <li class="issue">Expand algorithm based on <code>embed_values</code> unless
-                    <em>explicit</em> is true.</li>
-                  </li>
-                  <li>Continue to next property from <em>element</em>.</li>
-                </ol>
-              </li>
-              <li id="frm-process-prop-item">Process each <em>item</em> from <em>value</em> as follows:
-                <ol class="algorithm">
-                  <li>If <em>item</em> a <tref>subject definition</tref> or <tref>subject reference</tref>
-                    and <em>subjects</em> contains an entry for the value of <code>@id</code> (<em>id</em>)
-                    in <em>item</em>, process <em>item</em> recursively using this algorithm using
-                    an <tref>array</tref> containing <em>id</em> as <em>subjects</em>, the first
-                    value from <em>frame</em> for <em>property</em> as <em>frame</em> and <em>property</em>
-                    as <tref>active property</tref>.</li>
-                  <li>Otherwise, <div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div></li>
+                  <li>Add <em>property</em> and <em>value</em> to <em>o</em> if <em>property</em>
+                    is a <tref>keyword</tref>.</li>
+                  <li>Otherwise, recursively call this algorithm for <em>property</em>
+                    and the original <tref>subject definition</tref> from <em>subjects</em> using
+                    <em>o</em> as <em>output</em>.</li>
                 </ol>
               </li>
             </ol>
           </li>
-          <li>Process each <em>property</em> and <em>value</em> in <em>frame</em>,
-            where <em>property</em> is not a <em>keyword</em> or <em>property</em>
-            was processed in <a href="#frm-process-prop-item">XXX</a> above, as follows:
-            <ol class="algorithm">
-              <li>Set <em>property frame</em> to the first item in <em>value</em> or a newly created
-                <tref>JSON object</tref> if <em>value</em> is empty.</li>
-              <li>Skip to the next property in <em>frame</em> if <em>property frame</em> contains
-                <code>@omitDefault</code> which is <tref>true</tref> or the value of <tref>omit default flag</tref>
-                from <em>frame</em> is <tref>true</tref>.</li>
-              <li>Set the value of <em>property</em> in <em>output</em> to the value of <code>@default</code>
-                in <em>frame</em> if it exists, or <code>@null</code> otherwise.</li>
-            </ol>
-          </li>
-          <li><div class="issue">Expand algorithm based on <code>add_frame_output</code>.</div></li>
+          <li>Set <em>item</em> to <em>o</em>.</li>
         </ol>
       </li>
     </ol>
   </li>
+  <li>If <em>output</em> is an <tref>array</tref>, append a copy of <em>item</em>, otherwise
+    append a copy of <em>item</em> to <tref>active property</tref> in <em>output</em>.</li>
 </ol>
-
-<p>At the completion of the recursive algorithm, <em>results</em> will contain the top-level
-  <tref>subject definition</tref>s.
-<p>The final two, non-recursive steps of the framing algorithm requires
-  <em>results</em> to be compacted according to the
-  <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
-  context provided in the <tref>input frame</tref>. Subsequently, replace all values containing
-  <code>@null</code> with <tref>null</tref>. The resulting value is the
-  final <tref>JSON-LD output</tref>.</p>
-
-<p class="issu">There is an issue if the result is a somple compaction, or an array of results, each of which
-  is compacted and includes its own <code>@context</code>.</p>
 </section>
 
 </section>
