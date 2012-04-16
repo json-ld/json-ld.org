@@ -1408,49 +1408,64 @@ language-native data structures MUST be used where applicable.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
     using this algorithm, passing a copy of the <tref>active context</tref> and the <tref>active property</tref>.
-    If <em>element</em> has a single member and the <tref>active property</tref> has no <code>@container</code> mapping
-    to <code>@list</code> or <code>@set</code>, the compacted value is that member; otherwise the compacted value
+    If <em>element</em> has a single item, the compacted value is that item; otherwise the compacted value
     is <em>element</em>.</li>
   <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
-      <li>If <em>element</em> has an <code>@value</code> property, and either an <code>@language</code> property matching
-        the language mapping in the <tref>active context</tref> or an <code>@type</code> property matching the <code>@type</code>
-        coercion mapping in the <tref>active context</tref> for the <tref>active property</tref>, replace <em>element</em>
-        with the value of <code>@value</code> and return.</li>
-      <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping in the <tref>active context</tref>
-        and <em>element</em> has a corresponding <code>@set</code> or <code>@list</code> property, recursively compact that
-        property's value passing a copy of the <tref>active context</tref> and the <tref>active property</tref>. If the result
-        is an empty <tref>array</tref>, set <em>element</em> to <tref>null</tref> and return.</li>
-      <li>Otherwise, if the <tref>active property</tref> has a <code>@type</code> coercion to <code>@id</code> in the
-        <tref>active context</tref> and <em>element</em> has a corresponding <code>@id</code> property, replace <em>element</em>
-        with the result of performing <a href="#iri-compaction">IRI Compaction</a> on <code>@id</code>'s value.</li>
-      <li>Otherwise, for each <em>property</em> and <em>value</em> in <em>element:</em>
+      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>subject reference</tref>,
+        return the result of performing
+        <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
+      <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping to <code>@list</code>
+        and <em>element</em> has a corresponding <code>@list</code> property, recursively compact that
+        property's value passing a copy of the <tref>active context</tref> and the <tref>active property</tref> ensuring
+        that the result is an array and removing <tref>null</tref> values. Return either the
+        result as an array, as an object with a key of <code>@list</code> (or appropriate alias from
+        <tref>active context</tref>).</li>
+      <li>Otherwise, construct <em>output</em> as a new <tref>JSON object</tref> used for returning the result
+        of compacting <em>element</em>. For each <em>property</em> and <em>value</em> in <em>element:</em>
         <ol class="algorithm">
-          <li>Remove <em>property</em> from <em>element</em>, set the <tref>active property</tref> to the result of performing
-            <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
-          <li>If the <em>property</em> is <code>@id</code> or <code>@type</code>
+          <li>If <em>property</em> is <code>@id</code> or <code>@type</code>
             <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
               <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
                 <a href="#iri-compaction">IRI Compaction</a> on <em>value</em>.</li>
               <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>. Perform <a href="#iri-compaction">IRI Compaction</a>
                 on every entry of <em>value</em>. If <em>value</em> contains just one entry, <em>value</em> is set to that entry.</li>
-              <li>Create a property for <tref>active property</tref> in <em>element</em> with a value of <em>value</em> and continue
-                with the next property from <em>element</em>.</li>
+              <li>Add <tref>active property</tref> and the expanded <em>value</em> to <em>output</em>.</li>
             </ol>
           </li>
-          <li>Otherwise, if <em>value</em> is an JSON-LD object or array of JSON-LD objects,
-            the compacted value is the result of recursively performing this algorithm on <em>value</em> passing a copy of the
-            <tref>active context</tref> and the <tref>active property</tref>.</li>
-          <li>If <em>property</em> is a JSON-LD keyword, create a property for <tref>active property</tref> in <em>element</em>
-             with a value of <em>value</em> and continue with the next property from <em>element</em>. If such a property already exists,
-             throw an exception.</li>
-          <li>Otherwise, either merge <em>value</em> into an existing <tref>active property</tref> property of <em>element</em> or
-            create a new <tref>active property</tref> property with <em>value</em> as value.</li>
+          <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>.</li>
+          <li>If <em>value</em> is empty:
+            <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+              <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+            </ol>
+          </li>
+          <li>For each <em>item</em> in <em>value</em>:
+            <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
+                for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
+              <li>Compact <em>item</em> by recursively performing this algorithm passing a copy of
+                the <tref>active context</tref> and the <tref>active property</tref>.</li>
+              <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
+                to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+              <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                has a <code>@container</code> mapping to <code>@set</code>,
+                create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em> as an
+                <tref>array</tref>.</li>
+              <li>Otherwise, create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+            </ol>
+          </li>
         </ol>
       </li>
     </ol>
   </li>
-  <li>Otherwise, the compacted <em>element</em> is <em>element</em>.</li>
+  <li>Otherwise, return <em>element</em> as the compacted <em>element</em>.
+    <div class="issue">Perhaps this should also call <a href="#value-compaction">Value Compaction</a> on
+      native types and strings, which could consolodate potential transformation in one place.</div>
+  </li>
 </ol>
 
 <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>, put <em>element</em> into the
@@ -1495,7 +1510,7 @@ language-native data structures MUST be used where applicable.</p>
     <tref>object embed flag</tref>, the
     <tref>explicit inclusion flag</tref> and the
     <tref>omit default flag</tref>.</dd>
-  <dt><tdef>map of embeds<tdef></dt>
+  <dt><tdef>map of embeds</tdef></dt>
   <dd>a map that tracks if a subject is to be embedded in the output of the
     <a href="#framing-algorithm">Framing Algorithm</a>; it maps a subject
     <code>@id</code> to a parent <tref>JSON object</tref> and property
@@ -1605,9 +1620,9 @@ language-native data structures MUST be used where applicable.</p>
                         and the <tref>subject reference</tref> as the value. Pass the first value from
                         <em>frame</em> for <em>property</em> as <em>frame</em>, <em>list</em>
                         as <em>parent</em>, and <code>@list</code> as <tref>active property</tref>.</li>
-                      <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.
-                        </li>
+                      <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
                     </ol>
+                  </li>
                   <li>If <em>item</em> is a <tref>subject reference</tref>
                     process <em>item</em> recursively using this algorithm passing a new map as
                     <em>subjects</em> that contains the <code>@id</code> of <em>item</em> as the key and
@@ -1677,7 +1692,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>If element is a <tref>subject definition</tref> or <tref>subject reference</tref>:
         <ol class="algorithm">
           <li>If the property <cide>@id</cide> is not an <tref>IRI</tref>, return a
-            <tref>blank node</tref> identifer using<a
+            <tref>blank node</tref> identifer using <a
             href="generate-blank-node-identifier">Generate Blank Node Identifier</a> as
             <em>name</em>, otherwise use the value of the @id property as
             <em>name</em>.</li>
@@ -1726,7 +1741,7 @@ language-native data structures MUST be used where applicable.</p>
   <li>If <em>parent</em> is an array, replace the <tref>subject definition</tref> that matches
     <em>id</em> with a <tref>subject reference</tref>. If parent is a <tref>JSON object</tref>,
     replace the <tref>subject definition</tref> for <em>property</em> that matches <em>id</em>
-    with a </tref>subject reference</tref>.
+    with a <tref>subject reference</tref>.</li>
   <li>Remove dependents for <em>id</em> in <tref>map of embeds</tref>
     by scanning the map for entries with <em>parent</em> that have an <code>@id</code> of <em>id</em>,
     removing that definition from the map, and then removing the dependents for the <em>parent</em> id
@@ -1749,7 +1764,7 @@ language-native data structures MUST be used where applicable.</p>
         a value of an empty array and add it to <em>output</em>, appending if <em>output</em>
         is an array, and appending to <tref>active property</tref> otherwise. Recursively call this
         algorithm passing <em>item</em> as <em>element</em>, <code>@list</code> as <tref>active property</tref>,
-        and the new array as <em>output</em>. Continue to the next <em>item</em>.
+        and the new array as <em>output</em>. Continue to the next <em>item</em>.</li>
       <li>If <em>item</em> is a <tref>subject reference</tref>:
         <ol class="algorithm">
           <li>If <tref>map of embeds</tref> does not contain an entry for the <code>@id</code> of <em>item</em>:
