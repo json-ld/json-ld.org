@@ -8,9 +8,9 @@
   window.playground = window.playground || {};
   var playground = window.playground;
 
-  // setup the examples and frame examples
+  // setup the examples and params
   playground.examples = {};
-  playground.frames = {};
+  playground.params = {};
 
   // add the example of a Person
   playground.examples["Person"] = {
@@ -161,7 +161,7 @@
   };
 
   // add the frame example of a Library
-  playground.frames["Library"] = {
+  playground.params["Library"] = {
     "@context": {
       "dc": "http://purl.org/dc/elements/1.1/",
       "ex": "http://example.org/vocab#"

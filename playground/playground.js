@@ -51,7 +51,7 @@
   /**
    * Handle URL query parameters.
    *
-   * Checks 'json-ld' and 'frame' parameters.  If they look like JSON then
+   * Checks 'json-ld' and 'param' parameters.  If they look like JSON then
    * interpret as JSON strings else interpret as URLs of remote resources.
    * Note: URLs must be CORS enabled to load due to browser same origin policy
    * issues.
@@ -60,7 +60,7 @@
     // data from the query
     var queryData = {
        markup: null,
-       frame: null
+       param: null
     };
 
     /**
@@ -80,7 +80,7 @@
       // check 'json-ld' parameter
       if(param !== null) {
         hasQueryData = true;
-        if(param.length == 0 || param[0] == '{' || param[0] == '[') {
+        if(param.length === 0 || param[0] === '{' || param[0] === '[') {
           // param looks like JSON
           queryData[fieldName] = param;
         }
@@ -89,12 +89,13 @@
           rval = $.ajax({
             url: param,
             dataType: 'text',
+            crossDomain: true,
             success: function(data, textStatus, jqXHR) {
                queryData[fieldName] = data;
             },
             error: function(jqXHR, textStatus, errorThrown) {
                // FIXME: better error handling
-               $('#resolve-errors')
+               $('#processing-errors')
                   .text('Error loading ' + msgName + ' URL: ' + param);
             }
           });
@@ -107,12 +108,12 @@
     // build deferreds
     var jsonLdDeferred = handleParameter(
       getParameterByName('json-ld'), 'markup', 'JSON-LD');
-    var frameDeferred = handleParameter(
-      getParameterByName('frame'), 'frame', 'frame');
+    var paramDeferred = handleParameter(
+      getParameterByName('param'), 'param', 'param');
 
     // wait for ajax if needed
     // failures handled in AJAX calls
-    $.when(jsonLdDeferred, frameDeferred)
+    $.when(jsonLdDeferred, paramDeferred)
       .done(function() {
         // populate UI with data
         playground.populateWithJSON(queryData);
@@ -124,7 +125,6 @@
    */
   playground.init = function() {
     $('#tabs').tabs();
-    $('#frame').hide();
     $('#tabs').bind('tabsselect', playground.tabSelected);
     playground.processQueryParameters();
   };
@@ -137,15 +137,24 @@
    */
   playground.tabSelected = function(event, ui) {
     playground.activeTab = ui.tab.id;
-    if(ui.tab.id == 'tab-framed') {
-      // if the 'frame' tab is selected, display the frame input textarea
+    if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-framed') {
+      // if the 'compact' or 'frame' tab is selected, display the param
+      // input textarea
       $('#markup').addClass('compressed');
-      $('#frame').show();
+      $('#param').show();
+
+      if(ui.tab.id === 'tab-compacted') {
+        $('#param-type').html('JSON-LD Context');
+      }
+      else {
+        $('#param-type').html('JSON-LD Frame');
+      }
     }
     else {
-      // if the 'frame' tab is not selected, hide the frame input area
-      $('#frame').hide();
+      // else no param required, hide the param input area
+      $('#param').hide();
       $('#markup').removeClass('compressed');
+      $('#param-type').html('');
     }
 
     // perform processing on the data provided in the input boxes
@@ -156,41 +165,14 @@
   };
 
   /**
-   * Resolves a JSON-LD @context url.
-   *
-   * @param url the url to resolve.
-   * @param callback the callback to call once the url has been resolved.
-   */
-  playground.resolveContext = function(url, callback) {
-    var regex = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-    if(!regex.test(url)) {
-      callback(null, 'Invalid URL');
-    }
-    else {
-      // treat param as a URL
-      $.ajax({
-        url: url,
-        dataType: 'json',
-        crossDomain: true,
-        success: function(data, textStatus, jqXHR) {
-          callback(data);
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          callback(null, errorThrown);
-        }
-      });
-    }
-  };
-
-  /**
    * Performs the JSON-LD API action based on the active tab.
    *
    * @param input the JSON-LD object input or null no error.
-   * @param frame the JSON-LD frame to use.
+   * @param param the JSON-LD param to use.
    * @param callback(err) called once the operation completes.
    */
-  playground.performAction = function(input, frame, callback) {
-    if(playground.activeTab == 'tab-normalized') {
+  playground.performAction = function(input, param, callback) {
+    if(playground.activeTab === 'tab-normalized') {
       jsonld.normalize(input, function(err, normalized) {
         if(err) {
           return callback(err);
@@ -200,7 +182,7 @@
         callback();
       });
     }
-    else if(playground.activeTab == 'tab-expanded') {
+    else if(playground.activeTab === 'tab-expanded') {
       jsonld.expand(input, function(err, expanded) {
         if(err) {
           return callback(err);
@@ -210,9 +192,8 @@
         callback();
       });
     }
-    else if(playground.activeTab == 'tab-compacted') {
-      // FIXME: take @context from another UI input box
-      jsonld.compact(input, input['@context'] || {}, function(err, compacted) {
+    else if(playground.activeTab === 'tab-compacted') {
+      jsonld.compact(input, param, function(err, compacted) {
         if(err) {
           return callback(err);
         }
@@ -221,8 +202,8 @@
         callback();
       });
     }
-    else if(playground.activeTab == 'tab-framed') {
-      jsonld.frame(input, frame, function(err, framed) {
+    else if(playground.activeTab === 'tab-framed') {
+      jsonld.frame(input, param, function(err, framed) {
         if(err) {
           return callback(err);
         }
@@ -231,7 +212,7 @@
         callback();
       });
     }
-    else if(playground.activeTab == 'tab-turtle') {
+    else if(playground.activeTab === 'tab-turtle') {
       jsonld.turtle(input, function(err, turtle) {
         if(err) {
           return callback(err);
@@ -248,25 +229,31 @@
    */
   playground.process = function() {
     $('#markup-errors').text('');
-    $('#frame-errors').text('');
+    $('#param-errors').text('');
     $('#processing-errors').text('');
     var errors = false;
+    var markup = $('#markup').val();
+
+    // nothing to process
+    if(markup === '') {
+      return;
+    }
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      var input = JSON.parse($('#markup').val());
+      var input = JSON.parse(markup);
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
       errors = true;
     }
 
-    // check to see if the JSON-LD frame is valid JSON
+    // check to see if the JSON-LD param is valid JSON
     try {
-      var frame = JSON.parse($('#frame').val());
+      var param = JSON.parse($('#param').val());
     }
     catch(e) {
-      $('#frame-errors').text('JSON-LD frame - ' + e);
+      $('#param-errors').text('JSON-LD param - ' + e);
       errors = true;
     }
 
@@ -280,7 +267,7 @@
     }
 
     // no errors, perform the action and display the output
-    playground.performAction(input, frame, function(err) {
+    playground.performAction(input, param, function(err) {
       if(err) {
         // FIXME: add better error handling output
         $('#processing-errors').text(JSON.stringify(err));
@@ -289,8 +276,8 @@
 
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if($('#frame').val().length > 0) {
-        link += '&frame=' + encodeURIComponent(JSON.stringify(frame));
+      if($('#param').val().length > 0) {
+        link += '&param=' + encodeURIComponent(JSON.stringify(param));
       }
       var permalink = '<a href="' + link + '">permalink</a>';
       // size warning for huge links
@@ -338,11 +325,11 @@
   };
 
   /**
-   * Populate the UI with markup and frame JSON. The data parameter should
-   * have a 'markup' field and optional 'frame' field that contain a
+   * Populate the UI with markup and param JSON. The data parameter should
+   * have a 'markup' field and optional 'param' field that contain a
    * serialized JSON string.
    *
-   * @param data object with optional 'markup' and 'frame' fields.
+   * @param data object with optional 'markup' and 'param' fields.
    */
   playground.populateWithJSON = function(data) {
     var hasData = false;
@@ -354,14 +341,14 @@
         data.markup, {'indent_size': 2, 'brace_style': 'expand'}));
     }
 
-    if('frame' in data && data.frame !== null) {
+    if('param' in data && data.param !== null) {
       hasData = true;
-      // fill the frame input box with the example frame
-      $('#frame').val(js_beautify(
-        data.frame, {'indent_size': 2, 'brace_style': 'expand'}));
+      // fill the param input box with the example param
+      $('#param').val(js_beautify(
+        data.param, {'indent_size': 2, 'brace_style': 'expand'}));
     }
     else {
-      $('#frame').val('{}');
+      $('#param').val('{}');
     }
 
     if(hasData) {
@@ -381,16 +368,23 @@
   playground.populateWithExample = function(name) {
     var data = {
       markup: null,
-      frame: null
+      param: null
     };
 
     if(name in playground.examples) {
       // fill the markup with the example
       data.markup = JSON.stringify(playground.examples[name]);
 
-      if(name in playground.frames) {
-        // fill the frame with the example frame
-        data.frame = JSON.stringify(playground.frames[name]);
+      if(name in playground.params) {
+        // fill the param with the example param
+        data.param = JSON.stringify(playground.params[name]);
+      }
+      else if('@context' in playground.examples[name]) {
+        // use context from markup as default
+        var ctx = {
+          '@context': playground.examples[name]['@context']
+        };
+        data.param = JSON.stringify(ctx);
       }
     }
 
