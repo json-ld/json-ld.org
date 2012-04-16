@@ -17,41 +17,47 @@ var jsonld = {};
  *
  * @param input the JSON-LD object to compact.
  * @param ctx the context to compact with.
- * @param [optimize] true to optimize the compaction (default: false).
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param [options] options to use:
+ *          [strict] use strict mode (default: true).
+ *          [optimize] true to optimize the compaction (default: false).
+ *          [graph] true to always output a top-level graph (default: false).
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, compacted) called once the operation completes.
  */
 jsonld.compact = function(input, ctx) {
+  // get arguments
+  var options = {};
+  var callbackArg = 2;
+  if(arguments.length > 3) {
+    options = arguments[2] || {};
+    callbackArg += 1;
+  }
+  var callback = arguments[callbackArg];
+
   // nothing to compact
   if(input === null) {
     return callback(null, null);
   }
 
-  // get arguments
-  var optimize = false;
-  var resolver = jsonld.urlResolver;
-  var callbackArg = 2;
-  if(arguments.length > 4) {
-    optimize = arguments[2];
-    resolver = arguments[3];
-    callbackArg += 2;
+  // set default options
+  if(!('strict' in options)) {
+    options.strict = true;
   }
-  else if(arguments.length > 3) {
-    if(_isBoolean(arguments[2])) {
-      optimize = arguments[2];
-    }
-    else {
-      resolver = arguments[2];
-    }
-    callbackArg += 1;
+  if(!('optimize') in options) {
+    options.optimize = false;
   }
-  var callback = arguments[callbackArg];
+  if(!('graph') in options) {
+    options.graph = false;
+  }
+  if(!('resolver') in options) {
+    options.resolver = jsonld.urlResolver;
+  }
 
   // default to empty context if not given
   ctx = ctx || {};
 
   // expand input then do compaction
-  jsonld.expand(input, function(err, expanded) {
+  jsonld.expand(input, options, function(err, expanded) {
     if(err) {
       return callback(new JsonLdError(
         'Could not expand input before compaction.',
@@ -59,7 +65,7 @@ jsonld.compact = function(input, ctx) {
     }
 
     // merge and resolve contexts
-    jsonld.mergeContexts({}, ctx, function(err, ctx) {
+    jsonld.mergeContexts({}, ctx, options, function(err, ctx) {
       if(err) {
         return callback(new JsonLdError(
           'Could not merge context before compaction.',
@@ -68,14 +74,14 @@ jsonld.compact = function(input, ctx) {
 
       try {
         // create optimize context
-        if(optimize) {
-          var optimizeCtx = {};
+        if(options.optimize) {
+          options.optimizeCtx = {};
         }
 
         // do compaction
         input = expanded;
-        var compacted = new Processor().compact(ctx, null, input, optimizeCtx);
-        cleanup(null, compacted, optimizeCtx);
+        var compacted = new Processor().compact(ctx, null, input, options);
+        cleanup(null, compacted, options);
       }
       catch(ex) {
         callback(ex);
@@ -84,14 +90,19 @@ jsonld.compact = function(input, ctx) {
   });
 
   // performs clean up after compaction
-  function cleanup(err, compacted, optimizeCtx) {
+  function cleanup(err, compacted, options) {
     if(err) {
       return callback(err);
     }
 
-    // if compacted is an array with 1 entry, remove array
-    if(_isArray(compacted) && compacted.length === 1) {
+    // if compacted is an array with 1 entry, remove array unless
+    // graph option is set
+    if(!options.graph && _isArray(compacted) && compacted.length === 1) {
       compacted = compacted[0];
+    }
+    // always use array if graph option is on
+    else if(options.graph && _isObject(compacted)) {
+      compacted = [compacted];
     }
 
     // build output context
@@ -100,8 +111,8 @@ jsonld.compact = function(input, ctx) {
       ctx = [ctx];
     }
     // add optimize context
-    if(optimizeCtx) {
-      ctx.push(optimizeCtx);
+    if(options.optimizeCtx) {
+      ctx.push(options.optimizeCtx);
     }
     // remove empty contexts
     var tmp = ctx;
@@ -112,18 +123,22 @@ jsonld.compact = function(input, ctx) {
       }
     }
 
-    // add context
-    if(ctx.length > 0) {
-      // remove array if only one context
-      if(ctx.length === 1) {
-        ctx = ctx[0];
-      }
+    // remove array if only one context
+    var hasContext = (ctx.length > 0);
+    if(ctx.length === 1) {
+      ctx = ctx[0];
+    }
 
+    // add context
+    if(hasContext || options.graph) {
       if(_isArray(compacted)) {
         // use '@graph' keyword
-        var kwgraph = _getKeywords(ctx)['@graph'];
+        var kwgraph = _compactIri(ctx, '@graph');
         var graph = compacted;
-        compacted = {'@context': ctx};
+        compacted = {};
+        if(hasContext) {
+          compacted['@context'] = ctx;
+        }
         compacted[kwgraph] = graph;
       }
       else if(_isObject(compacted)) {
@@ -144,29 +159,42 @@ jsonld.compact = function(input, ctx) {
  * Performs JSON-LD expansion.
  *
  * @param input the JSON-LD object to expand.
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, expanded) called once the operation completes.
  */
 jsonld.expand = function(input) {
   // get arguments
-  var resolver = jsonld.urlResolver;
+  var options = {};
   var callback;
   var callbackArg = 1;
   if(arguments.length > 2) {
-    resolver = arguments[1];
+    options = arguments[1] || {};
     callbackArg += 1;
   }
   callback = arguments[callbackArg];
 
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
   // resolve all @context URLs in the input
   input = _clone(input);
-  _resolveUrls(input, resolver, function(err, input) {
+  _resolveUrls(input, options.resolver, function(err, input) {
     if(err) {
       return callback(err);
     }
     try {
       // do expansion
-      var expanded = new Processor().expand({}, null, input);
+      var expanded = new Processor().expand({}, null, input, false);
+
+      // optimize away @graph with no other properties
+      if(_isObject(expanded) && ('@graph' in expanded) &&
+        Object.keys(expanded).length === 1) {
+        expanded = expanded['@graph'];
+      }
+      // normalize to an array
       if(!_isArray(expanded)) {
         expanded = [expanded];
       }
@@ -184,32 +212,27 @@ jsonld.expand = function(input) {
  * @param input the JSON-LD object to frame.
  * @param frame the JSON-LD frame to use.
  * @param [options] the framing options.
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ *          [embed] default @embed flag (default: true).
+ *          [explicit] default @explicit flag (default: false).
+ *          [omitDefault] default @omitDefault flag (default: false).
+ *          [optimize] optimize when compacting (default: false).
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, framed) called once the operation completes.
  */
 jsonld.frame = function(input, frame) {
   // get arguments
-  var resolver = jsonld.urlResolver;
-  var options;
+  var options = {};
   var callbackArg = 2;
-  if(arguments.length > 4) {
-    options = arguments[2];
-    resolver = arguments[3];
-    callbackArg += 2;
-  }
-  else if(arguments.length > 3) {
-    if(_isObject(arguments[2])) {
-      options = arguments[2];
-    }
-    else {
-      resolver = arguments[2];
-    }
+  if(arguments.length > 3) {
+    options = arguments[2] || {};
     callbackArg += 1;
   }
   var callback = arguments[callbackArg];
 
   // set default options
-  options = options || {};
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
   if(!('embed' in options)) {
     options.embed = true;
   }
@@ -217,121 +240,127 @@ jsonld.frame = function(input, frame) {
   options.omitDefault = options.omitDefault || false;
   options.optimize = options.optimize || false;
 
-  // clone frame
-  frame = _clone(frame);
-  frame['@context'] = frame['@context'] || {};
+  // preserve frame context
+  var ctx = frame['@context'] || {};
 
-  // compact the input according to the frame context
-  jsonld.compact(input, frame['@context'], options.optimize, resolver,
-    function(err, compacted) {
+  // expand input
+  jsonld.expand(input, options, function(err, _input) {
+    if(err) {
+      return callback(new JsonLdError(
+        'Could not expand input before framing.',
+        'jsonld.FrameError', {cause: err}));
+    }
+
+    // expand frame
+    jsonld.expand(frame, options, function(err, _frame) {
       if(err) {
         return callback(new JsonLdError(
-          'Could not compact input before framing.',
+          'Could not expand frame before framing.',
           'jsonld.FrameError', {cause: err}));
       }
 
-      // preserve compacted context
-      var ctx = compacted['@context'] || {};
-      delete compacted['@context'];
+      try {
+        // do framing
+        var framed = new Processor().frame(_input, _frame, options);
+      }
+      catch(ex) {
+        callback(ex);
+      }
 
-      // merge context
-      jsonld.mergeContexts({}, ctx, function(err, merged) {
+      // compact result (force @graph option to true)
+      options.graph = true;
+      jsonld.compact(framed, ctx, options, function(err, compacted) {
         if(err) {
           return callback(new JsonLdError(
-            'Could not merge context before framing.',
+            'Could not compact framed output.',
             'jsonld.FrameError', {cause: err}));
         }
-
-        try {
-          // do framing
-          var framed = new Processor().frame(compacted, frame, merged, options);
-
-          // attach context to each framed entry
-          if(Object.keys(ctx).length > 0) {
-            for(var i in framed) {
-              var next = framed[i];
-              if(_isObject(next)) {
-                // reorder keys so @context is first
-                framed[i] = {'@context': ctx};
-                for(var key in next) {
-                  framed[i][key] = next[key];
-                }
-              }
-            }
+        // get graph alias
+        var graph;
+        for(var key in compacted) {
+          if(key !== '@context') {
+            graph = key;
+            break;
           }
-          callback(null, framed);
         }
-        catch(ex) {
-          callback(ex);
-        }
+        // remove @preserve from results
+        compacted[graph] = _removePreserve(compacted[graph]);
+        callback(null, compacted);
       });
     });
+  });
 };
 
 /**
  * Performs JSON-LD normalization.
  *
  * @param input the JSON-LD object to normalize.
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, normalized) called once the operation completes.
  */
 jsonld.normalize = function(input, callback) {
   // get arguments
-  var resolver = jsonld.urlResolver;
+  var options = {};
   var callback;
   var callbackArg = 1;
   if(arguments.length > 2) {
-    resolver = arguments[1];
+    options = arguments[1] || {};
     callbackArg += 1;
   }
   callback = arguments[callbackArg];
 
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
   // expand input then do normalization
-  jsonld.expand(input, function(err, expanded) {
+  jsonld.expand(input, options, function(err, expanded) {
     if(err) {
       return callback(new JsonLdError(
         'Could not expand input before normalization.',
         'jsonld.NormalizeError', {cause: err}));
     }
 
-    try {
-      // do normalization
-      var normalized = new Processor().normalize(expanded);
-      callback(null, normalized);
-    }
-    catch(ex) {
-      callback(ex);
-    }
+    // do normalization
+    new Processor().normalize(expanded, callback);
   });
 };
 
 /**
- * Outputs the triples found in the given JSON-LD object.
+ * Outputs the RDF statements found in the given JSON-LD object.
  *
  * @param input the JSON-LD object.
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
- * @param callback(err, triple) called when a triple is output, with the last
- *          triple as null.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, statement) called when a statement is output, with the
+ *          last statement as null.
  */
-jsonld.triples = function(input, callback) {
+jsonld.toRDF = function(input, callback) {
   // get arguments
-  var resolver = jsonld.urlResolver;
+  var options = {};
   var callback;
   var callbackArg = 1;
   if(arguments.length > 2) {
-    resolver = arguments[1];
+    options = arguments[1] || {};
     callbackArg += 1;
   }
   callback = arguments[callbackArg];
 
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
   // resolve all @context URLs in the input
   input = _clone(input);
-  _resolveUrls(input, resolver, function(err, input) {
+  _resolveUrls(input, options.resolver, function(err, input) {
     if(err) {
       return callback(err);
     }
-    // output triples
-    return new Processor().triples(input, callback);
+    // output RDF statements
+    return new Processor().toRDF(input, callback);
   });
 };
 
@@ -412,7 +441,8 @@ jsonld.useUrlResolver = function(type) {
  *
  * @param ctx1 the context to overwrite/append to.
  * @param ctx2 the new context to merge onto ctx1.
- * @param [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, ctx) called once the operation completes.
  */
 jsonld.mergeContexts = function(ctx1, ctx2) {
@@ -422,25 +452,30 @@ jsonld.mergeContexts = function(ctx1, ctx2) {
   }
 
   // get arguments
-  var resolver = jsonld.urlResolver;
+  var options = {};
   var callbackArg = 2;
   if(arguments.length > 3) {
-    resolver = arguments[2];
+    options = arguments[2] || {};
     callbackArg += 1;
   }
   var callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
 
   // default to empty context
   ctx1 = _clone(ctx1 || {});
   ctx2 = _clone(ctx2 || {});
 
   // resolve URLs in ctx1
-  _resolveUrls({'@context': ctx1}, resolver, function(err, ctx1) {
+  _resolveUrls({'@context': ctx1}, options.resolver, function(err, ctx1) {
     if(err) {
       return callback(err);
     }
     // resolve URLs in ctx2
-    _resolveUrls({'@context': ctx2}, resolver, function(err, ctx2) {
+    _resolveUrls({'@context': ctx2}, options.resolver, function(err, ctx2) {
       if(err) {
         return callback(err);
       }
@@ -526,39 +561,24 @@ jsonld.addValue = function(subject, property, value, propertyIsArray) {
   propertyIsArray = _isUndefined(propertyIsArray) ? false : propertyIsArray;
 
   if(_isArray(value)) {
+    if(value.length === 0 && propertyIsArray && !(property in subject)) {
+      subject[property] = [];
+    }
     for(var i in value) {
       jsonld.addValue(subject, property, value[i], propertyIsArray);
-    }
-  }
-  else if(_isListValue(value)) {
-    // create list
-    if(!(property in subject)) {
-      subject[property] = {'@list': []};
-    }
-    // add list values
-    var list = value['@list'];
-    for(var i in list) {
-      jsonld.addValue(subject, property, list[i]);
     }
   }
   else if(property in subject) {
     var hasValue = jsonld.hasValue(subject, property, value);
 
     // make property an array if value not present or always an array
-    var isList = _isListValue(subject[property]);
-    if(!_isArray(subject[property]) && !isList &&
-      (!hasValue || propertyIsArray)) {
+    if(!_isArray(subject[property]) && (!hasValue || propertyIsArray)) {
       subject[property] = [subject[property]];
     }
 
     // add new value
     if(!hasValue) {
-      if(isList) {
-        subject[property]['@list'].push(value);
-      }
-      else {
-        subject[property].push(value);
-      }
+      subject[property].push(value);
     }
   }
   else {
@@ -727,12 +747,17 @@ jsonld.compareNormalized = function(n1, n2) {
  * @param key the context key.
  * @param [type] the type of value to get (eg: '@id', '@type'), if not
  *          specified gets the entire entry for a key, null if not found.
- * @param [expand] true to expand the value, false not to (default: true).
+ * @param [expand] true to expand the key, false not to (default: false).
  *
  * @return the value.
  */
 jsonld.getContextValue = function(ctx, key, type, expand) {
   var rval = null;
+
+  // get default language
+  if(type === '@language' && (type in ctx)) {
+    rval = ctx[type];
+  }
 
   // return null for invalid key
   if(!key) {
@@ -761,12 +786,17 @@ jsonld.getContextValue = function(ctx, key, type, expand) {
         {context: ctx, key: key});
     }
 
-    if(rval !== null) {
-      // expand term if requested
-      expand = _isUndefined(expand) ? true : expand;
-      if(expand) {
-        rval = _expandTerm(ctx, rval);
-      }
+    // expand term
+    if(rval !== null && type !== '@language') {
+      rval = _expandTerm(ctx, rval);
+    }
+  }
+  else {
+    // expand key if requested
+    expand = _isUndefined(expand) ? true : expand;
+    if(expand) {
+      key = _expandTerm(ctx, key);
+      rval = jsonld.getContextValue(ctx, key, type, false);
     }
   }
 
@@ -785,9 +815,6 @@ jsonld.setContextValue = function(ctx, key, type, value) {
   // compact key
   key = _compactIri(ctx, key);
 
-  // get keyword for type
-  var kwtype = _getKeywords(ctx)[type];
-
   // add new key to @context or update existing key w/string value
   if(!(key in ctx) || _isString(ctx[key])) {
     if(type === '@id') {
@@ -795,12 +822,12 @@ jsonld.setContextValue = function(ctx, key, type, value) {
     }
     else {
       ctx[key] = {};
-      ctx[key][kwtype] = value;
+      ctx[key][type] = value;
     }
   }
   // update existing key w/object value
   else if(_isObject(ctx[key])) {
-    ctx[key][kwtype] = value;
+    ctx[key][type] = value;
   }
   else {
     throw new JsonLdError(
@@ -835,7 +862,8 @@ var XSD = {
 var RDF = {
   'first': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
   'rest': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
-  'nil': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'
+  'nil': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil',
+  'type': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
 };
 
 /**
@@ -864,317 +892,390 @@ if(_nodejs) {
 var Processor = function() {};
 
 /**
- * Recursively compacts a value using the given context. All context URLs
+ * Recursively compacts an element using the given context. All context URLs
  * must have been resolved before calling this method and all values must
  * be in expanded form.
  *
  * @param ctx the context to use.
- * @param property the property that points to the value, null for none.
- * @param value the value to compact.
- * @param [optimizeCtx] the context to populate with optimizations.
+ * @param property the property that points to the element, null for none.
+ * @param element the element to compact.
+ * @param options the compaction options.
  *
  * @return the compacted value.
  */
-Processor.prototype.compact = function(ctx, property, value, optimizeCtx) {
-  // null is already compact
-  if(value === null) {
-    return null;
-  }
-
-  // recursively compact array or list
-  var isList = _isListValue(value);
-  if(_isArray(value) || isList) {
-    // get array from @list
-    if(isList) {
-      value = value['@list'];
-
-      // nothing to compact in null case
-      if(value === null) {
-        return null;
-      }
-      // invalid input if @list points at a non-array
-      else if(!_isArray(value)) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; "@list" value must be an array or null.',
-          'jsonld.SyntaxError');
-      }
-    }
-
-    // recurse through array
+Processor.prototype.compact = function(ctx, property, element, options) {
+  // recursively compact array
+  if(_isArray(element)) {
     var rval = [];
-    for(var i in value) {
-      // compact value and add if non-null
-      var val = this.compact(ctx, property, value[i], optimizeCtx);
-      if(val !== null) {
-        rval.push(val);
+    for(var i in element) {
+      var e = this.compact(ctx, property, element[i], options);
+      // drop null values
+      if(e !== null) {
+        rval.push(e);
       }
     }
-
-    // use @list if previously used unless @context specifies container @list
-    // which indicates value should be a simple array
-    if(isList) {
-      var prop = _compactIri(ctx, property);
-      var container = jsonld.getContextValue(ctx, prop, '@container');
-      var useList = (container !== '@list');
-      if(useList) {
-        // if optimizing, add @container entry
-        if(optimizeCtx && container === null) {
-          jsonld.setContextValue(optimizeCtx, prop, '@container', '@list');
-        }
-        else {
-          rval = {'@list': rval};
-        }
+    if(rval.length === 1) {
+      // use single element if no container is specified
+      var container = jsonld.getContextValue(ctx, property, '@container');
+      if(container !== '@list' && container !== '@set') {
+        rval = rval[0];
       }
     }
     return rval;
-  }
-
-  // replace '@graph' keyword and recurse
-  if(_isObject(value) && '@graph' in value) {
-    var kwgraph = _getKeywords(ctx)['@graph'];
-    var rval = {};
-    rval[kwgraph] = this.compact(ctx, property, value['@graph'], optimizeCtx);
-    return rval;
-  }
-
-  // optimize away use of @set
-  if(_isSetValue(value)) {
-    return this.compact(ctx, property, value['@set'], optimizeCtx);
-  }
-
-  // try to type-compact value
-  if(_canTypeCompact(value)) {
-    // compact property to look for its @type definition in the context
-    var prop = _compactIri(ctx, property);
-    var type = jsonld.getContextValue(ctx, prop, '@type');
-    if(type !== null) {
-      var key = _isValue(value) ? '@value' : '@id';
-
-      // compact IRI
-      if(type === '@id') {
-        return _compactIri(ctx, value[key]);
-      }
-      // other type, return string value
-      else {
-        return value[key];
-      }
-    }
   }
 
   // recursively compact object
-  if(_isObject(value)) {
-    var keywords = _getKeywords(ctx);
-    var rval = {};
-    for(var key in value) {
-      // compact non-context
-      if(key !== '@context') {
-        // FIXME: this should just be checking for absolute IRI or keyword
-        // drop unmapped and non-absolute IRI keys that aren't keywords
-        if(!jsonld.getContextValue(ctx, key) && !_isAbsoluteIri(key) &&
-          !(key in keywords)) {
-          continue;
+  if(_isObject(element)) {
+    // element is a @value
+    if(_isValue(element)) {
+      var type = jsonld.getContextValue(ctx, property, '@type');
+      var language = jsonld.getContextValue(ctx, property, '@language');
+
+      // matching @type specified in context, compact element
+      if(type !== null &&
+        ('@type' in element) && element['@type'] === type) {
+        element = element['@value'];
+
+        // use native datatypes for certain xsd types
+        if(type === XSD['boolean']) {
+          element = !(element === 'false' || element === '0');
         }
-
-        // compact property and value
-        var prop = _compactIri(ctx, key);
-        var val = this.compact(ctx, key, value[key], optimizeCtx);
-
-        // preserve empty arrays
-        if(_isArray(val) && val.length === 0 && !(prop in rval)) {
-          rval[prop] = [];
+        else if(type === XSD['integer']) {
+          element = parseInt(element);
         }
-
-        // add non-null value
-        var values = [];
-        if(val !== null) {
-          // optimize value compaction if optimize context is given
-          if(optimizeCtx) {
-            val = _optimalTypeCompact(ctx, prop, val, optimizeCtx);
-          }
-
-          // determine if an array should be used by @container specification
-          var container = jsonld.getContextValue(ctx, prop, '@container');
-          var isArray = (container === '@set' || container === '@list');
-          jsonld.addValue(rval, prop, val, isArray);
+        else if(type === XSD['double']) {
+          element = parseFloat(element);
         }
       }
+      // matching @language specified in context, compact element
+      else if(language !== null &&
+        ('@language' in element) && element['@language'] === language) {
+        element = element['@value'];
+      }
+      // compact @type IRI
+      else if('@type' in element) {
+        element['@type'] = _compactIri(ctx, element['@type']);
+      }
+      return element;
     }
-    // drop empty objects when optimizing
-    if(optimizeCtx && Object.keys(rval).length === 0) {
-      rval = null;
+
+    // compact subject references
+    if(_isSubjectReference(element)) {
+      var type = jsonld.getContextValue(ctx, property, '@type');
+      if(type === '@id') {
+        element = _compactIri(ctx, element['@id']);
+        return element;
+      }
+    }
+
+    // recursively process element keys
+    var rval = {};
+    for(var key in element) {
+      var value = element[key];
+
+      // compact @id and @type(s)
+      if(key === '@id' || key === '@type') {
+        // compact single @id
+        if(_isString(value)) {
+          value = _compactIri(ctx, value);
+        }
+        // value must be a @type array
+        else {
+          var types = [];
+          for(var i in value) {
+            types.push(_compactIri(ctx, value[i]));
+          }
+          value = types;
+        }
+
+        // compact property and add value
+        var prop = _compactIri(ctx, key);
+        var isArray = (_isArray(value) && value.length === 0);
+        jsonld.addValue(rval, prop, value, isArray);
+        continue;
+      }
+
+      // Note: value must be an array due to expansion algorithm.
+
+      // preserve empty arrays
+      if(value.length === 0) {
+        var prop = _compactIri(ctx, key);
+        jsonld.addValue(rval, prop, [], true);
+      }
+
+      // recusively process array values
+      for(var i in value) {
+        var v = value[i];
+        var isList = _isListValue(v);
+
+        // compact property
+        var prop;
+        if(_isValue(v)) {
+          prop = _compactIri(ctx, key, v);
+        }
+        else if(isList) {
+          prop = _compactIri(ctx, key, v, '@list');
+          v = v['@list'];
+        }
+        else if(_isString(v)) {
+          // pass expanded form of plain literal to handle null language
+          prop = _compactIri(ctx, key, {'@value': v});
+        }
+        else {
+          prop = _compactIri(ctx, key);
+        }
+
+        // recursively compact value
+        v = this.compact(ctx, prop, v, options);
+
+        // get container type for property
+        var container = jsonld.getContextValue(ctx, prop, '@container');
+
+        // handle @list
+        if(isList && container !== '@list') {
+          // handle messy @list compaction
+          if(prop in rval && options.strict) {
+            throw new JsonLdError(
+              'JSON-LD compact error; property has a "@list" @container ' +
+              'rule but there is more than a single @list that matches ' +
+              'the compacted term in the document. Compaction might mix ' +
+              'unwanted items into the list.',
+              'jsonld.SyntaxError');
+          }
+          // reintroduce @list keyword
+          var kwlist = _compactIri(ctx, '@list');
+          var val = {};
+          val[kwlist] = v;
+          v = val;
+        }
+
+        // if @container is @set or @list or value is an empty array, use
+        // an array when adding value
+        var isArray = (container === '@set' || container === '@list' ||
+          (_isArray(v) && v.length === 0));
+
+        // add compact value
+        jsonld.addValue(rval, prop, v, isArray);
+      }
     }
     return rval;
-  }
-
-  // compact @id or @type string
-  var prop = _expandTerm(ctx, property);
-  if(prop === '@id' || prop === '@type') {
-    return _compactIri(ctx, value);
   }
 
   // only primitives remain which are already compact
-  return value;
+  return element;
 };
 
 /**
- * Recursively expands a value using the given context. Any context in
- * the value will be removed. All context URLs must have been resolved before
- * calling this method.
+ * Recursively expands an element using the given context. Any context in
+ * the element will be removed. All context URLs must have been resolved
+ * before calling this method.
  *
  * @param ctx the context to use.
- * @param property the expanded property for the value, null for none.
- * @param value the value to expand.
+ * @param property the property for the element, null for none.
+ * @param element the element to expand.
+ * @param propertyIsList true if the property is a list, false if not.
  *
  * @return the expanded value.
  */
-Processor.prototype.expand = function(ctx, property, value) {
-  // nothing to expand when value is null
-  if(value === null) {
-    return null;
-  }
-
-  // if no property is specified and the value is a string (this means the
-  // value is a property itself), expand to an IRI
-  if(property === null && _isString(value)) {
-    return _expandTerm(ctx, value);
-  }
-
-  // recursively expand array and @list
-  var isList = _isListValue(value);
-  if(_isArray(value) || isList) {
-    // get array from @list
-    if(isList) {
-      value = value['@list'];
-
-      // nothing to expand in null case
-      if(value === null) {
-        return null;
-      }
-
-      // invalid input if @list points at a non-array
-      if(!_isArray(value)) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; "@list" value must be an array or null.',
-          'jsonld.SyntaxError');
-      }
-    }
-
-    // recurse through array
+Processor.prototype.expand = function(ctx, property, element, propertyIsList) {
+  // recursively expand array
+  if(_isArray(element)) {
     var rval = [];
-    for(var i in value) {
-      var val = value[i];
-      if(_isArray(val)) {
+    for(var i in element) {
+      // expand element
+      var e = this.expand(ctx, property, element[i], propertyIsList);
+      if(_isArray(e) && propertyIsList) {
+        // lists of lists are illegal
         throw new JsonLdError(
-          'Invalid JSON-LD syntax; arrays of arrays are not permitted.',
+          'Invalid JSON-LD syntax; lists of lists are not permitted.',
           'jsonld.SyntaxError');
       }
-      // expand value and add if non-null
-      val = this.expand(ctx, property, val);
-      if(val !== null) {
-        rval.push(val);
-      }
-    }
-
-    // use @list if previously used or if @context indicates it is one
-    if(property !== null) {
-      var prop = _compactIri(ctx, property);
-      var container = jsonld.getContextValue(ctx, prop, '@container');
-      isList = isList || (container === '@list');
-      if(isList) {
-        rval = {'@list': rval};
+      // drop null values
+      else if(e !== null) {
+        rval.push(e);
       }
     }
     return rval;
-  }
-
-  // optimize away use of @set
-  if(_isSetValue(value)) {
-    return this.expand(ctx, property, value['@set']);
   }
 
   // recursively expand object
-  if(_isObject(value)) {
-    // determine if value is a subject
-    var isSubject = _isSubject(value) || (property === null);
-
-    // if value has a context, merge it in
-    if('@context' in value) {
-      ctx = this.mergeContexts(ctx, value['@context']);
+  if(_isObject(element)) {
+    // if element has a context, merge it in
+    if('@context' in element) {
+      ctx = this.mergeContexts(ctx, element['@context']);
+      delete element['@context'];
     }
 
-    // optimize away use of @graph
+    // get keyword aliases
     var keywords = _getKeywords(ctx);
-    var kwgraph = keywords['@graph'];
-    if('@graph' in value) {
-      return this.expand(ctx, property, value['@graph']);
-    }
 
-    // recurse into object
     var rval = {};
-    for(var key in value) {
-      // expand non-context
-      if(key !== '@context') {
-        // expand property
-        var prop = _expandTerm(ctx, key);
+    for(var key in element) {
+      // expand property
+      var prop = _expandTerm(ctx, key);
 
-        // drop non-absolute IRI keys that aren't keywords
-        if(!_isAbsoluteIri(prop) && !(prop in keywords)) {
-          continue;
-        }
+      // drop non-absolute IRI keys that aren't keywords
+      if(!_isAbsoluteIri(prop) && !_isKeyword(keywords, prop)) {
+        continue;
+      }
 
-        // syntax error if @id is not a string
-        if(prop === '@id' && !_isString(value[key])) {
+      // if value is null and property is not @value, continue
+      var value = element[key];
+      if(value === null && prop !== '@value') {
+        continue;
+      }
+
+      // syntax error if @id is not a string
+      if(prop === '@id' && !_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@id" value must a string.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @type must be a string, array of strings, or an empty JSON object
+      if(prop === '@type' &&
+        !(_isString(value) || _isArrayOfStrings(value) ||
+        _isEmptyObject(value))) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@type" value must a string, an array ' +
+          'of strings, or an empty object.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @graph must be an array or an object
+      if(prop === '@graph' && !(_isObject(value) || _isArray(value))) {
+        throw new JsonLdError(
+            'Invalid JSON-LD syntax; "@value" value must not be an ' +
+            'object or an array.',
+            'jsonld.SyntaxError', {value: value});
+      }
+
+      // @value must not be an object or an array
+      if(prop === '@value' && (_isObject(value) || _isArray(value))) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@value" value must not be an ' +
+          'object or an array.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @language must be a string
+      if(prop === '@language' && !_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@language" value must not be a string.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // recurse into @list, @set, or @graph, keeping the active property
+      var isList = (prop === '@list');
+      if(isList || prop === '@set' || prop === '@graph') {
+        value = this.expand(ctx, property, value, isList);
+        if(isList && _isListValue(value)) {
           throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@id" value must a string.',
+            'Invalid JSON-LD syntax; lists of lists are not permitted.',
             'jsonld.SyntaxError');
         }
+      }
+      else {
+        // update active property and recursively expand value
+        property = key;
+        value = this.expand(ctx, property, value, false);
+      }
 
-        // expand value
-        var val = this.expand(ctx, prop, value[key]);
-
-        // preserve empty arrays
-        if(_isArray(val) && val.length === 0 && !(prop in rval)) {
-          rval[prop] = [];
+      // drop null values if property is not @value (dropped below)
+      if(value !== null || prop === '@value') {
+        // convert value to @list if container specifies it
+        if(prop !== '@list' && !_isListValue(value)) {
+          var container = jsonld.getContextValue(ctx, property, '@container');
+          if(container === '@list') {
+            // ensure value is an array
+            value = _isArray(value) ? value : [value];
+            value = {'@list': value};
+          }
         }
 
-        // add non-null expanded value
-        if(val !== null) {
-          // always use array for subjects except for @id key and @list
-          var useArray = isSubject && (prop !== '@id') && !_isListValue(val);
-          jsonld.addValue(rval, prop, val, useArray);
-        }
+        // add value, use an array if not @id, @type, @value, or @language
+        var useArray = !(prop === '@id' || prop === '@type' ||
+          prop === '@value' || prop === '@language');
+        jsonld.addValue(rval, prop, value, useArray);
       }
     }
+
+    // get property count on expanded output
+    var count = Object.keys(rval).length;
+
+    // @value must only have @language or @type
+    if('@value' in rval) {
+      if((count === 2 && !('@type' in rval) && !('@language' in rval)) ||
+        count > 2) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; an element containing "@value" must have ' +
+          'at most one other property which can be "@type" or "@language".',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // value @type must be a string
+      if('@type' in rval && !_isString(rval['@type'])) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; the "@type" value of an element ' +
+          'containing "@value" must be a string.',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // return only the value of @value if there is no @type or @language
+      else if(count === 1) {
+        rval = rval['@value'];
+      }
+      // drop null @values
+      else if(rval['@value'] === null) {
+        rval = null;
+      }
+    }
+    // convert @type to an array
+    else if('@type' in rval && !_isArray(rval['@type'])) {
+      rval['@type'] = [rval['@type']];
+    }
+    // handle @set and @list
+    else if('@set' in rval || '@list' in rval) {
+      if(count !== 1) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; if an element has the property "@set" ' +
+          'or "@list", then it must be its only property.',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // optimize away @set
+      if('@set' in rval) {
+        rval = rval['@set'];
+      }
+    }
+    // drop objects with only @language
+    else if('@language' in rval && count === 1) {
+      rval = null;
+    }
+
     return rval;
   }
 
-  // expand value
-  return _expandValue(ctx, property, value);
+  // expand element according to value expansion rules
+  return _expandValue(ctx, property, element);
 };
 
 /**
  * Performs JSON-LD framing.
  *
- * @param input the compacted JSON-LD object to frame.
- * @param frame the JSON-LD frame to use.
- * @param ctx the input's context.
+ * @param input the expanded JSON-LD to frame.
+ * @param frame the expanded JSON-LD frame to use.
  * @param options the framing options.
  *
  * @return the framed output.
  */
-Processor.prototype.frame = function(input, frame, ctx, options) {
+Processor.prototype.frame = function(input, frame, options) {
   // create framing state
   var state = {
-    context: ctx,
-    keywords: _getKeywords(ctx),
     options: options,
-    subjects: {},
-    embeds: {}
+    subjects: {}
   };
 
   // produce a map of all subjects and name each bnode
-  var namer = new BlankNodeNamer('t');
-  _getFramingSubjects(state, input, namer);
+  var namer = new UniqueNamer('_:t');
+  _flatten(state.subjects, input, namer);
 
   // frame the subjects
   var framed = [];
@@ -1186,104 +1287,189 @@ Processor.prototype.frame = function(input, frame, ctx, options) {
  * Performs JSON-LD normalization.
  *
  * @param input the expanded JSON-LD object to normalize.
- *
- * @return the normalized output.
+ * @param callback(err, normalized) called once the operation completes.
  */
-Processor.prototype.normalize = function(input) {
-  var self = this;
-
+Processor.prototype.normalize = function(input, callback) {
   // get statements
-  var namer = new BlankNodeNamer('t');
+  var namer = new UniqueNamer('_:t');
   var bnodes = {};
   var subjects = {};
   _getStatements(input, namer, bnodes, subjects);
 
-  // create bnode name maps
-  var maps = [{}, {}];
+  // create canonical namer
+  namer = new UniqueNamer('_:c14n');
 
-  // initialize old map entries to 'z'
-  var oldMap = maps[0];
-  for(var bnode in bnodes) {
-    oldMap[bnode] = 'z';
+  // generates unique and duplicate hashes for bnodes
+  hashBlankNodes(Object.keys(bnodes));
+  function hashBlankNodes(unnamed) {
+    var nextUnnamed = [];
+    var duplicates = {};
+    var unique = {};
+
+    // hash statements for each unnamed bnode
+    setTimeout(function() {hashUnnamed(0);}, 0);
+    function hashUnnamed(i) {
+      if(i === unnamed.length) {
+        // done, name blank nodes
+        return nameBlankNodes(unique, duplicates, nextUnnamed);
+      }
+
+      // hash unnamed bnode
+      var bnode = unnamed[i];
+      var statements = bnodes[bnode];
+      var hash = _hashStatements(statements, namer);
+
+      // store hash as unique or a duplicate
+      if(hash in duplicates) {
+        duplicates[hash].push(bnode);
+        nextUnnamed.push(bnode);
+      }
+      else if(hash in unique) {
+        duplicates[hash] = [unique[hash], bnode];
+        nextUnnamed.push(unique[hash]);
+        nextUnnamed.push(bnode);
+        delete unique[hash];
+      }
+      else {
+        unique[hash] = bnode;
+      }
+
+      // hash next unnamed bnode
+      setTimeout(function() {hashUnnamed(i + 1);}, 0);
+    }
   }
 
-  // FIXME: do iterations asynchronously to allow other work to proceed
-
-  // do iterative hashing
-  var n = Object.keys(bnodes).length;
-  for(var i = 0; i <= n; ++i) {
-    // hash statements for all bnodes
-    for(var bnode in bnodes) {
-      var statements = bnodes[bnode];
-      _hashStatements(bnode, statements, maps[0], maps[1]);
+  // names unique hash bnodes
+  function nameBlankNodes(unique, duplicates, unnamed) {
+    // name unique bnodes in sorted hash order
+    var named = false;
+    var hashes = Object.keys(unique).sort();
+    for(var i in hashes) {
+      var bnode = unique[hashes[i]];
+      namer.getName(bnode);
+      named = true;
     }
 
-    // swap maps
-    var tmp = maps[1];
-    maps[0] = maps[1];
-    maps[1] = tmp;
+    // continue to hash bnodes if a bnode was assigned a name
+    if(named) {
+      hashBlankNodes(unnamed);
+    }
+    // name the duplicate hash bnodes
+    else {
+      nameDuplicates(duplicates);
+    }
   }
 
-  // name bnodes
-  namer = new BlankNodeNamer('c14n');
-  _nameBlankNode(bnodes, maps[0], namer, null);
+  // names duplicate hash bnodes
+  function nameDuplicates(duplicates) {
+    // enumerate duplicate hash groups in sorted order
+    var hashes = Object.keys(duplicates).sort();
 
-  // create JSON-LD array
-  var normalized = [];
+    // process each group
+    processGroup(0);
+    function processGroup(i) {
+      if(i === hashes.length) {
+        // done, create JSON-LD array
+        return createArray();
+      }
 
-  // add all bnodes
-  for(var id in bnodes) {
-    var name = namer.getName(id);
-    var bnode = {'@id': name};
+      // name each group member
+      var group = duplicates[hashes[i]];
+      var results = [];
+      nameGroupMember(group, 0);
+      function nameGroupMember(group, n) {
+        if(n === group.length) {
+          // name bnodes in hash order
+          results.sort(function(a, b) {
+            a = a.hash;
+            b = b.hash;
+            return (a < b) ? -1 : ((a > b) ? 1 : 0);
+          });
+          for(var r in results) {
+            // name all bnodes in path namer in key-entry order
+            // Note: key-order is preserved in javascript
+            for(var key in results[r].pathNamer.existing) {
+              namer.getName(key);
+            }
+          }
+          return processGroup(i + 1);
+        }
 
-    // add all property statements to bnode
-    var statements = bnodes[id];
-    for(var i in statements) {
-      var statement = statements[i];
-      if(statement.s === '_:a') {
+        // skip already-named bnodes
+        var bnode = group[n];
+        if(namer.isNamed(bnode)) {
+          return nameGroupMember(group, n + 1);
+        }
+
+        // hash bnode paths
+        var pathNamer = new UniqueNamer('_:t');
+        pathNamer.getName(bnode);
+        _hashPaths(bnodes, bnodes[bnode], namer, pathNamer,
+          function(err, result) {
+            if(err) {
+              return callback(err);
+            }
+            results.push(result);
+            nameGroupMember(group, n + 1);
+          });
+      }
+    };
+  }
+
+  // creates the normalized JSON-LD array
+  function createArray() {
+    var normalized = [];
+
+    // add all bnodes
+    for(var id in bnodes) {
+      // add all property statements to bnode
+      var name = namer.getName(id);
+      var bnode = {'@id': name};
+      var statements = bnodes[id];
+      for(var i in statements) {
+        var statement = statements[i];
+        if(statement.s === '_:a') {
+          var z = _getBlankNodeName(statement.o);
+          var o = z ? {'@id': namer.getName(z)} : statement.o;
+          jsonld.addValue(bnode, statement.p, o, true);
+        }
+      }
+      normalized.push(bnode);
+    }
+
+    // add all non-bnodes
+    for(var id in subjects) {
+      // add all statements to subject
+      var subject = {'@id': id};
+      var statements = subjects[id];
+      for(var i in statements) {
+        var statement = statements[i];
         var z = _getBlankNodeName(statement.o);
         var o = z ? {'@id': namer.getName(z)} : statement.o;
-        jsonld.addValue(bnode, statement.p, o, true);
+        jsonld.addValue(subject, statement.p, o, true);
       }
+      normalized.push(subject);
     }
 
-    normalized.push(bnode);
+    // sort normalized output by @id
+    normalized.sort(function(a, b) {
+      a = a['@id'];
+      b = b['@id'];
+      return (a < b) ? -1 : ((a > b) ? 1 : 0);
+    });
+
+    callback(null, normalized);
   }
-
-  // add all non-bnodes
-  for(var id in subjects) {
-    var subject = {'@id': id};
-
-    // add all statements to subject
-    var statements = subjects[id];
-    for(var i in statements) {
-      var statement = statements[i];
-      var z = _getBlankNodeName(statement.o);
-      var o = z ? {'@id': namer.getName(z)} : statement.o;
-      jsonld.addValue(subject, statement.p, o, true);
-    }
-
-    normalized.push(subject);
-  }
-
-  // sort normalized output by @id
-  normalized.sort(function(a, b) {
-    a = a['@id'];
-    b = b['@id'];
-    return (a < b) ? -1 : ((a > b) ? 1 : 0);
-  });
-
-  return normalized;
 };
 
 /**
- * Outputs the triples found in the given JSON-LD object.
+ * Outputs the RDF statements found in the given JSON-LD object.
  *
  * @param input the JSON-LD object.
- * @param callback(err, triple) called when a triple is output, with the last
- *          triple as null.
+ * @param callback(err, statement) called when a statement is output, with the
+ *          last statement as null.
  */
-Processor.prototype.triples = function(input, callback) {
+Processor.prototype.toRDF = function(input, callback) {
   // FIXME: implement
   callback(new JsonLdError('Not implemented', 'jsonld.NotImplemented'), null);
 };
@@ -1297,6 +1483,8 @@ Processor.prototype.triples = function(input, callback) {
  * @return the resulting merged context.
  */
 Processor.prototype.mergeContexts = function(ctx1, ctx2) {
+  // FIXME: consider using spec context processing rules instead
+
   // flatten array context
   if(_isArray(ctx1)) {
     ctx1 = this.mergeContexts({}, ctx1);
@@ -1316,19 +1504,26 @@ Processor.prototype.mergeContexts = function(ctx1, ctx2) {
     }
   }
   else if(_isObject(ctx2)) {
-    // if the ctx2 has a new definition for an IRI (possibly using a new
-    // key), then the old definition must be removed
+    // iterate over new keys
     for(var key in ctx2) {
-      var newIri = jsonld.getContextValue(ctx2, key, '@id');
+      // ensure @language is a string
+      if(key === '@language' && !_isString(ctx2[key])) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; @language must be a string.',
+          'jsonld.SyntaxError');
+      }
 
       // no IRI defined, skip
+      var newIri = jsonld.getContextValue(ctx2, key, '@id', false);
       if(newIri === null) {
         continue;
       }
 
+      // if the ctx2 has a new definition for an IRI (possibly using a new
+      // key), then the old definition must be removed
       for(var mkey in rval) {
         // matching IRI, remove old entry
-        if(newIri === jsonld.getContextValue(rval, mkey, '@id')) {
+        if(newIri === jsonld.getContextValue(rval, mkey, '@id', false)) {
           delete rval[mkey];
           break;
         }
@@ -1355,7 +1550,7 @@ Processor.prototype.mergeContexts = function(ctx1, ctx2) {
  * given context.
  *
  * @param ctx the context to use.
- * @param property the expanded property the value is associated with.
+ * @param property the property the value is associated with.
  * @param value the value to expand.
  *
  * @return the expanded value.
@@ -1365,13 +1560,13 @@ function _expandValue(ctx, property, value) {
   var rval = value;
 
   // special-case expand @id and @type (skips '@id' expansion)
-  if(property === '@id' || property === '@type') {
+  var prop = _expandTerm(ctx, property);
+  if(prop === '@id' || prop === '@type') {
     rval = _expandTerm(ctx, value);
   }
   else {
     // compact property to look for its type definition in the context
-    var prop = _compactIri(ctx, property);
-    var type = jsonld.getContextValue(ctx, prop, '@type');
+    var type = jsonld.getContextValue(ctx, property, '@type');
 
     // do @id expansion
     if(type === '@id') {
@@ -1380,6 +1575,13 @@ function _expandValue(ctx, property, value) {
     // other type
     else if(type !== null) {
       rval = {'@value': String(value), '@type': type};
+    }
+    // check for language tagging
+    else {
+      var language = jsonld.getContextValue(ctx, property, '@language');
+      if(language !== null) {
+        rval = {'@value': String(value), '@language': language};
+      }
     }
   }
 
@@ -1390,7 +1592,7 @@ function _expandValue(ctx, property, value) {
  * Recursively gets all statements from the given expanded JSON-LD input.
  *
  * @param input the valid expanded JSON-LD input.
- * @param namer the BlankNodeNamer to use when encountering blank nodes.
+ * @param namer the UniqueNamer to use when encountering blank nodes.
  * @param bnodes the blank node statements map to populate.
  * @param subjects the subject statements map to populate.
  * @param [name] the name (@id) assigned to the current input.
@@ -1431,11 +1633,15 @@ function _getStatements(input, namer, bnodes, subjects, name) {
       }
 
       var objects = input[p];
-      var isList = _isListValue(objects);
-      if(isList) {
-        // convert @list array into embedded blank node linked list
-        objects = _makeLinkedList(objects);
+
+      // convert @lists into embedded blank node linked lists
+      for(var i in objects) {
+        var o = objects[i];
+        if(_isListValue(o)) {
+          objects[i] = _makeLinkedList(o);
+        }
       }
+
       for(var i in objects) {
         var o = objects[i];
 
@@ -1499,7 +1705,7 @@ function _getStatements(input, namer, bnodes, subjects, name) {
  *
  * @param value the @list value.
  *
- * @return the linked list of blank nodes.
+ * @return the head of the linked list of blank nodes.
  */
 function _makeLinkedList(value) {
   // convert @list array into embedded blank node linked list
@@ -1518,7 +1724,7 @@ function _makeLinkedList(value) {
     tail = e;
   }
 
-  return [tail];
+  return tail;
 }
 
 /**
@@ -1540,15 +1746,14 @@ function _addStatement(statements, statement) {
 }
 
 /**
- * Hashes all of the statements about the given blank node, generating a
- * new hash for it.
+ * Hashes all of the statements about a blank node.
  *
- * @param bnode the bnode @id to generate the new hash for.
  * @param statements the statements about the bnode.
- * @param oldMap the old map of hashes for adjacent blank nodes.
- * @param newMap the new map to store the new hash in.
+ * @param namer the canonical bnode namer.
+ *
+ * @return the new hash.
  */
-function _hashStatements(bnode, statements, oldMap, newMap) {
+function _hashStatements(statements, namer) {
   // serialize all statements
   var triples = [];
   for(var i in statements) {
@@ -1559,27 +1764,30 @@ function _hashStatements(bnode, statements, oldMap, newMap) {
 
     // serialize subject
     if(statement.s === '_:a') {
-      triple += '_:a ';
+      triple += '_:a';
     }
     else if(statement.s.indexOf('_:') === 0) {
-      var hash = oldMap[statement.s];
-      triple += '_:' + hash + ' ';
+      var id = statement.s;
+      id = namer.isNamed(id) ? namer.getName(id) : '_:z';
+      triple += id;
     }
     else {
       triple += '<' + statement.s + '>';
     }
 
     // serialize property
-    triple += '<' + statement.p + '> ';
+    var p = (statement.p === '@type') ? RDF.type : statement.p;
+    triple += ' <' + p + '> ';
 
     // serialize object
     if(_isBlankNode(statement.o)) {
       if(statement.o['@id'] === '_:a') {
-        triple += '_:a ';
+        triple += '_:a';
       }
       else {
-        var hash = oldMap[statement.o['@id']];
-        triple += '_:' + hash + ' ';
+        var id = statement.o['@id'];
+        id = namer.isNamed(id) ? namer.getName(id) : '_:z';
+        triple += id;
       }
     }
     else if(_isString(statement.o)) {
@@ -1607,82 +1815,182 @@ function _hashStatements(bnode, statements, oldMap, newMap) {
   // sort serialized triples
   triples.sort();
 
-  // hash triples and store result in new map
-  newMap[bnode] = sha1.hash(triples);
+  // return hashed triples
+  return sha1.hash(triples);
 }
 
 /**
- * Recursively canonically names blank nodes.
+ * Produces a hash for the paths of adjacent bnodes for a bnode,
+ * incorporating all information about its subgraph of bnodes. This
+ * method will recursively pick adjacent bnode permutations that produce the
+ * lexicographically-least 'path' serializations.
  *
- * @param bnodes the statements about blank nodes.
- * @param map the map of bnode name => hash.
- * @param namer the blank node namer.
- * @param bnode the next bnode to name, null if this is the root call.
+ * @param bnodes the map of bnode statements.
+ * @param statements the statements for the bnode to produce the hash for.
+ * @param namer the canonical bnode namer.
+ * @param pathNamer the namer used to assign names to adjacent bnodes.
+ * @param callback(err, result) called once the operation completes.
  */
-function _nameBlankNode(bnodes, map, namer, bnode) {
-  // skip blank nodes that are already named
-  if(bnode !== null && namer.isNamed(bnode)) {
-    return;
-  }
+function _hashPaths(bnodes, statements, namer, pathNamer, callback) {
+  // create SHA-1 digest
+  var md = sha1.create();
 
-  if(bnode === null) {
-    // get all hashes
-    var hashes = [];
-    for(var bnode in map) {
-      var hash = map[bnode];
-      hashes.push({hash: hash, bnode: bnode});
+  // group adjacent bnodes by hash, keep properties and references separate
+  var groups = {};
+  var cache = {};
+  var groupHashes;
+  setTimeout(function() {groupNodes(0);}, 0);
+  function groupNodes(i) {
+    if(i === statements.length) {
+      // done, hash groups
+      groupHashes = Object.keys(groups).sort();
+      return hashGroup(0);
     }
 
-    // sort hashes
-    hashes.sort(function(a, b) {
-      return (a.hash < b.hash) ? -1 : ((a.hash > b.hash) ? 1 : 0);
-    });
-  }
-  else {
-    // name blank node
-    namer.getName(bnode);
-
-    // get hashes from statements for the blank node, separated into
-    // different lists for properties vs. references
-    var props = [];
-    var refs = [];
-    var statements = bnodes[bnode];
-    for(var i in statements) {
-      var statement = statements[i];
-      var list = null;
-      // try to get blank node in object position
+    var statement = statements[i];
+    var bnode = null;
+    var direction = null;
+    if(statement.s !== '_:a' && statement.s.indexOf('_:') === 0) {
+      bnode = statement.s;
+      direction = 'p';
+    }
+    else {
       bnode = _getBlankNodeName(statement.o);
-      if(bnode !== null) {
-        list = props;
+      direction = 'r';
+    }
+
+    if(bnode) {
+      // get bnode name (try canonical, path, then hash)
+      var name;
+      if(namer.isNamed(bnode)) {
+        name = namer.getName(bnode);
+      }
+      else if(pathNamer.isNamed(bnode)) {
+        name = pathNamer.getName(bnode);
+      }
+      else if(bnode in cache) {
+        name = cache[bnode];
       }
       else {
-        // try to get blank node in subject position
-        bnode = _getBlankNodeName(statement.s);
-        if(bnode !== null) {
-          list = refs;
-        }
+        name = _hashStatements(bnodes[bnode], namer);
+        cache[bnode] = name;
       }
-      if(list) {
-        var hash = map[bnode];
-        list.push({hash: hash, bnode: bnode});
+
+      // hash direction, property, and bnode name/hash
+      var md = sha1.create();
+      md.update(direction);
+      md.update((statement.p === '@type') ? RDF.type : statement.p);
+      md.update(name);
+      var groupHash = md.digest();
+
+      // add bnode to hash group
+      if(groupHash in groups) {
+        groups[groupHash].push(bnode);
+      }
+      else {
+        groups[groupHash] = [bnode];
       }
     }
 
-    // sort hash lists independently
-    props.sort(function(a, b) {
-      return (a.hash < b.hash) ? -1 : ((a.hash > b.hash) ? 1 : 0);
-    });
-    refs.sort(function(a, b) {
-      return (a.hash < b.hash) ? -1 : ((a.hash > b.hash) ? 1 : 0);
-    });
-
-    // concatenate lists
-    var hashes = props.concat(refs);
+    setTimeout(function() {groupNodes(i + 1);}, 0);
   }
 
-  // recursively name blank nodes
-  for(var i in hashes) {
-    _nameBlankNode(bnodes, map, namer, hashes[i].bnode);
+  // hashes a group of adjacent bnodes
+  function hashGroup(i) {
+    if(i === groupHashes.length) {
+      // done, return SHA-1 digest and path namer
+      return callback(null, {hash: md.digest(), pathNamer: pathNamer});
+    }
+
+    // digest group hash
+    var groupHash = groupHashes[i];
+    md.update(groupHash);
+
+    // choose a path and namer from the permutations
+    var chosenPath = null;
+    var chosenNamer = null;
+    var permutator = new Permutator(groups[groupHash]);
+    setTimeout(function() {permutate();}, 0);
+    function permutate() {
+      var permutation = permutator.next();
+      var pathNamerCopy = pathNamer.clone();
+
+      // build adjacent path
+      var path = '';
+      var recurse;
+      for(var n in permutation) {
+        var bnode = permutation[n];
+        recurse = [];
+
+        // use canonical name if available
+        if(namer.isNamed(bnode)) {
+          path += namer.getName(bnode);
+        }
+        else {
+          // recurse if bnode isn't named in the path yet
+          if(!pathNamerCopy.isNamed(bnode)) {
+            recurse.push(bnode);
+          }
+          path += pathNamerCopy.getName(bnode);
+        }
+
+        // skip permutation if path is already >= chosen path
+        if(chosenPath !== null && path.length >= chosenPath.length &&
+          path > chosenPath) {
+          return nextPermutation(true);
+        }
+      }
+
+      // does the next recursion
+      nextRecursion(0);
+      function nextRecursion(n) {
+        if(n === recurse.length) {
+          // done, do next permutation
+          return nextPermutation(false);
+        }
+
+        // do recursion
+        var bnode = recurse[n];
+        _hashPaths(bnodes, bnodes[bnode], namer, pathNamerCopy,
+          function(err, result) {
+            if(err) {
+              return callback(err);
+            }
+            path += pathNamerCopy.getName(bnode) + '<' + result.hash + '>';
+            pathNamerCopy = result.pathNamer;
+
+            // skip permutation if path is already >= chosen path
+            if(chosenPath !== null && path.length >= chosenPath.length &&
+              path > chosenPath) {
+              return nextPermutation(true);
+            }
+
+            // do next recursion
+            nextRecursion(n + 1);
+          });
+      }
+
+      // stores the results of this permutation and runs the next
+      function nextPermutation(skipped) {
+        if(!skipped && (chosenPath === null || path < chosenPath)) {
+          chosenPath = path;
+          chosenNamer = pathNamerCopy;
+        }
+
+        // do next permutation
+        if(permutator.hasNext()) {
+          setTimeout(function() {permutate();}, 0);
+        }
+        else {
+          // digest chosen path and update namer
+          md.update(chosenPath);
+          pathNamer = chosenNamer;
+
+          // hash the next group
+          hashGroup(i + 1);
+        }
+      }
+    }
   }
 }
 
@@ -1701,121 +2009,88 @@ function _getBlankNodeName(value) {
 }
 
 /**
- * Recursively gets the subjects in the given JSON-LD compact input for use
- * in the framing algorithm.
+ * Recursively flattens the subjects in the given JSON-LD expanded input.
  *
- * @param state the current framing state.
- * @param input the JSON-LD compact input.
+ * @param subjects a map of subject @id to subject.
+ * @param input the JSON-LD expanded input.
  * @param namer the blank node namer.
  * @param name the name assigned to the current input if it is a bnode.
+ * @param list the list to append to, null for none.
  */
-function _getFramingSubjects(state, input, namer, name) {
-  var kwgraph = state.keywords['@graph'];
-  var kwid = state.keywords['@id'];
-  var kwlist = state.keywords['@list'];
-
+function _flatten(subjects, input, namer, name, list) {
   // recurse through array
   if(_isArray(input)) {
     for(var i in input) {
-      _getFramingSubjects(state, input[i], namer);
+      _flatten(subjects, input[i], namer, undefined, list);
     }
   }
-  // recurse through @graph
-  else if(_isObject(input) && (kwgraph in input)) {
-    _getFramingSubjects(state, input[kwgraph], namer);
-  }
-  // input is a subject
+  // handle subject
   else if(_isObject(input)) {
+    // add value to list
+    if(_isValue(input) && list) {
+      list.push(input);
+      return;
+    }
+
     // get name for subject
     if(_isUndefined(name)) {
-      name = _isBlankNode(input, state.keywords) ?
-        namer.getName(input[kwid]) : input[kwid];
+      name = _isBlankNode(input) ? namer.getName(input['@id']) : input['@id'];
+    }
+
+    // add subject reference to list
+    if(list) {
+      list.push({'@id': name});
     }
 
     // create new subject or merge into existing one
-    var subject = state.subjects[name] = state.subjects[name] || {};
+    var subject = subjects[name] = subjects[name] || {};
+    subject['@id'] = name;
     for(var prop in input) {
-      // use assigned name for @id
-      if(_isKeyword(state.keywords, prop, '@id')) {
-        subject[prop] = name;
+      // skip @id
+      if(prop === '@id') {
         continue;
       }
 
       // copy keywords
-      if(_isKeyword(state.keywords, prop)) {
-        subject[prop] = _clone(input[prop]);
+      if(_isKeyword(null, prop)) {
+        subject[prop] = input[prop];
         continue;
       }
 
-      // determine if property @type is @id
-      var isId = _isKeyword(state.keywords,
-        jsonld.getContextValue(state.context, prop, '@type'), '@id');
-
-      // normalize objects to array
+      // iterate over objects
       var objects = input[prop];
-      // preserve list
-      if(_isListValue(objects, state.keywords)) {
-        jsonld.addValue(subject, prop, {kwlist: []});
-        objects = objects[kwlist];
-      }
-      var useArray = _isArray(objects);
-      objects = useArray ? objects : [objects];
       for(var i in objects) {
         var o = objects[i];
 
-        // determine if property
-
-        // get subject @id from expanded or compact form
-        var sid = null;
-        if(_isSubject(o, state.keywords) ||
-          _isSubjectReference(o, state.keywords)) {
-          sid = o[kwid];
-        }
-        else if(_isString(o) && isId) {
-          sid = o;
-          o = {};
-          o[kwid] = sid;
-        }
-
-        // regular subject
-        if(sid !== null && (kwid in o) && sid.indexOf('_:') !== 0) {
-          // add a reference, use an array
-          var ref;
-          if(isId) {
-            ref = sid;
+        // handle embedded subject or subject reference
+        if(_isSubject(o) || _isSubjectReference(o)) {
+          // rename blank node @id
+          var id = ('@id' in o) ? o['@id'] : '_:';
+          if(id.indexOf('_:') === 0) {
+            id = namer.getName(id);
           }
-          else {
-            ref = {};
-            ref[kwid] = sid;
-          }
-          jsonld.addValue(subject, prop, ref, useArray);
 
-          // recurse
-          _getFramingSubjects(state, o, namer);
-        }
-        // blank node subject
-        else if(sid !== null) {
-          // add a reference
-          var oName = namer.getName(sid);
-          var ref;
-          if(isId) {
-            ref = oName;
-          }
-          else {
-            ref = {};
-            ref[kwid] = oName;
-          }
-          jsonld.addValue(subject, prop, ref, useArray);
-
-          // recurse
-          _getFramingSubjects(state, o, namer, oName);
+          // add reference and recurse
+          jsonld.addValue(subject, prop, {'@id': id}, true);
+          _flatten(subjects, o, namer, id, null);
         }
         else {
-          // add value
-          jsonld.addValue(subject, prop, o, useArray);
+          // recurse into list
+          if(_isListValue(o)) {
+            var l = [];
+            _flatten(subjects, o['@list'], namer, name, l);
+            o = {'@list': l};
+          }
+
+          // add non-subject
+          jsonld.addValue(subject, prop, o, true);
         }
       }
     }
+  }
+  // add non-object to list
+  else if(list) {
+    list.push(input);
   }
 }
 
@@ -1826,28 +2101,33 @@ function _getFramingSubjects(state, input, namer, name) {
  * @param subjects the subjects to filter.
  * @param frame the frame.
  * @param parent the parent subject or top-level array.
- * @param property the parent property, null for an array parent.
+ * @param property the parent property, initialized to null.
  */
 function _frame(state, subjects, frame, parent, property) {
   // validate the frame
   _validateFrame(state, frame);
+  frame = frame[0];
 
   // filter out subjects that match the frame
   var matches = _filterSubjects(state, subjects, frame);
 
   // get flags for current frame
   var options = state.options;
-  var embedOn = _getFrameFlag(state, frame, options, 'embed');
-  var explicitOn = _getFrameFlag(state, frame, options, 'explicit');
-
-  // get keyword for @id
-  var kwid = state.keywords['@id'];
+  var embedOn = _getFrameFlag(frame, options, 'embed');
+  var explicitOn = _getFrameFlag(frame, options, 'explicit');
 
   // add matches to output
   for(var id in matches) {
+    /* Note: In order to treat each top-level match as a compartmentalized
+    result, create an independent copy of the embedded subjects map when the
+    property is null, which only occurs at the top-level. */
+    if(property === null) {
+      state.embeds = {};
+    }
+
     // start output
     var output = {};
-    output[kwid] = id;
+    output['@id'] = id;
 
     // prepare embed meta info
     var embed = {parent: parent, property: property};
@@ -1892,7 +2172,7 @@ function _frame(state, subjects, frame, parent, property) {
       var subject = matches[id];
       for(var prop in subject) {
         // copy keywords to output
-        if(_isKeyword(state.keywords, prop)) {
+        if(_isKeyword(null, prop)) {
           output[prop] = _clone(subject[prop]);
           continue;
         }
@@ -1906,34 +2186,39 @@ function _frame(state, subjects, frame, parent, property) {
           continue;
         }
 
-        // determine if property @type is @id
-        var isId = _isKeyword(state.keywords,
-          jsonld.getContextValue(state.context, prop, '@type'), '@id');
-
         // add objects
         var objects = subject[prop];
-        // preserve list
-        if(_isListValue(objects, state.keywords)) {
-          jsonld.addValue(output, prop, {'@list': []});
-          objects = objects['@list'];
-        }
-        objects = _isArray(objects) ? objects : [objects];
         for(var i in objects) {
           var o = objects[i];
 
-          // get subject @id from expanded or compact form
-          var sid = null;
-          if(_isSubjectReference(o, state.keywords)) {
-            sid = o[kwid];
-          }
-          else if(_isString(o) && isId) {
-            sid = o;
+          // recurse into list
+          if(_isListValue(o)) {
+            // add empty list
+            var list = {'@list': []};
+            _addFrameOutput(state, output, prop, list);
+
+            // add list objects
+            var src = o['@list'];
+            for(var n in src) {
+              o = src[n];
+              // recurse into subject reference
+              if(_isSubjectReference(o)) {
+                var _subjects = {};
+                _subjects[o['@id']] = o;
+                _frame(state, _subjects, frame[prop], list, '@list');
+              }
+              // include other values automatically
+              else {
+                _addFrameOutput(state, list, '@list', _clone(o));
+              }
+            }
+            continue;
           }
 
-          // recurse into sub-subjects
-          if(sid !== null) {
+          // recurse into subject reference
+          if(_isSubjectReference(o)) {
             var _subjects = {};
-            _subjects[sid] = o;
+            _subjects[o['@id']] = o;
             _frame(state, _subjects, frame[prop], output, prop);
           }
           // include other values automatically
@@ -1943,33 +2228,23 @@ function _frame(state, subjects, frame, parent, property) {
         }
       }
 
-      var kwdefault = state.keywords['@default'];
+      // handle defaults
       for(var prop in frame) {
         // skip keywords
-        if(_isKeyword(state.keywords, prop)) {
+        if(_isKeyword(null, prop)) {
           continue;
         }
 
         // if omit default is off, then include default values for properties
         // that appear in the next frame but are not in the matching subject
-        var next = frame[prop];
-        var omitDefaultOn = _getFrameFlag(state, next, options, 'omitDefault');
+        var next = frame[prop][0];
+        var omitDefaultOn = _getFrameFlag(next, options, 'omitDefault');
         if(!omitDefaultOn && !(prop in output)) {
-          if(kwdefault in next) {
-            output[prop] = _clone(next[kwdefault]);
+          var preserve = '@null';
+          if('@default' in next) {
+            preserve = _clone(next['@default']);
           }
-          // no frame @default, use [] for @set/@list and null otherwise
-          else {
-            var container = jsonld.getContextValue(
-              state.context, prop, '@container');
-            if(_isKeyword(state.keywords, container, '@set') ||
-              _isKeyword(state.keywords, container, '@list')) {
-              output[prop] = [];
-            }
-            else {
-              output[prop] = null;
-            }
-          }
+          output[prop] = {'@preserve': preserve};
         }
       }
 
@@ -1982,16 +2257,15 @@ function _frame(state, subjects, frame, parent, property) {
 /**
  * Gets the frame flag value for the given flag name.
  *
- * @param state the current framing state.
  * @param frame the frame.
  * @param options the framing options.
  * @param name the flag name.
  *
  * @return the flag value.
  */
-function _getFrameFlag(state, frame, options, name) {
-  var kw = state.keywords['@' + name];
-  return (kw in frame) ? frame[kw] : options[name];
+function _getFrameFlag(frame, options, name) {
+  var flag = '@' + name;
+  return (flag in frame) ? frame[flag][0] : options[name];
 };
 
 /**
@@ -2001,9 +2275,9 @@ function _getFrameFlag(state, frame, options, name) {
  * @param frame the frame to validate.
  */
 function _validateFrame(state, frame) {
-  if(!_isObject(frame)) {
+  if(!_isArray(frame) || frame.length !== 1 || !_isObject(frame[0])) {
     throw new JsonLdError(
-      'Invalid JSON-LD syntax; a JSON-LD frame must be an object.',
+      'Invalid JSON-LD syntax; a JSON-LD frame must be a single object.',
       'jsonld.SyntaxError',
       {frame: frame});
   }
@@ -2022,7 +2296,7 @@ function _filterSubjects(state, subjects, frame) {
   var rval = {};
   for(var id in subjects) {
     var subject = state.subjects[id];
-    if(_filterSubject(state, subject, frame)) {
+    if(_filterSubject(subject, frame)) {
       rval[id] = subject;
     }
   }
@@ -2032,46 +2306,33 @@ function _filterSubjects(state, subjects, frame) {
 /**
  * Returns true if the given subject matches the given frame.
  *
- * @param state the current frame state.
  * @param subject the subject to check.
  * @param frame the frame to check.
  *
  * @return true if the subject matches, false if not.
  */
-function _filterSubject(state, subject, frame) {
-  var rval = false;
-
-  // check @type
-  var kwtype = state.keywords['@type'];
-  if(kwtype in frame && !_isObject(frame[kwtype])) {
-    // normalize to array
-    var types = frame[kwtype];
-    types = _isArray(types) ? types : [types];
+function _filterSubject(subject, frame) {
+  // check @type (object value means 'any' type, fall through to ducktyping)
+  if('@type' in frame &&
+    !(frame['@type'].length === 1 && _isObject(frame['@type'][0]))) {
+    var types = frame['@type'];
     for(var i in types) {
-      if(jsonld.hasValue(subject, kwtype, types[i])) {
-        rval = true;
-        break;
+      // any matching @type is a match
+      if(jsonld.hasValue(subject, '@type', types[i])) {
+        return true;
       }
     }
+    return false;
   }
+
   // check ducktype
-  else {
-    rval = true;
-    var kwid = state.keywords['@id'];
-    for(var key in frame) {
-      // skip non-@id keywords
-      if(key !== kwid && _isKeyword(state.keywords, key)) {
-        continue;
-      }
-
-      if(!(key in subject)) {
-        rval = false;
-        break;
-      }
+  for(var key in frame) {
+    // only not a duck if @id or non-keyword isn't in subject
+    if((key === '@id' || !_isKeyword(null, key)) && !(key in subject)) {
+      return false;
     }
   }
-
-  return rval;
+  return true;
 }
 
 /**
@@ -2084,42 +2345,34 @@ function _filterSubject(state, subject, frame) {
  * @param output the output.
  */
 function _embedValues(state, subject, property, output) {
-  var kwid = state.keywords['@id'];
-
-  // normalize to an array
+  // embed subject properties in output
   var objects = subject[property];
-  // preserve list
-  if(_isListValue(objects, state.keywords)) {
-    jsonld.addValue(output, property, {'@list': []});
-    objects = objects['@list'];
-  }
-  objects = _isArray(objects) ? objects : [objects];
   for(var i in objects) {
     var o = objects[i];
 
-    // get subject @id from expanded or compact form
-    var sid = null;
-    if(_isSubjectReference(o, state.keywords)) {
-      sid = o[kwid];
-    }
-    else if(_isString(o) && _isKeyword(state.keywords,
-      jsonld.getContextValue(state.context, property, '@type'), '@id')) {
-      sid = o;
+    // recurse into @list
+    if(_isListValue(o)) {
+      var list = {'@list': []};
+      _addFrameOutput(state, output, property, list);
+      return _embedValues(state, o, '@list', list['@list']);
     }
 
-    if(sid !== null) {
+    // handle subject reference
+    if(_isSubjectReference(o)) {
+      var id = o['@id'];
+
       // embed full subject if isn't already embedded
-      if(!(sid in state.embeds)) {
+      if(!(id in state.embeds)) {
         // add embed
         var embed = {parent: output, property: property};
-        state.embeds[sid] = embed;
+        state.embeds[id] = embed;
 
         // recurse into subject
         o = {};
-        var s = state.subjects[sid];
+        var s = state.subjects[id];
         for(var prop in s) {
           // copy keywords
-          if(_isKeyword(state.keywords, prop)) {
+          if(_isKeyword(null, prop)) {
             o[prop] = _clone(s[prop]);
             continue;
           }
@@ -2128,6 +2381,7 @@ function _embedValues(state, subject, property, output) {
       }
       _addFrameOutput(state, output, property, o);
     }
+    // copy non-subject value
     else {
       _addFrameOutput(state, output, property, _clone(o));
     }
@@ -2148,26 +2402,14 @@ function _removeEmbed(state, id) {
   var property = embed.property;
 
   // create reference to replace embed
-  var subject = {};
-  var ref;
-  var kwid = state.keywords['@id'];
-  if(property !== null && _isKeyword(state.keywords,
-    jsonld.getContextValue(state.context, property, '@type'), '@id')) {
-    ref = id;
-    subject[kwid] = id;
-  }
-  else {
-    ref = {};
-    ref[kwid] = id;
-    subject[kwid] = id;
-  }
+  var subject = {'@id': id};
 
   // remove existing embed
   if(_isArray(parent)) {
     // replace subject with reference
     for(var i in parent) {
       if(jsonld.compareValues(parent[i], subject)) {
-        parent[i] = ref;
+        parent[i] = subject;
         break;
       }
     }
@@ -2176,7 +2418,7 @@ function _removeEmbed(state, id) {
     // replace subject with reference
     var useArray = _isArray(parent[property]);
     jsonld.removeValue(parent, property, subject, useArray);
-    jsonld.addValue(parent, property, ref, useArray);
+    jsonld.addValue(parent, property, subject, useArray);
   }
 
   // recursively remove dependent dangling embeds
@@ -2186,7 +2428,7 @@ function _removeEmbed(state, id) {
     for(var i in ids) {
       var next = ids[i];
       if(next in embeds && _isObject(embeds[next].parent) &&
-        embeds[next].parent[kwid] === id) {
+        embeds[next].parent['@id'] === id) {
         delete embeds[next];
         removeDependents(next);
       }
@@ -2200,21 +2442,12 @@ function _removeEmbed(state, id) {
  *
  * @param state the current framing state.
  * @param parent the parent to add to.
- * @param property the parent property, null for an array parent.
+ * @param property the parent property.
  * @param output the output to add.
  */
 function _addFrameOutput(state, parent, property, output) {
   if(_isObject(parent)) {
-    // get keywords
-    var kwset = state.keywords['@set'];
-    var kwlist = state.keywords['@list'];
-    var kwcontainer = state.keywords['@container'];
-
-    // use an array if @container specifies it
-    var ctx = state.context;
-    var container = jsonld.getContextValue(ctx, property, kwcontainer);
-    var useArray = (container === kwset) || (container === kwlist);
-    jsonld.addValue(parent, property, output, useArray);
+    jsonld.addValue(parent, property, output, true);
   }
   else {
     parent.push(output);
@@ -2222,116 +2455,210 @@ function _addFrameOutput(state, parent, property, output) {
 }
 
 /**
- * Optimally type-compacts a value.
+ * Removes the @preserve keywords as the last step of the framing algorithm.
  *
- * @param ctx the current context.
- * @param property the compacted property associated with the value.
- * @param value the value to type-compact.
- * @param optimizeCtx the context used to store optimization definitions.
+ * @param input the framed, compacted output.
  *
- * @return the optimally type-compacted value.
+ * @return the resulting output.
  */
-function _optimalTypeCompact(ctx, property, value, optimizeCtx) {
-  // only arrays and objects can be further optimized
-  if(!_isArray(value) && !_isObject(value)) {
-    return value;
-  }
-
-  // if @type is already in the context, value is already optimized
-  if(jsonld.getContextValue(ctx, property, '@type')) {
-    return value;
-  }
-
-  // if every value is the same type, optimization is possible
-  var values = _isArray(value) ? value : [value];
-  var type = null;
-  for(var i = 0; i < values.length; ++i) {
-    // val can only be a subject reference or a @value with no @language
-    var val = values[i];
-    var vtype = null;
-    if(_canTypeCompact(val)) {
-      if(_isSubjectReference(val)) {
-        vtype = '@id';
-      }
-      // must be a @value with no @language
-      else if('@type' in val) {
-        vtype = val['@type'];
-      }
+function _removePreserve(input) {
+  // recurse through arrays
+  if(_isArray(input)) {
+    for(var i in input) {
+      input[i] = _removePreserve(input[i]);
     }
-
-    if(i === 0) {
-      type = vtype;
-    }
-
-    // no type or type difference, can't compact
-    if(type === null || !_compareTypes(type, vtype)) {
-      return value;
+    // drop null-only arrays
+    if(input.length === 1 && input[0] === null) {
+      input = [];
     }
   }
-
-  // all values have same type so can be compacted, add @type to context
-  jsonld.setContextValue(optimizeCtx, property, '@type', _clone(type));
-
-  // do compaction
-  if(_isArray(value)) {
-    for(var i in value) {
-      var val = value[i];
-      if(_isSubjectReference(value[i])) {
-        value[i] = val['@id'];
+  else if(_isObject(input)) {
+    // remove @preserve
+    if('@preserve' in input) {
+      if(input['@preserve'] === '@null') {
+        return null;
       }
-      else {
-        value[i] = val['@value'];
-      }
+      return input['@preserve'];
+    }
+
+    // skip @values
+    if(_isValue(input)) {
+      return input;
+    }
+
+    // recurse through @lists
+    if(_isListValue(input)) {
+      input['@list'] = _removePreserve(input['@list']);
+      return input;
+    }
+
+    // recurse through properties
+    for(var prop in input) {
+      input[prop] = _removePreserve(input[prop]);
     }
   }
-  else if(_isSubjectReference(value)) {
-    value = value['@id'];
-  }
-  else {
-    value = value['@value'];
-  }
-
-  return value;
+  return input;
 }
 
 /**
- * Compacts an IRI into a term or prefix if it can be.
+ * Compares two strings first based on length and then lexicographically.
+ *
+ * @param a the first string.
+ * @param b the second string.
+ *
+ * @return -1 if a < b, 1 if a > b, 0 if a == b.
+ */
+function _compareShortestLeast(a, b) {
+  if(a.length < b.length) {
+    return -1;
+  }
+  else if(b.length < a.length) {
+    return 1;
+  }
+  return (a < b) ? -1 : ((a > b) ? 1 : 0);
+}
+
+/**
+ * Checks to see if a context key's type definition best matches the
+ * given value and @container.
+ *
+ * @param ctx the context.
+ * @param key the context key to check.
+ * @param value the value to check.
+ * @param container the specific @container to match or null.
+ * @param result the resulting term or CURIE.
+ * @param results the results array.
+ * @param bestMatch the current bestMatch value.
+ *
+ * @return the new bestMatch value.
+ */
+function _isBestMatch(ctx, key, value, container, result, results, bestMatch) {
+  // value is null, match any key
+  if(value === null) {
+    results.push(result);
+    return bestMatch;
+  }
+
+  var valueIsList = _isListValue(value);
+  var valueHasType = ('@type' in value);
+  var language = ('@language' in value) ? value['@language'] : null;
+  var entry = jsonld.getContextValue(ctx, key);
+  if(_isString(entry)) {
+    entry = {'@id': entry};
+  }
+  var entryHasContainer = ('@container' in entry);
+  var entryType = jsonld.getContextValue(ctx, key, '@type');
+
+  // container with type or language
+  if(!valueIsList && entryHasContainer &&
+    (entry['@container'] === container ||
+      (entry['@container'] === '@set' && container === null)) &&
+    ((valueHasType && entryType === value['@type']) ||
+    (!valueHasType && entry['@language'] === language))) {
+    if(bestMatch < 3) {
+      bestMatch = 3;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // no container with type or language
+  else if(bestMatch < 3 &&
+    !entryHasContainer && !valueIsList &&
+    ((valueHasType && entryType === value['@type']) ||
+      (!valueHasType && entry['@language'] === language))) {
+    if(bestMatch < 2) {
+      bestMatch = 2;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // container with no type or language
+  else if(bestMatch < 2 &&
+    entryHasContainer &&
+    (entry['@container'] === container ||
+      (entry['@container'] === '@set' && container === null)) &&
+    !('@type' in entry) && !('@language' in entry)) {
+    if(bestMatch < 1) {
+      bestMatch = 1;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // no container, no type, no language
+  else if(bestMatch < 1 &&
+    !entryHasContainer && !('@type' in entry) && !('@language' in entry)) {
+    results.push(result);
+  }
+
+  return bestMatch;
+}
+
+/**
+ * Compacts an IRI or keyword into a term or prefix if it can be. If the
+ * IRI has an associated value, its @type, @language, and/or @container may
+ * be passed.
  *
  * @param ctx the context to use.
  * @param iri the IRI to compact.
+ * @param value the value to check or null.
+ * @param container the specific @container to match or null.
  *
  * @return the compacted IRI as a term or prefix or the original IRI.
  */
-function _compactIri(ctx, iri) {
+function _compactIri(ctx, iri, value, container) {
   // can't compact null
   if(iri === null) {
     return iri;
   }
 
-  // check the context for a term that could shorten the IRI
+  // if term is a keyword, use alias
+  if(_isKeyword(null, iri)) {
+    // pick shortest, least alias
+    var keywords = _getKeywords(ctx);
+    aliases = keywords[iri];
+    if(aliases.length > 0) {
+      aliases.sort(_compareShortestLeast);
+      return aliases[0];
+    }
+    else {
+      // no alias, keep original keyword
+      return iri;
+    }
+  }
+
+  // default value and container to null
+  if(_isUndefined(value)) {
+    value = null;
+  }
+  if(_isUndefined(container)) {
+    container = null;
+  }
+
+  // check the context for terms that could shorten the IRI
   // (give preference to terms over prefixes)
+  var terms = [];
+  var bestMatch = 0;
   for(var key in ctx) {
     // skip special context keys (start with '@')
     if(key.indexOf('@') === 0) {
       continue;
     }
-
-    // FIXME: there might be more than one choice, choose the most
-    // specific definition and if none is more specific, choose
-    // the lexicographically least term
     // compact to a term
     if(iri === jsonld.getContextValue(ctx, key, '@id')) {
-      return key;
+      bestMatch = _isBestMatch(
+        ctx, key, value, container, key, terms, bestMatch);
     }
   }
 
-  // term not found, if term is keyword, use alias
-  var keywords = _getKeywords(ctx);
-  if(iri in keywords) {
-    return keywords[iri];
+  if(terms.length > 0) {
+    // pick shortest, least term
+    terms.sort(_compareShortestLeast);
+    return terms[0];
   }
 
   // term not found, check the context for a prefix
+  var curies = [];
+  bestMatch = 0;
   for(var key in ctx) {
     // skip special context keys (start with '@')
     if(key.indexOf('@') === 0) {
@@ -2344,9 +2671,17 @@ function _compactIri(ctx, iri) {
       // compact to a prefix
       var idx = iri.indexOf(ctxIri);
       if(idx === 0 && iri.length > ctxIri.length) {
-        return key + ':' + iri.substr(ctxIri.length);
+        var curie = key + ':' + iri.substr(ctxIri.length);
+        bestMatch = _isBestMatch(
+          ctx, key, value, container, curie, curies, bestMatch);
       }
     }
+  }
+
+  if(curies.length > 0) {
+    // pick shortest, least curie
+    curies.sort(_compareShortestLeast);
+    return curies[0];
   }
 
   // could not compact IRI, return it as is
@@ -2365,10 +2700,15 @@ function _compactIri(ctx, iri) {
  * @return the expanded term as an absolute IRI.
  */
 function _expandTerm(ctx, term, deep) {
+  // nothing to expand
+  if(term === null) {
+    return null;
+  }
+
   // default to the term being fully-expanded or not in the context
   var rval = term;
 
-  // 1. If the property has a colon, it is a prefix or an absolute IRI:
+  // 1. If the term has a colon, it is a prefix or an absolute IRI:
   var idx = term.indexOf(':');
   if(idx !== -1) {
     // get the potential prefix
@@ -2377,19 +2717,19 @@ function _expandTerm(ctx, term, deep) {
     // expand term if prefix is in context, otherwise leave it be
     if(prefix in ctx) {
       // prefix found, expand property to absolute IRI
-      var iri = jsonld.getContextValue(ctx, prefix, '@id');
+      var iri = jsonld.getContextValue(ctx, prefix, '@id', false);
       rval = iri + term.substr(idx + 1);
     }
   }
-  // 2. If the property is in the context, then it's a term.
+  // 2. If the term is in the context, then it's a term.
   else if(term in ctx) {
     rval = jsonld.getContextValue(ctx, term, '@id', false);
   }
-  // 3. The property is a keyword or not in the context.
+  // 3. The term is a keyword or not in the context.
   else {
     var keywords = _getKeywords(ctx);
     for(var key in keywords) {
-      if(term === keywords[key]) {
+      if(keywords[key].indexOf(term) !== -1) {
         rval = key;
         break;
       }
@@ -2428,38 +2768,34 @@ function _expandTerm(ctx, term, deep) {
  */
 function _getKeywords(ctx) {
   var rval = {
-    '@context': '@context',
-    '@container': '@container',
-    '@default': '@default',
-    '@embed': '@embed',
-    '@explicit': '@explicit',
-    '@graph': '@graph',
-    '@id': '@id',
-    '@language': '@language',
-    '@list': '@list',
-    '@omitDefault': '@omitDefault',
-    '@set': '@set',
-    '@type': '@type',
-    '@value': '@value'
+    '@context': [],
+    '@container': [],
+    '@default': [],
+    '@embed': [],
+    '@explicit': [],
+    '@graph': [],
+    '@id': [],
+    '@language': [],
+    '@list': [],
+    '@omitDefault': [],
+    '@preserve': [],
+    '@set': [],
+    '@type': [],
+    '@value': []
   };
 
   if(ctx) {
     // gather keyword aliases from context
-    var keywords = {};
     for(var key in ctx) {
-      if(_isString(ctx[key]) && ctx[key] in rval) {
-        if(ctx[key] === '@context') {
+      var kw = ctx[key];
+      if(_isString(kw) && kw in rval) {
+        if(kw === '@context' || kw === '@preserve') {
           throw new JsonLdError(
-            'Invalid JSON-LD syntax; @context cannot be aliased.',
+            'Invalid JSON-LD syntax; @context and @preserve cannot be aliased.',
             'jsonld.SyntaxError');
         }
-        keywords[ctx[key]] = key;
+        rval[kw].push(key);
       }
-    }
-
-    // overwrite keywords
-    for(var key in keywords) {
-      rval[key] = keywords[key];
     }
   }
 
@@ -2469,32 +2805,40 @@ function _getKeywords(ctx) {
 /**
  * Returns whether or not the given value is a keyword (or a keyword alias).
  *
- * @param keywords the map of keyword aliases to check against.
+ * @param keywords the keyword alias map to check against, null for default.
  * @param value the value to check.
  * @param [specific] the specific keyword to check against.
  *
  * @return true if the value is a keyword, false if not.
  */
 function _isKeyword(keywords, value, specific) {
-  switch(value) {
-  case '@container':
-  case '@default':
-  case '@embed':
-  case '@explicit':
-  case '@graph':
-  case '@id':
-  case '@language':
-  case '@list':
-  case '@omitDefault':
-  case '@set':
-  case '@type':
-  case '@value':
-    return _isUndefined(specific) ? true : (value === specific);
-  default:
+  if(keywords) {
+    if(value in keywords) {
+      return _isUndefined(specific) ? true : (value === specific);
+    }
     for(var key in keywords) {
-      if(value === keywords[key]) {
+      if(keywords[key].indexOf(value) !== -1) {
         return _isUndefined(specific) ? true : (key === specific);
       }
+    }
+  }
+  else {
+    switch(value) {
+    case '@context':
+    case '@container':
+    case '@default':
+    case '@embed':
+    case '@explicit':
+    case '@graph':
+    case '@id':
+    case '@language':
+    case '@list':
+    case '@omitDefault':
+    case '@preserve':
+    case '@set':
+    case '@type':
+    case '@value':
+      return true;
     }
   }
   return false;
@@ -2512,6 +2856,17 @@ function _isObject(input) {
 }
 
 /**
+ * Returns true if the given input is an empty Object.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an empty Object, false if not.
+ */
+function _isEmptyObject(input) {
+  return _isObject(input) && Object.keys(input).length === 0;
+}
+
+/**
  * Returns true if the given input is an Array.
  *
  * @param input the input to check.
@@ -2520,6 +2875,25 @@ function _isObject(input) {
  */
 function _isArray(input) {
   return (input && input.constructor === Array);
+}
+
+/**
+ * Returns true if the given input is an Array of Strings.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Array of Strings, false if not.
+ */
+function _isArrayOfStrings(input) {
+  if(!_isArray(input)) {
+    return false;
+  }
+  for(var i in input) {
+    if(!_isString(input[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -2581,25 +2955,20 @@ function _isUndefined(input) {
  * Returns true if the given value is a subject with properties.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a subject with properties, false if not.
  */
-function _isSubject(value, keywords) {
+function _isSubject(value) {
   var rval = false;
 
   // Note: A value is a subject if all of these hold true:
   // 1. It is an Object.
   // 2. It is not a @value, @set, or @list.
   // 3. It has more than 1 key OR any existing key is not @id.
-  var kwvalue = keywords ? keywords['@value'] : '@value';
-  var kwset = keywords ? keywords['@set'] : '@set';
-  var kwlist = keywords ? keywords['@list'] : '@list';
-  var kwid = keywords ? keywords['@id'] : '@id';
   if(_isObject(value) &&
-    !((kwvalue in value) || (kwset in value) || (kwlist in value))) {
+    !(('@value' in value) || ('@set' in value) || ('@list' in value))) {
     var keyCount = Object.keys(value).length;
-    rval = (keyCount > 1 || !(kwid in value));
+    rval = (keyCount > 1 || !('@id' in value));
   }
 
   return rval;
@@ -2609,141 +2978,82 @@ function _isSubject(value, keywords) {
  * Returns true if the given value is a subject reference.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a subject reference, false if not.
  */
-function _isSubjectReference(value, keywords) {
+function _isSubjectReference(value) {
   // Note: A value is a subject reference if all of these hold true:
   // 1. It is an Object.
   // 2. It has a single key: @id.
-  var kwid = keywords ? keywords['@id'] : '@id';
-  return _isObject(value) && Object.keys(value).length === 1 && (kwid in value);
+  return (_isObject(value) && Object.keys(value).length === 1 &&
+    ('@id' in value));
 }
 
 /**
  * Returns true if the given value is a @value.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a @value, false if not.
  */
-function _isValue(value, keywords) {
+function _isValue(value) {
   // Note: A value is a @value if all of these hold true:
   // 1. It is an Object.
   // 2. It has the @value property.
-  var kwvalue = keywords ? keywords['@value'] : '@value';
-  return _isObject(value) && (kwvalue in value);
+  return _isObject(value) && ('@value' in value);
 }
 
 /**
  * Returns true if the given value is a @set.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a @set, false if not.
  */
-function _isSetValue(value, keywords) {
+function _isSetValue(value) {
   // Note: A value is a @set if all of these hold true:
   // 1. It is an Object.
   // 2. It has the @set property.
-  var kwset = keywords ? keywords['@set'] : '@set';
-  return _isObject(value) && (kwset in value);
+  return _isObject(value) && ('@set' in value);
 }
 
 /**
  * Returns true if the given value is a @list.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a @list, false if not.
  */
-function _isListValue(value, keywords) {
+function _isListValue(value) {
   // Note: A value is a @list if all of these hold true:
   // 1. It is an Object.
   // 2. It has the @list property.
-  var kwlist = keywords ? keywords['@list'] : '@list';
-  return _isObject(value) && (kwlist in value);
+  return _isObject(value) && ('@list' in value);
 }
 
 /**
  * Returns true if the given value is a blank node.
  *
  * @param value the value to check.
- * @param [keywords] the keywords map to use.
  *
  * @return true if the value is a blank node, false if not.
  */
-function _isBlankNode(value, keywords) {
+function _isBlankNode(value) {
   var rval = false;
   // Note: A value is a blank node if all of these hold true:
   // 1. It is an Object.
   // 2. If it has an @id key its value begins with '_:'.
   // 3. It has no keys OR is not a @value, @set, or @list.
-  var kwvalue = keywords ? keywords['@value'] : '@value';
-  var kwset = keywords ? keywords['@set'] : '@set';
-  var kwlist = keywords ? keywords['@list'] : '@list';
-  var kwid = keywords ? keywords['@id'] : '@id';
   if(_isObject(value)) {
-    if(kwid in value) {
-      rval = (value[kwid].indexOf('_:') === 0);
+    if('@id' in value) {
+      rval = (value['@id'].indexOf('_:') === 0);
     }
     else {
       rval = (Object.keys(value).length === 0 ||
-        !((kwvalue in value) || (kwset in value) || (kwlist in value)));
+        !(('@value' in value) || ('@set' in value) || ('@list' in value)));
     }
   }
   return rval;
-}
-
-/**
- * Returns true if the given value can be possibly compacted based on type.
- *
- * Subject references and @values can be possibly compacted, however, a @value
- * must not have a @language or type-compaction would cause data loss.
- *
- * @param value the value to check.
- *
- * @return true if the value can be possibly type-compacted, false if not.
- */
-function _canTypeCompact(value) {
-  // Note: It may be possible to type-compact a value if all these hold true:
-  // 1. It is an Object.
-  // 2. It is a subject reference OR a @value with no @language.
-  return (_isObject(value) && (_isSubjectReference(value) ||
-    (_isValue(value) && !('@language' in value))));
-}
-
-/**
- * Compares types for equality. The given types can be arrays or strings, and
- * it is assumed that they are all in the same expanded/compacted state. If
- * both types are the same or, in the case of arrays of types, if both type
- * arrays contain the same types, they are equal.
- *
- * @param type1 the first type(s) to compare.
- * @param type2 the second types(s) to compare.
- *
- * @return true if the types are equal, false if not.
- */
-function _compareTypes(type1, type2) {
-  // normalize to arrays
-  type1 = _isArray(type1) ? type1.sort() : [type1];
-  type2 = _isArray(type2) ? type2.sort() : [type2];
-
-  if(type1.length !== type2.length) {
-    return false;
-  }
-
-  for(var i in type1) {
-    if(type1[i] !== type2[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 /**
@@ -2754,7 +3064,7 @@ function _compareTypes(type1, type2) {
  * @return true if the value is an absolute IRI, false if not.
  */
 function _isAbsoluteIri(value) {
-  return /(\w+):\/\/(.+)/.test(value);
+  return (/\w+:\/\/.+/).test(value);
 }
 
 /**
@@ -2936,26 +3246,38 @@ if(!Object.keys) {
 }
 
 /**
- * Creates a new BlankNodeNamer. A BlankNodeNamer issues blank node names
- * to blank nodes, keeping track of any previously issued names.
+ * Creates a new UniqueNamer. A UniqueNamer issues unique names, keeping
+ * track of any previously issued names.
  *
- * @param prefix the prefix to use ('_:<prefix>').
+ * @param prefix the prefix to use ('<prefix><counter>').
  */
-var BlankNodeNamer = function(prefix) {
-  this.prefix = '_:' + prefix;
+var UniqueNamer = function(prefix) {
+  this.prefix = prefix;
   this.counter = 0;
   this.existing = {};
 };
 
 /**
- * Gets the new blank node name for the given old name, where if no old name
- * is given a new name will be generated.
+ * Copies this UniqueNamer.
+ *
+ * @return a copy of this UniqueNamer.
+ */
+UniqueNamer.prototype.clone = function() {
+  var copy = new UniqueNamer(this.prefix);
+  copy.counter = this.counter;
+  copy.existing = _clone(this.existing);
+  return copy;
+};
+
+/**
+ * Gets the new name for the given old name, where if no old name is given
+ * a new name will be generated.
  *
  * @param [oldName] the old name to get the new name for.
  *
  * @return the new name.
  */
-BlankNodeNamer.prototype.getName = function(oldName) {
+UniqueNamer.prototype.getName = function(oldName) {
   // return existing old name
   if(oldName && oldName in this.existing) {
     return this.existing[oldName];
@@ -2983,12 +3305,109 @@ BlankNodeNamer.prototype.getName = function(oldName) {
  *
  * @return true if the oldName has been assigned a new name, false if not.
  */
-BlankNodeNamer.prototype.isNamed = function(oldName) {
+UniqueNamer.prototype.isNamed = function(oldName) {
   return (oldName in this.existing);
+};
+
+/**
+ * A Permutator iterates over all possible permutations of the given array
+ * of elements.
+ *
+ * @param list the array of elements to iterate over.
+ */
+Permutator = function(list) {
+  // original array
+  this.list = list.sort();
+  // indicates whether there are more permutations
+  this.done = false;
+  // directional info for permutation algorithm
+  this.left = {};
+  for(var i in list) {
+    this.left[list[i]] = true;
+  }
+};
+
+/**
+ * Returns true if there is another permutation.
+ *
+ * @return true if there is another permutation, false if not.
+ */
+Permutator.prototype.hasNext = function() {
+  return !this.done;
+};
+
+/**
+ * Gets the next permutation. Call hasNext() to ensure there is another one
+ * first.
+ *
+ * @return the next permutation.
+ */
+Permutator.prototype.next = function() {
+  // copy current permutation
+  var rval = this.list.slice();
+
+  /* Calculate the next permutation using the Steinhaus-Johnson-Trotter
+   permutation algorithm. */
+
+  // get largest mobile element k
+  // (mobile: element is greater than the one it is looking at)
+  var k = null;
+  var pos = 0;
+  var length = this.list.length;
+  for(var i = 0; i < length; ++i) {
+    var element = this.list[i];
+    var left = this.left[element];
+    if((k === null || element > k) &&
+      ((left && i > 0 && element > this.list[i - 1]) ||
+      (!left && i < (length - 1) && element > this.list[i + 1]))) {
+      k = element;
+      pos = i;
+    }
+  }
+
+  // no more permutations
+  if(k === null) {
+    this.done = true;
+  }
+  else {
+    // swap k and the element it is looking at
+    var swap = this.left[k] ? pos - 1 : pos + 1;
+    this.list[pos] = this.list[swap];
+    this.list[swap] = k;
+
+    // reverse the direction of all elements larger than k
+    for(var i = 0; i < length; ++i) {
+      if(this.list[i] > k) {
+        this.left[this.list[i]] = !this.left[this.list[i]];
+      }
+    }
+  }
+
+  return rval;
 };
 
 // SHA-1 API
 var sha1 = jsonld.sha1 = {};
+
+if(_nodejs) {
+  var crypto = require('crypto');
+  sha1.create = function() {
+    var md = crypto.createHash('sha1');
+    return {
+      update: function(data) {
+        md.update(data, 'utf8');
+      },
+      digest: function() {
+        return md.digest('hex');
+      }
+    };
+  };
+}
+else {
+  sha1.create = function() {
+    return new sha1.MessageDigest();
+  };
+}
 
 /**
  * Hashes the given array of triples and returns its hexadecimal SHA-1 message
@@ -2998,25 +3417,13 @@ var sha1 = jsonld.sha1 = {};
  *
  * @return the hexadecimal SHA-1 message digest.
  */
-if(_nodejs) {
-  var crypto = require('crypto');
-  sha1.hash = function(triples) {
-    var md = crypto.createHash('sha1');
-    for(var i in triples) {
-      md.update(triples[i], 'utf8');
-    }
-    return md.digest('hex');
-  };
-}
-else {
-  sha1.hash = function(triples) {
-    var md = new sha1.MessageDigest();
-    for(var i in triples) {
-      md.update(triples[i]);
-    }
-    return md.digest();
-  };
-}
+sha1.hash = function(triples) {
+  var md = sha1.create();
+  for(var i in triples) {
+    md.update(triples[i]);
+  }
+  return md.digest();
+};
 
 // only define sha1 MessageDigest for non-nodejs
 if(!_nodejs) {
