@@ -19,7 +19,7 @@
                     berjon.biblio["MICRODATA"] = "Ian Hickson; et al. <a href=\"http://www.w3.org/TR/microdata/\"><cite>Microdata</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/microdata/\">http://www.w3.org/TR/microdata/</a> ";
                     berjon.biblio["HTML-RDFA"] = "Manu Sporny; et al. <a href=\"http://www.w3.org/TR/rdfa-in-html/\"><cite>HTML+RDFa</cite></a> 04 March 2010. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/rdfa-in-html/\">http://www.w3.org/TR/rdfa-in-html/</a> ";
                     berjon.biblio["BCP47"] = "A. Phillips, M. Davis. <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\"><cite>Tags for Identifying Languages</cite></a> September 2009. IETF Best Current Practice. URL: <a href=\"http://tools.ietf.org/rfc/bcp/bcp47.txt\">http://tools.ietf.org/rfc/bcp/bcp47.txt</a>";
-                    berjon.biblio["JSON-LD"] = "Manu Sporny, Gregg Kellogg. <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\"><cite>The JSON-LD Syntax</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\">http://json-ld.org/spec/latest/json-ld-syntax/</a>";
+                    berjon.biblio["JSON-LD"] = "Manu Sporny, Gregg Kellogg, Markus Lanthaler. <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\"><cite>The JSON-LD Syntax</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://json-ld.org/spec/latest/json-ld-syntax/\">http://json-ld.org/spec/latest/json-ld-syntax/</a>";
                     berjon.biblio["RDF-API"] = "Manu Sporny, Benjamin Adrian, Nathan Rixham; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\"><cite>RDF API</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-api/\">http://www.w3.org/2010/02/rdfa/sources/rdf-api/</a>";
                     berjon.biblio["RDF-INTERFACES"] = "Nathan Rixham, Manu Sporny, Benjamin Adrian; et al. <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\"><cite>RDF Interfaces</cite></a> Latest. W3C Editor's Draft. URL: <a href=\"http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/\">http://www.w3.org/2010/02/rdfa/sources/rdf-interfaces/</a>";
                     berjon.biblio["JSON-POINTER"] = "P. Bryan, Ed. <cite><a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">JSON Pointer</a></cite> Latest. IETF Draft. URL: <a href=\"http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt\">http://www.ietf.org/id/draft-pbryan-zyp-json-pointer-01.txt</a>";
@@ -188,7 +188,9 @@
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
                 company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
               { name: "Dave Longley", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"}
+                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
+              { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+                company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
           ],
 
           // authors, add as many as you like.
@@ -202,6 +204,8 @@
                 company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
               { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
                 company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
+              { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+                company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
           ],
 
           // name of the WG
@@ -376,7 +380,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <p>
   JSON [[RFC4627]] defines several terms which are used throughout this document:
   <dl>
-    <dt><tdef>JSON Object</tdef></dt><dd>
+    <dt><tdef>JSON object</tdef></dt><dd>
       An object structure is represented as a pair of curly brackets surrounding zero or
       more name/value pairs (or members). A name is a <tref>string</tref>. A single colon comes after
       each name, separating the name from the value. A single comma separates a value
@@ -400,6 +404,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </dd>
     <dt><tdef>null</tdef></dt><dd>
       The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.
+    </dd>
+    <dt><tdef>subject definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and one or more properties
+      of that subject. A <tref>JSON object</tref> is a subject definition if it does not contain they keys
+      <code>@value</code>, <code>@list</code> or <code>@set</code> and it has one or more keys other than <code>@id</code>.</dd>
+    <dt><tdef>subject reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to reference a subject having only the <code>@id</code> key.</dd>
   </dl>
 </p>
 </section>
@@ -474,27 +485,34 @@ de-referenceable.
     <h3>JsonLdProcessor</h3>
     <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
 
-      <dt>object expand()</dt>
-      <dd><a href="#expansion">Expands</a> the given <code>input</code>
-        according to the steps in the
-        <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+      <dt>void expand()</dt>
+      <dd>
+        <a href="#expansion">Expands</a> the given <code>input</code> according to
+        the steps in the <a href="#expansion-algorithm">Expansion Algorithm</a>. The
         <code>input</code> MUST be copied, expanded and returned if there are
         no errors. If the expansion fails, an appropriate exception MUST be thrown.
 
         <dl class="parameters">
-         <dt>object input</dt>
-         <dd>The JSON-LD object to copy and perform the expansion upon.</dd>
-         <dt>object optional? context</dt>
-         <dd>An external context to use additionally to the context embedded in <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>object or object[] or URL input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dd>An optional external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
-         <dt>INVALID_SYNTAX</dt>
-         <dd>A general syntax error was detected in the <code>@context</code>.
-         For example, if a <code>@type</code> key maps to anything other than
-         <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
-         <dt>LOAD_ERROR</dt>
-         <dd>There was a problem encountered loading a remote context.</dd>
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
         </dl>
 
         <dl class="exception" title="ProcessingError">
@@ -502,28 +520,30 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
       </dd>
 
-      <dt>object compact()</dt>
-      <dd><a href="#compaction">Compacts</a> the given <code>input</code>
-        using the <code>context</code> according to the steps in the
+      <dt>void compact()</dt>
+      <dd>
+        <a href="#compaction">Compacts</a> the given <code>input</code> using the
+        <code>context</code> according to the steps in the
         <a href="#compaction-algorithm">Compaction Algorithm</a>. The
         <code>input</code> MUST be copied, compacted and returned if there are
         no errors. If the compaction fails, an appropirate exception MUST be
         thrown.
+
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform compaction on.</dd>
-           <dt>object? context</dt>
-           <dd>The context to use when compacting the <code>input</code>.</dd>
-           <dt>boolean optional optimize</dt>
-           <dd>If set to <code>true</code>, the JSON-LD processor is allowed
-           optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
-           to produce even compacter representations. The algorithm for compaction
-           optimization is beyond the scope of this specification and thus
-           not defined. Consequently, different implementations MAY implement
-           different optimization algorithms.</dd>
+          <dt>object or object[] or URL input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
+          <dt>object or URL context</dt>
+          <dd>The context to use when compacting the <code>input</code>; either in the
+            form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -546,24 +566,30 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
       </dd>
 
-      <dt>object frame()</dt>
-      <dd><a href="#framing">Frames</a> the given <code>input</code>
-        using the <code>frame</code> according to the steps in the
-        <a href="#framing-algorithm">Framing Algorithm</a>. The
-        <code>input</code> is used to build the framed output and is returned if
-        there are no errors. If there are no matches for the frame,
-        <tref>null</tref> MUST be returned. Exceptions MUST be thrown if there are
-        errors.
+      <dt>void frame()</dt>
+      <dd>
+        <a href="#framing">Frames</a> the given <code>input</code> using the
+        <code>frame</code> according to the steps in the
+        <a href="#framing-algorithm">Framing Algorithm</a>. The <code>input</code>
+        is used to build the framed output and is returned if there are no errors.
+        If there are no matches for the frame, <tref>null</tref> MUST be
+        returned. Exceptions MUST be thrown if there are errors.
+
         <dl class="parameters">
-           <dt>object input</dt>
-           <dd>The JSON-LD object to perform framing on.</dd>
-           <dt>object frame</dt>
-           <dd>The frame to use when re-arranging the data.</dd>
-           <dt>object options</dt>
-           <dd>A set of options that will affect the framing algorithm.</dd>
+          <dt>object or object[] or URL input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to frame.</dd>
+          <dt>object or URL frame</dt>
+          <dd>The frame to use when re-arranging the data of <code>input</code>; either
+            in the form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidFrame">
@@ -581,60 +607,39 @@ de-referenceable.
           <dd>A list of lists was detected. This is not supported in this
             version of JSON-LD.</dd>
         </dl>
-
       </dd>
 
-      <dt>DOMString normalize()</dt>
-      <dd><a href="#normalization">Normalizes</a> the given <code>input</code>
-        according to the steps in the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>. The
-        <code>input</code> MUST be copied, normalized and returned if there are
-        no errors. If the compaction fails, <tref>null</tref> MUST be returned.
-        The output is the serialized representation returned from the
-        <a href="#normalization-algorithm">Normalization Algorithm</a>.
-        <span class="issue">It's still an open question if the result is a DOMString
-          representing the serialized graph in JSON-LD, or an <tref>array</tref> representation
-          which is in normalized form.</span>
+      <dt>void fromRDF()</dt>
+      <dd>Creates a JSON-LD document given an set of <a>Statement</a>s.
         <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to perform normalization upon.</dd>
-          <dt>object optional? context</dt>
-          <dd>An external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>Statement[] input</dt>
+          <dd>An array of RDF statements.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that will affect the algorithm.</dd>
         </dl>
-
-        <dl class="exception" title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this exception would be raised.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl class="exception" title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. This is not supported in this
-            version of JSON-LD.</dd>
-        </dl>
-
       </dd>
 
-      <dt>void triples()</dt>
-      <dd>Processes the <code>input</code> according to the
-        <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>, calling
-        the provided <code>tripleCallback</code> for each triple generated.
+      <dt>void toRDF()</dt>
+      <dd>
+        Processes the <code>input</code> according to the
+        <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
+        the provided <code>callback</code> for each <a>Statement</a> generated.
         <dl class="parameters">
-          <dt>object input</dt>
-          <dd>The JSON-LD object to process when outputting triples.</dd>
-          <dt>JsonLdTripleCallback tripleCallback</dt>
-          <dd>A callback that is called whenever a processing error occurs on
-          the given <code>input</code>.
-          <div class="issue">This callback should be aligned with the
-            RDF API.</div></dd>
-          <dt>object optional? context</dt>
+          <dt>object or object[] or URL input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or an <tref>IRI</tref>
+            referencing the JSON-LD document to convert to RDF.</dd>
+          <dt>ObjectOrURL? context</dt>
           <dd>An external context to use additionally to the context embedded in
             <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>StatementCallback callback</dt>
+          <dd>A callback that is called when a <a>Statement</a> is created from processing
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions options</dt>
+          <dd>A set of options that MAY affect the conversion to RDF such as, e.g.,
+            the input document's base <tref>IRI</tref>.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -659,32 +664,188 @@ de-referenceable.
   </section>
 
   <section>
-    <h3>JsonLdTripleCallback</h3>
-    <p>The JsonLdTripleCallback is called whenever the processor generates a
-    triple during the <code>triple()</code> call.</p>
+    <h3>Callbacks</h3>
+  <section>
+    <h3>JsonLdCallback</h3>
+    <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD representation
+      as the result of processing an API method.</p>
 
-    <dl title="[NoInterfaceObject Callback] interface JsonLdTripleCallback"
+    <dl title="[NoInterfaceObject Callback] interface JsonLdCallback"
         class="idl">
 
-      <dt>void triple()</dt>
-      <dd>This callback is invoked whenever a triple is generated by the processor.
+      <dt>void jsonLd()</dt>
+      <dd>This callback is invoked when processing is complete.
       <dl class="parameters">
-         <dt>DOMString subject</dt>
-         <dd>The subject <tref>IRI</tref> that is associated with the triple.</dd>
-         <dt>DOMString property</dt>
-         <dd>The property <tref>IRI</tref> that is associated with the triple.</dd>
-         <dt>DOMString objectType</dt>
-         <dd>The type of object that is associated with the triple. Valid values
-           are <code>IRI</code> and <code>literal</code>.</dd>
-         <dt>DOMString object</dt>
-         <dd>The object value associated with the subject and the property.</dd>
-         <dt>DOMString? datatype</dt>
-         <dd>The datatype associated with the object.</dd>
-         <dt>DOMString? language</dt>
-         <dd>The language associated with the object in BCP47 format.</dd>
+         <dt>ObjectOrObjectArray jsonld</dt>
+         <dd>The processed JSON-LD document.</dd>
       </dl>
       </dd>
     </dl>
+  </section>
+  <section>
+    <h3>StatementCallback</h3>
+    <p>The <a>StatementCallback</a> is called whenever the processor generates a
+    statement during the <code>statement()</code> call.</p>
+
+    <dl title="[NoInterfaceObject Callback] interface StatementCallback"
+        class="idl">
+
+      <dt>void statement()</dt>
+      <dd>This callback is invoked whenever a statement is generated by the processor.
+      <dl class="parameters">
+         <dt>Statement statement</dt>
+         <dd>The statement.</dd>
+      </dl>
+      </dd>
+    </dl>
+  </section>
+  </section>
+
+  <section>
+    <h3>Data Structures</h3>
+    <p>This section describes datatype definitions used within the JSON-LD API.</p>
+
+    <section>
+    <h3>URL</h3>
+    <p>The <a>URL</a> datatype is a string representation of an <tref>IRI</tref>.</p>
+    <div title="typedef DOMString URL" class="idl">
+      This datatype indicates that the <tref>IRI</tref> is interpreted as a Universal Resource
+      Locator
+      identifying a document, which when parsed as JSON yields either a <code>JSON object</code>
+      or <code>array</code>.
+    </div>
+    </section>
+
+    <section>
+    <h3>JsonLdOptions</h3>
+    <p>The <a>JsonLdOptiones</a> type is used to convery a set of options to an interface method.</p>
+    <dl title="typedef object JsonLdOptions" class="idl">
+      <dt><a>URL</a> base</dt>
+      <dd>The Base IRI to use when expanding the document. This overrides the value of
+        <em>input</em> if it is a <a>URL</a> or if it is a <code>object</code> or <code>object[]</code>.</dd>
+      <dt>boolean optimize</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
+        optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
+        to produce even compacter representations. The algorithm for compaction
+        optimization is beyond the scope of this specification and thus
+        not defined. Consequently, different implementations MAY implement
+        different optimization algorithms.</dd>
+    </dl>
+    </section>
+
+    <p>The following data structures are used for representing data about
+      RDF statements (triples or quads). They are used for normalization, <a>fromRDF</a>,
+      and from <a>toRDF</a> interfaces.
+    </p>
+
+    <section>
+    <h3>Statement</h3>
+    <p>The <a>Statement</a> interface represents an RDF Statement.</p>
+    <dl title="[NoInterfaceObject] interface Statement" class="idl">
+      <dt>readonly attribute Node subject</dt>
+      <dd>The subject associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node property</dt>
+      <dd>The property associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node object</dt>
+      <dd>The object associated with the <a>Statement</a>.</dd>
+      <dt>readonly attribute Node? name</dt>
+      <dd>The name associated with the <a>Statement</a> identifying
+        it as a member of a named graph. If the attribute is present,
+        it indicates that this statement is a member of a <em>named graph</em>
+        associated with <em>name</em>. If it is missing, the statement
+        is a member of the <em>default graph</em>.</dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>Node</h3>
+    <p><a>Node</a> is the base class of <a>NamedNode</a>,
+    <a>BlankNode</a>, and <a>LiteralNode</a>.</p>
+    <dl title="[NoInterfaceObject] interface Node" class="idl">
+      <dt>readonly attribute DOMString nominalValue</dt>
+      <dd>
+        <p>The <code>nominalValue</code> of an <a>Node</a> is refined by
+        each interface which extends <a>Node</a>.</p>
+      </dd>
+      <dt>readonly attribute DOMString interfaceName</dt>
+      <dd>
+        <p>Provides access to the string name of the current interface,
+        normally one of <code>"IRI"</code>, <code>"BlankNode"</code> or <code>"LiteralNode"</code>.</p>
+        <p>This method serves to disambiguate instances of <a>Node</a> which
+        are otherwise identical, such as <a>NamedNode</a> and <a>BlankNode</a>.</p>
+      </dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>NamedNode</h3>
+    <p>A node identified by an <tref>IRI</tref>. NamedNodes are defined by International
+    Resource Identifier [[!IRI]].</p>
+    <dl title="[NoInterfaceObject] interface NamedNode : Node"
+        class="idl">
+        <dt>readonly attribute DOMString nominalValue</dt>
+        <dd>The IRI identifier of the node.</dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>Blank Node</h3>
+
+    <p>A <a>BlankNode</a> is a reference to an unnamed resource
+      (one for which an IRI is not known), and may be used in a <a>Statement</a>
+      as a unique reference to that unnamed resource.</p>
+
+    <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
+      <dt>readonly attribute DOMString nominalValue</dt>
+      <dd>The temporary identifier of the <a>BlankNode</a>.
+        The nominalValue MUST NOT be relied upon in any way between two
+        separate processing runs of the same document.</dd>
+    </dl>
+
+    <p class="note">Developers and authors must not assume that the
+    nominalValue of a <a>BlankNode</a> will remain the same between two
+    processing runs. <a>BlankNode</a> nominalValues are only valid for the
+    most recent processing run on the document. <a>BlankNode</a>s
+    nominalValues will often be generated differently by different processors.</p>
+
+    <p class="note">Implementers MUST ensure that <a>BlankNode</a> nominalValues are unique
+    within the current environment, two <a>BlankNode</a>s are considered equal if, and only if,
+    their nominalValues are strictly equal.</p>
+    </section>
+
+    <section>
+      <h3>LiteralNode</h3>
+      <p>LiteralNodes represent values such as numbers, dates and strings in
+        RDF data. A <a>LiteralNode</a> is comprised of three attributes:
+      </p>
+
+      <ul>
+        <li>a lexical representation of the <code>nominalValue</code></li>
+        <li>an optional <code>language</code> represented by a string token</li>
+        <li>an optional <code>datatype</code> specified by a <a>NamedNode</a></li>
+      </ul>
+
+      <p>LiteralNodes representing plain text in a natural language may have a
+        <code>language</code> attribute specified by a text string token, as specified in
+        [[!BCP47]], normalized to lowercase
+        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
+        They may also have a datatype attribute such as <code>xsd:string</code>.
+      </p>
+
+      <p>LiteralNodes representing values with a specific datatype, such as
+        the integer 72, may have a <code>datatype</code> attribute specified in the form
+        of a <a>NamedNode</a> (e.g.,
+        <code>&lt;http://www.w3.org/2001/XMLSchema#integer></code>).</p>
+
+      <dl title="[NoInterfaceObject] interface LiteralNode : Node" class="idl">
+        <dt>readonly attribute DOMString nominalValue</dt>
+        <dd>The lexical representation of the LiteralNodes value.</dd>
+        <dt>readonly attribute DOMString? language</dt>
+        <dd>An optional language string as defined in [[!BCP47]], normalized to lowercase.</dd>
+        <dt>readonly attribute NamedNode? datatype</dt>
+        <dd>An optional datatype identified by a NamedNode.</dd>
+      </dl>
+    </section>
   </section>
 
 </section>
@@ -712,7 +873,18 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@container</code></dt><dd>Used to set the container of a particular value.</dd>
   <dt><code>@list</code></dt><dd>Used to express an ordered set of data.</dd>
   <dt><code>@set</code></dt><dd>Used to express an unordered set of data.</dd>
+  <dt><code>@graph</code></dt><dd>Used to explicitly express a <tref>linked data graph</tref>.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use <tref title="compact_iri">compact IRIs</tref>.</dd>
+  <dt><code>@default</code></dt><dd>Used in <a href="#framing">Framing</a> to set the defeault value for
+    an output property when the framed <tref>subject definition</tref> does not include such a property.</dd>
+  <dt><code>@explicit</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>explicit inclusion flag</tref> within a specific frame.</dd>
+  <dt><code>@omitDefault</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>omit default flag</tref> within a specific frame.</dd>
+  <dt><code>@embed</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
+    value of <tref>object embed flag</tref> within a specific frame.</dd>
+  <dt><code>@null</code></dt><dd>>Used in <a href="#framing">Framing</a> when a value of <tref>null</tref>
+    should be returned, which would otherwise be removed when <a href="#compaction">Compacting</a>.</dd>
   </dl>
 
   <p>All JSON-LD tokens and keywords are case-sensitive.</p>
@@ -734,7 +906,8 @@ language-native data structures MUST be used where applicable.</p>
     <dt><tdef>active property</tdef></dt>
     <dd>
       the currently active property that the processor should use when
-      processing.
+      processing. The active property is represented in the original lexical form, which
+      is used for finding coercion mappings in the <tref>active context</tref>.
     </dd>
     <dt><tdef>active object</tdef></dt>
     <dd>
@@ -782,8 +955,7 @@ language-native data structures MUST be used where applicable.</p>
       The JSON-LD data structure that is produced as output by the algorithm.
     </dd>
     <dt><tdef>term</tdef></dt><dd>
-      A <tref>term</tref> is a short word defined with a <a href="#context">context</a> that MAY be expanded
-    to an <tref>IRI</tref>
+      A <tref>term</tref> is a short word defined in a context that MAY be expanded to an <tref>IRI</tref>
     </dd>
     <dt><tdef>prefix</tdef></dt><dd>
       A <tref>prefix</tref> is a <tref>term</tref> that expands to a vocabulary base IRI. It
@@ -802,82 +974,82 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
-  <h2 id="context">Context</h2>
+  <h2 id="context">Context Processing</h2>
   <p>Processing of JSON-LD data structure is managed recursively.
     During processing, each rule is applied using information provided by the <tref>active context</tref>.
     Processing begins by pushing a new <tref>processor state</tref> onto the <tref>processor state</tref> stack and
     initializing the <tref>active context</tref> with the <tref>initial context</tref>.
     If a <tref>local context</tref> is encountered,
     information from the <tref>local context</tref> is merged into the <tref>active context</tref>.</p>
-  <p>The <tref>active context</tref> is used for expanding keys and values of a <tref>JSON object</tref> (or elements
+  <p>The <tref>active context</tref> is used for expanding properties and values of a <tref>JSON object</tref> (or elements
     of a list (see <span a="#list-processing">List Processing</span>)) using a <tdef>term mapping</tdef>.
     It is also used to maintain
     <tdef>coercion mapping</tdef>s from terms to datatypes, <tdef>language mapping</tdef>s from terms to language codes,
-    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms.</p>
-  <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a key of
-    <code>@context</code> with <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
+    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms. Processors MUST use the
+    lexical form of the property when creating a mapping, as lookup is performed on lexical representations, not
+    expanded IRI representations.</p>
+  <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a <code>@context</code>
+    property with a <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
     When processing a <tref>local context</tref>, special processing rules apply:</p>
   <ol class="algorithm">
     <li>Create a new, empty <tref>local context</tref>.</li>
-    <li>Let <em>value</em> be the value of <code>@context</code>
-      <ol id="process-context" class="algorithm">
-        <li>If <em>value</em> equals <tref>null</tref>, reset the <tref>active context</tref> to the <tref>initial context</tref></li>
-        <li>If <em>value</em> is an <tref>array</tref>, process
-          each element as <em>value</em>, in order using <a href="#process-context">Step 2</a>.</li>
-        <li>If <em>value</em> is a simple <tref>string</tref>, it MUST have a lexical form of <tref>absolute IRI</tref>.
+    <li>Let <em>context</em> be the value of <code>@context</code>
+      <ol class="algorithm">
+        <li id="process-context">If <em>context</em> equals <tref>null</tref>, reset the <tref>active context</tref>
+          to the <tref>initial context</tref>.</li>
+        <li>If <em>context</em> is an <tref>array</tref>, process each element as <em>context</em> in order
+          by starting at <a href="#process-context">Step 2.1</a>.</li>
+        <li>If <em>context</em> is a <tref>string</tref>, it MUST have a lexical form of <tref>absolute IRI</tref>.
           <ol class="algorithm">
-            <li>Dereference <em>value</em>.</li>
+            <li>Dereference <em>context</em>.</li>
             <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
-              element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>value</em>
-              to the extracted content, or an empty <tref>JSON Object</tref> if no value exists.</li>
-            <li>Merge the of <tref>local context</tref> into the <tref>active context</tref>.</li>
+              element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>context</em>
+              to the extracted content and process it by starting at <a href="#process-context">Step 2.1</a>.</li>
           </ol>
         </li>
-        <li>If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
+        <li>If <em>context</em> is a <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
-            <li>If <em>value</em> has a <code>@language</code> key, it MUST have a value of a
+            <li>If <em>context</em> has a <code>@language</code> property, it MUST have a value of a
               simple <tref>string</tref> or <tref>null</tref>. Add the language to the <tref>local context</tref>.</li>
-            <li id="object-context">Otherwise, for each key in <em>value</em> having the lexical form of an <cite><a
-              href="http://www.w3.org/TR/2009/REC-xml-names-20091208/#NT-NCName">NCName</a></cite> (see [[XML-NAMES]]),
-              <tref>compact IRI</tref>, absolute <tref>IRI</tref>,
-              or being an empty string, perform the following steps:
+            <li id="object-context">Otherwise, for each property in <em>context</em> perform the following steps:
               <ol class="algorithm">
-                <li>If the key's value is a simple <tref>string</tref>, the value MUST have the form of
-                  <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref>. Determine the IRI mapping value by
+                <li>If the property's value is a simple <tref>string</tref>, determine the IRI mapping value by
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
-                  mapping is an <tref>absolute IRI</tref>, merge the key-value pair into the <tref>local context</tref>
+                  mapping is an <tref>absolute IRI</tref>, merge the property into the <tref>local context</tref>
                   <tref>term mapping</tref>.</li>
-                <li>Otherwise, the key's value MUST be a <tref>JSON object</tref>.
+                <li>Otherwise, if the property's value is <tref>null</tref> remove mapping, coercion,
+                  container and language information associated with property from the
+                  <tref>local context</tref>.</li>
+                <li>Otherwise, the <em>property</em>'s <em>value</em> MUST be a <tref>JSON object</tref>.
                   <ol class="algorithm">
-                    <li>If the key has the form of <tref>term</tref>, the value MUST have a <code>@id</code>
-                      key with a string value, the value MUST have the
-                      form of <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref>.
-                      Determine the IRI mapping value
+                    <li>If the <em>property</em> has the form of <tref>term</tref>, it's <em>value</em> MUST have an
+                      <code>@id</code> property with a string value which MUST have the form of a <tref>term</tref>,
+                      <tref>compact IRI</tref>, or <tref>absolute IRI</tref>. Determine the IRI mapping
                       by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
                       If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
-                      key-value pair into the <tref>local context</tref> <tref>term mapping</tref>.</li>
-                    <li>If the key has the form of <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
-                      the value MAY have a <code>@id</code> key with a string value, this value MUST have the
-                      form of <tref>term</tref>, <tref>compact IRI</tref>, absolute <tref>IRI</tref>.
-                      Determine the IRI mapping value
-                      by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
-                      If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
-                      key-value pair into the <tref>local context</tref> <tref>term mapping</tref>.</li>
-                    <li>If the value has a <code>@type</code> key, the value MUST have the form of <tref>term</tref>,
-                      <tref>compact IRI</tref>, <tref>absolute IRI</tref> or the <tref>keyword</tref> <code>@id</code>. Determine the IRI by
-                      performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the
-                      IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the <tref>local context</tref>
-                      <tref>coercion mapping</tref>.</li>
-                    <li>If the value has a <code>@container</code> key, the value MUST be
-                      <code>@list</code> or <code>@set</code>. Merge the <tref>list mapping</tref> or
-                      <tref>set mapping</tref> into the <tref>local context</tref>.</li>
-                    <li>If the value has a <code>@language</code> key but no <code>@type</code> key, the value of the
-                      <code>@language</code> key MUST be a <tref>string</tref> or <tref>null</tref>.
-                      Merge the <tref>language mapping</tref> into the <tref>local context</tref>.</li>
+                      <em>property</em> into the <tref>local context</tref> <tref>term mapping</tref>.</li>
+                    <li>If the <em>property</em> has the form of of a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
+                      the <em>value</em> MAY have a <code>@id</code> property with a string value which MUST have the
+                      form of a <tref>term</tref>, <tref>compact IRI</tref>, or absolute <tref>IRI</tref>.
+                      Determine the IRI mapping by performing <a href="#iri-expansion">IRI Expansion</a> on the associated
+                      value. If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
+                      <em>property</em> into the <tref>local context</tref> <tref>term mapping</tref>.</li>
+                    <li>If the <em>value</em> has a <code>@type</code> property, it's value MUST have the form of a <tref>term</tref>,
+                      <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or the <tref>keyword</tref> <code>@id</code>.
+                      Determine the IRI by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
+                      If the result of the IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the
+                      <tref>local context</tref> <tref>coercion mapping</tref> using the lexical value of the <em>property</em>.</li>
+                    <li>If the <em>value</em> has a <code>@container</code> property, it's value MUST be <code>@list</code> or
+                      <code>@set</code>. Merge the <tref>list mapping</tref> or <tref>set mapping</tref> into the
+                      <tref>local context</tref> using the lexical value of the <em>property</em>.</li>
+                    <li>If the <em>value</em> has a <code>@language</code> property but no <code>@type</code> property, the value of the
+                      <code>@language</code> property MUST be a <tref>string</tref> or <tref>null</tref>.
+                      Merge the <tref>language mapping</tref> into the <tref>local context</tref> using the lexical value of the
+                      <em>property</em>.</li>
                   </ol>
                 </li>
                 <li>Merge the <tref>local context</tref> into the <tref>active context</tref>.</li>
-                <li>Repeat <a href="#object-context">Step 3.3.2</a> until no entries are added to the <tref>local
+                <li>Repeat <a href="#object-context">Step 2.4.2</a> until no entries are added to the <tref>local
                   context</tref>.</li>
               </ol>
             </li>
@@ -931,15 +1103,14 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Compaction</h2>
   <p>Some keys and values are expressed using <tref>IRI</tref>s. This section defines an
     algorithm for transforming an IRI to a <tref>term</tref> or <tref>compact IRI</tref> using the
-    <tref>term</tref>s specified in the <tref>local context</tref>.</p>
+    <tref>term</tref>s specified in the <tref>active context</tref>.</p>
 
   <p>The algorithm for generating a <tref>compact IRI</tref> is:
     <ol class="algorithm">
-      <li>Search every key-value pair in the <tref>active context</tref> for
-        a <tref>term</tref> that is a complete match
-        against the IRI. If a complete match is found, the resulting compacted
-        IRI is the <tref>term</tref> associated with the IRI in the
-        <tref>active context</tref>.</li>
+      <li>Search every key-value pair in the <tref>active context</tref> for a <tref>term</tref> that is a complete match
+        against the IRI. For all matches that are found, the resulting compacted IRI is the <tref>term</tref> associated with
+        the IRI in the <tref>active context</tref>. If there is more than one <tref>term</tref> produced, the final value is the
+        shortest and lexicographically least value of the entire set of matching <tref>term</tref>s.</li>
       <li>If a complete match is not found, search for a partial match from
         the beginning of the IRI. For all matches that are found, the resulting
         <tref>compact IRI</tref> is the <tref>term</tref> associated with the partially matched
@@ -1018,13 +1189,30 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
+<h3>Generate Blank Node Identifier</h3>
+<p>This algorithm is used by the <a href="#framing-algorithm">Framing Algorithm</a> and
+  <a href="#convert-from-rdf-algorithm">Convert From RDF Algorithm</a> to deterministicly name
+  <tref>blank node</tref> identifiers. It uses a <em>identifier map</em> and <em>prefix</em>
+  and takes a possibly <tref>null</tref> identifier and returns a new identifier based on <em>prefix</em>.</p>
+<p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>.</p>
+
+<ol class="algorithm">
+  <li>If the old identifier is not null and is in <em>identifier map</em> return the mapped identifier.</li>
+  <li>Otherwise, if old identifier is not null, create a new entry in <em>identifier map</em> initialized
+    to the current value of <em>next identifier</em>. Increment <em>next identifier</em> by adding one
+    to the integer suffix. Return the mapped identifier.</li>
+  <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
+    original value.</li>
+</ol>
+</section>
+
+<section>
 <h2>Expansion</h2>
 
 <p>Expansion is the process of taking a JSON-LD document and applying a
   context such that all IRI, datatypes, and literal values are expanded so
   that the context is no longer necessary. JSON-LD document expansion
-  is typically used as a part of <a href="#framing">Framing</a> or
-  <a href="#normalization">Normalization</a>.</p>
+  is typically used as a part of <a href="#framing">Framing</a>.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -1063,50 +1251,81 @@ language-native data structures MUST be used where applicable.</p>
 <h3>Expansion Algorithm</h3>
 
 <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
-  and a <em>value</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
-  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is set to the <tref>JSON-LD
+  and an <em>element</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
+  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the <tref>JSON-LD
   input</tref>.</p>
-
 <ol class="algorithm">
-  <li>If <em>value</em> is an <tref>array</tref>, process each item in <em>value</em> recursively
-    using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
-  <li>Otherwise, if <em>value</em> is an object
+  <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
+    using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.
+    If has a <code>@container</code> set to <code>@list</code> and any entry in <em>element</em> is an
+    <tref>array</tref>, or is a <tref>JSON object</tref> containing a <code>@list</code> property,
+    throw an exception, as lists of lists are not allowed.
+    If the expanded entry is null, drop it. If it's an array, merge it's entries with <em>element</em>'s entries.</li>
+  <li>Otherwise, if <em>element</em> is an object
     <ol class="algorithm">
-      <li>Update the <tref>active context</tref> according to the steps outlined in
-      the <a href="#context">context</a> section and remove it from the expanded result.</li>
-      <li>For each key and value in <em>value</em>:
+      <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according to
+        the steps outlined in <a href="#context-processing">Context Processing</a> and remove the <code>@context</code>
+        property.</li>
+      <li>Then, proceed and process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
         <ol class="algorithm">
-          <li>If value is <tref>null</tref>, skip this key/value pair and remove key from <em>value</em></li>
-          <li>Otherwise, if value is a <tref>JSON object</tref> having either a <code>@value</code>,
-            <code>@list</code>, or <code>@set</code> key with a <tref>null</tref> value, skip this key/value pair
-          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@set</code> key with a
-            non-<tref>null</tref> value, replace <em>value</em> with the value of <code>@set</code>.
-          <li>Otherwise, if the key is <code>@id</code> or <code>@type</code> and the value is a <tref>string</tref>,
-            expand the value according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-            remove key from <em>value</em></li>
-          <li>Otherwise, if the key is <code>@value</code>, the value is not subject to further expansion.</li>
-          <li>Otherwise, if the key is not a <tref>keyword</tref>, expand the key according to
-            <a href="#iri-expansion">IRI Expansion</a> rules and set as <tref>active property</tref>.</li>
-          <li>If the value is an <tref>array</tref>, and <tref>active property</tref> is subject to <code>@list</code>
-            expansion, replace the value with a new key-value key where the key is <code>@list</code> and value
-            set to the current value.</li>
-          <li>If the value is an <tref>array</tref>, process each item in the <tref>array</tref>
-            recursively using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref> removing items which expand to <tref>null</tref>.</li>
-          <li>If the value is an object, process the object recursively
-            using this algorithm, passing copies of the <tref>active context</tref> and <tref>active
-            property</tref>. If <tref>null</tref> is returned, skip this key/value pair and remove
-            key from <em>value</em>.</li>
-          <li>Otherwise, expand the value according to the <a href="#value-expansion">Value Expansion</a> rules,
-            passing <tref>active property</tref>.</li>
+          <li>Remove <em>property</em> from <em>element</em>, expand
+            <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a>.
+            Set the <tref>active property</tref> to the original un-expanded <em>property</em> if
+            <em>property</em> is not a <tref>keyword</tref>.</li>
+          <li>If <em>property</em> does not expand to a keyword or an <tref>absolute IRI</tref> (i.e., it doesn't contain a colon),
+            continue with the next property from <em>element</em>.</li>
+          <li>If <em>value</em> is <tref>null</tref> and <em>property</em> is not <code>@value</code>, continue with the next
+            property from <em>element</em>.</li>
+          <li>If the <em>property</em> is <code>@id</code> the <em>value</em> MUST be a <tref>string</tref>.
+            Expand the <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>.</li>
+          <li>Otherwise, if the <em>property</em> is <code>@type</code> the <em>value</em>
+            MUST be a <tref>string</tref>, an <tref>array</tref> of <tref>string</tref>s, or an empty
+            <tref>JSON object</tref>. Expand <em>value</em> or each of it's entries according to
+            <a href="#iri-expansion">IRI Expansion</a>.</li>
+          <li>Otherwise, if the <em>property</em> is <code>@value</code> or <code>@language</code> the <em>value</em> MUST NOT be a
+            <tref>JSON object</tref> or an <tref>array</tref>.</li>
+          <li>Otherwise, if the <em>property</em> is <code>@list</code>, <code>@set</code>, or <code>@graph</code>, expand <em>value</em>
+            recursively using this algorithm, passing copies of the <tref>active context</tref> and <em>active property</em>. If the expanded
+            <em>value</em> is not an <tref>array</tref>, convert it to an <tref>array</tref>.
+            If <em>property</em> is <code>@list</code> and any entry in <em>value</em> is a
+            <tref>JSON object</tref> containing an <code>@list</code> property, throw an exception, as
+            lists of lists are not supported.</li>
+          <li>Otherwise, expand <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
+            <tref>active property</tref>.</li>
+          <li>If <em>property</em> is not a keyword
+            and <tref>active property</tref> has a <code>@container</code> <code>@list</code>
+            and the expanded <em>value</em> is not <tref>null</tref>,
+            convert <em>value</em> to an <tref>object</tref> with an <code>@list</code> property whose value is
+            set to <em>value</em> (unless <em>value</em> is already in that form).</li>
+          <li>Convert <em>value</em> to <tref>array</tref> form unless <em>value</em> is <tref>null</tref> or <em>property</em> is
+            <code>@id</code>, <code>@type</code>, <code>@value</code>, or <code>@language</code>.</li>
+          <li>If <em>value</em> is not <tref>null</tref>, either merge <em>value</em> into an existing <em>property</em> property of
+            <em>element</em> or create a new <em>property</em> property with <em>value</em> as value.</li>
         </ol>
       </li>
-      <li>Remove the context from the object.</li>
+      <li>If the processed <em>element</em> has an <code>@value</code> property
+        <ol class="algorithm">
+          <li><em>element</em> MUST NOT have more than one other property, which can either be <code>@language</code> or <code>@type</code>
+            with a <tref>string</tref> value.</li>
+          <li>if <code>@value</code> is the only property or the value of <code>@value</code> equals <tref>null</tref>, replace
+            <em>element</em> with the value of <code>@value</code>.</li>
+        </ol>
+      </li>
+      <li>Otherwise, if <em>element</em> has an <code>@type</code> property and it's value is not in the form of an
+        <tref>array</tref>, convert it to an <tref>array</tref>.</li>
+      <li>If <em>element</em> has an <code>@set</code> or <code>@list</code> property, it MUST be the only property.
+        Set <em>element</em> to the value of <code>@set</code>; leave <code>@list</code> untouched.</li>
+      <li>If <em>element</em> has just a <code>@language</code> property, set <em>element</em> to <tref>null</tref>.</li>
     </ol>
   </li>
-  <li>Otherwise, expand <em>value</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
-    passing <tref>active property</tref>.</li>
+  <li>Otherwise, expand <em>element</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
+    passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
 </ol>
+
+<p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>JSON object</tref> with just a <code>@graph</code>
+  property, <em>element</em> is set to the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
+  it is wrapped into an <tref>array</tref>.</p>
+
 </section>
 
 </section>
@@ -1179,55 +1398,83 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Compaction Algorithm</h3>
 
-<p>The algorithm takes two input variables: an <tref>active property</tref>,
-  and a <em>value</em> to be expanded. To begin, the <tref>active property</tref> is set to <tref>null</tref>, and <em>value</em> is
-  set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
-    the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
-    applied. The <tref>active context</tref> to the given context.</p>
-
+<p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
+  and an <em>element</em> to be compacted. To begin, the <tref>active context</tref> is
+  set to the result of performing <a href="#context-processing">Context Processing</a> on the passed <em>context</em>,
+  <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the result of performing the
+  <a href="#expansion-algorithm">Expansion Algorithm</a> on the <tref>JSON-LD input</tref>. This removes any existing
+  context to allow the given <tref>active context</tref> to be cleanly applied.</p>
 
 <ol class="algorithm">
-  <li>If <em>value</em> is an <tref>array</tref>, process each item in <em>value</em> recursively
-    using this algorithm, passing a copy of the <tref>active property</tref>.</li>
-  <li>Otherwise, if <em>value</em> is an object, for each key and value in <em>value</em>
+  <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
+    using this algorithm, passing a copy of the <tref>active context</tref> and the <tref>active property</tref>.
+    If <em>element</em> has a single item, the compacted value is that item; otherwise the compacted value
+    is <em>element</em>.</li>
+  <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
-      <li>If the key is <code>@id</code> or <code>@type</code>
+      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>subject reference</tref>,
+        return the result of performing
+        <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
+      <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping to <code>@list</code>
+        and <em>element</em> has a corresponding <code>@list</code> property, recursively compact that
+        property's value passing a copy of the <tref>active context</tref> and the <tref>active property</tref> ensuring
+        that the result is an array and removing <tref>null</tref> values. Return either the
+        result as an array, as an object with a key of <code>@list</code> (or appropriate alias from
+        <tref>active context</tref>).</li>
+      <li>Otherwise, construct <em>output</em> as a new <tref>JSON object</tref> used for returning the result
+        of compacting <em>element</em>. For each <em>property</em> and <em>value</em> in <em>element:</em>
         <ol class="algorithm">
-          <li>If the value of the key is a <tref>string</tref>,
-            the compacted value is the result of performing <a href="#iri-compaction">IRI Compaction</a>
-            on the value.</li>
-          <li>Otherwise, the compacted value is the result of performing this algorithm on the value
-            with the current <tref>active property</tref>.</li>
-        </ol>
-      </li>
-      <li>Otherwise:
-        <ol class="algorithm">
-          <li>If the key is not a <tref>keyword</tref>, set as <tref>active property</tref> and
-            compact according to <a href="#iri-compaction">IRI Compaction</a>.</li>
-          <li>If the value is an object
+          <li>If <em>property</em> is <code>@id</code> or <code>@type</code>
             <ol class="algorithm">
-              <li>If the value contains only an <code>@id</code> key or the value contains a
-                <code>@value</code> key, the compacted value is the result of performing
-                <a href="#value-compaction">Value Compaction</a> on the value.</li>
-              <li>Otherwise, if the value contains only a <code>@list</code> key, and the
-                <tref>active property</tref> is subject to list coercion, the compacted value is the result of
-                performing this algorithm on that value.</li>
-              <li>Otherwise, if the value contains only a <code>@set</code> key, the compacted value is the
-                value of <code>@set</code>.</li>
-              <li>Otherwise, the compacted value is the result of performing this algorithm on the value.</li>
+              <li>Set <tref>active property</tref> to the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+              <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on <em>value</em>.</li>
+              <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>. Perform <a href="#iri-compaction">IRI Compaction</a>
+                on every entry of <em>value</em>. If <em>value</em> contains just one entry, <em>value</em> is set to that entry.</li>
+              <li>Add <tref>active property</tref> and the expanded <em>value</em> to <em>output</em>.</li>
             </ol>
           </li>
-          <li>Otherwise, if the value is an <tref>array</tref>, the compacted value is the result of
-            performing this algorithm on the value.</li>
-          <li>Otherwise, the value is already compacted.</li>
+          <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>.</li>
+          <li>If <em>value</em> is empty:
+            <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing
+                <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+              <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+            </ol>
+          </li>
+          <li>For each <em>item</em> in <em>value</em>:
+            <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
+                for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
+              <li>Compact <em>item</em> by recursively performing this algorithm passing a copy of
+                the <tref>active context</tref> and the <tref>active property</tref>.</li>
+              <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
+                to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+              <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                has a <code>@container</code> mapping to <code>@set</code>,
+                create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em> as an
+                <tref>array</tref>.</li>
+              <li>Otherwise, create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+            </ol>
+          </li>
         </ol>
       </li>
     </ol>
   </li>
-  <li>Otherwise, the compacted value is the <em>value</em>.</li>
+  <li>Otherwise, return <em>element</em> as the compacted <em>element</em>.
+    <div class="issue">Perhaps this should also call <a href="#value-compaction">Value Compaction</a> on
+      native types and strings, which could consolodate potential transformation in one place.</div>
+  </li>
 </ol>
+
+<p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>, put <em>element</em> into the
+  <code>@graph</code> property of a new <tref>JSON object</tref> and then set <em>element</em> to that <tref>JSON object</tref>.
+  Finally, add a <code>@context</code> property to <em>element</em> and set it to the initially passed <em>context</em>.</p>
+
 </section>
 
+</section>
 </section>
 
 <section>
@@ -1248,446 +1495,319 @@ language-native data structures MUST be used where applicable.</p>
   graph of information, and applying a specific graph layout
   (called a <tref>Frame</tref>).</p>
 
-<p>The JSON-LD document below expresses a library, a book and a chapter:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     {
-      "@id": "http://example.org/vocab#contains",
-      "@type": "@id"
-    },
-    "creator":      "http://purl.org/dc/terms/creator",
-    "description":  "http://purl.org/dc/terms/description",
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@id":
-  [{
-    "@id": "http://example.com/library",
-    "@type": "Library",
-    "contains": "http://example.org/library/the-republic"
-  },
-  {
-    "@id": "http://example.org/library/the-republic",
-    "@type": "Book",
-    "creator": "Plato",
-    "title": "The Republic",
-    "contains": "http://example.org/library/the-republic#introduction"
-  },
-  {
-    "@id": "http://example.org/library/the-republic#introduction",
-    "@type": "Chapter",
-    "description": "An introductory chapter on The Republic.",
-    "title": "The Introduction"
-  }]
-}-->
-</pre>
-
-<p>Developers typically like to operate on items in a hierarchical, tree-based
-  fashion. Ideally, a developer would want the data above sorted into top-level
-  libraries, then the books that are contained in each library, and then the
-  chapters contained in each book. To achieve that layout, the developer can
-  define the following <tref>frame</tref>:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator"
-    "description":  "http://purl.org/dc/terms/description"
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@type": "Library",
-  "contains": {
-    "@type": "Book",
-    "contains": {
-      "@type": "Chapter"
-    }
-  }
-}
--->
-</pre>
-
-<p>When the framing algorithm is run against the previously defined
-  JSON-LD document, paired with the <tref>frame</tref> above, the following
-  JSON-LD document is the end result:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator"
-    "description":  "http://purl.org/dc/terms/description"
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@id": "http://example.org/library",
-  "@type": "Library",
-  "contains": {
-    ****"@id": "http://example.org/library/the-republic",****
-    "@type": "Book",
-    ****"creator": "Plato",****
-    ****"title": "The Republic",****
-    "contains": {
-      ****"@id": "http://example.org/library/the-republic#introduction",****
-      "@type": "Chapter",
-      ****"description": "An introductory chapter on The Republic.",****
-      ****"title": "The Introduction"****
-    },
-  },
-}
--->
-</pre>
+<p>Framing makes use of the <a href="#subject-flattening">Subject Flattening</a> algorithm
+  to place each object defined in the JSON-LD document into a flat list of objects, allowing
+  them to be operated upon by the framing algorithm.</p>
 
 <section>
 <h3>Framing Algorithm Terms</h3>
-<p class="issue">This algorithm is a work in progress, do not implement it.
-  There was also a recent update to the algorithm in order to auto-embed
-  frame-unspecified data (if the explicit inclusion flag is not set) in order to
-  preserve graph information. This change is particularly important for comparing
-  subgraphs (or verifying digital signatures on subgraphs). This change is not yet
-  reflected in the algorithm below.</p>
 
- <dl>
-   <dt><tdef>input frame</tdef></dt>
-   <dd>the initial <tref>frame</tref> provided to the framing algorithm.</dd>
-   <dt><tdef>framing context</tdef></dt>
-   <dd>a context containing the <tref>object embed flag</tref>, the
-     <tref>explicit inclusion flag</tref> and the
-     <tref>omit default flag</tref>.</dd>
-   <dt><tdef>object embed flag</tdef></dt>
-   <dd>a flag specifying that objects should be directly embedded in the output,
-     instead of being referred to by their IRI.</dd>
-   <dt><tdef>explicit inclusion flag</tdef></dt>
-   <dd>a flag specifying that for properties to be included in the output, they
-     must be explicitly declared in the <tref>framing context</tref>.</dd>
-   <dt><tdef>omit missing properties flag</tdef></dt>
-   <dd>a flag specifying that properties that are missing from the
-     <tref>JSON-LD input</tref> should be omitted from the output.</dd>
-   <dt><tdef>omit default flag</tdef></dt>
-   <dd class="issue">Referenced from <tref>framing context</tref>, but not defined</dd>
-   <dt><tdef>match limit</tdef></dt>
-   <dd>A value specifying the maximum number of matches to accept when building
-     arrays of values during the framing algorithm. A value of -1 specifies
-     that there is no match limit.</dd>
-   <dt><tdef>map of embedded subjects</tdef></dt>
-   <dd>A map that tracks if a subject has been embedded in the output of the
-     <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
- </dl>
+<dl>
+  <dt><tdef>input frame</tdef></dt>
+  <dd>the initial <tref>frame</tref> provided to the framing algorithm.</dd>
+  <dt><tdef>framing context</tdef></dt>
+  <dd>a context containing a <tref>map of embeds</tref>, the
+    <tref>object embed flag</tref>, the
+    <tref>explicit inclusion flag</tref> and the
+    <tref>omit default flag</tref>.</dd>
+  <dt><tdef>map of embeds</tdef></dt>
+  <dd>a map that tracks if a subject is to be embedded in the output of the
+    <a href="#framing-algorithm">Framing Algorithm</a>; it maps a subject
+    <code>@id</code> to a parent <tref>JSON object</tref> and property
+    or parent array.</dd>
+  <dt><tdef>object embed flag</tdef></dt>
+  <dd>a flag specifying that objects should be directly embedded in the output,
+    instead of being referred to by their IRI.</dd>
+  <dt><tdef>explicit inclusion flag</tdef></dt>
+  <dd>a flag specifying that for properties to be included in the output, they
+    must be explicitly declared in the <tref>framing context</tref>.</dd>
+  <dt><tdef>omit default flag</tdef></dt>
+  <dd>a flag specifying that properties that are missing from the
+    <tref>JSON-LD input</tref>, but present in the <tref>input frame</tref>
+    should be omitted from the output.</dd>
+  <dt><tdef>map of flattened subjects</tdef></dt>
+  <dd>a map of subjects that is the result of the
+    <a href="#subject-flattening">Subject Flattening Algorithm</a>.</dd>
+</dl>
 </section>
 
 <section>
 <h3>Framing Algorithm</h3>
 
-<p>The framing algorithm takes <tref>JSON-LD input</tref> that has been
-  normalized according to the
-  <a href="#normalization-algorithm">Normalization Algorithm</a>
-  (<strong>normalized input</strong>), an
-  <tref>input frame</tref> that has been expanded according to the
-  <a href="#expansion-algorithm">Expansion Algorithm</a>
-  (<strong>expanded frame</strong>), and a number of options and produces
-  <tref>JSON-LD output</tref>. The following series of steps is the recursive
+<p class="issue">This algorithm is a work in progress. Presently, it only works
+  for documents without named graphs.</p>
+
+<p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
+  and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
+  according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
+  options and produces <tref>JSON-LD output</tref>.</p>
+
+<p>Create <tref>framing context</tref> using <tref>null</tref> for the <tref>map of embeds</tref>,
+    the <tref>object embed flag</tref>, the
+    <tref>explicit inclusion flag</tref> and the
+    <tref>omit default flag</tref> along with <tref>map of flattened subjects</tref>
+    set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
+    <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
+
+<p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
+  the <tref>map of flattened subjects</tref> (<em>subjects</em>),
+  <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
+  <tref>null</tref> as <tref>active property</tref>.</p>
+
+<p>The following series of steps is the recursive
   portion of the framing algorithm:</p>
 
+<p class="note">Just a sketch for now</p>
 <ol class="algorithm">
-  <li>Initialize the <tref>framing context</tref> by setting the
-    <tref>object embed flag</tref>, clearing the
-    <tref>explicit inclusion flag</tref>, and clearing the
-    <tref>omit missing properties flag</tref>. Override these values
-    based on input options provided to the algorithm by the application.</li>
-  <li>Generate a <tdef>list of frames</tdef> by processing the
-    <strong>expanded frame</strong>:
+  <li>Validate <strong>expanded frame</strong>.</li>
+  <li>Create a set of matched subjects by filtering <em>subjects</em>.</li>
+  <li>Get values for <em>embedOn</em> and <em>explicitOn</em> by looking in <em>frame</em>
+    for the keys <code>@embed</code> and <code>@explicit</code> using the current values
+    for <tref>object embed flag</tref> and <tref>explicit inclusion flag</tref> from <em>state</em> if not found.</li>
+  <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects:
     <ol class="algorithm">
-      <li>If the <strong>expanded frame</strong> is not an <tref>array</tref>, set
-        <tref>match limit</tref> to 1, place the
-        <strong>expanded frame</strong> into the <tref>list of frames</tref>,
-        and set the <tref>JSON-LD output</tref> to <tref>null</tref>.</li>
-      <li>If the <strong>expanded frame</strong> is an empty <tref>array</tref>, place an
-        empty object into the <tref>list of frames</tref>,
-        set the <tref>JSON-LD output</tref> to an <tref>array</tref>, and set
-        <tref>match limit</tref> to -1.</li>
-      <li>If the <strong>expanded frame</strong> is a non-empty <tref>array</tref>, add
-        each item in the <strong>expanded frame</strong> into the
-        <tref>list of frames</tref>, set the <tref>JSON-LD output</tref> to an
-        <tref>array</tref>, and set <tref>match limit</tref> to -1.</li>
-    </ol>
-  </li>
-  <li>Create a <tdef>match array</tdef> for each <strong>expanded frame</strong>
-    in the <tref>list of frames</tref> halting when either the
-    <tref>match limit</tref> is zero or the end of the
-    <tref>list of frames</tref> is reached. If an
-    <strong>expanded frame</strong> is
-    not an object, the processor MUST throw a <code>Invalid Frame Format</code>
-    exception. Add each matching item from the <strong>normalized input</strong>
-    to the <tref>matches array</tref> and decrement the
-    <tref>match limit</tref> by 1 if:
-    <ol class="algorithm">
-       <li>The <strong>expanded frame</strong> has an <code>rdf:type</code>
-         that exists in the item's list of <code>rdf:type</code>s. Note:
-         the <code>rdf:type</code> can be an <tref>array</tref>, but only one value needs
-         to be in common between the item and the
-         <strong>expanded frame</strong> for a match.</li>
-       <li>The <strong>expanded frame</strong> does not have an
-         <code>rdf:type</code> property, but every property in the
-         <strong>expanded frame</strong> exists in the item.</li>
-    </ol>
-    <p class="issue"><tdef>matches array</tdef> not defined anywhere.</p>
-  </li>
-  <li>Process each item in the <tref>match array</tref> with its associated
-    <tdef>match frame</tdef>:
-    <ol class="algorithm">
-      <li>If the <tref>match frame</tref> contains an <code>@embed</code>
-        <tref>keyword</tref>, set the <tref>object embed flag</tref> to its value.
-        If the <tref>match frame</tref> contains an <code>@explicit</code>
-        <tref>keyword</tref>, set the <tref>explicit inclusion flag</tref> to its value.
-        Note: if the <tref>keyword</tref> exists, but the value is neither
-        <code>true</code> or <code>false</code>, set the associated flag to
-        <code>true</code>.</li>
-      <li>If the <tref>object embed flag</tref> is cleared and the item has
-        the <code>@id</code> property, replace the item with the value
-        of the <code>@id</code> property.</li>
-      <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@id</code> property, and its IRI is in the
-        <tref>map of embedded subjects</tref>, throw a
-        <code>Duplicate Embed</code> exception.</li>
-      <li>If the <tref>object embed flag</tref> is set and the item has
-        the <code>@id</code> property and its IRI is not in the
-        <tref>map of embedded subjects</tref>:
+      <li>If the <tref>active property</tref> is <tref>null</tref>, set the <tref>map of embeds</tref> in
+        <em>state</em> to an empty map.</li>
+      <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
+      <li>Initialize <em>embed</em> with <em>parent</em> and <tref>active property</tref> to
+        <em>property</em>.</li>
+      <li>If <em>embedOn</em> is <tref>true</tref>, and <em>id</em> is in <tref>map of embeds</tref>
+        from <em>state</em>:
         <ol class="algorithm">
-          <li>If the <tref>explicit inclusion flag</tref> is set,
-            then delete any key from the item that does not exist in the
-            <tref>match frame</tref>, except <code>@id</code>.</li>
-          <li>For each key in the <tref>match frame</tref>, except for
-            <tref>keyword</tref>s and <code>rdf:type</code>:
-          <ol class="algorithm">
-            <li>If the key is in the item, then build a new
-              <tdef>recursion input list</tdef> using the object or objects
-              associated with the key. If any object contains an
-              <code>@id</code> value that exists in the
-              <strong>normalized input</strong>, replace the object in the
-              <tref>recursion input list</tref> with a new object containing
-              the <code>@id</code> key where the value is the value of
-              the <code>@id</code>, and all of the other key-value pairs for
-              that subject. Set the <tdef>recursion match frame</tdef> to the
-              value associated with the <tref>match frame</tref>'s key. Replace
-              the value associated with the key by recursively calling this
-              algorithm using <tref>recursion input list</tref>,
-              <tref>recursion match frame</tref> as input.</li>
-            <li>If the key is not in the item, add the key to the item and
-              set the associated value to an empty array if the
-              <tref>match frame</tref> key's value is an array
-              or <tref>null</tref> otherwise.</li>
-            <li>If value associated with the item's key is <tref>null</tref>,
-              process the <tref>omit missing properties flag</tref>:
-              <ol class="algorithm">
-                <li>If the value associated with the key in the
-                  <tref>match frame</tref> is an array, use the first frame
-                  from the array as the <tdef>property frame</tdef>, otherwise
-                  set the <tref>property frame</tref> to an empty object.</li>
-                <li>If the <tref>property frame</tref> contains an
-                <code>@omitDefault</code> <tref>keyword</tref>, set the
-                <tref>omit missing properties flag</tref> to its value.
-                Note: if the <tref>keyword</tref> exists, but the value is neither
-                <code>true</code> or <code>false</code>, set the associated
-                flag to <code>true</code>.</li>
-                <li>If the <tref>omit missing properties flag</tref> is set,
-                  delete the key in the item. Otherwise, if the
-                  <code>@default</code> <tref>keyword</tref> is set in the
-                  <tref>property frame</tref> set the item's value to the value
-                  of <code>@default</code>.</li>
-              </ol>
-            </li>
-          </ol></li>
+          <li>Set <em>existing</em> to the value of <em>id</em> in <tref>map of embeds</tref>
+            and set <em>embedOn</em> to <tref>false</tref>.</li>
+          <li>If <em>existing</em> has a <em>parent</em> which is an <tref>array</tref> containing a
+            <tref>JSON object</tref> with <code>@id</code> equal to <em>id</em>, <em>element</em> has
+            already been embedded and can be overwritten, so set <em>embedOn</em> to <tref>true</tref>.</li>
+          <li>Otherwise, <em>existing</em> has a <em>parent</em> which is a <tref>subject definition</tref>.
+            Set <em>embedOn</em> to <tref>true</tref> if any of the items in <em>parent</em> <em>property</em>
+            is a <tref>subject definition</tref>
+            or <tref>subject reference</tref> for <em>id</em> because the embed can be overwritten.
+          </li>
+          <li>If <em>embedOn</em> is <tref>true</tref>, <em>existing</em> is already embedded but
+            can be overwritten, so <a href="#remove-embed">Remove Embedded Definition</a> for <em>id</em>.
+          </li>
         </ol>
       </li>
-      <li>If the <tref>JSON-LD output</tref> is <tref>null</tref> set it to
-        the item, otherwise, append the item to the
-        <tref>JSON-LD output</tref>.</li>
+      <li>If <em>embedOn</em> is <tref>false</tref>, add <em>output</em> to <em>parent</em>
+        by either appending to <em>parent</em> if it is an <tref>array</tref>, or appending
+        to <tref>active property</tref> in <em>parent</em> otherwise.</li>
+      <li>Otherwise:
+        <ol class="algorithm">
+          <li>Add <em>embed</em> to <tref>map of embeds</tref> for <em>id</em>.</li>
+          <li>Process each <em>property</em> and <em>value</em> in the matched <em>subject</em> as follows:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a <tref>keyword</tref>, add <em>property</em> and a copy of <em>value</em>
+                to <em>output</em> and continue with the next property from <em>subject</em>.</li>
+              <li>If <em>property</em> is not in <em>frame</em>:
+                <ol class="algorithm">
+                  <li>If <em>explicitOn</em> is <tref>false</tref>, <a href="#embed-values">Embed values</a>
+                    from <em>subject</em> in <em>output</em> using <em>subject</em> as <em>element</em> and
+                    <em>property</em> as <em>active property</em>.</li>
+                  <li>Continue to next property.</li>
+                </ol>
+              </li>
+              <li id="frm-process-prop-item">Process each <em>item</em> from <em>value</em> as follows:
+                <ol class="algorithm">
+                  <li>If <em>item</em> is a <tref>JSON object</tref> with the key <code>@list</code>, then
+                    create a <tref>JSON object</tref> named <em>list</em> with the key <code>@list</code> and
+                    the value of an empty array. Append <em>list</em> to <em>property</em> in
+                    <em>output</em>. Process each <em>listitem</em> in the <code>@list</code> array as follows:
+                    <ol class="algorithm">
+                      <li>If <em>listitem</em> is a <tref>subject reference</tref>
+                        process <em>listitem</em> recursively using this algorithm passing a new map as
+                        <em>subjects</em> that contains the <code>@id</code> of <em>listitem</em> as the key
+                        and the <tref>subject reference</tref> as the value. Pass the first value from
+                        <em>frame</em> for <em>property</em> as <em>frame</em>, <em>list</em>
+                        as <em>parent</em>, and <code>@list</code> as <tref>active property</tref>.</li>
+                      <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
+                    </ol>
+                  </li>
+                  <li>If <em>item</em> is a <tref>subject reference</tref>
+                    process <em>item</em> recursively using this algorithm passing a new map as
+                    <em>subjects</em> that contains the <code>@id</code> of <em>item</em> as the key and
+                    the <tref>subject reference</tref> as the value. Pass the first value from
+                    <em>frame</em> for <em>property</em> as <em>frame</em>, <em>output</em>
+                    as <em>parent</em>, and <em>property</em> as <tref>active property</tref>.</li>
+                  <li>Otherwise, append a copy of <em>item</em> to <tref>active property</tref> in
+                    <em>output</em>.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>Process each <em>property</em> and <em>value</em> in <em>frame</em>,
+            where <em>property</em> is not a <em>keyword</em>, as follows:
+            <ol class="algorithm">
+              <li>Set <em>property frame</em> to the first item in <em>value</em> or a newly created
+                <tref>JSON object</tref> if <em>value</em> is empty.</li>
+              <li>Skip to the next property in <em>frame</em> if <em>property</em> is in <em>output</em>
+                or if <em>property frame</em> contains
+                <code>@omitDefault</code> which is <tref>true</tref> or if it does not contain
+                <code>@omitDefault</code> but the value of <tref>omit default flag</tref>
+                <tref>true</tref>.</li>
+              <li>Set the value of <em>property</em> in <em>output</em> to a new <tref>JSON object</tref>
+                with a property <code>@preserve</code> and a value that is a copy of the value
+                of <code>@default</code> in <em>frame</em> if it exists, or the string
+                <code>@null</code> otherwise.</li>
+            </ol>
+          </li>
+          <li>Add <em>output</em> to <em>parent</em>.
+            If <em>parent</em> is an <tref>array</tref>, append <em>output</em>, otherwise
+            append <em>output</em> to <tref>active property</tref> in <em>parent</em>.</li>
+        </ol>
+      </li>
     </ol>
   </li>
-  <li>Return the <tref>JSON-LD output</tref>.</li>
 </ol>
 
-<p>The final, non-recursive step of the framing algorithm requires the
-  <tref>JSON-LD output</tref> to be compacted according to the
+<p>At the completion of the recursive algorithm, <em>results</em> will contain the top-level
+  <tref>subject definition</tref>s.</p>
+<p>The final two steps of the framing algorithm require
+  <em>results</em> to be compacted according to the
   <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
-  context provided in the <tref>input frame</tref>. The resulting value is the
-  final output of the compaction algorithm and is what should be returned to the
-  application.</p>
-
-</section>
-
-<p class="issue">What are the implications for framing lists?</p>
-
+  context provided in the <tref>input frame</tref>. If the frame has no context, compaction
+  is performed with an empty context (not a null context). The compaction result MUST use
+  the <code>@graph</code> keyword at the top-level, even if the context is empty or if there
+  is only one element to put in the <code>@graph</code> array. Subsequently, replace all key-value
+  pairs where the key is <code>@preserve</code> with the value from the key-pair. If the value
+  from the key-pair is <code>@null</code>, replace the value with <tref>null</tref>. If,
+  after replacement, an array contains only the value <tref>null</tref> remove the value, leaving
+  an empty array. The resulting value is the final <tref>JSON-LD output</tref>.</p>
 </section>
 
 <section>
-<h2>Normalization</h2>
+<h3>Subject Flattening</h3>
+<p>Subject Flattening takes as input an expanded JSON-LD document, and results in a <tref>JSON object</tref>
+  <em>subjects</em> with a mapping from each object represented in the document to a single entry within
+  the input document, assigning <tref>blank node</tref> identifiers to objects without a @id, or with an @id that
+  references a blank node identifier.</p>
 
-<p class="issue">This algorithm is a work in progress, do not implement it.</p>
-
-<p>Normalization is the process of taking <tref>JSON-LD input</tref> and
-  performing a deterministic transformation on that input that results in
-  a normalized and serialized JSON-LD representation.</p>
-
-<p>Normalization is achieved by transforming <tref>JSON-LD input</tref> to RDF,
-  as described in <a href="#rdf-conversion">RDF Conversion</a>, invoking the normalization procedure
-  as described in [[!RDF-NORMALIZATION]], returning the serialized results.</p>
-
-<div class="issue">
-  <p>There an open issue (<a href="https://github.com/json-ld/json-ld.org/issues/53">ISSUE-53</a>)
-    on the purpose and results of performing normalization. Previous versions of the
-    specification generated JSON-LD as the result of the normalization algorithm, however
-    normalization is a process required across different linked data serializations. To be useful,
-    a graph requires an identical normalized representation that is independent of the
-    data format originally used for markup, or the way in which language features or publisher
-    preferences create differences in the markup of identical graphs.</p>
-  <p>It may be that the need for either or both of flattening algorithm or to retrieve such a
-    cryptographic signature.</p>
-</div>
-
-<p>Normalization is useful when comparing two graphs against one another,
-  when generating a detailed list of differences between two graphs, and
-  when generating a cryptographic digital signature for information contained
-  in a graph or when generating a hash of the information contained in a graph.</p>
-
-<p>The example below is an un-normalized JSON-LD document:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    },
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
-  },
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
-}
--->
-</pre>
-
-<p>The example below is the normalized form of the JSON-LD document above:</p>
-
-<p class="note">Whitespace is used below to aid readability. The normalization
-  algorithm for JSON-LD removes all unnecessary whitespace in the fully
-  normalized form.</p>
-<p class="issue">Not clear that whitespace must be normalized, as the JSON-LD
-  representation can't be used directly to create a signature, but would be based
-  on the serialized result of [[!RDF-NORMALIZATION]].</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[{
-  "@id": "_:c14n0",
-  "http://xmlns.com/foaf/0.1/homepage": {
-    "@id": "http://manu.sporny.org/"
-  },
-  "http://xmlns.com/foaf/0.1/name": "Manu Sporny"
-}]
--->
-</pre>
-
-<p>Notice how all of the <tref>term</tref>s have been expanded and sorted in
-  alphabetical order. Also, notice how the <tref>subject</tref> has been labeled with a
-  named <tref>blank node</tref>. Normalization ensures that any arbitrary graph
-  containing exactly the same information would be normalized to exactly the same form
-  shown above.</p>
-<section>
-<h3>Normalization Algorithm</h3>
-
-<p>The normalization algorithm transforms the <tref>JSON-LD input</tref>
-  into RDF, normalizes it according to [[!RDF-NORMALIZATION]] and then
-  transforms back to JSON-LD. The result is an object representation that
-  deterministically represents a RDF graph.</p>
+<p>The algorithm operates on the initially empty <em>subjects</em> and takes as input the
+  current document <em>element</em>.</p>
 
 <ol class="algorithm">
-  <li>Transform the <tref>JSON-LD input</tref> to RDF according to the steps in
-    the <a href="#rdf-conversion-algorithm">RDF Conversion Algorithm</a>.</li>
-  <li>Perform [[!RDF-NORMALIZATION]] of that RDF to create a serialized N-Triples
-    representation of the RDF graph.</li>
-  <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
-  <li>For each triple in the N-Triples document having <em>subject</em>, <em>predicate</em>,
-    and <em>object</em>:
+  <li>If <em>element</em> is an array, process each entry in element recursively, using this algorithm.</li>
+  <li>Otherwise, if element is a JSON object:
     <ol class="algorithm">
-      <li>If <em>predicate</em> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#first</code>,
-        let <em>object representation</em> be <em>object</em> represented in expanded
-        form as described in <a href="#value-expansion">Value Expansion</a>.
+      <li>If element is a <tref>subject definition</tref> or <tref>subject reference</tref>:
         <ol class="algorithm">
-          <li>Set <em>value</em> as the last entry in <em>array</em>.</li>
-          <li>If the last entry in <em>value</em> is <em>subject</em>, replace it with
-            the a <tref>JSON object</tref> having a key/value pair of <code>@list</code> and an
-            <tref>array</tref> containing <em>object representation</em>.</li>
-          <li>Otherwise, the last key/value entry in <em>value</em> MUST be a <tref>JSON object</tref>
-            having a single key of <code>@list</code> with a value that is an <tref>array</tref>.
-            Append <em>object representation</em>.</li>
+          <li>If the property <cide>@id</cide> is not an <tref>IRI</tref>, return a
+            <tref>blank node</tref> identifer using <a
+            href="generate-blank-node-identifier">Generate Blank Node Identifier</a> as
+            <em>name</em>, otherwise use the value of the @id property as
+            <em>name</em>.</li>
+          <li>Unless <em>subjects</em> as an entry for <em>name</em> create a new entry in
+            <em>subjects</em> initialized using a new <tref>JSON object</tref>
+            with <code>@id</code> set to <em>name</em> as <em>subject</em>.
+            Otherwise, use that existing entrpy as <em>subject</em>.</li>
+          <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code>:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a keyword, copy <code>property</code> and <code>value</code>
+                to <code>subject</code>.</li>
+              <li>Otherwise, if value is a <tref>JSON object</tref>, it MUST only have the key <code>@list.</code>
+                Create a new <tref>JSON object</tref> containing
+                <code>@list</code> and an <tref>array</tref> created by
+                performing this algorithm recursively on each item in the list
+                and add to <em>subject</em> along with <em>property</em>.</li>
+              <li>Otherwise, value MUST be an <tref>array</tref>. Add property to <em>subject</em>
+                and an array value created by performing this algorithm
+                recursively on each item in the array.</li>
+            </ol>
+          </li>
+          <li>Return a new <tref>JSON object</tref> created as a <tref>subject reference</tref> to <em>name</em>.</li>
         </ol>
       </li>
-      <li>Otherwise, if <em>predicate</em> is
-        <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#rest</code>, ignore this triple.</li>
-      <li>Otherwise, if the last entry in <em>array</em> is not a <tref>JSON Object</tref> with an
-        <code>@id</code> having a value of <em>subject</em>:
-        <ol class="algorithm">
-          <li>Create a new <tref>JSON Object</tref> with key/value pair of <code>@id</code> and
-            a string representation of <em>subject</em> and use as <em>value</em>.</li>
-          <li>Otherwise, set <em>value</em> to that value.</li>
-        </ol>
-      </li>
-      <li>If <code>predicate</code> is <code>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</code>:
-        <ol class="algorithm">
-          <li>If <em>value</em> has an key/value pair of <code>@type</code> and an <tref>array</tref>,
-            append the string representation of <tref>object</tref> to that array.</li>
-          <li>Otherwise, if <em>value</em> has an key of <code>@type</code>, replace that value
-            with a new array containing the existing value and a string representation of
-            <em>object</em>.</li>
-          <li>Otherwise, create a new entry in value with a key of <code>@type</code> and value being a
-            string representation of <em>object</em>.</li>
-        </ol>
-      </li>
-      <li>Otherwise, let <em>key</em> by the string representation of <em>predicate</em> and
-        let <em>object representation</em> be <em>object</em> represented in expanded
-        form as described in <a href="#value-expansion">Value Expansion</a>.</li>
-      <li>If <em>value</em> has an key/value pair of <em>key</em> and an <tref>array</tref>,
-        append <em>object representation</em> to that array.</li>
-      <li>Otherwise, if <em>value</em> has an key of <em>key</em>, replace that value
-        with a new array containing the existing value and <em>object representation</em>.</li>
-      <li>Otherwise, create a new entry in value with a key of <em>key</em> and
-        <em>object representation</em>.</li>
+      <li>Otherwise, return <em>element</em>.</li>
     </ol>
   </li>
-  <li>Return <em>array</em> as the normalized graph representation.</li>
+  <li>Otherwise, return <em>element</em>.</li>
+</ol>
+
+<p class="issue">The algorithm states to set the property in <em>subject</em> using the mapped values,
+  but it really should merge, if the property already exists in <em>subject</em>.</p>
+</section>
+
+<section id="remove-embed">
+<h3>Remove Embedded Definition</h3>
+<p>This algorithm replaces an already embedded <tref>subject definition</tref> with a
+  <tref>subject reference</tref>. It then recursively removes any entries in the
+  <tref>map of embeds</tref> that had the removed <tref>subject definition</tref> in
+  their parent chain.
+  <div class="issue">About as clear as mud</div></p>
+<p>The algorithm is invoked with a <tref>framing context</tref> and subject id <em>id</em>.</p>
+<ol class="algorithm">
+  <li>Find <em>embed</em> from <tref>map of embeds</tref> for <em>id</em>.</li>
+  <li>Let <em>parent</em> and <em>property</em> be from <em>embed</em>.</li>
+  <li>If <em>parent</em> is an array, replace the <tref>subject definition</tref> that matches
+    <em>id</em> with a <tref>subject reference</tref>. If parent is a <tref>JSON object</tref>,
+    replace the <tref>subject definition</tref> for <em>property</em> that matches <em>id</em>
+    with a <tref>subject reference</tref>.</li>
+  <li>Remove dependents for <em>id</em> in <tref>map of embeds</tref>
+    by scanning the map for entries with <em>parent</em> that have an <code>@id</code> of <em>id</em>,
+    removing that definition from the map, and then removing the dependents for the <em>parent</em> id
+    recursively by repeating this step. This step will terminate when there are no more embed
+    entries containing the removed <tref>subject definition</tref>'s <code>@id</code> in their
+    parent chain.</li>
+</ol>
+</section>
+
+<section id="embed-values">
+<h3>Embed Values</h3>
+<p>This algorithm recursively embeds property values in <tref>subject definition</tref> <em>output</em>, given a
+  <tref>framing context</tref>, input <tref>subject definition</tref> <em>element</em>, <tref>active property</tref>,
+  and <em>output</em>.</p>
+<ol class="algorithm">
+  <li>For each <em>item</em> in <tref>active property</tref> of <em>element</em>:
+    <ol class="algorithm">
+      <li>If <em>item</em> is a <tref>JSON object</tref> with the key <code>@list</code>,
+        then create a new <tref>JSON object</tref> with a key <code>@list</code> and
+        a value of an empty array and add it to <em>output</em>, appending if <em>output</em>
+        is an array, and appending to <tref>active property</tref> otherwise. Recursively call this
+        algorithm passing <em>item</em> as <em>element</em>, <code>@list</code> as <tref>active property</tref>,
+        and the new array as <em>output</em>. Continue to the next <em>item</em>.</li>
+      <li>If <em>item</em> is a <tref>subject reference</tref>:
+        <ol class="algorithm">
+          <li>If <tref>map of embeds</tref> does not contain an entry for the <code>@id</code> of <em>item</em>:
+            <ol class="algorithm">
+              <li>Initialize <em>embed</em> with <em>output</em> as <em>parent</em> and
+                <tref>active property</tref> as <em>property</em>
+                and add to <tref>map of embeds</tref>.</li>
+              <li>Initialize a new <tref>subject definition</tref> <em>o</em> to act as the
+                embedded <tref>subject definition</tref>.</li>
+              <li>For each <em>property</em> and <em>value</em> in the expanded definition for
+                <em>item</em> in <em>subjects</em>:
+                <ol class="algorithm">
+                  <li>Add <em>property</em> and a copy of <em>value</em> to <em>o</em> if <em>property</em>
+                    is a <tref>keyword</tref>.</li>
+                  <li>Otherwise, recursively call this algorithm passing <em>value</em> as <em>element</em>,
+                    <em>property</em> as <tref>active property</tref> and <em>o</em> as <em>output</em>.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>Set <em>item</em> to <em>o</em>.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>If <em>output</em> is an <tref>array</tref>, append a copy of <em>item</em>, otherwise
+    append a copy of <em>item</em> to <tref>active property</tref> in <em>output</em>.</li>
 </ol>
 </section>
 
 </section>
 
 <section>
-
 <h3>Data Round Tripping</h3>
 
 <p>When coercing numbers to <strong>xsd:integer</strong> or <strong>xsd:double</strong>
-  as it, e.g., happens during <a href="#normalization">normalization</a>, implementers MUST
+  as it, e.g., happens during <a href="#rdf-conversion">RDF Conversion</a>, implementers MUST
   ensure that the result is a canonical lexical representation in the form of a
   <tref>string</tref>. A <tdef>canonical lexical representation</tdef> is a set of literals
   from among the valid set of literals for a datatype such that there is a one-to-one mapping
   between the canonical lexical representation and a value in the value space as defined in
   [[!XMLSCHEMA-2]]. In other words, every value MUST be converted to a deterministic string
   representation.</p>
-<p>
 <p>The canonical lexical representation of an <em>integer</em>, i.e., a number without fractions
   or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
   digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
@@ -1736,11 +1856,11 @@ var myObj1 = {
                "number" : ****42****
              };
 
-// Normalize the JSON-LD document, this converts 42 to a string
-var jsonldText = jsonld.normalize(myObj1);
+// Convert the JSON-LD document to RDF; this converts 42 to a string
+var jsonldText = jsonld.toRDF(myObj1, myRdfTripleCollector);
 
-// Convert the normalized object back to a JavaScript object
-var myObj2 = jsonld.parse(jsonldText);
+// Convert the RDF triples back to a JavaScript object
+var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
 -->
 </pre>
 
@@ -1762,22 +1882,19 @@ var myObj2 = jsonld.parse(jsonldText);
 <section>
 <h2>RDF Conversion</h2>
 
-<p>A JSON-LD document MAY be converted to any other RDF-compatible document
-format using the algorithm specified in this section.</p>
+<p>A JSON-LD document MAY be converted between other RDF-compatible document
+  formats using the algorithms specified in this section.</p>
 
-<p>
-  The JSON-LD Processing Model describes processing rules for extracting RDF
-  from a JSON-LD document. Note that many uses of JSON-LD may not require
-  generation of RDF.
-</p>
+<p>The JSON-LD Processing Model describes processing rules for extracting RDF
+  from a JSON-LD document, and for transforming an array of <a>Statement</a> retrieved by processing
+  another serialization format into JSON-LD. Note that many uses of JSON-LD may not require
+  generation of RDF.</p>
 
-<p>
-The processing algorithm described in this section is provided in
-order to demonstrate how one might implement a JSON-LD to RDF processor.
-Conformant implementations are only required to produce the same type and
-number of triples during the output process and are not required to
-implement the algorithm exactly as described.
-</p>
+<p>The processing algorithms described in this section are provided in
+  order to demonstrate how one might implement a JSON-LD to RDF processor.
+  Conformant implementations are only required to produce the same type and
+  number of statements during the output process and are not required to
+  implement the algorithm exactly as described.</p>
 
 <section class="informative">
   <h4>Overview</h4>
@@ -1788,166 +1905,141 @@ implement the algorithm exactly as described.
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
-    a <tdef>resource</tdef>. Resources may be of three basic types: <em><tref>IRI</tref></em>s, for describing
-    externally named entities, <em>BNodes</em>, resources for which an external name does not
-    exist, or is not known, and Literals, which describe terminal entities such as strings,
+    a <tdef>resource</tdef>. Resources may be of three basic types: <a>NamedNode</a>, representing
+    IRIs for describing
+    externally named entities, <a>BlankNode</a>, resources for which an external name does not
+    exist, or is not known, and <a>LiteralNode</a>, which describe terminal entities such as strings,
     dates and other representations having a lexical representation possibly including
     an explicit language or datatype.
   </p>
-  <p>
-  An Internationalized Resource Identifier
-  (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>),
-  as described in [[!RFC3987]], is a mechanism for representing unique
-  identifiers on the web. In <tref>Linked Data</tref>, an IRI is commonly
-  used for expressing a <tref>subject</tref>, a <tref>property</tref> or an
-  <tref>object</tref>.
-  </p>
-  <p>
-    Data described with JSON-LD may be considered to be the representation of a graph made
-    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a <tref>property</tref> <tref>resource</tref>.
+  <p>An Internationalized Resource Identifier
+    (<tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>),
+    as described in [[!RFC3987]], is a mechanism for representing unique
+    identifiers on the web. In <tref>Linked Data</tref>, an IRI is commonly
+    used for expressing a <tref>subject</tref>, a <tref>property</tref> or an
+    <tref>object</tref>.</p>
+  <p>Data described with JSON-LD may be considered to be the representation of a graph made
+    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a
+    <tref>property</tref> <tref>resource</tref>.
     However, specific implementations may choose to operate on the document as a normal
-    JSON description of objects having attributes.
-  </p>
+    JSON description of objects having attributes.</p>
 </section>
 
 <section>
   <h4>RDF Conversion Algorithm Terms</h4>
   <dl>
-    <dt><tdef>default graph</tdef></dt>
+    <dt><tdef>graph name</tdef></dt>
     <dd>
-      the destination graph for all triples generated by JSON-LD markup.
+      A <tref>IRI</tref> or <tref>Blank Node</tref> used to identify statements belonging to a
+      <em>named graph</em>.
     </dd>
   </dl>
 </section>
 
 <section>
-  <h3>RDF Conversion Algorithm</h3>
+  <h3>Convert to RDF Algorithm</h3>
   <p>
     The algorithm below is designed for in-memory implementations with random access to <tref>JSON object</tref> elements.
   </p>
   <p>
     A conforming JSON-LD processor implementing RDF conversion MUST implement a
-    processing algorithm that results in the same <tref>default graph</tref> that the following
+    processing algorithm that results in the same set of RDF <a>Statement</a>s that the following
     algorithm generates:
   </p>
 
-  <p>The algorithm takes four input variables: a <em>value</em> to be converted, an
-    <tref>active subject</tref> and an <tref>active property</tref>.
-    To begin, the <tref>active subject</tref> and <tref>active property</tref> are set to <tref>null</tref>, and <em>value</em> is
+  <p>The algorithm takes five input variables: a <em>element</em> to be converted, an
+    <tref>active subject</tref>, <tref>active property</tref> and <tref>graph name</tref>.
+    To begin, the <tref>active subject</tref>, <tref>active property</tref> and <tref>graph name</tref>
+    are set to <tref>null</tref>, and <em>element</em> is
     set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
     the <tref>JSON-LD input</tref>. This removes any existing context to allow the given context to be cleanly
     applied.</p>
 
   <ol class="algorithm">
     <li id="processing-step-associative">
-      If <em>value</em> is a <tref>JSON object</tref>, perform the following steps:
+      If <em>element</em> is a <tref>JSON object</tref>, perform the following steps:
       <ol class="algorithm">
         <li>Set <tref>active object</tref> to <tref>null</tref>.</li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@value</code> key, set the <tref>active object</tref>
+          If <em>element</em> has a <code>@value</code> property, set the <tref>active object</tref>
           to a literal value as follows:
           <ol class="algorithm">
             <li>
-              as a <tref>typed literal</tref> if the <tref>JSON object</tref> contains a <code>@type</code> key
+              As a <tref>typed literal</tref> if <em>element</em> contains a <code>@type</code> property
               after performing <a href="#iri-expansion">IRI Expansion</a> on the specified <code>@type</code>.
             </li>
             <li>
-              otherwise, as a <tref>plain literal</tref>. If the <tref>JSON object</tref> contains
-              a <code>@language</code> key, use it's value to set the language of the plain literal.
+              Otherwise, as a <tref>plain literal</tref>. If <em>element</em> contains
+              a <code>@language</code> property, use it's value to set the language of the plain literal.
             </li>
           </ol>
         </li>
         <li>
-          If the <tref>JSON object</tref> has a <code>@list</code> key the value MUST be an <tref>array</tref>.
-          Process the value as a list as described in <a href="#list-conversion">List Conversion</a> using
+          If <em>element</em> has a <code>@list</code> property the value MUST be an <tref>array</tref>.
+          Process its value as a list as described in <a href="#list-conversion">List Conversion</a> using
           the return value as the <tref>active object</tref>
         </li>
         <li>If <tref>active object</tref> is not <tref>null</tref>:
           <ol class="algorithm">
-            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>, generate a triple
-              representing the <tref>active subject</tref>, the <tref>active property</tref> and the
-              <tref>active object</tref>.</li>
-            <li>Return the <tref>active object</tref> to the calling location.</li>
+            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>,
+              generate a <a>Statement</a>
+              representing <tref>active subject</tref>, <tref>active property</tref>,
+              <tref>active object</tref>, and <tref>graph name</tref>.</li>
+            <li>Return <tref>active object</tref>.</li>
           </ol>
         </li>
-        <li id="processing-step-subject">If the <tref>JSON object</tref> has a <code>@id</code> key:
+        <li id="processing-step-subject">If <em>element</em> has a <code>@id</code> property,
+          the value MUST be a <tref>string</tref>, set the <tref>active subject</tref> to the previously
+          expanded value (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
+        <li>
+          Otherwise, if <em>element</em> does not have a <code>@id</code> property, set the <tref>active
+          subject</tref> to newly generated <tref>blank node</tref>.</li>
+        <li>
+          Process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
           <ol class="algorithm">
             <li>
-              If the value is a <tref>string</tref>, set the <tref>active subject</tref> to the previously
-              expanded value (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
-            <li>Otherwise,
-              Generate a create a new <tref>processor state</tref> copies of the <tref>active subject</tref>
-              and <tref>active property</tref>.
-              <ol class="algorithm">
-                <li>
-                  Process the value starting at
-                  <a href="#processing-step-associative">Step 1</a> using the returned value as
-                  <tref>active subject</tref>.
-                </li>
-                <li>Proceed using the previous <tref>processor state</tref>.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-        <li>
-          If the <tref>JSON object</tref> does not have a <code>@id</code> key, set the <tref>active
-          object</tref> to newly generated <tref>blank node</tref>.</li>
-        <li>
-          For each key in the <tref>JSON object</tref> that has not already been processed, perform
-          the following steps:
-          <ol class="algorithm">
-            <li>
-              If the key is <code>@type</code>, set the <tref>active property</tref>
+              If <em>property</em> is <code>@type</code>, set the <tref>active property</tref>
               to <code>rdf:type</code>.
             </li>
-            <li>Otherwise, if the key is a <tref>keyword</tref>, skip this step.</li>
-            <li>Otherwise, set <tref>active property</tref> to the value of the key.</li>
-            <li>
-              Create a new <tref>processor state</tref> copies of
-              <tref>active subject</tref> and <tref>active property</tref> and process the value
-              starting at <a href="#processing-step-associative">Step 1</a> and proceed using the
-              previous <tref>processor state</tref>.
+            <li>Otherwise, if <em>property</em> is <code>@graph</code>,
+              process <em>value</em> algorithm recursively, using <tref>active subject</tref> as <tref>graph name</tref>
+              and null values for <tref>active subject</tref> and <tref>active property</tref> and then
+              proceed to next property.</li>
+            <li>Otherwise, if <em>property</em> is a <tref>keyword</tref>, skip this step.</li>
+            <li>Otherwise, set <tref>active property</tref> to the IRI value of <em>property</em>.</li>
+            <li>Process <em>value</em> recursively using this algorithm, passing copies of
+              <tref>active subject</tref>, <tref>active property</tref> and <tref>graph name</tref>.
             </li>
           </ol>
         </li>
         <li>
-          Return the <tref>active subject</tref> to the calling location.
+          Set <tref>active object</tref> to <tref>active subject</tref>.
         </li>
       </ol>
     </li>
 
-    <li>If a regular <tref>array</tref> is detected, process each value in the <tref>array</tref>
-      by doing the following returning the result of processing the last value in the <tref>array</tref>:
-      <div class="issue">Update based on decision of what value, if any, of array to use.</div>
-      <ol class="algorithm">
-        <li>
-          Create a new <tref>processor state</tref> using copies of <tref>active subject</tref> and
-          <tref>active property</tref> and process the value
-          starting at <a href="#processing-step-associative">Step 1</a> then proceed using the previous
-          <tref>processor state</tref>.
-        </li>
-      </ol>
-    </li>
+    <li>Otherwise, if <em>element</em> is an <tref>array</tref>, process each value in the <tref>array</tref>
+      as follows, process <em>element</em> recursively using this algorithm, using copies of
+      <tref>active subject</tref>, <tref>active property</tref>, and <tref>graph name</tref>.</li>
 
-    <li>
-      If a <tref>string</tref> is detected, set the <tref>active object</tref>
+    <li>Otherwise, if <em>element</em> is a <tref>string</tref>, set the <tref>active object</tref>
       to a <tref>plain literal</tref> value created from the string.</li>
-    <li>
-      If a <tref>number</tref> is detected, set the <tref>active object</tref> to a
+
+    <li>Otherwise, if <em>element</em> is a <tref>number</tref>, set the <tref>active object</tref> to a
       <tref>typed literal</tref> using a string representation of the value with datatype set
       to either <code>xsd:integer</code> or <code>xsd:double</code>, depending on if the value
       contains a fractional and/or an exponential component.</li>
-    <li>
-      Otherwise, if <strong>true</strong> or <strong>false</strong> is detected,
+
+    <li>Otherwise, if <em>element</em> is <strong>true</strong> or <strong>false</strong>,
       set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
-      string representation of the value with datatype set to <code>xsd:boolean</code>.
+      string representation of the value with datatype set to <code>xsd:boolean</code>.</li>
+
+    <li>If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
+      nor <tref>active property</tref> are <tref>null</tref>, generate a <a>Statement</a> using
+      <tref>active subject</tref>,<tref>active property</tref>, <tref>active object</tref> and
+      <tref>graph name</tref>.
     </li>
-    <li>
-      If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
-      nor <tref>active property</tref> are <tref>null</tref>, generate a triple using <tref>active subject</tref>,
-      <tref>active property</tref> and <tref>active object</tref>
-    </li>
-    <li>Return <tref>active object</tref> to the calling location.</li>
+    <li>Return <tref>active object</tref>.</li>
   </ol>
 </section>
 <section id="list-conversion">
@@ -1965,7 +2057,7 @@ implement the algorithm exactly as described.
       If <em>array</em> is empty return <code>rdf:nil</code>.
     </li>
     <li>
-      Otherwise, generate a triple using using the <tref>active subject</tref>, <tref>active property</tref>
+      Otherwise, generate a <a>Statement</a> using using the <tref>active subject</tref>, <tref>active property</tref>
       and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
     </li>
     <li>
@@ -1981,7 +2073,7 @@ implement the algorithm exactly as described.
         </li>
         <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
           <em>rest <tref>blank node</tref></em>, otherwise use <code>rdf:nil</code>.</li>
-        <li>Generate a new triple using <em>first <tref>blank node</tref></em>,
+        <li>Generate a new <a>Statement</a> using <em>first <tref>blank node</tref></em>,
           <code>rdf:rest</code> and <em>rest <tref>blank node</tref></em>.</li>
         <li>Set <em>first <tref>blank node</tref></em> to
           <em>rest <tref>blank node</tref></em>.</li>
@@ -1990,6 +2082,102 @@ implement the algorithm exactly as described.
     </li>
   </ol>
 </section>
+
+<section>
+  <h2>Convert from RDF Algorithm</h2>
+  <p>In some cases, data exists natively in Triples or Quads form; for example, if the data was originally
+    represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
+    an array of <a>Statement</a>s into a JSON-LD document.</p>
+  <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
+    array of <a>Statement</a> representations.</p>
+  <ol class="algorithm">
+    <li>Construct a JSON <tref>array</tref> <em>array</em> to serve as the output object.</li>
+    <li>Construct a <tref>JSON object</tref> <em>listMap</em> to map graph names and subjects to objects derived from
+      statements having a property of <code>rdf:first</code>.</li>
+    <li>Construct a <tref>JSON object</tref> <em>restMap</em> to map graph names and subjects to objects
+      derived from statements having a property of <code>rdf:rest</code>.</li>
+    <li>Construct a <tref>JSON object</tref> <em>subjectMap</em> to map graph names and subjects to
+      <tref>JSON object</tref> instances contained in <em>array</em>.</li>
+    <li>For each statement in <em>input</em>:
+      <ol class="algorithm">
+        <li>If <em>property</em> is <code>rdf:first</code>,
+          create a new entry in <em>listMap</em> with for <em>name</em> and <em>subject</em> and an array value
+          containing <em>object</em> representation and skip to the next statement.</li>
+        <li>If <em>property</em> is <code>rdf:rest</code>,
+          and <em>object</em> is a <a>BlankNode</a>,
+          create a new entry in <em>restMap</em> to map <em>name</em> and <em>subject</em> to a value being the
+          result of <a href="#iri-expansion">IRI expansion</a> on <em>object</em> and skip to the next statement.</li>
+        <li>If <em>name</em> is not <tref>null</tref>:
+          <ol class="algorithm">
+            <li>If <em>subjectMap</em> does not have an entry for <tref>null</tref> as name and <em>name</em> as subject:
+              <ol class="algorithm">
+                <li>Create a new <tref>JSON object</tref> with key/value pair of <code>@id</code> and
+                  a string representation of <em>name</em> and use as <em>value</em>.</li>
+                <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>array</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, use that entry as <em>value</em>.</li>
+            <li>If <em>value</em> does not have an entry for <code>@graph</code>, initialize it as a new <tref>array</tref> <em>ary</em>.</li>
+            <li>Otherwise, let <em>ary</em> be that array.</li>
+            <li>If <em>subjectMap</em> does not have an entry for <code>name</code> and <em>subject</em>:
+              <ol class="algorithm">
+                <li>Create a new <tref>JSON object</tref> with key/value pair of <code>@id</code> and
+                  a string representation of <em>subject</em> and use as <em>value</em>.</li>
+                <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>ary</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, use that entry as <em>value</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if <em>subjectMap</em> does not have an entry for <tref>null</tref> as name and <em>subject</em>:
+          <ol class="algorithm">
+            <li>Create a new <tref>JSON object</tref> with key/value pair of <code>@id</code> and
+              a string representation of <em>subject</em> and use as <em>value</em>.</li>
+            <li>Save <em>value</em> in <em>subjectMap</em> and append to <em>array</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, use that entry as <em>value</em>.</li>
+        <li>If <em>property</em> is <code>rdf:type</code>:
+          <ol class="algorithm">
+            <li>Append the string representation of <em>object</em> to the array value for the
+              key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
+          <ol class="algorithm">
+            <li>Let <em>key</em> be the string representation of <em>property</em>.</li>
+            <li>Set the value for <em>key</em> in <em>value</em> to an empty <code>@list</code>
+              representation: <code>{"@list": []}</code>.</li>
+          </ol>
+        </li>
+        <li>Otherwise,
+          <ol class="algorithm">
+            <li>Let <em>key</em> be the string representation of <em>property</em> and let
+              <em>object representation</em>
+              be <em>object</em> represented in expanded form as described in
+              <a href="#value-expansion">Value Expansion</a>.</li>
+            <li>Append <em>object representation</em> to the array value for
+              <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>For each <em>name</em>, <em>map</em> in <em>restMap</em>:
+      <ol class="algorithm">
+        <li>For each key/value <em>prev</em>, <em>rest</em> entry in <em>map</em>,
+          append to the <em>listMap</em> value identified
+          by <em>name</em> and <em>prev</em> the <em>listMap</em> value identified by <em>name</em> and <em>rest</em>.</li>
+      </ol>
+    </li>
+    <li>For each <em>name</em>, <em>map</em> in <em>listMap</em>:
+      <ol class="algorithm">
+        <li>For each key/value <em>node</em>, <em>list</em>, in <em>map</em> where <em>list</em>
+          exists as a value of an object in <em>array</em>,
+          replace the object value with <em>list</em>.</li>
+      </ol>
+    </li>
+    <li>Return array as the graph representation in expanded form.</li>
+  </ol>
 </section>
 </section>
 

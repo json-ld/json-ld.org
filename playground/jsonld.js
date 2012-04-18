@@ -1,3077 +1,3756 @@
 /**
- * Javascript implementation of JSON-LD.
+ * A JavaScript implementation of a JSON-LD Processor.
  *
  * @author Dave Longley
  *
- * Copyright (c) 2011-2012 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2011-2012 Digital Bazaar, Inc.
  */
-(function()
-{
+(function() {
 
-// used by Exception
-var _setMembers = function(self, obj)
-{
-   self.stack = '';
-   for(var key in obj)
-   {
-      self[key] = obj[key];
-   }
-};
+// define jsonld API
+var jsonld = {};
 
-// define jsonld
-if(typeof(window) !== 'undefined')
-{
-   var jsonld = window.jsonld = window.jsonld || {};
-   Exception = function(obj)
-   {
-      _setMembers(this, obj);
-   };
-
-   // define js 1.8.5 Object.keys method unless present
-   if(!Object.keys)
-   {
-      Object.keys = function(o)
-      {  
-         if(o !== Object(o))
-         {
-            throw new TypeError('Object.keys called on non-object');
-         }
-         var rval = [];
-         for(var p in o)
-         {
-            if(Object.prototype.hasOwnProperty.call(o, p))
-            {
-               rval.push(p);
-            }
-         }
-         return rval;
-      }
-   }
-}
-// define node.js module
-else if(typeof(module) !== 'undefined' && module.exports)
-{
-   var jsonld = {};
-   module.exports = jsonld;
-   Exception = function(obj)
-   {
-      _setMembers(this, obj);
-      this.stack = new Error().stack;
-   };
-}
-
-/*
- * Globals and helper functions.
- */
-var ns =
-{
-   xsd: 'http://www.w3.org/2001/XMLSchema#'
-};
-
-var xsd =
-{
-   'boolean': ns.xsd + 'boolean',
-   'double': ns.xsd + 'double',
-   'integer': ns.xsd + 'integer'
-};
+/* Core API */
 
 /**
- * Sets a subject's property to the given object value. If a value already
- * exists, it will be appended to an array.
+ * Performs JSON-LD compaction.
  *
- * @param s the subject.
- * @param p the property.
- * @param o the object.
+ * @param input the JSON-LD object to compact.
+ * @param ctx the context to compact with.
+ * @param [options] options to use:
+ *          [strict] use strict mode (default: true).
+ *          [optimize] true to optimize the compaction (default: false).
+ *          [graph] true to always output a top-level graph (default: false).
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, compacted) called once the operation completes.
  */
-var _setProperty = function(s, p, o)
-{
-   if(p in s)
-   {
-      if(s[p].constructor === Array)
-      {
-         s[p].push(o);
-      }
-      else
-      {
-         s[p] = [s[p], o];
-      }
-   }
-   else
-   {
-      s[p] = o;
-   }
-};
+jsonld.compact = function(input, ctx) {
+  // get arguments
+  var options = {};
+  var callbackArg = 2;
+  if(arguments.length > 3) {
+    options = arguments[2] || {};
+    callbackArg += 1;
+  }
+  var callback = arguments[callbackArg];
 
-/**
- * Clones an object, array, or string/number. If cloning an object, the keys
- * will be sorted.
- * 
- * @param value the value to clone.
- * 
- * @return the cloned value.
- */
-var _clone = function(value)
-{
-   var rval;
-   
-   if(value.constructor === Object)
-   {
-      rval = {};
-      var keys = Object.keys(value).sort();
-      for(var i in keys)
-      {
-         var key = keys[i];
-         rval[key] = _clone(value[key]);
-      }
-   }
-   else if(value.constructor === Array)
-   {
-      rval = [];
-      for(var i in value)
-      {
-         rval[i] = _clone(value[i]);
-      }
-   }
-   else
-   {
-      rval = value;
-   }
-   
-   return rval;
-};
+  // nothing to compact
+  if(input === null) {
+    return callback(null, null);
+  }
 
-/**
- * Gets the keywords from a context.
- * 
- * @param ctx the context.
- * 
- * @return the keywords.
- */
-var _getKeywords = function(ctx)
-{
-   // TODO: reduce calls to this function by caching keywords in processor
-   // state
-   
-   var rval =
-   {
-      '@id': '@id',
-      '@language': '@language',
-      '@value': '@value',
-      '@type': '@type'
-   };
-   
-   if(ctx)
-   {
-      // gather keyword aliases from context
-      var keywords = {};
-      for(var key in ctx)
-      {
-         if(ctx[key].constructor === String && ctx[key] in rval)
-         {
-            keywords[ctx[key]] = key;
-         }
-      }
-      
-      // overwrite keywords
-      for(var key in keywords)
-      {
-         rval[key] = keywords[key];
-      }
-   }
-   
-   return rval;
-};
+  // set default options
+  if(!('strict' in options)) {
+    options.strict = true;
+  }
+  if(!('optimize') in options) {
+    options.optimize = false;
+  }
+  if(!('graph') in options) {
+    options.graph = false;
+  }
+  if(!('resolver') in options) {
+    options.resolver = jsonld.urlResolver;
+  }
 
-/**
- * Gets the iri associated with a term.
- * 
- * @param ctx the context.
- * @param term the term.
- * 
- * @return the iri or NULL.
- */
-var _getTermIri = function(ctx, term)
-{
-   var rval = null;
-   if(term in ctx)
-   {
-      if(ctx[term].constructor === String)
-      {
-         rval = ctx[term];
-      }
-      else if(ctx[term].constructor === Object && '@id' in ctx[term])
-      {
-         rval = ctx[term]['@id'];
-      }
-   }
-   return rval;
-};
+  // default to empty context if not given
+  ctx = ctx || {};
+  if('@context' in ctx) {
+    ctx = ctx['@context'];
+  }
 
-/**
- * Compacts an IRI into a term or prefix if it can be. IRIs will not be
- * compacted to relative IRIs if they match the given context's default
- * vocabulary.
- *
- * @param ctx the context to use.
- * @param iri the IRI to compact.
- * @param usedCtx a context to update if a value was used from "ctx".
- *
- * @return the compacted IRI as a term or prefix or the original IRI.
- */
-var _compactIri = function(ctx, iri, usedCtx)
-{
-   var rval = null;
-   
-   // check the context for a term that could shorten the IRI
-   // (give preference to terms over prefixes)
-   for(var key in ctx)
-   {
-      // skip special context keys (start with '@')
-      if(key.length > 0 && key[0] !== '@')
-      {
-         // compact to a term
-         if(iri === _getTermIri(ctx, key))
-         {
-            rval = key;
-            if(usedCtx !== null)
-            {
-               usedCtx[key] = _clone(ctx[key]);
-            }
-            break;
-         }
-      }
-   }
-   
-   // term not found, if term is keyword, use alias
-   if(rval === null)
-   {
-      var keywords = _getKeywords(ctx);
-      if(iri in keywords)
-      {
-         rval = keywords[iri];
-         if(rval !== iri && usedCtx !== null)
-         {
-            usedCtx[rval] = iri;
-         }
-      }
-   }
-   
-   // term not found, check the context for a prefix
-   if(rval === null)
-   {
-      for(var key in ctx)
-      {
-         // skip special context keys (start with '@')
-         if(key.length > 0 && key[0] !== '@')
-         {
-            // see if IRI begins with the next IRI from the context
-            var ctxIri = _getTermIri(ctx, key);
-            if(ctxIri !== null)
-            {
-               var idx = iri.indexOf(ctxIri);
-               
-               // compact to a prefix
-               if(idx === 0 && iri.length > ctxIri.length)
-               {
-                  rval = key + ':' + iri.substr(ctxIri.length);
-                  if(usedCtx !== null)
-                  {
-                     usedCtx[key] = _clone(ctx[key]);
-                  }
-                  break;
-               }
-            }
-         }
-      }
-   }
+  // expand input then do compaction
+  jsonld.expand(input, options, function(err, expanded) {
+    if(err) {
+      return callback(new JsonLdError(
+        'Could not expand input before compaction.',
+        'jsonld.CompactError', {cause: err}));
+    }
 
-   // could not compact IRI
-   if(rval === null)
-   {
-      rval = iri;
-   }
-
-   return rval;
-};
-
-/**
- * Expands a term into an absolute IRI. The term may be a regular term, a
- * prefix, a relative IRI, or an absolute IRI. In any case, the associated
- * absolute IRI will be returned.
- *
- * @param ctx the context to use.
- * @param term the term to expand.
- * @param usedCtx a context to update if a value was used from "ctx".
- *
- * @return the expanded term as an absolute IRI.
- */
-var _expandTerm = function(ctx, term, usedCtx)
-{
-   var rval = term;
-   
-   // get JSON-LD keywords
-   var keywords = _getKeywords(ctx);
-   
-   // 1. If the property has a colon, it is a prefix or an absolute IRI:
-   var idx = term.indexOf(':');
-   if(idx !== -1)
-   {
-      // get the potential prefix
-      var prefix = term.substr(0, idx);
-
-      // expand term if prefix is in context, otherwise leave it be
-      if(prefix in ctx)
-      {
-         // prefix found, expand property to absolute IRI
-         var iri = _getTermIri(ctx, prefix);
-         rval = iri + term.substr(idx + 1);
-         if(usedCtx !== null)
-         {
-            usedCtx[prefix] = _clone(ctx[prefix]);
-         }
+    // merge and resolve contexts
+    jsonld.mergeContexts({}, ctx, options, function(err, ctx) {
+      if(err) {
+        return callback(new JsonLdError(
+          'Could not merge context before compaction.',
+          'jsonld.CompactError', {cause: err}));
       }
-   }
-   // 2. If the property is in the context, then it's a term.
-   else if(term in ctx)
-   {
-      rval = _getTermIri(ctx, term);
-      if(usedCtx !== null)
-      {
-         usedCtx[term] = _clone(ctx[term]);
-      }
-   }
-   // 3. The property is a keyword.
-   else
-   {
-      for(var key in keywords)
-      {
-         if(term === keywords[key])
-         {
-            rval = key;
-            break;
-         }
-      }
-   }
-   
-   return rval;
-};
 
-/**
- * Sorts the keys in a object.
- * 
- * @param obj the object to sort.
- * 
- * @return the sorted object.
- */
-var _sortKeys = function(obj)
-{
-   var rval = obj;
-   if(obj !== null)
-   {
-     if(obj.constructor === Array)
-     {
-        rval = [];
-        for(var i in obj)
-        {
-           rval.push(_sortKeys(obj[i]));
+      try {
+        // create optimize context
+        if(options.optimize) {
+          options.optimizeCtx = {};
         }
-     }
-     else if(obj.constructor === Object)
-     {
-        rval = {};
-        var keys = Object.keys(obj).sort();
-        for(var k in keys)
-        {
-           var key = keys[k];
-           rval[key] = _sortKeys(obj[key]);
+
+        // do compaction
+        input = expanded;
+        var compacted = new Processor().compact(ctx, null, input, options);
+        cleanup(null, compacted, options);
+      }
+      catch(ex) {
+        callback(ex);
+      }
+    });
+  });
+
+  // performs clean up after compaction
+  function cleanup(err, compacted, options) {
+    if(err) {
+      return callback(err);
+    }
+
+    // if compacted is an array with 1 entry, remove array unless
+    // graph option is set
+    if(!options.graph && _isArray(compacted) && compacted.length === 1) {
+      compacted = compacted[0];
+    }
+    // always use array if graph option is on
+    else if(options.graph && _isObject(compacted)) {
+      compacted = [compacted];
+    }
+
+    // build output context
+    ctx = _clone(ctx);
+    if(!_isArray(ctx)) {
+      ctx = [ctx];
+    }
+    // add optimize context
+    if(options.optimizeCtx) {
+      ctx.push(options.optimizeCtx);
+    }
+    // remove empty contexts
+    var tmp = ctx;
+    ctx = [];
+    for(var i in tmp) {
+      if(!_isObject(tmp[i]) || Object.keys(tmp[i]).length > 0) {
+        ctx[i] = tmp[i];
+      }
+    }
+
+    // remove array if only one context
+    var hasContext = (ctx.length > 0);
+    if(ctx.length === 1) {
+      ctx = ctx[0];
+    }
+
+    // add context
+    if(hasContext || options.graph) {
+      if(_isArray(compacted)) {
+        // use '@graph' keyword
+        var kwgraph = _compactIri(ctx, '@graph');
+        var graph = compacted;
+        compacted = {};
+        if(hasContext) {
+          compacted['@context'] = ctx;
         }
-     }
-   }
-   return rval;
+        compacted[kwgraph] = graph;
+      }
+      else if(_isObject(compacted)) {
+        // reorder keys so @context is first
+        var graph = compacted;
+        compacted = {'@context': ctx};
+        for(var key in graph) {
+          compacted[key] = graph[key];
+        }
+      }
+    }
+
+    callback(null, compacted);
+  };
 };
 
 /**
- * Gets whether or not a value is a reference to a subject (or a subject with
- * no properties).
- * 
- * @param value the value to check.
- * 
- * @return true if the value is a reference to a subject, false if not.
+ * Performs JSON-LD expansion.
+ *
+ * @param input the JSON-LD object to expand.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, expanded) called once the operation completes.
  */
-var _isReference = function(value)
-{
-   // Note: A value is a reference to a subject if all of these hold true:
-   // 1. It is an Object.
-   // 2. It is has an @id key.
-   // 3. It has only 1 key.
-   return (value !== null &&
-      value.constructor === Object &&
-      '@id' in value &&
-      Object.keys(value).length === 1);
+jsonld.expand = function(input) {
+  // get arguments
+  var options = {};
+  var callback;
+  var callbackArg = 1;
+  if(arguments.length > 2) {
+    options = arguments[1] || {};
+    callbackArg += 1;
+  }
+  callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
+  // resolve all @context URLs in the input
+  input = _clone(input);
+  _resolveUrls(input, options.resolver, function(err, input) {
+    if(err) {
+      return callback(err);
+    }
+    try {
+      // do expansion
+      var expanded = new Processor().expand({}, null, input, false);
+
+      // optimize away @graph with no other properties
+      if(_isObject(expanded) && ('@graph' in expanded) &&
+        Object.keys(expanded).length === 1) {
+        expanded = expanded['@graph'];
+      }
+      // normalize to an array
+      if(!_isArray(expanded)) {
+        expanded = [expanded];
+      }
+      callback(null, expanded);
+    }
+    catch(ex) {
+      callback(ex);
+    }
+  });
 };
 
 /**
- * Gets whether or not a value is a subject with properties.
- * 
- * @param value the value to check.
- * 
- * @return true if the value is a subject with properties, false if not.
+ * Performs JSON-LD framing.
+ *
+ * @param input the JSON-LD object to frame.
+ * @param frame the JSON-LD frame to use.
+ * @param [options] the framing options.
+ *          [embed] default @embed flag (default: true).
+ *          [explicit] default @explicit flag (default: false).
+ *          [omitDefault] default @omitDefault flag (default: false).
+ *          [optimize] optimize when compacting (default: false).
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, framed) called once the operation completes.
  */
-var _isSubject = function(value)
-{
-   var rval = false;
-   
-   // Note: A value is a subject if all of these hold true:
-   // 1. It is an Object.
-   // 2. It is not a literal (@value).
-   // 3. It has more than 1 key OR any existing key is not '@id'.
-   if(value !== null && value.constructor === Object && !('@value' in value))
-   {
-      var keyCount = Object.keys(value).length;
-      rval = (keyCount > 1 || !('@id' in value));
-   }
-   
-   return rval;
+jsonld.frame = function(input, frame) {
+  // get arguments
+  var options = {};
+  var callbackArg = 2;
+  if(arguments.length > 3) {
+    options = arguments[2] || {};
+    callbackArg += 1;
+  }
+  var callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+  if(!('embed' in options)) {
+    options.embed = true;
+  }
+  options.explicit = options.explicit || false;
+  options.omitDefault = options.omitDefault || false;
+  options.optimize = options.optimize || false;
+
+  // preserve frame context
+  var ctx = frame['@context'] || {};
+
+  // expand input
+  jsonld.expand(input, options, function(err, _input) {
+    if(err) {
+      return callback(new JsonLdError(
+        'Could not expand input before framing.',
+        'jsonld.FrameError', {cause: err}));
+    }
+
+    // expand frame
+    jsonld.expand(frame, options, function(err, _frame) {
+      if(err) {
+        return callback(new JsonLdError(
+          'Could not expand frame before framing.',
+          'jsonld.FrameError', {cause: err}));
+      }
+
+      try {
+        // do framing
+        var framed = new Processor().frame(_input, _frame, options);
+      }
+      catch(ex) {
+        callback(ex);
+      }
+
+      // compact result (force @graph option to true)
+      options.graph = true;
+      jsonld.compact(framed, ctx, options, function(err, compacted) {
+        if(err) {
+          return callback(new JsonLdError(
+            'Could not compact framed output.',
+            'jsonld.FrameError', {cause: err}));
+        }
+        // get graph alias
+        var graph = '@graph';
+        for(var key in compacted) {
+          if(key !== '@context') {
+            graph = key;
+            break;
+          }
+        }
+        // remove @preserve from results
+        compacted[graph] = _removePreserve(compacted[graph]);
+        callback(null, compacted);
+      });
+    });
+  });
 };
 
-var _orderKeys = 
-
-/*
- * JSON-LD API.
- */
-
 /**
- * Normalizes a JSON-LD object.
+ * Performs JSON-LD normalization.
  *
  * @param input the JSON-LD object to normalize.
- * 
- * @return the normalized JSON-LD object.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, normalized) called once the operation completes.
  */
-jsonld.normalize = function(input)
-{
-   return new Processor().normalize(input);
+jsonld.normalize = function(input, callback) {
+  // get arguments
+  var options = {};
+  var callback;
+  var callbackArg = 1;
+  if(arguments.length > 2) {
+    options = arguments[1] || {};
+    callbackArg += 1;
+  }
+  callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
+  // expand input then do normalization
+  jsonld.expand(input, options, function(err, expanded) {
+    if(err) {
+      return callback(new JsonLdError(
+        'Could not expand input before normalization.',
+        'jsonld.NormalizeError', {cause: err}));
+    }
+
+    // do normalization
+    new Processor().normalize(expanded, callback);
+  });
 };
 
 /**
- * Removes the context from a JSON-LD object, expanding it to full-form.
+ * Outputs the RDF statements found in the given JSON-LD object.
  *
- * @param input the JSON-LD object to remove the context from.
- * 
- * @return the context-neutral JSON-LD object.
+ * @param input the JSON-LD object.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, statement) called when a statement is output, with the
+ *          last statement as null.
  */
-jsonld.expand = function(input)
-{
-   return new Processor().expand({}, null, input);
+jsonld.toRDF = function(input, callback) {
+  // get arguments
+  var options = {};
+  var callback;
+  var callbackArg = 1;
+  if(arguments.length > 2) {
+    options = arguments[1] || {};
+    callbackArg += 1;
+  }
+  callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
+  // resolve all @context URLs in the input
+  input = _clone(input);
+  _resolveUrls(input, options.resolver, function(err, input) {
+    if(err) {
+      return callback(err);
+    }
+    // output RDF statements
+    return new Processor().toRDF(input, callback);
+  });
 };
 
 /**
- * Expands the given JSON-LD object and then compacts it using the
- * given context.
+ * The default URL resolver for external @context URLs.
  *
- * @param ctx the new context to use.
- * @param input the input JSON-LD object.
- * 
- * @return the output JSON-LD object.
+ * @param resolver(url, callback(err, ctx)) the resolver to use.
  */
-jsonld.compact = function(ctx, input)
-{
-   var rval = null;
-   
-   // TODO: should context simplification be optional? (ie: remove context
-   // entries that are not used in the output)
+jsonld.urlResolver = function(url, callback) {
+  return callback(new JsonLdError(
+    'Could not resolve @context URL. URL resolution not implemented.',
+    'jsonld.ContextUrlError'));
+};
 
-   if(input !== null)
-   {
-      // fully expand input
-      input = jsonld.expand(input);
-      
-      // merge context if it is an array
-      if(ctx.constructor === Array)
-      {
-         ctx = jsonld.mergeContexts({}, ctx);
-      }
-      
-      // setup output context
-      var ctxOut = {};
-      
-      // compact and sort keys
-      var out = new Processor().compact(_clone(ctx), null, input, ctxOut);
-      rval = out = _sortKeys(out);
-      
-      // add context if used
-      if(Object.keys(ctxOut).length > 0)
-      {
-         // sort context keys
-         ctxOut = _sortKeys(ctxOut);
-         
-         // put @context first
-         rval = {'@context': ctxOut};
-         if(out.constructor === Array)
-         {
-            rval[_getKeywords(ctxOut)['@id']] = out;
-         }
-         else
-         {
-            var keys = Object.keys(out);
-            for(var i in keys)
-            {
-               var key = keys[i];
-               rval[key] = out[key];
-            }
-         }
-      }
-   }
+/* Utility API */
 
-   return rval;
+/**
+ * URL resolvers.
+ */
+jsonld.urlResolvers = {};
+
+/**
+ * The built-in jquery URL resolver.
+ */
+jsonld.urlResolvers['jquery'] = function($) {
+  return function(url, callback) {
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      crossDomain: true,
+      success: function(data, textStatus, jqXHR) {
+        callback(null, data);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        callback(errorThrown);
+      }
+    });
+  };
 };
 
 /**
- * Merges one context with another.
+ * The built-in node URL resolver.
+ */
+jsonld.urlResolvers['node'] = function() {
+  var request = require('request');
+  return function(url, callback) {
+    request(url, function(err, res, body) {
+      callback(err, body);
+    });
+  };
+};
+
+/**
+ * Assigns the default URL resolver for external @context URLs to a built-in
+ * default. Supported types currently include: 'jquery'.
+ *
+ * To use the jquery URL resolver, the 'data' parameter must be a reference
+ * to the main jquery object.
+ *
+ * @param type the type to set.
+ * @param [params] the parameters required to use the resolver.
+ */
+jsonld.useUrlResolver = function(type) {
+  if(!(type in jsonld.urlResolvers)) {
+    throw new JsonLdError(
+      'Unknown @context URL resolver type: "' + type + '"',
+      'jsonld.UnknownUrlResolver',
+      {type: type});
+  }
+
+  // set URL resolver
+  jsonld.urlResolver = jsonld.urlResolvers[type].apply(
+    jsonld, Array.prototype.slice.call(arguments, 1));
+};
+
+/**
+ * Merges one context with another, resolving any URLs as necessary.
  *
  * @param ctx1 the context to overwrite/append to.
  * @param ctx2 the new context to merge onto ctx1.
- *
- * @return the merged context.
+ * @param [options] the options to use:
+ *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
+ * @param callback(err, ctx) called once the operation completes.
  */
-jsonld.mergeContexts = function(ctx1, ctx2)
-{
-   // merge first context if it is an array
-   if(ctx1.constructor === Array)
-   {
-      ctx1 = jsonld.mergeContexts({}, ctx1);
-   }
-   
-   // copy context to merged output
-   var merged = _clone(ctx1);
-   
-   if(ctx2.constructor === Array)
-   {
-      // merge array of contexts in order
-      for(var i in ctx2)
-      {
-         merged = jsonld.mergeContexts(merged, ctx2[i]);
-      }
-   }
-   else
-   {
-      // if the new context contains any IRIs that are in the merged context,
-      // remove them from the merged context, they will be overwritten
-      for(var key in ctx2)
-      {
-         // ignore special keys starting with '@'
-         if(key.indexOf('@') !== 0)
-         {
-            for(var mkey in merged)
-            {
-               if(merged[mkey] === ctx2[key])
-               {
-                  // FIXME: update related coerce rules
-                  delete merged[mkey];
-                  break;
-               }
-            }
-         }
-      }
-   
-      // merge contexts
-      for(var key in ctx2)
-      {
-         merged[key] = _clone(ctx2[key]);
-      }
-   }
+jsonld.mergeContexts = function(ctx1, ctx2) {
+  // return empty context early for null context
+  if(ctx2 === null) {
+    return {};
+  }
 
-   return merged;
+  // get arguments
+  var options = {};
+  var callbackArg = 2;
+  if(arguments.length > 3) {
+    options = arguments[2] || {};
+    callbackArg += 1;
+  }
+  var callback = arguments[callbackArg];
+
+  // set default options
+  if(!('resolver' in options)) {
+    options.resolver = jsonld.urlResolver;
+  }
+
+  // default to empty context
+  ctx1 = _clone(ctx1 || {});
+  ctx2 = _clone(ctx2 || {});
+
+  // resolve URLs in ctx1
+  _resolveUrls({'@context': ctx1}, options.resolver, function(err, ctx1) {
+    if(err) {
+      return callback(err);
+    }
+    // resolve URLs in ctx2
+    _resolveUrls({'@context': ctx2}, options.resolver, function(err, ctx2) {
+      if(err) {
+        return callback(err);
+      }
+      try {
+        // do merge
+        var merged = new Processor().mergeContexts(
+          ctx1['@context'], ctx2['@context']);
+        callback(null, merged);
+      }
+      catch(ex) {
+        callback(ex);
+      }
+    });
+  });
 };
 
 /**
- * Expands a term into an absolute IRI. The term may be a regular term, a
- * prefix, a relative IRI, or an absolute IRI. In any case, the associated
- * absolute IRI will be returned.
+ * Returns true if the given subject has the given property.
+ *
+ * @param subject the subject to check.
+ * @param property the property to look for.
+ *
+ * @return true if the subject has the given property, false if not.
+ */
+jsonld.hasProperty = function(subject, property) {
+  var rval = false;
+  if(property in subject) {
+    var value = subject[property];
+    rval = (!_isArray(value) || value.length > 0);
+  }
+  return rval;
+};
+
+/**
+ * Determines if the given value is a property of the given subject.
+ *
+ * @param subject the subject to check.
+ * @param property the property to check.
+ * @param value the value to check.
+ *
+ * @return true if the value exists, false if not.
+ */
+jsonld.hasValue = function(subject, property, value) {
+  var rval = false;
+  if(jsonld.hasProperty(subject, property)) {
+    var val = subject[property];
+    var isList = _isListValue(val);
+    if(_isArray(val) || isList) {
+      if(isList) {
+        val = val['@list'];
+      }
+      for(var i in val) {
+        if(jsonld.compareValues(value, val[i])) {
+          rval = true;
+          break;
+        }
+      }
+    }
+    // avoid matching the set of values with an array value parameter
+    else if(!_isArray(value)) {
+      rval = jsonld.compareValues(value, val);
+    }
+  }
+  return rval;
+};
+
+/**
+ * Adds a value to a subject. If the subject already has the value, it will
+ * not be added. If the value is an array, all values in the array will be
+ * added.
+ *
+ * Note: If the value is a subject that already exists as a property of the
+ * given subject, this method makes no attempt to deeply merge properties.
+ * Instead, the value will not be added.
+ *
+ * @param subject the subject to add the value to.
+ * @param property the property that relates the value to the subject.
+ * @param value the value to add.
+ * @param [propertyIsArray] true if the property is always an array, false
+ *          if not (default: false).
+ */
+jsonld.addValue = function(subject, property, value, propertyIsArray) {
+  propertyIsArray = _isUndefined(propertyIsArray) ? false : propertyIsArray;
+
+  if(_isArray(value)) {
+    if(value.length === 0 && propertyIsArray && !(property in subject)) {
+      subject[property] = [];
+    }
+    for(var i in value) {
+      jsonld.addValue(subject, property, value[i], propertyIsArray);
+    }
+  }
+  else if(property in subject) {
+    var hasValue = jsonld.hasValue(subject, property, value);
+
+    // make property an array if value not present or always an array
+    if(!_isArray(subject[property]) && (!hasValue || propertyIsArray)) {
+      subject[property] = [subject[property]];
+    }
+
+    // add new value
+    if(!hasValue) {
+      subject[property].push(value);
+    }
+  }
+  else {
+    // add new value as set or single value
+    subject[property] = propertyIsArray ? [value] : value;
+  }
+};
+
+/**
+ * Gets all of the values for a subject's property as an array.
+ *
+ * @param subject the subject.
+ * @param property the property.
+ *
+ * @return all of the values for a subject's property as an array.
+ */
+jsonld.getValues = function(subject, property) {
+  var rval = subject[property] || [];
+  if(!_isArray(rval)) {
+    rval = [rval];
+  }
+  return rval;
+};
+
+/**
+ * Removes a property from a subject.
+ *
+ * @param subject the subject.
+ * @param property the property.
+ */
+jsonld.removeProperty = function(subject, property) {
+  delete subject[property];
+};
+
+/**
+ * Removes a value from a subject.
+ *
+ * @param subject the subject.
+ * @param property the property that relates the value to the subject.
+ * @param value the value to remove.
+ * @param [propertyIsArray] true if the property is always an array, false
+ *          if not (default: false).
+ */
+jsonld.removeValue = function(subject, property, value, propertyIsArray) {
+  propertyIsArray = _isUndefined(propertyIsArray) ? false : propertyIsArray;
+
+  // filter out value
+  var values = jsonld.getValues(subject, property).filter(function(e) {
+    return !jsonld.compareValues(e, value);
+  });
+
+  if(values.length === 0) {
+    jsonld.removeProperty(subject, property);
+  }
+  else if(values.length === 1 && !propertyIsArray) {
+    subject[property] = values[0];
+  }
+  else {
+    subject[property] = values;
+  }
+};
+
+/**
+ * Compares two JSON-LD values for equality. Two JSON-LD values will be
+ * considered equal if:
+ *
+ * 1. They are both primitives of the same type and value.
+ * 2. They are both @values with the same @value, @type, and @language, OR
+ * 3. They both have @ids they are the same.
+ *
+ * @param v1 the first value.
+ * @param v2 the second value.
+ *
+ * @return true if v1 and v2 are considered equal, false if not.
+ */
+jsonld.compareValues = function(v1, v2) {
+  // 1. equal primitives
+  if(v1 === v2) {
+    return true;
+  }
+
+  // 2. equal @values
+  if(_isValue(v1) && _isValue(v2) &&
+    v1['@value'] === v2['@value'] &&
+    v1['@type'] === v2['@type'] &&
+    v2['@language'] === v2['@language']) {
+    return true;
+  }
+
+  // 3. equal @ids
+  if(_isObject(v1) && ('@id' in v1) && _isObject(v2) && ('@id' in v2)) {
+    return v1['@id'] === v2['@id'];
+  }
+
+  return false;
+};
+
+/**
+ * Compares two JSON-LD normalized inputs for equality.
+ *
+ * @param n1 the first normalized input.
+ * @param n2 the second normalized input.
+ *
+ * @return true if the inputs are equivalent, false if not.
+ */
+jsonld.compareNormalized = function(n1, n2) {
+  if(!_isArray(n1) || !_isArray(n2)) {
+    throw new JsonLdError(
+      'Invalid JSON-LD syntax; normalized JSON-LD must be an array.',
+      'jsonld.SyntaxError');
+  }
+
+  // different # of subjects
+  if(n1.length !== n2.length) {
+    return false;
+  }
+
+  // assume subjects are in the same order because of normalization
+  for(var i in n1) {
+    var s1 = n1[i];
+    var s2 = n2[i];
+
+    // different @ids
+    if(s1['@id'] !== s2['@id']) {
+      return false;
+    }
+
+    // subjects have different properties
+    if(Object.keys(s1).length !== Object.keys(s2).length) {
+      return false;
+    }
+
+    for(var p in s1) {
+      // skip @id property
+      if(p === '@id') {
+        continue;
+      }
+
+      // s2 is missing s1 property
+      if(!jsonld.hasProperty(s2, p)) {
+        return false;
+      }
+
+      // subjects have different objects for the property
+      if(s1[p].length !== s2[p].length) {
+        return false;
+      }
+
+      var objects = s1[p];
+      for(var oi in objects) {
+        // s2 is missing s1 object
+        if(!jsonld.hasValue(s2, p, objects[oi])) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+};
+
+/**
+ * Gets the value for the given @context key and type, null if none is set.
+ *
+ * @param ctx the context.
+ * @param key the context key.
+ * @param [type] the type of value to get (eg: '@id', '@type'), if not
+ *          specified gets the entire entry for a key, null if not found.
+ * @param [expand] true to expand the key, false not to (default: true).
+ *
+ * @return the value.
+ */
+jsonld.getContextValue = function(ctx, key, type, expand) {
+  var rval = null;
+
+  // get default language
+  if(type === '@language' && (type in ctx)) {
+    rval = ctx[type];
+  }
+
+  // return null for invalid key
+  if(key === null) {
+    rval = null;
+  }
+  // return entire context entry if type is unspecified
+  else if(_isUndefined(type)) {
+    rval = ctx[key] || null;
+  }
+  else if(key in ctx) {
+    var entry = ctx[key];
+    if(_isObject(entry)) {
+      if(type in entry) {
+        rval = entry[type];
+      }
+    }
+    else if(_isString(entry)) {
+      if(type === '@id') {
+        rval = entry;
+      }
+    }
+    else {
+      throw new JsonLdError(
+        'Invalid @context value for key "' + key + '".',
+        'jsonld.InvalidContext',
+        {context: ctx, key: key});
+    }
+
+    // expand term
+    if(rval !== null && type !== '@language') {
+      rval = _expandTerm(ctx, rval);
+    }
+  }
+  else {
+    // expand key if requested
+    expand = _isUndefined(expand) ? true : expand;
+    if(expand) {
+      key = _expandTerm(ctx, key);
+      rval = jsonld.getContextValue(ctx, key, type, false);
+    }
+  }
+
+  return rval;
+};
+
+/**
+ * Sets a value for the given @context key and type.
+ *
+ * @param ctx the context.
+ * @param key the context key.
+ * @param type the type of value to set (eg: '@id', '@type').
+ * @param value the value to use.
+ */
+jsonld.setContextValue = function(ctx, key, type, value) {
+  // compact key
+  key = _compactIri(ctx, key);
+
+  // add new key to @context or update existing key w/string value
+  if(!(key in ctx) || _isString(ctx[key])) {
+    if(type === '@id') {
+      ctx[key] = value;
+    }
+    else {
+      ctx[key] = {};
+      ctx[key][type] = value;
+    }
+  }
+  // update existing key w/object value
+  else if(_isObject(ctx[key])) {
+    ctx[key][type] = value;
+  }
+  else {
+    throw new JsonLdError(
+      'Invalid @context value for key "' + key + '".',
+      'jsonld.InvalidContext',
+      {context: ctx, key: key});
+  }
+};
+
+// determine if in-browser or using node.js
+var _nodejs = (typeof module !== 'undefined');
+var _browser = !_nodejs;
+
+// export nodejs API
+if(_nodejs) {
+  module.exports = jsonld;
+  // use node URL resolver by default
+  jsonld.useUrlResolver('node');
+}
+
+// export browser API
+if(_browser) {
+  window.jsonld = window.jsonld || jsonld;
+}
+
+// constants
+var XSD = {
+  'boolean': 'http://www.w3.org/2001/XMLSchema#boolean',
+  'double': 'http://www.w3.org/2001/XMLSchema#double',
+  'integer': 'http://www.w3.org/2001/XMLSchema#integer'
+};
+var RDF = {
+  'first': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+  'rest': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+  'nil': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil',
+  'type': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+};
+
+/**
+ * A JSON-LD Error.
+ *
+ * @param msg the error message.
+ * @param type the error type.
+ * @param details the error details.
+ */
+var JsonLdError = function(msg, type, details) {
+  if(_nodejs) {
+    Error.call(this);
+    Error.captureStackTrace(this, this.constructor);
+  }
+  this.name = type || 'jsonld.Error';
+  this.message = msg || 'An unspecified JSON-LD error occurred.';
+  this.details = details || {};
+};
+if(_nodejs) {
+  require('util').inherits(JsonLdError, Error);
+}
+
+/**
+ * Constructs a new JSON-LD Processor.
+ */
+var Processor = function() {};
+
+/**
+ * Recursively compacts an element using the given context. All context URLs
+ * must have been resolved before calling this method and all values must
+ * be in expanded form.
  *
  * @param ctx the context to use.
- * @param term the term to expand.
- *
- * @return the expanded term as an absolute IRI.
- */
-jsonld.expandTerm = _expandTerm;
-
-/**
- * Compacts an IRI into a term or prefix if it can be. IRIs will not be
- * compacted to relative IRIs if they match the given context's default
- * vocabulary.
- *
- * @param ctx the context to use.
- * @param iri the IRI to compact.
- *
- * @return the compacted IRI as a term or prefix or the original IRI.
- */
-jsonld.compactIri = function(ctx, iri)
-{
-   return _compactIri(ctx, iri, null);
-};
-
-/**
- * Frames JSON-LD input.
- * 
- * @param input the JSON-LD input.
- * @param frame the frame to use.
- * @param options framing options to use.
- * 
- * @return the framed output.
- */
-jsonld.frame = function(input, frame, options)
-{
-   return new Processor().frame(input, frame, options);
-};
-
-/**
- * Generates triples given a JSON-LD input. Each triple that is generated
- * results in a call to the given callback. The callback takes 3 parameters:
- * subject, property, and object. If the callback returns false then this
- * method will stop generating triples and return. If the callback is null,
- * then an array with triple objects containing "s", "p", "o" properties will
- * be returned.
- * 
- * The object or "o" property will be a JSON-LD formatted object.
- * 
- * @param input the JSON-LD input.
- * @param callback the triple callback.
- * 
- * @return an array of triple objects if callback is null, null otherwise.
- */
-jsonld.toTriples = function(input, callback)
-{
-   var rval = null;
-   
-   // normalize input
-   var normalized = jsonld.normalize(input);
-   
-   // setup default callback
-   callback = callback || null;
-   if(callback === null)
-   {
-      rval = [];
-      callback = function(s, p, o)
-      {
-         rval.push({'s': s, 'p': p, 'o': o});
-      };
-   }
-   
-   // generate triples
-   var quit = false;
-   for(var i1 in normalized)
-   {
-      var e = normalized[i1];
-      var s = e['@id'];
-      for(var p in e)
-      {
-         if(p !== '@id')
-         {
-            var obj = e[p];
-            if(obj.constructor !== Array)
-            {
-               obj = [obj];
-            }
-            for(var i2 in obj)
-            {
-               quit = (callback(s, p, obj[i2]) === false);
-               if(quit)
-               {
-                  break;
-               }
-            }
-            if(quit)
-            {
-               break;
-            }
-         }
-      }
-      if(quit)
-      {
-         break;
-      }
-   }
-   
-   return rval;
-};
-
-/**
- * Resolves external @context URLs. Every @context URL in the given JSON-LD
- * object is resolved using the given URL-resolver function. Once all of
- * the @contexts have been resolved, the given result callback is invoked.
- * 
- * @param input the JSON-LD input object (or array).
- * @param resolver the resolver method that takes a URL and a callback that
- *           receives a JSON-LD serialized @context or null on error (with
- *           optional an error object as the second parameter).
- * @param callback the callback to be invoked with the fully-resolved
- *           JSON-LD output (object or array) or null on error (with an
- *           optional error array as the second parameter).
- */
-jsonld.resolve = function(input, resolver, callback)
-{
-   // find all @context URLs
-   var urls = {};
-   var findUrls = function(input, replace)
-   {
-      if(input.constructor === Array)
-      {
-         for(var i in input)
-         {
-            findUrls(input[i]);
-         }
-      }
-      else if(input.constructor === Object)
-      {
-         for(var key in input)
-         {
-            if(key === '@context')
-            {
-               // @context is an array that might contain URLs
-               if(input[key].constructor === Array)
-               {
-                  var list = input[key];
-                  for(var i in list)
-                  {
-                     if(list[i].constructor === String)
-                     {
-                        // replace w/resolved @context if appropriate
-                        if(replace)
-                        {
-                           list[i] = urls[list[i]];
-                        }
-                        // unresolved @context found
-                        else
-                        {
-                           urls[list[i]] = {};
-                        }
-                     }
-                  }
-               }
-               else if(input[key].constructor === String)
-               {
-                  // replace w/resolved @context if appropriate
-                  if(replace)
-                  {
-                     input[key] = urls[input[key]];
-                  }
-                  // unresolved @context found
-                  else
-                  {
-                     urls[input[key]] = {};
-                  }
-               }
-            }
-         }
-      }
-   };
-   findUrls(input, false);
-   
-   // state for resolving URLs
-   var count = Object.keys(urls).length;
-   var errors = null;
-   
-   if(count === 0)
-   {
-      callback(input, errors);
-   }
-   else
-   {
-      // resolve all URLs
-      for(var url in urls)
-      {
-         resolver(url, function(result, error)
-         {
-            --count;
-            
-            if(result === null)
-            {
-               errors = errors || [];
-               errors.push({ url: url, error: error });
-            }
-            else
-            {
-               try
-               {
-                  if(result.constructor === String)
-                  {
-                     urls[url] = JSON.parse(result)['@context'];
-                  }
-                  else
-                  {
-                     urls[url] = result['@context'];
-                  }
-               }
-               catch(ex)
-               {
-                  errors = errors || [];
-                  errors.push({ url: url, error: ex });
-               }
-            }
-            
-            if(count === 0)
-            {
-               if(errors === null)
-               {
-                  findUrls(input, true);
-               }
-               callback(input, errors);
-            }
-         });
-      }
-   }
-};
-
-// TODO: organizational rewrite
-
-/**
- * Constructs a new JSON-LD processor.
- */
-var Processor = function()
-{
-};
-
-/**
- * Recursively compacts a value. This method will compact IRIs to prefixes or
- * terms and do reverse type coercion to compact a value.
- *
- * @param ctx the context to use.
- * @param property the property that points to the value, NULL for none.
- * @param value the value to compact.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param property the property that points to the element, null for none.
+ * @param element the element to compact.
+ * @param options the compaction options.
  *
  * @return the compacted value.
  */
-Processor.prototype.compact = function(ctx, property, value, usedCtx)
-{
-   var rval;
-   
-   // get JSON-LD keywords
-   var keywords = _getKeywords(ctx);
-   
-   if(value === null)
-   {
-      // return null, but check coerce type to add to usedCtx
-      rval = null;
-      this.getCoerceType(ctx, property, usedCtx);
-   }
-   else if(value.constructor === Array)
-   {
-      // recursively add compacted values to array
-      rval = [];
-      for(var i in value)
-      {
-         rval.push(this.compact(ctx, property, value[i], usedCtx));
+Processor.prototype.compact = function(ctx, property, element, options) {
+  // recursively compact array
+  if(_isArray(element)) {
+    var rval = [];
+    for(var i in element) {
+      var e = this.compact(ctx, property, element[i], options);
+      // drop null values
+      if(e !== null) {
+        rval.push(e);
       }
-   }
-   // graph literal/disjoint graph
-   else if(
-      value.constructor === Object &&
-      '@id' in value && value['@id'].constructor === Array)
-   {
-      rval = {};
-      rval[keywords['@id']] = this.compact(
-         ctx, property, value['@id'], usedCtx);
-   }
-   // recurse if value is a subject
-   else if(_isSubject(value))
-   {
-      // recursively handle sub-properties that aren't a sub-context
-      rval = {};
-      for(var key in value)
-      {
-         if(value[key] !== '@context')
-         {
-            // set object to compacted property, only overwrite existing
-            // properties if the property actually compacted
-            var p = _compactIri(ctx, key, usedCtx);
-            if(p !== key || !(p in rval))
-            {
-               // FIXME: clean old values from the usedCtx here ... or just
-               // change usedCtx to be built at the end of processing?
-               rval[p] = this.compact(ctx, key, value[key], usedCtx);
-            }
-         }
+    }
+    if(rval.length === 1) {
+      // use single element if no container is specified
+      var container = jsonld.getContextValue(ctx, property, '@container');
+      if(container !== '@list' && container !== '@set') {
+        rval = rval[0];
       }
-   }
-   else
-   {
-      // get coerce type
-      var coerce = this.getCoerceType(ctx, property, usedCtx);
-      
-      // get type from value, to ensure coercion is valid
-      var type = null;
-      if(value.constructor === Object)
-      {
-         // type coercion can only occur if language is not specified
-         if(!('@language' in value))
-         {
-            // type must match coerce type if specified
-            if('@type' in value)
-            {
-               type = value['@type'];
-            }
-            // type is ID (IRI)
-            else if('@id' in value)
-            {
-               type = '@id';
-            }
-            // can be coerced to any type
-            else
-            {
-               type = coerce;
-            }
-         }
+    }
+    return rval;
+  }
+
+  // recursively compact object
+  if(_isObject(element)) {
+    // element is a @value
+    if(_isValue(element)) {
+      var type = jsonld.getContextValue(ctx, property, '@type');
+      var language = jsonld.getContextValue(ctx, property, '@language');
+
+      // matching @type specified in context, compact element
+      if(type !== null &&
+        ('@type' in element) && element['@type'] === type) {
+        element = element['@value'];
+
+        // use native datatypes for certain xsd types
+        if(type === XSD['boolean']) {
+          element = !(element === 'false' || element === '0');
+        }
+        else if(type === XSD['integer']) {
+          element = parseInt(element);
+        }
+        else if(type === XSD['double']) {
+          element = parseFloat(element);
+        }
       }
-      // type can be coerced to anything
-      else if(value.constructor === String)
-      {
-         type = coerce;
+      // matching @language specified in context, compact element
+      else if(language !== null &&
+        ('@language' in element) && element['@language'] === language) {
+        element = element['@value'];
+      }
+      // compact @type IRI
+      else if('@type' in element) {
+        element['@type'] = _compactIri(ctx, element['@type']);
+      }
+      return element;
+    }
+
+    // compact subject references
+    if(_isSubjectReference(element)) {
+      var type = jsonld.getContextValue(ctx, property, '@type');
+      if(type === '@id') {
+        element = _compactIri(ctx, element['@id']);
+        return element;
+      }
+    }
+
+    // recursively process element keys
+    var rval = {};
+    for(var key in element) {
+      var value = element[key];
+
+      // compact @id and @type(s)
+      if(key === '@id' || key === '@type') {
+        // compact single @id
+        if(_isString(value)) {
+          value = _compactIri(ctx, value);
+        }
+        // value must be a @type array
+        else {
+          var types = [];
+          for(var i in value) {
+            types.push(_compactIri(ctx, value[i]));
+          }
+          value = types;
+        }
+
+        // compact property and add value
+        var prop = _compactIri(ctx, key);
+        var isArray = (_isArray(value) && value.length === 0);
+        jsonld.addValue(rval, prop, value, isArray);
+        continue;
       }
 
-      // types that can be auto-coerced from a JSON-builtin
-      if(coerce === null &&
-         (type === xsd['boolean'] || type === xsd['integer'] ||
-         type === xsd['double']))
-      {
-         coerce = type;
+      // Note: value must be an array due to expansion algorithm.
+
+      // preserve empty arrays
+      if(value.length === 0) {
+        var prop = _compactIri(ctx, key);
+        jsonld.addValue(rval, prop, [], true);
       }
 
-      // do reverse type-coercion
-      if(coerce !== null)
-      {
-         // type is only null if a language was specified, which is an error
-         // if type coercion is specified
-         if(type === null)
-         {
-            throw {
-               message: 'Cannot coerce type when a language is specified. ' +
-                  'The language information would be lost.'
-            };
-         }
-         // if the value type does not match the coerce type, it is an error
-         else if(type !== coerce)
-         {
-            throw new Exception({
-               message: 'Cannot coerce type because the type does ' +
-                  'not match.',
-               type: type,
-               expected: coerce
-            });
-         }
-         // do reverse type-coercion
-         else
-         {
-            if(value.constructor === Object)
-            {
-               if('@id' in value)
-               {
-                  rval = value['@id'];
-               }
-               else if('@value' in value)
-               {
-                  rval = value['@value'];
-               }
-            }
-            else
-            {
-               rval = value;
-            }
+      // recusively process array values
+      for(var i in value) {
+        var v = value[i];
+        var isList = _isListValue(v);
 
-            // do basic JSON types conversion
-            if(coerce === xsd['boolean'])
-            {
-               rval = (rval === 'true' || rval != 0);
-            }
-            else if(coerce === xsd['double'])
-            {
-               rval = parseFloat(rval);
-            }
-            else if(coerce === xsd['integer'])
-            {
-               rval = parseInt(rval);
-            }
-         }
-      }
-      // no type-coercion, just change keywords/copy value
-      else if(value.constructor === Object)
-      {
-         rval = {};
-         for(var key in value)
-         {
-            rval[keywords[key]] = value[key];
-         }
-      }
-      else
-      {
-         rval = _clone(value);
-      }
+        // compact property
+        var prop;
+        if(_isValue(v)) {
+          prop = _compactIri(ctx, key, v);
+        }
+        else if(isList) {
+          prop = _compactIri(ctx, key, v, '@list');
+          v = v['@list'];
+        }
+        else if(_isString(v)) {
+          // pass expanded form of plain literal to handle null language
+          prop = _compactIri(ctx, key, {'@value': v});
+        }
+        else {
+          prop = _compactIri(ctx, key);
+        }
 
-      // compact IRI
-      if(type === '@id')
-      {
-         if(rval.constructor === Object)
-         {
-            rval[keywords['@id']] = _compactIri(
-               ctx, rval[keywords['@id']], usedCtx);
-         }
-         else
-         {
-            rval = _compactIri(ctx, rval, usedCtx);
-         }
-      }
-   }
+        // recursively compact value
+        v = this.compact(ctx, prop, v, options);
 
-   return rval;
+        // get container type for property
+        var container = jsonld.getContextValue(ctx, prop, '@container');
+
+        // handle @list
+        if(isList && container !== '@list') {
+          // handle messy @list compaction
+          if(prop in rval && options.strict) {
+            throw new JsonLdError(
+              'JSON-LD compact error; property has a "@list" @container ' +
+              'rule but there is more than a single @list that matches ' +
+              'the compacted term in the document. Compaction might mix ' +
+              'unwanted items into the list.',
+              'jsonld.SyntaxError');
+          }
+          // reintroduce @list keyword
+          var kwlist = _compactIri(ctx, '@list');
+          var val = {};
+          val[kwlist] = v;
+          v = val;
+        }
+
+        // if @container is @set or @list or value is an empty array, use
+        // an array when adding value
+        var isArray = (container === '@set' || container === '@list' ||
+          (_isArray(v) && v.length === 0));
+
+        // add compact value
+        jsonld.addValue(rval, prop, v, isArray);
+      }
+    }
+    return rval;
+  }
+
+  // only primitives remain which are already compact
+  return element;
 };
 
 /**
- * Recursively expands a value using the given context. Any context in
- * the value will be removed.
+ * Recursively expands an element using the given context. Any context in
+ * the element will be removed. All context URLs must have been resolved
+ * before calling this method.
  *
- * @param ctx the context.
- * @param property the property that points to the value, NULL for none.
+ * @param ctx the context to use.
+ * @param property the property for the element, null for none.
+ * @param element the element to expand.
+ * @param propertyIsList true if the property is a list, false if not.
+ *
+ * @return the expanded value.
+ */
+Processor.prototype.expand = function(ctx, property, element, propertyIsList) {
+  // recursively expand array
+  if(_isArray(element)) {
+    var rval = [];
+    for(var i in element) {
+      // expand element
+      var e = this.expand(ctx, property, element[i], propertyIsList);
+      if(_isArray(e) && propertyIsList) {
+        // lists of lists are illegal
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; lists of lists are not permitted.',
+          'jsonld.SyntaxError');
+      }
+      // drop null values
+      else if(e !== null) {
+        rval.push(e);
+      }
+    }
+    return rval;
+  }
+
+  // recursively expand object
+  if(_isObject(element)) {
+    // if element has a context, merge it in
+    if('@context' in element) {
+      ctx = this.mergeContexts(ctx, element['@context']);
+      delete element['@context'];
+    }
+
+    // get keyword aliases
+    var keywords = _getKeywords(ctx);
+
+    var rval = {};
+    for(var key in element) {
+      // expand property
+      var prop = _expandTerm(ctx, key);
+
+      // drop non-absolute IRI keys that aren't keywords
+      if(!_isAbsoluteIri(prop) && !_isKeyword(prop, keywords)) {
+        continue;
+      }
+
+      // if value is null and property is not @value, continue
+      var value = element[key];
+      if(value === null && prop !== '@value') {
+        continue;
+      }
+
+      // syntax error if @id is not a string
+      if(prop === '@id' && !_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@id" value must a string.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @type must be a string, array of strings, or an empty JSON object
+      if(prop === '@type' &&
+        !(_isString(value) || _isArrayOfStrings(value) ||
+        _isEmptyObject(value))) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@type" value must a string, an array ' +
+          'of strings, or an empty object.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @graph must be an array or an object
+      if(prop === '@graph' && !(_isObject(value) || _isArray(value))) {
+        throw new JsonLdError(
+            'Invalid JSON-LD syntax; "@value" value must not be an ' +
+            'object or an array.',
+            'jsonld.SyntaxError', {value: value});
+      }
+
+      // @value must not be an object or an array
+      if(prop === '@value' && (_isObject(value) || _isArray(value))) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@value" value must not be an ' +
+          'object or an array.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // @language must be a string
+      if(prop === '@language' && !_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@language" value must not be a string.',
+          'jsonld.SyntaxError', {value: value});
+      }
+
+      // recurse into @list, @set, or @graph, keeping the active property
+      var isList = (prop === '@list');
+      if(isList || prop === '@set' || prop === '@graph') {
+        value = this.expand(ctx, property, value, isList);
+        if(isList && _isListValue(value)) {
+          throw new JsonLdError(
+            'Invalid JSON-LD syntax; lists of lists are not permitted.',
+            'jsonld.SyntaxError');
+        }
+      }
+      else {
+        // update active property and recursively expand value
+        property = key;
+        value = this.expand(ctx, property, value, false);
+      }
+
+      // drop null values if property is not @value (dropped below)
+      if(value !== null || prop === '@value') {
+        // convert value to @list if container specifies it
+        if(prop !== '@list' && !_isListValue(value)) {
+          var container = jsonld.getContextValue(ctx, property, '@container');
+          if(container === '@list') {
+            // ensure value is an array
+            value = _isArray(value) ? value : [value];
+            value = {'@list': value};
+          }
+        }
+
+        // add value, use an array if not @id, @type, @value, or @language
+        var useArray = !(prop === '@id' || prop === '@type' ||
+          prop === '@value' || prop === '@language');
+        jsonld.addValue(rval, prop, value, useArray);
+      }
+    }
+
+    // get property count on expanded output
+    var count = Object.keys(rval).length;
+
+    // @value must only have @language or @type
+    if('@value' in rval) {
+      if((count === 2 && !('@type' in rval) && !('@language' in rval)) ||
+        count > 2) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; an element containing "@value" must have ' +
+          'at most one other property which can be "@type" or "@language".',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // value @type must be a string
+      if('@type' in rval && !_isString(rval['@type'])) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; the "@type" value of an element ' +
+          'containing "@value" must be a string.',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // return only the value of @value if there is no @type or @language
+      else if(count === 1) {
+        rval = rval['@value'];
+      }
+      // drop null @values
+      else if(rval['@value'] === null) {
+        rval = null;
+      }
+    }
+    // convert @type to an array
+    else if('@type' in rval && !_isArray(rval['@type'])) {
+      rval['@type'] = [rval['@type']];
+    }
+    // handle @set and @list
+    else if('@set' in rval || '@list' in rval) {
+      if(count !== 1) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; if an element has the property "@set" ' +
+          'or "@list", then it must be its only property.',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      // optimize away @set
+      if('@set' in rval) {
+        rval = rval['@set'];
+      }
+    }
+    // drop objects with only @language
+    else if('@language' in rval && count === 1) {
+      rval = null;
+    }
+
+    return rval;
+  }
+
+  // expand element according to value expansion rules
+  return _expandValue(ctx, property, element);
+};
+
+/**
+ * Performs JSON-LD framing.
+ *
+ * @param input the expanded JSON-LD to frame.
+ * @param frame the expanded JSON-LD frame to use.
+ * @param options the framing options.
+ *
+ * @return the framed output.
+ */
+Processor.prototype.frame = function(input, frame, options) {
+  // create framing state
+  var state = {
+    options: options,
+    subjects: {}
+  };
+
+  // produce a map of all subjects and name each bnode
+  var namer = new UniqueNamer('_:t');
+  _flatten(state.subjects, input, namer);
+
+  // frame the subjects
+  var framed = [];
+  _frame(state, state.subjects, frame, framed, null);
+  return framed;
+};
+
+/**
+ * Performs JSON-LD normalization.
+ *
+ * @param input the expanded JSON-LD object to normalize.
+ * @param callback(err, normalized) called once the operation completes.
+ */
+Processor.prototype.normalize = function(input, callback) {
+  // get statements
+  var namer = new UniqueNamer('_:t');
+  var bnodes = {};
+  var subjects = {};
+  _getStatements(input, namer, bnodes, subjects);
+
+  // create canonical namer
+  namer = new UniqueNamer('_:c14n');
+
+  // generates unique and duplicate hashes for bnodes
+  hashBlankNodes(Object.keys(bnodes));
+  function hashBlankNodes(unnamed) {
+    var nextUnnamed = [];
+    var duplicates = {};
+    var unique = {};
+
+    // hash statements for each unnamed bnode
+    setTimeout(function() {hashUnnamed(0);}, 0);
+    function hashUnnamed(i) {
+      if(i === unnamed.length) {
+        // done, name blank nodes
+        return nameBlankNodes(unique, duplicates, nextUnnamed);
+      }
+
+      // hash unnamed bnode
+      var bnode = unnamed[i];
+      var statements = bnodes[bnode];
+      var hash = _hashStatements(statements, namer);
+
+      // store hash as unique or a duplicate
+      if(hash in duplicates) {
+        duplicates[hash].push(bnode);
+        nextUnnamed.push(bnode);
+      }
+      else if(hash in unique) {
+        duplicates[hash] = [unique[hash], bnode];
+        nextUnnamed.push(unique[hash]);
+        nextUnnamed.push(bnode);
+        delete unique[hash];
+      }
+      else {
+        unique[hash] = bnode;
+      }
+
+      // hash next unnamed bnode
+      setTimeout(function() {hashUnnamed(i + 1);}, 0);
+    }
+  }
+
+  // names unique hash bnodes
+  function nameBlankNodes(unique, duplicates, unnamed) {
+    // name unique bnodes in sorted hash order
+    var named = false;
+    var hashes = Object.keys(unique).sort();
+    for(var i in hashes) {
+      var bnode = unique[hashes[i]];
+      namer.getName(bnode);
+      named = true;
+    }
+
+    // continue to hash bnodes if a bnode was assigned a name
+    if(named) {
+      hashBlankNodes(unnamed);
+    }
+    // name the duplicate hash bnodes
+    else {
+      nameDuplicates(duplicates);
+    }
+  }
+
+  // names duplicate hash bnodes
+  function nameDuplicates(duplicates) {
+    // enumerate duplicate hash groups in sorted order
+    var hashes = Object.keys(duplicates).sort();
+
+    // process each group
+    processGroup(0);
+    function processGroup(i) {
+      if(i === hashes.length) {
+        // done, create JSON-LD array
+        return createArray();
+      }
+
+      // name each group member
+      var group = duplicates[hashes[i]];
+      var results = [];
+      nameGroupMember(group, 0);
+      function nameGroupMember(group, n) {
+        if(n === group.length) {
+          // name bnodes in hash order
+          results.sort(function(a, b) {
+            a = a.hash;
+            b = b.hash;
+            return (a < b) ? -1 : ((a > b) ? 1 : 0);
+          });
+          for(var r in results) {
+            // name all bnodes in path namer in key-entry order
+            // Note: key-order is preserved in javascript
+            for(var key in results[r].pathNamer.existing) {
+              namer.getName(key);
+            }
+          }
+          return processGroup(i + 1);
+        }
+
+        // skip already-named bnodes
+        var bnode = group[n];
+        if(namer.isNamed(bnode)) {
+          return nameGroupMember(group, n + 1);
+        }
+
+        // hash bnode paths
+        var pathNamer = new UniqueNamer('_:t');
+        pathNamer.getName(bnode);
+        _hashPaths(bnodes, bnodes[bnode], namer, pathNamer,
+          function(err, result) {
+            if(err) {
+              return callback(err);
+            }
+            results.push(result);
+            nameGroupMember(group, n + 1);
+          });
+      }
+    };
+  }
+
+  // creates the normalized JSON-LD array
+  function createArray() {
+    var normalized = [];
+
+    // add all bnodes
+    for(var id in bnodes) {
+      // add all property statements to bnode
+      var name = namer.getName(id);
+      var bnode = {'@id': name};
+      var statements = bnodes[id];
+      for(var i in statements) {
+        var statement = statements[i];
+        if(statement.s === '_:a') {
+          var z = _getBlankNodeName(statement.o);
+          var o = z ? {'@id': namer.getName(z)} : statement.o;
+          jsonld.addValue(bnode, statement.p, o, true);
+        }
+      }
+      normalized.push(bnode);
+    }
+
+    // add all non-bnodes
+    for(var id in subjects) {
+      // add all statements to subject
+      var subject = {'@id': id};
+      var statements = subjects[id];
+      for(var i in statements) {
+        var statement = statements[i];
+        var z = _getBlankNodeName(statement.o);
+        var o = z ? {'@id': namer.getName(z)} : statement.o;
+        jsonld.addValue(subject, statement.p, o, true);
+      }
+      normalized.push(subject);
+    }
+
+    // sort normalized output by @id
+    normalized.sort(function(a, b) {
+      a = a['@id'];
+      b = b['@id'];
+      return (a < b) ? -1 : ((a > b) ? 1 : 0);
+    });
+
+    callback(null, normalized);
+  }
+};
+
+/**
+ * Outputs the RDF statements found in the given JSON-LD object.
+ *
+ * @param input the JSON-LD object.
+ * @param callback(err, statement) called when a statement is output, with the
+ *          last statement as null.
+ */
+Processor.prototype.toRDF = function(input, callback) {
+  // FIXME: implement
+  callback(new JsonLdError('Not implemented', 'jsonld.NotImplemented'), null);
+};
+
+/**
+ * Merges a context onto another.
+ *
+ * @param ctx1 the original context.
+ * @param ctx2 the new context to merge in.
+ *
+ * @return the resulting merged context.
+ */
+Processor.prototype.mergeContexts = function(ctx1, ctx2) {
+  // FIXME: consider using spec context processing rules instead
+
+  // flatten array context
+  if(_isArray(ctx1)) {
+    ctx1 = this.mergeContexts({}, ctx1);
+  }
+
+  // init return value as copy of first context
+  var rval = _clone(ctx1);
+
+  if(ctx2 === null) {
+    // reset to blank context
+    rval = {};
+  }
+  else if(_isArray(ctx2)) {
+    // flatten array context in order
+    for(var i in ctx2) {
+      rval = this.mergeContexts(rval, ctx2[i]);
+    }
+  }
+  else if(_isObject(ctx2)) {
+    // iterate over new keys
+    for(var key in ctx2) {
+      // ensure @language is a string
+      if(key === '@language' && !_isString(ctx2[key])) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; @language must be a string.',
+          'jsonld.SyntaxError');
+      }
+
+      // no IRI defined, skip
+      var newIri = jsonld.getContextValue(ctx2, key, '@id', false);
+      if(newIri === null) {
+        continue;
+      }
+
+      // if the ctx2 has a new definition for an IRI (possibly using a new
+      // key), then the old definition must be removed
+      for(var mkey in rval) {
+        // matching IRI, remove old entry
+        if(newIri === jsonld.getContextValue(rval, mkey, '@id', false)) {
+          delete rval[mkey];
+          break;
+        }
+      }
+    }
+
+    // merge contexts
+    for(var key in ctx2) {
+      rval[key] = ctx2[key];
+    }
+  }
+  else {
+    throw new JsonLdError(
+      'Invalid JSON-LD syntax; @context must be an array, object or ' +
+      'absolute IRI string.',
+      'jsonld.SyntaxError');
+  }
+
+  return rval;
+};
+
+/**
+ * Expands the given value by using the coercion and keyword rules in the
+ * given context.
+ *
+ * @param ctx the context to use.
+ * @param property the property the value is associated with.
  * @param value the value to expand.
  *
  * @return the expanded value.
  */
-Processor.prototype.expand = function(ctx, property, value)
-{
-   var rval;
-   
-   // TODO: add data format error detection?
-   
-   // value is null, nothing to expand
-   if(value === null)
-   {
-      rval = null;
-   }
-   // if no property is specified and the value is a string (this means the
-   // value is a property itself), expand to an IRI
-   else if(property === null && value.constructor === String)
-   {
-      rval = _expandTerm(ctx, value, null);
-   }
-   else if(value.constructor === Array)
-   {
-      // recursively add expanded values to array
-      rval = [];
-      for(var i in value)
-      {
-         rval.push(this.expand(ctx, property, value[i]));
-      }
-   }
-   else if(value.constructor === Object)
-   {
-      // if value has a context, use it
-      if('@context' in value)
-      {
-         ctx = jsonld.mergeContexts(ctx, value['@context']);
-      }
-      
-      // recursively handle sub-properties that aren't a sub-context
-      rval = {};
-      for(var key in value)
-      {
-         // preserve frame keywords
-         if(key === '@embed' || key === '@explicit' ||
-            key === '@default' || key === '@omitDefault')
-         {
-            _setProperty(rval, key, _clone(value[key]));
-         }
-         else if(key !== '@context')
-         {
-            // set object to expanded property
-            _setProperty(
-               rval, _expandTerm(ctx, key, null),
-               this.expand(ctx, key, value[key]));
-         }
-      }
-   }
-   else
-   {
-      // do type coercion
-      var coerce = this.getCoerceType(ctx, property, null);
+function _expandValue(ctx, property, value) {
+  // default to simple string return value
+  var rval = value;
 
-      // get JSON-LD keywords
-      var keywords = _getKeywords(ctx);
+  // special-case expand @id and @type (skips '@id' expansion)
+  var prop = _expandTerm(ctx, property);
+  if(prop === '@id' || prop === '@type') {
+    rval = _expandTerm(ctx, value);
+  }
+  else {
+    // get type definition from context
+    var type = jsonld.getContextValue(ctx, property, '@type');
 
-      // automatic coercion for basic JSON types
-      if(coerce === null &&
-         (value.constructor === Number || value.constructor === Boolean))
-      {
-         if(value.constructor === Boolean)
-         {
-            coerce = xsd['boolean'];
-         }
-         else if(('' + value).indexOf('.') == -1)
-         {
-            coerce = xsd['integer'];
-         }
-         else
-         {
-            coerce = xsd['double'];
-         }
+    // do @id expansion
+    if(type === '@id') {
+      rval = {'@id': _expandTerm(ctx, value)};
+    }
+    // other type
+    else if(type !== null) {
+      rval = {'@value': String(value), '@type': type};
+    }
+    // check for language tagging
+    else {
+      var language = jsonld.getContextValue(ctx, property, '@language');
+      if(language !== null) {
+        rval = {'@value': String(value), '@language': language};
       }
-      
-      // special-case expand @id and @type (skips '@id' expansion)
-      if(property === '@id' || property === keywords['@id'] ||
-         property === '@type' || property === keywords['@type'])
-      {
-         rval = _expandTerm(ctx, value, null);
-      }
-      // coerce to appropriate type
-      else if(coerce !== null)
-      {
-         rval = {};
-         
-         // expand ID (IRI)
-         if(coerce === '@id')
-         {
-            rval['@id'] = _expandTerm(ctx, value, null);
-         }
-         // other type
-         else
-         {
-            rval['@type'] = coerce;
-            if(coerce === xsd['double'])
-            {
-               // do special JSON-LD double format
-               value = value.toExponential(6).replace(
-                  /(e(?:\+|-))([0-9])$/, '$10$2');
-            }
-            rval['@value'] = '' + value;
-         }
-      }
-      // nothing to coerce
-      else
-      {
-         rval = '' + value;
-      }
-   }
-   
-   return rval;
+    }
+  }
+
+  return rval;
 };
 
 /**
- * Normalizes a JSON-LD object.
+ * Recursively gets all statements from the given expanded JSON-LD input.
  *
- * @param input the JSON-LD object to normalize.
- * 
- * @return the normalized JSON-LD object.
+ * @param input the valid expanded JSON-LD input.
+ * @param namer the UniqueNamer to use when encountering blank nodes.
+ * @param bnodes the blank node statements map to populate.
+ * @param subjects the subject statements map to populate.
+ * @param [name] the name (@id) assigned to the current input.
  */
-Processor.prototype.normalize = function(input)
-{
-   var rval = [];
+function _getStatements(input, namer, bnodes, subjects, name) {
+  // recurse into arrays
+  if(_isArray(input)) {
+    for(var i in input) {
+      _getStatements(input[i], namer, bnodes, subjects);
+    }
+  }
+  // safe to assume input is a subject/blank node
+  else {
+    var isBnode = _isBlankNode(input);
 
-   // TODO: validate context
-   
-   if(input !== null)
-   {
-      // create name generator state
-      this.ng =
-      {
-         tmp: null,
-         c14n: null
-      };
-      
-      // expand input
-      var expanded = this.expand({}, null, input);
-      
-      // assign names to unnamed bnodes
-      this.nameBlankNodes(expanded);
-      
-      // flatten
-      var subjects = {};
-      _flatten(null, null, expanded, subjects);
+    // name blank node if appropriate, use passed name if given
+    if(_isUndefined(name)) {
+      name = isBnode ? namer.getName(input['@id']) : input['@id'];
+    }
 
-      // append subjects with sorted properties to array
-      for(var key in subjects)
-      {
-         var s = subjects[key];
-         var sorted = {};
-         var keys = Object.keys(s).sort();
-         for(var i in keys)
-         {
-            var k = keys[i];
-            sorted[k] = s[k];
-         }
-         rval.push(sorted);
+    // use a subject of '_:a' for blank node statements
+    var s = isBnode ? '_:a' : name;
+
+    // get statements for the blank node
+    var entries;
+    if(isBnode) {
+      entries = bnodes[name] = bnodes[name] || [];
+    }
+    else {
+      entries = subjects[name] = subjects[name] || [];
+    }
+
+    // add all statements in input
+    for(var p in input) {
+      // skip @id
+      if(p === '@id') {
+        continue;
       }
 
-      // canonicalize blank nodes
-      this.canonicalizeBlankNodes(rval);
+      var objects = input[p];
 
-      // sort output
-      rval.sort(function(a, b)
-      {
-         return _compare(a['@id'], b['@id']);
-      });
-   }
+      // convert @lists into embedded blank node linked lists
+      for(var i in objects) {
+        var o = objects[i];
+        if(_isListValue(o)) {
+          objects[i] = _makeLinkedList(o);
+        }
+      }
 
-   return rval;
+      for(var i in objects) {
+        var o = objects[i];
+
+        // convert boolean to @value
+        if(_isBoolean(o)) {
+          o = {'@value': String(o), '@type': XSD['boolean']};
+        }
+        // convert double to @value
+        else if(_isDouble(o)) {
+          // do special JSON-LD double format, printf('%1.16e') JS equivalent
+          o = o.toExponential(16).replace(/(e(?:\+|-))([0-9])$/, '$10$2');
+          o = {'@value': o, '@type': XSD['double']};
+        }
+        // convert integer to @value
+        else if(_isNumber(o)) {
+          o = {'@value': String(o), '@type': XSD['integer']};
+        }
+
+        // object is a blank node
+        if(_isBlankNode(o)) {
+          // name object position blank node
+          var oName = namer.getName(o['@id']);
+
+          // add property statement
+          _addStatement(entries, {s: s, p: p, o: {'@id': oName}});
+
+          // add reference statement
+          var oEntries = bnodes[oName] = bnodes[oName] || [];
+          _addStatement(oEntries, {s: name, p: p, o: {'@id': '_:a'}});
+
+          // recurse into blank node
+          _getStatements(o, namer, bnodes, subjects, oName);
+        }
+        // object is a string, @value, subject reference
+        else if(_isString(o) || _isValue(o) || _isSubjectReference(o)) {
+          // add property statement
+          _addStatement(entries, {s: s, p: p, o: o});
+
+          // ensure a subject entry exists for subject reference
+          if(_isSubjectReference(o)) {
+            subjects[o['@id']] = subjects[o['@id']] || [];
+          }
+        }
+        // object must be an embedded subject
+        else {
+          // add property statement
+          _addStatement(entries, {s: s, p: p, o: {'@id': o['@id']}});
+
+          // recurse into subject
+          _getStatements(o, namer, bnodes, subjects);
+        }
+      }
+    }
+  }
 };
 
 /**
- * Gets the coerce type for the given property.
+ * Converts a @list value into an embedded linked list of blank nodes in
+ * expanded form. The resulting array can be used as an RDF-replacement for
+ * a property that used a @list.
+ *
+ * @param value the @list value.
+ *
+ * @return the head of the linked list of blank nodes.
+ */
+function _makeLinkedList(value) {
+  // convert @list array into embedded blank node linked list
+  var list = value['@list'];
+  var first = RDF['first'];
+  var rest = RDF['rest'];
+  var nil = RDF['nil'];
+
+  // build linked list in reverse
+  var len = list.length;
+  var tail = {'@id': nil};
+  for(var i = len - 1; i >= 0; --i) {
+    var e = {};
+    e[first] = [list[i]];
+    e[rest] = [tail];
+    tail = e;
+  }
+
+  return tail;
+}
+
+/**
+ * Adds a statement to an array of statements. If the statement already exists
+ * in the array, it will not be added.
+ *
+ * @param statements the statements array.
+ * @param statement the statement to add.
+ */
+function _addStatement(statements, statement) {
+  for(var i in statements) {
+    var s = statements[i];
+    if(s.s === statement.s && s.p === statement.p &&
+      jsonld.compareValues(s.o, statement.o)) {
+      return;
+    }
+  }
+  statements.push(statement);
+}
+
+/**
+ * Hashes all of the statements about a blank node.
+ *
+ * @param statements the statements about the bnode.
+ * @param namer the canonical bnode namer.
+ *
+ * @return the new hash.
+ */
+function _hashStatements(statements, namer) {
+  // serialize all statements
+  var triples = [];
+  for(var i in statements) {
+    var statement = statements[i];
+
+    // serialize triple
+    var triple = '';
+
+    // serialize subject
+    if(statement.s === '_:a') {
+      triple += '_:a';
+    }
+    else if(statement.s.indexOf('_:') === 0) {
+      var id = statement.s;
+      id = namer.isNamed(id) ? namer.getName(id) : '_:z';
+      triple += id;
+    }
+    else {
+      triple += '<' + statement.s + '>';
+    }
+
+    // serialize property
+    var p = (statement.p === '@type') ? RDF.type : statement.p;
+    triple += ' <' + p + '> ';
+
+    // serialize object
+    if(_isBlankNode(statement.o)) {
+      if(statement.o['@id'] === '_:a') {
+        triple += '_:a';
+      }
+      else {
+        var id = statement.o['@id'];
+        id = namer.isNamed(id) ? namer.getName(id) : '_:z';
+        triple += id;
+      }
+    }
+    else if(_isString(statement.o)) {
+      triple += '"' + statement.o + '"';
+    }
+    else if(_isSubjectReference(statement.o)) {
+      triple += '<' + statement.o['@id'] + '>';
+    }
+    // must be a value
+    else {
+      triple += '"' + statement.o['@value'] + '"';
+
+      if('@type' in statement.o) {
+        triple += '^^<' + statement.o['@type'] + '>';
+      }
+      else if('@language' in statement.o) {
+        triple += '@' + statement.o['@language'];
+      }
+    }
+
+    // add triple
+    triples.push(triple);
+  }
+
+  // sort serialized triples
+  triples.sort();
+
+  // return hashed triples
+  return sha1.hash(triples);
+}
+
+/**
+ * Produces a hash for the paths of adjacent bnodes for a bnode,
+ * incorporating all information about its subgraph of bnodes. This
+ * method will recursively pick adjacent bnode permutations that produce the
+ * lexicographically-least 'path' serializations.
+ *
+ * @param bnodes the map of bnode statements.
+ * @param statements the statements for the bnode to produce the hash for.
+ * @param namer the canonical bnode namer.
+ * @param pathNamer the namer used to assign names to adjacent bnodes.
+ * @param callback(err, result) called once the operation completes.
+ */
+function _hashPaths(bnodes, statements, namer, pathNamer, callback) {
+  // create SHA-1 digest
+  var md = sha1.create();
+
+  // group adjacent bnodes by hash, keep properties and references separate
+  var groups = {};
+  var cache = {};
+  var groupHashes;
+  setTimeout(function() {groupNodes(0);}, 0);
+  function groupNodes(i) {
+    if(i === statements.length) {
+      // done, hash groups
+      groupHashes = Object.keys(groups).sort();
+      return hashGroup(0);
+    }
+
+    var statement = statements[i];
+    var bnode = null;
+    var direction = null;
+    if(statement.s !== '_:a' && statement.s.indexOf('_:') === 0) {
+      bnode = statement.s;
+      direction = 'p';
+    }
+    else {
+      bnode = _getBlankNodeName(statement.o);
+      direction = 'r';
+    }
+
+    if(bnode) {
+      // get bnode name (try canonical, path, then hash)
+      var name;
+      if(namer.isNamed(bnode)) {
+        name = namer.getName(bnode);
+      }
+      else if(pathNamer.isNamed(bnode)) {
+        name = pathNamer.getName(bnode);
+      }
+      else if(bnode in cache) {
+        name = cache[bnode];
+      }
+      else {
+        name = _hashStatements(bnodes[bnode], namer);
+        cache[bnode] = name;
+      }
+
+      // hash direction, property, and bnode name/hash
+      var md = sha1.create();
+      md.update(direction);
+      md.update((statement.p === '@type') ? RDF.type : statement.p);
+      md.update(name);
+      var groupHash = md.digest();
+
+      // add bnode to hash group
+      if(groupHash in groups) {
+        groups[groupHash].push(bnode);
+      }
+      else {
+        groups[groupHash] = [bnode];
+      }
+    }
+
+    setTimeout(function() {groupNodes(i + 1);}, 0);
+  }
+
+  // hashes a group of adjacent bnodes
+  function hashGroup(i) {
+    if(i === groupHashes.length) {
+      // done, return SHA-1 digest and path namer
+      return callback(null, {hash: md.digest(), pathNamer: pathNamer});
+    }
+
+    // digest group hash
+    var groupHash = groupHashes[i];
+    md.update(groupHash);
+
+    // choose a path and namer from the permutations
+    var chosenPath = null;
+    var chosenNamer = null;
+    var permutator = new Permutator(groups[groupHash]);
+    setTimeout(function() {permutate();}, 0);
+    function permutate() {
+      var permutation = permutator.next();
+      var pathNamerCopy = pathNamer.clone();
+
+      // build adjacent path
+      var path = '';
+      var recurse;
+      for(var n in permutation) {
+        var bnode = permutation[n];
+        recurse = [];
+
+        // use canonical name if available
+        if(namer.isNamed(bnode)) {
+          path += namer.getName(bnode);
+        }
+        else {
+          // recurse if bnode isn't named in the path yet
+          if(!pathNamerCopy.isNamed(bnode)) {
+            recurse.push(bnode);
+          }
+          path += pathNamerCopy.getName(bnode);
+        }
+
+        // skip permutation if path is already >= chosen path
+        if(chosenPath !== null && path.length >= chosenPath.length &&
+          path > chosenPath) {
+          return nextPermutation(true);
+        }
+      }
+
+      // does the next recursion
+      nextRecursion(0);
+      function nextRecursion(n) {
+        if(n === recurse.length) {
+          // done, do next permutation
+          return nextPermutation(false);
+        }
+
+        // do recursion
+        var bnode = recurse[n];
+        _hashPaths(bnodes, bnodes[bnode], namer, pathNamerCopy,
+          function(err, result) {
+            if(err) {
+              return callback(err);
+            }
+            path += pathNamerCopy.getName(bnode) + '<' + result.hash + '>';
+            pathNamerCopy = result.pathNamer;
+
+            // skip permutation if path is already >= chosen path
+            if(chosenPath !== null && path.length >= chosenPath.length &&
+              path > chosenPath) {
+              return nextPermutation(true);
+            }
+
+            // do next recursion
+            nextRecursion(n + 1);
+          });
+      }
+
+      // stores the results of this permutation and runs the next
+      function nextPermutation(skipped) {
+        if(!skipped && (chosenPath === null || path < chosenPath)) {
+          chosenPath = path;
+          chosenNamer = pathNamerCopy;
+        }
+
+        // do next permutation
+        if(permutator.hasNext()) {
+          setTimeout(function() {permutate();}, 0);
+        }
+        else {
+          // digest chosen path and update namer
+          md.update(chosenPath);
+          pathNamer = chosenNamer;
+
+          // hash the next group
+          hashGroup(i + 1);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * A helper function that gets the blank node name from a statement value
+ * (a subject or object). If the statement value is not a blank node or it
+ * has an @id of '_:a', then null will be returned.
+ *
+ * @param value the statement value.
+ *
+ * @return the blank node name or null if none was found.
+ */
+function _getBlankNodeName(value) {
+  return ((_isBlankNode(value) && value['@id'] !== '_:a') ?
+    value['@id'] : null);
+}
+
+/**
+ * Recursively flattens the subjects in the given JSON-LD expanded input.
+ *
+ * @param subjects a map of subject @id to subject.
+ * @param input the JSON-LD expanded input.
+ * @param namer the blank node namer.
+ * @param name the name assigned to the current input if it is a bnode.
+ * @param list the list to append to, null for none.
+ */
+function _flatten(subjects, input, namer, name, list) {
+  // recurse through array
+  if(_isArray(input)) {
+    for(var i in input) {
+      _flatten(subjects, input[i], namer, undefined, list);
+    }
+  }
+  // handle subject
+  else if(_isObject(input)) {
+    // add value to list
+    if(_isValue(input) && list) {
+      list.push(input);
+      return;
+    }
+
+    // get name for subject
+    if(_isUndefined(name)) {
+      name = _isBlankNode(input) ? namer.getName(input['@id']) : input['@id'];
+    }
+
+    // add subject reference to list
+    if(list) {
+      list.push({'@id': name});
+    }
+
+    // create new subject or merge into existing one
+    var subject = subjects[name] = subjects[name] || {};
+    subject['@id'] = name;
+    for(var prop in input) {
+      // skip @id
+      if(prop === '@id') {
+        continue;
+      }
+
+      // copy keywords
+      if(_isKeyword(prop)) {
+        subject[prop] = input[prop];
+        continue;
+      }
+
+      // iterate over objects
+      var objects = input[prop];
+      for(var i in objects) {
+        var o = objects[i];
+
+        // handle embedded subject or subject reference
+        if(_isSubject(o) || _isSubjectReference(o)) {
+          // rename blank node @id
+          var id = ('@id' in o) ? o['@id'] : '_:';
+          if(id.indexOf('_:') === 0) {
+            id = namer.getName(id);
+          }
+
+          // add reference and recurse
+          jsonld.addValue(subject, prop, {'@id': id}, true);
+          _flatten(subjects, o, namer, id, null);
+        }
+        else {
+          // recurse into list
+          if(_isListValue(o)) {
+            var l = [];
+            _flatten(subjects, o['@list'], namer, name, l);
+            o = {'@list': l};
+          }
+
+          // add non-subject
+          jsonld.addValue(subject, prop, o, true);
+        }
+      }
+    }
+  }
+  // add non-object to list
+  else if(list) {
+    list.push(input);
+  }
+}
+
+/**
+ * Frames subjects according to the given frame.
+ *
+ * @param state the current framing state.
+ * @param subjects the subjects to filter.
+ * @param frame the frame.
+ * @param parent the parent subject or top-level array.
+ * @param property the parent property, initialized to null.
+ */
+function _frame(state, subjects, frame, parent, property) {
+  // validate the frame
+  _validateFrame(state, frame);
+  frame = frame[0];
+
+  // filter out subjects that match the frame
+  var matches = _filterSubjects(state, subjects, frame);
+
+  // get flags for current frame
+  var options = state.options;
+  var embedOn = _getFrameFlag(frame, options, 'embed');
+  var explicitOn = _getFrameFlag(frame, options, 'explicit');
+
+  // add matches to output
+  for(var id in matches) {
+    /* Note: In order to treat each top-level match as a compartmentalized
+    result, create an independent copy of the embedded subjects map when the
+    property is null, which only occurs at the top-level. */
+    if(property === null) {
+      state.embeds = {};
+    }
+
+    // start output
+    var output = {};
+    output['@id'] = id;
+
+    // prepare embed meta info
+    var embed = {parent: parent, property: property};
+
+    // if embed is on and there is an existing embed
+    if(embedOn && (id in state.embeds)) {
+      // only overwrite an existing embed if it has already been added to its
+      // parent -- otherwise its parent is somewhere up the tree from this
+      // embed and the embed would occur twice once the tree is added
+      embedOn = false;
+
+      // existing embed's parent is an array
+      var existing = state.embeds[id];
+      if(_isArray(existing.parent)) {
+        for(var i in existing.parent) {
+          if(jsonld.compareValues(output, existing.parent[i])) {
+            embedOn = true;
+            break;
+          }
+        }
+      }
+      // existing embed's parent is an object
+      else if(jsonld.hasValue(existing.parent, existing.property, output)) {
+        embedOn = true;
+      }
+
+      // existing embed has already been added, so allow an overwrite
+      if(embedOn) {
+        _removeEmbed(state, id);
+      }
+    }
+
+    // not embedding, add output without any other properties
+    if(!embedOn) {
+      _addFrameOutput(state, parent, property, output);
+    }
+    else {
+      // add embed meta info
+      state.embeds[id] = embed;
+
+      // iterate over subject properties
+      var subject = matches[id];
+      for(var prop in subject) {
+        // copy keywords to output
+        if(_isKeyword(prop)) {
+          output[prop] = _clone(subject[prop]);
+          continue;
+        }
+
+        // if property isn't in the frame
+        if(!(prop in frame)) {
+          // if explicit is off, embed values
+          if(!explicitOn) {
+            _embedValues(state, subject, prop, output);
+          }
+          continue;
+        }
+
+        // add objects
+        var objects = subject[prop];
+        for(var i in objects) {
+          var o = objects[i];
+
+          // recurse into list
+          if(_isListValue(o)) {
+            // add empty list
+            var list = {'@list': []};
+            _addFrameOutput(state, output, prop, list);
+
+            // add list objects
+            var src = o['@list'];
+            for(var n in src) {
+              o = src[n];
+              // recurse into subject reference
+              if(_isSubjectReference(o)) {
+                var _subjects = {};
+                _subjects[o['@id']] = o;
+                _frame(state, _subjects, frame[prop], list, '@list');
+              }
+              // include other values automatically
+              else {
+                _addFrameOutput(state, list, '@list', _clone(o));
+              }
+            }
+            continue;
+          }
+
+          // recurse into subject reference
+          if(_isSubjectReference(o)) {
+            var _subjects = {};
+            _subjects[o['@id']] = o;
+            _frame(state, _subjects, frame[prop], output, prop);
+          }
+          // include other values automatically
+          else {
+            _addFrameOutput(state, output, prop, _clone(o));
+          }
+        }
+      }
+
+      // handle defaults
+      for(var prop in frame) {
+        // skip keywords
+        if(_isKeyword(prop)) {
+          continue;
+        }
+
+        // if omit default is off, then include default values for properties
+        // that appear in the next frame but are not in the matching subject
+        var next = frame[prop][0];
+        var omitDefaultOn = _getFrameFlag(next, options, 'omitDefault');
+        if(!omitDefaultOn && !(prop in output)) {
+          var preserve = '@null';
+          if('@default' in next) {
+            preserve = _clone(next['@default']);
+          }
+          output[prop] = {'@preserve': preserve};
+        }
+      }
+
+      // add output to parent
+      _addFrameOutput(state, parent, property, output);
+    }
+  }
+}
+
+/**
+ * Gets the frame flag value for the given flag name.
+ *
+ * @param frame the frame.
+ * @param options the framing options.
+ * @param name the flag name.
+ *
+ * @return the flag value.
+ */
+function _getFrameFlag(frame, options, name) {
+  var flag = '@' + name;
+  return (flag in frame) ? frame[flag][0] : options[name];
+};
+
+/**
+ * Validates a JSON-LD frame, throwing an exception if the frame is invalid.
+ *
+ * @param state the current frame state.
+ * @param frame the frame to validate.
+ */
+function _validateFrame(state, frame) {
+  if(!_isArray(frame) || frame.length !== 1 || !_isObject(frame[0])) {
+    throw new JsonLdError(
+      'Invalid JSON-LD syntax; a JSON-LD frame must be a single object.',
+      'jsonld.SyntaxError',
+      {frame: frame});
+  }
+}
+
+/**
+ * Returns a map of all of the subjects that match a parsed frame.
+ *
+ * @param state the current framing state.
+ * @param subjects the set of subjects to filter.
+ * @param frame the parsed frame.
+ *
+ * @return all of the matched subjects.
+ */
+function _filterSubjects(state, subjects, frame) {
+  var rval = {};
+  for(var id in subjects) {
+    var subject = state.subjects[id];
+    if(_filterSubject(subject, frame)) {
+      rval[id] = subject;
+    }
+  }
+  return rval;
+}
+
+/**
+ * Returns true if the given subject matches the given frame.
+ *
+ * @param subject the subject to check.
+ * @param frame the frame to check.
+ *
+ * @return true if the subject matches, false if not.
+ */
+function _filterSubject(subject, frame) {
+  // check @type (object value means 'any' type, fall through to ducktyping)
+  if('@type' in frame &&
+    !(frame['@type'].length === 1 && _isObject(frame['@type'][0]))) {
+    var types = frame['@type'];
+    for(var i in types) {
+      // any matching @type is a match
+      if(jsonld.hasValue(subject, '@type', types[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // check ducktype
+  for(var key in frame) {
+    // only not a duck if @id or non-keyword isn't in subject
+    if((key === '@id' || !_isKeyword(key)) && !(key in subject)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Embeds values for the given subject and property into the given output
+ * during the framing algorithm.
+ *
+ * @param state the current framing state.
+ * @param subject the subject.
+ * @param property the property.
+ * @param output the output.
+ */
+function _embedValues(state, subject, property, output) {
+  // embed subject properties in output
+  var objects = subject[property];
+  for(var i in objects) {
+    var o = objects[i];
+
+    // recurse into @list
+    if(_isListValue(o)) {
+      var list = {'@list': []};
+      _addFrameOutput(state, output, property, list);
+      return _embedValues(state, o, '@list', list['@list']);
+    }
+
+    // handle subject reference
+    if(_isSubjectReference(o)) {
+      var id = o['@id'];
+
+      // embed full subject if isn't already embedded
+      if(!(id in state.embeds)) {
+        // add embed
+        var embed = {parent: output, property: property};
+        state.embeds[id] = embed;
+
+        // recurse into subject
+        o = {};
+        var s = state.subjects[id];
+        for(var prop in s) {
+          // copy keywords
+          if(_isKeyword(prop)) {
+            o[prop] = _clone(s[prop]);
+            continue;
+          }
+          _embedValues(state, s, prop, o);
+        }
+      }
+      _addFrameOutput(state, output, property, o);
+    }
+    // copy non-subject value
+    else {
+      _addFrameOutput(state, output, property, _clone(o));
+    }
+  }
+}
+
+/**
+ * Removes an existing embed.
+ *
+ * @param state the current framing state.
+ * @param id the @id of the embed to remove.
+ */
+function _removeEmbed(state, id) {
+  // get existing embed
+  var embeds = state.embeds;
+  var embed = embeds[id];
+  var parent = embed.parent;
+  var property = embed.property;
+
+  // create reference to replace embed
+  var subject = {'@id': id};
+
+  // remove existing embed
+  if(_isArray(parent)) {
+    // replace subject with reference
+    for(var i in parent) {
+      if(jsonld.compareValues(parent[i], subject)) {
+        parent[i] = subject;
+        break;
+      }
+    }
+  }
+  else {
+    // replace subject with reference
+    var useArray = _isArray(parent[property]);
+    jsonld.removeValue(parent, property, subject, useArray);
+    jsonld.addValue(parent, property, subject, useArray);
+  }
+
+  // recursively remove dependent dangling embeds
+  var removeDependents = function(id) {
+    // get embed keys as a separate array to enable deleting keys in map
+    var ids = Object.keys(embeds);
+    for(var i in ids) {
+      var next = ids[i];
+      if(next in embeds && _isObject(embeds[next].parent) &&
+        embeds[next].parent['@id'] === id) {
+        delete embeds[next];
+        removeDependents(next);
+      }
+    }
+  };
+  removeDependents(id);
+}
+
+/**
+ * Adds framing output to the given parent.
+ *
+ * @param state the current framing state.
+ * @param parent the parent to add to.
+ * @param property the parent property.
+ * @param output the output to add.
+ */
+function _addFrameOutput(state, parent, property, output) {
+  if(_isObject(parent)) {
+    jsonld.addValue(parent, property, output, true);
+  }
+  else {
+    parent.push(output);
+  }
+}
+
+/**
+ * Removes the @preserve keywords as the last step of the framing algorithm.
+ *
+ * @param input the framed, compacted output.
+ *
+ * @return the resulting output.
+ */
+function _removePreserve(input) {
+  // recurse through arrays
+  if(_isArray(input)) {
+    for(var i in input) {
+      input[i] = _removePreserve(input[i]);
+    }
+    // drop null-only arrays
+    if(input.length === 1 && input[0] === null) {
+      input = [];
+    }
+  }
+  else if(_isObject(input)) {
+    // remove @preserve
+    if('@preserve' in input) {
+      if(input['@preserve'] === '@null') {
+        return null;
+      }
+      return input['@preserve'];
+    }
+
+    // skip @values
+    if(_isValue(input)) {
+      return input;
+    }
+
+    // recurse through @lists
+    if(_isListValue(input)) {
+      input['@list'] = _removePreserve(input['@list']);
+      return input;
+    }
+
+    // recurse through properties
+    for(var prop in input) {
+      input[prop] = _removePreserve(input[prop]);
+    }
+  }
+  return input;
+}
+
+/**
+ * Compares two strings first based on length and then lexicographically.
+ *
+ * @param a the first string.
+ * @param b the second string.
+ *
+ * @return -1 if a < b, 1 if a > b, 0 if a == b.
+ */
+function _compareShortestLeast(a, b) {
+  if(a.length < b.length) {
+    return -1;
+  }
+  else if(b.length < a.length) {
+    return 1;
+  }
+  return (a < b) ? -1 : ((a > b) ? 1 : 0);
+}
+
+/**
+ * Checks to see if a context key's type definition best matches the
+ * given value and @container.
+ *
+ * @param ctx the context.
+ * @param key the context key to check.
+ * @param value the value to check.
+ * @param container the specific @container to match or null.
+ * @param result the resulting term or CURIE.
+ * @param results the results array.
+ * @param bestMatch the current bestMatch value.
+ *
+ * @return the new bestMatch value.
+ */
+function _isBestMatch(ctx, key, value, container, result, results, bestMatch) {
+  // value is null, match any key
+  if(value === null) {
+    results.push(result);
+    return bestMatch;
+  }
+
+  var valueIsList = _isListValue(value);
+  var valueHasType = ('@type' in value);
+  var language = ('@language' in value) ? value['@language'] : null;
+  var entry = jsonld.getContextValue(ctx, key);
+  if(_isString(entry)) {
+    entry = {'@id': entry};
+  }
+  var entryHasContainer = ('@container' in entry);
+  var entryType = jsonld.getContextValue(ctx, key, '@type');
+
+  // container with type or language
+  if(!valueIsList && entryHasContainer &&
+    (entry['@container'] === container ||
+      (entry['@container'] === '@set' && container === null)) &&
+    ((valueHasType && entryType === value['@type']) ||
+    (!valueHasType && entry['@language'] === language))) {
+    if(bestMatch < 3) {
+      bestMatch = 3;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // no container with type or language
+  else if(bestMatch < 3 &&
+    !entryHasContainer && !valueIsList &&
+    ((valueHasType && entryType === value['@type']) ||
+      (!valueHasType && entry['@language'] === language))) {
+    if(bestMatch < 2) {
+      bestMatch = 2;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // container with no type or language
+  else if(bestMatch < 2 &&
+    entryHasContainer &&
+    (entry['@container'] === container ||
+      (entry['@container'] === '@set' && container === null)) &&
+    !('@type' in entry) && !('@language' in entry)) {
+    if(bestMatch < 1) {
+      bestMatch = 1;
+      results.length = 0;
+    }
+    results.push(result);
+  }
+  // no container, no type, no language
+  else if(bestMatch < 1 &&
+    !entryHasContainer && !('@type' in entry) && !('@language' in entry)) {
+    results.push(result);
+  }
+
+  return bestMatch;
+}
+
+/**
+ * Compacts an IRI or keyword into a term or prefix if it can be. If the
+ * IRI has an associated value, its @type, @language, and/or @container may
+ * be passed.
  *
  * @param ctx the context to use.
- * @param property the property to get the coerced type for.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param iri the IRI to compact.
+ * @param value the value to check or null.
+ * @param container the specific @container to match or null.
  *
- * @return the coerce type, null for none.
+ * @return the compacted IRI as a term or prefix or the original IRI.
  */
-Processor.prototype.getCoerceType = function(ctx, property, usedCtx)
-{
-   var rval = null;
+function _compactIri(ctx, iri, value, container) {
+  // can't compact null
+  if(iri === null) {
+    return iri;
+  }
 
-   // get expanded property
-   var p = _expandTerm(ctx, property, null);
-   
-   // built-in type coercion JSON-LD-isms
-   if(p === '@id' || p === '@type')
-   {
-      rval = '@id';
-   }
-   else
-   {
-      // look up compacted property for a coercion type
-      p = _compactIri(ctx, p, null);
-      if(p in ctx && ctx[p].constructor === Object && '@type' in ctx[p])
-      {
-         // property found, return expanded type
-         var type = ctx[p]['@type'];
-         rval = _expandTerm(ctx, type, usedCtx);
-         if(usedCtx !== null)
-         {
-            usedCtx[p] = _clone(ctx[p]);
-         }
+  // if term is a keyword, use alias
+  if(_isKeyword(iri)) {
+    // pick shortest, least alias
+    var keywords = _getKeywords(ctx);
+    aliases = keywords[iri];
+    if(aliases.length > 0) {
+      aliases.sort(_compareShortestLeast);
+      return aliases[0];
+    }
+    else {
+      // no alias, keep original keyword
+      return iri;
+    }
+  }
+
+  // default value and container to null
+  if(_isUndefined(value)) {
+    value = null;
+  }
+  if(_isUndefined(container)) {
+    container = null;
+  }
+
+  // check the context for terms that could shorten the IRI
+  // (give preference to terms over prefixes)
+  var terms = [];
+  var bestMatch = 0;
+  for(var key in ctx) {
+    // skip special context keys (start with '@')
+    if(key.indexOf('@') === 0) {
+      continue;
+    }
+    // compact to a term
+    if(iri === jsonld.getContextValue(ctx, key, '@id')) {
+      bestMatch = _isBestMatch(
+        ctx, key, value, container, key, terms, bestMatch);
+    }
+  }
+
+  if(terms.length > 0) {
+    // pick shortest, least term
+    terms.sort(_compareShortestLeast);
+    return terms[0];
+  }
+
+  // term not found, check the context for a prefix
+  var curies = [];
+  bestMatch = 0;
+  for(var key in ctx) {
+    // skip special context keys (start with '@')
+    if(key.indexOf('@') === 0) {
+      continue;
+    }
+
+    // see if IRI begins with the next IRI from the context
+    var ctxIri = jsonld.getContextValue(ctx, key, '@id');
+    if(ctxIri !== null) {
+      // compact to a prefix
+      var idx = iri.indexOf(ctxIri);
+      if(idx === 0 && iri.length > ctxIri.length) {
+        var curie = key + ':' + iri.substr(ctxIri.length);
+        bestMatch = _isBestMatch(
+          ctx, key, value, container, curie, curies, bestMatch);
       }
-   }
-   
-   return rval;
-};
+    }
+  }
 
-var _isBlankNodeIri = function(v)
-{
-   return v.indexOf('_:') === 0;
-};
+  if(curies.length > 0) {
+    // pick shortest, least curie
+    curies.sort(_compareShortestLeast);
+    return curies[0];
+  }
 
-var _isNamedBlankNode = function(v)
-{
-   // look for "_:" at the beginning of the subject
-   return (
-      v.constructor === Object && '@id' in v && _isBlankNodeIri(v['@id']));
-};
-
-var _isBlankNode = function(v)
-{
-   // look for a subject with no ID or a blank node ID
-   return (_isSubject(v) && (!('@id' in v) || _isNamedBlankNode(v)));
-};
+  // could not compact IRI, return it as is
+  return iri;
+}
 
 /**
- * Compares two values.
- * 
- * @param v1 the first value.
- * @param v2 the second value.
- * 
- * @return -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2.
- */
-var _compare = function(v1, v2)
-{
-   var rval = 0;
-   
-   if(v1.constructor === Array && v2.constructor === Array)
-   {
-      for(var i = 0; i < v1.length && rval === 0; ++i)
-      {
-         rval = _compare(v1[i], v2[i]);
-      }
-   }
-   else
-   {
-      rval = (v1 < v2 ? -1 : (v1 > v2 ? 1 : 0));
-   }
-   
-   return rval;
-};
-
-/**
- * Compares two keys in an object. If the key exists in one object
- * and not the other, the object with the key is less. If the key exists in
- * both objects, then the one with the lesser value is less.
- * 
- * @param o1 the first object.
- * @param o2 the second object.
- * @param key the key.
- * 
- * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
- */
-var _compareObjectKeys = function(o1, o2, key)
-{
-   var rval = 0;
-   if(key in o1)
-   {
-      if(key in o2)
-      {
-         rval = _compare(o1[key], o2[key]);
-      }
-      else
-      {
-         rval = -1;
-      }
-   }
-   else if(key in o2)
-   {
-      rval = 1;
-   }
-   return rval;
-};
-
-/**
- * Compares two object values.
- * 
- * @param o1 the first object.
- * @param o2 the second object.
- * 
- * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
- */
-var _compareObjects = function(o1, o2)
-{
-   var rval = 0;
-   
-   if(o1.constructor === String)
-   {
-      if(o2.constructor !== String)
-      {
-         rval = -1;
-      }
-      else
-      {
-         rval = _compare(o1, o2);
-      }
-   }
-   else if(o2.constructor === String)
-   {
-      rval = 1;
-   }
-   else
-   {
-      rval = _compareObjectKeys(o1, o2, '@value');
-      if(rval === 0)
-      {
-         if('@value' in o1)
-         {
-            rval = _compareObjectKeys(o1, o2, '@type');
-            if(rval === 0)
-            {
-               rval = _compareObjectKeys(o1, o2, '@language');
-            }
-         }
-         // both are '@id' objects
-         else
-         {
-            rval = _compare(o1['@id'], o2['@id']);
-         }
-      }
-   }
-   
-   return rval;
-};
-
-/**
- * Compares the object values between two bnodes.
- * 
- * @param a the first bnode.
- * @param b the second bnode.
- * 
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-var _compareBlankNodeObjects = function(a, b)
-{
-   var rval = 0;
-   
-   /*
-   3. For each property, compare sorted object values.
-   3.1. The bnode with fewer objects is first.
-   3.2. For each object value, compare only literals (@value) and non-bnodes.
-   3.2.1. The bnode with fewer non-bnodes is first.
-   3.2.2. The bnode with a string object is first.
-   3.2.3. The bnode with the alphabetically-first string is first.
-   3.2.4. The bnode with a @value is first.
-   3.2.5. The bnode with the alphabetically-first @value is first.
-   3.2.6. The bnode with the alphabetically-first @type is first.
-   3.2.7. The bnode with a @language is first.
-   3.2.8. The bnode with the alphabetically-first @language is first.
-   3.2.9. The bnode with the alphabetically-first @id is first.
-   */
-   
-   for(var p in a)
-   {
-      // skip IDs (IRIs)
-      if(p !== '@id')
-      {
-         // step #3.1
-         var lenA = (a[p].constructor === Array) ? a[p].length : 1;
-         var lenB = (b[p].constructor === Array) ? b[p].length : 1;
-         rval = _compare(lenA, lenB);
-
-         // step #3.2.1
-         if(rval === 0)
-         {
-            // normalize objects to an array
-            var objsA = a[p];
-            var objsB = b[p];
-            if(objsA.constructor !== Array)
-            {
-               objsA = [objsA];
-               objsB = [objsB];
-            }
-            
-            // compare non-bnodes (remove bnodes from comparison)
-            objsA = objsA.filter(function(e) {return !_isNamedBlankNode(e);});
-            objsB = objsB.filter(function(e) {return !_isNamedBlankNode(e);});
-            rval = _compare(objsA.length, objsB.length);
-         }
-         
-         // steps #3.2.2-3.2.9
-         if(rval === 0)
-         {
-            objsA.sort(_compareObjects);
-            objsB.sort(_compareObjects);
-            for(var i = 0; i < objsA.length && rval === 0; ++i)
-            {
-               rval = _compareObjects(objsA[i], objsB[i]);
-            }
-         }
-         
-         if(rval !== 0)
-         {
-            break;
-         }
-      }
-   }
-   
-   return rval;
-};
-
-/**
- * Creates a blank node name generator using the given prefix for the
- * blank nodes. 
- * 
- * @param prefix the prefix to use.
- * 
- * @return the blank node name generator.
- */
-var _createNameGenerator = function(prefix)
-{
-   var count = -1;
-   var ng = {
-      next: function()
-      {
-         ++count;
-         return ng.current();
-      },
-      current: function()
-      {
-         return '_:' + prefix + count;
-      },
-      inNamespace: function(iri)
-      {
-         return iri.indexOf('_:' + prefix) === 0;
-      }
-   };
-   return ng;
-};
-
-/**
- * Populates a map of all named subjects from the given input and an array
- * of all unnamed bnodes (includes embedded ones).
- * 
- * @param input the input (must be expanded, no context).
- * @param subjects the subjects map to populate.
- * @param bnodes the bnodes array to populate.
- */
-var _collectSubjects = function(input, subjects, bnodes)
-{
-   if(input === null)
-   {
-      // nothing to collect
-   }
-   else if(input.constructor === Array)
-   {
-      for(var i in input)
-      {
-         _collectSubjects(input[i], subjects, bnodes);
-      }
-   }
-   else if(input.constructor === Object)
-   {
-      if('@id' in input)
-      {
-         // graph literal/disjoint graph
-         if(input['@id'].constructor == Array)
-         {
-            _collectSubjects(input['@id'], subjects, bnodes);
-         }
-         // named subject
-         else if(_isSubject(input))
-         {
-            subjects[input['@id']] = input;
-         }
-      }
-      // unnamed blank node
-      else if(_isBlankNode(input))
-      {
-         bnodes.push(input);
-      }
-      
-      // recurse through subject properties
-      for(var key in input)
-      {
-         _collectSubjects(input[key], subjects, bnodes);
-      }
-   }
-};
-
-/**
- * Flattens the given value into a map of unique subjects. It is assumed that
- * all blank nodes have been uniquely named before this call. Array values for
- * properties will be sorted.
+ * Expands a term into an absolute IRI. The term may be a regular term, a
+ * prefix, a relative IRI, or an absolute IRI. In any case, the associated
+ * absolute IRI will be returned.
  *
- * @param parent the value's parent, NULL for none.
- * @param parentProperty the property relating the value to the parent.
- * @param value the value to flatten.
- * @param subjects the map of subjects to write to.
+ * @param ctx the context to use.
+ * @param term the term to expand.
+ * @param deep (used internally to recursively expand).
+ *
+ * @return the expanded term as an absolute IRI.
  */
-var _flatten = function(parent, parentProperty, value, subjects)
-{
-   var flattened = null;
-   
-   if(value === null)
-   {
-      // drop null values
-   }
-   else if(value.constructor === Array)
-   {
-      // list of objects or a disjoint graph
-      for(var i in value)
-      {
-         _flatten(parent, parentProperty, value[i], subjects);
-      }
-   }
-   else if(value.constructor === Object)
-   {
-      // already-expanded value or special-case reference-only @type
-      if('@value' in value || parentProperty === '@type')
-      {
-         flattened = _clone(value);
-      }
-      // graph literal/disjoint graph
-      else if(value['@id'].constructor === Array)
-      {
-         // cannot flatten embedded graph literals
-         if(parent !== null)
-         {
-            throw {
-               message: 'Embedded graph literals cannot be flattened.'
-            };
-         }
-         
-         // top-level graph literal
-         for(var idx in value['@id'])
-         {
-            _flatten(parent, parentProperty, value['@id'][idx], subjects);
-         }
-      }
-      // regular subject
-      else
-      {
-         // create or fetch existing subject
-         var subject;
-         if(value['@id'] in subjects)
-         {
-            // FIXME: '@id' might be a graph literal (as {})
-            subject = subjects[value['@id']];
-         }
-         else
-         {
-            // FIXME: '@id' might be a graph literal (as {})
-            subject = {'@id': value['@id']};
-            subjects[value['@id']] = subject;
-         }
-         flattened = {'@id': subject['@id']};
+function _expandTerm(ctx, term, deep) {
+  // nothing to expand
+  if(term === null) {
+    return null;
+  }
 
-         // flatten embeds
-         for(var key in value)
-         {
-            var v = value[key];
-            
-            // drop null values, skip @id (it is already set above)
-            if(v !== null && key !== '@id')
-            {
-               if(key in subject)
-               {
-                  if(subject[key].constructor !== Array)
-                  {
-                     subject[key] = [subject[key]];
-                  }
-               }
-               else
-               {
-                  subject[key] = [];
-               }
-               
-               _flatten(subject[key], key, v, subjects);
-               if(subject[key].length === 1)
-               {
-                  // convert subject[key] to object if it has only 1
-                  subject[key] = subject[key][0];
-               }
-            }
-         }
-      }
-   }
-   // string value
-   else
-   {
-      flattened = value;
-   }
+  // default to the term being fully-expanded or not in the context
+  var rval = term;
 
-   // add flattened value to parent
-   if(flattened !== null && parent !== null)
-   {
-      if(parent.constructor === Array)
-      {
-         // do not add duplicates for the same property
-         var duplicate = (parent.filter(function(e)
-         {
-            return (_compareObjects(e, flattened) === 0);
-         }).length > 0);
-         if(!duplicate)
-         {
-            parent.push(flattened);
-         }
-      }
-      else
-      {
-         parent[parentProperty] = flattened;
-      }
-   }
-};
+  // 1. If the term has a colon, it is a prefix or an absolute IRI:
+  var idx = term.indexOf(':');
+  if(idx !== -1) {
+    // get the potential prefix
+    var prefix = term.substr(0, idx);
 
+    // expand term if prefix is in context, otherwise leave it be
+    if(prefix in ctx) {
+      // prefix found, expand property to absolute IRI
+      var iri = jsonld.getContextValue(ctx, prefix, '@id', false);
+      rval = iri + term.substr(idx + 1);
+    }
+  }
+  // 2. If the term is in the context, then it's a term.
+  else if(term in ctx) {
+    rval = jsonld.getContextValue(ctx, term, '@id', false);
+  }
+  // 3. The term is a keyword or not in the context.
+  else {
+    var keywords = _getKeywords(ctx);
+    for(var key in keywords) {
+      if(keywords[key].indexOf(term) !== -1) {
+        rval = key;
+        break;
+      }
+    }
+  }
+
+  // recursively expand the term
+  if(_isUndefined(deep)) {
+    var cycles = {};
+    var recurse = null;
+    while(recurse !== rval) {
+      if(rval in cycles) {
+        throw new JsonLdError(
+          'Cyclical term definition detected in context.',
+          'jsonld.CyclicalContext',
+          {context: ctx, term: rval});
+      }
+      else {
+        cycles[rval] = true;
+      }
+      recurse = rval;
+      recurse = _expandTerm(ctx, recurse, true);
+    }
+    rval = recurse;
+  }
+
+  return rval;
+}
 
 /**
- * Assigns unique names to blank nodes that are unnamed in the given input.
- * 
- * @param input the input to assign names to.
+ * Gets the keywords from a context.
+ *
+ * @param ctx the context.
+ *
+ * @return the keywords.
  */
-Processor.prototype.nameBlankNodes = function(input)
-{
-   // create temporary blank node name generator
-   var ng = this.ng.tmp = _createNameGenerator('tmp');
-   
-   // collect subjects and unnamed bnodes
-   var subjects = {};
-   var bnodes = [];
-   _collectSubjects(input, subjects, bnodes);
-   
-   // uniquely name all unnamed bnodes
-   for(var i in bnodes)
-   {
-      var bnode = bnodes[i];
-      if(!('@id' in bnode))
-      {
-         // generate names until one is unique
-         while(ng.next() in subjects){}
-         bnode['@id'] = ng.current();
-         subjects[ng.current()] = bnode;
+function _getKeywords(ctx) {
+  var rval = {
+    '@context': [],
+    '@container': [],
+    '@default': [],
+    '@embed': [],
+    '@explicit': [],
+    '@graph': [],
+    '@id': [],
+    '@language': [],
+    '@list': [],
+    '@omitDefault': [],
+    '@preserve': [],
+    '@set': [],
+    '@type': [],
+    '@value': []
+  };
+
+  if(ctx) {
+    // gather keyword aliases from context
+    for(var key in ctx) {
+      var kw = ctx[key];
+      if(_isString(kw) && kw in rval) {
+        if(kw === '@context' || kw === '@preserve') {
+          throw new JsonLdError(
+            'Invalid JSON-LD syntax; @context and @preserve cannot be aliased.',
+            'jsonld.SyntaxError');
+        }
+        rval[kw].push(key);
       }
-   }
-};
+    }
+  }
+
+  return rval;
+}
 
 /**
- * Renames a blank node, changing its references, etc. The method assumes
- * that the given name is unique.
- * 
- * @param b the blank node to rename.
- * @param id the new name to use.
+ * Returns whether or not the given value is a keyword (or a keyword alias).
+ *
+ * @param value the value to check.
+ * @param keywords the custom keyword alias map to check against.
+ *
+ * @return true if the value is a keyword, false if not.
  */
-Processor.prototype.renameBlankNode = function(b, id)
-{
-   var old = b['@id'];
-   
-   // update bnode IRI
-   b['@id'] = id;
-   
-   // update subjects map
-   var subjects = this.subjects;
-   subjects[id] = subjects[old];
-   delete subjects[old];
-   
-   // update reference and property lists
-   this.edges.refs[id] = this.edges.refs[old];
-   this.edges.props[id] = this.edges.props[old];
-   delete this.edges.refs[old];
-   delete this.edges.props[old];
-   
-   // update references to this bnode
-   var refs = this.edges.refs[id].all;
-   for(var i in refs)
-   {
-      var iri = refs[i].s;
-      if(iri === old)
-      {
-         iri = id;
+function _isKeyword(value, keywords) {
+  if(keywords) {
+    if(value in keywords) {
+      return true;
+    }
+    for(var key in keywords) {
+      if(keywords[key].indexOf(value) !== -1) {
+        return true;
       }
-      var ref = subjects[iri];
-      var props = this.edges.props[iri].all;
-      for(var i2 in props)
-      {
-         if(props[i2].s === old)
-         {
-            props[i2].s = id;
-            
-            // normalize property to array for single code-path
-            var p = props[i2].p;
-            var tmp = (ref[p].constructor === Object) ? [ref[p]] :
-               (ref[p].constructor === Array) ? ref[p] : [];
-            for(var n in tmp)
-            {
-               if(tmp[n].constructor === Object &&
-                  '@id' in tmp[n] && tmp[n]['@id'] === old)
-               {
-                  tmp[n]['@id'] = id;
-               }
-            }
-         }
-      }
-   }
-   
-   // update references from this bnode 
-   var props = this.edges.props[id].all;
-   for(var i in props)
-   {
-      var iri = props[i].s;
-      refs = this.edges.refs[iri].all;
-      for(var r in refs)
-      {
-         if(refs[r].s === old)
-         {
-            refs[r].s = id;
-         }
-      }
-   }
-};
+    }
+  }
+  else {
+    switch(value) {
+    case '@context':
+    case '@container':
+    case '@default':
+    case '@embed':
+    case '@explicit':
+    case '@graph':
+    case '@id':
+    case '@language':
+    case '@list':
+    case '@omitDefault':
+    case '@preserve':
+    case '@set':
+    case '@type':
+    case '@value':
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
- * Canonically names blank nodes in the given input.
- * 
- * @param input the flat input graph to assign names to.
+ * Returns true if the given input is an Object.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Object, false if not.
  */
-Processor.prototype.canonicalizeBlankNodes = function(input)
-{
-   // create serialization state
-   this.renamed = {};
-   this.mappings = {};
-   this.serializations = {};
-   
-   // collect subjects and bnodes from flat input graph
-   var edges = this.edges =
-   {
-      refs: {},
-      props: {}
-   };
-   var subjects = this.subjects = {};
-   var bnodes = [];
-   for(var i in input)
-   {
-      var iri = input[i]['@id'];
-      subjects[iri] = input[i];
-      edges.refs[iri] =
-      {
-         all: [],
-         bnodes: []
-      };
-      edges.props[iri] =
-      {
-         all: [],
-         bnodes: []
-      };
-      if(_isBlankNodeIri(iri))
-      {
-         bnodes.push(input[i]);
-      }
-   }
-   
-   // collect edges in the graph
-   this.collectEdges();
-   
-   // create canonical blank node name generator
-   var c14n = this.ng.c14n = _createNameGenerator('c14n');
-   var ngTmp = this.ng.tmp;
-   
-   // rename all bnodes that happen to be in the c14n namespace
-   // and initialize serializations
-   for(var i in bnodes)
-   {
-      var bnode = bnodes[i];
-      var iri = bnode['@id'];
-      if(c14n.inNamespace(iri))
-      {
-         // generate names until one is unique
-         while(ngTmp.next() in subjects){};
-         this.renameBlankNode(bnode, ngTmp.current());
-         iri = bnode['@id'];
-      }
-      this.serializations[iri] =
-      {
-         'props': null,
-         'refs': null
-      };
-   }
-   
-   // keep sorting and naming blank nodes until they are all named
-   var resort = true;
-   var self = this;
-   while(bnodes.length > 0)
-   {
-      if(resort)
-      {
-         resort = false;
-         bnodes.sort(function(a, b)
-         {
-            return self.deepCompareBlankNodes(a, b);
-         });
-      }
-      
-      // name all bnodes according to the first bnode's relation mappings
-      var bnode = bnodes.shift();
-      var iri = bnode['@id'];
-      var dirs = ['props', 'refs'];
-      for(var d in dirs)
-      {
-         var dir = dirs[d];
-         
-         // if no serialization has been computed, name only the first node
-         if(this.serializations[iri][dir] === null)
-         {
-            var mapping = {};
-            mapping[iri] = 's1';
-         }
-         else
-         {
-            mapping = this.serializations[iri][dir].m;
-         }
-         
-         // sort keys by value to name them in order
-         var keys = Object.keys(mapping);
-         keys.sort(function(a, b)
-         {
-            return _compare(mapping[a], mapping[b]);
-         });
-         
-         // name bnodes in mapping
-         var renamed = [];
-         for(var i in keys)
-         {
-            var iriK = keys[i];
-            if(!c14n.inNamespace(iri) && iriK in subjects)
-            {
-               this.renameBlankNode(subjects[iriK], c14n.next());
-               renamed.push(iriK);
-            }
-         }
-         
-         // only keep non-canonically named bnodes
-         var tmp = bnodes;
-         bnodes = [];
-         for(var i in tmp)
-         {
-            var b = tmp[i];
-            var iriB = b['@id'];
-            if(!c14n.inNamespace(iriB))
-            {
-               // mark serializations related to the named bnodes as dirty
-               for(var i2 in renamed)
-               {
-                  if(this.markSerializationDirty(iriB, renamed[i2], dir))
-                  {
-                     // resort if a serialization was marked dirty
-                     resort = true;
-                  }
-               }
-               bnodes.push(b);
-            }
-         }
-      }
-   }
-   
-   // sort property lists that now have canonically-named bnodes
-   for(var key in edges.props)
-   {
-      if(edges.props[key].bnodes.length > 0)
-      {
-         var bnode = subjects[key];
-         for(var p in bnode)
-         {
-            if(p.indexOf('@') !== 0 && bnode[p].constructor === Array)
-            {
-               bnode[p].sort(_compareObjects);
-            }
-         }
-      }
-   }
-};
+function _isObject(input) {
+  return (input !== null && !_isUndefined(input) &&
+    input.constructor === Object);
+}
 
 /**
- * A MappingBuilder is used to build a mapping of existing blank node names
- * to a form for serialization. The serialization is used to compare blank
- * nodes against one another to determine a sort order.
+ * Returns true if the given input is an empty Object.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an empty Object, false if not.
  */
-MappingBuilder = function()
-{
-   this.count = 1;
-   this.processed = {};
-   this.mapping = {};
-   this.adj = {};
-   this.keyStack = [{ keys: ['s1'], idx: 0 }];
-   this.done = {};
-   this.s = '';
-};
+function _isEmptyObject(input) {
+  return _isObject(input) && Object.keys(input).length === 0;
+}
 
 /**
- * Copies this MappingBuilder.
- * 
- * @return the MappingBuilder copy.
+ * Returns true if the given input is an Array.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Array, false if not.
  */
-MappingBuilder.prototype.copy = function()
-{
-   var rval = new MappingBuilder();
-   rval.count = this.count;
-   rval.processed = _clone(this.processed);
-   rval.mapping = _clone(this.mapping);
-   rval.adj = _clone(this.adj);
-   rval.keyStack = _clone(this.keyStack);
-   rval.done = _clone(this.done);
-   rval.s = this.s;
-   return rval;
-};
+function _isArray(input) {
+  return (input !== null && !_isUndefined(input) &&
+    input.constructor === Array);
+}
 
 /**
- * Maps the next name to the given bnode IRI if the bnode IRI isn't already in
- * the mapping. If the given bnode IRI is canonical, then it will be given
- * a shortened form of the same name.
- * 
- * @param iri the blank node IRI to map the next name to.
- * 
- * @return the mapped name.
+ * Returns true if the given input is an Array of Strings.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Array of Strings, false if not.
  */
-MappingBuilder.prototype.mapNode = function(iri)
-{
-   if(!(iri in this.mapping))
-   {
-      if(iri.indexOf('_:c14n') === 0)
-      {
-         this.mapping[iri] = 'c' + iri.substr(6);
+function _isArrayOfStrings(input) {
+  if(!_isArray(input)) {
+    return false;
+  }
+  for(var i in input) {
+    if(!_isString(input[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Returns true if the given input is a String.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a String, false if not.
+ */
+function _isString(input) {
+  return (input !== null && !_isUndefined(input) &&
+    input.constructor === String);
+}
+
+/**
+ * Returns true if the given input is a Number.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a Number, false if not.
+ */
+function _isNumber(input) {
+  return (input !== null && !_isUndefined(input) &&
+    input.constructor === Number);
+}
+
+/**
+ * Returns true if the given input is a double.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a double, false if not.
+ */
+function _isDouble(input) {
+  return _isNumber(input) && String(input).indexOf('.') !== -1;
+}
+
+/**
+ * Returns true if the given input is a Boolean.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a Boolean, false if not.
+ */
+function _isBoolean(input) {
+  return (input !== null && !_isUndefined(input) &&
+    input.constructor === Boolean);
+}
+
+/**
+ * Returns true if the given input is undefined.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is undefined, false if not.
+ */
+function _isUndefined(input) {
+  return (typeof input === 'undefined');
+}
+
+/**
+ * Returns true if the given value is a subject with properties.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a subject with properties, false if not.
+ */
+function _isSubject(value) {
+  var rval = false;
+
+  // Note: A value is a subject if all of these hold true:
+  // 1. It is an Object.
+  // 2. It is not a @value, @set, or @list.
+  // 3. It has more than 1 key OR any existing key is not @id.
+  if(_isObject(value) &&
+    !(('@value' in value) || ('@set' in value) || ('@list' in value))) {
+    var keyCount = Object.keys(value).length;
+    rval = (keyCount > 1 || !('@id' in value));
+  }
+
+  return rval;
+}
+
+/**
+ * Returns true if the given value is a subject reference.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a subject reference, false if not.
+ */
+function _isSubjectReference(value) {
+  // Note: A value is a subject reference if all of these hold true:
+  // 1. It is an Object.
+  // 2. It has a single key: @id.
+  return (_isObject(value) && Object.keys(value).length === 1 &&
+    ('@id' in value));
+}
+
+/**
+ * Returns true if the given value is a @value.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a @value, false if not.
+ */
+function _isValue(value) {
+  // Note: A value is a @value if all of these hold true:
+  // 1. It is an Object.
+  // 2. It has the @value property.
+  return _isObject(value) && ('@value' in value);
+}
+
+/**
+ * Returns true if the given value is a @set.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a @set, false if not.
+ */
+function _isSetValue(value) {
+  // Note: A value is a @set if all of these hold true:
+  // 1. It is an Object.
+  // 2. It has the @set property.
+  return _isObject(value) && ('@set' in value);
+}
+
+/**
+ * Returns true if the given value is a @list.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a @list, false if not.
+ */
+function _isListValue(value) {
+  // Note: A value is a @list if all of these hold true:
+  // 1. It is an Object.
+  // 2. It has the @list property.
+  return _isObject(value) && ('@list' in value);
+}
+
+/**
+ * Returns true if the given value is a blank node.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is a blank node, false if not.
+ */
+function _isBlankNode(value) {
+  var rval = false;
+  // Note: A value is a blank node if all of these hold true:
+  // 1. It is an Object.
+  // 2. If it has an @id key its value begins with '_:'.
+  // 3. It has no keys OR is not a @value, @set, or @list.
+  if(_isObject(value)) {
+    if('@id' in value) {
+      rval = (value['@id'].indexOf('_:') === 0);
+    }
+    else {
+      rval = (Object.keys(value).length === 0 ||
+        !(('@value' in value) || ('@set' in value) || ('@list' in value)));
+    }
+  }
+  return rval;
+}
+
+/**
+ * Returns true if the given value is an absolute IRI, false if not.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is an absolute IRI, false if not.
+ */
+function _isAbsoluteIri(value) {
+  return (/\w+:\/\/.+/).test(value);
+}
+
+/**
+ * Clones an object, array, or string/number.
+ *
+ * @param value the value to clone.
+ *
+ * @return the cloned value.
+ */
+function _clone(value) {
+  var rval;
+
+  if(_isObject(value)) {
+    rval = {};
+    for(var key in value) {
+      rval[key] = _clone(value[key]);
+    }
+  }
+  else if(_isArray(value)) {
+    rval = [];
+    for(var i in value) {
+      rval[i] = _clone(value[i]);
+    }
+  }
+  else {
+    rval = value;
+  }
+
+  return rval;
+}
+
+/**
+ * Resolves external @context URLs using the given URL resolver. Each instance
+ * of @context in the input that refers to a URL will be replaced with the
+ * JSON @context found at that URL.
+ *
+ * @param input the JSON-LD object with possible contexts.
+ * @param resolver(url, callback(err, jsonCtx)) the URL resolver to use.
+ * @param callback(err, input) called once the operation completes.
+ */
+function _resolveUrls(input, resolver, callback) {
+  // keeps track of resolved URLs (prevents duplicate work)
+  var urls = {};
+
+  // finds URLs in @context properties and replaces them with their
+  // resolved @contexts if replace is true
+  var findUrls = function(input, replace) {
+    if(_isArray(input)) {
+      for(var i in input) {
+        findUrls(input[i], replace);
       }
-      else
-      {
-         this.mapping[iri] = 's' + this.count++;
-      }
-   }
-   return this.mapping[iri];
-};
+    }
+    else if(_isObject(input)) {
+      for(var key in input) {
+        if(key !== '@context') {
+          continue;
+        }
 
-/**
- * Serializes the properties of the given bnode for its relation serialization.
- * 
- * @param b the blank node.
- * 
- * @return the serialized properties.
- */
-var _serializeProperties = function(b)
-{
-   var rval = '';
-   
-   var first = true;
-   for(var p in b)
-   {
-      if(p !== '@id')
-      {
-         if(first)
-         {
-            first = false;
-         }
-         else
-         {
-            rval += '|';
-         }
-         
-         // property
-         rval += '<' + p + '>';
-         
-         // object(s)
-         var objs = (b[p].constructor === Array) ? b[p] : [b[p]];
-         for(var oi in objs)
-         {
-            var o = objs[oi];
-            if(o.constructor === Object)
-            {
-               // ID (IRI)
-               if('@id' in o)
-               {
-                  if(_isBlankNodeIri(o['@id']))
-                  {
-                     rval += '_:';
-                  }
-                  else
-                  {
-                     rval += '<' + o['@id'] + '>';
-                  }
-               }
-               // literal
-               else
-               {
-                  rval += '"' + o['@value'] + '"';
-                  
-                  // typed literal
-                  if('@type' in o)
-                  {
-                     rval += '^^<' + o['@type'] + '>';
-                  }
-                  // language literal
-                  else if('@language' in o)
-                  {
-                     rval += '@' + o['@language'];
-                  }
-               }
+        // get @context
+        var ctx = input[key];
+
+        // array @context
+        if(_isArray(ctx)) {
+          for(var i in ctx) {
+            if(_isString(ctx[i])) {
+              // replace w/resolved @context if requested
+              if(replace) {
+                ctx[i] = urls[ctx[i]];
+              }
+              // unresolved @context found
+              else {
+                urls[ctx[i]] = {};
+              }
             }
-            // plain literal
-            else
-            {
-               rval += '"' + o + '"';
-            }
-         }
+          }
+        }
+        // string @context
+        else if(_isString(ctx)) {
+          // replace w/resolved @context if requested
+          if(replace) {
+            input[key] = urls[ctx];
+          }
+          // unresolved @context found
+          else {
+            urls[ctx] = {};
+          }
+        }
       }
-   }
-   
-   return rval;
-};
+    }
+  };
+  findUrls(input, false);
+
+  // state for resolving URLs
+  var count = Object.keys(urls).length;
+  var errors = [];
+
+  // called once finished resolving URLs
+  var finished = function() {
+    if(errors.length > 0) {
+      callback(new JsonLdError(
+        'Could not resolve @context URL(s).',
+        'jsonld.ContextUrlError',
+        {errors: errors}));
+    }
+    else {
+      callback(null, input);
+    }
+  };
+
+  // nothing to resolve
+  if(count === 0) {
+    return finished();
+  }
+
+  // resolve all URLs
+  for(var url in urls) {
+    // validate URL
+    var regex = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+    if(!regex.test(url)) {
+      count -= 1;
+      errors.push(new JsonLdError(
+        'Malformed URL.', 'jsonld.InvalidUrl', {url: url}));
+      continue;
+    }
+
+    // resolve URL
+    resolver(url, function(err, ctx) {
+      count -= 1;
+
+      // parse string context as JSON
+      if(!err && _isString(ctx)) {
+        try {
+          ctx = JSON.parse(ctx);
+        }
+        catch(ex) {
+          err = ex;
+        }
+      }
+
+      // ensure ctx is an object
+      if(!err && !_isObject(ctx)) {
+        err = new JsonLdError(
+          'URL does not resolve to a valid JSON-LD object.',
+          'jsonld.InvalidUrl', {url: url});
+      }
+
+      if(err) {
+        errors.push(err);
+      }
+      else {
+        urls[url] = ctx['@context'] || {};
+      }
+
+      if(count === 0) {
+        // if no errors, do URL replacement
+        if(errors.length === 0) {
+          findUrls(input, true);
+        }
+        finished();
+      }
+    });
+  }
+}
+
+// define js 1.8.5 Object.keys method if not present
+if(!Object.keys) {
+  Object.keys = function(o) {
+    if(o !== Object(o)) {
+      throw new TypeError('Object.keys called on non-object');
+    }
+    var rval = [];
+    for(var p in o) {
+      if(Object.prototype.hasOwnProperty.call(o, p)) {
+        rval.push(p);
+      }
+    }
+    return rval;
+  };
+}
 
 /**
- * Recursively increments the relation serialization for a mapping.
- * 
- * @param subjects the subjects in the graph.
- * @param edges the edges in the graph.
+ * Creates a new UniqueNamer. A UniqueNamer issues unique names, keeping
+ * track of any previously issued names.
+ *
+ * @param prefix the prefix to use ('<prefix><counter>').
  */
-MappingBuilder.prototype.serialize = function(subjects, edges)
-{
-   if(this.keyStack.length > 0)
-   {
-      // continue from top of key stack
-      var next = this.keyStack.pop();
-      for(; next.idx < next.keys.length; ++next.idx)
-      {
-         var k = next.keys[next.idx];
-         if(!(k in this.adj))
-         {
-            this.keyStack.push(next);
-            break;
-         }
-         
-         if(k in this.done)
-         {
-            // mark cycle
-            this.s += '_' + k;
-         }
-         else
-         {
-            // mark key as serialized
-            this.done[k] = true;
-            
-            // serialize top-level key and its details
-            var s = k;
-            var adj = this.adj[k];
-            var iri = adj.i;
-            if(iri in subjects)
-            {
-               var b = subjects[iri];
-               
-               // serialize properties
-               s += '[' + _serializeProperties(b) + ']';
-               
-               // serialize references
-               var first = true;
-               s += '[';
-               var refs = edges.refs[iri].all;
-               for(var r in refs)
-               {
-                  if(first)
-                  {
-                     first = false;
-                  }
-                  else
-                  {
-                     s += '|';
-                  }
-                  s += '<' + refs[r].p + '>';
-                  s += _isBlankNodeIri(refs[r].s) ?
-                     '_:' : ('<' + refs[r].s + '>');
-               }
-               s += ']';
-            }
-            
-            // serialize adjacent node keys
-            s += adj.k.join('');
-            this.s += s;
-            this.keyStack.push({ keys: adj.k, idx: 0 });
-            this.serialize(subjects, edges);
-         }
-      }
-   }
+var UniqueNamer = function(prefix) {
+  this.prefix = prefix;
+  this.counter = 0;
+  this.existing = {};
 };
 
 /**
- * Marks a relation serialization as dirty if necessary.
- * 
- * @param iri the IRI of the bnode to check.
- * @param changed the old IRI of the bnode that changed.
- * @param dir the direction to check ('props' or 'refs').
- * 
- * @return true if marked dirty, false if not.
+ * Copies this UniqueNamer.
+ *
+ * @return a copy of this UniqueNamer.
  */
-Processor.prototype.markSerializationDirty = function(iri, changed, dir)
-{
-   var rval = false;
-   
-   var s = this.serializations[iri];
-   if(s[dir] !== null && changed in s[dir].m)
-   {
-      s[dir] = null;
-      rval = true;
-   }
-   
-   return rval;
+UniqueNamer.prototype.clone = function() {
+  var copy = new UniqueNamer(this.prefix);
+  copy.counter = this.counter;
+  copy.existing = _clone(this.existing);
+  return copy;
 };
 
 /**
- * Rotates the elements in an array one position.
- * 
- * @param a the array.
+ * Gets the new name for the given old name, where if no old name is given
+ * a new name will be generated.
+ *
+ * @param [oldName] the old name to get the new name for.
+ *
+ * @return the new name.
  */
-var _rotate = function(a)
-{
-   a.unshift.apply(a, a.splice(1, a.length));
+UniqueNamer.prototype.getName = function(oldName) {
+  // return existing old name
+  if(oldName && oldName in this.existing) {
+    return this.existing[oldName];
+  }
+
+  // get next name
+  var name = this.prefix + this.counter;
+  this.counter += 1;
+
+  // save mapping
+  if(oldName) {
+    this.existing[oldName] = name;
+  }
+  else {
+    this.existing[name] = name;
+  }
+
+  return name;
 };
 
 /**
- * Compares two serializations for the same blank node. If the two
- * serializations aren't complete enough to determine if they are equal (or if
- * they are actually equal), 0 is returned.
- * 
- * @param s1 the first serialization.
- * @param s2 the second serialization.
- * 
- * @return -1 if s1 < s2, 0 if s1 == s2 (or indeterminate), 1 if s1 > v2.
+ * Returns true if the given oldName has already been assigned a new name.
+ *
+ * @param oldName the oldName to check.
+ *
+ * @return true if the oldName has been assigned a new name, false if not.
  */
-var _compareSerializations = function(s1, s2)
-{
-   var rval = 0;
-   
-   if(s1.length == s2.length)
-   {
-      rval = _compare(s1, s2);
-   }
-   else if(s1.length > s2.length)
-   {
-      rval = _compare(s1.substr(0, s2.length), s2);
-   }
-   else
-   {
-      rval = _compare(s1, s2.substr(0, s1.length));
-   }
-   
-   return rval;
+UniqueNamer.prototype.isNamed = function(oldName) {
+  return (oldName in this.existing);
 };
 
 /**
- * Recursively serializes adjacent bnode combinations for a bnode.
- * 
- * @param s the serialization to update.
- * @param iri the IRI of the bnode being serialized.
- * @param siri the serialization name for the bnode IRI.
- * @param mb the MappingBuilder to use.
- * @param dir the edge direction to use ('props' or 'refs').
- * @param mapped all of the already-mapped adjacent bnodes.
- * @param notMapped all of the not-yet mapped adjacent bnodes.
+ * A Permutator iterates over all possible permutations of the given array
+ * of elements.
+ *
+ * @param list the array of elements to iterate over.
  */
-Processor.prototype.serializeCombos = function(
-   s, iri, siri, mb, dir, mapped, notMapped)
-{
-   // handle recursion
-   if(notMapped.length > 0)
-   {
-      // copy mapped nodes
-      mapped = _clone(mapped);
-      
-      // map first bnode in list
-      mapped[mb.mapNode(notMapped[0].s)] = notMapped[0].s;
-      
-      // recurse into remaining possible combinations
-      var original = mb.copy();
-      notMapped = notMapped.slice(1);
-      var rotations = Math.max(1, notMapped.length);
-      for(var r = 0; r < rotations; ++r)
-      {
-         var m = (r === 0) ? mb : original.copy();
-         this.serializeCombos(s, iri, siri, m, dir, mapped, notMapped);
-         
-         // rotate not-mapped for next combination
-         _rotate(notMapped);
-      }
-   }
-   // no more adjacent bnodes to map, update serialization
-   else
-   {
-      var keys = Object.keys(mapped).sort();
-      mb.adj[siri] = { i: iri, k: keys, m: mapped };
-      mb.serialize(this.subjects, this.edges);
-      
-      // optimize away mappings that are already too large
-      if(s[dir] === null || _compareSerializations(mb.s, s[dir].s) <= 0)
-      {
-         // recurse into adjacent values
-         for(var i in keys)
-         {
-            var k = keys[i];
-            this.serializeBlankNode(s, mapped[k], mb, dir);
-         }
-         
-         // update least serialization if new one has been found
-         mb.serialize(this.subjects, this.edges);
-         if(s[dir] === null ||
-            (_compareSerializations(mb.s, s[dir].s) <= 0 &&
-            mb.s.length >= s[dir].s.length))
-         {
-            s[dir] = { s: mb.s, m: mb.mapping };
-         }
-      }
-   }
+Permutator = function(list) {
+  // original array
+  this.list = list.sort();
+  // indicates whether there are more permutations
+  this.done = false;
+  // directional info for permutation algorithm
+  this.left = {};
+  for(var i in list) {
+    this.left[list[i]] = true;
+  }
 };
 
 /**
- * Computes the relation serialization for the given blank node IRI.
- * 
- * @param s the serialization to update.
- * @param iri the current bnode IRI to be mapped.
- * @param mb the MappingBuilder to use.
- * @param dir the edge direction to use ('props' or 'refs').
+ * Returns true if there is another permutation.
+ *
+ * @return true if there is another permutation, false if not.
  */
-Processor.prototype.serializeBlankNode = function(s, iri, mb, dir)
-{
-   // only do mapping if iri not already processed
-   if(!(iri in mb.processed))
-   {
-      // iri now processed
-      mb.processed[iri] = true;
-      var siri = mb.mapNode(iri);
-      
-      // copy original mapping builder
-      var original = mb.copy();
-      
-      // split adjacent bnodes on mapped and not-mapped
-      var adj = this.edges[dir][iri].bnodes;
-      var mapped = {};
-      var notMapped = [];
-      for(var i in adj)
-      {
-         if(adj[i].s in mb.mapping)
-         {
-            mapped[mb.mapping[adj[i].s]] = adj[i].s;
-         }
-         else
-         {
-            notMapped.push(adj[i]);
-         }
-      }
-      
-      /*
-      // TODO: sort notMapped using ShallowCompare
-      var self = this;
-      notMapped.sort(function(a, b)
-      {
-         var rval = self.shallowCompareBlankNodes(
-            self.subjects[a.s], self.subjects[b.s]);
-         return rval;
-      });
-      
-      var same = false;
-      var prev = null;
-      for(var i in notMapped)
-      {
-         var curr = this.subjects[notMapped[i].s];
-         if(prev !== null)
-         {
-            if(this.shallowCompareBlankNodes(prev, curr) === 0)
-            {
-               same = true;
-            }
-            else
-            {
-               if(!same)
-               {
-                  mapped[mb.mapNode(prev['@id'])] = prev['@id'];
-                  delete notMapped[i - 1];
-               }
-               if(i === notMapped.length - 1)
-               {
-                  mapped[mb.mapNode(curr['@id'])];
-                  delete notMapped[i];
-               }
-               same = false;
-            }
-         }
-         prev = curr;
-      }*/
-      
-      // TODO: ensure this optimization does not alter canonical order
-      
-      // if the current bnode already has a serialization, reuse it
-      /*var hint = (iri in this.serializations) ?
-         this.serializations[iri][dir] : null;
-      if(hint !== null)
-      {
-         var hm = hint.m;
-         notMapped.sort(function(a, b)
-         {
-            return _compare(hm[a.s], hm[b.s]);
-         });
-         for(var i in notMapped)
-         {
-            mapped[mb.mapNode(notMapped[i].s)] = notMapped[i].s;
-         }
-         notMapped = [];
-      }*/
-      
-      // loop over possible combinations
-      var combos = Math.max(1, notMapped.length);
-      for(var i = 0; i < combos; ++i)
-      {
-         var m = (i === 0) ? mb : original.copy();
-         this.serializeCombos(s, iri, siri, m, dir, mapped, notMapped);         
-      }
-   }
+Permutator.prototype.hasNext = function() {
+  return !this.done;
 };
 
 /**
- * Compares two blank nodes for equivalence.
- * 
- * @param a the first blank node.
- * @param b the second blank node.
- * 
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
+ * Gets the next permutation. Call hasNext() to ensure there is another one
+ * first.
+ *
+ * @return the next permutation.
  */
-Processor.prototype.deepCompareBlankNodes = function(a, b)
-{
-   var rval = 0;
-   
-   // compare IRIs
-   var iriA = a['@id'];
-   var iriB = b['@id'];
-   if(iriA === iriB)
-   {
-      rval = 0;
-   }
-   else
-   {
-      // do shallow compare first
-      rval = this.shallowCompareBlankNodes(a, b);
-      
-      // deep comparison is necessary
-      if(rval === 0)
-      {
-         // compare property edges and then reference edges
-         var dirs = ['props', 'refs'];
-         for(var i = 0; rval === 0 && i < dirs.length; ++i)
-         {
-            // recompute 'a' and 'b' serializations as necessary
-            var dir = dirs[i];
-            var sA = this.serializations[iriA];
-            var sB = this.serializations[iriB];
-            if(sA[dir] === null)
-            {
-               var mb = new MappingBuilder();
-               if(dir === 'refs')
-               {
-                  // keep same mapping and count from 'props' serialization
-                  mb.mapping = _clone(sA['props'].m);
-                  mb.count = Object.keys(mb.mapping).length + 1;
-               }
-               this.serializeBlankNode(sA, iriA, mb, dir);
-            }
-            if(sB[dir] === null)
-            {
-               var mb = new MappingBuilder();
-               if(dir === 'refs')
-               {
-                  // keep same mapping and count from 'props' serialization
-                  mb.mapping = _clone(sB['props'].m);
-                  mb.count = Object.keys(mb.mapping).length + 1;
-               }
-               this.serializeBlankNode(sB, iriB, mb, dir);
-            }
-            
-            // compare serializations
-            rval = _compare(sA[dir].s, sB[dir].s);
-         }
+Permutator.prototype.next = function() {
+  // copy current permutation
+  var rval = this.list.slice();
+
+  /* Calculate the next permutation using the Steinhaus-Johnson-Trotter
+   permutation algorithm. */
+
+  // get largest mobile element k
+  // (mobile: element is greater than the one it is looking at)
+  var k = null;
+  var pos = 0;
+  var length = this.list.length;
+  for(var i = 0; i < length; ++i) {
+    var element = this.list[i];
+    var left = this.left[element];
+    if((k === null || element > k) &&
+      ((left && i > 0 && element > this.list[i - 1]) ||
+      (!left && i < (length - 1) && element > this.list[i + 1]))) {
+      k = element;
+      pos = i;
+    }
+  }
+
+  // no more permutations
+  if(k === null) {
+    this.done = true;
+  }
+  else {
+    // swap k and the element it is looking at
+    var swap = this.left[k] ? pos - 1 : pos + 1;
+    this.list[pos] = this.list[swap];
+    this.list[swap] = k;
+
+    // reverse the direction of all elements larger than k
+    for(var i = 0; i < length; ++i) {
+      if(this.list[i] > k) {
+        this.left[this.list[i]] = !this.left[this.list[i]];
       }
-   }
-   
-   return rval;
+    }
+  }
+
+  return rval;
+};
+
+// SHA-1 API
+var sha1 = jsonld.sha1 = {};
+
+if(_nodejs) {
+  var crypto = require('crypto');
+  sha1.create = function() {
+    var md = crypto.createHash('sha1');
+    return {
+      update: function(data) {
+        md.update(data, 'utf8');
+      },
+      digest: function() {
+        return md.digest('hex');
+      }
+    };
+  };
+}
+else {
+  sha1.create = function() {
+    return new sha1.MessageDigest();
+  };
+}
+
+/**
+ * Hashes the given array of triples and returns its hexadecimal SHA-1 message
+ * digest.
+ *
+ * @param triples the list of serialized triples to hash.
+ *
+ * @return the hexadecimal SHA-1 message digest.
+ */
+sha1.hash = function(triples) {
+  var md = sha1.create();
+  for(var i in triples) {
+    md.update(triples[i]);
+  }
+  return md.digest();
+};
+
+// only define sha1 MessageDigest for non-nodejs
+if(!_nodejs) {
+
+/**
+ * Creates a simple byte buffer for message digest operations.
+ */
+sha1.Buffer = function() {
+  this.data = '';
+  this.read = 0;
 };
 
 /**
- * Performs a shallow sort comparison on the given bnodes.
- * 
- * @param a the first bnode.
- * @param b the second bnode.
- * 
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
+ * Puts a 32-bit integer into this buffer in big-endian order.
+ *
+ * @param i the 32-bit integer.
  */
-Processor.prototype.shallowCompareBlankNodes = function(a, b)
-{
-   var rval = 0;
-   
-   /* ShallowSort Algorithm (when comparing two bnodes):
-      1. Compare the number of properties.
-      1.1. The bnode with fewer properties is first.
-      2. Compare alphabetically sorted-properties.
-      2.1. The bnode with the alphabetically-first property is first.
-      3. For each property, compare object values.
-      4. Compare the number of references.
-      4.1. The bnode with fewer references is first.
-      5. Compare sorted references.
-      5.1. The bnode with the reference iri (vs. bnode) is first.
-      5.2. The bnode with the alphabetically-first reference iri is first.
-      5.3. The bnode with the alphabetically-first reference property is first.
-    */
-   var pA = Object.keys(a);
-   var pB = Object.keys(b);
-   
-   // step #1
-   rval = _compare(pA.length, pB.length);
-   
-   // step #2
-   if(rval === 0)
-   {
-      rval = _compare(pA.sort(), pB.sort());
-   }
-   
-   // step #3
-   if(rval === 0)
-   {
-      rval = _compareBlankNodeObjects(a, b);
-   }
-   
-   // step #4
-   if(rval === 0)
-   {
-      var edgesA = this.edges.refs[a['@id']].all;
-      var edgesB = this.edges.refs[b['@id']].all;
-      rval = _compare(edgesA.length, edgesB.length);
-   }
-   
-   // step #5
-   if(rval === 0)
-   {
-      for(var i = 0; i < edgesA.length && rval === 0; ++i)
-      {
-         rval = this.compareEdges(edgesA[i], edgesB[i]);
-      }
-   }
-   
-   return rval;
+sha1.Buffer.prototype.putInt32 = function(i) {
+  this.data += (
+    String.fromCharCode(i >> 24 & 0xFF) +
+    String.fromCharCode(i >> 16 & 0xFF) +
+    String.fromCharCode(i >> 8 & 0xFF) +
+    String.fromCharCode(i & 0xFF));
 };
 
 /**
- * Compares two edges. Edges with an IRI (vs. a bnode ID) come first, then
- * alphabetically-first IRIs, then alphabetically-first properties. If a blank
- * node has been canonically named, then blank nodes will be compared after
- * properties (with a preference for canonically named over non-canonically
- * named), otherwise they won't be.
- * 
- * @param a the first edge.
- * @param b the second edge.
- * 
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
+ * Gets a 32-bit integer from this buffer in big-endian order and
+ * advances the read pointer by 4.
+ *
+ * @return the word.
  */
-Processor.prototype.compareEdges = function(a, b)
-{
-   var rval = 0;
-   
-   var bnodeA = _isBlankNodeIri(a.s);
-   var bnodeB = _isBlankNodeIri(b.s);
-   var c14n = this.ng.c14n;
-   
-   // if not both bnodes, one that is a bnode is greater
-   if(bnodeA != bnodeB)
-   {
-      rval = bnodeA ? 1 : -1;
-   }
-   else
-   {
-      if(!bnodeA)
-      {
-         rval = _compare(a.s, b.s);
-      }
-      if(rval === 0)
-      {
-         rval = _compare(a.p, b.p);
-      }
-      
-      // do bnode IRI comparison if canonical naming has begun
-      if(rval === 0 && c14n !== null)
-      {
-         var c14nA = c14n.inNamespace(a.s);
-         var c14nB = c14n.inNamespace(b.s);
-         if(c14nA != c14nB)
-         {
-            rval = c14nA ? 1 : -1;
-         }
-         else if(c14nA)
-         {
-            rval = _compare(a.s, b.s);
-         }
-      }
-   }
-   
-   return rval;
+sha1.Buffer.prototype.getInt32 = function() {
+  var rval = (
+    this.data.charCodeAt(this.read) << 24 ^
+    this.data.charCodeAt(this.read + 1) << 16 ^
+    this.data.charCodeAt(this.read + 2) << 8 ^
+    this.data.charCodeAt(this.read + 3));
+  this.read += 4;
+  return rval;
 };
 
 /**
- * Populates the given reference map with all of the subject edges in the
- * graph. The references will be categorized by the direction of the edges,
- * where 'props' is for properties and 'refs' is for references to a subject as
- * an object. The edge direction categories for each IRI will be sorted into
- * groups 'all' and 'bnodes'.
+ * Gets the bytes in this buffer.
+ *
+ * @return a string full of UTF-8 encoded characters.
  */
-Processor.prototype.collectEdges = function()
-{
-   var refs = this.edges.refs;
-   var props = this.edges.props;
-   
-   // collect all references and properties
-   for(var iri in this.subjects)
-   {
-      var subject = this.subjects[iri];
-      for(var key in subject)
-      {
-         if(key !== '@id')
-         {
-            // normalize to array for single codepath
-            var object = subject[key];
-            var tmp = (object.constructor !== Array) ? [object] : object;
-            for(var i in tmp)
-            {
-               var o = tmp[i];
-               if(o.constructor === Object && '@id' in o &&
-                  o['@id'] in this.subjects)
-               {
-                  var objIri = o['@id'];
-                  
-                  // map object to this subject
-                  refs[objIri].all.push({ s: iri, p: key });
-                  
-                  // map this subject to object
-                  props[iri].all.push({ s: objIri, p: key });
-               }
-            }
-         }
-      }
-   }
-   
-   // create sorted categories
-   var self = this;
-   for(var iri in refs)
-   {
-      refs[iri].all.sort(function(a, b) { return self.compareEdges(a, b); });
-      refs[iri].bnodes = refs[iri].all.filter(function(edge) {
-         return _isBlankNodeIri(edge.s);
-      });
-   }
-   for(var iri in props)
-   {
-      props[iri].all.sort(function(a, b) { return self.compareEdges(a, b); });
-      props[iri].bnodes = props[iri].all.filter(function(edge) {
-         return _isBlankNodeIri(edge.s);
-      });
-   }
+sha1.Buffer.prototype.bytes = function() {
+  return this.data.slice(this.read);
 };
 
 /**
- * Returns true if the given input is a subject and has one of the given types
- * in the given frame.
- * 
- * @param input the input.
- * @param frame the frame with types to look for.
- * 
- * @return true if the input has one of the given types.
+ * Gets the number of bytes in this buffer.
+ *
+ * @return the number of bytes in this buffer.
  */
-var _isType = function(input, frame)
-{
-   var rval = false;
-   
-   // check if type(s) are specified in frame and input
-   var type = '@type';
-   if('@type' in frame &&
-      input.constructor === Object && type in input)
-   {
-      var tmp = (input[type].constructor === Array) ?
-         input[type] : [input[type]];
-      var types = (frame[type].constructor === Array) ?
-         frame[type] : [frame[type]];
-      for(var t = 0; t < types.length && !rval; ++t)
-      {
-         type = types[t];
-         for(var i in tmp)
-         {
-            if(tmp[i] === type)
-            {
-               rval = true;
-               break;
-            }
-         }
-      }
-   }
-   
-   return rval;
+sha1.Buffer.prototype.length = function() {
+  return this.data.length - this.read;
 };
 
 /**
- * Returns true if the given input matches the given frame via duck-typing.
- * 
- * @param input the input.
- * @param frame the frame to check against.
- * 
- * @return true if the input matches the frame.
+ * Compacts this buffer.
  */
-var _isDuckType = function(input, frame)
-{
-   var rval = false;
-   
-   // frame must not have a specific type
-   var type = '@type';
-   if(!(type in frame))
-   {
-      // get frame properties that must exist on input
-      var props = Object.keys(frame).filter(function(e)
-      {
-         // filter non-keywords
-         return e.indexOf('@') !== 0;
-      });
-      if(props.length === 0)
-      {
-         // input always matches if there are no properties
-         rval = true;
-      }
-      // input must be a subject with all the given properties
-      else if(input.constructor === Object && '@id' in input)
-      {
-         rval = true;
-         for(var i in props)
-         {
-            if(!(props[i] in input))
-            {
-               rval = false;
-               break;
-            }
-         }
-      }
-   }
-   
-   return rval;
+sha1.Buffer.prototype.compact = function() {
+  this.data = this.data.slice(this.read);
+  this.read = 0;
 };
 
 /**
- * Subframes a value.
- * 
- * @param subjects a map of subjects in the graph.
- * @param value the value to subframe.
- * @param frame the frame to use.
- * @param embeds a map of previously embedded subjects, used to prevent cycles.
- * @param autoembed true if auto-embed is on, false if not.
- * @param parent the parent object.
- * @param parentKey the parent key.
- * @param options the framing options.
- * 
- * @return the framed input.
+ * Converts this buffer to a hexadecimal string.
+ *
+ * @return a hexadecimal string.
  */
-var _subframe = function(
-   subjects, value, frame, embeds, autoembed, parent, parentKey, options)
-{
-   // get existing embed entry
-   var iri = value['@id'];
-   var embed = (iri in embeds) ? embeds[iri] : null;
-   
-   // determine if value should be embedded or referenced,
-   // embed is ON if:
-   // 1. The frame OR default option specifies @embed as ON, AND
-   // 2. There is no existing embed OR it is an autoembed, AND
-   //    autoembed mode is off.
-   var embedOn = (
-      (('@embed' in frame && frame['@embed']) ||
-      (!('@embed' in frame) && options.defaults.embedOn)) &&
-      (embed === null || (embed.autoembed && !autoembed)));
-   
-   if(!embedOn)
-   {
-      // not embedding, so only use subject IRI as reference
-      value = {'@id': value['@id']};
-   }
-   else
-   {
-      // create new embed entry
-      if(embed === null)
-      {
-         embed = {};
-         embeds[iri] = embed;
-      }
-      // replace the existing embed with a reference
-      else if(embed.parent !== null)
-      {
-         if(embed.parent[embed.key].constructor === Array)
-         {
-            // find and replace embed in array
-            var objs = embed.parent[embed.key];
-            for(var i in objs)
-            {
-               if(objs[i].constructor === Object && '@id' in objs[i] &&
-                  objs[i]['@id'] === iri)
-               {
-                  objs[i] = {'@id': value['@id']};
-                  break;
-               }
-            }
-         }
-         else
-         {
-            embed.parent[embed.key] = {'@id': value['@id']};
-         }
-         
-         // recursively remove any dependent dangling embeds
-         var removeDependents = function(iri)
-         {
-            var iris = Object.keys(embeds);
-            for(var i in iris)
-            {
-               i = iris[i];
-               if(i in embeds && embeds[i].parent !== null &&
-                  embeds[i].parent['@id'] === iri)
-               {
-                  delete embeds[i];
-                  removeDependents(i);
-               }
-            }
-         };
-         removeDependents(iri);
-      }
-      
-      // update embed entry
-      embed.autoembed = autoembed;
-      embed.parent = parent;
-      embed.key = parentKey;
-      
-      // check explicit flag
-      var explicitOn = (
-         frame['@explicit'] === true || options.defaults.explicitOn);
-      if(explicitOn)
-      {
-         // remove keys from the value that aren't in the frame
-         for(key in value)
-         {
-            // do not remove @id or any frame key
-            if(key !== '@id' && !(key in frame))
-            {
-               delete value[key];
-            }
-         }
-      }
-      
-      // iterate over keys in value
-      var keys = Object.keys(value);
-      for(i in keys)
-      {
-         // skip keywords
-         var key = keys[i];
-         if(key.indexOf('@') !== 0)
-         {
-            // get the subframe if available
-            if(key in frame)
-            {
-               var f = frame[key];
-               var _autoembed = false;
-            }
-            // use a catch-all subframe to preserve data from graph
-            else
-            {
-               var f = (value[key].constructor === Array) ? [] : {};
-               var _autoembed = true;
-            }
-            
-            // build input and do recursion
-            var v = value[key];
-            var input = (v.constructor === Array) ? v : [v];
-            for(var n in input)
-            {
-               // replace reference to subject w/embedded subject
-               if(input[n].constructor === Object &&
-                  '@id' in input[n] &&
-                  input[n]['@id'] in subjects)
-               {
-                  input[n] = subjects[input[n]['@id']];
-               }
-            }
-            value[key] = _frame(
-               subjects, input, f, embeds, _autoembed, value, key, options);
-         }
-      }
-      
-      // iterate over frame keys to add any missing values
-      for(key in frame)
-      {
-         // skip keywords and non-null keys in value
-         if(key.indexOf('@') !== 0 && (!(key in value) || value[key] === null))
-         {
-            var f = frame[key];
-            
-            // add empty array to value
-            if(f.constructor === Array)
-            {
-               value[key] = [];
-            }
-            // add default value to value
-            else
-            {
-               // use first subframe if frame is an array
-               if(f.constructor === Array)
-               {
-                  f = (f.length > 0) ? f[0] : {};
-               }
-               
-               // determine if omit default is on
-               var omitOn = (
-                  f['@omitDefault'] === true || options.defaults.omitDefaultOn);
-               if(!omitOn)
-               {
-                  if('@default' in f)
-                  {
-                     // use specified default value
-                     value[key] = f['@default'];
-                  }
-                  else
-                  {
-                     // built-in default value is: null
-                     value[key] = null;
-                  }
-               }
-            }
-         }
-      }
-   }
-   
-   return value;
+sha1.Buffer.prototype.toHex = function() {
+  var rval = '';
+  for(var i = this.read; i < this.data.length; ++i) {
+    var b = this.data.charCodeAt(i);
+    if(b < 16) {
+      rval += '0';
+    }
+    rval += b.toString(16);
+  }
+  return rval;
 };
 
 /**
- * Recursively frames the given input according to the given frame.
- * 
- * @param subjects a map of subjects in the graph.
- * @param input the input to frame.
- * @param frame the frame to use.
- * @param embeds a map of previously embedded subjects, used to prevent cycles.
- * @param autoembed true if auto-embed is on, false if not.
- * @param parent the parent object (for subframing), null for none.
- * @param parentKey the parent key (for subframing), null for none.
- * @param options the framing options.
- * 
- * @return the framed input.
+ * Creates a SHA-1 message digest object.
+ *
+ * @return a message digest object.
  */
-var _frame = function(
-   subjects, input, frame, embeds, autoembed, parent, parentKey, options)
-{
-   var rval = null;
-   
-   // prepare output, set limit, get array of frames
-   var limit = -1;
-   var frames;
-   if(frame.constructor === Array)
-   {
-      rval = [];
-      frames = frame;
-      if(frames.length === 0)
-      {
-         frames.push({});
-      }
-   }
-   else
-   {
-      frames = [frame];
-      limit = 1;
-   }
-   
-   // iterate over frames adding input matches to list
-   var values = [];
-   for(var i = 0; i < frames.length && limit !== 0; ++i)
-   {
-      // get next frame
-      frame = frames[i];
-      if(frame.constructor !== Object)
-      {
-         throw {
-            message: 'Invalid JSON-LD frame. ' +
-               'Frame must be an object or an array.',
-            frame: frame
-         };
-      }
-      
-      // create array of values for each frame
-      values[i] = [];
-      for(var n = 0; n < input.length && limit !== 0; ++n)
-      {
-         // add input to list if it matches frame specific type or duck-type
-         var next = input[n];
-         if(_isType(next, frame) || _isDuckType(next, frame))
-         {
-            values[i].push(next);
-            --limit;
-         }
-      }
-   }
-   
-   // for each matching value, add it to the output
-   for(var i1 in values)
-   {
-      for(var i2 in values[i1])
-      {
-         frame = frames[i1];
-         var value = values[i1][i2];
-         
-         // if value is a subject, do subframing
-         if(_isSubject(value))
-         {
-            value = _subframe(
-               subjects, value, frame, embeds, autoembed,
-               parent, parentKey, options);
-         }
-         
-         // add value to output
-         if(rval === null)
-         {
-            rval = value;
-         }
-         else
-         {
-            // determine if value is a reference to an embed
-            var isRef = (_isReference(value) && value['@id'] in embeds);
-            
-            // push any value that isn't a parentless reference
-            if(!(parent === null && isRef))
-            {
-               rval.push(value);
-            }
-         }
-      }
-   }
-   
-   return rval;
+sha1.MessageDigest = function() {
+  // do initialization as necessary
+  if(!_sha1.initialized) {
+    _sha1.init();
+  }
+
+  this.blockLength = 64;
+  this.digestLength = 20;
+  // length of message so far (does not including padding)
+  this.messageLength = 0;
+
+  // input buffer
+  this.input = new sha1.Buffer();
+
+  // for storing words in the SHA-1 algorithm
+  this.words = new Array(80);
+
+  // SHA-1 state contains five 32-bit integers
+  this.state = {
+    h0: 0x67452301,
+    h1: 0xEFCDAB89,
+    h2: 0x98BADCFE,
+    h3: 0x10325476,
+    h4: 0xC3D2E1F0
+  };
 };
 
 /**
- * Frames JSON-LD input.
- * 
- * @param input the JSON-LD input.
- * @param frame the frame to use.
- * @param options framing options to use.
- * 
- * @return the framed output.
+ * Updates the digest with the given string input.
+ *
+ * @param msg the message input to update with.
  */
-Processor.prototype.frame = function(input, frame, options)
-{
-   var rval;
-   
-   // normalize input
-   input = jsonld.normalize(input);
-   
-   // save frame context
-   var ctx = null;
-   if('@context' in frame)
-   {
-      ctx = _clone(frame['@context']);
-      
-      // remove context from frame
-      frame = jsonld.expand(frame);
-   }
-   else if(frame.constructor === Array)
-   {
-      // save first context in the array
-      if(frame.length > 0 && '@context' in frame[0])
-      {
-         ctx = _clone(frame[0]['@context']);
-      }
-      
-      // expand all elements in the array
-      var tmp = [];
-      for(var i in frame)
-      {
-         tmp.push(jsonld.expand(frame[i]));
-      }
-      frame = tmp;
-   }
-   
-   // create framing options
-   // TODO: merge in options from function parameter
-   options =
-   {
-      defaults:
-      {
-         embedOn: true,
-         explicitOn: false,
-         omitDefaultOn: false
-      }
-   };
-   
-   // build map of all subjects
-   var subjects = {};
-   for(var i in input)
-   {
-      subjects[input[i]['@id']] = input[i];
-   }
-   
-   // frame input
-   rval = _frame(subjects, input, frame, {}, false, null, null, options);
-   
-   // apply context
-   if(ctx !== null && rval !== null)
-   {
-      // preserve top-level array by compacting individual entries
-      if(rval.constructor === Array)
-      {
-         var arr = rval;
-         rval = [];
-         for(var i in arr)
-         {
-            rval.push(jsonld.compact(ctx, arr[i]));
-         }
-      }
-      else
-      {
-         rval = jsonld.compact(ctx, rval);
-      }
-   }
-   
-   return rval;
+sha1.MessageDigest.prototype.update = function(msg) {
+  // UTF-8 encode message
+  msg = unescape(encodeURIComponent(msg));
+
+  // update message length and input buffer
+  this.messageLength += msg.length;
+  this.input.data += msg;
+
+  // process input
+  _sha1.update(this.state, this.words, this.input);
+
+  // compact input buffer every 2K or if empty
+  if(this.input.read > 2048 || this.input.length() === 0) {
+    this.input.compact();
+  }
 };
+
+/**
+ * Produces the digest.
+ *
+ * @return the digest as a hexadecimal string.
+ */
+sha1.MessageDigest.prototype.digest = function() {
+  /* Determine the number of bytes that must be added to the message
+  to ensure its length is congruent to 448 mod 512. In other words,
+  a 64-bit integer that gives the length of the message will be
+  appended to the message and whatever the length of the message is
+  plus 64 bits must be a multiple of 512. So the length of the
+  message must be congruent to 448 mod 512 because 512 - 64 = 448.
+
+  In order to fill up the message length it must be filled with
+  padding that begins with 1 bit followed by all 0 bits. Padding
+  must *always* be present, so if the message length is already
+  congruent to 448 mod 512, then 512 padding bits must be added. */
+
+  // 512 bits == 64 bytes, 448 bits == 56 bytes, 64 bits = 8 bytes
+  // _padding starts with 1 byte with first bit is set in it which
+  // is byte value 128, then there may be up to 63 other pad bytes
+  var len = this.messageLength;
+  var padBytes = new sha1.Buffer();
+  padBytes.data += this.input.bytes();
+  padBytes.data += _sha1.padding.substr(0, 64 - ((len + 8) % 64));
+
+  /* Now append length of the message. The length is appended in bits
+  as a 64-bit number in big-endian order. Since we store the length
+  in bytes, we must multiply it by 8 (or left shift by 3). So here
+  store the high 3 bits in the low end of the first 32-bits of the
+  64-bit number and the lower 5 bits in the high end of the second
+  32-bits. */
+  padBytes.putInt32((len >>> 29) & 0xFF);
+  padBytes.putInt32((len << 3) & 0xFFFFFFFF);
+  _sha1.update(this.state, this.words, padBytes);
+  var rval = new sha1.Buffer();
+  rval.putInt32(this.state.h0);
+  rval.putInt32(this.state.h1);
+  rval.putInt32(this.state.h2);
+  rval.putInt32(this.state.h3);
+  rval.putInt32(this.state.h4);
+  return rval.toHex();
+};
+
+// private SHA-1 data
+var _sha1 = {
+  padding: null,
+  initialized: false
+};
+
+/**
+ * Initializes the constant tables.
+ */
+_sha1.init = function() {
+  // create padding
+  _sha1.padding = String.fromCharCode(128);
+  var c = String.fromCharCode(0x00);
+  var n = 64;
+  while(n > 0) {
+    if(n & 1) {
+      _sha1.padding += c;
+    }
+    n >>>= 1;
+    if(n > 0) {
+      c += c;
+    }
+  }
+
+  // now initialized
+  _sha1.initialized = true;
+};
+
+/**
+ * Updates a SHA-1 state with the given byte buffer.
+ *
+ * @param s the SHA-1 state to update.
+ * @param w the array to use to store words.
+ * @param input the input byte buffer.
+ */
+_sha1.update = function(s, w, input) {
+  // consume 512 bit (64 byte) chunks
+  var t, a, b, c, d, e, f, i;
+  var len = input.length();
+  while(len >= 64) {
+    // the w array will be populated with sixteen 32-bit big-endian words
+    // and then extended into 80 32-bit words according to SHA-1 algorithm
+    // and for 32-79 using Max Locktyukhin's optimization
+
+    // initialize hash value for this chunk
+    a = s.h0;
+    b = s.h1;
+    c = s.h2;
+    d = s.h3;
+    e = s.h4;
+
+    // round 1
+    for(i = 0; i < 16; ++i) {
+      t = input.getInt32();
+      w[i] = t;
+      f = d ^ (b & (c ^ d));
+      t = ((a << 5) | (a >>> 27)) + f + e + 0x5A827999 + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+    for(; i < 20; ++i) {
+      t = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]);
+      t = (t << 1) | (t >>> 31);
+      w[i] = t;
+      f = d ^ (b & (c ^ d));
+      t = ((a << 5) | (a >>> 27)) + f + e + 0x5A827999 + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+    // round 2
+    for(; i < 32; ++i) {
+      t = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]);
+      t = (t << 1) | (t >>> 31);
+      w[i] = t;
+      f = b ^ c ^ d;
+      t = ((a << 5) | (a >>> 27)) + f + e + 0x6ED9EBA1 + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+    for(; i < 40; ++i) {
+      t = (w[i - 6] ^ w[i - 16] ^ w[i - 28] ^ w[i - 32]);
+      t = (t << 2) | (t >>> 30);
+      w[i] = t;
+      f = b ^ c ^ d;
+      t = ((a << 5) | (a >>> 27)) + f + e + 0x6ED9EBA1 + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+    // round 3
+    for(; i < 60; ++i) {
+      t = (w[i - 6] ^ w[i - 16] ^ w[i - 28] ^ w[i - 32]);
+      t = (t << 2) | (t >>> 30);
+      w[i] = t;
+      f = (b & c) | (d & (b ^ c));
+      t = ((a << 5) | (a >>> 27)) + f + e + 0x8F1BBCDC + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+    // round 4
+    for(; i < 80; ++i) {
+      t = (w[i - 6] ^ w[i - 16] ^ w[i - 28] ^ w[i - 32]);
+      t = (t << 2) | (t >>> 30);
+      w[i] = t;
+      f = b ^ c ^ d;
+      t = ((a << 5) | (a >>> 27)) + f + e + 0xCA62C1D6 + t;
+      e = d;
+      d = c;
+      c = (b << 30) | (b >>> 2);
+      b = a;
+      a = t;
+    }
+
+    // update hash state
+    s.h0 += a;
+    s.h1 += b;
+    s.h2 += c;
+    s.h3 += d;
+    s.h4 += e;
+
+    len -= 64;
+  }
+};
+
+} // end non-nodejs
 
 })();
