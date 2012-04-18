@@ -106,10 +106,11 @@ function objectToString(obj) {
  * Converts JSON-LD input to a TURTLE formatted string.
  *
  * @param input the JSON-LD object as a JavaScript object.
+ * @param options the JSON-LD options.
  * @param callback(err, turtle) called once the operation completes.
  */
-jsonld.turtle = function(input, callback) {
-  jsonld.normalize(input, function(err, normalized) {
+jsonld.turtle = function(input, options, callback) {
+  jsonld.normalize(input, options, function(err, normalized) {
     var output = '';
     for(s in normalized) {
       // print out each key in the normalized array (the subjects)

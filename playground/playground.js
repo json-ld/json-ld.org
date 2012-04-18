@@ -172,8 +172,11 @@
    * @param callback(err) called once the operation completes.
    */
   playground.performAction = function(input, param, callback) {
+    // set base IRI
+    var options = {base: document.baseURI};
+
     if(playground.activeTab === 'tab-normalized') {
-      jsonld.normalize(input, function(err, normalized) {
+      jsonld.normalize(input, options, function(err, normalized) {
         if(err) {
           return callback(err);
         }
@@ -183,7 +186,7 @@
       });
     }
     else if(playground.activeTab === 'tab-expanded') {
-      jsonld.expand(input, function(err, expanded) {
+      jsonld.expand(input, options, function(err, expanded) {
         if(err) {
           return callback(err);
         }
@@ -193,7 +196,7 @@
       });
     }
     else if(playground.activeTab === 'tab-compacted') {
-      jsonld.compact(input, param, function(err, compacted) {
+      jsonld.compact(input, param, options, function(err, compacted) {
         if(err) {
           return callback(err);
         }
@@ -203,7 +206,7 @@
       });
     }
     else if(playground.activeTab === 'tab-framed') {
-      jsonld.frame(input, param, function(err, framed) {
+      jsonld.frame(input, param, options, function(err, framed) {
         if(err) {
           return callback(err);
         }
@@ -213,7 +216,7 @@
       });
     }
     else if(playground.activeTab === 'tab-turtle') {
-      jsonld.turtle(input, function(err, turtle) {
+      jsonld.turtle(input, options, function(err, turtle) {
         if(err) {
           return callback(err);
         }
