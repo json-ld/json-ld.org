@@ -391,6 +391,12 @@ WebIDL [[!WEBIDL]].</p>
       If <code>@context</code> is set to <em>null</em>, the <tref>active context</tref> is reset and when used
       within a <tref>context</tref>, it removes any definition associated with the key, unless otherwise specified.
     </dd>
+    <dt><tdef>subject definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and one or more properties
+      of that subject. A <tref>JSON object</tref> is a subject definition if it does not contain they keys
+      <code>@value</code>, <code>@list</code> or <code>@set</code> and it has one or more keys other than <code>@id</code>.</dd>
+    <dt><tdef>subject reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to reference a subject having only the <code>@id</code> key.</dd>
   </dl>
 </p>
 
@@ -740,6 +746,11 @@ described in JSON-LD are given unique identifiers via the
 <code>@id</code> keyword unless the data is not intended to be linked to
 from other data sets.</p>
 
+<p>A <tref>JSON object</tref> used to define property values is called a
+  <tref>subject definition</tref>. <tref title="subject definition">Subject definitions</tref>
+  do not require a <code>@id</code>, in which case they are considered to be an
+  <tref>unlabeled node</tref>.</p>
+
 </section>
 </section>
 
@@ -910,6 +921,11 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 <p>The example above would set the subject to the IRI
 <code>http://example.org/people#joebob</code>.
 </p>
+
+<p>A <tref>JSON object</tref> used to define property values is called a
+  <tref>subject definition</tref>. <tref title="subject definition">Subject definitions</tref>
+  do not require a <code>@id</code>, in which case they are considered to be an
+  <tref>unlabeled node</tref>.</p>
 
 <p class="note">To ensure the best possible performance, it is a best practice
 to put the <code>@id</code> keyword before other key-value pairs in an object.
@@ -2321,6 +2337,37 @@ keywords have been given the aliases <strong>url</strong> and
 }
 -->
 </pre>
+
+<section>
+<h3>Framing Operators</h3>
+<p>A <tref>frame</tref> is a JSON-LD document with some extra syntactic elements used to match against
+  parts of an input document. These operators work by matching on elements of
+  <tref title="subject definition">subject definitions</tref> comprising the document.</p>
+<dl>
+  <dt>Type Matching</dt><dd>
+    A <tref>frame</tref> including a <code>@type</code> with one or more values
+    matches any <tref>subject definition</tref> having a <code>@type</code> property that includes
+    the specified type.</dd>
+  <dt>Type Wildcard</dt><dd>
+    A <tref>frame</tref> including a <code>@type</code> having only an empty <tref>JSON object</tref>
+    matches any <tref>subject definition</tref> having a <code>@type</code> property with
+    any value.</dd>
+  <dt>Duck Typing</dt><dd>
+    A <tref>frame</tref> without a <code>@type</code> definition but with other non-keyword
+    property definitions matches any <tref>subject definition</tref> having at least the
+    same set of properties.</dt>
+  <dt>Embedding</dt><dd>
+    A <tref>frame</tref> including a property which references another <tref>frame</tref> causes
+    <tref title="subject definition">subject definitions</tref> containing that property
+    and referencing either other <tref title="subject definition">subject definitions</tref>
+    or <tref title="subject reference">subject references</tref> to embed
+    <tref title="subject definition">subject definitions</tref> matching the embed <tref>frame</tref>
+    to be defined within that property. <tref title="subject reference">Subject references</tref>
+    that don't match the embed <tref>frame</tref> are dropped.</dd>
+</dl>
+<p>The [[!JSON-LD-API]] describes other flags and keywords
+  that are used to gain even more control over the framed output.</p>
+</section>
 </section>
 
 </section>
