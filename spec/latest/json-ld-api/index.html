@@ -1102,24 +1102,102 @@ language-native data structures MUST be used where applicable.</p>
 <section>
   <h2>IRI Compaction</h2>
   <p>Some keys and values are expressed using <tref>IRI</tref>s. This section defines an
-    algorithm for transforming an IRI to a <tref>term</tref> or <tref>compact IRI</tref> using the
-    <tref>term</tref>s specified in the <tref>active context</tref>.</p>
+    algorithm for transforming an IRI (<em>iri</em>) to a <tref>term</tref> or <tref>compact IRI</tref> using the
+    <tref>term</tref>s specified in the <tref>active context</tref> using an optional <em>value</em>.</p>
 
   <p>The algorithm for generating a <tref>compact IRI</tref> is:
     <ol class="algorithm">
-      <li>Search every key-value pair in the <tref>active context</tref> for a <tref>term</tref> that is a complete match
-        against the IRI. For all matches that are found, the resulting compacted IRI is the <tref>term</tref> associated with
-        the IRI in the <tref>active context</tref>. If there is more than one <tref>term</tref> produced, the final value is the
-        shortest and lexicographically least value of the entire set of matching <tref>term</tref>s.</li>
-      <li>If a complete match is not found, search for a partial match from
-        the beginning of the IRI. For all matches that are found, the resulting
-        <tref>compact IRI</tref> is the <tref>term</tref> associated with the partially matched
-        IRI in the <tref>active context</tref> concatenated with a colon (:) character
-        and the unmatched part of the string. If there is more than one <tref>compact IRI</tref>
-        produced, the final value is the shortest and lexicographically least value of
-        the entire set of <tref>compact IRI</tref>s.</li>
+      <li>If <em>iri</em> is <code>rdf:type</code> and <em>value</em> is <tref>null</tref>, return <code>@type</code>.</li>
+      <li>Create a list of terms <em>terms</em> by searchin every key-value pair in the
+        <tref>active context</tref> for a <tref>term</tref> that is a complete match
+        against <em>iri</em>.</li>
+      <li>Create a mapping from each <em>term</em> (<em>term map</em>) for holding associated
+        <tref title="term rank">term ranks</tref>.</li>
+      <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>:
+        <ol class="algorithm">
+          <li>For each entry in <em>terms</em> which
+            has <code>@container</code> set to <code>@list</code> in the <tref>active context</tref>,
+            add an entry to <em>term map</em> as the sum of the <tref>term 
+            rank</tref> for every entry in the list, removing entries having a 
+            <tref>term rank</tref> of <code>0</code>.</li>
+          <li>Remove entries from <em>terms</em> which have <code>@container</code>
+            set to <code>@set</code> in the<tref>active context</tref>.</li>
+        </ol>
+      </li>
+      <li>If <em>term map</em> is empty:
+        <ol class="algorithm">
+          <li>Remove entries from <em>terms</em> which have <code>@container</code>
+            set to <code>@list</code> in the<tref>active context</tref>.</li>
+          <li>For each entry in <em>terms</em>,
+            add an entry to <em>term map</em> as the <tref>term rank</tref> for <em>value</em>,
+            removing entries having a <tref>term rank</tref> of <code>0</code>.</li>
+        </ol>
+      </li>
+      <li>Create a new list of terms <em>terms</em> by selecting the keys from <em>term map</em>
+        sharing the same <tref>term rank</tref> where that is the largest such value in
+        <em>term map</em>.</li>
+      <li>If <em>terms</em> is empty, add a <tref>compact IRI</tref> representation of <em>iri</em>
+        for each <tref>term</tref> in the <tref>active context</tref> which 
+        maps to an <tref>IRI</tref> which is a prefix for <em>iri</em> where 
+        the resulting <tref>compact IRI</tref> has no <code>@type</code> 
+        coercion, <code>@container</code> or <code>@language</code> specified 
+        in the <tref>active context</tref>. The resulting <tref>compact 
+        IRI</tref> is the <tref>term</tref> associated with the partially 
+        matched IRI in the <tref>active context</tref> concatenated with a 
+        colon (:) character and the unmatched part of <em>iri</em>.</li>
+      <li>If <em>terms</em> is empty, add <em>iri</em> to <em>terms</em>.</li>
+      <li>The final value is the shortest and lexicographically least value in <em>terms</em>.</li>
     </ol>
   </p>
+
+<section>
+<h3>Term Rank</h3>
+<p>When selecting among multiple possible terms for a given property, it may be that multiple
+  <tref title="term">terms</tref> are defined with the same <tref>IRI</tref>, but differ in <code>@type</code>, <code>@container</code>
+  or <code>@language</code>. The purpose of this algorithm is to take an <tref>term</tref>
+  and a value and give it a <tdef>term rank</tdef>. The selection can then be based, partly, on
+  the term having the highest <tref>term rank</tref>.</p>
+<p>Given a <tref>term</tref> <em>term</em>, <em>value</em> and <tref>active context</tref>
+  determin the <tref>term rank</tref> using the following steps:</p>
+<ol class="algorithm">
+  <li>If <em>value</em> is <tref>null</tref>, <tref>term rank</tref> is <code>3</code>,</li>
+  <li>Otherwise, <em>value</em> is a <tref>true</tref>, <tref>false</tref>, or
+    <tref>number</tref> and <em>term</em> has a 
+    <code>@type</code> coercion to <code>xsd:boolean</code>, 
+    <code>xsd:integer</code> or <code>xsd:double</code> respectively, 
+    <tref>term rank</tref> is <code>3</code>, otherwise <code>2</code>.</li>
+  <li>Otherwise, if <em>value</em> is a <tref>string</tref>, it represents a string value
+    with no <code>@language</code>. If <em>term</em> has <code>@language</code> <tref>null</tref>,
+    or <em>term</em> has no <code>@type</code> or <code>@language</code> and the <tref>active context</tref>
+    has no <code>@language</code>, <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
+  <li>Otherwise, <em>value</em> MUST be a <tref>JSON object</tref> having a <code>@value</code>
+    or <code>@id</code> property.
+    <ol class="algorithm">
+      <li>If <em>value</em> has an <code>@id</code> property, and term has <code>@type</code>
+        coerced to <code>@id</code>, <tref>term rank</tref> is <code>3</code>, otherwise
+        if <em>term</em> has no <code>@type</code> coersion and no <code>@language</code>,
+        <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
+      <li>Otherwise, if <em>value</em> has a <code>@type</code> property matching a
+        <code>@type</code> coercion for <em>term</em>, <tref>term rank</tref> 
+        is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code> 
+        coersion and no <code>@language</code>, <tref>term rank</tref> is 
+        <code>1</code>, otherwise <code>0</code>.</li>
+      <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
+        <code>@language</code> definition for <em>term</em> or 
+        <code>@language</code> in the <tref>active context</tref> matches the 
+        <em>value</em> <code>@language</code>, <tref>term rank</tref> is 
+        <code>3</code>, otherwise if <em>term</em> has no <code>@type</code> 
+        coersion and no <code>@language</code>, <tref>term rank</tref> is 
+        <code>1</code>, otherwise <code>0</code>.</li>
+    </ol>
+  </li>
+  <li>If <tref>term rank</tref> is greater than <code>0</code> and <em>term</em> has
+    <code>@container</code> set to <code>@set</code>, increase <tref>term rank</tref>
+    by <code>1</code>.</li>
+  <li>Return <tref>term rank</tref>.</li>
+</ol>
+</section>
+
 </section>
 
 <section>
