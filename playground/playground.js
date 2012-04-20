@@ -51,16 +51,19 @@
   /**
    * Handle URL query parameters.
    *
-   * Checks 'json-ld' and 'param' parameters.  If they look like JSON then
-   * interpret as JSON strings else interpret as URLs of remote resources.
-   * Note: URLs must be CORS enabled to load due to browser same origin policy
-   * issues.
+   * Checks 'json-ld', 'context', and 'frame' parameters.  If they look like
+   * JSON then interpret as JSON strings else interpret as URLs of remote
+   * resources.  Note: URLs must be CORS enabled to load due to browser same
+   * origin policy issues.
+   *
+   * If 'startTab' is present, select that tab automatically.
    */
   playground.processQueryParameters = function() {
     // data from the query
     var queryData = {
        markup: null,
-       param: null
+       frame: null,
+       context: null
     };
 
     /**
@@ -108,13 +111,30 @@
     // build deferreds
     var jsonLdDeferred = handleParameter(
       getParameterByName('json-ld'), 'markup', 'JSON-LD');
+
+    var frameDeferred = handleParameter(
+      getParameterByName('frame'), 'frame', 'frame');
+
+    var contextDeferred = handleParameter(
+      getParameterByName('context'), 'context', 'context');
+
     var paramDeferred = handleParameter(
       getParameterByName('param'), 'param', 'param');
 
+    var startTab = getParameterByName('startTab');
+    if (startTab) {
+        // strip 'tab-' to get the tab's panel's I D
+        $('#tabs').tabs("select", "#"+startTab.substr(4));
+    }
+
     // wait for ajax if needed
     // failures handled in AJAX calls
-    $.when(jsonLdDeferred, paramDeferred)
+    $.when(jsonLdDeferred, frameDeferred, contextDeferred, paramDeferred)
       .done(function() {
+        // Maintain backwards permalink compatability
+        if (queryData['param'] && !(queryData['frame'] || queryData['context'])) {
+            queryData['frame'] = queryData['context'] = queryData['param'];
+        }
         // populate UI with data
         playground.populateWithJSON(queryData);
       });
@@ -138,21 +158,25 @@
   playground.tabSelected = function(event, ui) {
     playground.activeTab = ui.tab.id;
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-framed') {
-      // if the 'compact' or 'frame' tab is selected, display the param
-      // input textarea
+      // if the 'compact' or 'frame' tab is selected, display the appropriate
+      // input textarea 
       $('#markup').addClass('compressed');
-      $('#param').show();
 
       if(ui.tab.id === 'tab-compacted') {
         $('#param-type').html('JSON-LD Context');
+        $('#context').show();
+        $('#frame').hide();
       }
       else {
         $('#param-type').html('JSON-LD Frame');
+        $('#frame').show();
+        $('#context').hide();
       }
     }
     else {
-      // else no param required, hide the param input area
-      $('#param').hide();
+      // else no input textarea required
+      $('#context').hide();
+      $('#frame').hide();
       $('#markup').removeClass('compressed');
       $('#param-type').html('');
     }
@@ -251,13 +275,26 @@
       errors = true;
     }
 
-    // check to see if the JSON-LD param is valid JSON
-    try {
-      var param = JSON.parse($('#param').val());
+    // If we're using a param, check to see if it is valid JSON
+    var needParam = false, toValidate = null;
+
+    if (playground.activeTab === 'tab-compacted') {
+        toValidate = $('#context').val();
+        needParam = true;
     }
-    catch(e) {
-      $('#param-errors').text('JSON-LD param - ' + e);
-      errors = true;
+    else if (playground.activeTab === 'tab-framed') {
+        toValidate = $('#frame').val();
+        needParam = true;
+    }
+    
+    if (needParam) {
+        try {
+          var param = JSON.parse(toValidate);
+        }
+        catch(e) {
+          $('#param-errors').text($('#param-type').text() + ' - ' + e);
+          errors = true;
+        }
     }
 
     // errors detected
@@ -279,9 +316,18 @@
 
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if($('#param').val().length > 0) {
-        link += '&param=' + encodeURIComponent(JSON.stringify(param));
+      if($('#frame').val().length > 0) {
+        link += '&frame=' + 
+            encodeURIComponent($("#frame").val());
       }
+      if($('#context').val().length > 0) {
+        link += '&context=' +
+            encodeURIComponent($("#context").val());
+      }
+
+      // Start at the currently active tab 
+      link += '&startTab=' + encodeURIComponent(playground.activeTab);
+
       var permalink = '<a href="' + link + '">permalink</a>';
       // size warning for huge links
       if((window.location.protocol.length + 2 +
@@ -328,11 +374,11 @@
   };
 
   /**
-   * Populate the UI with markup and param JSON. The data parameter should
-   * have a 'markup' field and optional 'param' field that contain a
-   * serialized JSON string.
+   * Populate the UI with markup, frame, and context JSON. The data parameter
+   * should have a 'markup' field and optional 'frame' and 'context' fields that
+   * contain a serialized JSON string.
    *
-   * @param data object with optional 'markup' and 'param' fields.
+   * @param data object with optional 'markup', 'frame' and 'context' fields.
    */
   playground.populateWithJSON = function(data) {
     var hasData = false;
@@ -344,14 +390,24 @@
         data.markup, {'indent_size': 2, 'brace_style': 'expand'}));
     }
 
-    if('param' in data && data.param !== null) {
+    if('frame' in data && data.frame !== null) {
       hasData = true;
-      // fill the param input box with the example param
-      $('#param').val(js_beautify(
-        data.param, {'indent_size': 2, 'brace_style': 'expand'}));
+      // fill the frame input box with the given frame
+      $('#frame').val(js_beautify(
+        data.frame, {'indent_size': 2, 'brace_style': 'expand'}));
     }
     else {
-      $('#param').val('{}');
+      $('#frame').val('{}');
+    }
+
+    if('context' in data && data.context !== null) {
+      hasData = true;
+      // fill the context input box with the given context 
+      $('#context').val(js_beautify(
+        data.context, {'indent_size': 2, 'brace_style': 'expand'}));
+    }
+    else {
+      $('#context').val('{}');
     }
 
     if(hasData) {
@@ -371,23 +427,27 @@
   playground.populateWithExample = function(name) {
     var data = {
       markup: null,
-      param: null
+      context: null,
+      frame: null
     };
 
     if(name in playground.examples) {
       // fill the markup with the example
       data.markup = JSON.stringify(playground.examples[name]);
 
-      if(name in playground.params) {
-        // fill the param with the example param
-        data.param = JSON.stringify(playground.params[name]);
+      if(name in playground.frames) {
+        // fill the frame with the example 
+        data.frame = JSON.stringify(playground.frames[name]);
+      }
+
+      if(name in playground.contexts) {
+        // fill the context with the example 
+        data.contexts = JSON.stringify(playground.contexts[name]);
       }
       else if('@context' in playground.examples[name]) {
         // use context from markup as default
-        var ctx = {
-          '@context': playground.examples[name]['@context']
-        };
-        data.param = JSON.stringify(ctx);
+        var ctx = playground.examples[name]['@context']
+        data.context = JSON.stringify(ctx);
       }
     }
 

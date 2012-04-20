@@ -10,7 +10,8 @@
 
   // setup the examples and params
   playground.examples = {};
-  playground.params = {};
+  playground.frames = {};
+  playground.contexts = {};
 
   // add the example of a Person
   playground.examples["Person"] = {
@@ -161,7 +162,7 @@
   };
 
   // add the frame example of a Library
-  playground.params["Library"] = {
+  playground.frames["Library"] = {
     "@context": {
       "dc": "http://purl.org/dc/elements/1.1/",
       "ex": "http://example.org/vocab#"
