@@ -791,12 +791,12 @@ jsonld.compareNormalized = function(n1, n2) {
  * @return the value.
  */
 jsonld.getContextValue = function(ctx, key, type) {
+  var rval = null;
+
   // return null for invalid key
   if(key === null) {
-    return null;
+    return rval;
   }
-
-  var rval = null;
 
   // get default language
   if(type === '@language' && (type in ctx)) {
@@ -812,7 +812,7 @@ jsonld.getContextValue = function(ctx, key, type) {
       rval = entry;
     }
     // return entry value for type
-    if(type in entry) {
+    else if(type in entry) {
       rval = entry[type];
     }
   }
@@ -2927,12 +2927,10 @@ function _expandContextIri(activeCtx, ctx, value, base, defined) {
   }
 
   // split value into prefix:suffix
-  var prefix = value;
-  var suffix = '';
   var colon = value.indexOf(':');
   if(colon !== -1) {
-    prefix = value.substr(0, colon);
-    suffix = value.substr(colon + 1);
+    var prefix = value.substr(0, colon);
+    var suffix = value.substr(colon + 1);
 
     // a prefix of '_' indicates a blank node
     if(prefix === '_') {
@@ -3001,12 +2999,10 @@ function _expandTerm(ctx, term, base) {
   }
 
   // split term into prefix:suffix
-  var prefix = term;
-  var suffix = '';
   var colon = term.indexOf(':');
   if(colon !== -1) {
-    prefix = term.substr(0, colon);
-    suffix = term.substr(colon + 1);
+    var prefix = term.substr(0, colon);
+    var suffix = term.substr(colon + 1);
 
     // a prefix of '_' indicates a blank node
     if(prefix === '_') {
