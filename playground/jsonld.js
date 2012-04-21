@@ -2124,7 +2124,10 @@ function _frame(state, subjects, frame, parent, property) {
 
       // iterate over subject properties
       var subject = matches[id];
-      for(var prop in subject) {
+      var props = Object.keys(subject).sort();
+      for(var i in props) {
+        var prop = props[i];
+
         // copy keywords to output
         if(_isKeyword(prop)) {
           output[prop] = _clone(subject[prop]);
@@ -2183,7 +2186,10 @@ function _frame(state, subjects, frame, parent, property) {
       }
 
       // handle defaults
-      for(var prop in frame) {
+      var props = Object.keys(frame).sort();
+      for(var i in props) {
+        var prop = props[i];
+
         // skip keywords
         if(_isKeyword(prop)) {
           continue;
@@ -2246,8 +2252,11 @@ function _validateFrame(state, frame) {
  * @return all of the matched subjects.
  */
 function _filterSubjects(state, subjects, frame) {
+  // filter subjects in @id order
   var rval = {};
-  for(var id in subjects) {
+  var ids = Object.keys(subjects).sort();
+  for(var i in ids) {
+    var id = ids[i];
     var subject = state.subjects[id];
     if(_filterSubject(subject, frame)) {
       rval[id] = subject;
