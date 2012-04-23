@@ -136,6 +136,11 @@ jsonld.compact = function(input, ctx) {
       compacted = [compacted];
     }
 
+    // follow @context key
+    if(_isObject(ctx) && '@context' in ctx) {
+      ctx = ctx['@context'];
+    }
+
     // build output context
     ctx = _clone(ctx);
     if(!_isArray(ctx)) {
@@ -3385,6 +3390,7 @@ function _resolveUrls(input, resolver, callback) {
     else if(_isObject(input)) {
       for(var key in input) {
         if(key !== '@context') {
+          findUrls(input[key], replace);
           continue;
         }
 
@@ -3400,7 +3406,7 @@ function _resolveUrls(input, resolver, callback) {
                 ctx[i] = urls[ctx[i]];
               }
               // unresolved @context found
-              else {
+              else if(!(ctx[i] in urls)) {
                 urls[ctx[i]] = {};
               }
             }
@@ -3413,7 +3419,7 @@ function _resolveUrls(input, resolver, callback) {
             input[key] = urls[ctx];
           }
           // unresolved @context found
-          else {
+          else if(!(ctx in urls)) {
             urls[ctx] = {};
           }
         }
@@ -3480,7 +3486,8 @@ function _resolveUrls(input, resolver, callback) {
         errors.push(err);
       }
       else {
-        // FIXME: needs to recurse to resolve URLs in the result
+        // FIXME: needs to recurse to resolve URLs in the result, and
+        // detect cycles, and limit recursion
         urls[url] = ctx['@context'] || {};
       }
 
