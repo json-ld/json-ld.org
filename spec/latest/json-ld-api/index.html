@@ -543,7 +543,8 @@ de-referenceable.
             the given <code>input</code>.</dd>
           <dt>optional JsonLdOptions options</dt>
           <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>.</dd>
+            input document's base <tref>IRI</tref>. This also includes <code>optimize</code>,
+            which if set will cause processor-specific optimization.</dd>
         </dl>
 
         <dl class="exception" title="InvalidContext">
@@ -618,7 +619,9 @@ de-referenceable.
           <dd>A callback that is called when processing is complete on
             the given <code>input</code>.</dd>
           <dt>optional JsonLdOptions options</dt>
-          <dd>A set of options that will affect the algorithm.</dd>
+          <dd>A set of options that will affect the algorithm. This includes <code>notType</code>,
+            which if set to <tref>true</tref> causes the resulting document to use <code>rdf:type</code>
+            as a property, instead of <code>@type</code>.</dd>
         </dl>
       </dd>
 
@@ -730,6 +733,10 @@ de-referenceable.
         optimization is beyond the scope of this specification and thus
         not defined. Consequently, different implementations MAY implement
         different optimization algorithms.</dd>
+      <dt>boolean noType</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor will not use the
+        <code>@type</code> property when generating the output, and will use the
+        expanded <code>rdf:type</code> IRI as the property instead of <code>@type</code>.</dd>
     </dl>
     </section>
 
@@ -1118,7 +1125,6 @@ language-native data structures MUST be used where applicable.</p>
   <h3>IRI Compaction Algorithm</h3>
   <p>The algorithm for generating a <tref>compact IRI</tref> is:
     <ol class="algorithm">
-      <li>If <em>iri</em> is <code>rdf:type</code>, return <code>@type</code>.</li>
       <li>Create an empty list of terms <em>terms</em> that will be populated with
         <tref>term</tref>s that are ranked according to how closely they match
         <em>value</em>. Initialize <em>highest rank</em> to <code>0</code>,
@@ -1393,10 +1399,18 @@ language-native data structures MUST be used where applicable.</p>
             property from <em>element</em>.</li>
           <li>If the <em>property</em> is <code>@id</code> the <em>value</em> MUST be a <tref>string</tref>.
             Expand the <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@type</code> the <em>value</em>
-            MUST be a <tref>string</tref>, an <tref>array</tref> of <tref>string</tref>s, or an empty
-            <tref>JSON object</tref>. Expand <em>value</em> or each of it's entries according to
-            <a href="#iri-expansion">IRI Expansion</a>.</li>
+          <li>Otherwise, if the <em>property</em> is <code>@type</code>:
+            <ol class="algorithm">
+              <li>If <em>value</em> is a <tref>string</tref>, expand according to <a href="#iri-expansion">IRI Expansion</a>.</li>
+              <li>Otherwise, if <em>value</em> is a <tref>subject reference</tref>, the expanded value
+                is the result of performing <a href="#iri-expansion">IRI Expansion</a> on the value of <code>@id</code>.</li>
+              <li>Otherwise, if <em>value</em> is a <tref>JSON Object</tref>, it must be empty (used for
+                <a href="#framing">Framing</a>).</li>
+              <li>Otherwise, if <em>value</em> is an <tref>array</tref>, all elements must be either a
+                <tref>string</tref> or <tref>subject reference</tref>. Expand <em>value</em> for each
+                of it's entries using the previous three steps.</li>
+            </ol>
+          </li>
           <li>Otherwise, if the <em>property</em> is <code>@value</code> or <code>@language</code> the <em>value</em> MUST NOT be a
             <tref>JSON object</tref> or an <tref>array</tref>.</li>
           <li>Otherwise, if the <em>property</em> is <code>@list</code>, <code>@set</code>, or <code>@graph</code>, expand <em>value</em>
