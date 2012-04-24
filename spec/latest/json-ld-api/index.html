@@ -1241,7 +1241,7 @@ language-native data structures MUST be used where applicable.</p>
       <em>value</em> as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>. The second
       key-value pair will be <code>@type</code> and the associated coercion datatype expanded according to the
       <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if <tref>active property</tref> is the target of an <code>@id</code> coercion, expand the value
+    <li>Otherwise, if <tref>active property</tref> is <code>@graph</code>, or the target of an <code>@id</code> coercion, expand the value
       into an object with a key-value pair where the key is <code>@id</code> and the value is the expanded
       IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
     <li>Otherwise, if <tref>active property</tref> is the target of typed literal coercion,
@@ -1268,6 +1268,9 @@ language-native data structures MUST be used where applicable.</p>
   <ol class="algorithm">
     <li>If the value may be expressed as <tref>true</tref>, <tref>false</tref> or <tref>number</tref>,
       the value is the native representation of the <code>@value</code> value.</li>
+    <li>If <tref>active property</tref> is <code>@graph</code>, the compacted value is the
+      value associated with the <code>@id</code> key, processed according to 
+      the <a href="#iri-compaction">IRI Compaction</a> steps.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a coercion target for the
       key that matches the expression of the value, compact the value using the
       following steps:
@@ -1794,6 +1797,12 @@ language-native data structures MUST be used where applicable.</p>
   from the key-pair is <code>@null</code>, replace the value with <tref>null</tref>. If,
   after replacement, an array contains only the value <tref>null</tref> remove the value, leaving
   an empty array. The resulting value is the final <tref>JSON-LD output</tref>.</p>
+
+<p class="issue">The algorithm needs to be updated to consider <code>@graph</code>.
+  For 1.0, this might not require anything, as the default implementation of <a 
+  href="#subject-flattening">Subject Flattening</a> should flatten everything 
+  into a single graph.</p>
+
 </section>
 
 <section>
@@ -1846,6 +1855,13 @@ language-native data structures MUST be used where applicable.</p>
 
 <p class="issue">The algorithm states to set the property in <em>subject</em> using the mapped values,
   but it really should merge, if the property already exists in <em>subject</em>.</p>
+
+<p class="issue">The algorithm should descend into @graph and create a parallel flattened structure
+  of subject to object within that <code>@graph</code> representation. Recursive <code>@graph</code>
+  definitions are also flattened into the default graph. The algorithm should also
+  take an option which descends into <code>@graph</code> and flattens all definitions at the same level,
+  effectively flatting default and named graphs into a single default graph; this
+  should be the default implementation for 1.0.</p>
 </section>
 
 <section id="remove-embed">
