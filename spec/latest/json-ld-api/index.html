@@ -1016,12 +1016,19 @@ language-native data structures MUST be used where applicable.</p>
                 <li>If the property's value is a simple <tref>string</tref>, determine the IRI mapping value by
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
                   mapping is an <tref>absolute IRI</tref>, merge the property into the <tref>local context</tref>
-                  <tref>term mapping</tref>.</li>
+                  <tref>term mapping</tref>, unless the property is a JSON-LD <tref>keyword</tref>, in which
+                  case throw an exception.</li>
                 <li>Otherwise, if the property's value is <tref>null</tref> remove mapping, coercion,
                   container and language information associated with property from the
                   <tref>local context</tref>.</li>
                 <li>Otherwise, the <em>property</em>'s <em>value</em> MUST be a <tref>JSON object</tref>.
                   <ol class="algorithm">
+                    <li>If the <em>property</em> is a JSON-LD <tref>keyword</tref> and the value has
+                      <code>@id</code>, <code>@language</code> or <code>@type</code> properties, throw an exception.
+                      <div class="issue">Undecided if <code>@type</code> or <code>@graph</code> can take a
+                        <code>@container</code> with <code>@set</code>.
+                      </div>
+                    </li>
                     <li>If the <em>property</em> has the form of <tref>term</tref>, it's <em>value</em> MUST have an
                       <code>@id</code> property with a string value which MUST have the form of a <tref>term</tref>,
                       <tref>compact IRI</tref>, or <tref>absolute IRI</tref>. Determine the IRI mapping
