@@ -2259,17 +2259,21 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
           described in <a href="#new_graph">Step 1</a>.</li>
         <li>If <em>property</em> is <code>rdf:first</code>,
           use the entry in <em>graph.listMap</em> indexed by <em>subject</em>, 
-          initializing it to a new <tref>JSON object</tref> if nesessary. Add 
-          the result of performing <a href="#value-expansion">Value 
-          Expansion</a> on <em>object</em> to the entry indexed by 
-          <em>first</em> and skip to the next statement.</li>
-        <li>If <em>property</em> is <code>rdf:rest</code>,
-          and <em>object</em> is a <a>BlankNode</a>, use the entry in 
-          <em>graph.listMap</em> indexed by <em>subject</em>, initializing it 
-          to a new <tref>JSON object</tref> if nesessary. Add result of 
-          performing <a href="#iri-expansion">IRI expansion</a> on 
-          <em>object</em> to the entry indexed by <em>rest</em> and skip to the 
-          next statement.</li>
+          initializing it to a new <tref>JSON object</tref> if nesessary. Represent
+          <em>object</em> in expanded form, as described in
+          <a href="#value-expansion">Value Expansion</a>. Add the
+          resulting <em>object representation</em> to the entry indexed by 
+          <em>first</em>, and skip to the next statement.</li>
+        <li>If <em>property</em> is <code>rdf:rest</code>:
+          <ol class="algorithm">
+            <li>If <em>object</em> is a <a>BlankNode</a>, use the entry in 
+              <em>graph.listMap</em> indexed by <em>subject</em>, initializing it 
+              to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
+              <em>object</em> to the entry indexed by <em>rest</em>.
+            </li>
+            <li>Skip to the next statement.</li>
+          </ol>
+        </li>
         <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.subjects</em>
           does not contain an entry for <em>name</em>,
           create a new entry for <em>name</em> from a new
@@ -2312,12 +2316,12 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
     <li>For each <em>name</em> and <em>graph</em> in <em>graphs</em>:
       <ol class="algorithm">
         <li>For each <em>subject</em> and <em>entry</em> in <em>graph</em>
-          where <em>entry</em> has both <em>head</em> and <em>first</em>keys:
+          where <em>entry</em> has both <em>head</em> and <em>first</em> keys:
           <ol class="algorithm">
             <li>Set <em>value</em> to the value of <em>head</em> in <em>entry</em>.</li>
-            <li>Remove the entry for <code>@id</code> in <em>entry</em>.</li>
-            <li>Add an entry for <code>@list</code> initialized to a new array containing
-              the value of <em>first</em> from <em>entry</em>.</li>
+            <li>Remove the entry for <code>@id</code> in <em>value</em>.</li>
+            <li>Add an entry to <em>value</em> for <code>@list</code> initialized to a new array
+              containing the value of <em>first</em> from <em>entry</em>.</li>
             <li>While <em>entry</em> has a key for <em>rest</em>:
               <ol class="algorithm">
                 <li>Set <em>entry</em> to the value of <em>graph.listMap</em> for <em>entry.rest</em>.</li>
