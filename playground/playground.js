@@ -122,7 +122,7 @@
       getParameterByName('param'), 'param', 'param');
 
     var startTab = getParameterByName('startTab');
-    if (startTab) {
+    if(startTab) {
         // strip 'tab-' to get the tab's panel's I D
         $('#tabs').tabs("select", "#"+startTab.substr(4));
     }
@@ -132,8 +132,9 @@
     $.when(jsonLdDeferred, frameDeferred, contextDeferred, paramDeferred)
       .done(function() {
         // Maintain backwards permalink compatability
-        if (queryData['param'] && !(queryData['frame'] || queryData['context'])) {
-            queryData['frame'] = queryData['context'] = queryData['param'];
+        if(queryData['param'] &&
+          !(queryData['frame'] || queryData['context'])) {
+          queryData['frame'] = queryData['context'] = queryData['param'];
         }
         // populate UI with data
         playground.populateWithJSON(queryData);
@@ -159,7 +160,7 @@
     playground.activeTab = ui.tab.id;
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-framed') {
       // if the 'compact' or 'frame' tab is selected, display the appropriate
-      // input textarea 
+      // input textarea
       $('#markup').addClass('compressed');
 
       if(ui.tab.id === 'tab-compacted') {
@@ -239,13 +240,18 @@
         callback();
       });
     }
-    else if(playground.activeTab === 'tab-turtle') {
-      jsonld.turtle(input, options, function(err, turtle) {
+    else if(playground.activeTab === 'tab-nquads') {
+      options.format = 'application/nquads';
+      var nquads = '';
+      jsonld.toRDF(input, options, function(err, quad) {
         if(err) {
           return callback(err);
         }
-        $('#turtle').html(playground.htmlEscape(turtle));
-        callback();
+        if(quad === null) {
+          $('#nquads').html(playground.htmlEscape(nquads));
+          return callback();
+        }
+        nquads += quad;
       });
     }
   };
@@ -286,7 +292,7 @@
         toValidate = $('#frame').val();
         needParam = true;
     }
-    
+
     if (needParam) {
         try {
           var param = JSON.parse(toValidate);
@@ -317,7 +323,7 @@
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
       if($('#frame').val().length > 0) {
-        link += '&frame=' + 
+        link += '&frame=' +
             encodeURIComponent($("#frame").val());
       }
       if($('#context').val().length > 0) {
@@ -325,7 +331,7 @@
             encodeURIComponent($("#context").val());
       }
 
-      // Start at the currently active tab 
+      // Start at the currently active tab
       link += '&startTab=' + encodeURIComponent(playground.activeTab);
 
       var permalink = '<a href="' + link + '">permalink</a>';
@@ -402,7 +408,7 @@
 
     if('context' in data && data.context !== null) {
       hasData = true;
-      // fill the context input box with the given context 
+      // fill the context input box with the given context
       $('#context').val(js_beautify(
         data.context, {'indent_size': 2, 'brace_style': 'expand'}));
     }
@@ -436,12 +442,12 @@
       data.markup = JSON.stringify(playground.examples[name]);
 
       if(name in playground.frames) {
-        // fill the frame with the example 
+        // fill the frame with the example
         data.frame = JSON.stringify(playground.frames[name]);
       }
 
       if(name in playground.contexts) {
-        // fill the context with the example 
+        // fill the context with the example
         data.contexts = JSON.stringify(playground.contexts[name]);
       }
       else if('@context' in playground.examples[name]) {
