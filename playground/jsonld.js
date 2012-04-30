@@ -423,6 +423,7 @@ jsonld.fromRDF = function(statements) {
  *
  * @param input the JSON-LD input.
  * @param [options] the options to use:
+ *          [base] the base IRI to use.
  *          [format] the format to use to output a string:
  *            'application/nquads' for N-Quads (default).
  *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
@@ -1817,6 +1818,10 @@ Processor.prototype.toRDF = function(
   }
 
   if(_isString(element)) {
+    // property can be null for string subject references in @graph
+    if(property === null) {
+      return;
+    }
     // emit IRI for rdf:type, else plain literal
     var statement = {
       subject: _clone(subject),
@@ -1824,7 +1829,7 @@ Processor.prototype.toRDF = function(
       object: {
         nominalValue: element,
         interfaceName: ((property.nominalValue === RDF_TYPE) ?
-          'IRI': 'LiteralNode')
+          'IRI' : 'LiteralNode')
       }
     };
     if(graph !== null) {
