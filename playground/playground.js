@@ -242,16 +242,16 @@
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/nquads';
-      var nquads = '';
+      var nquads = [];
       jsonld.toRDF(input, options, function(err, quad) {
         if(err) {
           return callback(err);
         }
         if(quad === null) {
-          $('#nquads').html(playground.htmlEscape(nquads));
+          $('#nquads').html(playground.htmlEscape(nquads.sort().join('')));
           return callback();
         }
-        nquads += quad;
+        nquads.push(quad);
       });
     }
   };

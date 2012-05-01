@@ -1708,14 +1708,6 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
  */
 Processor.prototype.toRDF = function(
   element, namer, subject, property, graph, callback) {
-  // recurse into arrays
-  if(_isArray(element)) {
-    for(var i in element) {
-      this.toRDF(element[i], namer, subject, property, graph, callback);
-    }
-    return;
-  }
-
   if(_isObject(element)) {
     // convert @value to object
     if(_isValue(element)) {
@@ -1811,6 +1803,14 @@ Processor.prototype.toRDF = function(
       this.toRDF(element[prop], namer, subject, property, graph, callback);
     }
 
+    return;
+  }
+
+  if(_isArray(element)) {
+    // recurse into arrays
+    for(var i in element) {
+      this.toRDF(element[i], namer, subject, property, graph, callback);
+    }
     return;
   }
 
@@ -4039,16 +4039,14 @@ function _parseNQuads(input) {
     }
 
     // create RDF statement
-    var s = {subject: {}, property: {}, object: {}};
+    var s = {};
 
     // get subject
     if(!_isUndefined(match[1])) {
-      s.subject.nominalValue = match[1];
-      s.subject.interfaceName = 'IRI';
+      s.subject = {nominalValue: match[1], interfaceName: 'IRI'};
     }
     else {
-      s.subject.nominalValue = match[2];
-      s.subject.interfaceName = 'BlankNode';
+      s.subject = {nominalValue: match[2], interfaceName: 'BlankNode'};
     }
 
     // get property
@@ -4056,16 +4054,13 @@ function _parseNQuads(input) {
 
     // get object
     if(!_isUndefined(match[4])) {
-      s.object.nominalValue = match[4];
-      s.object.interfaceName = 'IRI';
+      s.object = {nominalValue: match[4], interfaceName: 'IRI'};
     }
     else if(!_isUndefined(match[5])) {
-      s.object.nominalValue = match[5];
-      s.object.interfaceName = 'BlankNode';
+      s.object = {nominalValue: match[5], interfaceName: 'BlankNode'};
     }
     else {
-      s.object.nominalValue = match[6];
-      s.object.interfaceName = 'LiteralNode';
+      s.object = {nominalValue: match[6], interfaceName: 'LiteralNode'};
       if(!_isUndefined(match[7])) {
         s.object.datatype = {nominalValue: match[7], interfaceName: 'IRI'};
       }
