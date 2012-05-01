@@ -379,7 +379,7 @@ jsonld.normalize = function(input, callback) {
  *          to convert.
  * @param [options] the options to use:
  *          [format] the format if input is a string:
- *            'text/x-nquads' for N-Quads (default).
+ *            'application/nquads' for N-Quads (default).
  *          [notType] true to use rdf:type, false to use @type (default).
  * @param callback(err, output) called once the operation completes.
  */
@@ -396,7 +396,7 @@ jsonld.fromRDF = function(statements) {
 
   // set default options
   if(!('format' in options)) {
-    options.format = 'text/x-nquads';
+    options.format = 'application/nquads';
   }
   if(!('notType' in options)) {
     options.notType = false;
@@ -404,7 +404,7 @@ jsonld.fromRDF = function(statements) {
 
   if(_isString(statements)) {
     // supported formats
-    if(options.format === 'text/x-nquads') {
+    if(options.format === 'application/nquads') {
       statements = _parseNQuads(statements);
     }
     else {
@@ -423,6 +423,9 @@ jsonld.fromRDF = function(statements) {
  *
  * @param input the JSON-LD input.
  * @param [options] the options to use:
+ *          [base] the base IRI to use.
+ *          [format] the format to use to output a string:
+ *            'application/nquads' for N-Quads (default).
  *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, statement) called when a statement is output, with the
  *          last statement as null.
@@ -436,7 +439,7 @@ jsonld.toRDF = function(input) {
     options = arguments[1] || {};
     callbackArg += 1;
   }
-  callback = arguments[callbackArg];
+  var cb = callback = arguments[callbackArg];
 
   // set default options
   if(!('base' in options)) {
@@ -444,6 +447,26 @@ jsonld.toRDF = function(input) {
   }
   if(!('resolver' in options)) {
     options.resolver = jsonld.urlResolver;
+  }
+
+  if('format' in options) {
+    // supported formats
+    if(options.format === 'application/nquads') {
+      cb = function(err, statement) {
+        if(err) {
+          return callback(err);
+        }
+        if(statement !== null) {
+          statement = _toNQuad(statement);
+        }
+        callback(null, statement);
+      };
+    }
+    else {
+      throw new JsonLdError(
+        'Unknown output format.',
+        'jsonld.UnknownFormat', {format: options.format});
+    }
   }
 
   // expand input
@@ -454,9 +477,15 @@ jsonld.toRDF = function(input) {
         'jsonld.RdfError', {cause: err}));
     }
 
-    // output RDF statements
-    var namer = new UniqueNamer('_:t');
-    new Processor().toRDF(expanded, namer, null, null, null, callback);
+    try {
+      // output RDF statements
+      var namer = new UniqueNamer('_:t');
+      new Processor().toRDF(expanded, namer, null, null, null, cb);
+      cb(null, null);
+    }
+    catch(ex) {
+      cb(ex);
+    }
   });
 };
 
@@ -1515,7 +1544,7 @@ Processor.prototype.normalize = function(input, callback) {
  * @param callback(err, output) called once the operation completes.
  */
 Processor.prototype.fromRDF = function(statements, options, callback) {
-  // prepare graph map (maps graph name => subjects, lists, etc)
+  // prepare graph map (maps graph name => subjects, lists)
   var defaultGraph = {subjects: {}, listMap: {}};
   var graphs = {'': defaultGraph};
 
@@ -1539,7 +1568,7 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
     // handle element in @list
     if(p === RDF_FIRST) {
       // create list entry as needed
-      var listMap = graphs[name].listMap;
+      var listMap = graph.listMap;
       if(!(s in listMap)) {
         var entry = listMap[s] = {};
       }
@@ -1556,7 +1585,7 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
       // set next in list
       if(o.interfaceName === 'BlankNode') {
         // create list entry as needed
-        var listMap = graphs[name].listMap;
+        var listMap = graph.listMap;
         if(!(s in listMap)) {
           var entry = listMap[s] = {};
         }
@@ -1568,28 +1597,25 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
       continue;
     }
 
-    // prepare to assign next JSON-LD value
-    var value;
-
     // if graph is not the default graph
     if(name !== '') {
       // add graph subject to default graph as needed
       if(!(name in defaultGraph.subjects)) {
-        value = defaultGraph.subjects[name] = {'@id': name};
+        defaultGraph.subjects[name] = {'@id': name};
       }
       else {
-        value = defaultGraph.subjects[name];
+        defaultGraph.subjects[name];
       }
     }
 
     // add subject to graph as needed
-    var subjects = graphs[name].subjects;
+    var subjects = graph.subjects;
     if(!(s in subjects)) {
-      value = subjects[s] = {'@id': s};
+      var value = subjects[s] = {'@id': s};
     }
     // use existing subject value
     else {
-      value = subjects[s];
+      var value = subjects[s];
     }
 
     // convert to @type unless options indicate to treat rdf:type as property
@@ -1605,7 +1631,7 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
       // a bnode might be the beginning of a list, so add it to the list map
       if(o.interfaceName === 'BlankNode') {
         var id = object['@id'];
-        var listMap = graphs[name].listMap;
+        var listMap = graph.listMap;
         if(!(id in listMap)) {
           var entry = listMap[id] = {};
         }
@@ -1682,14 +1708,6 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
  */
 Processor.prototype.toRDF = function(
   element, namer, subject, property, graph, callback) {
-  // recurse into arrays
-  if(_isArray(element)) {
-    for(var i in element) {
-      this.toRDF(element[i], namer, subject, property, graph, callback);
-    }
-    return;
-  }
-
   if(_isObject(element)) {
     // convert @value to object
     if(_isValue(element)) {
@@ -1730,7 +1748,7 @@ Processor.prototype.toRDF = function(
 
     // get subject @id (generate one if it is a bnode)
     var isBnode = _isBlankNode(element);
-    var id = isBnode ? namer.getName(input['@id']) : input['@id'];
+    var id = isBnode ? namer.getName(element['@id']) : element['@id'];
 
     // create object
     var object = {
@@ -1757,11 +1775,11 @@ Processor.prototype.toRDF = function(
     // recurse over subject properties in order
     var props = Object.keys(element).sort();
     for(var pi in props) {
-      var prop = props[pi];
+      var prop = p = props[pi];
 
       // convert @type to rdf:type
       if(prop === '@type') {
-        prop = RDF_TYPE;
+        p = RDF_TYPE;
       }
 
       // recurse into @graph
@@ -1771,13 +1789,13 @@ Processor.prototype.toRDF = function(
       }
 
       // skip keywords
-      if(_isKeyword(prop)) {
+      if(_isKeyword(p)) {
         continue;
       }
 
       // create new active property
       property = {
-        nominalValue: id,
+        nominalValue: p,
         interfaceName: 'IRI'
       };
 
@@ -1788,14 +1806,27 @@ Processor.prototype.toRDF = function(
     return;
   }
 
+  if(_isArray(element)) {
+    // recurse into arrays
+    for(var i in element) {
+      this.toRDF(element[i], namer, subject, property, graph, callback);
+    }
+    return;
+  }
+
   if(_isString(element)) {
-    // emit plain literal
+    // property can be null for string subject references in @graph
+    if(property === null) {
+      return;
+    }
+    // emit IRI for rdf:type, else plain literal
     var statement = {
       subject: _clone(subject),
       property: _clone(property),
       object: {
         nominalValue: element,
-        interfaceName: 'LiteralNode'
+        interfaceName: ((property.nominalValue === RDF_TYPE) ?
+          'IRI' : 'LiteralNode')
       }
     };
     if(graph !== null) {
@@ -1810,15 +1841,15 @@ Processor.prototype.toRDF = function(
       var datatype = XSD_BOOLEAN;
       var value = String(element);
     }
-    else if(_isInteger(element)) {
-      var datatype = XSD_INTEGER;
-      var value = String(element);
+    else if(_isDouble(element)) {
+      var datatype = XSD_DOUBLE;
+      // printf('%1.15e') equivalent
+      var value = element.toExponential(15).replace(
+        /(e(?:\+|-))([0-9])$/, '$10$2');
     }
     else {
-      var datatype = XSD_DOUBLE;
-      // printf('%1.16e') equivalent
-      var value = element.toExponential(16).replace(
-        /(e(?:\+|-))([0-9])$/, '$10$2');
+      var datatype = XSD_INTEGER;
+      var value = String(element);
     }
 
     // emit typed literal
@@ -2034,8 +2065,8 @@ function _getStatements(input, namer, bnodes, subjects, name) {
       }
       // convert double to @value
       else if(_isDouble(o)) {
-        // do special JSON-LD double format, printf('%1.16e') JS equivalent
-        o = o.toExponential(16).replace(/(e(?:\+|-))([0-9])$/, '$10$2');
+        // do special JSON-LD double format, printf('%1.15e') JS equivalent
+        o = o.toExponential(15).replace(/(e(?:\+|-))([0-9])$/, '$10$2');
         o = {'@value': o, '@type': XSD_DOUBLE};
       }
       // convert integer to @value
@@ -3394,7 +3425,7 @@ function _expandContextIri(activeCtx, ctx, value, base, defined) {
   }
 
   // prepend base
-  value = base + value;
+  value = _prependBase(base, value);
 
   // value must now be an absolute IRI
   if(!_isAbsoluteIri(value)) {
@@ -3461,10 +3492,28 @@ function _expandTerm(ctx, term, base) {
 
   // prepend base to term
   if(!_isUndefined(base)) {
-    term = base + term;
+    term = _prependBase(base, term);
   }
 
   return term;
+}
+
+/**
+ * Prepends a base IRI to the given relative IRI.
+ *
+ * @param base the base IRI.
+ * @param iri the relative IRI.
+ *
+ * @return the absolute IRI.
+ */
+function _prependBase(base, iri) {
+  if(iri === '' || iri.indexOf('#') === 0) {
+    return base + iri;
+  }
+  else {
+    // prepend last directory for base
+    return base.substr(0, base.lastIndexOf('/') + 1) + iri;
+  }
 }
 
 /**
@@ -3990,35 +4039,28 @@ function _parseNQuads(input) {
     }
 
     // create RDF statement
-    var s = {subject: {}, property: {}, object: {}};
+    var s = {};
 
     // get subject
-    if(_isUndefined(match[2])) {
-      s.subject.nominalValue = match[1];
-      s.subject.interfaceName = 'IRI';
+    if(!_isUndefined(match[1])) {
+      s.subject = {nominalValue: match[1], interfaceName: 'IRI'};
     }
     else {
-      s.subject.nominalValue = match[2];
-      s.subject.interfaceName = 'BlankNode';
+      s.subject = {nominalValue: match[2], interfaceName: 'BlankNode'};
     }
 
     // get property
     s.property = {nominalValue: match[3], interfaceName: 'IRI'};
 
     // get object
-    if(_isUndefined(match[6])) {
-      if(_isUndefined(match[5])) {
-        s.object.nominalValue = match[4];
-        s.object.interfaceName = 'IRI';
-      }
-      else {
-        s.object.nominalValue = match[5];
-        s.object.interfaceName = 'BlankNode';
-      }
+    if(!_isUndefined(match[4])) {
+      s.object = {nominalValue: match[4], interfaceName: 'IRI'};
+    }
+    else if(!_isUndefined(match[5])) {
+      s.object = {nominalValue: match[5], interfaceName: 'BlankNode'};
     }
     else {
-      s.object.nominalValue = match[6];
-      s.object.interfaceName = 'LiteralNode';
+      s.object = {nominalValue: match[6], interfaceName: 'LiteralNode'};
       if(!_isUndefined(match[7])) {
         s.object.datatype = {nominalValue: match[7], interfaceName: 'IRI'};
       }
@@ -4040,6 +4082,58 @@ function _parseNQuads(input) {
   }
 
   return statements;
+}
+
+/**
+ * Converts an RDF statement to an N-Quad string (a single quad).
+ *
+ * @param statement the RDF statement to convert.
+ *
+ * @return the N-Quad string.
+ */
+function _toNQuad(statement) {
+  var s = statement.subject;
+  var p = statement.property;
+  var o = statement.object;
+  var g = statement.name || null;
+
+  var quad = '';
+
+  // subject is an IRI or bnode
+  if(s.interfaceName === 'IRI') {
+    quad += '<' + s.nominalValue + '>';
+  }
+  else {
+    quad += s.nominalValue;
+  }
+
+  // property is always an IRI
+  quad += ' <' + p.nominalValue + '> ';
+
+  // object is IRI, bnode, or literal
+  if(o.interfaceName === 'IRI') {
+    quad += '<' + o.nominalValue + '>';
+  }
+  else if(o.interfaceName === 'BlankNode') {
+    quad += o.nominalValue;
+  }
+  else {
+    quad += '"' + o.nominalValue + '"';
+    if('datatype' in o) {
+      quad += '^^<' + o.datatype.nominalValue + '>';
+    }
+    else if('language' in o) {
+      quad += '@' + o.language;
+    }
+  }
+
+  // graph
+  if(g !== null) {
+    quad += ' <' + g.nominalValue + '>';
+  }
+
+  quad += ' .\n';
+  return quad;
 }
 
 /**

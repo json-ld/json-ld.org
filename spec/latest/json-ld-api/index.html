@@ -495,6 +495,7 @@ de-referenceable.
           <dt>object or object[] or URL input</dt>
           <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
             <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dt>ObjectOrURL? context</dt>
           <dd>An optional external context to use additionally to the context embedded in
             <code>input</code> when expanding the <code>input</code>.</dd>
           <dt>JsonLdCallback callback</dt>
@@ -633,9 +634,6 @@ de-referenceable.
           <dt>object or object[] or URL input</dt>
           <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or an <tref>IRI</tref>
             referencing the JSON-LD document to convert to RDF.</dd>
-          <dt>ObjectOrURL? context</dt>
-          <dd>An external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
           <dt>StatementCallback callback</dt>
           <dd>A callback that is called when a <a>Statement</a> is created from processing
             the given <code>input</code>.</dd>
@@ -1371,9 +1369,12 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Expansion Algorithm</h3>
 
-<p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
-  and an <em>element</em> to be expanded. To begin, the <tref>active context</tref> is set to the <tref>initial
-  context</tref>, <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the <tref>JSON-LD
+<p>The algorithm takes three input variables: an <tref>active context</tref>,  an <tref>active property</tref>, and an <em>element</em> to be expanded. To 
+  begin, the <tref>active context</tref> is set to the result of performing, <a 
+  href="#context-processing">Context Processing</a> on the passed 
+  <em>context</em>, or to the <tref>initial context</tref> if <em>context</em> 
+  is <tref>null</tref>, <tref>active property</tref> is set to 
+  <tref>null</tref>, and <em>element</em> is set to the <tref>JSON-LD 
   input</tref>.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
@@ -1851,7 +1852,8 @@ language-native data structures MUST be used where applicable.</p>
             <em>subjects</em> initialized using a new <tref>JSON object</tref>
             with <code>@id</code> set to <em>name</em> as <em>subject</em>.
             Otherwise, use that existing entrpy as <em>subject</em>.</li>
-          <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code>:
+          <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code>
+            ordered by <em>property</em>:
             <ol class="algorithm">
               <li>If <em>property</em> is a keyword, copy <code>property</code> and <code>value</code>
                 to <code>subject</code>.</li>
@@ -2154,7 +2156,8 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
           Otherwise, if <em>element</em> does not have a <code>@id</code> property, set the <tref>active
           subject</tref> to newly generated <tref>blank node</tref>.</li>
         <li>
-          Process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
+          Process each <em>property</em> and <em>value</em> in <em>element</em>, ordered by
+          <em>property</em>, as follows:
           <ol class="algorithm">
             <li>
               If <em>property</em> is <code>@type</code>, set the <tref>active property</tref>
