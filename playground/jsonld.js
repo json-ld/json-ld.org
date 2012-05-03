@@ -1597,15 +1597,9 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
       continue;
     }
 
-    // if graph is not the default graph
-    if(name !== '') {
-      // add graph subject to default graph as needed
-      if(!(name in defaultGraph.subjects)) {
-        defaultGraph.subjects[name] = {'@id': name};
-      }
-      else {
-        defaultGraph.subjects[name];
-      }
+    // add graph subject to default graph as needed
+    if(name !== '' && !(name in defaultGraph.subjects)) {
+      defaultGraph.subjects[name] = {'@id': name};
     }
 
     // add subject to graph as needed
@@ -1775,32 +1769,33 @@ Processor.prototype.toRDF = function(
     // recurse over subject properties in order
     var props = Object.keys(element).sort();
     for(var pi in props) {
-      var prop = p = props[pi];
+      var prop = props[pi];
+      var e = element[prop];
 
       // convert @type to rdf:type
       if(prop === '@type') {
-        p = RDF_TYPE;
+        prop = RDF_TYPE;
       }
 
       // recurse into @graph
       if(prop === '@graph') {
-        this.toRDF(element[prop], namer, null, null, subject, callback);
+        this.toRDF(e, namer, null, null, subject, callback);
         continue;
       }
 
       // skip keywords
-      if(_isKeyword(p)) {
+      if(_isKeyword(prop)) {
         continue;
       }
 
       // create new active property
       property = {
-        nominalValue: p,
+        nominalValue: prop,
         interfaceName: 'IRI'
       };
 
       // recurse into value
-      this.toRDF(element[prop], namer, subject, property, graph, callback);
+      this.toRDF(e, namer, subject, property, graph, callback);
     }
 
     return;
