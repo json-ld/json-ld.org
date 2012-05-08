@@ -1193,27 +1193,22 @@ language-native data structures MUST be used where applicable.</p>
       <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
     </ol>
   </li>
-  <li>Otherwise, if <em>value</em> is <tref>true</tref>, <tref>false</tref>, or
-    a <tref>number</tref>, if <em>term</em> has a
-    <code>@type</code> coercion to <code>xsd:boolean</code>,
-    <code>xsd:integer</code>, or <code>xsd:double</code> respectively,
-    <tref>term rank</tref> is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code> or
-    <code>@language</code> it is <code>2</code>, otherwise <code>1</code>.</li>
-  <li>Otherwise, if <em>value</em> is a <tref>string</tref>, it represents a string value
-    with no <code>@language</code>. If <em>term</em> has <code>@language</code> <tref>null</tref>,
-    or <em>term</em> has no <code>@type</code> or <code>@language</code> and the <tref>active context</tref>
-    has no <code>@language</code>, <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
   <li>Otherwise, <em>value</em> MUST be a <tref>subject definition</tref>, <tref>subject reference</tref>,
     or a <tref>JSON object</tref> having a <code>@value</code>.
     <ol class="algorithm">
-      <li>If <em>value</em> has an <code>@value</code> property, it must have either a <code>@type</code>
-        or a <code>@language</code>:
+      <li>If <em>value</em> has a <code>@value</code> property:
         <ol class="algorithm">
           <li>If <em>value</em> has a <code>@type</code> property matching a
             <code>@type</code> coercion for <em>term</em>, <tref>term rank</tref>
             is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
             coercion and no <code>@language</code>, <tref>term rank</tref> is
             <code>1</code>, otherwise <code>0</code>.</li>
+          <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>, if <em>term</em> has
+            no <code>@type</code> or <code>@language</code> it is <code>2</code>, otherwise <code>1</code>.</li>
+          <li>Otherwise, if <em>value</em> has no <code>@language</code> property, if <em>term</em> has
+            <code>@language</code> <tref>null</tref>, or <em>term</em> has no <code>@type</code> or
+            <code>@language</code> and the <tref>active context</tref> has no <code>@language</code>,
+            <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
           <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
             <code>@language</code> definition for <em>term</em> (or
             <em>term</em> has no <code>@type</code> or <code>@language</code> definition and
@@ -1244,23 +1239,21 @@ language-native data structures MUST be used where applicable.</p>
   <p>The algorithm for expanding a <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
   <ol class="algorithm">
-    <li>If <em>value</em> is a <tref>number</tref> and the <tref>active property</tref> is the target of typed literal
-      coercion to <code>xsd:integer</code> or <code>xsd:double</code>, expand the value into an object with
-      two key-value pairs. The first key-value pair will be <code>@value</code> and the string representation of
-      <em>value</em> as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>. The second
-      key-value pair will be <code>@type</code> and the associated coercion datatype expanded according to the
-      <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if <tref>active property</tref> is <code>@graph</code>, or the target of an <code>@id</code> coercion, expand the value
-      into an object with a key-value pair where the key is <code>@id</code> and the value is the expanded
-      IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if <tref>active property</tref> is the target of typed literal coercion,
-      expand <em>value</em> into an object with key-value pairs. The first key-value pair will be <code>@value</code>
-      and the unexpanded <em>value</em>. The second key-value pair will be <code>@type</code> and the associated coercion
-      datatype expanded according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if <em>value</em> is a <tref>string</tref> and the <tref>active property</tref> is not the target of
-      typed literal coercion but target of language tagging, expand <em>value</em> into an object with two
-      key-value pairs. The first key-value pair will be <code>@value</code> and the unexpanded <em>value</em>.
-      The second key-value pair will be <code>@language</code> and value of the language tagging from the <tref>active context</tref>.</li>
+    <li>If <em>value</em> is <tref>null</tref>, the <em>value</em> is already expanded.</li>
+    <li>If <tref>active property</tref> is <code>@graph</code> or the target of an <code>@id</code> coercion,
+      expand the value into an object with a key-value pair where the key is <code>@id</code> and the value is
+      the expanded IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
+    <li>Otherwise, if <tref>active property</tref> is not a <tref>keyword</tref>, then expand <em>value</em> into an
+      object:
+      <ol class="algorithm">
+        <li>Set the first key-value pair to <code>@value</code> and the unexpanded <em>value</em>.</li>
+        <li>If the <tref>active property</tref> is the target of typed literal coercion, set the second key-value pair
+          to <code>@type</code> and the associated coercion datatype expanded according to the
+          <a href="#iri-expansion">IRI Expansion</a> rules.
+        </li>Otherwise, if the <tref>active property</tref> is the target of language tagging, set the second key-value
+          pair to <code>@language</code> and value of the language tagging from the <tref>active context</tref>.</li>
+      </ol>
+    </li>
     <li>Otherwise, <em>value</em> is already expanded.</li>
   </ol>
 </section>
@@ -1275,9 +1268,9 @@ language-native data structures MUST be used where applicable.</p>
   <p>The algorithm for compacting an expanded value <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
   <ol class="algorithm">
-    <li>If the value may be expressed as <tref>true</tref>, <tref>false</tref> or <tref>number</tref>,
-      the value is the native representation of the <code>@value</code> value.</li>
-    <li>If <tref>active property</tref> is <code>@graph</code>, the compacted value is the
+    <li>If <em>value</em> only has one property, then the compacted value is the value
+      of <code>@value</code>.</li>
+    <li>Otherwise, if <tref>active property</tref> is <code>@graph</code>, the compacted value is the
       value associated with the <code>@id</code> key, processed according to
       the <a href="#iri-compaction">IRI Compaction</a> steps.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a coercion target for the
@@ -1412,7 +1405,7 @@ language-native data structures MUST be used where applicable.</p>
           </li>
           <li>Otherwise, if the <em>property</em> is <code>@value</code> or <code>@language</code> the <em>value</em> MUST NOT be a
             <tref>JSON object</tref> or an <tref>array</tref>.</li>
-          <li>Otherwise, if the <em>property</em> is <code>@list</code>, <code>@set</code>, or <code>@graph</code>, expand <em>value</em>
+          <li>Otherwise, if the <em>property</em> is <code>@list</code> or <code>@set</code> expand <em>value</em>
             recursively using this algorithm, passing copies of the <tref>active context</tref> and <em>active property</em>. If the expanded
             <em>value</em> is not an <tref>array</tref>, convert it to an <tref>array</tref>.
             If <em>property</em> is <code>@list</code> and any entry in <em>value</em> is a
@@ -1435,8 +1428,8 @@ language-native data structures MUST be used where applicable.</p>
         <ol class="algorithm">
           <li><em>element</em> MUST NOT have more than one other property, which can either be <code>@language</code> or <code>@type</code>
             with a <tref>string</tref> value.</li>
-          <li>if <code>@value</code> is the only property or the value of <code>@value</code> equals <tref>null</tref>, replace
-            <em>element</em> with the value of <code>@value</code>.</li>
+          <li>if the value of <code>@value</code> equals <tref>null</tref>,
+            replace <em>element</em> with the value of <code>@value</code>.</li>
         </ol>
       </li>
       <li>Otherwise, if <em>element</em> has an <code>@type</code> property and its value is not in the form of an
@@ -2120,16 +2113,25 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
       <ol class="algorithm">
         <li>Set <tref>active object</tref> to <tref>null</tref>.</li>
         <li>
-          If <em>element</em> has a <code>@value</code> property, set the <tref>active object</tref>
-          to a literal value as follows:
+          If <em>element</em> has a <code>@value</code> property:
           <ol class="algorithm">
+            <li>If the value of <code>@value</code> is a <tref>number</tref>, set the
+              <tref>active object</tref> to a <tref>typed literal</tref> using a string representation
+              of the value as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.
+              Set datatype to the value of the <code>@type</code> property if it exists, otherwise
+              either <code>xsd:integer</code> or <code>xsd:double</code>, depending
+              on if the value contains a fractional and/or an exponential component.</li>
+            <li>Otherwise, if the value of <code>@value</code> is <strong>true</strong> or <strong>false</strong>,
+              set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
+              string representation of the value. Set datatype to the value of the <code>@type</code>
+              property if it exists, otherwise <code>xsd:boolean</code>.</li>
             <li>
-              As a <tref>typed literal</tref> if <em>element</em> contains a <code>@type</code> property
-              after performing <a href="#iri-expansion">IRI Expansion</a> on the specified <code>@type</code>.
+              Otherwise, if <em>element</em> contains a <code>@type</code> property, set the
+              <tref>active object</tref> to a <tref>typed literal</tref>.
             </li>
             <li>
-              Otherwise, as a <tref>plain literal</tref>. If <em>element</em> contains
-              a <code>@language</code> property, use its value to set the language of the plain literal.
+              Otherwise, set the <tref>active object</tref> to a <tref>plain literal</tref>. If <em>element</em>
+              contains a <code>@language</code> property, use its value to set the language of the plain literal.
             </li>
           </ol>
         </li>
@@ -2140,7 +2142,7 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
         </li>
         <li>If <tref>active object</tref> is not <tref>null</tref>:
           <ol class="algorithm">
-            <li>If nether <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>,
+            <li>If neither <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>,
               generate a <a>Statement</a>
               representing <tref>active subject</tref>, <tref>active property</tref>,
               <tref>active object</tref>, and <tref>graph name</tref>.</li>
@@ -2182,17 +2184,8 @@ var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
       as follows, process <em>element</em> recursively using this algorithm, using copies of
       <tref>active subject</tref>, <tref>active property</tref>, and <tref>graph name</tref>.</li>
 
-    <li>Otherwise, if <em>element</em> is a <tref>string</tref>, set the <tref>active object</tref>
-      to a <tref>plain literal</tref> value created from the string.</li>
-
-    <li>Otherwise, if <em>element</em> is a <tref>number</tref>, set the <tref>active object</tref> to a
-      <tref>typed literal</tref> using a string representation of the value with datatype set
-      to either <code>xsd:integer</code> or <code>xsd:double</code>, depending on if the value
-      contains a fractional and/or an exponential component.</li>
-
-    <li>Otherwise, if <em>element</em> is <strong>true</strong> or <strong>false</strong>,
-      set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
-      string representation of the value with datatype set to <code>xsd:boolean</code>.</li>
+    <li>Otherwise, if <em>element</em> is a <tref>string</tref>, then the <tref>active property</tref>
+      must be <code>rdf:type</code> so set the <tref>active object</tref> to an <tref>IRI</tref>.</li>
 
     <li>If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
       nor <tref>active property</tref> are <tref>null</tref>, generate a <a>Statement</a> using
