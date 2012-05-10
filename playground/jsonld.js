@@ -382,7 +382,7 @@ jsonld.normalize = function(input, callback) {
  *          specified by the format option or an array of the RDF statements
  *          to convert.
  * @param [options] the options to use:
- *          [format] the format if input is a string:
+ *          [format] the format if input is not an array:
  *            'application/nquads' for N-Quads (default).
  *          [notType] true to use rdf:type, false to use @type (default).
  * @param callback(err, output) called once the operation completes.
@@ -406,10 +406,10 @@ jsonld.fromRDF = function(statements) {
     options.notType = false;
   }
 
-  if(_isString(statements)) {
+  if(!_isArray(statements)) {
     // supported formats
-    if(options.format === 'application/nquads') {
-      statements = _parseNQuads(statements);
+    if(options.format in _rdfParsers) {
+      statements = _rdfParsers[options.format](statements);
     }
     else {
       throw new JsonLdError(
@@ -913,6 +913,30 @@ jsonld.getContextValue = function(ctx, key, type) {
   }
 
   return rval;
+};
+
+/** Registered RDF Statement parsers hashed by content-type. */
+var _rdfParsers = {};
+
+/**
+ * Registers an RDF Statement parser by content-type, for use with
+ * jsonld.fromRDF.
+ *
+ * @param contentType the content-type for the parser.
+ * @param parser(input) the parser function (takes a string as a parameter
+ *           and returns an array of RDF statements).
+ */
+jsonld.registerRDFParser = function(contentType, parser) {
+  _rdfParsers[contentType] = parser;
+};
+
+/**
+ * Unregisters an RDF Statement parser by content-type.
+ *
+ * @param contentType the content-type for the parser.
+ */
+jsonld.unregisterRDFParser = function(contentType) {
+  delete _rdfParsers[contentType];
 };
 
 // determine if in-browser or using node.js
@@ -3971,6 +3995,9 @@ function _parseNQuads(input) {
 
   return statements;
 }
+
+// register the N-Quads RDF parser
+jsonld.registerRDFParser('application/nquads', _parseNQuads);
 
 /**
  * Converts an RDF statement to an N-Quad string (a single quad).
