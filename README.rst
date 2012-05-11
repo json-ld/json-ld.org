@@ -11,6 +11,9 @@ These properties make JSON-LD an ideal Linked Data interchange language for
 JavaScript environments, Web services, and unstructured databases such as
 CouchDB and MongoDB.
 
+If you are already using JSON-LD, add yourself to the `list of users`_ in our wiki.
+
+
 A Simple Example
 ----------------
 
@@ -46,3 +49,5 @@ http://json-ld.org/spec/latest/
 A list of all previous specification drafts is also available.
 
 http://json-ld.org/spec/
+
+.. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
