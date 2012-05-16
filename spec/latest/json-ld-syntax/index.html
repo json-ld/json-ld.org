@@ -1154,9 +1154,7 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </pre>
 
 <p>This describes the use of this <tref>array</tref> as being ordered,
-  and order is maintained through operations such as
-  <a href="#expansion">Expansion</a>, <a href="#compaction">Compaction</a>,
-  and <a href="#framing">Framing</a>. If every use of a given multi-valued
+  and order is maintained when processing a document. If every use of a given multi-valued
   property is a list, this may be abbreviated by setting <code>@container</code>
   to <code>@list</code> in the <tref>context</tref>:</p>
 <pre class="example" data-transform="updateExample">
@@ -1185,13 +1183,12 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 <p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
   describe unordered sets. While its use in the body of a JSON-LD document
   represents just syntactic sugar that MUST be optimized away when processing
-  the document, it is very helpful for <a href="#compaction">Compaction</a>
-  and <a href="#framing">Framing</a>. The value of terms associated with a
-  <code>@set</code>- or <code>@list</code>-<code>@container</code> are always
-  represented in the form of an <tref>array</tref> - even if there is just a
-  single value. This makes post-processing of the data easier as the data is
-  in a deterministic form. If no such <code>@container</code> is specified,
-  single values are optimized to a non-array form.</p>
+  the document, it is very helpful when used within the context of a document.
+  Values of terms associated with a <code>@set</code>- or <code>@list</code>-<code>@container</code>
+  are always represented in the form of an <tref>array</tref> - even if there is just a
+  single value that would otherwise be optimized to a non-array form in a
+  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
+  the data easier as the data is in a deterministic form.</p>
 
 <p class="note">The use of <code>@container</code> in the body of a JSON-LD
   document, i.e., outside <code>@context</code> is ignored by JSON-LD processors.</p>
@@ -2103,12 +2100,11 @@ using only the JSON-LD <tref>context</tref>.</p>
 </section>
 
 <section>
-<h3>Expansion</h3>
+<h3>Expanded Document Form</h3>
 <p>The JSON-LD API [[JSON-LD-API]] defines an method for <em>expanding</em> a JSON-LD document.
   Expansion is the process of taking a JSON-LD document and applying a
   context such that all IRIs, datatypes, and literal values are expanded so
-  that the context is no longer necessary. JSON-LD document expansion
-  is typically used as a part of <a href="#framing">Framing</a>.</p>
+  that the context is no longer necessary.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -2149,7 +2145,7 @@ using only the JSON-LD <tref>context</tref>.</p>
 </section>
 
 <section>
-<h3>Compaction</h3>
+<h3>Compact Document Form</h3>
 <p>The JSON-LD API [[JSON-LD-API]] defines a method for <em>compacting</em> a JSON-LD document.
   Compaction is the process of taking a JSON-LD document and applying a
   context such that the most compact form of the document is generated. JSON
@@ -2211,162 +2207,11 @@ using only the JSON-LD <tref>context</tref>.</p>
 -->
 </pre>
 
-<p>The compaction algorithm also enables the developer to map any expanded
-  format into an application-specific compacted format. While the context
-  provided above mapped <code>http://xmlns.com/foaf/0.1/name</code> to
-  <strong>name</strong>, it could have also mapped it to any arbitrary string
+<p>The compaction algorithm enables a developer to map any document into an
+  application-specific compacted form by first <a href="#expanded-document-form">expanding the document</a>.
+  While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
+  to <strong>name</strong>, it could have also mapped it to any arbitrary string
   provided by the developer.</p>
-</section>
-
-<section>
-<h3>Framing</h3>
-<p>The JSON-LD API [[JSON-LD-API]] defines an method for <em>framing</em> a JSON-LD document.
-  This allows developers to query by example and force a specific tree layout to a JSON-LD document.</p>
-
-<p>A JSON-LD document is a representation of a directed graph. A single
-  directed graph can have many different serializations, each expressing
-  exactly the same information. Developers typically work with trees, represented as
-  <tref>JSON object</tref>s. While mapping a graph to
-  a tree can be done, the layout of the end result must be specified in advance.
-  A <tdef>Frame</tdef> can be used by a developer on a JSON-LD document to
-  specify a deterministic layout for a graph.</p>
-
-<p>Framing is the process of taking a JSON-LD document, which expresses a
-  graph of information, and applying a specific graph layout
-  (called a <tref>Frame</tref>).</p>
-
-<p>The JSON-LD document below expresses a library, a book and a chapter:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     {
-      "@id": "http://example.org/vocab#contains",
-      "@type": "@id"
-    },
-    "creator":      "http://purl.org/dc/terms/creator",
-    "description":  "http://purl.org/dc/terms/description",
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@graph":
-  [{
-    "@id": "http://example.com/library",
-    "@type": "Library",
-    "contains": "http://example.org/library/the-republic"
-  },
-  {
-    "@id": "http://example.org/library/the-republic",
-    "@type": "Book",
-    "creator": "Plato",
-    "title": "The Republic",
-    "contains": "http://example.org/library/the-republic#introduction"
-  },
-  {
-    "@id": "http://example.org/library/the-republic#introduction",
-    "@type": "Chapter",
-    "description": "An introductory chapter on The Republic.",
-    "title": "The Introduction"
-  }]
-}-->
-</pre>
-
-<p>Developers typically like to operate on items in a hierarchical, tree-based
-  fashion. Ideally, a developer would want the data above sorted into top-level
-  libraries, then the books that are contained in each library, and then the
-  chapters contained in each book. To achieve that layout, the developer can
-  define the following <tref>frame</tref>:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator",
-    "description":  "http://purl.org/dc/terms/description",
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@type": "Library",
-  "contains": {
-    "@type": "Book",
-    "contains": {
-      "@type": "Chapter"
-    }
-  }
-}
--->
-</pre>
-
-<p>When the framing algorithm is run against the previously defined
-  JSON-LD document, paired with the <tref>frame</tref> above, the following
-  JSON-LD document is the end result:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "Book":         "http://example.org/vocab#Book",
-    "Chapter":      "http://example.org/vocab#Chapter",
-    "contains":     "http://example.org/vocab#contains",
-    "creator":      "http://purl.org/dc/terms/creator"
-    "description":  "http://purl.org/dc/terms/description"
-    "Library":      "http://example.org/vocab#Library",
-    "title":        "http://purl.org/dc/terms/title"
-  },
-  "@id": "http://example.org/library",
-  "@type": "Library",
-  "contains": {
-    ****"@id": "http://example.org/library/the-republic",****
-    "@type": "Book",
-    ****"creator": "Plato",****
-    ****"title": "The Republic",****
-    "contains": {
-      ****"@id": "http://example.org/library/the-republic#introduction",****
-      "@type": "Chapter",
-      ****"description": "An introductory chapter on The Republic.",****
-      ****"title": "The Introduction"****
-    },
-  },
-}
--->
-</pre>
-
-<section>
-<h3>Framing Operators</h3>
-<p>A <tref>frame</tref> is a JSON-LD document with some extra syntactic elements used to match against
-  parts of an input document. These operators work by matching on elements of
-  <tref title="subject definition">subject definitions</tref> comprising the document.</p>
-<dl>
-  <dt>Type Matching</dt><dd>
-    A <tref>frame</tref> including a <code>@type</code> with one or more values
-    matches any <tref>subject definition</tref> having a <code>@type</code> property that includes
-    the specified type.</dd>
-  <dt>Type Wildcard</dt><dd>
-    A <tref>frame</tref> including a <code>@type</code> having only an empty <tref>JSON object</tref>
-    matches any <tref>subject definition</tref> having a <code>@type</code> property with
-    any value.</dd>
-  <dt>Duck Typing</dt><dd>
-    A <tref>frame</tref> without a <code>@type</code> definition but with other non-<tref>keyword</tref>
-    property definitions matches any <tref>subject definition</tref> having at least the
-    same set of properties.</dt>
-  <dt>Embedding</dt><dd>
-    A <tref>frame</tref> including a property which references another <tref>frame</tref> causes
-    <tref title="subject definition">subject definitions</tref> containing that property
-    and referencing either other <tref title="subject definition">subject definitions</tref>
-    or <tref title="subject reference">subject references</tref> to embed
-    <tref title="subject definition">subject definitions</tref> matching the embed <tref>frame</tref>
-    to be defined within that property. <tref title="subject reference">Subject references</tref>
-    that don't match the embed <tref>frame</tref> are dropped.</dd>
-</dl>
-<p>The [[!JSON-LD-API]] describes other flags and <tref title="keyword">keywords</tref>
-  that are used to gain even more control over the framed output.</p>
-</section>
 </section>
 
 </section>
