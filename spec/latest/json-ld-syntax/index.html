@@ -1492,7 +1492,9 @@ contexts:</p>
   ...
   "details":
   {
-    ****"@context": { "name": "http://example.com/organization#name" },****
+    ****"@context": {
+      "name": "http://example.com/organization#name"
+    },****
     "****name****": "Graz University of Technology"
   }
 }
@@ -1510,8 +1512,7 @@ documentation about the <tref title="prefix">prefixes</tref> declared in the doc
 When importing a <code>@context</code> value from an external JSON-LD context
 document, any extra information contained outside of the
 <code>@context</code> value MUST be discarded. It is
-also RECOMMENDED that a human-readable document encoded in HTML+RDFa
-[[HTML-RDFA]] or other Linked Data compatible format is served as well to
+also RECOMMENDED that a human-readable document is served as well to
 explain the correct usage of the JSON-LD context document.
 </p>
 </section>
@@ -1548,13 +1549,13 @@ ordinary JSON document:</p>
 <!--
 GET /ordinary-json-document.json HTTP/1.1
 Host: example.com
-Accept: application/json,*/*;q=0.1
+Accept: application/ld+json,application/json,*/*;q=0.1
 
 ====================================
 
 HTTP/1.0 200 OK
 ...
-Content-Type: application/json
+Content-Type: ****application/json****
 ****Link: <http://json-ld.org/contexts/person>; rel="describedby"; type="application/ld+json"****
 
 {
@@ -1582,8 +1583,7 @@ Content-Type: application/json
 <p>Instead of using a string representation of an IRI, the IRI MAY be
 specified using an object having an <code>@id</code> key.
 The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
-<tref>prefix</tref>:suffix value, or an <tref>absolute IRI</tref>. Type information
-may be specified</p>
+<tref>compact IRI</tref>, or an <tref>absolute IRI</tref>.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1632,12 +1632,14 @@ may be specified</p>
   language code <code>ja</code>, <em>Ninja</em> with the language code
   <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
   The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
-  associated with any language code since it was reset in the expanded term
-  definition.</p>
+  associated with any language code since <code>@language</code> was reset to
+  <tref>null</tref> in the expanded term definition.</p>
 
-<p>Expanded terms MAY also be defined using <tref title="compact_iri">Compact IRIs</tref> or
-  <tref title="IRI">IRIs</tref> as keys. If the definition does not include an <code>@id</code> key,
-  the expanded IRI is determined by performing expansion of the key within the current active context.</p>
+<p>Expanded terms MAY also be defined using <tref title="compact_iri">compact IRIs</tref> or
+  <tref title="absolute_IRI">absolute IRIs</tref> as keys. If the definition does not include an
+  <code>@id</code> key, the expanded IRI is determined by performing expansion of the key
+  within the current active context. This mechanism is mainly used to associate type or language
+  information with a <tref>compact IRI</tref> or an <tref>absolute IRI</tref>.</p>
 
 <p class="note">Although it is possible to define a <tref>compact IRI</tref> or IRI to expand to some
   other IRI, such usage is strongly discouraged.</p>
@@ -1719,13 +1721,20 @@ the data type to be specified with each usage.</p>
     ****"foaf": "http://xmlns.com/foaf/0.1/"****,
     "****foaf:age****":
     {
-      "@id": "http://xmlns.com/foaf/0.1/"",
       "@type": "xsd:integer"
     },
     "****foaf:homepage****":
     ****{
       "@type": "@id"
     }****
+  },
+  "foaf:name": "John Smith",
+  "foaf:age": ****"41"****,
+  "foaf:homepage":
+  ****[
+    "http://personal.example.org/",
+    "http://work.example.com/jsmith/"
+  ]****
 }
 -->
 </pre>
@@ -1738,8 +1747,8 @@ the data type to be specified with each usage.</p>
   useful for establishing different type coercion rules. It also allows a <tref>compact IRI</tref> (or even an
   absolute <tref>IRI</tref>) to be defined as something else entirely, but this usage is discouraged.</p>
 
-<p>Type coercion is performed using the unexpanded value of the key, which MUST exactly match a coercion
-  rule in the <tref>active context</tref>.</p>
+<p>Type coercion is performed using the unexpanded value of the key, which MUST exactly match a definition
+  in the <tref>active context</tref>.</p>
 
 </section>
 
@@ -1804,7 +1813,7 @@ the data type to be specified with each usage.</p>
 -->
 </pre>
 
-<p>Not only <tref>term</tref>s, but also <tref title="compact iri">Compact IRIs</tref>
+<p>Not only <tref>term</tref>s, but also <tref title="compact iri">compact IRIs</tref>
   and <tref title="iri">IRIs</tref> MAY be used on the left-hand side of a definition.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -1817,7 +1826,6 @@ the data type to be specified with each usage.</p>
     "name": "foaf:name",
     "****foaf:age****":
     {
-      "@id": "foaf:age",
       "@type": "xsd:integer"
     },
     "****foaf:homepage****":
