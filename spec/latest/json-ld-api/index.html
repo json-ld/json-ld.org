@@ -1615,7 +1615,7 @@ language-native data structures MUST be used where applicable.</p>
   graph of information, and applying a specific graph layout
   (called a <tref>Frame</tref>).</p>
 
-<p>Framing makes use of the <a href="#subject-flattening">Subject Flattening</a> algorithm
+<p>Framing makes use of the <a href="#subject-map-generation">Subject Map Generation</a> algorithm
   to place each object defined in the JSON-LD document into a flat list of objects, allowing
   them to be operated upon by the framing algorithm.</p>
 
@@ -1647,7 +1647,7 @@ language-native data structures MUST be used where applicable.</p>
     should be omitted from the output.</dd>
   <dt><tdef>map of flattened subjects</tdef></dt>
   <dd>a map of subjects that is the result of the
-    <a href="#subject-flattening">Subject Flattening Algorithm</a>.</dd>
+    <a href="#subject-map-generation">Subject Map Generation algorithm</a>.</dd>
 </dl>
 </section>
 
@@ -1666,7 +1666,8 @@ language-native data structures MUST be used where applicable.</p>
     the <tref>object embed flag</tref> set to <tref>true</tref>, the
     <tref>explicit inclusion flag</tref> set to <tref>false</tref>, and the
     <tref>omit default flag</tref> set to <tref>false</tref> along with <tref>map of flattened subjects</tref>
-    set to the result of performing <a href="#subject-flattening">Subject Flattening</a> on
+    set to the <code>@merged</code> property of the result of performing the
+    <a href="#subject-map-generation">Subject Map Generation</a> algorithm on
     <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
 
 <p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
@@ -1811,71 +1812,92 @@ language-native data structures MUST be used where applicable.</p>
   after replacement, an array contains only the value <tref>null</tref> remove the value, leaving
   an empty array. The resulting value is the final <tref>JSON-LD output</tref>.</p>
 
-<p class="issue">The algorithm needs to be updated to consider <code>@graph</code>.
-  For 1.0, this might not require anything, as the default implementation of <a
-  href="#subject-flattening">Subject Flattening</a> should flatten everything
-  into a single graph.</p>
+<p class="issue">The algorithm needs to be updated to consider <code>@graph</code>. See
+  <a href="https://github.com/json-ld/json-ld.org/issues/118">ISSUE-118</a> for details.</p>
 
 </section>
 
 <section>
-<h3>Subject Flattening</h3>
-<p>Subject Flattening takes as input an expanded JSON-LD document, and results in a <tref>JSON object</tref>
-  <em>subjects</em> with a mapping from each object represented in the document to a single entry within
-  the input document, assigning <tref>blank node</tref> identifiers to objects without a @id, or with an @id that
-  references a blank node identifier.</p>
+<h3>Subject Map Generation</h3>
+<p>The Subject Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
+  <em>subjectMap</em> holding a flat representation of the graphs and nodes represented in the document. All nodes that are not
+  uniquelly identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
+  document will have a property for every graph in the document whose value is another object with a property for every
+  node represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
+  under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
 
-<p>The algorithm operates on the initially empty <em>subjects</em> and takes as input the
-  current document <em>element</em>.</p>
+<p>The algorithm takes as input the initially empty <em>subjectMap</em>, the expanded JSON-LD document as <em>element</em>,
+  <code>null</code> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag,
+  and <code>@default</code> as <em>graph</em>.</p>
+
+<p class="issue">If the values of <code>@type</code> would be expanded as everything else to <code>@id</code> form as proposed in
+  <a href="https://github.com/json-ld/json-ld.org/issues/120">ISSUE-120</a>, the <em>iri</em> flag could be eliminated.</p>
 
 <ol class="algorithm">
-  <li>If <em>element</em> is an array, process each entry in element recursively, using this algorithm.</li>
-  <li>Otherwise, if element is a JSON object:
+  <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm.</li>
+  <li>Otherwise, if <em>element</em> is a <tref>JSON object</tref> without a <code>@value</code> property:
     <ol class="algorithm">
-      <li>If element is a <tref>subject definition</tref> or <tref>subject reference</tref>:
+      <li>If <em>element</em> has a <code>@list</code> property, create a new <tref>JSON object</tref> <em>flattenedList</em> with a
+        <code>@list</code> property whose value is an empty array and recursively call this algorithm by passing <em>subjectMap</em>,
+        the value of the <code>@list</code> property of <em>element</em> as <em>element</em>, <em>flattenedList</em> as <em>parent</em>,
+        <code>true</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag and <em>graph</em>. Add <em>flattenedList</em>
+        to <em>parent</em> and return.</li>
+      <li>If the property <code>@id</code> is not an <tref>IRI</tref> and <em>graph</em> is not <code>@merge</code> or if the <code>@id</code>
+        property does not exist, set <em>id</em> to a <tref>blank node</tref> identifer created by the
+        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm; otherwise use the value of the <code>@id</code>
+        property as <em>id</em>.</li>
+      <li>If <em>parent</em> is not <tref>null</tref>, add create new object with an <code>@id</code> property whose value equals <em>id</em> and
+        add it to <em>parent</em>.</li>
+      <li>If there already exists a <em>id</em> property in the <tref>JSON object</tref> of the <em>graph</em> property of <em>subjectMap</em>, set
+        <em>subject</em> to the value of that property.</li>
+      <li>Otherwise, create a new object with an <code>@id</code> property whose value equals <em>id</em> and add it as value of the <em>id</em>
+        property of the <tref>JSON object</tref> at the <em>graph</em> property of <em>subjectMap</em>.</li>
+      <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code> ordered by <em>property</em>:
         <ol class="algorithm">
-          <li>If the property <code>@id</code> is not an <tref>IRI</tref>, return a
-            <tref>blank node</tref> identifer using <a
-            href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> as
-            <em>name</em>, otherwise use the value of the @id property as
-            <em>name</em>.</li>
-          <li>Unless <em>subjects</em> as an entry for <em>name</em> create a new entry in
-            <em>subjects</em> initialized using a new <tref>JSON object</tref>
-            with <code>@id</code> set to <em>name</em> as <em>subject</em>.
-            Otherwise, use that existing entrpy as <em>subject</em>.</li>
-          <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code>
-            ordered by <em>property</em>:
-            <ol class="algorithm">
-              <li>If <em>property</em> is a keyword, copy <code>property</code> and <code>value</code>
-                to <code>subject</code>.</li>
-              <li>Otherwise, if value is a <tref>JSON object</tref>, it MUST only have the key <code>@list.</code>
-                Create a new <tref>JSON object</tref> containing
-                <code>@list</code> and an <tref>array</tref> created by
-                performing this algorithm recursively on each item in the list
-                and add to <em>subject</em> along with <em>property</em>.</li>
-              <li>Otherwise, value MUST be an <tref>array</tref>. Add property to <em>subject</em>
-                and an array value created by performing this algorithm
-                recursively on each item in the array.</li>
-            </ol>
-          </li>
-          <li>Return a new <tref>JSON object</tref> created as a <tref>subject reference</tref> to <em>name</em>.</li>
+          <li>If <em>property</em> is <code>@type</code>, create a new property <code>@type</code> in <em>subject</em> whose value is an empty
+            array and recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, the <code>@type</code>
+            property of <em>subject</em> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>true</code> for the <em>iri</em>
+            flag and <em>graph</em>. Then continue with the next property from <em>element</em>.</li>
+          <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as
+            <em>element</em>, <tref>null</tref> for <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the
+            <em>iri</em> flag and <em>id</em> as <em>graph</em>. Then continue with the next property from <em>element</em>.</li>
+          <li>If <em>property</em> is a <a href="#syntax-tokens-and-keywords">keyword</a>, merge <em>property</em> and <em>value</em> into
+            <em>subject</em>.</li>
+          <li>Otherwise, if no <em>property</em> property exists yet in <em>subject</em> create one and initialize it with an empty array. Then
+            recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, the <em>property</em>
+            property of <em>subject</em> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em>
+            flag and <em>graph</em>.</li>
         </ol>
       </li>
-      <li>Otherwise, return <em>element</em>.</li>
     </ol>
   </li>
-  <li>Otherwise, return <em>element</em>.</li>
+  <li>Otherwise
+    <ol class="algorithm">
+      <li>If <em>element</em> is a string that begins with the characters <code>_:</code> and the <em>iri</em> flag is set to <code>true</code>,
+        map <em>element</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a> to avoid collisions.</li>
+      <li>If the <em>list</em> flag is set to <code>false</code>, check if <em>element</em> is already in <em>parent</em>. If so, return.</li>
+      <li>Add <em>element</em> to <em>parent.</em></li>
+    </ol>
+  </li>
 </ol>
 
-<p class="issue">The algorithm states to set the property in <em>subject</em> using the mapped values,
-  but it really should merge, if the property already exists in <em>subject</em>.</p>
+<p>After the above outlined algorithm has been executed, the subject map for all graphs including the default graph are contained in
+  <em>subjectMap</em>. To also create the subject map for the merged graph, perform the following steps:</p>
 
-<p class="issue">The algorithm should descend into @graph and create a parallel flattened structure
-  of subject to object within that <code>@graph</code> representation. Recursive <code>@graph</code>
-  definitions are also flattened into the default graph. The algorithm should also
-  take an option which descends into <code>@graph</code> and flattens all definitions at the same level,
-  effectively flatting default and named graphs into a single default graph; this
-  should be the default implementation for 1.0.</p>
+<ol class="algorithm">
+  <li>Foreach property <em>graph</em> and value <em>graphMap</em> in <em>subjectMap</em>:
+    <ol class="algorithm">
+      <li>Foreach property <em>subject</em> and value <em>value</em> in <em>graphMap</em>:
+        <ol class="algorithm">
+          <li>Call the algorithm outlined above by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, <tref>null</tref> as
+            <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag and
+            <code>@merged</code> for <em>graph</em>.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
 </section>
 
 <section id="remove-embed">
