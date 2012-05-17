@@ -42,7 +42,7 @@ print <<< htmlcode
                  <li><a href="json-ld-api/">The JSON-LD API</a> - The JSON-LD
                  API describes the Application Programming Interface that can
                  be used by developers to interface with JSON-LD documents at
-                 a higher-level. </li>
+                 a higher level.</li>
                  <li><a href="rdf-graph-normalization/">RDF Graph Normalization</a> - 
                  The RDF Graph Normalization document is a general algorithm for
                  serializing RDF graphs. It is most useful when comparing
