@@ -124,7 +124,7 @@
     var startTab = getParameterByName('startTab');
     if(startTab) {
         // strip 'tab-' to get the tab's panel's I D
-        $('#tabs').tabs("select", "#"+startTab.substr(4));
+        $('#tabs').tabs('select', '#' + startTab.substr(4));
     }
 
     // wait for ajax if needed
@@ -205,8 +205,8 @@
         if(err) {
           return callback(err);
         }
-        $('#normalized').html(js_beautify(JSON.stringify(normalized)),
-          {'indent_size': 2, 'brace_style': 'expand'});
+        $('#normalized').html(js_beautify(JSON.stringify(normalized),
+          {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
     }
@@ -215,8 +215,8 @@
         if(err) {
           return callback(err);
         }
-        $('#expanded').html(js_beautify(JSON.stringify(expanded)),
-          {'indent_size': 2, 'brace_style': 'expand'});
+        $('#expanded').html(js_beautify(JSON.stringify(expanded),
+          {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
     }
@@ -225,8 +225,8 @@
         if(err) {
           return callback(err);
         }
-        $('#compacted').html(js_beautify(JSON.stringify(compacted)),
-          {'indent_size': 2, 'brace_style': 'expand'});
+        $('#compacted').html(js_beautify(JSON.stringify(compacted),
+          {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
     }
@@ -235,8 +235,8 @@
         if(err) {
           return callback(err);
         }
-        $('#framed').html(js_beautify(JSON.stringify(framed)),
-          {'indent_size': 2, 'brace_style': 'expand'});
+        $('#framed').html(js_beautify(JSON.stringify(framed),
+          {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
     }
@@ -279,25 +279,27 @@
     }
 
     // If we're using a param, check to see if it is valid JSON
-    var needParam = false, toValidate = null;
+    var needParam = false;
+    var param = null;
+    var jsonParam = null;
 
-    if (playground.activeTab === 'tab-compacted') {
-        toValidate = $('#context').val();
-        needParam = true;
+    if(playground.activeTab === 'tab-compacted') {
+      jsonParam = $('#context').val();
+      needParam = true;
     }
-    else if (playground.activeTab === 'tab-framed') {
-        toValidate = $('#frame').val();
-        needParam = true;
+    else if(playground.activeTab === 'tab-framed') {
+      jsonParam = $('#frame').val();
+      needParam = true;
     }
 
-    if (needParam) {
-        try {
-          var param = JSON.parse(toValidate);
-        }
-        catch(e) {
-          $('#param-errors').text($('#param-type').text() + ' - ' + e);
-          errors = true;
-        }
+    if(needParam) {
+      try {
+        param = JSON.parse(jsonParam);
+      }
+      catch(e) {
+        $('#param-errors').text($('#param-type').text() + ' - ' + e);
+        errors = true;
+      }
     }
 
     // errors detected
@@ -320,12 +322,10 @@
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
       if($('#frame').val().length > 0) {
-        link += '&frame=' +
-            encodeURIComponent($("#frame").val());
+        link += '&frame=' + encodeURIComponent($('#frame').val());
       }
       if($('#context').val().length > 0) {
-        link += '&context=' +
-            encodeURIComponent($("#context").val());
+        link += '&context=' + encodeURIComponent($('#context').val());
       }
 
       // Start at the currently active tab
@@ -378,8 +378,8 @@
 
   /**
    * Populate the UI with markup, frame, and context JSON. The data parameter
-   * should have a 'markup' field and optional 'frame' and 'context' fields that
-   * contain a serialized JSON string.
+   * should have a 'markup' field and optional 'frame' and 'context' fields
+   * that contain a serialized JSON string.
    *
    * @param data object with optional 'markup', 'frame' and 'context' fields.
    */
@@ -449,7 +449,7 @@
       }
       else if('@context' in playground.examples[name]) {
         // use context from markup as default
-        var ctx = playground.examples[name]['@context']
+        var ctx = playground.examples[name]['@context'];
         data.context = JSON.stringify(ctx);
       }
     }
