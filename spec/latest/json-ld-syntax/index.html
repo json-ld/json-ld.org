@@ -931,11 +931,12 @@ the value into an IRI when processed by a JSON-LD Processor.</p>
 <h2>Identifying the Subject</h2>
 
 <p>
-  To be able to externally reference nodes, it is important that each node has
+  To be able to externally reference nodes in a graph, it is important that each node has
   an unambiguous identifier. <tref>IRI</tref>s are a fundamental concept of
   <tref>Linked Data</tref>, and nodes should have a de-referencable
   identifier used to name and locate them. For nodes to be truly linked,
-  de-referencing the identifier should result in a representation of that node.
+  de-referencing the identifier should result in a representation of that node
+  (for example, using a URL to retrieve a web page).
   Associating an IRI with a node tells an application that the returned
   document contains a description of the node requested.
 </p>
@@ -964,7 +965,9 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 
 <p>A <tref>JSON object</tref> used to define property values is called a
   <tref>subject definition</tref>. <tref title="subject definition">Subject definitions</tref>
-  do not require a <code>@id</code>, in which case they are considered to be an
+  do not require an <code>@id</code>. A 
+  <tref>subject definition</tref>
+  that does not contain an <code>@id</code> property is called an
   <tref>unlabeled node</tref>.</p>
 
 <p class="note">To ensure the best possible performance, it is a best practice
@@ -1000,7 +1003,7 @@ an <tref>IRI</tref>.</p>
 <section>
 <h2>String Internationalization</h2>
 
-<p>In different scenarios it is important to annotate a <tref>string</tref>
+<p>At times, it is important to annotate a <tref>string</tref>
   with its language. In JSON-LD this is possible in a variety of ways.
   Firstly, it is possible to define a default language for a JSON-LD document
   by setting the <code>@language</code> key in the <code>@context</code> or in a
@@ -1055,7 +1058,7 @@ value by omitting the <code>@language</code> tag or setting it to
     "@language": "ja"
   },
   "name": ****{
-    "@value": "花澄"
+    "@value": "Frank"
   },****
   "occupation": **** {
     "@value": "Ninja",
@@ -1092,7 +1095,8 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 -->
 </pre>
 
-<p class="note">JSON-LD allows to associate language information with terms.
+<p class="note">JSON-LD allows one to associate language information with 
+  <tref>term</tref>s.
   See <a href="#expanded-term-definition">Expanded Term Definition</a> for
   more details.</p>
 
@@ -1102,10 +1106,10 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 <h2>Sets and Lists</h2>
 
 <p>A JSON-LD author can express multiple values in a compact way by using
-  <tref>array</tref>s. But, because graphs do not describe ordering for links
-  between nodes, in contrast to plain JSON, arrays in JSON-LD do not provide
-  an ordering of the listed objects by default. For example, consider the
-  following
+  <tref>array</tref>s. Since graphs do not describe ordering for links
+  between nodes, arrays in JSON-LD do not provide an ordering of the 
+  listed objects by default. This is exactly the opposite from regular JSON
+  arrays, which are ordered by default. For example, consider the following
   simple document:</p>
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1211,20 +1215,24 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </pre>
 
 <p class="note">List of lists are not allowed in this version of JSON-LD.
-  If a list of lists is detected, a JSON-LD processor will throw an exception.</p>
+  If a list of lists is detected, a JSON-LD processor will throw an exception.
+  This decision was made due to the extreme amount of added complexity when
+  processing lists of lists.</p>
 
 <p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
   describe unordered sets. While its use in the body of a JSON-LD document
   represents just syntactic sugar that MUST be optimized away when processing
   the document, it is very helpful when used within the context of a document.
-  Values of terms associated with a <code>@set</code>- or <code>@list</code>-<code>@container</code>
+  Values of terms associated with a <code>@set</code> or <code>@list</code> container
   are always represented in the form of an <tref>array</tref> - even if there is just a
   single value that would otherwise be optimized to a non-array form in a
   <a href="#compact-document-form">compacted document</a>. This makes post-processing of
-  the data easier as the data is in a deterministic form.</p>
+  the data easier as the data is always in array form, even if the array only
+  contains a single value.</p>
 
 <p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document, i.e., outside <code>@context</code> is ignored by JSON-LD processors.</p>
+  document, i.e., outside <code>@context</code> MUST be ignored by 
+  JSON-LD processors.</p>
 
 </section>
 
@@ -1234,8 +1242,8 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 <h1>Advanced Concepts</h1>
 
 <p>JSON-LD has a number of features that provide functionality above and beyond
-the core functionality described above. The following sections outline the
-features that are specific to JSON-LD.
+the core functionality described above. The following section describes this
+advanced functionality in more detail.
 </p>
 
 <section>
@@ -1255,7 +1263,8 @@ features that are specific to JSON-LD.
   <li>By using a native JSON type.</li>
 </ol>
 
-<p>The first example uses the <code>@type</code> keyword to express a typed value:</p>
+<p>The first example uses the <code>@type</code> keyword to associate a
+type with a particular <tref>term</tref> in the <code>@context</code>:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1275,7 +1284,12 @@ features that are specific to JSON-LD.
 -->
 </pre>
 
-<p>The second example uses the expanded form for specifying objects:</p>
+<p>The <em>modified</em> key's value above is automatically type coerced to a
+datetime value because of the information specified in the 
+<code>@context</code>.</p>
+
+<p>The second example uses the expanded form of setting the type information
+in the body of a JSON-LD document:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1353,12 +1367,10 @@ features that are specific to JSON-LD.
     At times, declaring every single term that a document uses can require the
     developer to declare tens, if not hundreds of potential
     <tref>vocabulary</tref> <tref>term</tref>s that are used across an
-    application. This is a concern for at least three reasons: the
+    application. This is a concern for at least two reasons: the
     first is the cognitive load on the developer of remembering all of the
-    <tref>term</tref>s, the second is the serialized size of the
-    <tref>context</tref> if it is specified inline, the third is
-    future-proofing embedded application <tref>context</tref>s that may not
-    be easy to change after they are deployed. In order to address these issues,
+    <tref>term</tref>s, and the second is the serialized size of the
+    <tref>context</tref> if it is specified inline. In order to address these issues,
     the concept of a <tref>compact IRI</tref> is introduced.</p>
   <p>
     A <tdef>compact IRI</tdef> is a way of expressing an <tref>IRI</tref>
@@ -1506,7 +1518,7 @@ basis. The context list MUST contain either de-referenceable <tref>IRI</tref>s
 or <tref>JSON object</tref>s that conform to the <tref>context</tref> syntax
 as described in this document.</p>
 
-<p>An author may nest contexts within <tref>JSON object</tref>s, with the
+<p>An author MAY nest contexts within <tref>JSON object</tref>s, with the
 more deeply nested contexts overriding the values in previously defined
 contexts:</p>
 
@@ -1647,7 +1659,7 @@ The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
     "name": { "@id": "ex:name", ****"@language": null**** },
     "occupation": { "@id": "ex:occupation" },
     "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
-    "occupation_de": { "@id": "ex:occupation", ****"@language": "cs"**** }
+    "occupation_cs": { "@id": "ex:occupation", ****"@language": "cs"**** }
   },
   ****"name": "Yagyū Muneyoshi",
   "occupation": "忍者",
@@ -1671,8 +1683,11 @@ The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
   within the current active context. This mechanism is mainly used to associate type or language
   information with a <tref>compact IRI</tref> or an <tref>absolute IRI</tref>.</p>
 
-<p class="note">Although it is possible to define a <tref>compact IRI</tref> or IRI to expand to some
-  other IRI, such usage is strongly discouraged.</p>
+<p class="note">While it is possible to define a 
+  <tref>compact IRI</tref>, or an absolute IRI to expand to some
+  other unrelated IRI (for example, <code>foaf:name</code> expanding to 
+  <code>http://example.org/unrelated#species</code>), 
+  such usage is strongly discouraged.</p>
 </section>
 
 <section>
@@ -1680,18 +1695,21 @@ The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
 
 <p>JSON-LD supports the coercion of values to particular data types.
 Type <tdef>coercion</tdef> allows someone deploying JSON-LD to coerce the incoming or
-outgoing types to the proper data type based on a mapping of data type <tref>IRI</tref>s to
-property types. Using type coercion, value representation is preserved without requiring
-the data type to be specified with each usage.</p>
+outgoing values to the proper data type based on a mapping of data type <tref>IRI</tref>s to
+<tref>term</tref>s. Using type coercion, value representation is preserved without requiring
+the data type to be specified with each piece of data.</p>
 
 <p>Type coercion is specified within an <a href="#expanded-term-definition">expanded term definition</a>
-  using the <code>@type</code> key. The values of this key represent type IRIs and MUST take the form of
-  <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref> or the <tref>keyword</tref> <code>@id</code>. Specifying
-  <code>@id</code> indicates that within the body of a JSON-LD document, string values of keys coerced as
-  <code>@id</code> are to be interpreted as <tref>IRI</tref>s.</p>
+  using the <code>@type</code> key. The value of this key represents a type IRI and MUST take the form of
+  a <tref>term</tref>, <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or the <tref>keyword</tref> <code>@id</code>. Specifying
+  <code>@id</code> indicates that within the body of a JSON-LD document, a string value of a <tref>term</tref> coerced to
+  <code>@id</code> is to be interpreted as an <tref>IRI</tref>.</p>
 
 <p><tref title="term">Terms</tref> or <tref title="compact_iri">compact IRIs</tref> used as the value of a
-  <code>@type</code> key MAY be defined within the same context.</p>
+  <code>@type</code> key MAY be defined within the same context. This means that one may specify a
+  <tref>term</tref> like <code>xsd</code> and then use <code>xsd:integer</code> within the same
+  context definition - the JSON-LD processor will be able to determine the proper expansion for
+  <code>xsd:integer</code>.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
 <tref>typed value</tref>s, IRIs and lists.</p>
@@ -1769,25 +1787,30 @@ the data type to be specified with each usage.</p>
 -->
 </pre>
 
-<p>In this case, the <code>@id</code> definition is optional, but if it does exist, the <tref>compact IRI</tref>
-  or <tref>IRI</tref> is treated as a term so that the actual definition of a <tref>prefix</tref> becomes unnecessary.</p>
+<p>In this case the <code>@id</code> definition is optional, but if it does exist, the <tref>compact IRI</tref>
+  or <tref>IRI</tref> is treated as a term (not a <code>prefix:suffix</code> construct) 
+  so that the actual definition of a <tref>prefix</tref> becomes unnecessary.</p>
 
 <p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
-  expansion and value coercion. This allows multiple representations for the same expanded IRI, which may be
-  useful for establishing different type coercion rules. It also allows a <tref>compact IRI</tref> (or even an
-  absolute <tref>IRI</tref>) to be defined as something else entirely, but this usage is discouraged.</p>
+  expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
+  For example, one could specify that <code>dog</code> and <code>cat</code> both expanded to <code>http://example.com/vocab#animal</code>.
+  Doing this could be useful for establishing different type coercion or language specification rules. It also allows a <tref>compact IRI</tref> (or even an
+  absolute <tref>IRI</tref>) to be defined as something else entirely. For example, one could specify that
+  the <tref>term</tref> <code>http://example.org/zoo</code> should expand to 
+  <code>http://example.org/river</code>, but this usage is discouraged because it would lead to a 
+  great deal of confusion among developers attempting to understand the JSON-LD document.</p>
 
-<p>Type coercion is performed using the unexpanded value of the key, which MUST exactly match a definition
-  in the <tref>active context</tref>.</p>
+<p>Type coercion is performed using the unexpanded value of the key, 
+  which MUST have an exact match for an entry in the <tref>active context</tref>.</p>
 
 </section>
 
 <section>
   <h3>IRI Expansion Within a Context</h3>
-  <p>To be consistent with JSON-LD, in general, anywhere an IRI is expected,
-    normal IRI expansion rules apply (see <a href="#iris">IRIs</a>). Within
+  <p>In general, normal IRI expansion rules apply 
+    anywhere an IRI is expected (see <a href="#iris">IRIs</a>). Within
     a <tref>context</tref> definition, this can mean that terms defined
-    within a given context MAY also be used within that context, as long as
+    within the context MAY also be used within that context as long as
     there are no circular dependencies. For example, it is common to use
     the <code>xsd</code> namespace when defining <tref>typed value</tref>s:</p>
 <pre class="example" data-transform="updateExample">
@@ -1812,7 +1835,7 @@ the data type to be specified with each usage.</p>
 }
 -->
 </pre>
-<p>In this example, the <code>xsd</code> <tref>term</tref> is defined,
+<p>In this example, the <code>xsd</code> <tref>term</tref> is defined
   and used as a <tref>prefix</tref> for the <code>@type</code> coercion
   of the <code>age</code> property.</p>
 
@@ -1843,8 +1866,9 @@ the data type to be specified with each usage.</p>
 -->
 </pre>
 
-<p>Not only <tref>term</tref>s, but also <tref title="compact iri">compact IRIs</tref>
-  and <tref title="iri">IRIs</tref> MAY be used on the left-hand side of a definition.</p>
+<p><tref title="compact iri">Compact IRIs</tref>
+  and <tref title="iri">IRIs</tref> MAY be used on the left-hand side of a 
+  <tref>term</tref> definition.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1869,18 +1893,20 @@ the data type to be specified with each usage.</p>
 </pre>
 
 <p>
-In this example, the <tref>compact IRI</tref> form is used in two different ways.
-The first way, as shown with <code>foaf:age</code> declares both the
+In this example, the <tref>compact IRI</tref> form is used in two different
+ways.
+In the first approach, <code>foaf:age</code> declares both the
 <tref>IRI</tref> for the term (using short-form) as well as the
-<code>@type</code> associated with the <tref>term</tref>. The second way, only
-declares the <code>@type</code> associated with the <tref>term</tref>. In the
-second case, the JSON-LD processor will still derive the full <tref>IRI</tref>
-by looking up the <code>foaf</code> <tref>prefix</tref> in the
-<tref>context</tref> for <code>foaf:homepage</code>.
+<code>@type</code> associated with the <tref>term</tref>. In the second
+approach, only the <code>@type</code> associated with the <tref>term</tref> is
+specified. The JSON-LD processor will derive the full <tref>IRI</tref> for
+<code>foaf:homepage</code> by looking up the <code>foaf</code> 
+<tref>prefix</tref> in the
+<tref>context</tref>.
 </p>
 
 <p>
-<tref title="absolute iri">Absolute IRIs</tref> MAY also be used on the left-hand side of a <tref>context</tref>:
+<tref title="absolute iri">Absolute IRIs</tref> MAY also be used in the key position in a <tref>context</tref>:
 </p>
 
 <pre class="example" data-transform="updateExample">
