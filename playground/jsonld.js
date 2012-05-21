@@ -2349,10 +2349,7 @@ function _flatten(subjects, input, namer, name, list) {
         // handle embedded subject or subject reference
         if(_isSubject(o) || _isSubjectReference(o)) {
           // rename blank node @id
-          var id = ('@id' in o) ? o['@id'] : '_:';
-          if(id.indexOf('_:') === 0) {
-            id = namer.getName(id);
-          }
+          var id = _isBlankNode(o) ? namer.getName(o['@id']) : o['@id'];
 
           // add reference and recurse
           jsonld.addValue(subject, prop, {'@id': id}, true);
@@ -3972,7 +3969,13 @@ function _parseNQuads(input) {
       s.object = {nominalValue: match[5], interfaceName: 'BlankNode'};
     }
     else {
-      s.object = {nominalValue: match[6], interfaceName: 'LiteralNode'};
+      var unescaped = match[6]
+        .replace(/\\"/g, '"')
+        .replace(/\\t/g, '\t')
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\\\/g, '\\');
+      s.object = {nominalValue: unescaped, interfaceName: 'LiteralNode'};
       if(!_isUndefined(match[7])) {
         s.object.datatype = {nominalValue: match[7], interfaceName: 'IRI'};
       }
@@ -4047,7 +4050,13 @@ function _toNQuad(statement, bnode) {
     }
   }
   else {
-    quad += '"' + o.nominalValue + '"';
+    var escaped = o.nominalValue
+      .replace(/\\/g, '\\\\')
+      .replace(/\t/g, '\\t')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\"/g, '\\"');
+    quad += '"' + escaped + '"';
     if('datatype' in o) {
       quad += '^^<' + o.datatype.nominalValue + '>';
     }
