@@ -1868,82 +1868,76 @@ language-native data structures MUST be used where applicable.</p>
 <h3>Subject Map Generation</h3>
 <p>The Subject Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
   <em>subjectMap</em> holding a flat representation of the graphs and nodes represented in the document. All nodes that are not
-  uniquelly identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
+  uniquely identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
   document will have a property for every graph in the document whose value is another object with a property for every
   node represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
   under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
 
-<p>The algorithm takes as input the initially empty <em>subjectMap</em>, the expanded JSON-LD document as <em>element</em>,
-  <code>null</code> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag,
-  and <code>@default</code> as <em>graph</em>.</p>
-
-<p class="issue">If the values of <code>@type</code> would be expanded as everything else to <code>@id</code> form as proposed in
-  <a href="https://github.com/json-ld/json-ld.org/issues/120">ISSUE-120</a>, the <em>iri</em> flag could be eliminated.</p>
+<p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>subjectMap</em>,
+  <code>@default</code> as <em>graph</em>, and <tref>null</tref> as <em>list</em>.</p>
 
 <ol class="algorithm">
-  <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm.</li>
-  <li>Otherwise, if <em>element</em> is a <tref>JSON object</tref> without a <code>@value</code> property:
+  <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm
+    and return.</li>
+  <li>If <em>element</em> is not a <tref>JSON object</tref> or if it has a <code>@value</code> property,
+    then if <em>list</em> is not <tref>null</tref>, append <em>element</em> to <em>list</em> and return.
+  </li>
+  <li>If the <code>@id</code> property exists and is an <tref>IRI</tref>, set <em>id</em> to its value, otherwise
+    set it to a <tref>blank node</tref> identifer created by the
+    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm.
+  </li>
+  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>subject reference</tref> to <em>list</em> using
+    <em>id</em> at the value for <code>@id</code>.
+  </li>
+  <li>Let <em>subjects</em> be the value in <em>subjectMap</em> where the key is <em>graph</em>; if no such
+    value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
+    <em>subjects</em>, create a new <tref>JSON object</tref> <em>subject</em> with <em>id</em> as the value
+    for <code>@id</code>. Let <em>subject</em> be the value of <em>id</em> in <em>subjects</em>.</li>
+  </li>
+  <li>For each <em>property</em> that is not <code>@id</code> and each <em>value</em> in <em>element</em> ordered
+    by <em>property</em>:
     <ol class="algorithm">
-      <li>If <em>element</em> has a <code>@list</code> property, create a new <tref>JSON object</tref> <em>flattenedList</em> with a
-        <code>@list</code> property whose value is an empty array and recursively call this algorithm by passing <em>subjectMap</em>,
-        the value of the <code>@list</code> property of <em>element</em> as <em>element</em>, <em>flattenedList</em> as <em>parent</em>,
-        <code>true</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag and <em>graph</em>. Add <em>flattenedList</em>
-        to <em>parent</em> and return.</li>
-      <li>If the property <code>@id</code> is not an <tref>IRI</tref> and <em>graph</em> is not <code>@merge</code> or if the <code>@id</code>
-        property does not exist, set <em>id</em> to a <tref>blank node</tref> identifer created by the
-        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm; otherwise use the value of the <code>@id</code>
-        property as <em>id</em>.</li>
-      <li>If <em>parent</em> is not <tref>null</tref>, create new object with an <code>@id</code> property whose value equals <em>id</em> and
-        add it to <em>parent</em> if it doesn't exist yet in parent or the <em>list</em> flag is set to <code>true</code>.</li>
-      <li>If there already exists a <em>id</em> property in the <tref>JSON object</tref> of the <em>graph</em> property of <em>subjectMap</em>, set
-        <em>subject</em> to the value of that property.</li>
-      <li>Otherwise, create a new object with an <code>@id</code> property whose value equals <em>id</em> and add it as value of the <em>id</em>
-        property of the <tref>JSON object</tref> at the <em>graph</em> property of <em>subjectMap</em>.</li>
-      <li>For each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@id</code> ordered by <em>property</em>:
+      <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm passing <em>value</em>
+        for <em>element</em>, <em>subjectMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
+        is <code>merged</code> use <em>graph</em>, otherwise use <em>id</em> for <em>graph</em> and then continue.
+      </li>
+      <li>If <em>property</em> is not <code>@type</code> and is a keyword, merge <code>property</code> and
+        <code>value</code> into <code>subject</code> and then continue.
+      </li>
+      <li>For each value <em>v</em> in the array <em>value</em>:
         <ol class="algorithm">
-          <li>If <em>property</em> is <code>@type</code>, create a new property <code>@type</code> in <em>subject</em> whose value is an empty
-            array and recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, the <code>@type</code>
-            property of <em>subject</em> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>true</code> for the <em>iri</em>
-            flag and <em>graph</em>. Then continue with the next property from <em>element</em>.</li>
-          <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as
-            <em>element</em>, <tref>null</tref> for <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the
-            <em>iri</em> flag and <em>id</em> as <em>graph</em>. Then continue with the next property from <em>element</em>.</li>
-          <li>If <em>property</em> is a <a href="#syntax-tokens-and-keywords">keyword</a>, merge <em>property</em> and <em>value</em> into
-            <em>subject</em>.</li>
-          <li>Otherwise, if no <em>property</em> property exists yet in <em>subject</em> create one and initialize it with an empty array. Then
-            recursively call this algorithm by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, the <em>property</em>
-            property of <em>subject</em> as <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em>
-            flag and <em>graph</em>.</li>
+          <li>If <em>v</em> is a <tref>subject definition</tref> or <tref>subject reference</tref>:
+            <ol class="algorithm">
+              <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
+                map <em>v</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a>
+                to avoid collisions. If one does not already exist, add a <tref>subject reference</tref> for
+                <em>v</em> into <em>subject</em> for <em>property</em>.
+              </li>
+              <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>subjectMap</em>,
+                <em>graph</em>, and <tref>null</tref> for <em>list</em>.
+              </li>
+            </ol>
+          </li>
+          <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
+            with the value of <code>@list</code> as <em>element</em>, <em>subjectMap</em>, <em>graph</em>, and
+            a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
+            property <code>@list</code> set to <em>flattenedList</em> and add it to <em>subject</em> for
+            <em>property</em>.
+          </li>
+          <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
+            generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
+            to <em>subject</em> for <em>property</em>.
+          </li>
+          <li>Otherwise, add <em>v</em> to <em>subject</em> for <em>property</em>.</li>
         </ol>
       </li>
-    </ol>
-  </li>
-  <li>Otherwise
-    <ol class="algorithm">
-      <li>If <em>element</em> is a string that begins with the characters <code>_:</code> and the <em>iri</em> flag is set to <code>true</code>,
-        map <em>element</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a> to avoid collisions.</li>
-      <li>If the <em>list</em> flag is set to <code>false</code>, check if <em>element</em> is already in <em>parent</em>. If so, return.</li>
-      <li>Add <em>element</em> to <em>parent.</em></li>
     </ol>
   </li>
 </ol>
 
 <p>After the above outlined algorithm has been executed, the subject map for all graphs including the default graph are contained in
-  <em>subjectMap</em>. To also create the subject map for the merged graph, perform the following steps:</p>
-
-<ol class="algorithm">
-  <li>Foreach property <em>graph</em> and value <em>graphMap</em> in <em>subjectMap</em>:
-    <ol class="algorithm">
-      <li>Foreach property <em>subject</em> and value <em>value</em> in <em>graphMap</em>:
-        <ol class="algorithm">
-          <li>Call the algorithm outlined above by passing <em>subjectMap</em>, <em>value</em> as <em>element</em>, <tref>null</tref> as
-            <em>parent</em>, <code>false</code> for the <em>list</em> flag, <code>false</code> for the <em>iri</em> flag and
-            <code>@merged</code> for <em>graph</em>.</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
+  <em>subjectMap</em>. To also create the subject map for the merged graph, execute the algorithm again, but pass <code>merged</code>
+  for <em>graph</em>.
 
 </section>
 
