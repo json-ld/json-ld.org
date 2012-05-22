@@ -1989,16 +1989,17 @@ processor will use direct string comparison when looking up
   </pre>
 
   <p>
-    An object definition, like the one used above, MAY be used as a
-    JSON value at any point in JSON-LD.
+    An object definition, like the one used above, MAY be used in any value
+    position in the body of a JSON-LD document.
   </p>
 </section>
 
 <section>
   <h2>Named Graphs</h2>
-  <p>The <code>@graph</code> <tref>keyword</tref> is used to identify a set of JSON-LD object
-    definitions that may not be directly related through a property, or where
-    <tref>embedding</tref> is not appropriate. For example:</p>
+  <p>The <code>@graph</code> <tref>keyword</tref> is used to express a set of 
+    JSON-LD <tref>subject definition</tref>s that may not be directly related 
+    to one another through a property. The mechanism may also be used where 
+    <tref>embedding</tref> is not desirable to the application. For example:</p>
 
   <pre class="example" data-transform="updateExample">
   <!--
@@ -2050,21 +2051,20 @@ processor will use direct string comparison when looking up
   -->
   </pre>
 
-  <p>The <code>@graph</code> <tref>keyword</tref> takes on additional meaning when it
-    is used along with other properties, or is used within an embedded JSON-LD
-    object. In this case, the set of <tref title="subject definition">subject definitions</tref>,
-    or <tref title="subject reference">subject references</tref>
-    contained within a <code>@graph</code> is given a <em>name</em>, based on
-    the label of the JSON-LD object containing a <code>@graph</code> property,
-    either an <tref>IRI</tref>, or an <tref>unlabeled node</tref>. This allows
-    statements to be made about an entire <tref>linked data graph</tref>,
+  <p>JSON-LD allows you to <em>name</em> things on the Web by assigning 
+    an <code>@id</code> to them, which is typically an <tref>IRI</tref>.
+    This notion extends to the ability to identify graphs in the same
+    manner. A developer may name data expressed using the <code>@graph</code> 
+    <tref>keyword</tref> by pairing it with an <code>@id</code> 
+    <tref>keyword</tref>. This enables the developer to make statements 
+    about the <tref>linked data graph</tref> itself, 
     rather than just a single JSON-LD object.</p>
 
   <pre class="example" data-transform="updateExample">
   <!--
   {
     "@context": ...,
-    ****"@id": "http://example.org/linked-data-graph",
+    ****"@id": "http://example.org/graphs/73",
     "asOf": { "@value": "2012-04-09", "@type": "xsd:date" },
     "@graph":****
     [
@@ -2086,12 +2086,13 @@ processor will use direct string comparison when looking up
   -->
   </pre>
 
-  <p>This example says that there is a <tref>linked data graph</tref> identified by
-    <code>http://example.org/linked-data-graph</code> which is composed of the
+  <p>The example above expresses a <em>named</em> 
+    <tref>linked data graph</tref> that is identified by the <tref>IRI</tref>
+    <code>http://example.org/graphs/73</code>. That graph is composed of the
     statements about Manu and Gregg and a reference to another IRI, which could
-    make statements about Markus. Additionally, there is information about the
-    graph itself, which indicates a time at which this information as asserted
-    to be true.</p>
+    make statements about Markus. Meta-data about the graph itself is also
+    expressed via the <code>asOf</code> property, which specifies when the
+    information was retrieved from the Web.</p>
 
 </section>
 
@@ -2104,8 +2105,10 @@ an <tref>unlabeled node</tref> or a blank node. In JSON-LD, <tref>unlabeled node
 automatically created if a subject is not specified using the
 <code>@id</code> <tref>keyword</tref>. However, authors may provide identifiers for
 unlabeled nodes by using the special <code>_</code> (underscore)
-<tref>prefix</tref>. This allows to reference the node locally within the
-document but not in an external document.</p>
+<tref>prefix</tref>. This allows one to reference the node locally within the
+document, but makes it impossible to reference the node from an 
+external document. The <tref>unlabeled node</tref> identifier is scoped to the
+document in which it is used.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -2118,8 +2121,8 @@ document but not in an external document.</p>
 </pre>
 
 <p>The example above would set the subject to <code>_:foo</code>, which can
-then be used later on in the JSON-LD markup to refer back to the
-<tref>unlabeled node</tref>. This practice, however, is usually frowned upon when
+then be used elsewhere in the JSON-LD document to refer back to the
+<tref>unlabeled node</tref>. This practice is frowned upon when
 generating <tref>Linked Data</tref>. If a developer finds that they refer to the unlabeled
 node more than once, they should consider naming the node using a de-referenceable
 <tref>IRI</tref>.
@@ -2130,9 +2133,11 @@ node more than once, they should consider naming the node using a de-referenceab
 <section>
 <h2>Aliasing Keywords</h2>
 
-<p>JSON-LD allows all of the syntax <tref title="keyword">keywords</tref>, except for <code>@context</code>,
-to be aliased. This feature allows more legacy JSON content to be supported
-by JSON-LD. It also allows developers to design domain-specific implementations
+<p>Each of the JSON-LD <tref title="keyword">keywords</tref>, 
+except for <code>@context</code>, MAY be aliased to application-specific
+keywords. This feature allows legacy JSON content to be utilized
+by JSON-LD by re-using JSON keys that already exist in legacy documents. 
+This feature also allows developers to design domain-specific implementations
 using only the JSON-LD <tref>context</tref>.</p>
 
 <pre class="example" data-transform="updateExample">
@@ -2144,8 +2149,8 @@ using only the JSON-LD <tref>context</tref>.</p>
      ****"a": "@type"****,
      "name": "http://schema.org/name"
   },
-  "url": "http://example.com/about#gregg",
-  "a": "http://schema.org/Person",
+  "****url****": "http://example.com/about#gregg",
+  "****a****": "http://schema.org/Person",
   "name": "Gregg Kellogg"
 }
 -->
@@ -2160,10 +2165,11 @@ using only the JSON-LD <tref>context</tref>.</p>
 
 <section>
 <h3>Expanded Document Form</h3>
-<p>The JSON-LD API [[JSON-LD-API]] defines an method for <em>expanding</em> a JSON-LD document.
+<p>The JSON-LD API [[JSON-LD-API]] defines an method for <em>expanding</em> a 
+  JSON-LD document.
   Expansion is the process of taking a JSON-LD document and applying a
-  context such that all IRIs, datatypes, and literal values are expanded so
-  that the context is no longer necessary.</p>
+  <code>@context</code> such that all IRIs, datatypes, and values 
+  are expanded so that the <code>@context</code> is no longer necessary.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -2201,6 +2207,13 @@ using only the JSON-LD <tref>context</tref>.</p>
 ]
 -->
 </pre>
+
+<p>Expanded document form is useful when an application has to process input
+data in a deterministic form. It has been optimized to ensure that the code
+that developers have to write is minimized compared to the code that would
+have to be written to operate on 
+<a href="#compact-document-form">compact document form</a>.</p>
+
 </section>
 
 <section>
@@ -2270,7 +2283,10 @@ using only the JSON-LD <tref>context</tref>.</p>
   application-specific compacted form by first <a href="#expanded-document-form">expanding the document</a>.
   While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
   to <strong>name</strong>, it could have also mapped it to any arbitrary string
-  provided by the developer.</p>
+  provided by the developer. This powerful mechanism, along with another 
+  JSON-LD API technique called <em>framing</em>, allows the developer to 
+  re-shape the incoming JSON data into a format that is optimized for 
+  their application.</p>
 </section>
 
 </section>
@@ -2282,13 +2298,14 @@ using only the JSON-LD <tref>context</tref>.</p>
   way of working with Linked Data is through <tdef>RDF</tdef>, the Resource Description Framework.
   RDF can be expressed using JSON-LD by associating JSON-LD concepts such as <code>@id</code>
   and <code>@type</code> with the equivalent <tref>IRI</tref>s in RDF. Further information about
-  RDF may be found in [[RDF-PRIMER]].</p>
+  RDF may be found in the [[RDF-PRIMER]].</p>
 
 <p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
   express semantic data marked up in other languages such as Turtle, RDFa, Microformats,
   and Microdata. These sections are merely provided as proof that JSON-LD is
   very flexible in what it can express across different <tref>Linked Data</tref> approaches.
-  Details of transforming JSON-LD into RDF are defined in [[JSON-LD-API]].</p>
+  Further information on transforming JSON-LD into RDF are detailed in the 
+  [[JSON-LD-API]].</p>
 
 <section>
   <h3>Turtle</h3>
@@ -2297,7 +2314,8 @@ using only the JSON-LD <tref>context</tref>.</p>
 
 <section>
 <h4>Prefix definitions</h4>
-<p>The JSON-LD context has direct equivalents for the Turtle <code>@prefix</code> declaration:</p>
+<p>The JSON-LD context has direct equivalents for the Turtle 
+  <code>@prefix</code> declaration:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -2325,8 +2343,9 @@ using only the JSON-LD <tref>context</tref>.</p>
 </pre>
 
 <div class="note">
-<p>JSON-LD has no equivalent for the Turtle <code>@base</code> declaration. Authors could, of course,
-  use a prefix definition to resolve <tref>relative IRI</tref>s:</p>
+<p>JSON-LD has no equivalent for the Turtle <code>@base</code> declaration. 
+  Instead, authors may use a prefix definition to resolve 
+  <tref>relative IRI</tref>s:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 {
@@ -2406,7 +2425,7 @@ using only the JSON-LD <tref>context</tref>.</p>
   "foaf:name": "Joe Bob",
   "foaf:nick":
   {
-    "@list": [ "joe", "bob", "jaybe" ]
+    "@list": [ "joe", "bob", "jaybee" ]
   }
 }
 -->
@@ -2482,7 +2501,7 @@ how the Microformat is represented in JSON-LD.</p>
 <pre class="example" data-transform="updateExample">
 <!--
 <div class="vcard">
- <a class="url fn" href="http://www.markus-lanthaler.com/">Markus Lanthaler</a>
+ <a class="url fn" href="http://tantek.com/">Tantek Çelik</a>
 </div>
 -->
 </pre>
@@ -2506,8 +2525,8 @@ generated the proper URL type for <code>http://tantek.com/</code>.</p>
     "fn": "http://microformats.org/profile/hcard#fn"
   },
   "@type": "vcard",
-  "url": "http://www.markus-lanthaler.com/",
-  "fn": "Markus Lanthaler"
+  "url": "http://tantek.com/",
+  "fn": "Tantek Çelik"
 }
 -->
 </pre>
