@@ -2291,6 +2291,60 @@ have to be written to operate on
 
 </section>
 
+<section class="appendix normative">
+<h2>JSON-LD Grammar</h2>
+
+<p>Since the JSON-LD syntax is a subset of the JSON syntax, it follows that
+all well-formed JSON-LD documents are well-formed JSON documents. It also
+means that a non-well-formed JSON document can never be a well-formed
+JSON-LD document. Furthermore, JSON-LD places a number of restrictions on
+the JSON syntax in order to define a <em>grammar</em> that is used to express
+valid JSON-LD documents. At times, even if this grammar is violated, a
+JSON-LD processor will do its best to recover from the error and 
+deterministically transform the author's markup into valid JSON-LD.</p>
+
+<p class="issue">The final nuanced details of the exact grammar are still being
+discussed, as well as the best mechanism to express these restrictions. EBNF
+seems like overkill since it's a subset of JSON. EBNF doesn't quite capture
+some of the more esoteric restrictions in the language.
+</p>
+
+<ol>
+<li>A JSON-LD document is composed of a single <tref>JSON object</tref> or an array of <tref>JSON object</tref>s.</li>
+<li>The value of <code>@id</code> MUST be <code>null</code>, a <tref>term</tref>, a <tref>compact IRI</tref>, or an <tref>IRI</tref>.</li>
+<li>A <code>@id</code> keyword and a <code>@language</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
+<li>A <code>@id</code> keyword and a <code>@container</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
+<li>A <tref>JSON object</tref> MAY contain a <code>@context</code> property.</li>
+<li>A <code>@context</code> value MUST NOT contain an embedded <code>@context</code> definition.</li>
+<li>The value associated with the <code>@context</code> keyword MUST be an <tref>IRI</tref>, a <tref>JSON object</tref>, null, or an array containing a combination of the allowed values.</li>
+<li>The value associated with the keys used in a <code>@context</code> MUST be a <code>null</code>, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
+<li>For each value that is a <tref>JSON object</tref> that is associated with a key in a <code>@context</code>:
+  <ol>
+    <li><code>@id</code> and <code>@type</code> MUST be an <tref>IRI</tref> or <code>null</code></li>
+    <li><code>@container</code> MUST be associated with a value of either <code>@set</code> or <code>@list</code>.</li>
+    <li><code>@language</code> MUST be a string expressed in [[BCP47]] or <code>null</code>.</li>
+    <li>Any other property MUST be ignored by a JSON-LD processor and MUST be preserved in compaction and framing.</li>
+  </ol>
+</li>
+<li>A <tref>JSON object</tref> MAY have an <code>@graph</code> property.</li>
+<li>The value of a <code>@graph</code> property MUST be null, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
+<li>A <tref>JSON object</tref> containing a <code>@set</code> key MUST NOT have any other keys.</li>
+<li>A <tref>JSON object</tref> containing a <code>@list</code> key MUST NOT have any other keys.</li>
+<li>The value of an <code>@set</code> or <code>@list</code> key can be a string, a number, a <tref>JSON object</tref>, or an array containing a combination of the allowed values.</li>
+<li>For each <tref>JSON object</tref> that contains a <code>@value</code> key:
+  <ol>
+    <li>It MAY have a <code>@language</code> or <code>@type</code> property and MUST NOT have any other properties.</li>
+    <li>It MUST NOT contain both the <code>@language</code> and <code>@type</code> keys at the same time.</li>
+    <li>The value of the <code>@value</code> key MUST be a string or a number.</li>
+    <li>The value of the <code>@language</code> key MUST be <code>null</code> or a string in [[BCP47]] format.</li>
+    <li>The value of <code>@type</code> MUST be <code>null</code>, a <tref>term</tref>, a <tref>compact IRI</tref>, an <tref>IRI</tref>, a <tref>JSON object</tref>, or an array containing a combination of the allowed values.</li>
+  </ol>
+</li>
+<li>In the body of a JSON-LD document, the value of <code>@type</code> MUST NOT be <code>@id</code>. This is in contrast to the use of <code>@type</code> in the <code>@context</code>, where this is allowed.</li>
+</ol>
+
+</section>
+
 <section class="appendix informative">
 <h2>Markup Examples</h2>
 
