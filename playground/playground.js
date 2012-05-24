@@ -201,12 +201,12 @@
     var options = {base: document.baseURI};
 
     if(playground.activeTab === 'tab-normalized') {
+      options.format = 'application/nquads';
       jsonld.normalize(input, options, function(err, normalized) {
         if(err) {
           return callback(err);
         }
-        $('#normalized').html(js_beautify(JSON.stringify(normalized),
-          {'indent_size': 2, 'brace_style': 'expand'}));
+        $('#normalized').html(playground.htmlEscape(normalized));
         callback();
       });
     }
@@ -248,7 +248,7 @@
           return callback(err);
         }
         $('#nquads').html(playground.htmlEscape(nquads));
-        return callback();
+        callback();
       });
     }
   };
