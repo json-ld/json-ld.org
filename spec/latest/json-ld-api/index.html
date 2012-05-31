@@ -421,27 +421,46 @@ The following definition for <tref>Linked Data</tref> is the one that will
 be used for this specification.
 </p>
 <ol>
-  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a linked data graph.</li>
-  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where nodes are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.</li>
-  <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
-  <li>A <tref>subject</tref> SHOULD be labeled with an <tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
-  <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
-  <li>An <tref>object</tref> MAY be labeled with an <tref>IRI</tref>.</li>
+  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a <tref>linked data graph</tref>.</li>
+  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where <tref title="node">nodes</tref> are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.
+    A linked data graph may be named using a <tdef>graph name</tdef>.
+    A <tref>linked data graph</tref> is a generalized representation of a
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
+    as defined in [[!RDF-CONCEPTS]].</li>
+  <li>A <tdef>node</tdef> may be an <tref>IRI</tref>, <tref>blank node</tref>, or <tref>literal</tref>.</li>
+  <li>An <tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef> (an Internationalized Resource Identifier) is described in [[!RFC3987]])
+    and the use with JSON-LD conforms to the definition of
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri">IRI</a></cite> in [[!RDF-CONCEPTS]].</li>
+  <li>A <tdef>dataset</tdef> represents a collection of
+    <tref title="linked data graph">linked data graphs</tref>. It is comprized of
+    a <tdef>default graph</tdef>, which does not have a name,
+    and zero or more <tdef title="named graph">named graphs</tdef> each named using
+    a <tref>node</tref> See
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-multigraph">Abstract Syntax for Working with Multiple Graphs</a></cite>
+    in [[!RDF-CONCEPTS]].</li>
+  <li>A <tdef>subject</tdef> is any <tref>node</tref> in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
+  <li>An <tdef>object</tdef> is a <tref>node</tref> in a <tref>linked data graph</tref> with at least one incoming edge.</li>
   <li>An object MAY be a <tref>subject</tref> and <tref>object</tref> at the same time.</li>
-  <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.</li>
-  <li>A <tref>property</tref> SHOULD be labeled with an <tref>IRI</tref>.</li>
-  <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
-  <li>A <tdef>literal</tdef> is an <tref>object</tref> with a label that is not an <tref>IRI</tref></li>
+  <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.
+    Also known as a <tdef>predicate</tdef> in [[!RDF-CONCEPTS]].</li>
+  <li>A <tref>property</tref> SHOULD be an <tref>IRI</tref>. To be converted
+    to or from RDF, a <tref>property</tref> MUST be an <tref>IRI</tref></li>
+  <li>A <tdef>blank node</tdef> is a <tref>node</tref> which is neither an <tref>IRI</tref> nor a <tref>literal</tref>
+    but representes an unknown <tref>node</tref>, which may be either an <tref>IRI</tref> or a <tref>literal</tref>.
+    Within a document, a <tref>blank node</tref> may have an identifier used for intra-document reference
+    purposes only. See [[!RDF-CONCEPTS]] for a further description of
+  <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node">blank nodes</a></cite>.</li>
+  <li>An <tref>IRI</tref> <tref>node</tref> in a <tref>linked data graph</tref> SHOULD be identify a <tref>Linked Data</tref> <em>resource</em> describing the <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
+  <li>A <tdef>literal</tdef> is used to identify values such as numbers and dates.
+    A <tref>literal</tref> may be an <tref>object</tref> in a <tref>linked data graph</tref>.
+    See [[!RDF-CONCEPTS]] for a further definition of
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</li>
+  <li>A <tdef>Quad</tdef> contains a <tref>subject</tref>, <tref>predicate</tref>, <tref>object</tref>,
+    and optionally a <tref>graph name</tref>.
+    See [[!RDF-CONCEPTS]] definition for
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>,
+    which most closely aligns to <a>Quad</a>.</li>
 </ol>
-
-<p>
-Note that the definition for <tref>Linked Data</tref> above is silent on the
-topic of unlabeled nodes. Unlabeled nodes are not considered
-<tref>Linked Data</tref>. However, this specification allows for the expression
-of unlabled nodes, as most graph-based data sets on the Web contain a number
-of associated nodes that are not named and thus are not directly
-de-referenceable.
-</p>
 </section>
 
 <section>
@@ -660,7 +679,7 @@ de-referenceable.
       <dd>Creates a JSON-LD document given an set of <ldtref title="quad">Quads</ldtref>.
         <dl class="parameters">
           <dt>Quad[] input</dt>
-          <dd>An array of RDF quads.</dd>
+          <dd>A <tref>dataset</tref> represented as an array of <ldtref title="quad">Quads</ldtref>.</dd>
           <dt>JsonLdCallback callback</dt>
           <dd>A callback that is called when processing is complete on
             the given <code>input</code>.</dd>
@@ -675,13 +694,13 @@ de-referenceable.
       <dd>
         Processes the <code>input</code> according to the
         <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
-        the provided <code>callback</code> for each <a>Quad</a> generated.
+        the provided <code>callback</code> for each <ldtref>Quad</ldtref> generated.
         <dl class="parameters">
           <dt>object or object[] or URL input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or an <tref>IRI</tref>
+          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or a <a>URL</a>
             referencing the JSON-LD document to convert to RDF.</dd>
           <dt>QuadCallback callback</dt>
-          <dd>A callback that is called when a <a>Quad</a> is created from processing
+          <dd>A callback that is called when a <ldtref>Quad</ldtref> is created from processing
             the given <code>input</code>.
           </dd>
           <dt>optional JsonLdOptions options</dt>
@@ -798,17 +817,17 @@ de-referenceable.
     </p>
     <dl title="[NoInterfaceObject] interface Quad" class="idl">
       <dt>readonly attribute Node subject</dt>
-      <dd>The subject associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node property</dt>
-      <dd>The property associated with the <a>Quad</a>.</dd>
+      <dd>The <tref>subject</tref> associated with the <a>Quad</a>.</dd>
+      <dt>readonly attribute Node predicate</dt>
+      <dd>The predicate associated with the <a>Quad</a>.
+        Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
+        <tref>property</tref></dd>
       <dt>readonly attribute Node object</dt>
-      <dd>The object associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node? name</dt>
-      <dd>The name associated with the <a>Quad</a> identifying
-        it as a member of a named graph. If the attribute is present,
-        it indicates that this quad is a member of a <em>named graph</em>
-        associated with <em>name</em>. If it is missing, the quad
-        is a member of the <em>default graph</em>.
+      <dd>The <tref>object</tref> associated with the <a>Quad</a>.</dd>
+      <dt>readonly attribute Node? graphName</dt>
+      <dd>If present, the name associated with the <a>Quad</a> identifying
+        it as a member of a <tref>named graph</tref>. If it is missing, the quad
+        is a member of the <tref>default graph</tref>.
         <div class="issue">This element is at risk, and may be removed.</div>
       </dd>
     </dl>
@@ -816,60 +835,46 @@ de-referenceable.
 
     <section>
     <h3>Node</h3>
-    <p><a>Node</a> is the base class of <ldtref>IRI</ldtref>,
-    <a>BlankNode</a>, and <ldtref>Literal</ldtref>.</p>
+    <p><ldtref>Node</ldtref> is the base class of <ldtref>IRI</ldtref>,
+    <ldtref>BlankNode</ldtref>, and <ldtref>Literal</ldtref>. It is the IDL
+    representation of a <tref>linked data graph</tref> <tref>node</tref>.</p>
     <dl title="[NoInterfaceObject] interface Node" class="idl">
-      <dt>readonly attribute DOMString nominalValue</dt>
-      <dd>
-        <p>The <code>nominalValue</code> of an <a>Node</a> is refined by
-        each interface which extends <a>Node</a>.</p>
-      </dd>
-      <dt>readonly attribute DOMString interfaceName</dt>
-      <dd>
-        <p>Provides access to the string name of the current interface,
-        normally one of <code>"IRI"</code>, <code>"BlankNode"</code> or <code>"Literal"</code>.</p>
-        <p>This method serves to disambiguate instances of <a>Node</a> which
-        are otherwise identical, such as <ldtref>IRI</ldtref> and <a>BlankNode</a>.</p>
-      </dd>
     </dl>
     </section>
 
     <section>
     <h3>IRI</h3>
-    <p>A node identified by an <tref>IRI</tref>. IRIs are defined by International
-      Resource Identifier [[!IRI]]. See [[!RDF-CONCEPTS]] definition for
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri">IRI</a></cite>.</p>
+    <p>A <tref>node</tref> representing an <tref>IRI</tref>.</p>
     <dl title="[NoInterfaceObject] interface IRI : Node"
         class="idl">
-        <dt>readonly attribute DOMString nominalValue</dt>
-        <dd>The IRI identifier of the node.</dd>
+        <dt>readonly attribute DOMString value</dt>
+        <dd>The IRI identifier of the <tref>node</tref> as a [[UNICODE]] string.</dd>
     </dl>
     </section>
 
     <section>
     <h3>Blank Node</h3>
 
-    <p>A <a>BlankNode</a> is a reference to an unnamed resource
-      (one for which an IRI may not be known), and may be used in a <a>Quad</a>
-      as a unique reference to that unnamed node. See [[!RDF-CONCEPTS]] definition for
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node">blank node</a></cite>.</p>
+    <p>A <a>BlankNode</a> a representation of a <tref>blank node</tref>
+      and is used to identify equivalent blank nodes within the same document.</p>
 
     <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
-      <dt>readonly attribute DOMString nominalValue</dt>
-      <dd>The temporary identifier of the <a>BlankNode</a>.
-        The nominalValue MUST NOT be relied upon in any way between two
-        separate processing runs of the same document.</dd>
+      <dt>readonly attribute DOMString identifier</dt>
+      <dd>The temporary identifier of the <tref>blank node</tref>.
+        The <code>identifier</code> MUST NOT be relied upon in any way between two
+        separate processing runs of the same document or with a different document.</dd>
     </dl>
 
     <p class="note">Developers and authors must not assume that the
-    nominalValue of a <a>BlankNode</a> will remain the same between two
-    processing runs. <a>BlankNode</a> nominalValues are only valid for the
-    most recent processing run on the document. <ldtref title="blanknode">BlankNodes</ldtref>
-    nominalValues will often be generated differently by different processors.</p>
+      value of a <tref>blank node</tref> will remain the same between two
+      processing runs. <a>BlankNode</a> values are only valid for the
+      most recent processing run on the document. <ldtref title="blanknode">BlankNodes</ldtref>
+      values will often be generated differently by different processors.</p>
 
-    <p class="note">Implementers MUST ensure that <a>BlankNode</a> nominalValues are unique
-    within the current environment, two <ldtref title="blanknode">BlankNodes</ldtref> are considered equal if, and only if,
-    their nominalValues are strictly equal.</p>
+    <p class="note">Implementers MUST ensure that <a>BlankNode</a> values are unique
+      within the current environment, two <ldtref 
+      title="blanknode">BlankNodes</ldtref> are considered equal if, and only 
+      if, their values are strictly equal.</p>
     </section>
 
     <section>
@@ -879,31 +884,32 @@ de-referenceable.
       </p>
 
       <ul>
-        <li>a lexical representation of the <code>nominalValue</code></li>
-        <li>an optional <code>language</code> represented by a string token</li>
-        <li>an optional <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
+        <li>a lexical form of the <code>value</code></li>
+        <li>an optional <code>language</code> tag</li>
+        <li>a <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
       </ul>
 
       <p>Literals representing plain text in a natural language may have a
-        <code>language</code> attribute specified by a text string token, as specified in
+        <code>language</code> tag specified by a string token, as specified in
         [[!BCP47]], normalized to lowercase
         (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
-        They may also have a datatype attribute such as <code>xsd:string</code>.
+        They also have a datatype attribute such as <code>xsd:string</code>.
+        If unspecified, the <code>datatype</code> defaults to <code>xsd:string</code>.
       </p>
 
       <p>Literals representing values with a specific datatype, such as
         the integer 72, may have a <code>datatype</code> attribute specified in the form
         of a <a>IRI</a> (e.g.,
-        <code>&lt;http://www.w3.org/2001/XMLSchema#integer></code>).</p>
+        <code>xsd:integer</code>).</p>
 
       <p> See[[!RDF-CONCEPTS]] definition for
       <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</p>
 
       <dl title="[NoInterfaceObject] interface Literal : Node" class="idl">
-        <dt>readonly attribute DOMString nominalValue</dt>
-        <dd>The lexical representation of the Literals value.</dd>
+        <dt>readonly attribute DOMString value</dt>
+        <dd>The lexical form of the Literal's value.</dd>
         <dt>readonly attribute DOMString? language</dt>
-        <dd>An optional language string as defined in [[!BCP47]], normalized to lowercase.</dd>
+        <dd>An optional language tag as defined in [[!BCP47]], normalized to lowercase.</dd>
         <dt>readonly attribute IRI? datatype</dt>
         <dd>An optional datatype identified by a IRI.</dd>
       </dl>
@@ -982,12 +988,6 @@ language-native data structures MUST be used where applicable.</p>
       algorithm is running. The <tref>active context</tref> is the context
       contained within the <tref>processor state</tref>.
     </dd>
-    <dt><tdef>blank node</tdef></dt>
-    <dd>
-      a blank node is a <tref>resource</tref> which is neither an <tref>IRI</tref> nor a <tref>literal</tref>.
-      Blank nodes may be named or unnamed and often take on the role of a variable that may represent
-      either an <tref>IRI</tref> or a <tref>literal</tref>.
-    </dd>
     <dt><tdef>compact IRI</tdef></dt>
     <dd>
       a compact IRI is has the form of <tref>prefix</tref> and <em>suffix</em> and is used as a way
@@ -1024,13 +1024,15 @@ language-native data structures MUST be used where applicable.</p>
       is typically used along with a <em>suffix</em> to form a <tref>compact IRI</tref> to create an IRI
       within a vocabulary.
     </dd>
-    <dt><tdef>plain literal</tdef></dt><dd>
-      A <tref>plain literal</tref> is a <tref>literal</tref> without a datatype, possibly including
+    <dt><tdef>language-tagged literal</tdef></dt><dd>
+      A <tref>language-tagged literal</tref> is a <tref>literal</tref> without a datatype, including
       a language.
+      See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-literal">languaged-tagged literal</a></cite> in [[!RDF-CONCEPTS]].
     </dd>
     <dt><tdef>typed literal</tdef></dt><dd>
       A <tref>typed literal</tref> is a <tref>literal</tref> with an associated <tref>IRI</tref>
       which indicates the literal's datatype.
+      See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-typed-literal">languaged-tagged literal</a></cite> in [[!RDF-CONCEPTS]].
     </dd>
   </dl>
 </section>
@@ -1878,10 +1880,10 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Subject Map Generation</h3>
 <p>The Subject Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
-  <em>subjectMap</em> holding a flat representation of the graphs and nodes represented in the document. All nodes that are not
+  <em>subjectMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
   uniquely identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
   document will have a property for every graph in the document whose value is another object with a property for every
-  node represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
+  <tref>node</tref> represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
   under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
 
 <p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>subjectMap</em>,
@@ -2016,7 +2018,7 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>Flattening is the process of taking a JSON-LD document, <a href="#expansion">expanding</a>
   it, labeling all unlabeled nodes with a <tref>blank node</tref> identifier, and returning
-  an array of the nodes defined in the document.</p>
+  an array of the <tref title="node">nodes</tref> defined in the document.</p>
 
 <p class="issue">It is still being discussed if the flatten() method should be added or not.
   See <a href="https://github.com/json-ld/json-ld.org/issues/109">ISSUE-109</a>.</p>
@@ -2062,7 +2064,7 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h2>Flattening Algorithm</h2>
 <p>The algorithm takes two input variables, an <em>element</em> to flatten and the
-  <em>graph</em> for which the node definitions should be returned. If <em>graph</em>
+  <em>graph</em> for which the <tref>node</tref> definitions should be returned. If <em>graph</em>
   is not set, it will default to <code>@merged</code> which represents the result of
   merging all graphs including the default graph (<code>@default</code>).</p>
 
@@ -2108,29 +2110,18 @@ language-native data structures MUST be used where applicable.</p>
   </p>
   <p>
     As with other grammars used for describing <tref>Linked Data</tref>, a key concept is that of
-    a <tdef>resource</tdef>. Resources may be of three basic types: <ldtref>IRI</ldtref>, representing
+    a <tref>node</tref>. Nodes may be of three basic types: <ldtref>IRI</ldtref>, representing
     <tref title="IRI">IRIs</tref> for describing
-    externally named entities, <a>BlankNode</a>, resources for which an external name does not
-    exist, or is not known, and <ldtref>Literal</ldtref>, which describe terminal entities such as strings,
+    externally named entities, <tref>blank node</tref>, resources for which an external name does not
+    exist, or is not known, and <tref>Literal</tref>, which describe terminal entities such as strings,
     dates and other representations having a lexical representation possibly including
     an explicit language or datatype.
   </p>
   <p>Data described with JSON-LD may be considered to be the representation of a graph made
-    up of <tref>subject</tref> and <tref>object</tref> <tref>resource</tref>s related via a
-    <tref>property</tref> <tref>resource</tref>.
+    up of <tref>subject</tref> and <tref>object</tref> <tref title="node">nodes</tref> related via a
+    <tref>property</tref> <tref>node</tref>.
     However, specific implementations may choose to operate on the document as a normal
     JSON description of objects having attributes.</p>
-</section>
-
-<section>
-  <h4>RDF Conversion Algorithm Terms</h4>
-  <dl>
-    <dt><tdef>graph name</tdef></dt>
-    <dd>
-      A <ldtref>IRI</ldtref> or <ldtref>BlankNode</ldtref> used to identify quads belonging to a
-      <em>named graph</em>.
-    </dd>
-  </dl>
 </section>
 
 <section>
@@ -2140,7 +2131,7 @@ language-native data structures MUST be used where applicable.</p>
   </p>
   <p>
     A conforming JSON-LD processor implementing RDF conversion MUST implement a
-    processing algorithm that results in the same set of RDF <ldtref title="quad">Quads</ldtref> that the following
+    processing algorithm that results in the same set of RDF <tref title="quad">Quads</tref> that the following
     algorithm generates:
   </p>
 
@@ -2175,8 +2166,12 @@ language-native data structures MUST be used where applicable.</p>
               <tref>active object</tref> to a <tref>typed literal</tref>.
             </li>
             <li>
-              Otherwise, set the <tref>active object</tref> to a <tref>plain literal</tref>. If <em>element</em>
-              contains a <code>@language</code> property, use its value to set the language of the plain literal.
+              Otherwise, if <em>element</em> contains a <code>@language</code> property, set the
+              <tref>active object</tref> to a <tref>language-tagged literal</tref>.
+            </li>
+            <li>
+              Otherwise, set the <tref>active object</tref> to a <tref>typed literal</tref>
+              using <code>xsd:string</code> as the datatype.
             </li>
           </ol>
         </li>
@@ -2196,7 +2191,7 @@ language-native data structures MUST be used where applicable.</p>
         </li>
         <li id="processing-step-subject">If <em>element</em> has a <code>@id</code> property,
           the value MUST be a <tref>string</tref>, set the <tref>active subject</tref> to the previously
-          expanded value (either a <a>BlankNode</a> or an <ldtref>IRI</ldtref>).</li>
+          expanded value (either a <tref>blank node</tref> or an <ldtref>IRI</ldtref>).</li>
         <li>
           Otherwise, if <em>element</em> does not have a <code>@id</code> property, set the <tref>active
           subject</tref> to newly generated <tref>blank node</tref>.</li>
@@ -2256,7 +2251,7 @@ language-native data structures MUST be used where applicable.</p>
     </li>
     <li>
       Otherwise, generate a <a>Quad</a> using using the <tref>active subject</tref>, <tref>active property</tref>
-      and a newly generated <a>BlankNode</a> identified as <em>first <tref>blank node</tref></em>.
+      and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
     </li>
     <li>
       For each element in <em>array</em> other than the last element:
@@ -2269,7 +2264,7 @@ language-native data structures MUST be used where applicable.</p>
             <li>Proceed using the previous <tref>processor state</tref>.</li>
           </ol>
         </li>
-        <li>Unless this is the last element in <em>array</em>, generate a new <a>BlankNode</a> identified as
+        <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
           <em>rest blank node</em>, otherwise use <code>rdf:nil</code>.</li>
         <li>Generate a new <a>Quad</a> using <em>first blank node</em>,
           <code>rdf:rest</code> and <em>rest blank node</em>.</li>
@@ -2286,11 +2281,14 @@ language-native data structures MUST be used where applicable.</p>
   <p>In some cases, data exists natively in Triples or Quads form; for example, if the data was originally
     represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
     an array of <ldtref title="quad">Quads</ldtref> into a JSON-LD document.</p>
+  <p>When expanding <tref>typed literal</tref> values having a datatype of <code>xsd:string</code>,
+    the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
+    MUST have only a <code>@value</code> property.</p>
   <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
     array of <a>Quad</a> representations.</p>
   <ol class="algorithm">
     <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
-      containing <em>subjects</em> and <em>listMap</em>,each an empty <tref>JSON object</tref>.</li>
+      containing <em>subjects</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
     <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
       identified by
       an empty <tref>string</tref>.</li>
@@ -2308,7 +2306,7 @@ language-native data structures MUST be used where applicable.</p>
           <em>first</em>, and skip to the next quad.</li>
         <li>If <em>property</em> is <code>rdf:rest</code>:
           <ol class="algorithm">
-            <li>If <em>object</em> is a <a>BlankNode</a>, use the entry in
+            <li>If <em>object</em> is a <tref>blank node</tref>, use the entry in
               <em>graph.listMap</em> indexed by <em>subject</em>, initializing it
               to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
               <em>object</em> to the entry indexed by <em>rest</em>.
@@ -2345,7 +2343,7 @@ language-native data structures MUST be used where applicable.</p>
               <em>object representation</em>
               be <em>object</em> represented in expanded form as described in
               <a href="#value-expansion">Value Expansion</a>.</li>
-            <li>If <em>object</em> is a <a>BlankNode</a>,
+            <li>If <em>object</em> is a <tref>blank node</tref>,
               use the entry in <em>graph.listMap</em> indexed by <em>object</em>,
               initializing it to a new <tref>JSON object</tref> if nesessary.
               Add an entry for <em>head</em> with <em>object representation</em>.</li>
