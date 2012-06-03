@@ -32,7 +32,7 @@ print <<< htmlcode
             <div class="breadcrumbs"><a href="../../">JSON-LD</a> &gt; <a href="../">Specifications</a> &gt; Latest</div>
             <div id="info"> 
                <h1>Latest Specifications</h1> 
-               <p>There are three specifications that are being actively developed
+               <p>There are four specifications that are being actively developed
                at the moment:</p>
                <ul>
                  <li><a href="json-ld-syntax/">The JSON-LD Syntax</a> - 
@@ -43,6 +43,9 @@ print <<< htmlcode
                  API describes the Application Programming Interface that can
                  be used by developers to interface with JSON-LD documents at
                  a higher level.</li>
+                 <li><a href="json-ld-framing/">JSON-LD Framing</a> - JSON-LD
+                 Framing describes the Application Programming Interface for
+                 flattening and framing JSON-LD documents.</li>
                  <li><a href="rdf-graph-normalization/">RDF Graph Normalization</a> - 
                  The RDF Graph Normalization document is a general algorithm for
                  serializing RDF graphs. It is most useful when comparing

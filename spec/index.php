@@ -72,6 +72,24 @@ foreach($editorsDrafts as $draft)
 print <<< htmlcode
                </ul>
 
+               <h2>JSON-LD Framing</h2>
+               <ul>
+                 <li><a href="latest/json-ld-api/">latest</a></li>
+htmlcode;
+
+$editorsDrafts = scandir('ED/json-ld-framing', 1);
+
+foreach($editorsDrafts as $draft)
+{
+   if($draft != "." and $draft != "..")
+   {
+     print("                 <li><a href=\"ED/json-ld-framing/$draft/\">$draft</a></li>");
+   }
+}
+
+print <<< htmlcode
+               </ul>
+
 
                <h2>RDF Graph Normalization</h2>
                <ul>
