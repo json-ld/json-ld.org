@@ -267,14 +267,16 @@ Linked Data in JSON by outlining a common JSON representation format for
 expressing directed graphs; mixing both Linked Data and non-Linked Data in
 a single document. This document outlines an Application Programming
 Interface and a set of algorithms for programmatically transforming
-JSON-LD documents.
+JSON-LD documents in order to make them easier to work with in programming
+environments like JavaScript, Python, and Ruby.
 </p>
 </section>
 
 <section id='sotd'>
 <p>This document has been under development for over 18 months in the
 JSON for Linking Data Community Group. The document has recently been
-moved into the RDF Working Group for review and publication along the
+moved into the RDF Working Group for review with the intent to publish the
+document along the W3C
 Recommendation track. This specification has undergone significant 
 development, review, and changes during the course of the last 18
 months and is being published as a First Public Working Draft so that
@@ -297,53 +299,17 @@ next year.
 </section>
 
 <section>
-<h1>Introduction</h1>
+<h2>Preface</h2>
 
 <p>
-JSON, as specified in [[!RFC4627]], is a simple language for representing
-data on the Web. Linked Data is a technique for creating a graph of interlinked data across
-different
-documents or Web sites. Data entities are described using <tref>IRI</tref>s,
-which are typically dereferencable and thus may be used to find more
-information about an entity, creating a "Web of Knowledge". JSON-LD is intended to be a simple
-publishing method for expressing not only Linked Data in JSON, but also for adding
-semantics to existing JSON.
-</p>
-
-<p>
-JSON-LD is designed as a light-weight syntax that can be used to express
-Linked Data. It is primarily intended to be a way to use Linked Data
-in Javascript and other Web-based programming environments. It is also
-useful when building interoperable Web services and when storing Linked
-Data in JSON-based document storage engines. It is practical and designed
-to be as simple as possible, utilizing the large number of JSON parsers
-and libraries available today. It is designed to be able to
-express key-value pairs, RDF data, RDFa [[RDFA-CORE]] data, Microformats
-[[MICROFORMATS]] data, and Microdata [[MICRODATA]]. That is, it supports
-every major Web-based structured data model in use today.
-</p>
-
-<p>
-The syntax does not necessarily require applications to change their JSON, but
-allows to easily add meaning by adding context in a way that is either in-band or
-out-of-band. The syntax is designed to not disturb already deployed systems
-running on JSON, but provide a smooth upgrade path from JSON to JSON with
-added semantics. Finally, the format is intended to be easy to parse, efficient to
-generate, convertible to RDF in one pass, and require a very small memory footprint
-in order to operate.
-</p>
-
-<section>
-<h2>How to Read this Document</h2>
-
-<p>
-This document is a detailed specification for a serialization of Linked
-Data in JSON. The document is primarily intended for the following audiences:
+This document is a detailed specification for an Application Programming 
+Interface for the JSON-LD Syntax. The document is primarily intended for 
+the following audiences:
 </p>
 
 <ul>
-  <li>Authors that want a very detailed view of how JSON-LD processors
-  operate.</li>
+  <li>Web authors and developers that want a very detailed view of how 
+  a JSON-LD processor and the API operates.</li>
   <li>Software developers that want to implement processors and APIs for
   JSON-LD.</li>
 </ul>
@@ -353,141 +319,10 @@ To understand the basics in this specification you must first be familiar with
 JSON, which is detailed in [[!RFC4627]]. You must also understand the
 JSON-LD Syntax [[!JSON-LD]], which is the base syntax used by all of the
 algorithms in this document. To understand the API and how it is
-intended to operate  in a programming environment, it is useful to have working
+intended to operate in a programming environment, it is useful to have working
 knowledge of the JavaScript programming language [[ECMA-262]] and
 WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
 familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
-
-<p class="issue">
-The intent of the Working Group and the Editors of this specification is to
-eventually align terminology used in this document with the terminology used
-in the RDF Concepts document to the extent to which it makes sense to do so.
-In general, if there is an analogue to terminology used in this document in
-the RDF Concepts document, the preference is to use the terminology in the
-RDF Concepts document. 
-</p>
-
-<p>
-  Examples may contain references to existing vocabularies and use <tref>prefix</tref>es to refer to vocabularies. The following is a list of all vocabularies and their <tref>prefix</tref> abbreviations, as used in this document:
-</p>
-<ul>
-  <li>The <a href="http://purl.org/dc/terms/">Dublin Core</a>
-  vocabulary (abbreviation: <code>dc</code>, e.g., <code>dc:title</code>)</li>
-  <li>The <a href="http://xmlns.com/foaf/0.1/">Friend of a Friend</a>
-  vocabulary (abbreviation: <code>foaf</code>, e.g., <code>foaf:knows</code>)</li>
-  <li>The <a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#">RDF</a>
-  vocabulary (abbreviation: <code>rdf</code>, e.g., <code>rdf:type</code>)</li>
-  <li>The <a href="http://www.w3.org/2001/XMLSchema#">XSD</a>
-  vocabulary (abbreviation: <code>xsd</code>, e.g., <code>xsd:integer</code>)</li>
-</ul>
-
-<p>
-  JSON [[RFC4627]] defines several terms which are used throughout this document:
-  <dl>
-    <dt><tdef>JSON object</tdef></dt><dd>
-      An object structure is represented as a pair of curly brackets surrounding zero or
-      more name/value pairs. A name is a <tref>string</tref>. A single colon comes after
-      each name, separating the name from the value. A single comma separates a value
-      from a following name. The names within an object SHOULD be unique.
-    </dd>
-    <dt><tdef>array</tdef></dt>
-    <dd>
-      An array is an ordered collection of values. An array structure is represented as square brackets surrounding zero or more values (or elements). Elements are separated by commas.  Within JSON-LD, array order is not preserved by default, unless
-      specific markup is provided. This is because the basic data model of JSON-LD is a <tref>linked data graph</tref>, which is inherently unordered.
-    </dd>
-    <dt><tdef>string</tdef></dt><dd>
-      A string is a sequence of zero or more Unicode characters, wrapped in double quotes, using backslash escapes. A
-      character is represented as a single character string.
-    </dd>
-    <dt><tdef>number</tdef></dt>
-    <dd>
-      A number is is similar to that used in most programming languages, except that the octal and hexadecimal formats are not used and that leading zeros are not allowed.</dd>
-    <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
-      Boolean values.
-    </dd>
-    <dt><tdef>null</tdef></dt><dd>
-      The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.
-    </dd>
-    <dt><tdef>subject definition</tdef></dt><dd>
-      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and one or more properties
-      of that subject. A <tref>JSON object</tref> is a subject definition if it does not contain the keys
-      <code>@value</code>, <code>@list</code> or <code>@set</code> and it has one or more keys other than <code>@id</code>.</dd>
-    <dt><tdef>subject reference</tdef></dt><dd>
-      A <tref>JSON object</tref> used to reference a subject having only the <code>@id</code> key.</dd>
-  </dl>
-</p>
-</section>
-
-<section>
-<h2>Linked Data</h2>
-<p>
-The following definition for <tref>Linked Data</tref> is the one that will
-be used for this specification.
-</p>
-<ol>
-  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a <tref>linked data graph</tref>.</li>
-  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where <tref title="node">nodes</tref> are <tref>subject</tref>s or <tref>object</tref>s, and edges are properties.
-    A linked data graph may be named using a <tdef>graph name</tdef>.
-    A <tref>linked data graph</tref> is a generalized representation of a
-    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
-    as defined in [[!RDF-CONCEPTS]].</li>
-  <li>A <tdef>node</tdef> may be an <tref>IRI</tref>, <tref>blank node</tref>, or <tref>literal</tref>.</li>
-  <li>An <tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef> (an Internationalized Resource Identifier) is described in [[!RFC3987]])
-    and the use with JSON-LD conforms to the definition of
-    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri">IRI</a></cite> in [[!RDF-CONCEPTS]].</li>
-  <li>A <tdef>dataset</tdef> represents a collection of
-    <tref title="linked data graph">linked data graphs</tref>. It is comprized of
-    a <tdef>default graph</tdef>, which does not have a name,
-    and zero or more <tdef title="named graph">named graphs</tdef> each named using
-    a <tref>node</tref> See
-    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-multigraph">Abstract Syntax for Working with Multiple Graphs</a></cite>
-    in [[!RDF-CONCEPTS]].</li>
-  <li>A <tdef>subject</tdef> is any <tref>node</tref> in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
-  <li>An <tdef>object</tdef> is a <tref>node</tref> in a <tref>linked data graph</tref> with at least one incoming edge.</li>
-  <li>An object MAY be a <tref>subject</tref> and <tref>object</tref> at the same time.</li>
-  <li>A <tdef>property</tdef> is an edge of the <tref>linked data graph</tref>.
-    Also known as a <tdef>predicate</tdef> in [[!RDF-CONCEPTS]].</li>
-  <li>A <tref>property</tref> SHOULD be an <tref>IRI</tref>. To be converted
-    to or from RDF, a <tref>property</tref> MUST be an <tref>IRI</tref></li>
-  <li>A <tdef>blank node</tdef> is a <tref>node</tref> which is neither an <tref>IRI</tref> nor a <tref>literal</tref>
-    but representes an unknown <tref>node</tref>, which may be either an <tref>IRI</tref> or a <tref>literal</tref>.
-    Within a document, a <tref>blank node</tref> may have an identifier used for intra-document reference
-    purposes only. See [[!RDF-CONCEPTS]] for a further description of
-  <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node">blank nodes</a></cite>.</li>
-  <li>An <tref>IRI</tref> <tref>node</tref> in a <tref>linked data graph</tref> SHOULD be identify a <tref>Linked Data</tref> <em>resource</em> describing the <tref>subject</tref>, <tref>object</tref> or <tref>property</tref>.</li>
-  <li>A <tdef>literal</tdef> is used to identify values such as numbers and dates.
-    A <tref>literal</tref> may be an <tref>object</tref> in a <tref>linked data graph</tref>.
-    See [[!RDF-CONCEPTS]] for a further definition of
-    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</li>
-  <li>A <tdef>Quad</tdef> contains a <tref>subject</tref>, <tref>predicate</tref>, <tref>object</tref>,
-    and optionally a <tref>graph name</tref>.
-    See [[!RDF-CONCEPTS]] definition for
-    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>,
-    which most closely aligns to <a>Quad</a>.</li>
-</ol>
-</section>
-
-<section>
-  <h2>Syntax Tokens and Keywords</h2>
-
-  <p>JSON-LD specifies a number of syntax tokens and <tdef>keyword</tdef>s that are using
-  in all algorithms described in this section:</p>
-
-  <dl>
-  <dt><code>@context</code></dt><dd>Used to set the <tref>local context</tref>.</dd>
-  <dt><code>@id</code></dt><dd>Sets the active subject.</dd>
-  <dt><code>@language</code></dt><dd>Used to specify the language for a literal.</dd>
-  <dt><code>@type</code></dt><dd>Used to set the type of the active subject or the datatype of a literal.</dd>
-  <dt><code>@value</code></dt><dd>Used to specify the value of a literal.</dd>
-  <dt><code>@container</code></dt><dd>Used to set the container of a particular value.</dd>
-  <dt><code>@list</code></dt><dd>Used to express an ordered set of data.</dd>
-  <dt><code>@set</code></dt><dd>Used to express an unordered set of data.</dd>
-  <dt><code>@graph</code></dt><dd>Used to explicitly express a <tref>linked data graph</tref>.</dd>
-  <dt><code>:</code></dt><dd>The separator for JSON keys and values that use <tref title="compact_iri">compact IRIs</tref>.</dd>
-  </dl>
-
-  <p>All JSON-LD tokens and keywords are case-sensitive.</p>
-</section>
 
 <section>
   <h2>Contributing</h2>
@@ -517,16 +352,387 @@ be used for this specification.
 </section>
 
 <section>
+<h1>Introduction</h1>
+
+<p>
+The JSON-LD Syntax specification [[!JSON-LD]] outlines a language that may be 
+used to express Linked Data in JSON. Often, it is useful to be able to 
+transform JSON-LD documents so that they may be easily processed in
+a programming environment like JavaScript, Python or Ruby.
+</p>
+
+<p>
+There are three major types of transformation that are discussed in this
+document; compaction, expansion, and RDF conversion. 
+</p>
+
+<section>
+  <h2><tdef>Expansion</tdef></h2>
+  <p>
+Software algorithms are easiest to write when the data that they are processing
+have a regular form. Since information can be represented by JSON-LD in a 
+variety of different ways, transforming all of these methods into a uniform
+structure allows the developer to simplify their processing code. For example,
+note that the following input uses only <tref>term</tref>s and is fairly
+compact:
+  </p>
+ 
+  <pre class="example" data-transform="updateExample">
+var input1 = {
+  "@context": "http://json-ld.org/contexts/person"
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+}
+  </pre>
+
+  <p>
+The next input example uses one <tref>IRI</tref> to express a property, but 
+leaves the rest of the information untouched.
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+var input2 = {
+  "@context": "http://json-ld.org/contexts/person"
+  "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+}
+  </pre>
+
+  <p>
+While both inputs are valid JSON-LD, writing a program to handle every
+permutation of possible inputs can be difficult, especially when the incoming
+context could change as well. To ensure that the data can be given a more
+uniform structure, JSON-LD introduces the notion of <tref>expansion</tref>.
+Expansion performs two important operations. The first is to expand all
+values that are <tref>IRI</tref>s to their fully expanded form. The second
+is to express all values in <tdef>expanded form</tdef>. To transform both
+inputs above to the same representation, the developer could do the following:
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+function expansionCallback(output) {
+   console.log(output);
+}
+
+// the second parameter is 'null' because the developer does not wish to
+// inject another context value 
+jsonld.expand(input1, null, expansionCallback);
+jsonld.expand(input2, null, expansionCallback);
+  </pre>
+
+  <p>
+The output for both calls above will be:
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+[{
+  "http://xmlns.com/foaf/0.1/name": [{
+    "@value": "Manu Sporny"
+  }],
+  "http://xmlns.com/foaf/0.1/homepage": [{
+    "@id": "http://manu.sporny.org/"
+  }]
+}]
+  </pre>
+ 
+  <p>
+Note that in the example above; all <tref>context</tref> definitions have
+been removed, all <tref>term</tref> and prefixes have been expanded to full 
+IRIs, and all <tref>literal</tref>s are expressed in <tref>expanded form</tref>.
+While the output is more difficult for a human to read, it is easier for a
+software program to process because of its very regular structure.
+  </p>
+</section>
+
+<section>
+  <h2>Compaction</h2>
+  <p>
+While expansion expands a given input as much as possible, compaction performs
+the opposite operation - expressing a given input as succinctly as possible.
+While expansion is meant to produce something that is easy to process by
+software programs, compaction is meant to produce something that is easy to
+ready by software developers. Compaction uses a developer-supplied 
+<tref>context</tref> to compresses all <tref>IRI</tref>s to <tref>term</tref>s 
+or <tref>prefix</tref>es, and compacts all <tref>literal</tref>s expressed 
+in <tref>expanded form</tref> as much as possible. 
+  </p>
+
+  <p>
+The following example expresses input that has already been fully expanded: 
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+var expandedInput = [{
+  "http://xmlns.com/foaf/0.1/name": [{
+    "@value": "Manu Sporny"
+  }],
+  "http://xmlns.com/foaf/0.1/homepage": [{
+    "@id": "http://manu.sporny.org/"
+  }]
+}]
+  </pre>
+
+  <p>
+A developer that wants to transform the data above into a more human-readable
+form, could do the following using the JSON-LD API:
+  </p>
+  
+  <pre class="example" data-transform="updateExample">
+function compactionCallback(output) {
+   console.log(output);
+}
+
+jsonld.compact(expandedInput, "http://json-ld.org/contexts/person", compactionCallback);
+  </pre>
+  
+  <p>
+The following would be the result of the call above:
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+{
+  "@context": "http://json-ld.org/contexts/person"
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+}
+  </pre>
+  
+  <p>
+Note that all of the <tref>term</tref>s have been compressed and 
+the <tref>context</tref> has been injected into the output. While compacted
+output is most useful to humans, it can also be carefully used to generate 
+structures that are easy to use for developers to program against as well.
+  </p>
+  
+</section>
+
+<section>
+  <h3>Conversion to and from RDF</h3>
+  <p>
+JSON-LD can be used to losslessly express the RDF data model as described in
+the RDF Concepts document  [[RDF-CONCEPTS]]. This ensures that
+data can be round-tripped from any RDF syntax, like N-Triples or TURTLE,
+without any loss in the fidelity of the data. Assume the following RDF input 
+in N-Triples format:  
+  </p>
+  
+  <pre class="example" data-transform="updateExample">
+<!-- 
+var data = " 
+<http://manu.sporny.org/about/#manu> <http://xmlns.com/foaf/0.1/name> \"Manu Sporny\" .\n
+<http://manu.sporny.org/about/#manu> <http://xmlns.com/foaf/0.1/homepage> <http://manu.sporny.org/> .";
+-->
+  </pre>
+  
+  <p>
+A developer can use the JSON-LD API to transform the markup above into a 
+JSON-LD document:
+  </p>
+  
+  <pre class="example" data-transform="updateExample">
+function conversionCallback(result)
+{
+  console.log("JSON-LD Document: ", result);
+};
+
+jsonld.fromRDF(data, conversionCallback, {"format": "ntriples"});
+  </pre>
+  
+  <p>
+The following expanded output would be the result of the call above:
+  </p>
+
+  <pre class="example" data-transform="updateExample">
+[{
+  "@id": "http://manu.sporny.org/about/#manu",
+  "http://xmlns.com/foaf/0.1/name": [{
+    "@value": "Manu Sporny"
+  }],
+  "http://xmlns.com/foaf/0.1/homepage": [{
+    "@id": "http://manu.sporny.org/"
+  }]
+}]
+  </pre>  
+  
+  <p>
+Note that the output above, could easily be compacted to produce the following
+using the technique outlined in the previous section:
+  </p>
+  
+  <pre class="example" data-transform="updateExample">
+{
+  "@context": "http://json-ld.org/contexts/person",
+  "@id": "http://manu.sporny.org/about/#manu",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+}
+  </pre>
+  
+  <p>
+Transforming the object above back to RDF is as simple as calling the
+<code>toRDF()</code> method:
+  </p>
+  
+  <pre class="example" data-transform="updateExample">
+var jsonldDocument = ...; // assign the JSON-LD document here
+
+function rdfCallback(quads)
+{
+  console.log("RDF Data: ", quads);
+};
+
+jsonld.toRDF(jsonldDocument, rdfCallback);
+  </pre>
+
+</section>
+
+<section>
+  <h3>Framing and Normalization</h3>
+  <p class="issue">
+There are currently two other API methods that are in active development and
+were not ready for publication at the time this document was published.
+Framing allows a developer to force a different layout for the data and
+effectively perform query-by-example on JSON-LD documents - this is most
+useful when a JSON-LD-based REST API does not know the exact form of the data 
+it is getting in, but still wants to operate upon it if some bare essentials 
+are found in the data. JSON-LD normalization allows JSON-LD documents to be
+deterministically serialized such that they can be digitally signed or be
+used to find the differences between two <tref>linked data graph</tref>s.
+It is expected that framing will be a part of the final API. It is expected 
+that normalization will be an optional feature that JSON-LD processors may
+implement.   
+  </p>
+</section>
+
+</section>
+
+<section>
   <h2>The Application Programming Interface</h2>
 
   <p>This API provides a clean mechanism that enables developers to convert
-  JSON-LD data into a a variety of output formats that are easier to work with in
-  various programming languages. If a JSON-LD API is provided in a programming
-  environment, the entirety of the following API MUST be implemented.
+  JSON-LD data into a a variety of output formats that are easier to work 
+  with in various programming languages. If a JSON-LD API is provided in 
+  a programming environment, the entirety of the following API MUST be 
+  implemented.
   </p>
+
+<section>
+  <h3>General Terminology</h3>
+
+  <p class="issue">
+The intent of the Working Group and the Editors of this specification is to
+eventually align terminology used in this document with the terminology used
+in the RDF Concepts document to the extent to which it makes sense to do so.
+In general, if there is an analogue to terminology used in this document in
+the RDF Concepts document, the preference is to use the terminology in the
+RDF Concepts document. 
+  </p>
+
+  <p>
+The following is an explanation of the general terminology used in this 
+document:
+  </p>
+   
+  <dl>
+      <dt><tdef>JSON object</tdef></dt><dd>
+      An object structure is represented as a pair of curly brackets surrounding zero or
+      more name-value pairs. A name is a <tref>string</tref>. A single colon comes after
+      each name, separating the name from the value. A single comma separates a value
+      from a following name. The names within an object SHOULD be unique.
+    </dd>
+    <dt><tdef>array</tdef></dt>
+    <dd>
+      An array is represented as square brackets surrounding zero or more 
+      values that are separated by commas.
+    </dd>
+    <dt><tdef>string</tdef></dt><dd>
+      A string is a sequence of zero or more Unicode (UTF-8) characters,
+      wrapped in double quotes, using backslash escapes (if necessary). A
+      character is represented as a single character string.
+    </dd>
+    <dt><tdef>number</tdef></dt>
+    <dd>
+      A number is is similar to that used in most programming languages, except 
+      that the octal and hexadecimal formats are not used and that leading 
+      zeros are not allowed.</dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
+      Values that are used to express one of two possible boolean states.
+    </dd>
+    <dt><tdef>null</tdef></dt><dd>
+      Unless otherwise specified, a JSON-LD processor MUST act as if a 
+      key-value pair in the body of a JSON-LD document was never declared when 
+      the value equals <em>null</em>. If <code>@value</code>, 
+      <code>@list</code>, or <code>@set</code> is set to <em>null</em> in 
+      expanded form, then the entire JSON object is ignored. If 
+      <code>@context</code> is set to <em>null</em>, the 
+      <tref>active context</tref> is reset and when used
+      within a <tref>context</tref>, it removes any definition associated 
+      with the key, unless otherwise specified.
+    </dd>
+    <dt><tdef>subject definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and 
+      one or more properties of that subject. A <tref>JSON object</tref> is a 
+      subject definition if it does not contain they keys <code>@value</code>, 
+      <code>@list</code> or <code>@set</code> and it has one or more keys 
+      other than <code>@id</code>.</dd>
+    <dt><tdef>subject reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to reference a subject having only the 
+      <code>@id</code> key.</dd>
+    <dt><tdef>Linked Data</tdef></dt>
+    <dd>A set of documents, each containing a representation of a 
+    <tref>linked data graph</tref>.</dd>
+    <dt><tdef>linked data graph</tdef> or <tdef>dataset</tdef></dt>
+    <dd>An unordered labeled directed graph, where <tref>node</tref>s are 
+    <tref>subject</tref>s or <tref>object</tref>s, and edges are 
+    properties.</dd>
+    <dt><tdef>node</tdef></dt>
+    <dd>A piece of information that is represented in a 
+    <tref>linked data graph</tref>.</dd>
+    <dt><tdef>named graph</tdef></dt>
+    <dd>A <tref>linked data graph</tref> that has one or more 
+    <tref>IRI</tref> that are used to refer to it.</dd>
+    <dt><tdef>graph name</tdef></dt>
+    <dd>An <tref>IRI</tref> that is a reference to a 
+    <tref>named graph</tref>.</dd> 
+    <dt><tdef>default graph</tdef></dt>
+    <dd>When executing an algorithm, the graph where data should be placed 
+    if a <tref>named graph</tref> is not specified.</dd>
+    <dt><tdef>subject</tdef></dt>
+    <dd>Any node in a <tref>linked data graph</tref> with at least one 
+    outgoing edge.</dd>
+    <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
+    <dd>An Internationalized Resource Identifier as described 
+    in [[!RFC3987]]).</dd>
+    <dt><tdef>object</tdef></dt>
+    <dd>A node in a <tref>linked data graph</tref> with at least one 
+    incoming edge.</dd>
+    <dt><tdef>property</tdef></dt>
+    <dd>An edge of the <tref>linked data graph</tref>.</dd>
+    <dt><tdef>literal</tdef></dt>
+    <dd>An <tref>object</tref> with a label that is not an 
+    <tref>IRI</tref>.</dd>
+    <dt><tdef>quad</tdef></dt>
+    <dd>A piece of information that contains four items; a 
+    <tref>subject</tref>, a <tref>property</tref>, a <tref>object</tref>,
+    and a <tref>graph name</tref>.</dd>
+    <dt><tdef>context</tdef></dt>
+    <dd>A <tref>JSON object</tref> that contains rules for interpreting a 
+    JSON-LD document.</dd>
+    <dt><tdef>keyword</tdef></dt>
+    <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD 
+    Syntax specification [[!JSON-LD]] in the section titled 
+    <a href="http://sites.local/json-ld.org/spec/latest/json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a>.</dd>
+   </dl>
+ </section>
 
   <section>
     <h3>JsonLdProcessor</h3>
+    
+    <p>
+The JSON-LD Processor interface is the high-level programming structure that 
+developers use to access the JSON-LD transformation methods. 
+    </p>
+    
     <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
 
       <dt>void expand()</dt>
@@ -792,7 +998,7 @@ be used for this specification.
     </section>
 
     <section>
-    <h3>Blank Node</h3>
+    <h3><tdef>Blank Node</tdef></h3>
 
     <p>A <a>BlankNode</a> a representation of a <tref>blank node</tref>
       and is used to identify equivalent blank nodes within the same document.</p>
