@@ -22,6 +22,7 @@
                     berjon.biblio["RDF-NORMALIZATION"] = "<cite><a href=\"http://json-ld.org/spec/ED/rdf-graph-normalization/20111016/\">RDF Graph Normalization</a></cite> Manu Sporny, Dave Longley Editors. World Wide Web Consortium (work in progress). 16 October 2011. Editor's Draft. This edition of the RDF Graph Normalization specification is http://json-ld.org/spec/ED/rdf-graph-normalization/20111016/. The <a href=\"http://json-ld.org/spec/latest/rdf-graph-normalization/\">latest edition of RDF Graph Normalization</a> is available at http://json-ld.org/spec/latest/rdf-graph-normalization/";
                     berjon.biblio["IEEE-754-1985"] = "IEEE. <cite>IEEE Standard for Binary Floating-Point Arithmetic.</cite> See <a href=\"http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html\">http://standards.ieee.org/reading/ieee/std_public/description/busarch/754-1985_desc.html</a>";
                     berjon.biblio["RDF-CONCEPTS"] = "<cite><a href=\"http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/\">RDF 1.1 Concepts and Abstract Syntax</a></cite> Richard Cyganiak, David Wood, Editors. World Wide Web Consortium (work in progress). 30 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/. The <a href=\"http://www.w3.org/TR/rdf11-concepts/\">latest edition of the JSON-LD Syntax</a> is available at http://www.w3.org/TR/rdf11-concepts/";
+                    berjon.biblio["TURTLE-TR"] = "Eric Prud'hommeaux, Gavin Carothers. <cite><a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">Turtle: Terse RDF Triple Language.</a></cite> 09 August 2011. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">http://www.w3.org/TR/2011/WD-turtle-20110809/</a>";
                     berjon.biblio["WEBIDL"] = "<cite><a href=\"http://www.w3.org/TR/2012/CR-WebIDL-20120419/\">Web IDL</a></cite> Cameron McCormack, Editor. World Wide Web Consortium. 19 April 2012. Candidate Recommendataion. This edition of Web IDL is http://www.w3.org/TR/2012/CR-WebIDL-20120419/. The <a href=\"http://dev.w3.org/2006/webapi/WebIDL/\">latest edition of Web IDL</a> is available at http://dev.w3.org/2006/webapi/WebIDL/";
 
                     // process the document before anything else is done
@@ -1821,6 +1822,107 @@ language-native data structures MUST be used where applicable.</p>
     on the document as a normal JSON description of objects having 
     attributes. Both approaches are valid ways to interact with JSON-LD
     documents.</p>
+</section>
+
+<section class="informative">
+  <h4>Parsing Examples</h4>
+
+  <p>The following examples show simple transformations of JSON-LD documents to Turtle [[TURTLE-TR]].</p>
+
+  <p>The first example uses a simple document containing a simple FOAF profile:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
+  "@id": "http://greggkellogg.net/foaf#me",
+  "@type": "foaf:Person",
+  "foaf:name": "Gregg Kellogg",
+  "foaf:knows": {
+    "@type": "foaf:Person",
+    "foaf:name": "Manu Sporny"
+  }
+}
+-->
+</pre>
+
+  <p>This translates fairly directly to a similar Turtle document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+<http://greggkellogg.net/foaf#me> a foaf:Person;
+  foaf:name "Gregg Kellogg";
+  foaf:knows [ a foaf:Person; foaf:name "Manu Sporny"].
+-->
+</pre>
+
+  <p>The actual parsing steps first require that the JSON-LD document be expanded,
+    to eliminate the <code>@context</code>:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[{
+  "@id": "http://greggkellogg.net/foaf#me",
+  "@type": ["http://xmlns.com/foaf/0.1/Person"],
+  "http://xmlns.com/foaf/0.1/name": [{"@value": "Gregg Kellogg"}],
+  "http://xmlns.com/foaf/0.1/knows": [{
+    "@type": ["http://xmlns.com/foaf/0.1/Person"],
+    "http://xmlns.com/foaf/0.1/name": [{"@value": "Manu Sporny"}]
+  }]
+}]
+-->
+</pre>
+
+  <p>The process of translating this to RDF then operates over each
+    <tref>subject definition</tref> to find a subject,
+    each <tref>property</tref> to find an RDF <em>predicate</em>,
+    and each value of that property to find an <tref>object</tref>.
+    In this case, each property has just a single object:
+    <code>foaf:name</code> identifies a <tref>literal</tref>, and
+    <code>foaf:knows</code> identifies a second <tref>subject definition</tref>
+    similar to Turtle's <code>blankNodePropertyList</code>.</p>
+
+  <p>After expansion, JSON-LD <tref title="number">numbers</tref>,
+    <tref title="true">booleans</tref>, typed- and language-tagged-<tref 
+    title="literal">literals</tref>, and <tref title="iri">IRIs</tref>
+    become explicit, and can be directly transformed into their RDF representations.</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+[{
+  "@id": "http://greggkellogg.net/foaf#me",
+  "@type": ["http://xmlns.com/foaf/0.1/Person"],
+  "http://xmlns.com/foaf/0.1/name": [{"@value": "Gregg Kellogg"}],
+  ****"http://xmlns.com/foaf/0.1/currentProject": [{"@id": "http://json-ld.org/"}],
+  "http://xmlns.com/foaf/0.1/birthday": [{
+    "@value": "1957-02-27",
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  }],****
+  "http://xmlns.com/foaf/0.1/knows": [{
+    "@type": ["http://xmlns.com/foaf/0.1/Person"],
+    "http://xmlns.com/foaf/0.1/name": [{"@value": "Manu Sporny"}]
+  }]
+}]
+-->
+</pre>
+
+  <p>Translates to:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+<http://greggkellogg.net/foaf#me> a foaf:Person;
+  foaf:name "Gregg Kellogg";
+  ****foaf:currentProject <http://json-ld.org/>;
+  foaf:birthday "1957-02-27"^^xsd:date;****
+  foaf:knows [ a foaf:Person; foaf:name "Manu Sporny"].
+-->
+</pre>
+
 </section>
 
 <section>
