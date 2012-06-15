@@ -75,13 +75,13 @@ jsonld.compact = function(input, ctx) {
   if(!('strict' in options)) {
     options.strict = true;
   }
-  if(!('optimize') in options) {
+  if(!('optimize' in options)) {
     options.optimize = false;
   }
-  if(!('graph') in options) {
+  if(!('graph' in options)) {
     options.graph = false;
   }
-  if(!('resolver') in options) {
+  if(!('resolver' in options)) {
     options.resolver = jsonld.urlResolver;
   }
 
@@ -188,7 +188,7 @@ jsonld.compact = function(input, ctx) {
     }
 
     callback(null, compacted, activeCtx);
-  };
+  }
 };
 
 /**
@@ -399,14 +399,19 @@ jsonld.fromRDF = function(statements) {
   callback = arguments[callbackArg];
 
   // set default options
-  if(!('format' in options)) {
-    options.format = 'application/nquads';
-  }
   if(!('notType' in options)) {
     options.notType = false;
   }
 
-  if(!_isArray(statements)) {
+  if(!('format' in options) && !_isArray(statements)) {
+    // set default format to nquads
+    if(!('format' in options)) {
+      options.format = 'application/nquads';
+    }
+  }
+
+  // handle special format
+  if('format' in options) {
     // supported formats
     if(options.format in _rdfParsers) {
       statements = _rdfParsers[options.format](statements);
@@ -956,6 +961,27 @@ if(_nodejs) {
   module.exports = jsonld;
   // use node URL resolver by default
   jsonld.useUrlResolver('node');
+
+  // needed for serialization of XML literals
+  if(typeof XMLSerializer === 'undefined') {
+    var XMLSerializer = null;
+  }
+  if(typeof Node === 'undefined') {
+    var Node = {
+      ELEMENT_NODE: 1,
+      ATTRIBUTE_NODE: 2,
+      TEXT_NODE: 3,
+      CDATA_SECTION_NODE: 4,
+      ENTITY_REFERENCE_NODE: 5,
+      ENTITY_NODE: 6,
+      PROCESSING_INSTRUCTION_NODE: 7,
+      COMMENT_NODE: 8,
+      DOCUMENT_NODE: 9,
+      DOCUMENT_TYPE_NODE: 10,
+      DOCUMENT_FRAGMENT_NODE: 11,
+      NOTATION_NODE:12
+    };
+  }
 }
 
 // export browser API
@@ -968,10 +994,14 @@ var XSD_BOOLEAN = 'http://www.w3.org/2001/XMLSchema#boolean';
 var XSD_DOUBLE = 'http://www.w3.org/2001/XMLSchema#double';
 var XSD_INTEGER = 'http://www.w3.org/2001/XMLSchema#integer';
 
-var RDF_FIRST = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first';
-var RDF_REST = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest';
-var RDF_NIL = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil';
-var RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+var RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+var RDF_FIRST = RDF + 'first';
+var RDF_REST = RDF + 'rest';
+var RDF_NIL = RDF + 'nil';
+var RDF_TYPE = RDF + 'type';
+var RDF_PLAIN_LITERAL = RDF + 'PlainLiteral';
+var RDF_XML_LITERAL = RDF + 'XMLLiteral';
+var RDF_OBJECT = RDF + 'object';
 
 var MAX_CONTEXT_URLS = 10;
 
@@ -1036,9 +1066,14 @@ Processor.prototype.compact = function(ctx, property, element, options) {
   if(_isObject(element)) {
     // element is a @value
     if(_isValue(element)) {
-      // if @value is the only key, return its value
+      // if @value is the only key
       if(Object.keys(element).length === 1) {
-        return element['@value'];
+        // if there is no default language, return value of @value
+        if(!('@language' in ctx)) {
+          return element['@value'];
+        }
+        // return full element
+        return element;
       }
 
       // get type and language context rules
@@ -1543,7 +1578,7 @@ Processor.prototype.normalize = function(input, options, callback) {
             nameGroupMember(group, n + 1);
           });
       }
-    };
+    }
   }
 
   // creates the sorted array of RDF statements
@@ -1691,7 +1726,7 @@ Processor.prototype.fromRDF = function(statements, options, callback) {
 
     // find list head
     var listMap = graph.listMap;
-    for(subject in listMap) {
+    for(var subject in listMap) {
       var entry = listMap[subject];
 
       // head found, build lists
@@ -2323,7 +2358,7 @@ function _flatten(input, graphs, graph, namer, name, list) {
     return;
   }
 
-  // add non-object or value to list
+  // add non-object or value
   if(!_isObject(input) || _isValue(input)) {
     if(list) {
       list.push(input);
@@ -4098,12 +4133,122 @@ function _toNQuad(statement, bnode) {
 
   // graph
   if(g !== null) {
-    quad += ' <' + g.nominalValue + '>';
+    if(g.interfaceName === 'IRI') {
+      quad += ' <' + g.nominalValue + '>';
+    }
+    else if(bnode) {
+      quad += ' _:g';
+    }
+    else {
+      quad += ' ' + g.nominalValue;
+    }
   }
 
   quad += ' .\n';
   return quad;
 }
+
+/**
+ * Parses statements found via the data object from the RDFa API.
+ *
+ * @param data the RDFa API data object.
+ *
+ * @return an array of RDF statements.
+ */
+function _parseRdfaApiData(data) {
+  var statements = [];
+
+  var subjects = data.getSubjects();
+  for(var si in subjects) {
+    var subject = subjects[si];
+    if(subject === null) {
+      continue;
+    }
+
+    // get all related triples
+    var triples = data.getSubjectTriples(subject);
+    if(triples === null) {
+      continue;
+    }
+    var predicates = triples.predicates;
+    for(var p in predicates) {
+      // iterate over objects
+      var objects = predicates[p].objects;
+      for(var oi in objects) {
+        var object = objects[oi];
+
+        // create RDF statement
+        var s = {};
+
+        // add subject
+        if(subject.indexOf('_:') === 0) {
+          s.subject = {nominalValue: subject, interfaceName: 'BlankNode'};
+        }
+        else {
+          s.subject = {nominalValue: subject, interfaceName: 'IRI'};
+        }
+
+        // add property
+        s.property = {nominalValue: p, interfaceName: 'IRI'};
+
+        // serialize XML literal
+        var value = object.value;
+        if(object.type === RDF_XML_LITERAL) {
+          // initialize XMLSerializer
+          if(!XMLSerializer) {
+            _defineXMLSerializer();
+          }
+          var serializer = new XMLSerializer();
+          value = '';
+          for(var x = 0; x < object.value.length; x++) {
+            if(object.value[x].nodeType === Node.ELEMENT_NODE) {
+              value += serializer.serializeToString(object.value[x]);
+            }
+            else if(object.value[x].nodeType === Node.TEXT_NODE) {
+              value += object.value[x].nodeValue;
+            }
+          }
+        }
+
+        // add object
+        s.object = {nominalValue: value};
+
+        // object is an IRI
+        if(object.type === RDF_OBJECT) {
+          if(object.value.indexOf('_:') === 0) {
+            s.object.interfaceName = 'BlankNode';
+          }
+          else {
+            s.object.interfaceName = 'IRI';
+          }
+        }
+        // literal
+        else {
+          s.object.interfaceName = 'LiteralNode';
+          if(object.type === RDF_PLAIN_LITERAL) {
+            if(object.language) {
+              s.object.language = object.language;
+            }
+          }
+          else {
+            s.object.datatype = {
+              nominalValue: object.type,
+              interfaceName: 'IRI'
+            };
+          }
+        }
+
+        // add statement
+        statements.push(s);
+      }
+    }
+  }
+
+  return statements;
+}
+
+// register the RDFa API RDF parser
+jsonld.registerRDFParser('rdfa-api', _parseRdfaApiData);
 
 /**
  * Creates a new UniqueNamer. A UniqueNamer issues unique names, keeping
@@ -4602,5 +4747,13 @@ _sha1.update = function(s, w, input) {
 };
 
 } // end non-nodejs
+
+if(!XMLSerializer) {
+
+function _defineXMLSerializer() {
+  XMLSerializer = require('xmldom').XMLSerializer;
+}
+
+} // end _defineXMLSerializer
 
 })();
