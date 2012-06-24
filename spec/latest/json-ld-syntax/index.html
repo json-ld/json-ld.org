@@ -1128,140 +1128,6 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </section>
 
 <section>
-<h2>Sets and Lists</h2>
-
-<p>A JSON-LD author can express multiple values in a compact way by using
-  <tref>array</tref>s. Since graphs do not describe ordering for links
-  between nodes, arrays in JSON-LD do not provide an ordering of the
-  listed <tref title="object">objects</tref> by default. This is exactly the opposite from regular JSON
-  arrays, which are ordered by default. For example, consider the following
-  simple document:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
-...
-}
--->
-</pre>
-
-<p>The markup shown above would result in three triples being generated,
-  each relating the subject to an individual <tref>object</tref>, with no inherent order:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "joe" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "bob" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "jaybee" .
--->
-</pre>
-
-<p>Multiple values may also be expressed using the expanded form:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@id": "http://example.org/articles/8",
-  "dc:title": ****
-  [
-    {
-      "@value": "Das Kapital",
-      "@language": "de"
-    },
-    {
-      "@value": "Capital",
-      "@language": "en"
-    }
-  ]****
-}-->
-</pre>
-
-<p>The markup shown above would generate the following triples, again with
-  no inherent order:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Das Kapital"@de .
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Capital"@en .
--->
-</pre>
-
-
-<p>As the notion of ordered collections is rather important in data
-  modeling, it is useful to have specific language support. In JSON-LD,
-  a list may be represented using the <code>@list</code> <tref>keyword</tref> as follows:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@id": "http://example.org/people#joebob",
-  "foaf:nick":
-  ****{
-    "@list": [ "joe", "bob", "jaybee" ]
-  }****,
-...
-}
--->
-</pre>
-
-<p>This describes the use of this <tref>array</tref> as being ordered,
-  and order is maintained when processing a document. If every use of a given multi-valued
-  property is a list, this may be abbreviated by setting <code>@container</code>
-  to <code>@list</code> in the <tref>context</tref>:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context":
-  {
-    ...
-    "nick":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/nick",
-      "@container": "@list"
-    }
-  }****,
-...
-  "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
-...
-}
--->
-</pre>
-
-<p class="note">List of lists are not allowed in this version of JSON-LD.
-  If a list of lists is detected, a JSON-LD processor will throw an exception.
-  This decision was made due to the extreme amount of added complexity when
-  processing lists of lists.</p>
-
-<p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
-  describe unordered sets. While its use in the body of a JSON-LD document
-  represents just syntactic sugar that MUST be optimized away when processing
-  the document, it is very helpful when used within the context of a document.
-  Values of terms associated with a <code>@set</code> or <code>@list</code> container
-  are always represented in the form of an <tref>array</tref> - even if there is just a
-  single value that would otherwise be optimized to a non-array form in a
-  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
-  the data easier as the data is always in array form, even if the array only
-  contains a single value.</p>
-
-<p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document, i.e., outside <code>@context</code> MUST be ignored by
-  JSON-LD processors.</p>
-
-</section>
-
-<section>
   <h2>JSON-LD Syntax</h2>
   
   <p>A JSON-LD document is first, and foremost, a JSON document
@@ -1974,6 +1840,140 @@ processor will use direct string comparison when looking up
 }
 -->
 </pre>
+</section>
+
+<section>
+<h2>Sets and Lists</h2>
+
+<p>A JSON-LD author can express multiple values in a compact way by using
+  <tref>array</tref>s. Since graphs do not describe ordering for links
+  between nodes, arrays in JSON-LD do not provide an ordering of the
+  listed <tref title="object">objects</tref> by default. This is exactly the opposite from regular JSON
+  arrays, which are ordered by default. For example, consider the following
+  simple document:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
+...
+}
+-->
+</pre>
+
+<p>The markup shown above would result in three triples being generated,
+  each relating the subject to an individual <tref>object</tref>, with no inherent order:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "joe" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "bob" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "jaybee" .
+-->
+</pre>
+
+<p>Multiple values may also be expressed using the expanded form:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@id": "http://example.org/articles/8",
+  "dc:title": ****
+  [
+    {
+      "@value": "Das Kapital",
+      "@language": "de"
+    },
+    {
+      "@value": "Capital",
+      "@language": "en"
+    }
+  ]****
+}-->
+</pre>
+
+<p>The markup shown above would generate the following triples, again with
+  no inherent order:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Das Kapital"@de .
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Capital"@en .
+-->
+</pre>
+
+
+<p>As the notion of ordered collections is rather important in data
+  modeling, it is useful to have specific language support. In JSON-LD,
+  a list may be represented using the <code>@list</code> <tref>keyword</tref> as follows:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "foaf:nick":
+  ****{
+    "@list": [ "joe", "bob", "jaybee" ]
+  }****,
+...
+}
+-->
+</pre>
+
+<p>This describes the use of this <tref>array</tref> as being ordered,
+  and order is maintained when processing a document. If every use of a given multi-valued
+  property is a list, this may be abbreviated by setting <code>@container</code>
+  to <code>@list</code> in the <tref>context</tref>:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context":
+  {
+    ...
+    "nick":
+    {
+      "@id": "http://xmlns.com/foaf/0.1/nick",
+      "@container": "@list"
+    }
+  }****,
+...
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
+...
+}
+-->
+</pre>
+
+<p class="note">List of lists are not allowed in this version of JSON-LD.
+  If a list of lists is detected, a JSON-LD processor will throw an exception.
+  This decision was made due to the extreme amount of added complexity when
+  processing lists of lists.</p>
+
+<p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
+  describe unordered sets. While its use in the body of a JSON-LD document
+  represents just syntactic sugar that MUST be optimized away when processing
+  the document, it is very helpful when used within the context of a document.
+  Values of terms associated with a <code>@set</code> or <code>@list</code> container
+  are always represented in the form of an <tref>array</tref> - even if there is just a
+  single value that would otherwise be optimized to a non-array form in a
+  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
+  the data easier as the data is always in array form, even if the array only
+  contains a single value.</p>
+
+<p class="note">The use of <code>@container</code> in the body of a JSON-LD
+  document, i.e., outside <code>@context</code> MUST be ignored by
+  JSON-LD processors.</p>
+
 </section>
 
 <section>
