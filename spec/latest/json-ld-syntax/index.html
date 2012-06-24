@@ -707,8 +707,8 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
 -->
 </pre>
 
-<p>Contexts MAY be used at any time a <tref>JSON object</tref> is defined.
-  A <tref>JSON object</tref> MAY specify multiple contexts, using an
+<p>Contexts MAY be used at any time a <tref>subject definition</tref> is defined.
+  A <tref>subject definition</tref> MAY specify multiple contexts, using an
   <tref>array</tref>, which is processed in order. This is useful
   when an author would like to use an existing context and add
   application-specific terms to the existing context. Duplicate context
@@ -720,7 +720,7 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   in a previous context MUST be removed, if it is re-defined to <code>null</code>.</p>
 
 <p>
-  The set of contexts defined within a specific <tref>JSON object</tref> are
+  The set of contexts defined within a specific <tref>subject definition</tref> are
   referred to as <tdef>local context</tdef>s. Setting the context to <code>null</code>
   effectively sets the <tref>local context</tref> to the initial context
   (further explained in the JSON-LD API, Appendix A, Initial Context 
@@ -910,8 +910,10 @@ value position that contains an <code>@id</code> keyword:</p>
 
 <p class="note">Specifying a <tref>JSON object</tref> with an
   <code>@id</code> key is used to identify that object using an
-  <tref>IRI</tref>. This facility MAY also be used to link to another
-  <tref>JSON object</tref> using a mechanism called
+  <tref>IRI</tref>. When the object has only the <code>@id</code>, it
+  is called a <tref>subject reference</tref>.
+  This facility MAY also be used to link to another
+  <tref>subject definition</tref> using a mechanism called
   <tref>embedding</tref>, which is covered in the section titled
   <a href="#embedding">Embedding</a>.</p>
 
@@ -988,15 +990,17 @@ create the (subject, property, object) tuple, also known as a triple.</p>
   that does not contain an <code>@id</code> property is called an
   <tref>unlabeled node</tref>.</p>
 
-<p class="note">To ensure the best possible performance, it is a best practice
-to put JSON-LD <tref>keyword</tref>s, such as
-<code>@id</code> and <code>@context</code> before other key-value pairs in a 
-<tref>JSON object</tref>.
-If keywords are not listed first, processors have to save each key-value 
-pair until at least the <code>@context</code> and the </code><code>@id</code> 
-are processed. Not specifying those keywords first creates a memory and
-complexity burden for low-memory footprint processors, forcing them to use
-more memory and computing cycles than necessary.</p>
+<p class="note">To ensure the best possible performance, when possible, it is a best practice
+  to put JSON-LD <tref>keyword</tref>s, such as <code>@id</code> and 
+  <code>@context</code> before other key-value pairs in a <tref>JSON 
+  object</tref>. However, keys in a <tref>JSON object</tref> are not ordered, 
+  so processors MUST NOT depend on key ordering. If keywords are not listed 
+  first, processors have to save each key-value pair until at least the 
+  <code>@context</code> and the <code>@id</code> are processed. Not 
+  specifying those keywords first creates a memory and complexity burden for 
+  low-memory footprint processors, forcing them to use more memory and 
+  computing cycles than necessary.</p>
+
 
 </section>
 
@@ -1144,7 +1148,7 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </pre>
 
 <p>The markup shown above would result in three triples being generated,
-  each relating the subject to an individual <tref>JSON object</tref>, with no inherent order:</p>
+  each relating the subject to an individual <tref>object</tref>, with no inherent order:</p>
 <pre class="example" data-transform="updateExample">
 <!--
 <http://example.org/people#joebob>
@@ -1475,7 +1479,7 @@ documents.
 <p>
 In order to use an external context, an author MUST specify an <tref>IRI</tref>
 to a valid JSON-LD document. The referenced document MUST have a
-top-level <tref>JSON object</tref>. The value of any <code>@context</code> key
+top-level <tref>subject definition</tref>. The value of any <code>@context</code> key
 within that object is substituted for the IRI within the referencing document
 to have the same effect as if the value were specified inline within the
 referencing document.</p>
@@ -1526,7 +1530,7 @@ basis. The context list MUST contain either de-referenceable <tref>IRI</tref>s
 or <tref>JSON object</tref>s that conform to the <tref>context</tref> syntax
 as described in this document.</p>
 
-<p>An author MAY nest contexts within <tref>JSON object</tref>s, with the
+<p>An author MAY nest contexts within <tref title="subject definition">subject definitions</tref>, with the
 more deeply nested contexts overriding the values in previously defined
 contexts:</p>
 
@@ -1583,10 +1587,10 @@ In order to use an external context with an ordinary JSON document, an author
 MUST specify an <tref>IRI</tref> to a valid JSON-LD document in an HTTP Link
 Header [[!RFC5988]] using the <code>describedby</code> link relation.
 
-The referenced document MUST have a top-level <tref>JSON object</tref>. The
+The referenced document MUST have a top-level <tref>subject definition</tref>. The
 <code>@context</code> subtree within that object is added to the top-level
-<tref>JSON object</tref> of the referencing document. If an <tref>array</tref> is at the top-level of the
-referencing document and its items are <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
+<tref>subject definition</tref> of the referencing document. If an <tref>array</tref> is at the top-level of the
+referencing document and its items are <tref title="subject definition">subject definitions</tref>, the <code>@context</code>
 subtree is added to all <tref>array</tref> items. All extra information located outside
 of the <code>@context</code> subtree in the referenced document MUST be
 discarded.
@@ -1633,7 +1637,8 @@ Content-Type: ****application/json****
 <p>Instead of using a string representation of an IRI, the IRI MAY be
 specified using a <tref>JSON object</tref> having an <code>@id</code> key.
 The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
-<tref>compact IRI</tref>, or an <tref>absolute IRI</tref>.</p>
+<tref>compact IRI</tref>, or an <tref>absolute IRI</tref>. Such
+an object is called a <tref>subject reference</tref>.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -2318,11 +2323,11 @@ For the time being, a simple list of plain english guidelines are provided.
 </p>
 
 <ol>
-<li>A JSON-LD document is composed of a single <tref>JSON object</tref> or an <tref>array</tref> of <tref title="JSON object">JSON objects</tref>.</li>
+<li>A JSON-LD document is composed of a single <tref>subject definition</tref> or an <tref>array</tref> of <tref title="subject definition">subject definitions</tref>.</li>
 <li>The value of <code>@id</code> MUST be a <tref>term</tref>, a <tref>compact IRI</tref>, or an <tref>IRI</tref>.</li>
 <li>An <code>@id</code> keyword and a <code>@language</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
 <li>An <code>@id</code> keyword and a <code>@container</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
-<li>A <tref>JSON object</tref> MAY contain a <code>@context</code> property.</li>
+<li>A <tref>subject definition</tref> MAY contain a <code>@context</code> property.</li>
 <li>A <code>@context</code> value MUST NOT contain an embedded <code>@context</code> definition.</li>
 <li>The value associated with the <code>@context</code> keyword MUST be an <tref>IRI</tref>, a <tref>JSON object</tref>, null, or an <tref>array</tref> containing a combination of the allowed values.</li>
 <li>The value associated with the keys used in a <code>@context</code> MUST be a <code>null</code>, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
@@ -2334,8 +2339,8 @@ For the time being, a simple list of plain english guidelines are provided.
     <li>Any other property MUST be ignored by a JSON-LD processor and MUST be preserved in compaction and framing.</li>
   </ol>
 </li>
-<li>A <tref>JSON object</tref> MAY have an <code>@graph</code> property.</li>
-<li>The value of a <code>@graph</code> property MUST be null, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
+<li>A <tref>subject definition</tref> MAY have an <code>@graph</code> property.</li>
+<li>The value of a <code>@graph</code> property MUST be null, an <tref>IRI</tref>, or a <tref>subject definition</tref>.</li>
 <li>A <tref>JSON object</tref> containing a <code>@set</code> key MUST NOT have any other keys.</li>
 <li>A <tref>JSON object</tref> containing a <code>@list</code> key MUST NOT have any other keys.</li>
 <li>The value of an <code>@set</code> or <code>@list</code> key can be a string, a number, a <tref>JSON object</tref>, or an <tref>array</tref> containing a combination of the allowed values.</li>
