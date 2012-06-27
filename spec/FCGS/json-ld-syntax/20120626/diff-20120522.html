@@ -15,15 +15,8 @@
 
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
-ol.algorithm.update { margin-left: 2em; }
-ol.algorithm.update>li { list-style-type: none; }
-ol.algorithm.update>li>span.list-number {
-  display:block;
-  float: left;
-  margin-left: -3.5em;
-}
 </style>
-<style>/*****************************************************************
+<style type="text/css">/*****************************************************************
  * ReSpec 3 CSS
  * Robin Berjon - http://berjon.com/
  *****************************************************************/
@@ -70,6 +63,12 @@ code {
 }
 
 
+/* --- --- */
+ol.algorithm { counter-reset:numsection; list-style-type: none; }
+ol.algorithm li { margin: 0.5em 0; }
+ol.algorithm li:before { font-weight: bold; counter-increment: numsection; content: counters(numsection, ".") ") "; }
+
+
 /* --- WEB IDL --- */
 pre.idl {
     border-top: 1px solid #90b8de;
@@ -99,7 +98,7 @@ pre.idl::before {
 /*.idlModule*/
 /*.idlModuleID*/
 /*.idlInterface*/
-.idlInterfaceID, .idlCallbackID, .idlEnumID {
+.idlInterfaceID, .idlDictionaryID, .idlCallbackID, .idlEnumID {
     font-weight:    bold;
     color:  #005a9c;
 }
@@ -110,13 +109,13 @@ pre.idl::before {
 }
 
 /*.idlAttribute*/
-.idlAttrType {
+.idlAttrType, .idlFieldType, .idlMemberType {
     color:  #005a9c;
 }
-.idlAttrName {
+.idlAttrName, .idlFieldName, .idlMemberName {
     color:  #ff4500;
 }
-.idlAttrName a {
+.idlAttrName a, .idlFieldName a, .idlMemberName a {
     color:  #ff4500;
     border-bottom:  1px dotted #ff4500;
     text-decoration: none;
@@ -194,25 +193,25 @@ pre.idl::before {
     font-weight:    bold;
 }
 
-dl.attributes, dl.methods, dl.constants {
+dl.attributes, dl.methods, dl.constants, dl.fields, dl.dictionary-members {
     margin-left:    2em;
 }
 
-.attributes dt, .methods dt, .constants dt {
+.attributes dt, .methods dt, .constants dt, .fields dt, .dictionary-members dt {
     font-weight:    normal;
 }
 
-.attributes dt code, .methods dt code, .constants dt code {
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code, .dictionary-members dt code {
     font-weight:    bold;
     color:  #000;
     font-family:    monospace;
 }
 
-.attributes dt code {
+.attributes dt code, .fields dt code, .dictionary-members dt code {
     background:  #ffffd2;
 }
 
-.attributes dt .idlAttrType code {
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code, .dictionary-members dt .idlMemberType code {
     color:  #005a9c;
     background:  transparent;
     font-family:    inherit;
@@ -228,7 +227,7 @@ dl.attributes, dl.methods, dl.constants {
     background:  #ddffd2;
 }
 
-.attributes dd, .methods dd, .constants dd {
+.attributes dd, .methods dd, .constants dd, .fields dd, .dictionary-members dd {
     margin-bottom:  1em;
 }
 
@@ -339,7 +338,7 @@ table.simple {
 .section dl.attrs dd, .section dl.eldef dd {
     margin-bottom:  0;
 }
-</style><style>/* --- EXAMPLES --- */
+</style><style type="text/css">/* --- EXAMPLES --- */
 div.example-title {
     min-width: 7.5em;
     color: #b9ab2d;
@@ -362,7 +361,7 @@ div.example {
     border-color: #e0cb52;
     background: #fcfaee;    
 }
-</style><style>/* --- ISSUES/NOTES --- */
+</style><style type="text/css">/* --- ISSUES/NOTES --- */
 div.issue-title, div.note-title {
     padding-right:  1em;
     min-width: 7.5em;
@@ -1273,13 +1272,17 @@ Internationalization
 </a>
 </li>
 <li class="tocline">
-<a href="#sets-and-lists" class="tocxref">
+<a href="#json-ld-syntax" class="tocxref">
 <span class="secno">
 3.6
 </span>
-Sets
+<del class="diff-old">Sets
 and
 Lists
+</del>
+<ins class="diff-chg">JSON-LD
+Syntax
+</ins>
 </a>
 </li>
 </ul>
@@ -1374,17 +1377,26 @@ Context
 </a>
 </li>
 <li class="tocline">
-<a href="#embedding" class="tocxref">
+<a href="#sets-and-lists" class="tocxref">
 <span class="secno">
 4.8
 </span>
+<ins class="diff-new">Sets
+and
+Lists
+</ins></a></li><li class="tocline"><a href="#embedding" class="tocxref"><span class="secno"><ins class="diff-new">
+4.9
+</ins></span>
 Embedding
 </a>
 </li>
 <li class="tocline">
 <a href="#named-graphs" class="tocxref">
 <span class="secno">
-4.9
+<del class="diff-old">4.9
+</del>
+<ins class="diff-chg">4.10
+</ins>
 </span>
 Named
 Graphs
@@ -1393,7 +1405,10 @@ Graphs
 <li class="tocline">
 <a href="#identifying-unlabeled-nodes" class="tocxref">
 <span class="secno">
-4.10
+<del class="diff-old">4.10
+</del>
+<ins class="diff-chg">4.11
+</ins>
 </span>
 Identifying
 Unlabeled
@@ -1403,7 +1418,10 @@ Nodes
 <li class="tocline">
 <a href="#aliasing-keywords" class="tocxref">
 <span class="secno">
-4.11
+<del class="diff-old">4.11
+</del>
+<ins class="diff-chg">4.12
+</ins>
 </span>
 Aliasing
 Keywords
@@ -1412,7 +1430,10 @@ Keywords
 <li class="tocline">
 <a href="#expanded-document-form" class="tocxref">
 <span class="secno">
-4.12
+<del class="diff-old">4.12
+</del>
+<ins class="diff-chg">4.13
+</ins>
 </span>
 Expanded
 Document
@@ -1422,7 +1443,10 @@ Form
 <li class="tocline">
 <a href="#compact-document-form" class="tocxref">
 <span class="secno">
-4.13
+<del class="diff-old">4.13
+</del>
+<ins class="diff-chg">4.14
+</ins>
 </span>
 Compact
 Document
@@ -1445,18 +1469,18 @@ Guidelines
 </a>
 </li>
 <li class="tocline">
-<a href="#converting-to-and-from-json-ld" class="tocxref">
+<a href="#relationship-to-other-rdf-formats" class="tocxref">
 <span class="secno">
 B.
 </span>
 <del class="diff-old">Markup
 Examples
 </del>
-<ins class="diff-chg">Converting
-To
-and
-From
-JSON-LD
+<ins class="diff-chg">Relationship
+to
+other
+RDF
+Formats
 </ins>
 </a>
 <ul class="toc">
@@ -2334,7 +2358,8 @@ number
 A
 number
 is
-is
+<del class="diff-old">is
+</del>
 similar
 to
 that
@@ -3836,17 +3861,20 @@ on
 the
 topic
 of
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
-nodes.
-<del class="diff-old">Unlabeled
+<del class="diff-old">nodes.
+Unlabeled
+</del>
 nodes
-are
+<del class="diff-old">are
 not
 considered
 Linked
 Data
-.
-However,
+</del>
+</a>.
+<del class="diff-old">However,
 </del>
 <ins class="diff-chg">Nevertheless,
 </ins>
@@ -3858,10 +3886,12 @@ the
 expression
 of
 <del class="diff-old">unlabled
-</del>
-<ins class="diff-chg">unlabeled
-</ins>
 nodes,
+</del>
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
+<ins class="diff-chg">unlabeled
+nodes
+</ins></a>,
 as
 most
 graph-based
@@ -4531,7 +4561,13 @@ other's
 <dfn title="vocabulary" id="dfn-vocabulary">
 vocabulary
 </dfn>
-terms.
+<del class="diff-old">terms.
+</del>
+<ins class="diff-chg">terms
+and
+other
+resources.
+</ins>
 Furthermore,
 developers,
 and
@@ -5020,16 +5056,24 @@ at
 any
 time
 a
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 is
 defined.
 A
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 <em class="rfc2119" title="may">
 may
@@ -5142,9 +5186,13 @@ defined
 within
 a
 specific
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 are
 referred
@@ -5491,8 +5539,12 @@ resolve
 the
 names
 in
+<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
 JSON
-objects,
+<del class="diff-old">objects,
+</del>
+<ins class="diff-chg">objects
+</ins></a>,
 machines
 are
 able
@@ -5573,7 +5625,7 @@ node
 is
 called
 an
-<dfn title="unlabeled_node" id="dfn-unlabeled_node">
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
 node
 <del class="diff-old">and
@@ -5587,9 +5639,8 @@ form
 of
 Linked
 Data
-.
 </del>
-</dfn>.
+</a>.
 It
 is
 advised
@@ -5686,7 +5737,10 @@ as
 an
 <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
-node
+<del class="diff-old">node
+</del>
+<ins class="diff-chg">nodes
+</ins>
 </a>.
 </p>
 </div>
@@ -6353,6 +6407,23 @@ an
 IRI
 </abbr>
 </a>.
+<ins class="diff-new">When
+the
+object
+has
+only
+the
+</ins><code><ins class="diff-new">
+@id
+</ins></code>,<ins class="diff-new">
+it
+is
+called
+a
+</ins><a class="tref internalDFN" title="subject_reference" href="#dfn-subject_reference"><ins class="diff-new">
+subject
+reference
+</ins></a>.
 This
 facility
 <em class="rfc2119" title="may">
@@ -6365,9 +6436,13 @@ to
 link
 to
 another
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 using
 a
@@ -6627,12 +6702,17 @@ object
 in
 </del>
 <ins class="diff-chg">a
-</ins>
+</ins><a class="tref internalDFN" title="json_object" href="#dfn-json_object">
 JSON
 <ins class="diff-new">object
-</ins>
+</ins></a>
 is
-declared
+<del class="diff-old">declared
+</del>
+<ins class="diff-chg">a
+node
+identified
+</ins>
 using
 the
 <code>
@@ -6668,10 +6748,23 @@ a
 triple.
 </p>
 <del class="diff-old">{
+...
 </del>
 <div class="example"><div class="example-title"><span>Example 12</span></div><pre class="example">{
-...
+<ins class="diff-chg">  &quot;@context&quot;:
+  {
+    ...
+    &quot;homepage&quot;:
+    {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+      &quot;@type&quot;: &quot;@id&quot;
+    }
+    ...
+  },
+</ins>
   &quot;<span class="diff">@id</span>&quot;: &quot;<span class="diff">http://example.org/people#joebob</span>&quot;,
+<ins class="diff-new">  &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
+</ins>
 ...
 }
 </pre>
@@ -6736,8 +6829,13 @@ an
 @id
 </code>
 property
-is
+<del class="diff-old">is
 called
+</del>
+<ins class="diff-chg">defines
+properties
+of
+</ins>
 an
 <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
@@ -6755,6 +6853,9 @@ the
 best
 possible
 performance,
+<ins class="diff-new">when
+possible,
+</ins>
 it
 is
 a
@@ -6792,7 +6893,29 @@ object.
 </ins><a class="tref internalDFN" title="json_object" href="#dfn-json_object"><ins class="diff-chg">
 JSON
 object
-</ins></a>.
+</ins></a>.<ins class="diff-chg">
+However,
+keys
+in
+a
+</ins><a class="tref internalDFN" title="json_object" href="#dfn-json_object"><ins class="diff-chg">
+JSON
+object
+</ins></a><ins class="diff-chg">
+are
+not
+ordered,
+so
+processors
+</ins><em class="rfc2119" title="must not"><ins class="diff-chg">
+must
+not
+</ins></em><ins class="diff-chg">
+depend
+on
+key
+ordering.
+</ins>
 If
 <del class="diff-old">it
 isn't
@@ -7293,19 +7416,23 @@ details.
 </p>
 </div>
 </div>
-<div id="sets-and-lists" class="section">
+<div id="json-ld-syntax" class="section">
 <h3>
 <span class="secno">
 3.6
 </span>
-Sets
+<del class="diff-old">Sets
 and
 Lists
+</del>
+<ins class="diff-chg">JSON-LD
+Syntax
+</ins>
 </h3>
 <p>
 A
 JSON-LD
-author
+<del class="diff-old">author
 can
 express
 multiple
@@ -7316,9 +7443,7 @@ compact
 way
 by
 using
-<a class="tref internalDFN" title="array" href="#dfn-array">
 array
-</a>
 s.
 Since
 graphs
@@ -7341,9 +7466,7 @@ ordering
 of
 the
 listed
-<a class="tref internalDFN" title="object" href="#dfn-object">
 objects
-</a>
 by
 default.
 This
@@ -7367,18 +7490,12 @@ the
 following
 simple
 document:
-</p>
-<del class="diff-old">{
-</del>
-<div class="example"><div class="example-title"><span>Example 18</span></div><pre class="example">{
+{
 ...
   &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
-  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+  &quot;nick&quot;: ,
 ...
 }
-</pre>
-</div>
-<p>
 The
 markup
 shown
@@ -7397,20 +7514,12 @@ subject
 to
 an
 individual
-<del class="diff-old">object,
-</del>
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-<ins class="diff-chg">JSON
-object
-</ins></a>,
+object,
 with
 no
 inherent
 order:
-</p>
-<del class="diff-old">&lt;http://example.org/people#joebob&gt;
-</del>
-<div class="example"><div class="example-title"><span>Example 19</span></div><pre class="example">&lt;http://example.org/people#joebob&gt;
+&lt;http://example.org/people#joebob&gt;
    &lt;http://xmlns.com/foaf/0.1/nick&gt;
       &quot;joe&quot; .
 &lt;http://example.org/people#joebob&gt;
@@ -7420,9 +7529,6 @@ order:
    &lt;http://xmlns.com/foaf/0.1/nick&gt;
 &quot;jaybee&quot;
 .
-</pre>
-</div>
-<p>
 Multiple
 values
 may
@@ -7432,15 +7538,11 @@ expressed
 using
 the
 expanded
-<del class="diff-old">object
-</del>
+object
 form:
-</p>
-<del class="diff-old">{
-</del>
-<div class="example"><div class="example-title"><span>Example 20</span></div><pre class="example">{
+{
   &quot;@id&quot;: &quot;http://example.org/articles/8&quot;,
-  &quot;dc:title&quot;: <span class="diff">
+  &quot;dc:title&quot;: 
   [
     {
       &quot;@value&quot;: &quot;Das Kapital&quot;,
@@ -7450,11 +7552,8 @@ form:
       &quot;@value&quot;: &quot;Capital&quot;,
       &quot;@language&quot;: &quot;en&quot;
     }
-  ]</span>
+  ]
 }
-</pre>
-</div>
-<p>
 The
 markup
 shown
@@ -7469,19 +7568,13 @@ with
 no
 inherent
 order:
-</p>
-<del class="diff-old">&lt;http://example.org/articles/8&gt;
-</del>
-<div class="example"><div class="example-title"><span>Example 21</span></div><pre class="example">&lt;http://example.org/articles/8&gt;
+&lt;http://example.org/articles/8&gt;
    &lt;http://purl.org/dc/terms/title&gt;
       &quot;Das Kapital&quot;@de .
 &lt;http://example.org/articles/8&gt;
    &lt;http://purl.org/dc/terms/title&gt;
 &quot;Capital&quot;@en
 .
-</pre>
-</div>
-<p>
 As
 the
 notion
@@ -7495,8 +7588,11 @@ in
 data
 modeling,
 it
+</del>
+<ins class="diff-chg">document
+</ins>
 is
-useful
+<del class="diff-old">useful
 to
 have
 specific
@@ -7511,43 +7607,34 @@ be
 represented
 using
 the
-<code>
 @list
-</code>
-<a class="tref internalDFN" title="keyword" href="#dfn-keyword">
 keyword
-</a>
 as
 follows:
-</p>
-<del class="diff-old">{
-</del>
-<div class="example"><div class="example-title"><span>Example 22</span></div><pre class="example">{
+{
 ...
   &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
   &quot;foaf:nick&quot;:
-  <span class="diff">{
+  {
     &quot;@list&quot;: [ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]
-  }</span>,
+  },
 ...
 }
-</pre>
-</div>
-<p>
 This
 describes
 the
 use
 of
 this
-<a class="tref internalDFN" title="array" href="#dfn-array">
 array
-</a>
 as
 being
 ordered,
+</del>
+<ins class="diff-chg">first,
+</ins>
 and
-order
+<del class="diff-old">order
 is
 maintained
 when
@@ -7563,31 +7650,26 @@ given
 multi-valued
 property
 is
+</del>
+<ins class="diff-chg">foremost,
+</ins>
 a
-list,
+<del class="diff-old">list,
 this
 may
 be
 abbreviated
 by
 setting
-<code>
 @container
-</code>
 to
-<code>
 @list
-</code>
 in
 the
-<a class="tref internalDFN" title="context" href="#dfn-context">
 context
-</a>:
-</p>
-<del class="diff-old">{
-</del>
-<div class="example"><div class="example-title"><span>Example 23</span></div><pre class="example">{
-  <span class="diff">&quot;@context&quot;:
+:
+{
+  &quot;@context&quot;:
   {
     ...
     &quot;nick&quot;:
@@ -7595,27 +7677,26 @@ context
       &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/nick&quot;,
       &quot;@container&quot;: &quot;@list&quot;
     }
-  }</span>,
+  },
 ...
   &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
-  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+  &quot;nick&quot;: ,
 ...
 }
-</pre>
-</div>
-<div class="note">
-<div class="note-title">
-<span>
-<ins class="diff-chg">Note
-</ins></span></div><p class="">
 List
 of
 lists
 are
 not
 allowed
+</del>
+<ins class="diff-chg">JSON
+document
+(as
+defined
+</ins>
 in
-this
+<del class="diff-old">this
 version
 of
 JSON-LD.
@@ -7650,23 +7731,21 @@ processing
 lists
 of
 lists.
-</p>
-</div>
-<p>
 Similarly
 to
-<code>
 @list
-</code>,
+,
 there
 exists
 the
-<a class="tref internalDFN" title="keyword" href="#dfn-keyword">
 keyword
+</del>
+<ins class="diff-chg">[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RFC5988"><ins class="diff-chg">
+RFC5988
+</ins>
 </a>
-<code>
-@set
-</code>
+<del class="diff-old">@set
 to
 describe
 unordered
@@ -7680,17 +7759,27 @@ body
 of
 a
 JSON-LD
+</del>
+</cite>
+<ins class="diff-chg">]),
+and
+any
+syntactically
+correct
+JSON
+</ins>
 document
-represents
+<del class="diff-old">represents
 just
 syntactic
 sugar
 that
+</del>
 <em class="rfc2119" title="must">
 must
 </em>
 be
-optimized
+<del class="diff-old">optimized
 away
 when
 processing
@@ -7713,14 +7802,14 @@ of
 terms
 associated
 with
+</del>
+<ins class="diff-chg">processed
+by
+</ins>
 a
-<code>
-@set
-</code>
+<del class="diff-old">@set
 or
-<code>
 @list
-</code>
 container
 are
 always
@@ -7730,35 +7819,51 @@ the
 form
 of
 an
-<a class="tref internalDFN" title="array" href="#dfn-array">
 array
-</a>
 -
 even
 if
 there
 is
 just
+</del>
+<ins class="diff-chg">conforming
+JSON-LD
+processor.
+However,
+JSON-LD
+describes
+</ins>
 a
-single
+<del class="diff-old">single
 value
 that
 would
 otherwise
 be
 optimized
+</del>
+<ins class="diff-chg">specific
+syntax
+</ins>
 to
-a
+<del class="diff-old">a
 non-array
 form
 in
 a
-<a href="#compact-document-form">
 compacted
 document
-</a>.
+.
+</del>
+<ins class="diff-chg">use
+for
+expressing
+Linked
+Data.
+</ins>
 This
-makes
+<del class="diff-old">makes
 post-processing
 of
 the
@@ -7774,47 +7879,79 @@ array
 form,
 even
 if
+</del>
+<ins class="diff-chg">includes
+</ins>
 the
-array
+<del class="diff-old">array
 only
 contains
 a
 single
 value.
-</p>
-<div class="note">
-<div class="note-title">
-<span>
-<ins class="diff-chg">Note
-</ins></span></div><p class="">
 The
+</del>
 use
 of
-<code>
-@container
-</code>
+<del class="diff-old">@container
+</del>
+<ins class="diff-chg">specific
+keywords,
+as
+identified
+</ins>
 in
+<a href="#syntax-tokens-and-keywords">
+<ins class="diff-new">Syntax
+Tokens
+and
+Keywords
+</ins></a><ins class="diff-new">
+for
+expressing
+</ins><a title="subject definition"><ins class="diff-new">
+subject
+definitions
+</ins></a>,<ins class="diff-new">
+values,
+and
+</ins>
 the
-body
+<del class="diff-old">body
 of
+</del>
+<a href="#dfn-context" class="internalDFN">
+<ins class="diff-chg">context
+</ins></a>.<ins class="diff-chg">
+See
+</ins><a href="#json-ld-authoring-guidelines"><ins class="diff-chg">
+Appendix
+A
+</ins></a><ins class="diff-chg">
+for
+authoring
+guidelines
+and
+</ins>
 a
-JSON-LD
+<del class="diff-old">JSON-LD
 document,
 i.e.,
 outside
-<code>
 @context
-</code>
-<em class="rfc2119" title="must">
 must
-</em>
 be
 ignored
 by
 JSON-LD
 processors.
+</del>
+<ins class="diff-chg">BNF
+description
+of
+JSON-LD.
+</ins>
 </p>
-</div>
 </div>
 </div>
 <div id="advanced-concepts" class="section">
@@ -8640,7 +8777,7 @@ example:
 </p>
 <del class="diff-old">  {
 </del>
-  <div class="example"><div class="example-title"><span>Example 24</span></div><pre class="example">{
+  <div class="example"><div class="example-title"><span>Example 18</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;dc&quot;: &quot;http://purl.org/dc/elements/1.1/&quot;,</span>
@@ -8720,7 +8857,7 @@ example:
 </p>
 <del class="diff-old">  {
 </del>
-  <div class="example"><div class="example-title"><span>Example 25</span></div><pre class="example">{
+  <div class="example"><div class="example-title"><span>Example 19</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;,
@@ -8728,7 +8865,10 @@ example:
     <span class="diff">&quot;foaf:homepage&quot;</span>: { &quot;@type&quot;: &quot;@id&quot; },
     &quot;picture&quot;: { &quot;@id&quot;: <span class="diff">&quot;foaf:depiction&quot;</span>, &quot;@type&quot;: &quot;@id&quot; }
   },
-  &quot;@subject&quot;: &quot;http://me.markus-lanthaler.com/&quot;,
+<del class="diff-old">  &quot;@subject&quot;: &quot;http://me.markus-lanthaler.com/&quot;,
+</del>
+<ins class="diff-chg">  &quot;@id&quot;: &quot;http://me.markus-lanthaler.com/&quot;,
+</ins>
   &quot;@type&quot;: &quot;foaf:Person&quot;,
   &quot;foaf:name&quot;: &quot;Markus Lanthaler&quot;,
   &quot;foaf:homepage&quot;: &quot;http://www.markus-lanthaler.com/&quot;,
@@ -8839,7 +8979,7 @@ in
 the
 </ins><code><ins class="diff-chg">
 @context
-</ins></code>:</p><div class="example"><div class="example-title"><span>Example 26</span></div><pre class="example">{  <span class="diff">&quot;@context&quot;:<ins class="diff-chg">
+</ins></code>:</p><div class="example"><div class="example-title"><span>Example 20</span></div><pre class="example">{  <span class="diff">&quot;@context&quot;:<ins class="diff-chg">
   {
     &quot;modified&quot;:
     {
@@ -8896,7 +9036,7 @@ of
 a
 JSON-LD
 document:
-</ins></p><div class="example"><div class="example-title"><span>Example 27</span></div><pre class="example">{<ins class="diff-chg">
+</ins></p><div class="example"><div class="example-title"><span>Example 21</span></div><pre class="example">{<ins class="diff-chg">
   &quot;@context&quot;:
   {
     &quot;modified&quot;:
@@ -9106,9 +9246,13 @@ must
 have
 a
 top-level
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>.
 The
 value
@@ -9164,7 +9308,7 @@ context:
 <del class="diff-old">{
   ,
 </del>
-<div class="example"><div class="example-title"><span>Example 28</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 22</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;: &quot;http://json-ld.org/contexts/person.jsonld&quot;</span>,
   &quot;name&quot;: &quot;Manu Sporny&quot;,
   &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
@@ -9196,7 +9340,7 @@ contexts:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 29</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 23</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;:
   [
 <del class="diff-old">    &quot;http://json-ld.org/contexts/person&quot;,
@@ -9207,13 +9351,17 @@ contexts:
       &quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;
     },
 <del class="diff-old">    &quot;http://json-ld.org/contexts/event&quot;,
+  ]
 </del>
-<ins class="diff-chg">    &quot;http://json-ld.org/contexts/event.jsonld&quot;,
+<ins class="diff-chg">    &quot;http://json-ld.org/contexts/event.jsonld&quot;
+  ],</span>
 </ins>
-  ]</span>
   &quot;name&quot;: &quot;Manu Sporny&quot;,
   &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
-  &quot;depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;
+<del class="diff-old">  &quot;depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;
+</del>
+<ins class="diff-chg">  &quot;foaf:depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;,
+</ins>
   <span class="diff">&quot;celebrates&quot;:
   {
     &quot;@type&quot;: &quot;Event&quot;,
@@ -9294,11 +9442,14 @@ may
 nest
 contexts
 within
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
-</a>
 s,
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definitions
+</ins></a>,
 with
 the
 more
@@ -9315,7 +9466,7 @@ contexts:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 30</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 24</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;:
   {
     &quot;name&quot;: &quot;http://example.com/person#name&quot;,
@@ -9598,9 +9749,13 @@ must
 have
 a
 top-level
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>.
 The
 <code>
@@ -9615,11 +9770,12 @@ added
 to
 the
 top-level
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-<ins class="diff-new">JSON
-</ins>
-object
-</a>
+<del class="diff-old">object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins></a>
 of
 the
 referencing
@@ -9643,9 +9799,9 @@ items
 are
 <del class="diff-old">objects,
 </del>
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-<ins class="diff-chg">JSON
-objects
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definitions
 </ins></a>,
 the
 <code>
@@ -9700,7 +9856,7 @@ document:
 </p>
 <del class="diff-old">GET /ordinary-json-document.json HTTP/1.1
 </del>
-<div class="example"><div class="example-title"><span>Example 31</span></div><pre class="example">GET /ordinary-json-document.json HTTP/1.1
+<div class="example"><div class="example-title"><span>Example 25</span></div><pre class="example">GET /ordinary-json-document.json HTTP/1.1
 Host: example.com
 Accept: application/ld+json,application/json,*/*;q=0.1
 ====================================
@@ -9874,10 +10030,20 @@ absolute
 IRI
 </abbr>
 </a>.
+<ins class="diff-new">Such
+an
+object
+is
+called
+a
+</ins><a class="tref internalDFN" title="subject_reference" href="#dfn-subject_reference"><ins class="diff-new">
+subject
+reference
+</ins></a>.
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 32</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 26</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;foaf&quot;: <span class="diff">{ &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/&quot; }</span>,
@@ -9936,7 +10102,7 @@ example:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 33</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 27</span></div><pre class="example">{
   &quot;@context&quot;: {
     ...
     &quot;ex&quot;: &quot;http://example.com/&quot;,
@@ -10427,7 +10593,7 @@ lists.
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 34</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 28</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;,
@@ -10466,7 +10632,7 @@ Turtle:
 </p>
 <del class="diff-old">@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 </del>
-<div class="example"><div class="example-title"><span>Example 35</span></div><pre class="example">@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+<div class="example"><div class="example-title"><span>Example 29</span></div><pre class="example">@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 [ foaf:name &quot;John Smith&quot;;
   foaf:age  &quot;41&quot;^^xsd:integer;
   foaf:homepage ( &lt;http://personal.example.org/&gt; &lt;http://work.example.com/jsmith/&gt; )
@@ -10517,7 +10683,7 @@ example:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 36</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 30</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -10855,7 +11021,7 @@ s:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 37</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 31</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;</span>,
@@ -10933,7 +11099,7 @@ term
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 38</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 32</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -10981,7 +11147,7 @@ definition.
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 39</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 33</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -11123,7 +11289,7 @@ context
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 40</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 34</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;,
@@ -11303,7 +11469,7 @@ illegal:
 </p>
 <del class="diff-old">{
 </del>
-<div class="example"><div class="example-title"><span>Example 41</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 35</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;term1&quot;: &quot;term2:foo&quot;,
@@ -11314,11 +11480,481 @@ illegal:
 </pre>
 </div>
 </div>
-<div id="embedding" class="section">
+<div id="sets-and-lists" class="section">
 <h3>
 <span class="secno">
 4.8
 </span>
+<ins class="diff-new">Sets
+and
+Lists
+</ins></h3><p><ins class="diff-new">
+A
+JSON-LD
+author
+can
+express
+multiple
+values
+in
+a
+compact
+way
+by
+using
+</ins><a class="tref internalDFN" title="array" href="#dfn-array"><ins class="diff-new">
+array
+</ins></a><ins class="diff-new">
+s.
+Since
+graphs
+do
+not
+describe
+ordering
+for
+links
+between
+nodes,
+arrays
+in
+JSON-LD
+do
+not
+provide
+an
+ordering
+of
+the
+listed
+</ins><a class="tref internalDFN" title="object" href="#dfn-object"><ins class="diff-new">
+objects
+</ins></a><ins class="diff-new">
+by
+default.
+This
+is
+exactly
+the
+opposite
+from
+regular
+JSON
+arrays,
+which
+are
+ordered
+by
+default.
+For
+example,
+consider
+the
+following
+simple
+document:
+</ins></p><div class="example"><div class="example-title"><span>Example 36</span></div><pre class="example">{<ins class="diff-new">
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+...
+}
+</ins></pre></div><p><ins class="diff-new">
+The
+markup
+shown
+above
+would
+result
+in
+three
+triples
+being
+generated,
+each
+relating
+the
+subject
+to
+an
+individual
+</ins><a class="tref internalDFN" title="object" href="#dfn-object"><ins class="diff-new">
+object
+</ins></a>,<ins class="diff-new">
+with
+no
+inherent
+order:
+</ins></p><div class="example"><div class="example-title"><span>Example 37</span></div><pre class="example">&lt;http://example.org/people#joebob&gt;<ins class="diff-new">
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      &quot;joe&quot; .
+&lt;http://example.org/people#joebob&gt;
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      &quot;bob&quot; .
+&lt;http://example.org/people#joebob&gt;
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+&quot;jaybee&quot;
+.
+</ins></pre></div><p><ins class="diff-new">
+Multiple
+values
+may
+also
+be
+expressed
+using
+the
+expanded
+form:
+</ins></p><div class="example"><div class="example-title"><span>Example 38</span></div><pre class="example">{<ins class="diff-new">
+  &quot;@id&quot;: &quot;http://example.org/articles/8&quot;,
+  &quot;dc:title&quot;: <span class="diff">
+  [
+    {
+      &quot;@value&quot;: &quot;Das Kapital&quot;,
+      &quot;@language&quot;: &quot;de&quot;
+    },
+    {
+      &quot;@value&quot;: &quot;Capital&quot;,
+      &quot;@language&quot;: &quot;en&quot;
+    }
+  ]</span>
+}
+</ins></pre></div><p><ins class="diff-new">
+The
+markup
+shown
+above
+would
+generate
+the
+following
+triples,
+again
+with
+no
+inherent
+order:
+</ins></p><div class="example"><div class="example-title"><span>Example 39</span></div><pre class="example">&lt;http://example.org/articles/8&gt;<ins class="diff-new">
+   &lt;http://purl.org/dc/terms/title&gt;
+      &quot;Das Kapital&quot;@de .
+&lt;http://example.org/articles/8&gt;
+   &lt;http://purl.org/dc/terms/title&gt;
+&quot;Capital&quot;@en
+.
+</ins></pre></div><p><ins class="diff-new">
+As
+the
+notion
+of
+ordered
+collections
+is
+rather
+important
+in
+data
+modeling,
+it
+is
+useful
+to
+have
+specific
+language
+support.
+In
+JSON-LD,
+a
+list
+may
+be
+represented
+using
+the
+</ins><code><ins class="diff-new">
+@list
+</ins></code><a class="tref internalDFN" title="keyword" href="#dfn-keyword"><ins class="diff-new">
+keyword
+</ins></a><ins class="diff-new">
+as
+follows:
+</ins></p><div class="example"><div class="example-title"><span>Example 40</span></div><pre class="example">{<ins class="diff-new">
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;foaf:nick&quot;:
+</ins>  <span class="diff">{<ins class="diff-new">
+    &quot;@list&quot;: [ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]
+  }</span>,
+...
+}
+</ins></pre></div><p><ins class="diff-new">
+This
+describes
+the
+use
+of
+this
+</ins><a class="tref internalDFN" title="array" href="#dfn-array"><ins class="diff-new">
+array
+</ins></a><ins class="diff-new">
+as
+being
+ordered,
+and
+order
+is
+maintained
+when
+processing
+a
+document.
+If
+every
+use
+of
+a
+given
+multi-valued
+property
+is
+a
+list,
+this
+may
+be
+abbreviated
+by
+setting
+</ins><code><ins class="diff-new">
+@container
+</ins></code><ins class="diff-new">
+to
+</ins><code><ins class="diff-new">
+@list
+</ins></code><ins class="diff-new">
+in
+the
+</ins><a class="tref internalDFN" title="context" href="#dfn-context"><ins class="diff-new">
+context
+</ins></a>:</p><div class="example"><div class="example-title"><span>Example 41</span></div><pre class="example">{  <span class="diff">&quot;@context&quot;:<ins class="diff-new">
+  {
+    ...
+    &quot;nick&quot;:
+    {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/nick&quot;,
+      &quot;@container&quot;: &quot;@list&quot;
+    }
+  }</span>,
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+...
+}
+</ins></pre></div><div class="note"><div class="note-title"><span><ins class="diff-new">
+Note
+</ins></span></div><p class=""><ins class="diff-new">
+List
+of
+lists
+are
+not
+allowed
+in
+this
+version
+of
+JSON-LD.
+If
+a
+list
+of
+lists
+is
+detected,
+a
+JSON-LD
+processor
+will
+throw
+an
+exception.
+This
+decision
+was
+made
+due
+to
+the
+extreme
+amount
+of
+added
+complexity
+when
+processing
+lists
+of
+lists.
+</ins></p></div><p><ins class="diff-new">
+Similarly
+to
+</ins><code><ins class="diff-new">
+@list
+</ins></code>,<ins class="diff-new">
+there
+exists
+the
+</ins><a class="tref internalDFN" title="keyword" href="#dfn-keyword"><ins class="diff-new">
+keyword
+</ins></a><code><ins class="diff-new">
+@set
+</ins></code><ins class="diff-new">
+to
+describe
+unordered
+sets.
+While
+its
+use
+in
+the
+body
+of
+a
+JSON-LD
+document
+represents
+just
+syntactic
+sugar
+that
+</ins><em class="rfc2119" title="must"><ins class="diff-new">
+must
+</ins></em><ins class="diff-new">
+be
+optimized
+away
+when
+processing
+the
+document,
+it
+is
+very
+helpful
+when
+used
+within
+the
+context
+of
+a
+document.
+Values
+of
+terms
+associated
+with
+a
+</ins><code><ins class="diff-new">
+@set
+</ins></code><ins class="diff-new">
+or
+</ins><code><ins class="diff-new">
+@list
+</ins></code><ins class="diff-new">
+container
+are
+always
+represented
+in
+the
+form
+of
+an
+</ins><a class="tref internalDFN" title="array" href="#dfn-array"><ins class="diff-new">
+array
+</ins></a><ins class="diff-new">
+-
+even
+if
+there
+is
+just
+a
+single
+value
+that
+would
+otherwise
+be
+optimized
+to
+a
+non-array
+form
+in
+a
+</ins><a href="#compact-document-form"><ins class="diff-new">
+compacted
+document
+</ins></a>.<ins class="diff-new">
+This
+makes
+post-processing
+of
+the
+data
+easier
+as
+the
+data
+is
+always
+in
+array
+form,
+even
+if
+the
+array
+only
+contains
+a
+single
+value.
+</ins></p><div class="note"><div class="note-title"><span><ins class="diff-new">
+Note
+</ins></span></div><p class=""><ins class="diff-new">
+The
+use
+of
+</ins><code><ins class="diff-new">
+@container
+</ins></code><ins class="diff-new">
+in
+the
+body
+of
+a
+JSON-LD
+document,
+i.e.,
+outside
+</ins><code><ins class="diff-new">
+@context
+</ins></code><em class="rfc2119" title="must"><ins class="diff-new">
+must
+</ins></em><ins class="diff-new">
+be
+ignored
+by
+JSON-LD
+processors.
+</ins></p></div></div><div id="embedding" class="section"><h3><span class="secno"><ins class="diff-new">
+4.9
+</ins></span>
 Embedding
 </h3>
 <p>
@@ -11434,7 +12070,10 @@ document.
 <div id="named-graphs" class="section">
 <h3>
 <span class="secno">
-4.9
+<del class="diff-old">4.9
+</del>
+<ins class="diff-chg">4.10
+</ins>
 </span>
 Named
 Graphs
@@ -11561,6 +12200,32 @@ shared
 <a class="tref internalDFN" title="context" href="#dfn-context">
 context
 </a>.
+<ins class="diff-new">When
+used
+in
+a
+</ins><a class="tref internalDFN" title="json_object" href="#dfn-json_object"><ins class="diff-new">
+JSON
+object
+</ins></a><ins class="diff-new">
+that
+is
+not
+otherwise
+a
+</ins><a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition"><ins class="diff-new">
+subject
+definition
+</ins></a>,<ins class="diff-new">
+this
+describes
+resources
+in
+the
+</ins><em><ins class="diff-new">
+default
+graph
+</ins></em>.
 This
 is
 equivalent
@@ -11818,11 +12483,42 @@ from
 the
 Web.
 </p>
+<div class="issue">
+<div class="issue-title">
+<span>
+<ins class="diff-new">Issue
+3
+</ins></span>
 </div>
-<div id="identifying-unlabeled-nodes" class="section">
+<p class="">
+<ins class="diff-chg">These
+examples
+could
+all
+have
+TriG
+definitions
+of
+their
+RDF
+results,
+but
+that
+would
+involve
+adding
+RDF
+earlier
+in
+the
+document.
+</ins></p></div></div><div id="identifying-unlabeled-nodes" class="section">
 <h3>
 <span class="secno">
-4.10
+<del class="diff-old">4.10
+</del>
+<ins class="diff-chg">4.11
+</ins>
 </span>
 Identifying
 Unlabeled
@@ -11855,14 +12551,30 @@ node
 is
 called
 an
-<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
+<dfn title="unlabeled_node" id="dfn-unlabeled_node">
 unlabeled
 node
-</a>
+</dfn>
 or
 a
 blank
-node.
+<del class="diff-old">node.
+</del>
+<ins class="diff-chg">node
+(see
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS"><ins class="diff-chg">
+RDF-CONCEPTS
+</ins></a></cite><ins class="diff-chg">
+]
+</ins><cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes"><ins class="diff-chg">
+Section
+3.4:
+Blank
+Nodes
+</ins></a></cite><ins class="diff-chg">
+).
+</ins>
 In
 JSON-LD,
 <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
@@ -11893,8 +12605,10 @@ may
 provide
 identifiers
 for
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
 nodes
+</a>
 by
 using
 the
@@ -12043,7 +12757,10 @@ documents.
 <div id="aliasing-keywords" class="section">
 <h3>
 <span class="secno">
-4.11
+<del class="diff-old">4.11
+</del>
+<ins class="diff-chg">4.12
+</ins>
 </span>
 Aliasing
 Keywords
@@ -12156,7 +12873,10 @@ respectively.
 <div id="expanded-document-form" class="section">
 <h3>
 <span class="secno">
-4.12
+<del class="diff-old">4.12
+</del>
+<ins class="diff-chg">4.13
+</ins>
 </span>
 Expanded
 Document
@@ -12202,7 +12922,10 @@ such
 that
 all
 IRIs,
-datatypes,
+<del class="diff-old">datatypes,
+</del>
+<ins class="diff-chg">types,
+</ins>
 and
 values
 are
@@ -12335,7 +13058,10 @@ form
 <div id="compact-document-form" class="section">
 <h3>
 <span class="secno">
-4.13
+<del class="diff-old">4.13
+</del>
+<ins class="diff-chg">4.14
+</ins>
 </span>
 Compact
 Document
@@ -12755,7 +13481,7 @@ JSON-LD.
 <div class="issue-title">
 <span>
 <ins class="diff-chg">Issue
-3
+4
 </ins></span></div><p class="">
 The
 final
@@ -12844,13 +13570,36 @@ simple
 list
 of
 plain
-english
+English
 guidelines
 are
 provided.
 </ins>
 </p>
 </div>
+<div class="issue">
+<div class="issue-title">
+<span>
+<ins class="diff-new">Issue
+5
+</ins></span></div><p class=""><ins class="diff-new">
+Per
+</ins><a href="http://lists.w3.org/Archives/Public/public-rdf-wg/2012Jun/0111.html"><ins class="diff-new">
+Andy
+S's
+comment
+</ins></a>,<ins class="diff-new">
+consider
+making
+this
+a
+normative
+syntax
+definition
+along
+with
+EBNF.
+</ins></p></div>
 <ol>
 <li>
 A
@@ -12861,22 +13610,29 @@ composed
 of
 a
 single
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 or
 an
 <a class="tref internalDFN" title="array" href="#dfn-array">
 array
-</a>
-of
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
+<del class="diff-old">of
 JSON
-<del class="diff-old">object
-s.
+object
 </del>
-<ins class="diff-chg">objects
+</a>
+<del class="diff-old">s.
+</del>
+<ins class="diff-chg">of
+</ins><a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition"><ins class="diff-chg">
+subject
+definitions
 </ins></a>.
 </li>
 <li>
@@ -12890,9 +13646,9 @@ of
 must
 </em>
 be
-<code>
-null
-</code>,
+<del class="diff-old">null
+,
+</del>
 a
 <a class="tref internalDFN" title="term" href="#dfn-term">
 term
@@ -12970,9 +13726,13 @@ object
 </li>
 <li>
 A
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 <em class="rfc2119" title="may">
 may
@@ -13016,6 +13776,11 @@ keyword
 must
 </em>
 be
+<ins class="diff-new">a
+string
+expanding
+to
+</ins>
 an
 <a class="tref internalDFN" title="iri" href="#dfn-iri">
 <abbr title="Internationalized Resource Identifier">
@@ -13195,9 +13960,13 @@ framing.
 </li>
 <li>
 A
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
-JSON
+<del class="diff-old">JSON
 object
+</del>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">
+<ins class="diff-chg">subject
+definition
+</ins>
 </a>
 <em class="rfc2119" title="may">
 may
@@ -13222,18 +13991,33 @@ property
 must
 </em>
 be
-null,
-an
-<a class="tref internalDFN" title="iri" href="#dfn-iri">
-<abbr title="Internationalized Resource Identifier">
-IRI
-</abbr>
-</a>,
+<del class="diff-old">null,
+</del>
+<ins class="diff-chg">a
+</ins><a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition"><ins class="diff-chg">
+subject
+definition
+</ins></a><ins class="diff-chg">
 or
-a
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">
+</ins>
+an
+<del class="diff-old">IRI
+,
+</del>
+<ins class="diff-chg">array
+of
+zero
+</ins>
+or
+<del class="diff-old">a
 JSON
 object
+</del>
+<ins class="diff-chg">more
+</ins><a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition"><ins class="diff-chg">
+subject
+definitions
+</ins>
 </a>.
 </li>
 <li>
@@ -13521,7 +14305,7 @@ allowed.
 </li>
 </ol>
 </div>
-<div class="appendix informative section" id="converting-to-and-from-json-ld">
+<div class="appendix informative section" id="relationship-to-other-rdf-formats">
 <h2>
 <span class="secno">
 B.
@@ -13529,11 +14313,11 @@ B.
 <del class="diff-old">Markup
 Examples
 </del>
-<ins class="diff-chg">Converting
-To
-and
-From
-JSON-LD
+<ins class="diff-chg">Relationship
+to
+other
+RDF
+Formats
 </ins>
 </h2>
 <p>
@@ -13548,7 +14332,7 @@ non-normative.
 <div class="issue-title">
 <span>
 <ins class="diff-new">Issue
-4
+6
 </ins></span></div><p class=""><ins class="diff-new">
 The
 intent
@@ -13580,6 +14364,11 @@ the
 RDF
 Concepts
 document
+[
+</ins><cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS"><ins class="diff-new">
+RDF-CONCEPTS
+</ins></a></cite><ins class="diff-new">
+]
 to
 the
 extent
@@ -13739,7 +14528,10 @@ are
 merely
 provided
 as
-proof
+<del class="diff-old">proof
+</del>
+<ins class="diff-chg">evidence
+</ins>
 that
 JSON-LD
 is
@@ -14037,8 +14829,10 @@ of
 objects
 which
 use
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">
 unlabeled
 node
+</a>
 identifiers.
 </p>
 </div>
@@ -14482,16 +15276,9 @@ a
 W3C
 Recommendation.
 </p>
-<h3 id="application-ld-json">
+<h2 id="application-ld-json">
 application/ld+json
-</h3>
-<p>
-<em>
-<ins class="diff-new">This
-section
-is
-non-normative.
-</ins></em></p>
+</h2>
 <dl>
 <dt>
 Type
@@ -15086,12 +15873,61 @@ of
 the
 JSON-LD
 Syntax
+</ins></a><ins class="diff-chg">
+is
+available
+at
+http://json-ld.org/spec/latest/json-ld-api/
+</ins></dd><dt id="bib-RDF-CONCEPTS"><ins class="diff-chg">
+[RDF-CONCEPTS]
+</ins></dt><dd><cite><a href="http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/"><ins class="diff-chg">
+RDF
+1.1
+Concepts
+and
+Abstract
+Syntax
+</ins></a></cite><ins class="diff-chg">
+Richard
+Cyganiak,
+David
+Wood,
+Editors.
+World
+Wide
+Web
+Consortium
+(work
+in
+progress).
+30
+May
+2012.
+Editor's
+Draft.
+This
+edition
+of
+the
+JSON-LD
+Syntax
+specification
+is
+http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/.
+The
+</ins><a href="http://www.w3.org/TR/rdf11-concepts/"><ins class="diff-chg">
+latest
+edition
+of
+the
+JSON-LD
+Syntax
 </ins>
 </a>
 <ins class="diff-new">is
 available
 at
-http://json-ld.org/spec/latest/json-ld-api/
+http://www.w3.org/TR/rdf11-concepts/
 </ins>
 </dd>
 <dt id="bib-RFC3987">
@@ -15203,37 +16039,21 @@ Editor's
 Draft.
 URL:
 http://json-ld.org/spec/latest/json-ld-api/
-</del>
-<dl class="bibliography">
-<dt id="bib-RDF-CONCEPTS">
 [RDF-CONCEPTS]
-</dt>
-<del class="diff-old">Graham
+Graham
 Klyne;
 Jeremy
 J.
 Carroll.
-</del>
-<dd>
-<cite>
-<del class="diff-old">Resource
+Resource
 Description
 Framework
 (RDF):
-</del>
-<a href="http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/">
-<ins class="diff-chg">RDF
-1.1
-</ins>
 Concepts
 and
 Abstract
-<del class="diff-old">Syntax.
-</del>
-<ins class="diff-chg">Syntax
-</ins>
-</a>
-<del class="diff-old">10
+Syntax.
+10
 February
 2004.
 W3C
@@ -15241,49 +16061,7 @@ Recommendation.
 URL:
 http://www.w3.org/TR/2004/REC-rdf-concepts-20040210
 </del>
-</cite>
-<ins class="diff-chg">Richard
-Cyganiak,
-David
-Wood,
-Editors.
-World
-Wide
-Web
-Consortium
-(work
-in
-progress).
-30
-May
-2012.
-Editor's
-Draft.
-This
-edition
-of
-the
-JSON-LD
-Syntax
-specification
-is
-http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/.
-The
-</ins><a href="http://www.w3.org/TR/rdf11-concepts/"><ins class="diff-chg">
-latest
-edition
-of
-the
-JSON-LD
-Syntax
-</ins>
-</a>
-<ins class="diff-new">is
-available
-at
-http://www.w3.org/TR/rdf11-concepts/
-</ins>
-</dd>
+<dl class="bibliography">
 <dt id="bib-RDF-PRIMER">
 [RDF-PRIMER]
 </dt>

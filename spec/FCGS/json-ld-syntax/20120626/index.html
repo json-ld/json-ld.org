@@ -15,15 +15,8 @@
 
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
-ol.algorithm.update { margin-left: 2em; }
-ol.algorithm.update>li { list-style-type: none; }
-ol.algorithm.update>li>span.list-number {
-  display:block;
-  float: left;
-  margin-left: -3.5em;
-}
 </style>
-<style>/*****************************************************************
+<style type="text/css">/*****************************************************************
  * ReSpec 3 CSS
  * Robin Berjon - http://berjon.com/
  *****************************************************************/
@@ -70,6 +63,12 @@ code {
 }
 
 
+/* --- --- */
+ol.algorithm { counter-reset:numsection; list-style-type: none; }
+ol.algorithm li { margin: 0.5em 0; }
+ol.algorithm li:before { font-weight: bold; counter-increment: numsection; content: counters(numsection, ".") ") "; }
+
+
 /* --- WEB IDL --- */
 pre.idl {
     border-top: 1px solid #90b8de;
@@ -99,7 +98,7 @@ pre.idl::before {
 /*.idlModule*/
 /*.idlModuleID*/
 /*.idlInterface*/
-.idlInterfaceID, .idlCallbackID, .idlEnumID {
+.idlInterfaceID, .idlDictionaryID, .idlCallbackID, .idlEnumID {
     font-weight:    bold;
     color:  #005a9c;
 }
@@ -110,13 +109,13 @@ pre.idl::before {
 }
 
 /*.idlAttribute*/
-.idlAttrType {
+.idlAttrType, .idlFieldType, .idlMemberType {
     color:  #005a9c;
 }
-.idlAttrName {
+.idlAttrName, .idlFieldName, .idlMemberName {
     color:  #ff4500;
 }
-.idlAttrName a {
+.idlAttrName a, .idlFieldName a, .idlMemberName a {
     color:  #ff4500;
     border-bottom:  1px dotted #ff4500;
     text-decoration: none;
@@ -194,25 +193,25 @@ pre.idl::before {
     font-weight:    bold;
 }
 
-dl.attributes, dl.methods, dl.constants {
+dl.attributes, dl.methods, dl.constants, dl.fields, dl.dictionary-members {
     margin-left:    2em;
 }
 
-.attributes dt, .methods dt, .constants dt {
+.attributes dt, .methods dt, .constants dt, .fields dt, .dictionary-members dt {
     font-weight:    normal;
 }
 
-.attributes dt code, .methods dt code, .constants dt code {
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code, .dictionary-members dt code {
     font-weight:    bold;
     color:  #000;
     font-family:    monospace;
 }
 
-.attributes dt code {
+.attributes dt code, .fields dt code, .dictionary-members dt code {
     background:  #ffffd2;
 }
 
-.attributes dt .idlAttrType code {
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code, .dictionary-members dt .idlMemberType code {
     color:  #005a9c;
     background:  transparent;
     font-family:    inherit;
@@ -228,7 +227,7 @@ dl.attributes, dl.methods, dl.constants {
     background:  #ddffd2;
 }
 
-.attributes dd, .methods dd, .constants dd {
+.attributes dd, .methods dd, .constants dd, .fields dd, .dictionary-members dd {
     margin-bottom:  1em;
 }
 
@@ -339,7 +338,7 @@ table.simple {
 .section dl.attrs dd, .section dl.eldef dd {
     margin-bottom:  0;
 }
-</style><style>/* --- EXAMPLES --- */
+</style><style type="text/css">/* --- EXAMPLES --- */
 div.example-title {
     min-width: 7.5em;
     color: #b9ab2d;
@@ -362,7 +361,7 @@ div.example {
     border-color: #e0cb52;
     background: #fcfaee;    
 }
-</style><style>/* --- ISSUES/NOTES --- */
+</style><style type="text/css">/* --- ISSUES/NOTES --- */
 div.issue-title, div.note-title {
     padding-right:  1em;
     min-width: 7.5em;
@@ -539,7 +538,7 @@ this specification:</p>
 </ul>
 
 
-</div><div id="toc" class="section"><h2 class="introductory">Table of Contents</h2><ul class="toc"><li class="tocline"><a href="#introduction" class="tocxref"><span class="secno">1. </span>Introduction</a><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno">1.1 </span>How to Read this Document</a></li></ul></li><li class="tocline"><a href="#design-goals-and-rationale" class="tocxref"><span class="secno">2. </span>Design Goals and Rationale</a></li><li class="tocline"><a href="#basic-concepts" class="tocxref"><span class="secno">3. </span>Basic Concepts</a><ul class="toc"><li class="tocline"><a href="#linking-data" class="tocxref"><span class="secno">3.1 </span>Linking Data</a><ul class="toc"><li class="tocline"><a href="#syntax-tokens-and-keywords" class="tocxref"><span class="secno">3.1.1 </span>Syntax Tokens and Keywords</a></li><li class="tocline"><a href="#the-context" class="tocxref"><span class="secno">3.1.2 </span>The Context</a></li><li class="tocline"><a href="#from-json-to-json-ld" class="tocxref"><span class="secno">3.1.3 </span>From JSON to JSON-LD</a></li></ul></li><li class="tocline"><a href="#iris" class="tocxref"><span class="secno">3.2 </span>IRIs</a></li><li class="tocline"><a href="#identifying-the-subject" class="tocxref"><span class="secno">3.3 </span>Identifying the Subject</a></li><li class="tocline"><a href="#specifying-the-type" class="tocxref"><span class="secno">3.4 </span>Specifying the Type</a></li><li class="tocline"><a href="#string-internationalization" class="tocxref"><span class="secno">3.5 </span>String Internationalization</a></li><li class="tocline"><a href="#sets-and-lists" class="tocxref"><span class="secno">3.6 </span>Sets and Lists</a></li></ul></li><li class="tocline"><a href="#advanced-concepts" class="tocxref"><span class="secno">4. </span>Advanced Concepts</a><ul class="toc"><li class="tocline"><a href="#compact-iris" class="tocxref"><span class="secno">4.1 </span>Compact IRIs</a></li><li class="tocline"><a href="#typed-values" class="tocxref"><span class="secno">4.2 </span>Typed Values</a></li><li class="tocline"><a href="#external-contexts" class="tocxref"><span class="secno">4.3 </span>External Contexts</a></li><li class="tocline"><a href="#referencing-contexts-from-json-documents" class="tocxref"><span class="secno">4.4 </span>Referencing Contexts from JSON Documents</a></li><li class="tocline"><a href="#expanded-term-definition" class="tocxref"><span class="secno">4.5 </span>Expanded Term Definition</a></li><li class="tocline"><a href="#type-coercion" class="tocxref"><span class="secno">4.6 </span>Type Coercion</a></li><li class="tocline"><a href="#iri-expansion-within-a-context" class="tocxref"><span class="secno">4.7 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion Within a Context</a></li><li class="tocline"><a href="#embedding" class="tocxref"><span class="secno">4.8 </span>Embedding</a></li><li class="tocline"><a href="#named-graphs" class="tocxref"><span class="secno">4.9 </span>Named Graphs</a></li><li class="tocline"><a href="#identifying-unlabeled-nodes" class="tocxref"><span class="secno">4.10 </span>Identifying Unlabeled Nodes</a></li><li class="tocline"><a href="#aliasing-keywords" class="tocxref"><span class="secno">4.11 </span>Aliasing Keywords</a></li><li class="tocline"><a href="#expanded-document-form" class="tocxref"><span class="secno">4.12 </span>Expanded Document Form</a></li><li class="tocline"><a href="#compact-document-form" class="tocxref"><span class="secno">4.13 </span>Compact Document Form</a></li></ul></li><li class="tocline"><a href="#json-ld-authoring-guidelines" class="tocxref"><span class="secno">A. </span>JSON-LD Authoring Guidelines</a></li><li class="tocline"><a href="#converting-to-and-from-json-ld" class="tocxref"><span class="secno">B. </span>Converting To and From JSON-LD</a><ul class="toc"><li class="tocline"><a href="#rdf" class="tocxref"><span class="secno">B.1 </span>RDF</a></li><li class="tocline"><a href="#turtle" class="tocxref"><span class="secno">B.2 </span>Turtle</a><ul class="toc"><li class="tocline"><a href="#prefix-definitions" class="tocxref"><span class="secno">B.2.1 </span>Prefix definitions</a></li><li class="tocline"><a href="#embedding-1" class="tocxref"><span class="secno">B.2.2 </span>Embedding</a></li><li class="tocline"><a href="#lists" class="tocxref"><span class="secno">B.2.3 </span>Lists</a></li></ul></li><li class="tocline"><a href="#rdfa" class="tocxref"><span class="secno">B.3 </span>RDFa</a></li><li class="tocline"><a href="#microformats" class="tocxref"><span class="secno">B.4 </span>Microformats</a></li><li class="tocline"><a href="#microdata" class="tocxref"><span class="secno">B.5 </span>Microdata</a></li></ul></li><li class="tocline"><a href="#iana-considerations" class="tocxref"><span class="secno">C. </span>IANA Considerations</a></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno">D. </span>Acknowledgements</a></li><li class="tocline"><a href="#references" class="tocxref"><span class="secno">E. </span>References</a><ul class="toc"><li class="tocline"><a href="#normative-references" class="tocxref"><span class="secno">E.1 </span>Normative references</a></li><li class="tocline"><a href="#informative-references" class="tocxref"><span class="secno">E.2 </span>Informative references</a></li></ul></li></ul></div>
+</div><div id="toc" class="section"><h2 class="introductory">Table of Contents</h2><ul class="toc"><li class="tocline"><a href="#introduction" class="tocxref"><span class="secno">1. </span>Introduction</a><ul class="toc"><li class="tocline"><a href="#how-to-read-this-document" class="tocxref"><span class="secno">1.1 </span>How to Read this Document</a></li></ul></li><li class="tocline"><a href="#design-goals-and-rationale" class="tocxref"><span class="secno">2. </span>Design Goals and Rationale</a></li><li class="tocline"><a href="#basic-concepts" class="tocxref"><span class="secno">3. </span>Basic Concepts</a><ul class="toc"><li class="tocline"><a href="#linking-data" class="tocxref"><span class="secno">3.1 </span>Linking Data</a><ul class="toc"><li class="tocline"><a href="#syntax-tokens-and-keywords" class="tocxref"><span class="secno">3.1.1 </span>Syntax Tokens and Keywords</a></li><li class="tocline"><a href="#the-context" class="tocxref"><span class="secno">3.1.2 </span>The Context</a></li><li class="tocline"><a href="#from-json-to-json-ld" class="tocxref"><span class="secno">3.1.3 </span>From JSON to JSON-LD</a></li></ul></li><li class="tocline"><a href="#iris" class="tocxref"><span class="secno">3.2 </span>IRIs</a></li><li class="tocline"><a href="#identifying-the-subject" class="tocxref"><span class="secno">3.3 </span>Identifying the Subject</a></li><li class="tocline"><a href="#specifying-the-type" class="tocxref"><span class="secno">3.4 </span>Specifying the Type</a></li><li class="tocline"><a href="#string-internationalization" class="tocxref"><span class="secno">3.5 </span>String Internationalization</a></li><li class="tocline"><a href="#json-ld-syntax" class="tocxref"><span class="secno">3.6 </span>JSON-LD Syntax</a></li></ul></li><li class="tocline"><a href="#advanced-concepts" class="tocxref"><span class="secno">4. </span>Advanced Concepts</a><ul class="toc"><li class="tocline"><a href="#compact-iris" class="tocxref"><span class="secno">4.1 </span>Compact IRIs</a></li><li class="tocline"><a href="#typed-values" class="tocxref"><span class="secno">4.2 </span>Typed Values</a></li><li class="tocline"><a href="#external-contexts" class="tocxref"><span class="secno">4.3 </span>External Contexts</a></li><li class="tocline"><a href="#referencing-contexts-from-json-documents" class="tocxref"><span class="secno">4.4 </span>Referencing Contexts from JSON Documents</a></li><li class="tocline"><a href="#expanded-term-definition" class="tocxref"><span class="secno">4.5 </span>Expanded Term Definition</a></li><li class="tocline"><a href="#type-coercion" class="tocxref"><span class="secno">4.6 </span>Type Coercion</a></li><li class="tocline"><a href="#iri-expansion-within-a-context" class="tocxref"><span class="secno">4.7 </span><abbr title="Internationalized Resource Identifier">IRI</abbr> Expansion Within a Context</a></li><li class="tocline"><a href="#sets-and-lists" class="tocxref"><span class="secno">4.8 </span>Sets and Lists</a></li><li class="tocline"><a href="#embedding" class="tocxref"><span class="secno">4.9 </span>Embedding</a></li><li class="tocline"><a href="#named-graphs" class="tocxref"><span class="secno">4.10 </span>Named Graphs</a></li><li class="tocline"><a href="#identifying-unlabeled-nodes" class="tocxref"><span class="secno">4.11 </span>Identifying Unlabeled Nodes</a></li><li class="tocline"><a href="#aliasing-keywords" class="tocxref"><span class="secno">4.12 </span>Aliasing Keywords</a></li><li class="tocline"><a href="#expanded-document-form" class="tocxref"><span class="secno">4.13 </span>Expanded Document Form</a></li><li class="tocline"><a href="#compact-document-form" class="tocxref"><span class="secno">4.14 </span>Compact Document Form</a></li></ul></li><li class="tocline"><a href="#json-ld-authoring-guidelines" class="tocxref"><span class="secno">A. </span>JSON-LD Authoring Guidelines</a></li><li class="tocline"><a href="#relationship-to-other-rdf-formats" class="tocxref"><span class="secno">B. </span>Relationship to other RDF Formats</a><ul class="toc"><li class="tocline"><a href="#rdf" class="tocxref"><span class="secno">B.1 </span>RDF</a></li><li class="tocline"><a href="#turtle" class="tocxref"><span class="secno">B.2 </span>Turtle</a><ul class="toc"><li class="tocline"><a href="#prefix-definitions" class="tocxref"><span class="secno">B.2.1 </span>Prefix definitions</a></li><li class="tocline"><a href="#embedding-1" class="tocxref"><span class="secno">B.2.2 </span>Embedding</a></li><li class="tocline"><a href="#lists" class="tocxref"><span class="secno">B.2.3 </span>Lists</a></li></ul></li><li class="tocline"><a href="#rdfa" class="tocxref"><span class="secno">B.3 </span>RDFa</a></li><li class="tocline"><a href="#microformats" class="tocxref"><span class="secno">B.4 </span>Microformats</a></li><li class="tocline"><a href="#microdata" class="tocxref"><span class="secno">B.5 </span>Microdata</a></li></ul></li><li class="tocline"><a href="#iana-considerations" class="tocxref"><span class="secno">C. </span>IANA Considerations</a></li><li class="tocline"><a href="#acknowledgements" class="tocxref"><span class="secno">D. </span>Acknowledgements</a></li><li class="tocline"><a href="#references" class="tocxref"><span class="secno">E. </span>References</a><ul class="toc"><li class="tocline"><a href="#normative-references" class="tocxref"><span class="secno">E.1 </span>Normative references</a></li><li class="tocline"><a href="#informative-references" class="tocxref"><span class="secno">E.2 </span>Informative references</a></li></ul></li></ul></div>
 
 
 
@@ -637,7 +636,7 @@ JSON, which is detailed in [<cite><a class="bibref" rel="biblioentry" href="#bib
       character is represented as a single character string.</dd>
     <dt><dfn title="number" id="dfn-number">number</dfn></dt>
     <dd>
-      A number is is similar to that used in most programming languages, except 
+      A number is similar to that used in most programming languages, except 
       that the octal and hexadecimal formats are not used and that leading 
       zeros are not allowed.</dd>
     <dt><dfn title="true" id="dfn-true">true</dfn> and <dfn title="false" id="dfn-false">false</dfn></dt><dd>
@@ -763,8 +762,8 @@ use in their roles within a triple.</p></div>
   transformed to RDF.</p></div>
 
 <p>Note that the definition for <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a> above is silent on the
-topic of unlabeled nodes. Nevertheless, this specification allows for the expression
-of unlabeled nodes, as most graph-based data sets on the Web contain a number
+topic of <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled nodes</a>. Nevertheless, this specification allows for the expression
+of <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled nodes</a>, as most graph-based data sets on the Web contain a number
 of associated nodes that are not named and thus are not directly
 de-referenceable.
 </p>
@@ -852,7 +851,7 @@ rest of this section:
 <p>The Web uses <a class="tref internalDFN" title="iri" href="#dfn-iri">IRIs</a> for unambiguous identification. The
   idea is that these <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s mean something that may be of use to other developers and that it is useful to
   give them an unambiguous identifier. That is, it is useful for <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s to expand to IRIs so that
-  developers don't accidentally step on each other's <dfn title="vocabulary" id="dfn-vocabulary">vocabulary</dfn> terms. Furthermore, developers, and
+  developers don't accidentally step on each other's <dfn title="vocabulary" id="dfn-vocabulary">vocabulary</dfn> terms and other resources. Furthermore, developers, and
   machines, are able to use this <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> (by plugging it directly into a web browser, for instance) to go to
   the term and get a definition of what the term means. This mechanism is analogous to the way we can use
   <a href="http://wordnet.princeton.edu/">WordNet</a> today to see the definition of words in the English language.
@@ -933,8 +932,8 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   &quot;depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;
 }</pre></div>
 
-<p>Contexts <em class="rfc2119" title="may">may</em> be used at any time a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> is defined.
-  A <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> <em class="rfc2119" title="may">may</em> specify multiple contexts, using an
+<p>Contexts <em class="rfc2119" title="may">may</em> be used at any time a <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> is defined.
+  A <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> <em class="rfc2119" title="may">may</em> specify multiple contexts, using an
   <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, which is processed in order. This is useful
   when an author would like to use an existing context and add
   application-specific terms to the existing context. Duplicate context
@@ -946,7 +945,7 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   in a previous context <em class="rfc2119" title="must">must</em> be removed, if it is re-defined to <code>null</code>.</p></div>
 
 <p>
-  The set of contexts defined within a specific <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> are
+  The set of contexts defined within a specific <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> are
   referred to as <dfn title="local_context" id="dfn-local_context">local context</dfn>s. Setting the context to <code>null</code>
   effectively sets the <a class="tref internalDFN" title="local_context" href="#dfn-local_context">local context</a> to the initial context
   (further explained in the JSON-LD API, Appendix A, Initial Context 
@@ -994,7 +993,7 @@ unless otherwise specified.
 <p>If a set of <a class="tref internalDFN" title="term" href="#dfn-term">term</a>s such as, <strong>name</strong>,
 <strong>homepage</strong>, and <strong>depiction</strong>,
 are defined in a <a class="tref internalDFN" title="context" href="#dfn-context">context</a>, and that context is used to resolve the
-names in JSON objects, machines are able to automatically expand the terms to
+names in <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON objects</a>, machines are able to automatically expand the terms to
 something meaningful and unambiguous, like this:</p>
 
 <div class="example"><div class="example-title"><span>Example 6</span></div><pre class="example">{
@@ -1008,7 +1007,7 @@ requiring developers to drastically change their workflow.</p>
 
 <div class="note"><div class="note-title"><span>Note</span></div><p class="">The example above does not use the <code>@id</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>
 to set the <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a> of the node being described above. This type
-of node is called an <dfn title="unlabeled_node" id="dfn-unlabeled_node">unlabeled node</dfn>. It is advised that all nodes
+of node is called an <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a>. It is advised that all nodes
 described in JSON-LD are given unique identifiers via the
 <code>@id</code> keyword unless the data is not intended to be linked to
 from other data sets.</p></div>
@@ -1017,7 +1016,7 @@ from other data sets.</p></div>
   <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>. <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">Subject definitions</a>
   do not require an <code>@id</code>. 
   <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">Subject definitions</a> that do not 
-  contain an <code>@id</code> are known as an <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a>.</p>
+  contain an <code>@id</code> are known as an <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled nodes</a>.</p>
 
 </div>
 </div>
@@ -1112,8 +1111,10 @@ value position that contains an <code>@id</code> keyword:</p>
 
 <div class="note"><div class="note-title"><span>Note</span></div><p class="">Specifying a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> with an
   <code>@id</code> key is used to identify that object using an
-  <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>. This facility <em class="rfc2119" title="may">may</em> also be used to link to another
-  <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> using a mechanism called
+  <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>. When the object has only the <code>@id</code>, it
+  is called a <a class="tref internalDFN" title="subject_reference" href="#dfn-subject_reference">subject reference</a>.
+  This facility <em class="rfc2119" title="may">may</em> also be used to link to another
+  <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> using a mechanism called
   <a class="tref internalDFN" title="embedding" href="#dfn-embedding">embedding</a>, which is covered in the section titled
   <a href="#embedding">Embedding</a>.</p></div>
 
@@ -1161,13 +1162,23 @@ the value into an <abbr title="Internationalized Resource Identifier">IRI</abbr>
   uniquely identify each node which may be externally referenced.
 </p>
 <p>A <a class="tref internalDFN" title="subject" href="#dfn-subject">subject</a>
-   of a JSON object is declared using the <code>@id</code> key. The subject is the
+   of a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> is a node identified using the <code>@id</code> key. The subject is the
 first piece of information needed by the JSON-LD processor in order to
 create the (subject, property, object) tuple, also known as a triple.</p>
 
 <div class="example"><div class="example-title"><span>Example 12</span></div><pre class="example">{
-...
+  &quot;@context&quot;:
+  {
+    ...
+    &quot;homepage&quot;:
+    {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/homepage&quot;,
+      &quot;@type&quot;: &quot;@id&quot;
+    }
+    ...
+  },
   &quot;<span class="diff">@id</span>&quot;: &quot;<span class="diff">http://example.org/people#joebob</span>&quot;,
+  &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
 ...
 }</pre></div>
 
@@ -1179,18 +1190,20 @@ create the (subject, property, object) tuple, also known as a triple.</p>
   <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>. <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">Subject definitions</a>
   do not require an <code>@id</code>. A
   <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>
-  that does not contain an <code>@id</code> property is called an
+  that does not contain an <code>@id</code> property defines properties of an
   <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a>.</p>
 
-<div class="note"><div class="note-title"><span>Note</span></div><p class="">To ensure the best possible performance, it is a best practice
-to put JSON-LD <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>s, such as
-<code>@id</code> and <code>@context</code> before other key-value pairs in a 
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.
-If keywords are not listed first, processors have to save each key-value 
-pair until at least the <code>@context</code> and the <code>@id</code> 
-are processed. Not specifying those keywords first creates a memory and
-complexity burden for low-memory footprint processors, forcing them to use
-more memory and computing cycles than necessary.</p></div>
+<div class="note"><div class="note-title"><span>Note</span></div><p class="">To ensure the best possible performance, when possible, it is a best practice
+  to put JSON-LD <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>s, such as <code>@id</code> and 
+  <code>@context</code> before other key-value pairs in a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON 
+  object</a>. However, keys in a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> are not ordered, 
+  so processors <em class="rfc2119" title="must not">must not</em> depend on key ordering. If keywords are not listed 
+  first, processors have to save each key-value pair until at least the 
+  <code>@context</code> and the <code>@id</code> are processed. Not 
+  specifying those keywords first creates a memory and complexity burden for 
+  low-memory footprint processors, forcing them to use more memory and 
+  computing cycles than necessary.</p></div>
+
 
 </div>
 
@@ -1297,117 +1310,19 @@ be set to <code>null</code> in a <a class="tref internalDFN" title="local_contex
 
 </div>
 
-<div id="sets-and-lists" class="section">
-<h3><span class="secno">3.6 </span>Sets and Lists</h3>
-
-<p>A JSON-LD author can express multiple values in a compact way by using
-  <a class="tref internalDFN" title="array" href="#dfn-array">array</a>s. Since graphs do not describe ordering for links
-  between nodes, arrays in JSON-LD do not provide an ordering of the
-  listed <a class="tref internalDFN" title="object" href="#dfn-object">objects</a> by default. This is exactly the opposite from regular JSON
-  arrays, which are ordered by default. For example, consider the following
-  simple document:</p>
-<div class="example"><div class="example-title"><span>Example 18</span></div><pre class="example">{
-...
-  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
-  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
-...
-}</pre></div>
-
-<p>The markup shown above would result in three triples being generated,
-  each relating the subject to an individual <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, with no inherent order:</p>
-<div class="example"><div class="example-title"><span>Example 19</span></div><pre class="example">&lt;http://example.org/people#joebob&gt;
-   &lt;http://xmlns.com/foaf/0.1/nick&gt;
-      &quot;joe&quot; .
-&lt;http://example.org/people#joebob&gt;
-   &lt;http://xmlns.com/foaf/0.1/nick&gt;
-      &quot;bob&quot; .
-&lt;http://example.org/people#joebob&gt;
-   &lt;http://xmlns.com/foaf/0.1/nick&gt;
-      &quot;jaybee&quot; .</pre></div>
-
-<p>Multiple values may also be expressed using the expanded form:</p>
-
-<div class="example"><div class="example-title"><span>Example 20</span></div><pre class="example">{
-  &quot;@id&quot;: &quot;http://example.org/articles/8&quot;,
-  &quot;dc:title&quot;: <span class="diff">
-  [
-    {
-      &quot;@value&quot;: &quot;Das Kapital&quot;,
-      &quot;@language&quot;: &quot;de&quot;
-    },
-    {
-      &quot;@value&quot;: &quot;Capital&quot;,
-      &quot;@language&quot;: &quot;en&quot;
-    }
-  ]</span>
-}</pre></div>
-
-<p>The markup shown above would generate the following triples, again with
-  no inherent order:</p>
-
-<div class="example"><div class="example-title"><span>Example 21</span></div><pre class="example">&lt;http://example.org/articles/8&gt;
-   &lt;http://purl.org/dc/terms/title&gt;
-      &quot;Das Kapital&quot;@de .
-&lt;http://example.org/articles/8&gt;
-   &lt;http://purl.org/dc/terms/title&gt;
-      &quot;Capital&quot;@en .</pre></div>
-
-
-<p>As the notion of ordered collections is rather important in data
-  modeling, it is useful to have specific language support. In JSON-LD,
-  a list may be represented using the <code>@list</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> as follows:</p>
-<div class="example"><div class="example-title"><span>Example 22</span></div><pre class="example">{
-...
-  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
-  &quot;foaf:nick&quot;:
-  <span class="diff">{
-    &quot;@list&quot;: [ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]
-  }</span>,
-...
-}</pre></div>
-
-<p>This describes the use of this <a class="tref internalDFN" title="array" href="#dfn-array">array</a> as being ordered,
-  and order is maintained when processing a document. If every use of a given multi-valued
-  property is a list, this may be abbreviated by setting <code>@container</code>
-  to <code>@list</code> in the <a class="tref internalDFN" title="context" href="#dfn-context">context</a>:</p>
-<div class="example"><div class="example-title"><span>Example 23</span></div><pre class="example">{
-  <span class="diff">&quot;@context&quot;:
-  {
-    ...
-    &quot;nick&quot;:
-    {
-      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/nick&quot;,
-      &quot;@container&quot;: &quot;@list&quot;
-    }
-  }</span>,
-...
-  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
-  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
-...
-}</pre></div>
-
-<div class="note"><div class="note-title"><span>Note</span></div><p class="">List of lists are not allowed in this version of JSON-LD.
-  If a list of lists is detected, a JSON-LD processor will throw an exception.
-  This decision was made due to the extreme amount of added complexity when
-  processing lists of lists.</p></div>
-
-<p>Similarly to <code>@list</code>, there exists the <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> <code>@set</code> to
-  describe unordered sets. While its use in the body of a JSON-LD document
-  represents just syntactic sugar that <em class="rfc2119" title="must">must</em> be optimized away when processing
-  the document, it is very helpful when used within the context of a document.
-  Values of terms associated with a <code>@set</code> or <code>@list</code> container
-  are always represented in the form of an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> - even if there is just a
-  single value that would otherwise be optimized to a non-array form in a
-  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
-  the data easier as the data is always in array form, even if the array only
-  contains a single value.</p>
-
-<div class="note"><div class="note-title"><span>Note</span></div><p class="">The use of <code>@container</code> in the body of a JSON-LD
-  document, i.e., outside <code>@context</code> <em class="rfc2119" title="must">must</em> be ignored by
-  JSON-LD processors.</p></div>
+<div id="json-ld-syntax" class="section">
+  <h3><span class="secno">3.6 </span>JSON-LD Syntax</h3>
+  
+  <p>A JSON-LD document is first, and foremost, a JSON document
+    (as defined in [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC5988">RFC5988</a></cite>]), and any syntactically correct JSON document 
+    <em class="rfc2119" title="must">must</em> be processed by a conforming JSON-LD processor. However, JSON-LD 
+    describes a specific syntax to use for expressing Linked Data. This 
+    includes the use of specific keywords, as identified in <a href="#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a> for 
+    expressing <a title="subject definition">subject definitions</a>, values, 
+    and the <a href="#dfn-context" class="internalDFN">context</a>. See <a href="#json-ld-authoring-guidelines">Appendix A</a> for authoring 
+    guidelines and a BNF description of JSON-LD.</p>
 
 </div>
-
 </div>
 
 <div id="advanced-concepts" class="section">
@@ -1465,7 +1380,7 @@ advanced functionality in more detail.
     containing a colon will be interpreted by a JSON-LD processor as an <abbr title="Internationalized Resource Identifier">IRI</abbr>.
   </p>
   <p>Consider the following example:</p>
-  <div class="example"><div class="example-title"><span>Example 24</span></div><pre class="example">{
+  <div class="example"><div class="example-title"><span>Example 18</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;dc&quot;: &quot;http://purl.org/dc/elements/1.1/&quot;,</span>
@@ -1495,7 +1410,7 @@ advanced functionality in more detail.
   </p>
   <p>It's also possible to use compact IRIs within the context as shown in the
     following example:</p>
-  <div class="example"><div class="example-title"><span>Example 25</span></div><pre class="example">{
+  <div class="example"><div class="example-title"><span>Example 19</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;,
@@ -1503,7 +1418,7 @@ advanced functionality in more detail.
     <span class="diff">&quot;foaf:homepage&quot;</span>: { &quot;@type&quot;: &quot;@id&quot; },
     &quot;picture&quot;: { &quot;@id&quot;: <span class="diff">&quot;foaf:depiction&quot;</span>, &quot;@type&quot;: &quot;@id&quot; }
   },
-  &quot;@subject&quot;: &quot;http://me.markus-lanthaler.com/&quot;,
+  &quot;@id&quot;: &quot;http://me.markus-lanthaler.com/&quot;,
   &quot;@type&quot;: &quot;foaf:Person&quot;,
   &quot;foaf:name&quot;: &quot;Markus Lanthaler&quot;,
   &quot;foaf:homepage&quot;: &quot;http://www.markus-lanthaler.com/&quot;,
@@ -1530,7 +1445,7 @@ advanced functionality in more detail.
 <p>The first example uses the <code>@type</code> keyword to associate a
 type with a particular <a class="tref internalDFN" title="term" href="#dfn-term">term</a> in the <code>@context</code>:</p>
 
-<div class="example"><div class="example-title"><span>Example 26</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 20</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;:
   {
     &quot;modified&quot;:
@@ -1551,7 +1466,7 @@ datetime value because of the information specified in the
 <p>The second example uses the expanded form of setting the type information
 in the body of a JSON-LD document:</p>
 
-<div class="example"><div class="example-title"><span>Example 27</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 21</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;modified&quot;:
@@ -1597,14 +1512,14 @@ documents.
 <p>
 In order to use an external context, an author <em class="rfc2119" title="must">must</em> specify an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>
 to a valid JSON-LD document. The referenced document <em class="rfc2119" title="must">must</em> have a
-top-level <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>. The value of any <code>@context</code> key
+top-level <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>. The value of any <code>@context</code> key
 within that object is substituted for the <abbr title="Internationalized Resource Identifier">IRI</abbr> within the referencing document
 to have the same effect as if the value were specified inline within the
 referencing document.</p>
 
 <p>The following example demonstrates the use of an external context:</p>
 
-<div class="example"><div class="example-title"><span>Example 28</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 22</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;: &quot;http://json-ld.org/contexts/person.jsonld&quot;</span>,
   &quot;name&quot;: &quot;Manu Sporny&quot;,
   &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
@@ -1614,18 +1529,18 @@ referencing document.</p>
 <p>Authors may also import multiple contexts or a combination of external
 and local contexts by specifying a list of contexts:</p>
 
-<div class="example"><div class="example-title"><span>Example 29</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 23</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;:
   [
     &quot;http://json-ld.org/contexts/person.jsonld&quot;,
     {
       &quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;
     },
-    &quot;http://json-ld.org/contexts/event.jsonld&quot;,
-  ]</span>
+    &quot;http://json-ld.org/contexts/event.jsonld&quot;
+  ],</span>
   &quot;name&quot;: &quot;Manu Sporny&quot;,
   &quot;homepage&quot;: &quot;http://manu.sporny.org/&quot;,
-  &quot;depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;
+  &quot;foaf:depiction&quot;: &quot;http://twitter.com/account/profile_image/manusporny&quot;,
   <span class="diff">&quot;celebrates&quot;:
   {
     &quot;@type&quot;: &quot;Event&quot;,
@@ -1640,11 +1555,11 @@ basis. The context list <em class="rfc2119" title="must">must</em> contain eithe
 or <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>s that conform to the <a class="tref internalDFN" title="context" href="#dfn-context">context</a> syntax
 as described in this document.</p>
 
-<p>An author <em class="rfc2119" title="may">may</em> nest contexts within <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>s, with the
+<p>An author <em class="rfc2119" title="may">may</em> nest contexts within <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a>, with the
 more deeply nested contexts overriding the values in previously defined
 contexts:</p>
 
-<div class="example"><div class="example-title"><span>Example 30</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 24</span></div><pre class="example">{
   <span class="diff">&quot;@context&quot;:
   {
     &quot;name&quot;: &quot;http://example.com/person#name&quot;,
@@ -1693,10 +1608,10 @@ In order to use an external context with an ordinary JSON document, an author
 <em class="rfc2119" title="must">must</em> specify an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> to a valid JSON-LD document in an HTTP Link
 Header [<cite><a class="bibref" rel="biblioentry" href="#bib-RFC5988">RFC5988</a></cite>] using the <code>describedby</code> link relation.
 
-The referenced document <em class="rfc2119" title="must">must</em> have a top-level <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>. The
+The referenced document <em class="rfc2119" title="must">must</em> have a top-level <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>. The
 <code>@context</code> subtree within that object is added to the top-level
-<a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> of the referencing document. If an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> is at the top-level of the
-referencing document and its items are <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON objects</a>, the <code>@context</code>
+<a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> of the referencing document. If an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> is at the top-level of the
+referencing document and its items are <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a>, the <code>@context</code>
 subtree is added to all <a class="tref internalDFN" title="array" href="#dfn-array">array</a> items. All extra information located outside
 of the <code>@context</code> subtree in the referenced document <em class="rfc2119" title="must">must</em> be
 discarded.
@@ -1705,7 +1620,7 @@ discarded.
 <p>The following example demonstrates the use of an external context with an
 ordinary JSON document:</p>
 
-<div class="example"><div class="example-title"><span>Example 31</span></div><pre class="example">GET /ordinary-json-document.json HTTP/1.1
+<div class="example"><div class="example-title"><span>Example 25</span></div><pre class="example">GET /ordinary-json-document.json HTTP/1.1
 Host: example.com
 Accept: application/ld+json,application/json,*/*;q=0.1
 
@@ -1739,9 +1654,10 @@ Content-Type: <span class="diff">application/json</span>
 <p>Instead of using a string representation of an <abbr title="Internationalized Resource Identifier">IRI</abbr>, the <abbr title="Internationalized Resource Identifier">IRI</abbr> <em class="rfc2119" title="may">may</em> be
 specified using a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> having an <code>@id</code> key.
 The value of the <code>@id</code> key <em class="rfc2119" title="must">must</em> be either a <a class="tref internalDFN" title="term" href="#dfn-term">term</a>, a
-<a class="tref internalDFN" title="compact_iri" href="#dfn-compact_iri">compact <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or an <a class="tref internalDFN" title="absolute_iri" href="#dfn-absolute_iri">absolute <abbr title="Internationalized Resource Identifier">IRI</abbr></a>.</p>
+<a class="tref internalDFN" title="compact_iri" href="#dfn-compact_iri">compact <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or an <a class="tref internalDFN" title="absolute_iri" href="#dfn-absolute_iri">absolute <abbr title="Internationalized Resource Identifier">IRI</abbr></a>. Such
+an object is called a <a class="tref internalDFN" title="subject_reference" href="#dfn-subject_reference">subject reference</a>.</p>
 
-<div class="example"><div class="example-title"><span>Example 32</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 26</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;foaf&quot;: <span class="diff">{ &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/&quot; }</span>,
@@ -1759,7 +1675,7 @@ The value of the <code>@id</code> key <em class="rfc2119" title="must">must</em>
   <a href="#sets-and-lists">Sets and Lists</a>), or to associate language
   information with a term as shown in the following example:</p>
 
-<div class="example"><div class="example-title"><span>Example 33</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 27</span></div><pre class="example">{
   &quot;@context&quot;: {
     ...
     &quot;ex&quot;: &quot;http://example.com/&quot;,
@@ -1820,7 +1736,7 @@ the data type to be specified with each piece of data.</p>
 <p>The example below demonstrates how a JSON-LD author can coerce values to
 <a class="tref internalDFN" title="typed_value" href="#dfn-typed_value">typed value</a>s, IRIs and lists.</p>
 
-<div class="example"><div class="example-title"><span>Example 34</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 28</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;,
@@ -1848,7 +1764,7 @@ the data type to be specified with each piece of data.</p>
 
 <p>The example above would generate the following Turtle:</p>
 
-<div class="example"><div class="example-title"><span>Example 35</span></div><pre class="example">@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+<div class="example"><div class="example-title"><span>Example 29</span></div><pre class="example">@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 
 [ foaf:name &quot;John Smith&quot;;
   foaf:age  &quot;41&quot;^^xsd:integer;
@@ -1859,7 +1775,7 @@ the data type to be specified with each piece of data.</p>
   This allows coercion rules to be applied to keys which are not represented as a simple <a class="tref internalDFN" title="term" href="#dfn-term">term</a>.
   For example:</p>
 
-<div class="example"><div class="example-title"><span>Example 36</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 30</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -1907,7 +1823,7 @@ the data type to be specified with each piece of data.</p>
     within the context <em class="rfc2119" title="may">may</em> also be used within that context as long as
     there are no circular dependencies. For example, it is common to use
     the <code>xsd</code> namespace when defining <a class="tref internalDFN" title="typed_value" href="#dfn-typed_value">typed value</a>s:</p>
-<div class="example"><div class="example-title"><span>Example 37</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 31</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;xsd&quot;: &quot;http://www.w3.org/2001/XMLSchema#&quot;</span>,
@@ -1932,7 +1848,7 @@ the data type to be specified with each piece of data.</p>
 <p><a class="tref internalDFN" title="term" href="#dfn-term">Term</a>s <em class="rfc2119" title="may">may</em> also be used when defining the <abbr title="Internationalized Resource Identifier">IRI</abbr> of another
 <a class="tref internalDFN" title="term" href="#dfn-term">term</a>:</p>
 
-<div class="example"><div class="example-title"><span>Example 38</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 32</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -1956,7 +1872,7 @@ the data type to be specified with each piece of data.</p>
   and <a class="tref internalDFN" title="iri" href="#dfn-iri">IRIs</a> <em class="rfc2119" title="may">may</em> be used on the left-hand side of a
   <a class="tref internalDFN" title="term" href="#dfn-term">term</a> definition.</p>
 
-<div class="example"><div class="example-title"><span>Example 39</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 33</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;</span>,
@@ -1991,7 +1907,7 @@ specified. The JSON-LD processor will derive the full <a class="tref internalDFN
 <a class="tref internalDFN" title="absolute_iri" href="#dfn-absolute_iri">Absolute IRIs</a> <em class="rfc2119" title="may">may</em> also be used in the key position in a <a class="tref internalDFN" title="context" href="#dfn-context">context</a>:
 </p>
 
-<div class="example"><div class="example-title"><span>Example 40</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 34</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     &quot;foaf&quot;: &quot;http://xmlns.com/foaf/0.1/&quot;,
@@ -2027,7 +1943,7 @@ processor will use direct string comparison when looking up
   definition of <em>term-2</em> if <em>term-2</em> also depends on
   <em>term-1</em>. For example, the following <a class="tref internalDFN" title="context" href="#dfn-context">context</a> definition
   is illegal:</p>
-<div class="example"><div class="example-title"><span>Example 41</span></div><pre class="example">{
+<div class="example"><div class="example-title"><span>Example 35</span></div><pre class="example">{
   &quot;@context&quot;:
   {
     <span class="diff">&quot;term1&quot;: &quot;term2:foo&quot;,
@@ -2037,8 +1953,119 @@ processor will use direct string comparison when looking up
 }</pre></div>
 </div>
 
+<div id="sets-and-lists" class="section">
+<h3><span class="secno">4.8 </span>Sets and Lists</h3>
+
+<p>A JSON-LD author can express multiple values in a compact way by using
+  <a class="tref internalDFN" title="array" href="#dfn-array">array</a>s. Since graphs do not describe ordering for links
+  between nodes, arrays in JSON-LD do not provide an ordering of the
+  listed <a class="tref internalDFN" title="object" href="#dfn-object">objects</a> by default. This is exactly the opposite from regular JSON
+  arrays, which are ordered by default. For example, consider the following
+  simple document:</p>
+<div class="example"><div class="example-title"><span>Example 36</span></div><pre class="example">{
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+...
+}</pre></div>
+
+<p>The markup shown above would result in three triples being generated,
+  each relating the subject to an individual <a class="tref internalDFN" title="object" href="#dfn-object">object</a>, with no inherent order:</p>
+<div class="example"><div class="example-title"><span>Example 37</span></div><pre class="example">&lt;http://example.org/people#joebob&gt;
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      &quot;joe&quot; .
+&lt;http://example.org/people#joebob&gt;
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      &quot;bob&quot; .
+&lt;http://example.org/people#joebob&gt;
+   &lt;http://xmlns.com/foaf/0.1/nick&gt;
+      &quot;jaybee&quot; .</pre></div>
+
+<p>Multiple values may also be expressed using the expanded form:</p>
+
+<div class="example"><div class="example-title"><span>Example 38</span></div><pre class="example">{
+  &quot;@id&quot;: &quot;http://example.org/articles/8&quot;,
+  &quot;dc:title&quot;: <span class="diff">
+  [
+    {
+      &quot;@value&quot;: &quot;Das Kapital&quot;,
+      &quot;@language&quot;: &quot;de&quot;
+    },
+    {
+      &quot;@value&quot;: &quot;Capital&quot;,
+      &quot;@language&quot;: &quot;en&quot;
+    }
+  ]</span>
+}</pre></div>
+
+<p>The markup shown above would generate the following triples, again with
+  no inherent order:</p>
+
+<div class="example"><div class="example-title"><span>Example 39</span></div><pre class="example">&lt;http://example.org/articles/8&gt;
+   &lt;http://purl.org/dc/terms/title&gt;
+      &quot;Das Kapital&quot;@de .
+&lt;http://example.org/articles/8&gt;
+   &lt;http://purl.org/dc/terms/title&gt;
+      &quot;Capital&quot;@en .</pre></div>
+
+
+<p>As the notion of ordered collections is rather important in data
+  modeling, it is useful to have specific language support. In JSON-LD,
+  a list may be represented using the <code>@list</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> as follows:</p>
+<div class="example"><div class="example-title"><span>Example 40</span></div><pre class="example">{
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;foaf:nick&quot;:
+  <span class="diff">{
+    &quot;@list&quot;: [ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]
+  }</span>,
+...
+}</pre></div>
+
+<p>This describes the use of this <a class="tref internalDFN" title="array" href="#dfn-array">array</a> as being ordered,
+  and order is maintained when processing a document. If every use of a given multi-valued
+  property is a list, this may be abbreviated by setting <code>@container</code>
+  to <code>@list</code> in the <a class="tref internalDFN" title="context" href="#dfn-context">context</a>:</p>
+<div class="example"><div class="example-title"><span>Example 41</span></div><pre class="example">{
+  <span class="diff">&quot;@context&quot;:
+  {
+    ...
+    &quot;nick&quot;:
+    {
+      &quot;@id&quot;: &quot;http://xmlns.com/foaf/0.1/nick&quot;,
+      &quot;@container&quot;: &quot;@list&quot;
+    }
+  }</span>,
+...
+  &quot;@id&quot;: &quot;http://example.org/people#joebob&quot;,
+  &quot;nick&quot;: <span class="diff">[ &quot;joe&quot;, &quot;bob&quot;, &quot;jaybee&quot; ]</span>,
+...
+}</pre></div>
+
+<div class="note"><div class="note-title"><span>Note</span></div><p class="">List of lists are not allowed in this version of JSON-LD.
+  If a list of lists is detected, a JSON-LD processor will throw an exception.
+  This decision was made due to the extreme amount of added complexity when
+  processing lists of lists.</p></div>
+
+<p>Similarly to <code>@list</code>, there exists the <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> <code>@set</code> to
+  describe unordered sets. While its use in the body of a JSON-LD document
+  represents just syntactic sugar that <em class="rfc2119" title="must">must</em> be optimized away when processing
+  the document, it is very helpful when used within the context of a document.
+  Values of terms associated with a <code>@set</code> or <code>@list</code> container
+  are always represented in the form of an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> - even if there is just a
+  single value that would otherwise be optimized to a non-array form in a
+  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
+  the data easier as the data is always in array form, even if the array only
+  contains a single value.</p>
+
+<div class="note"><div class="note-title"><span>Note</span></div><p class="">The use of <code>@container</code> in the body of a JSON-LD
+  document, i.e., outside <code>@context</code> <em class="rfc2119" title="must">must</em> be ignored by
+  JSON-LD processors.</p></div>
+
+</div>
+
 <div id="embedding" class="section">
-  <h3><span class="secno">4.8 </span>Embedding</h3>
+  <h3><span class="secno">4.9 </span>Embedding</h3>
   <p>
     Object <dfn title="embedding" id="dfn-embedding">embedding</dfn> is a JSON-LD feature that allows an author to 
     use <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a> as 
@@ -2063,7 +2090,7 @@ processor will use direct string comparison when looking up
 </div>
 
 <div id="named-graphs" class="section">
-  <h3><span class="secno">4.9 </span>Named Graphs</h3>
+  <h3><span class="secno">4.10 </span>Named Graphs</h3>
   <p>The <code>@graph</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> is used to express a set of
     JSON-LD <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>s that may not be directly related
     to one another through a property. The mechanism may also be used where
@@ -2092,7 +2119,9 @@ processor will use direct string comparison when looking up
     <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> references the other. Using the 
     <code>@graph</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a> allows multiple resources to be 
     defined within an <a class="tref internalDFN" title="array" href="#dfn-array">array</a>, and allows the use of a shared 
-    <a class="tref internalDFN" title="context" href="#dfn-context">context</a>. This is equivalent to using multiple <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a> in array and defining 
+    <a class="tref internalDFN" title="context" href="#dfn-context">context</a>. When used in a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> that is not otherwise
+    a <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>, this describes resources in the <em>default graph</em>.
+    This is equivalent to using multiple <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a> in array and defining 
     the <code>@context</code> within each <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a>:</p>
 
   <div class="example"><div class="example-title"><span>Example 44</span></div><pre class="example"><span class="diff">[</span>
@@ -2149,17 +2178,21 @@ processor will use direct string comparison when looking up
     expressed via the <code>asOf</code> property, which specifies when the
     information was retrieved from the Web.</p>
 
+  <div class="issue"><div class="issue-title"><span>Issue 3</span></div><p class="">These examples could all have TriG definitions of their RDF results,
+    but that would involve adding RDF earlier in the document.</p></div>
+
 </div>
 
 <div id="identifying-unlabeled-nodes" class="section">
-<h3><span class="secno">4.10 </span>Identifying Unlabeled Nodes</h3>
+<h3><span class="secno">4.11 </span>Identifying Unlabeled Nodes</h3>
 
 <p>At times, it becomes necessary to be able to express information without
 being able to specify the subject. Typically, this type of node is called
-an <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a> or a blank node. In JSON-LD, <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a> identifiers are
+an <dfn title="unlabeled_node" id="dfn-unlabeled_node">unlabeled node</dfn> or a blank node (see [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS">RDF-CONCEPTS</a></cite>] <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes">Section 3.4: Blank Nodes</a></cite>).
+In JSON-LD, <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a> identifiers are
 automatically created if a subject is not specified using the
 <code>@id</code> <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>. However, authors may provide identifiers for
-unlabeled nodes by using the special <code>_</code> (underscore)
+<a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled nodes</a> by using the special <code>_</code> (underscore)
 <a class="tref internalDFN" title="prefix" href="#dfn-prefix">prefix</a>. This allows one to reference the node locally within the
 document, but makes it impossible to reference the node from an
 external document. The <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a> identifier is scoped to the
@@ -2181,7 +2214,7 @@ node more than once, they should consider naming the node using a de-referenceab
 </div>
 
 <div id="aliasing-keywords" class="section">
-<h3><span class="secno">4.11 </span>Aliasing Keywords</h3>
+<h3><span class="secno">4.12 </span>Aliasing Keywords</h3>
 
 <p>Each of the JSON-LD <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keywords</a>,
 except for <code>@context</code>, <em class="rfc2119" title="may">may</em> be aliased to application-specific
@@ -2210,11 +2243,11 @@ using only the JSON-LD <a class="tref internalDFN" title="context" href="#dfn-co
 </div>
 
 <div id="expanded-document-form" class="section">
-<h3><span class="secno">4.12 </span>Expanded Document Form</h3>
+<h3><span class="secno">4.13 </span>Expanded Document Form</h3>
 <p>The JSON-LD API [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-LD-API">JSON-LD-API</a></cite>] defines an method for <em>expanding</em> a
   JSON-LD document.
   Expansion is the process of taking a JSON-LD document and applying a
-  <code>@context</code> such that all IRIs, datatypes, and values
+  <code>@context</code> such that all IRIs, types, and values
   are expanded so that the <code>@context</code> is no longer necessary.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
@@ -2255,7 +2288,7 @@ have to be written to operate on
 </div>
 
 <div id="compact-document-form" class="section">
-<h3><span class="secno">4.13 </span>Compact Document Form</h3>
+<h3><span class="secno">4.14 </span>Compact Document Form</h3>
 <p>The JSON-LD API [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-LD-API">JSON-LD-API</a></cite>] defines a method for <em>compacting</em> a JSON-LD document.
   Compaction is the process of taking a JSON-LD document and applying a
   context such that the most compact form of the document is generated. JSON
@@ -2332,22 +2365,26 @@ even if these guidelines are violated, a JSON-LD processor will do its best
 to recover from the mistake and will deterministically transform the author's
 markup into well-formed JSON-LD.</p>
 
-<div class="issue"><div class="issue-title"><span>Issue 3</span></div><p class="">The final details of the guidelines are still being
+<div class="issue"><div class="issue-title"><span>Issue 4</span></div><p class="">The final details of the guidelines are still being
 discussed (<a href="https://github.com/json-ld/json-ld.org/issues/114#issuecomment-5820544">ISSUE-114</a>),
 as well as the best mechanism to express these restrictions.
 EBNF doesn't quite capture what these guidelines are attempting to do -
 which is strongly express what constitutes a well-formed JSON-LD document.
-For the time being, a simple list of plain english guidelines are provided.
+For the time being, a simple list of plain English guidelines are provided.
 </p></div>
 
+<div class="issue"><div class="issue-title"><span>Issue 5</span></div><p class="">Per
+  <a href="http://lists.w3.org/Archives/Public/public-rdf-wg/2012Jun/0111.html">Andy S's comment</a>,
+  consider making this a normative syntax definition along with EBNF.</p></div>
+
 <ol>
-<li>A JSON-LD document is composed of a single <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> of <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON objects</a>.</li>
-<li>The value of <code>@id</code> <em class="rfc2119" title="must">must</em> be <code>null</code>, a <a class="tref internalDFN" title="term" href="#dfn-term">term</a>, a <a class="tref internalDFN" title="compact_iri" href="#dfn-compact_iri">compact <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>.</li>
+<li>A JSON-LD document is composed of a single <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> of <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a>.</li>
+<li>The value of <code>@id</code> <em class="rfc2119" title="must">must</em> be a <a class="tref internalDFN" title="term" href="#dfn-term">term</a>, a <a class="tref internalDFN" title="compact_iri" href="#dfn-compact_iri">compact <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>.</li>
 <li>An <code>@id</code> keyword and a <code>@language</code> keyword <em class="rfc2119" title="must not">must not</em> exist in the same <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.</li>
 <li>An <code>@id</code> keyword and a <code>@container</code> keyword <em class="rfc2119" title="must not">must not</em> exist in the same <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.</li>
-<li>A <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> <em class="rfc2119" title="may">may</em> contain a <code>@context</code> property.</li>
+<li>A <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> <em class="rfc2119" title="may">may</em> contain a <code>@context</code> property.</li>
 <li>A <code>@context</code> value <em class="rfc2119" title="must not">must not</em> contain an embedded <code>@context</code> definition.</li>
-<li>The value associated with the <code>@context</code> keyword <em class="rfc2119" title="must">must</em> be an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>, a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, null, or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> containing a combination of the allowed values.</li>
+<li>The value associated with the <code>@context</code> keyword <em class="rfc2119" title="must">must</em> be a string expanding to an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>, a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, null, or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> containing a combination of the allowed values.</li>
 <li>The value associated with the keys used in a <code>@context</code> <em class="rfc2119" title="must">must</em> be a <code>null</code>, an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.</li>
 <li>For each value that is a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> that is associated with a key in a <code>@context</code>:
   <ol>
@@ -2357,8 +2394,10 @@ For the time being, a simple list of plain english guidelines are provided.
     <li>Any other property <em class="rfc2119" title="must">must</em> be ignored by a JSON-LD processor and <em class="rfc2119" title="must">must</em> be preserved in compaction and framing.</li>
   </ol>
 </li>
-<li>A <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> <em class="rfc2119" title="may">may</em> have an <code>@graph</code> property.</li>
-<li>The value of a <code>@graph</code> property <em class="rfc2119" title="must">must</em> be null, an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a>, or a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>.</li>
+<li>A <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> <em class="rfc2119" title="may">may</em> have an <code>@graph</code> property.</li>
+<li>The value of a <code>@graph</code> property <em class="rfc2119" title="must">must</em> be a
+  <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definition</a> or an array of zero or more
+  <a class="tref internalDFN" title="subject_definition" href="#dfn-subject_definition">subject definitions</a>.</li>
 <li>A <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> containing a <code>@set</code> key <em class="rfc2119" title="must not">must not</em> have any other keys.</li>
 <li>A <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a> containing a <code>@list</code> key <em class="rfc2119" title="must not">must not</em> have any other keys.</li>
 <li>The value of an <code>@set</code> or <code>@list</code> key can be a string, a number, a <a class="tref internalDFN" title="json_object" href="#dfn-json_object">JSON object</a>, or an <a class="tref internalDFN" title="array" href="#dfn-array">array</a> containing a combination of the allowed values.</li>
@@ -2376,15 +2415,15 @@ For the time being, a simple list of plain english guidelines are provided.
 
 </div>
 
-<div class="appendix informative section" id="converting-to-and-from-json-ld">
+<div class="appendix informative section" id="relationship-to-other-rdf-formats">
 
 <!-- OddPage -->
-<h2><span class="secno">B. </span>Converting To and From JSON-LD</h2><p><em>This section is non-normative.</em></p>
+<h2><span class="secno">B. </span>Relationship to other RDF Formats</h2><p><em>This section is non-normative.</em></p>
 
-<div class="issue"><div class="issue-title"><span>Issue 4</span></div><p class="">
+<div class="issue"><div class="issue-title"><span>Issue 6</span></div><p class="">
 The intent of the Working Group and the Editors of this specification is to
 eventually align terminology used in this document with the terminology used
-in the RDF Concepts document to the extent to which it makes sense to do so.
+in the RDF Concepts document [<cite><a class="bibref" rel="biblioentry" href="#bib-RDF-CONCEPTS">RDF-CONCEPTS</a></cite>] to the extent to which it makes sense to do so.
 In general, if there is an analogue to terminology used in this document in
 the RDF Concepts document, the preference is to use the terminology in the
 RDF Concepts document.
@@ -2399,7 +2438,7 @@ RDF Concepts document.
 <p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
   express semantic data marked up in other languages and data models
   such as RDF, Turtle, RDFa, Microformats,
-  and Microdata. These sections are merely provided as proof that JSON-LD is
+  and Microdata. These sections are merely provided as evidence that JSON-LD is
   very flexible in what it can express across different <a class="tref internalDFN" title="linked_data" href="#dfn-linked_data">Linked Data</a> approaches.
   Further information on transforming JSON-LD into RDF are detailed in the
   [<cite><a class="bibref" rel="biblioentry" href="#bib-JSON-LD-API">JSON-LD-API</a></cite>].</p>
@@ -2467,7 +2506,7 @@ RDF Concepts document.
 <div id="embedding-1" class="section">
 <h4><span class="secno">B.2.2 </span>Embedding</h4>
 <p>Both Turtle and JSON-LD allow embedding of objects, although Turtle only allows embedding of objects which
-  use unlabeled node identifiers.</p>
+  use <a class="tref internalDFN" title="unlabeled_node" href="#dfn-unlabeled_node">unlabeled node</a> identifiers.</p>
 </div>
 
 <div class="example"><div class="example-title"><span>Example 56</span></div><pre class="example">@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
@@ -2671,7 +2710,7 @@ instead refer to items by their full <a class="tref internalDFN" title="iri" hre
 submitted to the Internet Engineering Steering Group if this specification
 becomes a W3C Recommendation.</p>
 
-<h3 id="application-ld-json">application/ld+json</h3><p><em>This section is non-normative.</em></p>
+<h2 id="application-ld-json">application/ld+json</h2>
 <dl>
   <dt>Type name:</dt>
   <dd>application</dd>
@@ -2762,11 +2801,11 @@ Cyganiak for their input on the specification.
 <!-- OddPage -->
 <h2><span class="secno">E. </span>References</h2><div id="normative-references" class="section"><h3><span class="secno">E.1 </span>Normative references</h3><dl class="bibliography"><dt id="bib-BCP47">[BCP47]</dt><dd>A. Phillips; M. Davis. <a href="http://tools.ietf.org/html/bcp47"><cite>Tags for Identifying Languages</cite></a> September 2009. IETF Best Current Practice. URL: <a href="http://tools.ietf.org/html/bcp47">http://tools.ietf.org/html/bcp47</a> 
 </dd><dt id="bib-JSON-LD-API">[JSON-LD-API]</dt><dd><cite><a href="http://json-ld.org/spec/ED/json-ld-api/20120524/">The JSON-LD API 1.0</a></cite> Manu Sporny, Gregg Kellogg, Dave Longley, Markus Lanthaler, Editors. World Wide Web Consortium (work in progress). 24 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://json-ld.org/spec/ED/json-ld-api/20120524/. The <a href="http://json-ld.org/spec/latest/json-ld-api/">latest edition of the JSON-LD Syntax</a> is available at http://json-ld.org/spec/latest/json-ld-api/
+</dd><dt id="bib-RDF-CONCEPTS">[RDF-CONCEPTS]</dt><dd><cite><a href="http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/">RDF 1.1 Concepts and Abstract Syntax</a></cite> Richard Cyganiak, David Wood, Editors. World Wide Web Consortium (work in progress). 30 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/. The <a href="http://www.w3.org/TR/rdf11-concepts/">latest edition of the JSON-LD Syntax</a> is available at http://www.w3.org/TR/rdf11-concepts/
 </dd><dt id="bib-RFC3987">[RFC3987]</dt><dd>M. Dürst; M. Suignard. <a href="http://www.ietf.org/rfc/rfc3987.txt"><cite>Internationalized Resource Identifiers (IRIs).</cite></a> January 2005. Internet RFC 3987. URL: <a href="http://www.ietf.org/rfc/rfc3987.txt">http://www.ietf.org/rfc/rfc3987.txt</a> 
 </dd><dt id="bib-RFC4627">[RFC4627]</dt><dd>D. Crockford. <a href="http://www.ietf.org/rfc/rfc4627.txt"><cite>The application/json Media Type for JavaScript Object Notation (JSON)</cite></a> July 2006. Internet RFC 4627. URL: <a href="http://www.ietf.org/rfc/rfc4627.txt">http://www.ietf.org/rfc/rfc4627.txt</a>
 </dd><dt id="bib-RFC5988">[RFC5988]</dt><dd><cite><a href="http://tools.ietf.org/rfc/rfc5988">Web Linking</a></cite> M. Nottingham. Editor. October 2010. IETF Standard. URL: <a href="http://tools.ietf.org/rfc/rfc5988.txt">http://tools.ietf.org/rfc/rfc5988.txt</a>
-</dd></dl></div><div id="informative-references" class="section"><h3><span class="secno">E.2 </span>Informative references</h3><dl class="bibliography"><dt id="bib-RDF-CONCEPTS">[RDF-CONCEPTS]</dt><dd><cite><a href="http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/">RDF 1.1 Concepts and Abstract Syntax</a></cite> Richard Cyganiak, David Wood, Editors. World Wide Web Consortium (work in progress). 30 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/. The <a href="http://www.w3.org/TR/rdf11-concepts/">latest edition of the JSON-LD Syntax</a> is available at http://www.w3.org/TR/rdf11-concepts/
-</dd><dt id="bib-RDF-PRIMER">[RDF-PRIMER]</dt><dd>Frank Manola; Eric Miller. <a href="http://www.w3.org/TR/2004/REC-rdf-primer-20040210/"><cite>RDF Primer.</cite></a> 10 February 2004. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2004/REC-rdf-primer-20040210/">http://www.w3.org/TR/2004/REC-rdf-primer-20040210/</a> 
+</dd></dl></div><div id="informative-references" class="section"><h3><span class="secno">E.2 </span>Informative references</h3><dl class="bibliography"><dt id="bib-RDF-PRIMER">[RDF-PRIMER]</dt><dd>Frank Manola; Eric Miller. <a href="http://www.w3.org/TR/2004/REC-rdf-primer-20040210/"><cite>RDF Primer.</cite></a> 10 February 2004. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2004/REC-rdf-primer-20040210/">http://www.w3.org/TR/2004/REC-rdf-primer-20040210/</a> 
 </dd><dt id="bib-RDFA-CORE">[RDFA-CORE]</dt><dd>Shane McCarron; et al. <a href="http://www.w3.org/TR/2012/REC-rdfa-core-20120508/"><cite>RDFa Core 1.1: Syntax and processing rules for embedding RDF through attributes.</cite></a> 7 June 2012. W3C Recommendation. URL: <a href="http://www.w3.org/TR/2012/REC-rdfa-core-20120607/">http://www.w3.org/TR/2012/REC-rdfa-core-20120607/</a> 
 </dd><dt id="bib-TURTLE-TR">[TURTLE-TR]</dt><dd>Eric Prud'hommeaux, Gavin Carothers. <cite><a href="http://www.w3.org/TR/2011/WD-turtle-20110809/">Turtle: Terse RDF Triple Language.</a></cite> 09 August 2011. W3C Working Draft. URL: <a href="http://www.w3.org/TR/2011/WD-turtle-20110809/">http://www.w3.org/TR/2011/WD-turtle-20110809/</a>
 </dd></dl></div></div></body></html>

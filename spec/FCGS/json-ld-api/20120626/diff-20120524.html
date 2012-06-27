@@ -15,15 +15,8 @@
 
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
-ol.algorithm.update { margin-left: 2em; }
-ol.algorithm.update>li { list-style-type: none; }
-ol.algorithm.update>li>span.list-number {
-  display:block;
-  float: left;
-  margin-left: -3.5em;
-}
 </style>
-<style>/*****************************************************************
+<style type="text/css">/*****************************************************************
  * ReSpec 3 CSS
  * Robin Berjon - http://berjon.com/
  *****************************************************************/
@@ -70,6 +63,12 @@ code {
 }
 
 
+/* --- --- */
+ol.algorithm { counter-reset:numsection; list-style-type: none; }
+ol.algorithm li { margin: 0.5em 0; }
+ol.algorithm li:before { font-weight: bold; counter-increment: numsection; content: counters(numsection, ".") ") "; }
+
+
 /* --- WEB IDL --- */
 pre.idl {
     border-top: 1px solid #90b8de;
@@ -99,7 +98,7 @@ pre.idl::before {
 /*.idlModule*/
 /*.idlModuleID*/
 /*.idlInterface*/
-.idlInterfaceID, .idlCallbackID, .idlEnumID {
+.idlInterfaceID, .idlDictionaryID, .idlCallbackID, .idlEnumID {
     font-weight:    bold;
     color:  #005a9c;
 }
@@ -110,13 +109,13 @@ pre.idl::before {
 }
 
 /*.idlAttribute*/
-.idlAttrType {
+.idlAttrType, .idlFieldType, .idlMemberType {
     color:  #005a9c;
 }
-.idlAttrName {
+.idlAttrName, .idlFieldName, .idlMemberName {
     color:  #ff4500;
 }
-.idlAttrName a {
+.idlAttrName a, .idlFieldName a, .idlMemberName a {
     color:  #ff4500;
     border-bottom:  1px dotted #ff4500;
     text-decoration: none;
@@ -194,25 +193,25 @@ pre.idl::before {
     font-weight:    bold;
 }
 
-dl.attributes, dl.methods, dl.constants {
+dl.attributes, dl.methods, dl.constants, dl.fields, dl.dictionary-members {
     margin-left:    2em;
 }
 
-.attributes dt, .methods dt, .constants dt {
+.attributes dt, .methods dt, .constants dt, .fields dt, .dictionary-members dt {
     font-weight:    normal;
 }
 
-.attributes dt code, .methods dt code, .constants dt code {
+.attributes dt code, .methods dt code, .constants dt code, .fields dt code, .dictionary-members dt code {
     font-weight:    bold;
     color:  #000;
     font-family:    monospace;
 }
 
-.attributes dt code {
+.attributes dt code, .fields dt code, .dictionary-members dt code {
     background:  #ffffd2;
 }
 
-.attributes dt .idlAttrType code {
+.attributes dt .idlAttrType code, .fields dt .idlFieldType code, .dictionary-members dt .idlMemberType code {
     color:  #005a9c;
     background:  transparent;
     font-family:    inherit;
@@ -228,7 +227,7 @@ dl.attributes, dl.methods, dl.constants {
     background:  #ddffd2;
 }
 
-.attributes dd, .methods dd, .constants dd {
+.attributes dd, .methods dd, .constants dd, .fields dd, .dictionary-members dd {
     margin-bottom:  1em;
 }
 
@@ -339,7 +338,7 @@ table.simple {
 .section dl.attrs dd, .section dl.eldef dd {
     margin-bottom:  0;
 }
-</style><style>/* --- EXAMPLES --- */
+</style><style type="text/css">/* --- EXAMPLES --- */
 div.example-title {
     min-width: 7.5em;
     color: #b9ab2d;
@@ -362,7 +361,7 @@ div.example {
     border-color: #e0cb52;
     background: #fcfaee;    
 }
-</style><style>/* --- ISSUES/NOTES --- */
+</style><style type="text/css">/* --- ISSUES/NOTES --- */
 div.issue-title, div.note-title {
     padding-right:  1em;
     min-width: 7.5em;
@@ -3373,9 +3372,8 @@ other
 API
 methods
 that
-</ins>
 are
-<ins class="diff-new">in
+in
 active
 development
 and
@@ -3444,8 +3442,9 @@ if
 some
 bare
 essentials
+</ins>
 are
-found
+<ins class="diff-new">found
 in
 the
 data.
@@ -3863,7 +3862,8 @@ number
 A
 number
 is
-is
+<del class="diff-old">is
+</del>
 similar
 to
 that
@@ -4225,9 +4225,9 @@ properties.
 <dt>
 <dfn title="node" id="dfn-node">
 <ins class="diff-chg">node
-</ins></dfn></dt><dd><ins class="diff-chg">
+</ins></dfn></dt><dd>
 A
-piece
+<ins class="diff-new">piece
 of
 information
 that
@@ -4235,17 +4235,17 @@ is
 represented
 in
 a
-</ins><a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph"><ins class="diff-chg">
+</ins><a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph"><ins class="diff-new">
 linked
 data
 graph
-</ins></a>.</dd><dt><dfn title="named_graph" id="dfn-named_graph"><ins class="diff-chg">
+</ins></a>.</dd><dt><dfn title="named_graph" id="dfn-named_graph"><ins class="diff-new">
 named
 graph
-</ins></dfn></dt><dd>
+</ins></dfn></dt><dd><ins class="diff-new">
 A
-<a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph">
-<ins class="diff-new">linked
+</ins><a class="tref internalDFN" title="linked_data_graph" href="#dfn-linked_data_graph"><ins class="diff-new">
+linked
 data
 graph
 </ins></a><ins class="diff-new">
@@ -4850,7 +4850,7 @@ interface <span class="idlInterfaceID">JsonLdProcessor</span> {
 };</span>
 </pre>
 <div id="methods" class="section">
-<h4>
+<h2>
 <span class="secno">
 <del class="diff-old">2.1.1
 </del>
@@ -4858,7 +4858,7 @@ interface <span class="idlInterfaceID">JsonLdProcessor</span> {
 </ins>
 </span>
 Methods
-</h4>
+</h2>
 <dl class="methods">
 <dt id="widl-JsonLdProcessor-compact-void-object-or-object---or-URL-input-object-or-URL-context-JsonLdCallback-callback-JsonLdOptions-options">
 <code>
@@ -4911,7 +4911,10 @@ the
 compaction
 fails,
 an
-appropirate
+<del class="diff-old">appropirate
+</del>
+<ins class="diff-chg">appropriate
+</ins>
 exception
 <em class="rfc2119" title="must">
 must
@@ -4952,16 +4955,10 @@ URL
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -5006,16 +5003,10 @@ URL
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -5062,16 +5053,10 @@ JsonLdCallback
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 A
@@ -5105,16 +5090,10 @@ JsonLdOptions
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptTrue">
-<del class="diff-old">✔
-</del>
-<ins class="diff-chg">âœ”
-</ins>
+✔
 </td>
 <td class="prmDesc">
 A
@@ -5256,16 +5235,10 @@ URL
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -5512,16 +5485,10 @@ context
 ObjectOrURL
 </del>
 <td class="prmNullTrue">
-<del class="diff-old">✔
-</del>
-<ins class="diff-chg">âœ”
-</ins>
+✔
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 An
@@ -5561,16 +5528,10 @@ JsonLdCallback
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 A
@@ -5604,16 +5565,10 @@ JsonLdOptions
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptTrue">
-<del class="diff-old">✔
-</del>
-<ins class="diff-chg">âœ”
-</ins>
+✔
 </td>
 <td class="prmDesc">
 A
@@ -5870,16 +5825,10 @@ Quad
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 <del class="diff-old">An
@@ -5917,16 +5866,10 @@ JsonLdCallback
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 A
@@ -5960,16 +5903,10 @@ JsonLdOptions
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptTrue">
-<del class="diff-old">✔
-</del>
-<ins class="diff-chg">âœ”
-</ins>
+✔
 </td>
 <td class="prmDesc">
 A
@@ -6093,16 +6030,10 @@ URL
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -6152,16 +6083,10 @@ QuadCallback
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 A
@@ -6201,16 +6126,10 @@ JsonLdOptions
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptTrue">
-<del class="diff-old">✔
-</del>
-<ins class="diff-chg">âœ”
-</ins>
+✔
 </td>
 <td class="prmDesc">
 A
@@ -6306,7 +6225,7 @@ interface <span class="idlInterfaceID">JsonLdCallback</span> {
 };</span>
 </pre>
 <div id="methods-1" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.2.1.1
 </del>
@@ -6314,7 +6233,7 @@ interface <span class="idlInterfaceID">JsonLdCallback</span> {
 </ins>
 </span>
 Methods
-</h5>
+</h2>
 <dl class="methods">
 <dt id="widl-JsonLdCallback-jsonLd-void-object-or-objectArray-jsonld">
 <code>
@@ -6367,16 +6286,10 @@ object
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -6439,7 +6352,7 @@ interface <span class="idlInterfaceID">QuadCallback</span> {
 };</span>
 </pre>
 <div id="methods-2" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.2.2.1
 </del>
@@ -6447,7 +6360,7 @@ interface <span class="idlInterfaceID">QuadCallback</span> {
 </ins>
 </span>
 Methods
-</h5>
+</h2>
 <dl class="methods">
 <dt id="widl-QuadCallback-quad-void-Quad-quad">
 <code>
@@ -6499,16 +6412,10 @@ Quad
 </code>
 </td>
 <td class="prmNullFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmOptFalse">
-<del class="diff-old">✘
-</del>
-<ins class="diff-chg">âœ˜
-</ins>
+✘
 </td>
 <td class="prmDesc">
 The
@@ -6659,7 +6566,10 @@ type
 is
 used
 to
-convery
+<del class="diff-old">convery
+</del>
+<ins class="diff-chg">convert
+</ins>
 a
 set
 of
@@ -6926,7 +6836,7 @@ interface <span class="idlInterfaceID">Quad</span> {
 };</span>
 </pre>
 <div id="attributes" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.3.3.1
 </del>
@@ -6934,7 +6844,7 @@ interface <span class="idlInterfaceID">Quad</span> {
 </ins>
 </span>
 Attributes
-</h5>
+</h2>
 <dl class="attributes">
 <dt id="widl-Quad-graphName">
 <code>
@@ -7339,7 +7249,7 @@ interface <span class="idlInterfaceID">IRI</span> : <span class="idlSuperclass">
 };</span>
 </pre>
 <div id="attributes-1" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.3.5.1
 </del>
@@ -7347,7 +7257,7 @@ interface <span class="idlInterfaceID">IRI</span> : <span class="idlSuperclass">
 </ins>
 </span>
 Attributes
-</h5>
+</h2>
 <dl class="attributes">
 <dt id="widl-IRI-value">
 <code>
@@ -7542,7 +7452,7 @@ interface <span class="idlInterfaceID">BlankNode</span> : <span class="idlSuperc
 };</span>
 </pre>
 <div id="attributes-2" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.3.6.1
 </del>
@@ -7550,7 +7460,7 @@ interface <span class="idlInterfaceID">BlankNode</span> : <span class="idlSuperc
 </ins>
 </span>
 Attributes
-</h5>
+</h2>
 <dl class="attributes">
 <dt id="widl-BlankNode-identifier">
 <code>
@@ -7969,7 +7879,7 @@ interface <span class="idlInterfaceID">Literal</span> : <span class="idlSupercla
 };</span>
 </pre>
 <div id="attributes-3" class="section">
-<h5>
+<h2>
 <span class="secno">
 <del class="diff-old">2.3.7.1
 </del>
@@ -7977,7 +7887,7 @@ interface <span class="idlInterfaceID">Literal</span> : <span class="idlSupercla
 </ins>
 </span>
 Attributes
-</h5>
+</h2>
 <dl class="attributes">
 <dt id="widl-Literal-datatype">
 <code>
@@ -14766,7 +14676,10 @@ and
 strings,
 which
 could
-consolodate
+<del class="diff-old">consolodate
+</del>
+<ins class="diff-chg">consolidate
+</ins>
 potential
 transformation
 in
