@@ -172,7 +172,7 @@
 
           // if you want to have extra CSS, append them to this list
           // it is recommended that the respec.css stylesheet be kept
-          extraCSS:             [ "spec.css" ],
+          // extraCSS:             [],
 
           // editors, add as many as you like
           // only "name" is required
@@ -241,13 +241,6 @@
   </script>
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
-ol.algorithm.update { margin-left: 2em; }
-ol.algorithm.update>li { list-style-type: none; }
-ol.algorithm.update>li>span.list-number {
-  display:block;
-  float: left;
-  margin-left: -3.5em;
-}
 </style>
 </head>
 
@@ -411,7 +404,7 @@ JSON, which is detailed in [[!RFC4627]].</p>
       character is represented as a single character string.</dd>
     <dt><tdef>number</tdef></dt>
     <dd>
-      A number is is similar to that used in most programming languages, except 
+      A number is similar to that used in most programming languages, except 
       that the octal and hexadecimal formats are not used and that leading 
       zeros are not allowed.</dd>
     <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
@@ -531,8 +524,8 @@ use in their roles within a triple.</p>
   transformed to RDF.</p>
 
 <p>Note that the definition for <tref>Linked Data</tref> above is silent on the
-topic of unlabeled nodes. Nevertheless, this specification allows for the expression
-of unlabeled nodes, as most graph-based data sets on the Web contain a number
+topic of <tref title="unlabeled node">unlabeled nodes</tref>. Nevertheless, this specification allows for the expression
+of <tref title="unlabeled node">unlabeled nodes</tref>, as most graph-based data sets on the Web contain a number
 of associated nodes that are not named and thus are not directly
 de-referenceable.
 </p>
@@ -624,7 +617,7 @@ rest of this section:
 <p>The Web uses <tref title="IRI">IRIs</tref> for unambiguous identification. The
   idea is that these <tref>term</tref>s mean something that may be of use to other developers and that it is useful to
   give them an unambiguous identifier. That is, it is useful for <tref>term</tref>s to expand to IRIs so that
-  developers don't accidentally step on each other's <tdef>vocabulary</tdef> terms. Furthermore, developers, and
+  developers don't accidentally step on each other's <tdef>vocabulary</tdef> terms and other resources. Furthermore, developers, and
   machines, are able to use this <tref>IRI</tref> (by plugging it directly into a web browser, for instance) to go to
   the term and get a definition of what the term means. This mechanism is analogous to the way we can use
   <a href="http://wordnet.princeton.edu/">WordNet</a> today to see the definition of words in the English language.
@@ -717,8 +710,8 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
 -->
 </pre>
 
-<p>Contexts MAY be used at any time a <tref>JSON object</tref> is defined.
-  A <tref>JSON object</tref> MAY specify multiple contexts, using an
+<p>Contexts MAY be used at any time a <tref>subject definition</tref> is defined.
+  A <tref>subject definition</tref> MAY specify multiple contexts, using an
   <tref>array</tref>, which is processed in order. This is useful
   when an author would like to use an existing context and add
   application-specific terms to the existing context. Duplicate context
@@ -730,7 +723,7 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   in a previous context MUST be removed, if it is re-defined to <code>null</code>.</p>
 
 <p>
-  The set of contexts defined within a specific <tref>JSON object</tref> are
+  The set of contexts defined within a specific <tref>subject definition</tref> are
   referred to as <tdef>local context</tdef>s. Setting the context to <code>null</code>
   effectively sets the <tref>local context</tref> to the initial context
   (further explained in the JSON-LD API, Appendix A, Initial Context 
@@ -782,7 +775,7 @@ unless otherwise specified.
 <p>If a set of <tref>term</tref>s such as, <strong>name</strong>,
 <strong>homepage</strong>, and <strong>depiction</strong>,
 are defined in a <tref>context</tref>, and that context is used to resolve the
-names in JSON objects, machines are able to automatically expand the terms to
+names in <tref title="JSON object">JSON objects</tref>, machines are able to automatically expand the terms to
 something meaningful and unambiguous, like this:</p>
 
 <pre class="example" data-transform="updateExample">
@@ -800,7 +793,7 @@ requiring developers to drastically change their workflow.</p>
 
 <p class="note">The example above does not use the <code>@id</code> <tref>keyword</tref>
 to set the <tref>subject</tref> of the node being described above. This type
-of node is called an <tdef>unlabeled node</tdef>. It is advised that all nodes
+of node is called an <tref>unlabeled node</tref>. It is advised that all nodes
 described in JSON-LD are given unique identifiers via the
 <code>@id</code> keyword unless the data is not intended to be linked to
 from other data sets.</p>
@@ -809,7 +802,7 @@ from other data sets.</p>
   <tref>subject definition</tref>. <tref title="subject definition">Subject definitions</tref>
   do not require an <code>@id</code>. 
   <tref title="subject definition">Subject definitions</tref> that do not 
-  contain an <code>@id</code> are known as an <tref>unlabeled node</tref>.</p>
+  contain an <code>@id</code> are known as an <tref title="unlabeled node">unlabeled nodes</tref>.</p>
 
 </section>
 </section>
@@ -920,8 +913,10 @@ value position that contains an <code>@id</code> keyword:</p>
 
 <p class="note">Specifying a <tref>JSON object</tref> with an
   <code>@id</code> key is used to identify that object using an
-  <tref>IRI</tref>. This facility MAY also be used to link to another
-  <tref>JSON object</tref> using a mechanism called
+  <tref>IRI</tref>. When the object has only the <code>@id</code>, it
+  is called a <tref>subject reference</tref>.
+  This facility MAY also be used to link to another
+  <tref>subject definition</tref> using a mechanism called
   <tref>embedding</tref>, which is covered in the section titled
   <a href="#embedding">Embedding</a>.</p>
 
@@ -973,15 +968,25 @@ the value into an IRI when processed by a JSON-LD Processor.</p>
   uniquely identify each node which may be externally referenced.
 </p>
 <p>A <tref>subject</tref>
-   of a JSON object is declared using the <code>@id</code> key. The subject is the
+   of a <tref>JSON object</tref> is a node identified using the <code>@id</code> key. The subject is the
 first piece of information needed by the JSON-LD processor in order to
 create the (subject, property, object) tuple, also known as a triple.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
 {
-...
+  "@context":
+  {
+    ...
+    "homepage":
+    {
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@type": "@id"
+    }
+    ...
+  },
   "****@id****": "****http://example.org/people#joebob****",
+  "homepage": "http://manu.sporny.org/",
 ...
 }
 -->
@@ -995,18 +1000,20 @@ create the (subject, property, object) tuple, also known as a triple.</p>
   <tref>subject definition</tref>. <tref title="subject definition">Subject definitions</tref>
   do not require an <code>@id</code>. A
   <tref>subject definition</tref>
-  that does not contain an <code>@id</code> property is called an
+  that does not contain an <code>@id</code> property defines properties of an
   <tref>unlabeled node</tref>.</p>
 
-<p class="note">To ensure the best possible performance, it is a best practice
-to put JSON-LD <tref>keyword</tref>s, such as
-<code>@id</code> and <code>@context</code> before other key-value pairs in a 
-<tref>JSON object</tref>.
-If keywords are not listed first, processors have to save each key-value 
-pair until at least the <code>@context</code> and the </code><code>@id</code> 
-are processed. Not specifying those keywords first creates a memory and
-complexity burden for low-memory footprint processors, forcing them to use
-more memory and computing cycles than necessary.</p>
+<p class="note">To ensure the best possible performance, when possible, it is a best practice
+  to put JSON-LD <tref>keyword</tref>s, such as <code>@id</code> and 
+  <code>@context</code> before other key-value pairs in a <tref>JSON 
+  object</tref>. However, keys in a <tref>JSON object</tref> are not ordered, 
+  so processors MUST NOT depend on key ordering. If keywords are not listed 
+  first, processors have to save each key-value pair until at least the 
+  <code>@context</code> and the <code>@id</code> are processed. Not 
+  specifying those keywords first creates a memory and complexity burden for 
+  low-memory footprint processors, forcing them to use more memory and 
+  computing cycles than necessary.</p>
+
 
 </section>
 
@@ -1134,139 +1141,20 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </section>
 
 <section>
-<h2>Sets and Lists</h2>
-
-<p>A JSON-LD author can express multiple values in a compact way by using
-  <tref>array</tref>s. Since graphs do not describe ordering for links
-  between nodes, arrays in JSON-LD do not provide an ordering of the
-  listed <tref title="object">objects</tref> by default. This is exactly the opposite from regular JSON
-  arrays, which are ordered by default. For example, consider the following
-  simple document:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
-...
-}
--->
-</pre>
-
-<p>The markup shown above would result in three triples being generated,
-  each relating the subject to an individual <tref>JSON object</tref>, with no inherent order:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "joe" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "bob" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "jaybee" .
--->
-</pre>
-
-<p>Multiple values may also be expressed using the expanded form:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@id": "http://example.org/articles/8",
-  "dc:title": ****
-  [
-    {
-      "@value": "Das Kapital",
-      "@language": "de"
-    },
-    {
-      "@value": "Capital",
-      "@language": "en"
-    }
-  ]****
-}-->
-</pre>
-
-<p>The markup shown above would generate the following triples, again with
-  no inherent order:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Das Kapital"@de .
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Capital"@en .
--->
-</pre>
-
-
-<p>As the notion of ordered collections is rather important in data
-  modeling, it is useful to have specific language support. In JSON-LD,
-  a list may be represented using the <code>@list</code> <tref>keyword</tref> as follows:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-...
-  "@id": "http://example.org/people#joebob",
-  "foaf:nick":
-  ****{
-    "@list": [ "joe", "bob", "jaybee" ]
-  }****,
-...
-}
--->
-</pre>
-
-<p>This describes the use of this <tref>array</tref> as being ordered,
-  and order is maintained when processing a document. If every use of a given multi-valued
-  property is a list, this may be abbreviated by setting <code>@container</code>
-  to <code>@list</code> in the <tref>context</tref>:</p>
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  ****"@context":
-  {
-    ...
-    "nick":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/nick",
-      "@container": "@list"
-    }
-  }****,
-...
-  "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
-...
-}
--->
-</pre>
-
-<p class="note">List of lists are not allowed in this version of JSON-LD.
-  If a list of lists is detected, a JSON-LD processor will throw an exception.
-  This decision was made due to the extreme amount of added complexity when
-  processing lists of lists.</p>
-
-<p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
-  describe unordered sets. While its use in the body of a JSON-LD document
-  represents just syntactic sugar that MUST be optimized away when processing
-  the document, it is very helpful when used within the context of a document.
-  Values of terms associated with a <code>@set</code> or <code>@list</code> container
-  are always represented in the form of an <tref>array</tref> - even if there is just a
-  single value that would otherwise be optimized to a non-array form in a
-  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
-  the data easier as the data is always in array form, even if the array only
-  contains a single value.</p>
-
-<p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document, i.e., outside <code>@context</code> MUST be ignored by
-  JSON-LD processors.</p>
+  <h2>JSON-LD Syntax</h2>
+  
+  <p>A JSON-LD document is first, and foremost, a JSON document
+    (as defined in [[!RFC5988]]), and any syntactically correct JSON document 
+    MUST be processed by a conforming JSON-LD processor. However, JSON-LD 
+    describes a specific syntax to use for expressing Linked Data. This 
+    includes the use of specific keywords, as identified in <a 
+    href="#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a> for 
+    expressing <a title="subject definition">subject definitions</a>, values, 
+    and the <a>context</a>. See <a 
+    href="#json-ld-authoring-guidelines">Appendix A</a> for authoring 
+    guidelines and a BNF description of JSON-LD.</p>
 
 </section>
-
 </section>
 
 <section>
@@ -1366,7 +1254,7 @@ advanced functionality in more detail.
     ****"foaf:homepage"****: { "@type": "@id" },
     "picture": { "@id": ****"foaf:depiction"****, "@type": "@id" }
   },
-  "@subject": "http://me.markus-lanthaler.com/",
+  "@id": "http://me.markus-lanthaler.com/",
   "@type": "foaf:Person",
   "foaf:name": "Markus Lanthaler",
   "foaf:homepage": "http://www.markus-lanthaler.com/",
@@ -1470,7 +1358,7 @@ documents.
 <p>
 In order to use an external context, an author MUST specify an <tref>IRI</tref>
 to a valid JSON-LD document. The referenced document MUST have a
-top-level <tref>JSON object</tref>. The value of any <code>@context</code> key
+top-level <tref>subject definition</tref>. The value of any <code>@context</code> key
 within that object is substituted for the IRI within the referencing document
 to have the same effect as if the value were specified inline within the
 referencing document.</p>
@@ -1500,11 +1388,11 @@ and local contexts by specifying a list of contexts:</p>
     {
       "foaf": "http://xmlns.com/foaf/0.1/"
     },
-    "http://json-ld.org/contexts/event.jsonld",
-  ]****
+    "http://json-ld.org/contexts/event.jsonld"
+  ],****
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
+  "foaf:depiction": "http://twitter.com/account/profile_image/manusporny",
   ****"celebrates":
   {
     "@type": "Event",
@@ -1521,7 +1409,7 @@ basis. The context list MUST contain either de-referenceable <tref>IRI</tref>s
 or <tref>JSON object</tref>s that conform to the <tref>context</tref> syntax
 as described in this document.</p>
 
-<p>An author MAY nest contexts within <tref>JSON object</tref>s, with the
+<p>An author MAY nest contexts within <tref title="subject definition">subject definitions</tref>, with the
 more deeply nested contexts overriding the values in previously defined
 contexts:</p>
 
@@ -1578,10 +1466,10 @@ In order to use an external context with an ordinary JSON document, an author
 MUST specify an <tref>IRI</tref> to a valid JSON-LD document in an HTTP Link
 Header [[!RFC5988]] using the <code>describedby</code> link relation.
 
-The referenced document MUST have a top-level <tref>JSON object</tref>. The
+The referenced document MUST have a top-level <tref>subject definition</tref>. The
 <code>@context</code> subtree within that object is added to the top-level
-<tref>JSON object</tref> of the referencing document. If an <tref>array</tref> is at the top-level of the
-referencing document and its items are <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
+<tref>subject definition</tref> of the referencing document. If an <tref>array</tref> is at the top-level of the
+referencing document and its items are <tref title="subject definition">subject definitions</tref>, the <code>@context</code>
 subtree is added to all <tref>array</tref> items. All extra information located outside
 of the <code>@context</code> subtree in the referenced document MUST be
 discarded.
@@ -1628,7 +1516,8 @@ Content-Type: ****application/json****
 <p>Instead of using a string representation of an IRI, the IRI MAY be
 specified using a <tref>JSON object</tref> having an <code>@id</code> key.
 The value of the <code>@id</code> key MUST be either a <tref>term</tref>, a
-<tref>compact IRI</tref>, or an <tref>absolute IRI</tref>.</p>
+<tref>compact IRI</tref>, or an <tref>absolute IRI</tref>. Such
+an object is called a <tref>subject reference</tref>.</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1967,6 +1856,140 @@ processor will use direct string comparison when looking up
 </section>
 
 <section>
+<h2>Sets and Lists</h2>
+
+<p>A JSON-LD author can express multiple values in a compact way by using
+  <tref>array</tref>s. Since graphs do not describe ordering for links
+  between nodes, arrays in JSON-LD do not provide an ordering of the
+  listed <tref title="object">objects</tref> by default. This is exactly the opposite from regular JSON
+  arrays, which are ordered by default. For example, consider the following
+  simple document:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
+...
+}
+-->
+</pre>
+
+<p>The markup shown above would result in three triples being generated,
+  each relating the subject to an individual <tref>object</tref>, with no inherent order:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "joe" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "bob" .
+<http://example.org/people#joebob>
+   <http://xmlns.com/foaf/0.1/nick>
+      "jaybee" .
+-->
+</pre>
+
+<p>Multiple values may also be expressed using the expanded form:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@id": "http://example.org/articles/8",
+  "dc:title": ****
+  [
+    {
+      "@value": "Das Kapital",
+      "@language": "de"
+    },
+    {
+      "@value": "Capital",
+      "@language": "en"
+    }
+  ]****
+}-->
+</pre>
+
+<p>The markup shown above would generate the following triples, again with
+  no inherent order:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Das Kapital"@de .
+<http://example.org/articles/8>
+   <http://purl.org/dc/terms/title>
+      "Capital"@en .
+-->
+</pre>
+
+
+<p>As the notion of ordered collections is rather important in data
+  modeling, it is useful to have specific language support. In JSON-LD,
+  a list may be represented using the <code>@list</code> <tref>keyword</tref> as follows:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+...
+  "@id": "http://example.org/people#joebob",
+  "foaf:nick":
+  ****{
+    "@list": [ "joe", "bob", "jaybee" ]
+  }****,
+...
+}
+-->
+</pre>
+
+<p>This describes the use of this <tref>array</tref> as being ordered,
+  and order is maintained when processing a document. If every use of a given multi-valued
+  property is a list, this may be abbreviated by setting <code>@container</code>
+  to <code>@list</code> in the <tref>context</tref>:</p>
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context":
+  {
+    ...
+    "nick":
+    {
+      "@id": "http://xmlns.com/foaf/0.1/nick",
+      "@container": "@list"
+    }
+  }****,
+...
+  "@id": "http://example.org/people#joebob",
+  "nick": ****[ "joe", "bob", "jaybee" ]****,
+...
+}
+-->
+</pre>
+
+<p class="note">List of lists are not allowed in this version of JSON-LD.
+  If a list of lists is detected, a JSON-LD processor will throw an exception.
+  This decision was made due to the extreme amount of added complexity when
+  processing lists of lists.</p>
+
+<p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
+  describe unordered sets. While its use in the body of a JSON-LD document
+  represents just syntactic sugar that MUST be optimized away when processing
+  the document, it is very helpful when used within the context of a document.
+  Values of terms associated with a <code>@set</code> or <code>@list</code> container
+  are always represented in the form of an <tref>array</tref> - even if there is just a
+  single value that would otherwise be optimized to a non-array form in a
+  <a href="#compact-document-form">compacted document</a>. This makes post-processing of
+  the data easier as the data is always in array form, even if the array only
+  contains a single value.</p>
+
+<p class="note">The use of <code>@container</code> in the body of a JSON-LD
+  document, i.e., outside <code>@context</code> MUST be ignored by
+  JSON-LD processors.</p>
+
+</section>
+
+<section>
   <h2>Embedding</h2>
   <p>
     Object <tdef>embedding</tdef> is a JSON-LD feature that allows an author to 
@@ -2029,7 +2052,9 @@ processor will use direct string comparison when looking up
     <tref>subject definition</tref> references the other. Using the 
     <code>@graph</code> <tref>keyword</tref> allows multiple resources to be 
     defined within an <tref>array</tref>, and allows the use of a shared 
-    <tref>context</tref>. This is equivalent to using multiple <tref 
+    <tref>context</tref>. When used in a <tref>JSON object</tref> that is not otherwise
+    a <tref>subject definition</tref>, this describes resources in the <em>default graph</em>.
+    This is equivalent to using multiple <tref 
     title="subject definition">subject definitions</tref> in array and defining 
     the <code>@context</code> within each <tref>subject definition</tref>:</p>
 
@@ -2095,6 +2120,9 @@ processor will use direct string comparison when looking up
     expressed via the <code>asOf</code> property, which specifies when the
     information was retrieved from the Web.</p>
 
+  <p class="issue">These examples could all have TriG definitions of their RDF results,
+    but that would involve adding RDF earlier in the document.</p>
+
 </section>
 
 <section>
@@ -2102,10 +2130,11 @@ processor will use direct string comparison when looking up
 
 <p>At times, it becomes necessary to be able to express information without
 being able to specify the subject. Typically, this type of node is called
-an <tref>unlabeled node</tref> or a blank node. In JSON-LD, <tref>unlabeled node</tref> identifiers are
+an <tdef>unlabeled node</tdef> or a blank node (see [[!RDF-CONCEPTS]] <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes">Section 3.4: Blank Nodes</a></cite>).
+In JSON-LD, <tref>unlabeled node</tref> identifiers are
 automatically created if a subject is not specified using the
 <code>@id</code> <tref>keyword</tref>. However, authors may provide identifiers for
-unlabeled nodes by using the special <code>_</code> (underscore)
+<tref title="unlabeled node">unlabeled nodes</tref> by using the special <code>_</code> (underscore)
 <tref>prefix</tref>. This allows one to reference the node locally within the
 document, but makes it impossible to reference the node from an
 external document. The <tref>unlabeled node</tref> identifier is scoped to the
@@ -2168,7 +2197,7 @@ using only the JSON-LD <tref>context</tref>.</p>
 <p>The JSON-LD API [[JSON-LD-API]] defines an method for <em>expanding</em> a
   JSON-LD document.
   Expansion is the process of taking a JSON-LD document and applying a
-  <code>@context</code> such that all IRIs, datatypes, and values
+  <code>@context</code> such that all IRIs, types, and values
   are expanded so that the <code>@context</code> is no longer necessary.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
@@ -2309,17 +2338,21 @@ discussed (<a href="https://github.com/json-ld/json-ld.org/issues/114#issuecomme
 as well as the best mechanism to express these restrictions.
 EBNF doesn't quite capture what these guidelines are attempting to do -
 which is strongly express what constitutes a well-formed JSON-LD document.
-For the time being, a simple list of plain english guidelines are provided.
+For the time being, a simple list of plain English guidelines are provided.
 </p>
 
+<p class="issue">Per
+  <a href="http://lists.w3.org/Archives/Public/public-rdf-wg/2012Jun/0111.html">Andy S's comment</a>,
+  consider making this a normative syntax definition along with EBNF.</p>
+
 <ol>
-<li>A JSON-LD document is composed of a single <tref>JSON object</tref> or an <tref>array</tref> of <tref title="JSON object">JSON objects</tref>.</li>
-<li>The value of <code>@id</code> MUST be <code>null</code>, a <tref>term</tref>, a <tref>compact IRI</tref>, or an <tref>IRI</tref>.</li>
+<li>A JSON-LD document is composed of a single <tref>subject definition</tref> or an <tref>array</tref> of <tref title="subject definition">subject definitions</tref>.</li>
+<li>The value of <code>@id</code> MUST be a <tref>term</tref>, a <tref>compact IRI</tref>, or an <tref>IRI</tref>.</li>
 <li>An <code>@id</code> keyword and a <code>@language</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
 <li>An <code>@id</code> keyword and a <code>@container</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
-<li>A <tref>JSON object</tref> MAY contain a <code>@context</code> property.</li>
+<li>A <tref>subject definition</tref> MAY contain a <code>@context</code> property.</li>
 <li>A <code>@context</code> value MUST NOT contain an embedded <code>@context</code> definition.</li>
-<li>The value associated with the <code>@context</code> keyword MUST be an <tref>IRI</tref>, a <tref>JSON object</tref>, null, or an <tref>array</tref> containing a combination of the allowed values.</li>
+<li>The value associated with the <code>@context</code> keyword MUST be a string expanding to an <tref>IRI</tref>, a <tref>JSON object</tref>, null, or an <tref>array</tref> containing a combination of the allowed values.</li>
 <li>The value associated with the keys used in a <code>@context</code> MUST be a <code>null</code>, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
 <li>For each value that is a <tref>JSON object</tref> that is associated with a key in a <code>@context</code>:
   <ol>
@@ -2329,8 +2362,10 @@ For the time being, a simple list of plain english guidelines are provided.
     <li>Any other property MUST be ignored by a JSON-LD processor and MUST be preserved in compaction and framing.</li>
   </ol>
 </li>
-<li>A <tref>JSON object</tref> MAY have an <code>@graph</code> property.</li>
-<li>The value of a <code>@graph</code> property MUST be null, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
+<li>A <tref>subject definition</tref> MAY have an <code>@graph</code> property.</li>
+<li>The value of a <code>@graph</code> property MUST be a
+  <tref>subject definition</tref> or an array of zero or more
+  <tref title="subject definition">subject definitions</tref>.</li>
 <li>A <tref>JSON object</tref> containing a <code>@set</code> key MUST NOT have any other keys.</li>
 <li>A <tref>JSON object</tref> containing a <code>@list</code> key MUST NOT have any other keys.</li>
 <li>The value of an <code>@set</code> or <code>@list</code> key can be a string, a number, a <tref>JSON object</tref>, or an <tref>array</tref> containing a combination of the allowed values.</li>
@@ -2349,12 +2384,12 @@ For the time being, a simple list of plain english guidelines are provided.
 </section>
 
 <section class="appendix informative">
-<h2>Converting To and From JSON-LD</h2>
+<h2>Relationship to other RDF Formats</h2>
 
 <p class="issue">
 The intent of the Working Group and the Editors of this specification is to
 eventually align terminology used in this document with the terminology used
-in the RDF Concepts document to the extent to which it makes sense to do so.
+in the RDF Concepts document [[!RDF-CONCEPTS]] to the extent to which it makes sense to do so.
 In general, if there is an analogue to terminology used in this document in
 the RDF Concepts document, the preference is to use the terminology in the
 RDF Concepts document.
@@ -2369,7 +2404,7 @@ RDF Concepts document.
 <p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
   express semantic data marked up in other languages and data models
   such as RDF, Turtle, RDFa, Microformats,
-  and Microdata. These sections are merely provided as proof that JSON-LD is
+  and Microdata. These sections are merely provided as evidence that JSON-LD is
   very flexible in what it can express across different <tref>Linked Data</tref> approaches.
   Further information on transforming JSON-LD into RDF are detailed in the
   [[JSON-LD-API]].</p>
@@ -2449,7 +2484,7 @@ RDF Concepts document.
 <section>
 <h4>Embedding</h4>
 <p>Both Turtle and JSON-LD allow embedding of objects, although Turtle only allows embedding of objects which
-  use unlabeled node identifiers.</p>
+  use <tref>unlabeled node</tref> identifiers.</p>
 </section>
 
 <pre class="example" data-transform="updateExample">
