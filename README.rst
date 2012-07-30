@@ -20,11 +20,11 @@ A Simple Example
 A simple example of a JSON object with added semantics::
 
  {
-   "@context": "http://purl.org/jsonld/Person",
+   "@context": "http://json-ld.org/contexts/person.jsonld",
    "@id": "http://dbpedia.org/resource/John_Lennon",
    "name": "John Lennon",
-   "birthday": "10-09",
-   "member": "http://dbpedia.org/resource/The_Beatles"
+   "born": "1940-10-09",
+   "spouse": "http://dbpedia.org/resource/Cynthia_Lennon"
  }
 
 The example above describes a person whose name is John Lennon. The difference
