@@ -1271,13 +1271,14 @@ advanced functionality in more detail.
   A value with an associated type, also known as a
   <tdef>typed value</tdef>, is indicated by associating a value with
   an <tref>IRI</tref> which indicates the value's type. Typed values may be
-  expressed in JSON-LD in two ways:
+  expressed in JSON-LD in three ways:
 </p>
 
 <ol>
   <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
   <li>By utilizing the expanded form for specifying objects.</li>
+  <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
 </ol>
 
 <p>The first example uses the <code>@type</code> keyword to associate a
@@ -1344,6 +1345,79 @@ express the value of a type.</p>
   mechanism, even though scalar types and structured types are
   inherently different.
 </p>
+
+</section>
+
+<section>
+<h2>Language Values</h2>
+
+<p>
+  A value with an associated language, also known as a
+  <tdef>language value</tdef>, is indicated by associating a value with
+  an <tref>string</tref> having the lexical from defined in [[!BCP47]]
+  which indicates the value's language. Language values may be
+  expressed in JSON-LD in three ways:
+</p>
+
+<ol>
+  <li>By defining a global language using the <code>@language</code>
+    <tref>keyword</tref> within a <code>@context</code> section.</li>
+  <li>By utilizing the <code>@language</code> <tref>keyword</tref> when defining
+    a <tref>term</tref> within a <code>@context</code> section.</li>
+  <li>By utilizing the expanded form for specifying objects.</li>
+</ol>
+
+<p>The first example uses the <code>@language</code> keyword to associate a
+type with a particular <tref>term</tref> in the <code>@context</code>:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  ****"@context":
+  {
+    "title":
+    {
+      "@id": "http://purl.org/dc/terms/title",
+      "@language": "en"
+    }
+  },****
+...
+  "title": "JSON-LD Syntax",
+...
+}
+-->
+</pre>
+
+<p>The <em>modified</em> key's value above is automatically
+  language coerced to a English value because of the information specified in 
+  the <code>@context</code>.</p>
+
+<p>The second example uses the expanded form of setting the language information
+in the body of a JSON-LD document:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+{
+  "@context":
+  {
+    "title":
+    {
+      "@id": "http://purl.org/dc/terms/title"
+    }
+  },
+...
+  "modified":
+  ****{
+    "@value": "JSON-LD",
+    "@language": "en"
+  }****
+...
+}
+-->
+</pre>
+
+<p>Both examples above would generate an object with the value of
+<code>JSON-LD</code> and the language of "English".</p>
 
 </section>
 
@@ -2321,66 +2395,326 @@ have to be written to operate on
 </section>
 
 <section class="appendix normative">
-<h2>JSON-LD Authoring Guidelines</h2>
+<h2>JSON-LD Grammar</h2>
 
-<p>Since the JSON-LD syntax is a subset of the JSON syntax, it follows that
-all valid JSON-LD documents are valid JSON documents. It also
-means that an invalid JSON document can never be a valid
-JSON-LD document. Furthermore, JSON-LD places a number of restrictions on
-the JSON syntax in order to define a set of authoring <em>guidelines</em>
-that are used to express <em>well-formed</em> JSON-LD documents. At times,
-even if these guidelines are violated, a JSON-LD processor will do its best
-to recover from the mistake and will deterministically transform the author's
-markup into well-formed JSON-LD.</p>
+<p>This appendix restates the syntactic conventions described in
+  previous sections to form a more formal fashion.</p>
 
-<p class="issue" data-number="114">The final details of the guidelines are still being
-discussed (<a href="https://github.com/json-ld/json-ld.org/issues/114#issuecomment-5820544">ISSUE-114</a>),
-as well as the best mechanism to express these restrictions.
-EBNF doesn't quite capture what these guidelines are attempting to do -
-which is strongly express what constitutes a well-formed JSON-LD document.
-For the time being, a simple list of plain English guidelines are provided.
+<p class="issue" data-number="114">This is an attempt to resolve
+  <a href="https://github.com/json-ld/json-ld.org/issues/114#issuecomment-5820544">ISSUE-114</a>.</p>
+
+<p class="note">The JSON-LD context allows <tref title="keyword">keywords</tref> to be
+  aliased within the <tref>active context</tref>. Whenever a <tref>keyword</tref> is
+  discussed, this is also understood to apply to an alias for that <tref>keyword</tref>
+  For example, if the <tref>active context</tref> defines the term <code>id</code> as
+  an alias for <code>@id</code>, that alias may be legitimately used as a substitution
+  for <code>@id</code>. Note that <tref>keyword</tref> aliases are not expanded during
+  context processing.</p>
+<p>A JSON-LD processor SHOULD attempt to process non-conforming
+  JSON-LD documents. Conformance variations MUST be reported through a
+  callback mechanism defined in [[!JSON-LD-API]].</p>
+
+<p>The JSON-LD syntax is a subset of the JSON syntax. For a JSON-LD document
+  to be conforming, it MUST be a valid JSON document as described in
+  [[!RFC4627]].</p>
+<p>JSON-LD introduces a number of keywords of the form '<code>@</code>'
+  followed by an a set of 1 or more lower case alphabetic characters 
+  (<code>@[a-z]+</code>). JSON-LD documents SHOULD NOT define terms beginning 
+  with '<code>@</code>'.
+  (See <a href="#syntax-tokens-and-keywords"></a> for a complete definition of JSON-LD keywords).</p>
+
+<p>A JSON-LD document is either a
+  a single <tref>subject definition</tref>
+  or a JSON <tref>array</tref> containing a set of
+  one or more <tref title="subject definition">subject definitions</tref>.</p>
+<pre class="example" data-transform="updateExample"
+     title="Simple subject definition">
+<!--
+{
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+<pre class="example" data-transform="updateExample"
+     title="Array of subject definitions">
+<!--
+[
+  {
+    "name": "Manu Sporny",
+    "homepage": "http://manu.sporny.org/",
+    "depiction": "http://twitter.com/account/profile_image/manusporny"
+  }, {
+    "name": "Gregg Kellogg",
+    "homepage": "http://greggkellogg.net/",
+    "depiction": "http://twitter.com/account/profile_image/gkellogg"
+  }
+]
+-->
+</pre>
+
+<section id="grammar-subject-definition">
+<h3>Subject Definition</h3>
+<p>A <tref>subject definition</tref> is a <tref>JSON object</tref>
+  containing one or more key/value pairs. Keys are IRIs, Compact IRIs,
+  terms defined within the <tref>active context</tref>, or one of the
+  following keywords:</p>
+<ul>
+  <li><code>@context</code>,</li>
+  <li><code>@graph</code>,</li>
+  <li><code>@id</code>, or</li>
+  <li><code>@type</code></li>
+</ul>
+<p>If the <tref>subject definition</tref> contains the <code>@context</code>
+  key, it's value MUST be one of the following:</p>
+<ul>
+  <li>a <tref>string</tref> with the lexical form of <tref>IRI</tref>,</li>
+  <li>a <tref>JSON object</tref> conforming the the syntax requirements stated
+    in <a href="#grammar-context"></a>, or</li>
+  <li>a <tref>array</tref> composed of any number of the previous two expressions.</li>
+</ul>
+<pre class="example" data-transform="updateExample"
+     title="Subject definition with external context">
+<!--
+{
+  ****"@context": "http://json-ld.org/contexts/person.jsonld"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+<p>See <a href="#identifying-the-subject"></a>, <a href="#compact-iris"></a>,
+  and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
+  <code>@id</code> values.</p>
+
+<p>If the <tref>subject definition</tref> contains the <code>@id</code>
+  key, it's value
+  MUST be a <tref>string</tref> having the lexical form of <tref>IRI</tref>,
+  <tref>Compact IRI</tref> (Including <tref>unlabeled node</tref>), or a
+  term defined in the <tref>active context</tref> expanding into an <tref>IRI</tref> or <tref>unlabeled node</tref>.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Subject definition with @id">
+<!--
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  ****"@id": "http://manu.sporny.org/i/public"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+<p>If the <tref>subject definition</tref> contains the <code>@type</code>
+  key, it's value
+  MUST be either a <tref>string</tref> having the lexical form of
+  <tref>absolute IRI</tref>, <tref>Compact IRI</tref>, a term defined in the
+  <tref>active context</tref> expanding into an <tref>absolute IRI</tref>,
+  or an <tref>array</tref> of any of these.</p>
+
+<p class="note">A JSON-LD processor SHOULD process non-conforming documents
+  having <code>@type</code> values including <tref title="subject definition">subject definitions</tref> or 
+  <tref title="subject reference">subject references</tref> entries but MUST 
+  discard everything but the value of the <code>@id</code> key.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Subject definition with @type">
+<!--
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "@id": "http://manu.sporny.org/i/public",
+  ****"@type": "Person"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+<p>See <a href="#specifying-the-type"></a> for further discussion on
+  <code>@type</code> values.</p>
+
+<p>If the <tref>subject definition</tref> contains the <code>@graph</code>
+  key, it's value MUST 
+  be a <tref>subject definition</tref> or an <tref>array</tref> of zero or more 
+  <tref title="subject definition">subject definitions</tref>. If the 
+  <tref>subject definition</tref> contains an <code>@id</code> keyword,
+  its value is used as the label of a named graph.</p>
+
+<p class="note">As a special case, if the <tref>JSON object</tref> contains no
+  keys other than <code>@graph</code> and <code>@context</code>, and the 
+  <tref>JSON object</tref> is the root of the JSON-LD document, the 
+  <tref>JSON object</tref> is not treated as a <tref>subject definition</tref>; this 
+  is used as a way of defining <tref title="subject definition">subject 
+  definitions</tref> that may not form a connected graph. This allows a 
+  <tref>context</tref> to be defined which is shared by all of the constituent 
+  <tref title="subject definition">subject definitions</tref>.</p>
+
+
+<pre class="example" data-transform="updateExample"
+     title="Multiple subject definitions with a single context using @graph">
+<!--
+{
+  "@context": ...,
+  "****@graph****":
+  [
+    {
+      "@id": "http://manu.sporny.org/i/public",
+      "@type": "foaf:Person",
+      "name": "Manu Sporny",
+      "knows": "http://greggkellogg.net/foaf#me"
+    },
+    {
+      "@id": "http://greggkellogg.net/foaf#me",
+      "@type": "foaf:Person",
+      "name": "Gregg Kellogg",
+      "knows": "http://manu.sporny.org/i/public"
+    }
+  ]
+}
+-->
+</pre>
+
+<p>See <a href="#named-graphs"></a> for further discussion on
+  <code>@graph</code> values.</p>
+
+<p>A JSON-LD document MUST NOT contain any other <tref>keyword</tref> or
+  alias expanding to any other keyword.</p>
+
+<p>Other keys MUST expand to an <tref>absolute IRI</tref> using the
+  <tref>active context</tref>. The values of these keys may be any
+  of the following:</p>
+<ul>
+  <li><tref>string</tref>,</li>
+  <li><tref>subject reference</tref>,</li>
+  <li><tref>subject definition</tref>,</li>
+  <li><tref>typed value</tref>,</li>
+  <li><tref>language value</tref>,</li>
+  <li><code>@set</code> or <code>@list</code>
+    definition (see <a href="#sets-and-lists"></a>), or</li>
+  <li>an <tref>array</tref> zero or more of these.</li>
+</ul>
+</section>
+
+<section id="grammar-subject-reference">
+<h2>Subject Reference</h2>
+<p>A <tref>JSON object</tref> containing only the <code>@id</code> (or alias)
+  is a <tref>subject reference</tref> and not a
+  <tref>subject definition</tref>.
 </p>
+<pre class="example" data-transform="updateExample"
+     title="Explicit subject reference">
+<!--
+{
+  "@context": ...,
+  "@graph": [
+    {
+      "@id": "http://example.org/library",
+      "@type": "ex:Library",
+      ****"ex:contains": {"@id": "http://example.org/library/the-republic"}****
+    }, {
+      "@id": "http://example.org/library/the-republic",
+      "@type": "ex:Book",
+      "dc:creator": "Plato",
+      "dc:title": "The Republic",
+      ****"ex:contains": {"@id": "http://example.org/library/the-republic#introduction"}****
+    }, {
+      "@id": "http://example.org/library/the-republic#introduction",
+      "@type": "ex:Chapter",
+      "dc:description": "An introductory chapter on The Republic.",
+      "dc:title": "The Introduction"
+    }
+  ]
+}
+}-->
+</pre>
+</section>
 
-<p class="issue">Per
-  <a href="http://lists.w3.org/Archives/Public/public-rdf-wg/2012Jun/0111.html">Andy S's comment</a>,
-  consider making this a normative syntax definition along with EBNF.</p>
+<section id="grammar-expanded-values">
+<h2>Expanded Values</h2>
+<p>An <tdef>Expanded Value</tdef> is a <tref>JSON object</tref> containing the key
+  <code>@value</code> (or alias) and optionally either the <code>@type</code> or
+  <code>@language</code> keys (or aliases). An <tref>Expanded Value</tref> MUST NOT
+  contain keys other than <code>@value</code>, <code>@language</code> and <code>@type</code>.
+  An <tref>Expanded Value</tref> MUST NOT contain both the <code>@language</code> and
+  <code>@type</code> keys.</p>
+<p>The value of the <code>@value</code> key (or alias) MUST be either a <tref>string</tref>,
+  <tref>number</tref>, <tref>true</tref> or <tref>false</tref>.</p>
+<p>If an <tref>Expanded Value</tref> contains a <code>@language</code> key, it MUST NOT
+  contain any other key except <code>@value</code>. The value of the <code>@language</code>
+  key MUST have the lexical form described in [[!BCP47]] or <tref>null</tref>.</p>
+<p>If an <tref>Expanded Value</tref> contains a <code>@type</code> key, it MUST NOT
+  contain any other key except <code>@value</code>. The value of 
+  <code>@type</code> MUST be <code>null</code>, a <tref>compact IRI</tref>, an 
+  <tref>absolute IRI</tref> or a <tref>term</tref> expanding to an 
+  <tref>absolute IRI</tref>.</p>
+<p>See <a href="#typed-values"></a> and <a href="#language-values"></a>
+  for a further discussion of <tref title="expanded value">Expanded Values</tref>.</p>
+</section>
 
-<ol>
-<li>A JSON-LD document is composed of a single <tref>subject definition</tref> or an <tref>array</tref> of <tref title="subject definition">subject definitions</tref>.</li>
-<li>The value of <code>@id</code> MUST be a <tref>term</tref>, a <tref>compact IRI</tref>, or an <tref>IRI</tref>.</li>
-<li>An <code>@id</code> keyword and a <code>@language</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
-<li>An <code>@id</code> keyword and a <code>@container</code> keyword MUST NOT exist in the same <tref>JSON object</tref>.</li>
-<li>A <tref>subject definition</tref> MAY contain a <code>@context</code> property.</li>
-<li>A <code>@context</code> value MUST NOT contain an embedded <code>@context</code> definition.</li>
-<li>The value associated with the <code>@context</code> keyword MUST be a string expanding to an <tref>IRI</tref>, a <tref>JSON object</tref>, null, or an <tref>array</tref> containing a combination of the allowed values.</li>
-<li>The value associated with the keys used in a <code>@context</code> MUST be a <code>null</code>, an <tref>IRI</tref>, or a <tref>JSON object</tref>.</li>
-<li>For each value that is a <tref>JSON object</tref> that is associated with a key in a <code>@context</code>:
-  <ol>
-    <li><code>@id</code> and <code>@type</code> MUST be an <tref>IRI</tref> or <code>null</code></li>
-    <li><code>@container</code> MUST be associated with a value of either <code>@set</code> or <code>@list</code>.</li>
-    <li><code>@language</code> MUST be a string expressed in [[BCP47]] or <code>null</code>.</li>
-    <li>Any other property MUST be ignored by a JSON-LD processor and MUST be preserved in compaction and framing.</li>
-  </ol>
-</li>
-<li>A <tref>subject definition</tref> MAY have an <code>@graph</code> property.</li>
-<li>The value of a <code>@graph</code> property MUST be a
-  <tref>subject definition</tref> or an array of zero or more
-  <tref title="subject definition">subject definitions</tref>.</li>
-<li>A <tref>JSON object</tref> containing a <code>@set</code> key MUST NOT have any other keys.</li>
-<li>A <tref>JSON object</tref> containing a <code>@list</code> key MUST NOT have any other keys.</li>
-<li>The value of an <code>@set</code> or <code>@list</code> key can be a string, a number, a <tref>JSON object</tref>, or an <tref>array</tref> containing a combination of the allowed values.</li>
-<li>For each <tref>JSON object</tref> that contains a <code>@value</code> key:
-  <ol>
-    <li>It MAY have a <code>@language</code> or <code>@type</code> property and MUST NOT have any other properties.</li>
-    <li>It MUST NOT contain both the <code>@language</code> and <code>@type</code> keys at the same time.</li>
-    <li>The value of the <code>@value</code> key MUST be a string or a number.</li>
-    <li>The value of the <code>@language</code> key MUST be <code>null</code> or a string in [[BCP47]] format.</li>
-    <li>The value of <code>@type</code> MUST be <code>null</code>, a <tref>term</tref>, a <tref>compact IRI</tref>, an <tref>IRI</tref>, a <tref>JSON object</tref>, or an <tref>array</tref> containing a combination of the allowed values.</li>
-  </ol>
-</li>
-<li>In the body of a JSON-LD document, the value of <code>@type</code> MUST NOT be <code>@id</code>. This is in contrast to the use of <code>@type</code> in the <code>@context</code>, where this is allowed.</li>
-</ol>
+<section id="grammar-set-list">
+<h2>List and Set Values</h2>
+<p>A <tdef>List</tdef> is a <tref>JSON object</tref> having only the <code>@list</code>
+  <tref>keyword</tref>. Its value MUST be an <tref>array</tref> of any value type
+  as defined in <a href="#grammar-subject-definition"></a>.</p>
+<p>A <tdef>Set</tdef> is a <tref>JSON object</tref> having only the <code>@set</code>
+  <tref>keyword</tref>. Its value MUST be an <tref>array</tref> of any value type
+  as defined in <a href="#grammar-subject-definition"></a>.</p>
+<p>See <a href="#sets-and-lists"></a>
+  for a further discussion of List and Set Values.</p>
+</section>
 
+<section id="grammar-context">
+<h2>Context Definition</h2>
+<p>A <tdef>context definition</tdef> is a <tref>JSON object</tref>
+  containing one or more key/value pairs. Keys are <tref title="string">strings</tref>
+  or the <code>@language</code> <tref>keyword</tref>. A <tref>context definition</tref>
+  SHOULD NOT contain any keys having the lexical form of <tref>keyword</tref> other than
+  <code>@language</code>.</p>
+<p>If the <tref>context definition</tref> has a <code>@language</code> key,
+  the value MUST have the lexical form described in [[!BCP47]] or <tref>null</tref>.</p>
+<p>Other keys are <tref>term</tref> definitions. Their values MUST be either a
+  <tref>string</tref>, or a <tref>JSON object</tref>. If the value is a 
+  <tref>JSON object</tref>, the <tref>term</tref> has an <tdef>expanded term 
+  definition</tdef> (see <a href="#expanded-term-definition"></a>).</p>
+<p>An <tref>expanded term definition</tref> is composed of zero or more keys from <code>@id</code>,
+  <code>@type</code>, <code>@language</code> or <code>@container</code>. An
+  <tref>expanded term definition</tref> SHOULD NOT contain any other keys.</p>
+<p>If the <tref>term</tref> does not have the form of <tref>Compact IRI</tref> or <tref>absolute IRI</tref>,
+  the <tref>JSON object</tref> MUST include the <code>@id</code> <tref>keyword</tref>.</p>
+<p>If the <tref>expanded term definition</tref> contains the <code>@id</code> <tref>keyword</tref>.
+  it MUST be a <tref>string</tref> having the lexical form of <tref>IRI</tref>, 
+  <tref>Compact IRI</tref>, or a term defined in the defining <tref>context 
+  definition</tref> or the <tref>active context</tref> expanding into an 
+  <tref>IRI</tref>.</p>
+<p>If the <tref>expanded term definition</tref> contains the <code>@type</code> <tref>keyword</tref>.
+  it MUST be a <tref>string</tref> having the lexical form of <tref>absolute IRI</tref>, 
+  <tref>Compact IRI</tref>, or a term defined in the defining <tref>context 
+  definition</tref> or the <tref>active context</tref> expanding into an 
+  <tref>absolute IRI</tref>.</p>
+<p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>.
+  the value MUST have the lexical form described in [[!BCP47]] or <tref>null</tref>.</p>
+<p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>.
+  the value MUST be either <code>@list</code>, <code>@set</code> or <tref>null</tref>.</p>
+<p>See <a href="#the-context"></a> and <a href="#expanded-term-definition"></a>
+  for a further discussion of contexts.</p>
+</section>
+<pre class="example" data-transform="updateExample"
+     title="Context definition with simple terms, expanded term definitions and @language">
+<!--
+{
+  "@language": "en",
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "foaf": "http://xmlns.com/foaf/0.1/",
+  "name": "foaf:name",
+  "depiction": {"@id": "foaf:depiction", "@type": "@id"},
+  "modified": {"@id": "http://purl.org/dc/terms/modified", "@type": xsd:dateTime"},
+  "homepage": {"@id": "foaf:homepage", "@type": "@id", "@container": "@list"}
+}
+-->
+</pre>
 </section>
 
 <section class="appendix informative">
