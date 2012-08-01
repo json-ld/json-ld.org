@@ -1203,6 +1203,8 @@ language-native data structures MUST be used where applicable.</p>
           <ol class="algorithm">
             <li>If <em>context</em> has a <code>@language</code> property, it MUST have a value of a
               simple <tref>string</tref> or <tref>null</tref>. Add the language to the <tref>local context</tref>.</li>
+            <li>If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple <tref>string</tref>
+              with the lexical form of an absolute IRI. Add the vocabulary mapping to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each property in <em>context</em> perform the following steps:
               <ol class="algorithm">
                 <li>If the property's value is a simple <tref>string</tref>, determine the IRI mapping value by
@@ -1272,7 +1274,8 @@ language-native data structures MUST be used where applicable.</p>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an <tref>IRI</tref>. This section defines an algorithm for
     transforming a value representing an IRI into an actual IRI.</p>
-  <p><tref>IRI</tref>s may be represented as an <tref>absolute IRI</tref>, a <tref>term</tref> or a <tref>compact IRI</tref>.</p>
+  <p><tref>IRI</tref>s may be represented as an <tref>absolute IRI</tref>, a <tref>term</tref>,
+    a <tref>compact IRI</tref>, or as a value relative to <code>@vocab</code>.</p>
   <p>An <tdef>absolute IRI</tdef> is defined in [[!RFC3987]] containing a <em>scheme</em> along with
     <em>path</em> and optional <em>query</em> and fragment segments. A <tdef>relative IRI</tdef> is an IRI
     that is relative some other <tref>absolute IRI</tref>; in the case of JSON-LD this is the base location
@@ -1290,13 +1293,11 @@ language-native data structures MUST be used where applicable.</p>
         <em>authority</em> (as defined in [[!RFC3986]]), generate an <tref>IRI</tref>
         by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
         suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
+      <li>Otherwise, if the IRI being processed does not contain a colon and is a property, i.e., a key's value in
+        a <tref>JSON object</tref>, or the value of <code>@type</code> and the active context has a
+        <code>@vocab</code> mapping, join the mapped value to the suffix using textual concatenation.</li>
       <li>Otherwise, use the value directly as an IRI.</li>
     </ol>
-  </p>
-  <p class="note">
-    Previous versions of this specification used <code>@base</code> and <code>@vocab</code> to define IRI prefixes
-    used to resolve <tref title="relative IRI">relative IRIs</tref>. It was determined that this added too much complexity, but the issue
-    can be re-examined in the future based on community input.
   </p>
 </section>
 
@@ -1359,7 +1360,10 @@ language-native data structures MUST be used where applicable.</p>
         <tref>term</tref> associated with the partially
         matched IRI in the <tref>active context</tref> concatenated with a
         colon (:) character and the unmatched part of <em>iri</em>.</li>
-      <li>If <em>terms</em> is empty, return <em>iri</em>.</li>
+      <li>If <em>terms</em> is empty, the <tref>IRI</tref> being processed is a property or the
+        value of <code>@type</code> and <code>@vocab</code> is not null and matches the beginning
+        of <em>iri</em>, return the unmatched portion of <em>iri</em>. Otherwise return
+        <em>iri</em>.</li>
       <li>Otherwise, return the shortest and lexicographically least value in <em>terms</em>.</li>
     </ol>
   </p>
