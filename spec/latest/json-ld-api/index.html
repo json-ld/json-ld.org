@@ -1949,7 +1949,10 @@ language-native data structures MUST be used where applicable.</p>
               of the value as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.
               Set datatype to the value of the <code>@type</code> property if it exists, otherwise
               either <code>xsd:integer</code> or <code>xsd:double</code>, depending
-              on if the value contains a fractional and/or an exponential component.</li>
+              on if the value contains a fractional and/or an exponential component.
+              <p class="issue" data-number="150">It is being
+                <a href="https://github.com/json-ld/json-ld.org/issues/150">discussed</a> if the automatic
+                mapping of JSON-native types to the XSD type system should be configurable or not.</p></li>
             <li>Otherwise, if the value of <code>@value</code> is <strong>true</strong> or <strong>false</strong>,
               set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
               string representation of the value. Set datatype to the value of the <code>@type</code>
@@ -2185,23 +2188,26 @@ language-native data structures MUST be used where applicable.</p>
 <section>
 <h3>Data Round Tripping</h3>
 
-<p>When coercing numbers to <strong>xsd:integer</strong> or <strong>xsd:double</strong>
-  as it, e.g., happens during <a href="#rdf-conversion">RDF Conversion</a>, implementers MUST
-  ensure that the result is a canonical lexical form in the form of a
-  <tref>string</tref>. A <tdef>canonical lexical form</tdef> is a set of literals
-  from among the valid set of literals for a datatype such that there is a one-to-one mapping
-  between the canonical lexical form and a value in the value space as defined in
-  [[!XMLSCHEMA11-2]]]. In other words, every value MUST be converted to a deterministic string
-  representation.</p>
+<p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
+  <em>numbers</em> and <em>booleans</em> are automatically coerced to <strong>xsd:integer</strong>,
+  <strong>xsd:double</strong>, or <strong>xsd:boolean</strong>. Implementers MUST ensure that the
+  result is a canonical lexical form in the form of a <tref>string</tref>. A
+  <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
+  a datatype such that there is a one-to-one mapping between the canonical lexical form and a value
+  in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every value MUST be converted
+  to a deterministic string representation.</p>
+
 <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
   or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
   digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
   To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
 (value).toFixed(0).toString()
 -->
 </pre>
+
 <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
   or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
   character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
@@ -2212,48 +2218,35 @@ language-native data structures MUST be used where applicable.</p>
   representations must be normalized such that there is a single digit which is non-zero to the
   left of the decimal point and at least a single digit to the right of the decimal point unless
   the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
-  To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+  <strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
+  floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
+  decimal point.</p>
+
+<p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
-(value).toExponential().replace(/e\+?/,'E')
+(value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
 -->
 </pre>
-<p><strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
-floating point type [[!IEEE-754-1985]].</p>
 
 <p class="note">When data such as decimals need to be normalized, JSON-LD authors should
-not use values that are going to undergo automatic conversion. This is due to the lossy nature
-of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
-set the canonical lexical form directly.</p>
+  not use values that are going to undergo automatic conversion. This is due to the lossy nature
+  of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
+  set the canonical lexical form directly.</p>
 
-<p class="note">When JSON-native datatypes, like <tref>number</tref>s, are type coerced, lossless
-data round-tripping can not be guaranted. Consider the following code example:</p>
+<p>The canonical lexical form of the <em>boolean</em> values <code>true</code> and <code>false</code>
+  are the strings <strong>true</strong> and <strong>false</strong>.</p>
 
-<pre class="example" data-transform="updateExample">
-<!--
-var myObj1 = {
-               "@context": {
-                 "number": {
-                   "@id": "http://example.com/vocab#number",
-                   ****"@type": "xsd:nonNegativeInteger"****
-                 }
-               },
-               "number" : ****42****
-             };
+<p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
+  be guaranted as rounding errors might occur. Additionally, only literals typed as
+  <strong>xsd:integer</strong>, <strong>xsd:double</strong>, and  <strong>xsd:boolean</strong> are
+  automatically converted back to their JSON-native counterparts in when
+  <a href="#rdf-conversion">converting from RDF</a>.</p>
 
-// Convert the JSON-LD document to RDF; this converts 42 to a string
-var jsonldText = jsonld.toRDF(myObj1, myRdfTripleCollector);
-
-// Convert the RDF triples back to a JavaScript object
-var myObj2 = jsonld.fromRDF(myRdfTripleCollector.getTriples());
--->
-</pre>
-
-<p>At this point, <code>myObj1</code> and <code>myObj2</code> will have different
-  values for the "number" property. <code>myObj1</code> will have the number
-  <code>42</code>, while <code>myObj2</code> have an object consisting of
-  <code>@value</code> set to the string <code>"42"</code> and <code>@type</code>
-  set to the expanded value of <em>xsd:nonNegativeInteger</em>.</p>
+<p class="issue" data-number="150">It is being
+  <a href="https://github.com/json-ld/json-ld.org/issues/150">discussed</a> if the automatic mapping
+  of JSON-native types to the XSD type system should be configurable or not.</p>
 
 <p class="note">Some JSON serializers, such as PHP's native implementation in some versions,
   backslash-escape the forward slash character. For example, the value
