@@ -74,7 +74,7 @@ print <<< htmlcode
 
                <h2>JSON-LD Framing</h2>
                <ul>
-                 <li><a href="latest/json-ld-api/">latest</a></li>
+                 <li><a href="latest/json-ld-framing/">latest</a></li>
 htmlcode;
 
 $editorsDrafts = scandir('ED/json-ld-framing', 1);
