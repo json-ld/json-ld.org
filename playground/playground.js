@@ -215,7 +215,7 @@
         if(err) {
           return callback(err);
         }
-        $('#expanded').html(js_beautify(JSON.stringify(expanded),
+        $('#expanded').html(js_beautify(JSON.stringify(expanded).replace('<', '&lt;').replace('>', '&gt;'),
           {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
@@ -225,7 +225,7 @@
         if(err) {
           return callback(err);
         }
-        $('#compacted').html(js_beautify(JSON.stringify(compacted),
+        $('#compacted').html(js_beautify(JSON.stringify(compacted).replace('<', '&lt;').replace('>', '&gt;'),
           {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
@@ -235,7 +235,7 @@
         if(err) {
           return callback(err);
         }
-        $('#framed').html(js_beautify(JSON.stringify(framed),
+        $('#framed').html(js_beautify(JSON.stringify(framed).replace('<', '&lt;').replace('>', '&gt;'),
           {'indent_size': 2, 'brace_style': 'expand'}));
         callback();
       });
