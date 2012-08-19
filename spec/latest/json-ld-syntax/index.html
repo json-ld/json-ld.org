@@ -243,6 +243,7 @@
   </script>
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
+.issue.resolved { display: none; }
 </style>
 </head>
 
@@ -1506,7 +1507,6 @@ supporting dot-notation accessors for object properties, a developer may use the
 <strong>PROPERTY</strong>.<strong>LANGUAGE</strong> pattern. For example, to 
 access the Japanese version of the title, a developer would use the following 
 code snippet: <code>obj.title.ja</code>.</p>
-
 </section>
 
 <section>
@@ -2565,7 +2565,7 @@ have to be written to operate on
 <h2>JSON-LD Grammar</h2>
 <em>This section is normative</em>
 
-<p class="issue" data-number="114">This section is an attempt to formalize
+<p class="issue resolved" data-number="114">This section is an attempt to formalize
 a normative grammar for JSON-LD.</p>
 
 <p>This appendix restates the syntactic conventions described in the
@@ -2755,11 +2755,6 @@ a normative grammar for JSON-LD.</p>
 <p>A JSON-LD document MUST NOT contain any other <tref>keyword</tref> or
   alias expanding to any other keyword.</p>
 
-<p>Any key used in conjunction with a term utilizing a 
-<tref>language map</tref> pattern MUST be a [[BCP47]] string with an associated 
-value that is a <tref>string</tref> or an
-<tref>array</tref> of zero or more <tref>string</tref>s.</p>
-
 <p>Other keys MUST expand to an <tref>absolute IRI</tref> using the
   <tref>active context</tref>. The values associated with these keys 
   may be any of the following:</p>
@@ -2775,8 +2770,9 @@ value that is a <tref>string</tref> or an
   <li><tref>typed value</tref>,</li>
   <li><tref>language value</tref>,</li>
   <li><code>@set</code> or <code>@list</code>
-    definition (see <a href="#sets-and-lists"></a>), or</li>
-  <li>an <tref>array</tref> zero or more of these.</li>
+    definition (see <a href="#sets-and-lists"></a>),</li>
+  <li>an <tref>array</tref> zero or more of these, or</li>
+  <li><tref>language map</tref>.</li>
 </ul>
 
 </section>
@@ -2812,6 +2808,40 @@ value that is a <tref>string</tref> or an
   ]
 }
 }-->
+</pre>
+</section>
+
+<section id="grammar-language-map">
+<h2>Language Map</h2>
+<p>A <tref>language map</tref> may be used as a term value within a
+  <tref>subject definition</tref> if the term is defined with
+  <code>@container</code> set to <code>@language</code>.</p>
+<p>The keys of a <tref>language map</tref> MUST be a [[BCP47]] string
+  with an associated value that is a <tref>string</tref> or an
+  <tref>array</tref> of zero or more <tref>string</tref>s.</p>
+<p class="issue" data-number="133">We had also discussed values other than strings, such as those that might represent a more reified version of a value with other properties, such as is described using <a href="http://www.w3.org/TR/skos-reference/skos-xl.html">SKOS-XL</a>.</p>
+<pre class="example" data-transform="updateExample"
+     title="Language map expressing a property in three languages">
+<!--
+{
+  "@context":
+  {
+    "title":
+    {
+      "@id": "http://purl.org/dc/terms/title"
+      "@container": "@language"
+    }
+  },
+...
+  "title":
+  ****{
+    "en": "JSON-LD Syntax",
+    "ru": "JSON-LD Синтаксис",
+    "ja": "JSON-LDの構文"
+  }****
+...
+}
+-->
 </pre>
 </section>
 
