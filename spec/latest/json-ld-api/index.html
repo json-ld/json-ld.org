@@ -149,8 +149,8 @@
       var respecConfig = {
           doRDFa: "1.1",
           // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
-          specStatus:           "FPWD",
-          publishDate:          "2012-07-12",
+          specStatus:           "ED",
+          //publishDate:          "2012-07-12",
           copyrightStart:       "2010",
 
           // the specification's short name, as in http://www.w3.org/TR/short-name/
@@ -161,9 +161,9 @@
 
           // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
           // and its maturity status
-          previousPublishDate:  "2012-06-26",
-          previousMaturity:     "CG-FINAL",
-          previousDiffURI:      "http://json-ld.org/spec/ED/json-ld-api/20120626/",
+          previousPublishDate:  "2012-07-12",
+          previousMaturity:     "FPWD",
+          previousDiffURI:      "http://www.w3.org/TR/2012/WD-json-ld-api-20120712/",
           diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
 
           // if there a publicly available Editor's Draft, this is the link
@@ -220,8 +220,8 @@
           // Team Contact.
           wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/46168/status",
           maxTocLevel: 4,
-          preProcess: [ preProc ],
-          alternateFormats: [ {uri: "diff-20120626.html", label: "diff to previous version"} ],
+          preProcess: [ preProc ]
+          //alternateFormats: [ {uri: "diff-20120626.html", label: "diff to previous version"} ],
       };
 
       function _esc(s) {
@@ -962,8 +962,9 @@ document:
       <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
         datatyped literals to JSON native types instead of using the
         expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
-        <code>xsd:boolean</code> values will be converted to <tref>true</tref>/<tref>false</tref>,
-        <code>xsd:integer</code> and <code>xsd:double</code> values to
+        <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
+        <code>xsd:integer</code> and <code>xsd:double</code> values will be
+        converted to
         <tref title="number">JSON numbers</tref>.
       </dd>
     </dl>
@@ -2096,9 +2097,6 @@ language-native data structures MUST be used where applicable.</p>
     the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
     MUST have only a <code>@value</code> property.</p>
 
-  <p class="issue" data-number="150">The <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
-    flag is not yet supported by this algorithm.</p>
-
   <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
     array of <a>Quad</a> representations.</p>
 
@@ -2147,6 +2145,31 @@ language-native data structures MUST be used where applicable.</p>
               key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
           </ol>
         </li>
+        
+        <li>If <em>object</em> is a <tref>typed literal</tref> and the
+          <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
+          option is set to <tref>true</tref>:
+          <ol class="algorithm">
+            <li>Generate a <em>converted value</em>:
+              <ol class="algorithm">
+                <li>If the literal's type is <code>xsd:boolean</code>, the
+                  <em>converted value</em> is <tref>true</tref> if the literal 
+                  matches the value <code>true</code> or <tref>false</tref> if 
+                  the literal matches the value <code>false</code>.</li>
+                <li>If the literal's type is <code>xsd:integer</code> or
+                  <code>xsd:decimal</code>, the <em>converted value</em> is the 
+                  JSON implementation's native 
+                  JSON <tref>number</tref> representation format for the
+                  literal.</li>
+                <li>Otherwise, do not perform a conversion. Set 
+                  the <em>converted value</em> to the <em>value</em>.</li>
+              </ol>
+            </li>
+            <li>Append the <em>converted value</em> to the array value for the
+              key, creating an entry in <em>value</em> if necessary.</li>
+          </ol>
+        </li>
+
         <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
           <ol class="algorithm">
             <li>Let <em>key</em> be the string representation of <em>property</em>.</li>
