@@ -1184,7 +1184,7 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
   <h2>JSON-LD Syntax</h2>
 
   <p>A JSON-LD document is first, and foremost, a JSON document
-    (as defined in [[!RFC5988]]), and any syntactically correct JSON document
+    (as defined in [[!RFC4627]]), and any syntactically correct JSON document
     MUST be processed by a conforming JSON-LD processor. However, JSON-LD
     describes a specific syntax to use for expressing Linked Data. This
     includes the use of specific keywords, as identified in <a
@@ -1400,7 +1400,7 @@ express the value of a type.</p>
   <tdef>language value</tdef>, is indicated by associating a value with
   an <tref>string</tref> having the lexical from defined in [[!BCP47]]
   which indicates the value's language. Language values may be
-  expressed in JSON-LD in three ways:
+  expressed in JSON-LD in four ways:
 </p>
 
 <ol>
@@ -1409,6 +1409,10 @@ express the value of a type.</p>
   <li>By utilizing the <code>@language</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
   <li>By utilizing the expanded form for specifying objects.</li>
+  <li>By utilizing the <code>@container</code> <tref>keyword</tref> with a 
+  value of <code>@language</code> when defining a <tref>term</tref> within 
+  a <code>@context</code> section. This usage pattern is called a
+  <tdef>language map</tdef>.</li>
 </ol>
 
 <p>The first example uses the <code>@language</code> keyword to associate a
@@ -1452,9 +1456,9 @@ in the body of a JSON-LD document:</p>
     }
   },
 ...
-  "modified":
+  "title":
   ****{
-    "@value": "JSON-LD",
+    "@value": "JSON-LD Syntax",
     "@language": "en"
   }****
 ...
@@ -1463,7 +1467,45 @@ in the body of a JSON-LD document:</p>
 </pre>
 
 <p>Both examples above would generate an object with the value of
-<code>JSON-LD</code> and the language of "English".</p>
+<code>JSON-LD Syntax</code> and the language of <code>en</code>, which is the
+[[!BCP47]] code for the English language.</p>
+
+<p>Systems that support multiple languages often need to express data values in
+each language. Typically, such systems also try to ensure that developers have
+a programatically easy way to navigate the datastructures for the 
+language-specific data. In this case, <tref>language map</tref>s 
+may be utilized.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Language map expressing a property in three languages">
+<!--
+{
+  "@context":
+  {
+    "title":
+    {
+      "@id": "http://purl.org/dc/terms/title"
+      "@container": "@language"
+    }
+  },
+...
+  "title":
+  ****{
+    "en": "JSON-LD Syntax",
+    "ru": "JSON-LD Синтаксис",
+    "ja": "JSON-LDの構文"
+  }****
+...
+}
+-->
+</pre>
+
+<p>In the example above, the title is expressed in three languages; English,
+Russian, and Japanese. To access the data above in a programming language
+supporting dot-notation accessors for object properties, a developer may use the
+<strong>PROPERTY</strong>.<strong>LANGUAGE</strong> pattern. For example, to 
+access the Japanese version of the title, a developer would use the following 
+code snippet: <code>obj.title.ja</code>.</p>
 
 </section>
 
@@ -2784,7 +2826,10 @@ a bit?</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
   the value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>,
-  the value MUST be either <code>@list</code>, <code>@set</code> or be <tref>null</tref>.</p>
+  the value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, or be <tref>null</tref>.
+  If the value is <code>@language</code>, when the <tref>term</tref> is used outside of the <code>@context</code>, the
+  associated value MUST be a <tref>JSON object</tref> whose keys are <tref>string</tref>s that are [[BCP47]] language identifiers.
+  The values associated with each [[BCP47]] language string MUST be a <tref>string</tref> or an <tref>array</tref> of <tref>string</tref>s.</p>
 <p>See <a href="#the-context"></a> and <a href="#expanded-term-definition"></a>
   for a further discussion of contexts.</p>
 </section>
