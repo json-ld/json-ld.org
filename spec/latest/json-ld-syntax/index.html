@@ -1419,7 +1419,7 @@ express the value of a type.</p>
 type with a particular <tref>term</tref> in the <code>@context</code>:</p>
 
 <pre class="example" data-transform="updateExample"
-     title="Expanded term definition with language coerceion">
+     title="Expanded term definition with language coercion">
 <!--
 {
   ****"@context":
@@ -1863,12 +1863,82 @@ the data type to be specified with each piece of data.</p>
   great deal of confusion among developers attempting to understand the JSON-LD document.</p>
 
 <p>Type coercion is performed using the unexpanded value of the key,
-  which MUST have an exact match for an entry in the <tref>active context</tref>.</p>
+  which MUST have an exact match for an entry in the 
+  <tref>active context</tref>.</p>
+
+</section>
+
+
+<section>
+<h2>Property Generators</h2>
+
+<p>At times, an author may find that they need to express the same value for
+multiple properties. The simplest approach to accomplish this goal would be
+to do the following:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Verbose expression of multiple properties with the same value">
+<!--
+{
+  "@context":
+  {
+    ****"title1": "http://purl.org/dc/terms/title"****,
+    ****"title2": "http://schema.org/name"****,
+    ****"title3": "http://www.w3.org/2000/01/rdf-schema#label"****
+  },
+  "@id": "http://example.com/book",
+  ****"title1": "The Count of Monte Cristo"****,
+  ****"title2": "The Count of Monte Cristo"****,
+  ****"title3": "The Count of Monte Cristo"****
+}
+-->
+</pre>
+
+<p>Unfortunately, the approach above produces redundant data and would become a
+publishing burden for large data sets.
+In these situations, the author may use
+a <tdef>property generator</tdef> to express a <tref>term</tref> once, but have
+the JSON-LD processor expand the single statement into multiple statements.
+This method can be accomplished by using the following markup pattern:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Generating multiple properties using a single term">
+<!--
+{
+  "@context":
+  {
+    ****"title": { "@id": ["http://purl.org/dc/terms/title", 
+                       "http://schema.org/name",
+                       "http://www.w3.org/2000/01/rdf-schema#label"] }****,
+  },
+  "@id": "http://example.com/book",
+  ****"title": "The Count of Monte Cristo"****
+}
+-->
+</pre>
+
+<p>While the term above is only used once outside of the <code>@context</code>, 
+a JSON-LD processor will internally transform the document above into 
+the following set of statements:</p>
+
+<pre class="example" data-transform="updateExample">
+<!--
+<http://example.com/book> 
+  <http://purl.org/dc/terms/title>
+    "The Count of Monte Cristo" .
+<http://example.com/book> 
+  <http://schema.org/name> 
+    "The Count of Monte Cristo" .
+<http://example.com/book> 
+  <http://www.w3.org/2000/01/rdf-schema#label> 
+    "The Count of Monte Cristo" .
+-->
+</pre>
 
 </section>
 
 <section>
-  <h3>IRI Expansion Within a Context</h3>
+  <h2>IRI Expansion Within a Context</h2>
   <p>In general, normal IRI expansion rules apply
     anywhere an IRI is expected (see <a href="#iris"></a>). Within
     a <tref>context</tref> definition, this can mean that terms defined
@@ -2811,14 +2881,14 @@ a bit?</p>
 <p>An <tdef>expanded term definition</tdef> is composed of zero or more keys from <code>@id</code>,
   <code>@type</code>, <code>@language</code> or <code>@container</code>. An
   <tref>expanded term definition</tref> MUST NOT contain any other keys.
-  The value of <code>@id</code> MUST expand to an <tref>absolute IRI</tref>.</p>
-<p>If the <tref>term</tref> definition does not have the form of <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
+  All values associated with <code>@id</code> MUST expand to an <tref>absolute IRI</tref>.</p>
+<p>If the <tref>term</tref> definition is not a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
   the <tref>expanded term
   definition</tref> MUST include the <code>@id</code> key.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@id</code> <tref>keyword</tref>,
   it MUST be a <tref>string</tref> having the lexical form of <tref>IRI</tref>,
-  <tref>compact IRI</tref>, or a <tref>term</tref> defined in the defining <tref>context
-  definition</tref> or the <tref>active context</tref>.</p>
+  <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining <tref>context
+  definition</tref> or the <tref>active context</tref>, or an <tref>array</tref> composed of any of the previous allowed values.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@type</code> <tref>keyword</tref>,
   it MUST be a <tref>string</tref> having the lexical form of <tref>absolute IRI</tref>,
   <tref>compact IRI</tref>, or a <tref>term</tref> defined in the defining <tref>context
