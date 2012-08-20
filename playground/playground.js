@@ -449,7 +449,7 @@
       }
       else if('@context' in playground.examples[name]) {
         // use context from markup as default
-        var ctx = playground.examples[name]['@context'];
+        var ctx = { '@context': playground.examples[name]['@context'] };
         data.context = JSON.stringify(ctx);
       }
     }
