@@ -704,6 +704,12 @@ site-by-site basis. Contexts may also contain type information
 for certain <tref>term</tref>s as well as other processing instructions for
 the JSON-LD processor.</p>
 
+<p class="note">External JSON-LD context documents MAY contain extra information
+located outside of the <code>@context</code> key, such as documentation about the
+<tref title="term">terms</tref> declared in the document. When importing a
+<code>@context</code> value from an external JSON-LD context document, any extra
+information contained outside of the <code>@context</code> value MUST be discarded.</p>
+
 <p>Contexts MAY be specified in-line. This ensures that JSON-LD documents
 can be processed when a JSON-LD processor does not have access to the Web.</p>
 
@@ -740,6 +746,33 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   <tref>term</tref>s MUST be overridden using a last-defined-overrides
   mechanism.</p>
 
+<pre class="example" data-transform="updateExample"
+     title="Scoped contexts within subject definitions">
+<!--
+{
+  ****"@context":
+  {
+    "name": "http://example.com/person#name",
+    "details": "http://example.com/person#details"
+  },****
+  "****name****": "Markus Lanthaler",
+  ...
+  "details":
+  {
+    ****"@context": {
+      "name": "http://example.com/organization#name"
+    },****
+    "****name****": "Graz University of Technology"
+  }
+}
+-->
+</pre>
+
+<p>In the example above, the <code>name</code> prefix is overridden in the
+more deeply nested <code>details</code> structure. Note that this is
+rarely a good authoring practice and is typically used when the
+JSON object has legacy applications using the structure of the object.</p>
+
 <p class="note">If a <tref>term</tref> is re-defined within a context, all previous
   rules associated with the previous definition are removed. A <tref>term</tref> defined
   in a previous context MUST be removed, if it is re-defined to <code>null</code>.</p>
@@ -753,7 +786,7 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   context:</p>
 
 <pre class="example" data-transform="updateExample"
-     title="External and local contexts">
+     title="Combining external and local contexts">
 <!--
 {
   ****"@context": [
@@ -1567,112 +1600,6 @@ supporting dot-notation accessors for object properties, a developer may use the
 <strong>PROPERTY</strong>.<strong>LANGUAGE</strong> pattern. For example, to
 access the Japanese version of the title, a developer would use the following
 code snippet: <code>obj.title.ja</code>.</p>
-</section>
-
-<section>
-<h2>External Contexts</h2>
-
-<p>Authors may choose to declare JSON-LD <tref>context</tref>s in external
-documents to promote re-use of contexts as well as reduce the size of JSON-LD
-documents.
-</p>
-
-<p>
-In order to use an external context, an author MUST specify an <tref>IRI</tref>
-to a valid JSON-LD document. The referenced document MUST have a
-top-level <tref>subject definition</tref>. The value of any <code>@context</code> key
-within that object is substituted for the IRI within the referencing document
-to have the same effect as if the value were specified inline within the
-referencing document.</p>
-
-<p>The following example demonstrates the use of an external context:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="External context">
-<!--
-{
-  ****"@context": "http://json-ld.org/contexts/person.jsonld"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>Authors may also import multiple contexts or a combination of external
-and local contexts by specifying a list of contexts:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Combining external and local contexts">
-<!--
-{
-  ****"@context":
-  [
-    "http://json-ld.org/contexts/person.jsonld",
-    {
-      "foaf": "http://xmlns.com/foaf/0.1/"
-    },
-    "http://json-ld.org/contexts/event.jsonld"
-  ],****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "foaf:depiction": "http://twitter.com/account/profile_image/manusporny",
-  ****"celebrates":
-  {
-    "@type": "Event",
-    "description": "International Talk Like a Pirate Day",
-    "date": "R/2011-09-19"
-  }****
-}
--->
-</pre>
-
-<p>Each context in a list will be evaluated in-order. Duplicate mappings among
-the <tref>context</tref>s MUST be overwritten on a last-defined-overrides
-basis. The context list MUST contain either de-referenceable <tref>IRI</tref>s
-or <tref>JSON object</tref>s that conform to the <tref>context</tref> syntax
-as described in this document.</p>
-
-<p>An author MAY nest contexts within <tref title="subject definition">subject definitions</tref>, with the
-more deeply nested contexts overriding the values in previously defined
-contexts:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Nested contexts within subject definitions">
-<!--
-{
-  ****"@context":
-  {
-    "name": "http://example.com/person#name",
-    "details": "http://example.com/person#details"
-  },****
-  "****name****": "Markus Lanthaler",
-  ...
-  "details":
-  {
-    ****"@context": {
-      "name": "http://example.com/organization#name"
-    },****
-    "****name****": "Graz University of Technology"
-  }
-}
--->
-</pre>
-
-<p>In the example above, the <code>name</code> prefix is overridden in the
-more deeply nested <code>details</code> structure. Note that this is
-rarely a good authoring practice and is typically used when the
-JSON object has legacy applications using the structure of the object.</p>
-
-<p>External JSON-LD context documents MAY contain extra information located
-outside of the <code>@context</code> key, such as
-documentation about the <tref title="prefix">prefixes</tref> declared in the document.
-When importing a <code>@context</code> value from an external JSON-LD context
-document, any extra information contained outside of the
-<code>@context</code> value MUST be discarded. It is
-also RECOMMENDED that a human-readable document is served as well to
-explain the correct usage of the JSON-LD context document.
-</p>
 </section>
 
 <section>
