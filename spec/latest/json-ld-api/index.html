@@ -945,6 +945,11 @@ document:
         an <a>IRI</a>, the base IRI defaults to the current document IRI if in a browser context,
         or the empty string if there is no document context.
       </dd>
+      <dt>boolean compactArrays = true</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
+        one element with that element during compaction. If set to <code>false</code>,
+        all arrays will remain arrays even if they have just one element.
+      </dd>
       <dt>boolean optimize = false</dt>
       <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
         optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
@@ -1718,8 +1723,9 @@ language-native data structures MUST be used where applicable.</p>
 <ol class="algorithm">
   <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
     using this algorithm, passing a copy of the <tref>active context</tref> and the <tref>active property</tref>.
-    If <em>element</em> has a single item, the compacted value is that item; otherwise the compacted value
-    is <em>element</em>.</li>
+    If <em>element</em> has a single item and the
+    <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+    <code>true</code>, the compacted value is that item; otherwise the compacted value is <em>element</em>.</li>
   <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
       <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>subject reference</tref>,
@@ -1742,7 +1748,9 @@ language-native data structures MUST be used where applicable.</p>
               <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
                 <a href="#iri-compaction">IRI Compaction</a> on <em>value</em>.</li>
               <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>. Perform <a href="#iri-compaction">IRI Compaction</a>
-                on every entry of <em>value</em>. If <em>value</em> contains just one entry, <em>value</em> is set to that entry.</li>
+                on every entry of <em>value</em>. If <em>value</em> contains just one entry and the
+                <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                <code>true</code>, <em>value</em> is set to that entry.</li>
               <li>Add <tref>active property</tref> and the compacted <em>value</em> to <em>output</em>.</li>
             </ol>
           </li>
@@ -1763,10 +1771,10 @@ language-native data structures MUST be used where applicable.</p>
               <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
                 to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
               <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
-                has a <code>@container</code> mapping to <code>@set</code>,
-                create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em> as an
-                <tref>array</tref>.</li>
-              <li>Otherwise, create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+                has a <code>@container</code> mapping to <code>@set</code> or if the
+                <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                <code>false</code>, convert <em>value</em> to an array.</li>
+              <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
             </ol>
           </li>
         </ol>
