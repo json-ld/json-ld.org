@@ -500,36 +500,6 @@ be used for this specification.
         </dl>
       </dd>
 
-      <dt>void flatten()</dt>
-      <dd>
-        <a href="#flattening">Flattens</a> the given <code>input</code> according to
-        the steps in the <a href="#flattening-algorithm">Flattening Algorithm</a>. The
-        <code>input</code> MUST be flattened and returned if there are
-        no errors. If the flattening fails, an appropriate exception MUST be thrown.
-
-        <p class="issue">It is still being discussed if the flatten() method should be
-          added or not. See <a href="https://github.com/json-ld/json-ld.org/issues/109">ISSUE-109</a>.</p>
-
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to flatten or an
-            <tref>IRI</tref> referencing the JSON-LD document to flatten.</dd>
-          <dt>string or IRI graph</dt>
-          <dd>The graph in the document that should be flattened. To return the default
-            graph <code>@default</code> has to be passed, for the merged graph <code>@merged</code>
-            and for any other graph the <tref>IRI</tref> identifying the graph has to be passed. The
-            default value is <code>@merged</code>.</dd>
-          <dt>object or IRI? context</dt>
-          <dd>An optional external context to use additionally to the context embedded in
-            <code>input</code> when expanding the <code>input</code>.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>.</dd>
-        </dl>
-      </dd>
     </dl>
 
   </section>
@@ -591,7 +561,8 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@embed</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
     value of <tref>object embed flag</tref> within a specific frame.</dd>
   <dt><code>@null</code></dt><dd>Used in <a href="#framing">Framing</a> when a value of <tref>null</tref>
-    should be returned, which would otherwise be removed when <a href="#compaction">Compacting</a>.</dd>
+    should be returned, which would otherwise be removed when
+    <a href="../json-ld-api/index.html#compaction">Compacting</a>.</dd>
   </dl>
 
   <p>All JSON-LD tokens and keywords are case-sensitive.</p>
@@ -672,29 +643,12 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
-<h3>Generate Blank Node Identifier</h3>
-<p>This algorithm is used by the <a href="#framing-algorithm">Framing Algorithm</a> to deterministically name
-  <tref>blank node</tref> identifiers. It uses a <em>identifier map</em> and <em>prefix</em>
-  and takes a possibly <tref>null</tref> identifier and returns a new identifier based on <em>prefix</em>.</p>
-<p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>.</p>
-
-<ol class="algorithm">
-  <li>If the old identifier is not null and is in <em>identifier map</em> return the mapped identifier.</li>
-  <li>Otherwise, if old identifier is not null, create a new entry in <em>identifier map</em> initialized
-    to the current value of <em>next identifier</em>. Increment <em>next identifier</em> by adding one
-    to the integer suffix. Return the mapped identifier.</li>
-  <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
-    original value.</li>
-</ol>
-</section>
-
-<section>
 <h2>Framing</h2>
 <p>Framing is the process of taking a JSON-LD document, which expresses a
   graph of information, and applying a specific graph layout
   (called a <tref>Frame</tref>).</p>
 
-<p>Framing makes use of the <a href="#subject-map-generation">Subject Map Generation</a> algorithm
+<p>Framing makes use of the <a href="../json-ld-api/index.html#subject-map-generation">Subject Map Generation</a> algorithm
   to place each object defined in the JSON-LD document into a flat list of objects, allowing
   them to be operated upon by the framing algorithm.</p>
 
@@ -726,7 +680,7 @@ language-native data structures MUST be used where applicable.</p>
     should be omitted from the output.</dd>
   <dt><tdef>map of flattened subjects</tdef></dt>
   <dd>a map of subjects that is the result of the
-    <a href="#subject-map-generation">Subject Map Generation algorithm</a>.</dd>
+    <a href="../json-ld-api/index.html#subject-map-generation">Subject Map Generation algorithm</a>.</dd>
 </dl>
 </section>
 
@@ -738,15 +692,15 @@ language-native data structures MUST be used where applicable.</p>
 
 <p>The framing algorithm takes an <tref>JSON-LD input</tref> (<strong>expanded input</strong>)
   and an <tref>input frame</tref> (<strong>expanded frame</strong>) that have been expanded
-  according to the <a href="#expansion-algorithm">Expansion Algorithm</a>, and a number of
-  options and produces <tref>JSON-LD output</tref>.</p>
+  according to the <a href="../json-ld-api/index.html#expansion-algorithm">Expansion Algorithm</a>,
+  and a number of options and produces <tref>JSON-LD output</tref>.</p>
 
 <p>Create <tref>framing context</tref> using <tref>null</tref> for the <tref>map of embeds</tref>,
     the <tref>object embed flag</tref> set to <tref>true</tref>, the
     <tref>explicit inclusion flag</tref> set to <tref>false</tref>, and the
     <tref>omit default flag</tref> set to <tref>false</tref> along with <tref>map of flattened subjects</tref>
     set to the <code>@merged</code> property of the result of performing the
-    <a href="#subject-map-generation">Subject Map Generation</a> algorithm on
+    <a href="../json-ld-api/index.html#subject-map-generation">Subject Map Generation</a> algorithm on
     <strong>expanded input</strong>. Also create <em>results</em> as an empty <tref>array</tref>.</p>
 
 <p>Invoke the recursive algorithm using <tref>framing context</tref> (<em>state</em>),
@@ -881,7 +835,7 @@ language-native data structures MUST be used where applicable.</p>
   <tref>subject definition</tref>s.</p>
 <p>The final two steps of the framing algorithm require
   <em>results</em> to be compacted according to the
-  <a href="#compaction-algorithm">Compaction Algorithm</a> by using the
+  <a href="../json-ld-api/index.html#compaction-algorithm">Compaction Algorithm</a> by using the
   context provided in the <tref>input frame</tref>. If the frame has no context, compaction
   is performed with an empty context (not a null context). The compaction result MUST use
   the <code>@graph</code> keyword at the top-level, even if the context is empty or if there
@@ -893,73 +847,6 @@ language-native data structures MUST be used where applicable.</p>
 
 <p class="issue">The algorithm needs to be updated to consider <code>@graph</code>. See
   <a href="https://github.com/json-ld/json-ld.org/issues/118">ISSUE-118</a> for details.</p>
-
-</section>
-
-<section>
-<h3>Subject Map Generation</h3>
-<p>The Subject Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
-  <em>subjectMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
-  uniquely identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
-  document will have a property for every graph in the document whose value is another object with a property for every
-  <tref>node</tref> represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
-  under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
-
-<p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>subjectMap</em>,
-  <code>@default</code> as <em>graph</em>, and <tref>null</tref> as <em>list</em>.</p>
-
-<ol class="algorithm">
-  <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm
-    and return.</li>
-  <li>If <em>element</em> is not a <tref>JSON object</tref> or if it has a <code>@value</code> property,
-    then if <em>list</em> is not <tref>null</tref>, append <em>element</em> to <em>list</em> and return.</li>
-  <li>If the <code>@id</code> property exists and is an <tref>IRI</tref>, set <em>id</em> to its value, otherwise
-    set it to a <tref>blank node</tref> identifier created by the
-    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm.</li>
-  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>subject reference</tref> to <em>list</em> using
-    <em>id</em> at the value for <code>@id</code>.</li>
-  <li>Let <em>subjects</em> be the value in <em>subjectMap</em> where the key is <em>graph</em>; if no such
-    value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
-    <em>subjects</em>, create a new <tref>JSON object</tref> <em>subject</em> with <em>id</em> as the value
-    for <code>@id</code>. Let <em>subject</em> be the value of <em>id</em> in <em>subjects</em>.</li>
-  <li>For each <em>property</em> that is not <code>@id</code> and each <em>value</em> in <em>element</em> ordered
-    by <em>property</em>:
-    <ol class="algorithm">
-      <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm passing <em>value</em>
-        for <em>element</em>, <em>subjectMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
-        is <code>@merged</code> use <em>graph</em>, otherwise use <em>id</em> for <em>graph</em> and then continue.</li>
-      <li>If <em>property</em> is not <code>@type</code> and is a keyword, merge <code>property</code> and
-        <code>value</code> into <code>subject</code> and then continue.</li>
-      <li>For each value <em>v</em> in the array <em>value</em>:
-        <ol class="algorithm">
-          <li>If <em>v</em> is a <tref>subject definition</tref> or <tref>subject reference</tref>:
-            <ol class="algorithm">
-              <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
-                map <em>v</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a>
-                to avoid collisions. If one does not already exist, add a <tref>subject reference</tref> for
-                <em>v</em> into <em>subject</em> for <em>property</em>.</li>
-              <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>subjectMap</em>,
-                <em>graph</em>, and <tref>null</tref> for <em>list</em>.</li>
-            </ol>
-          </li>
-          <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
-            with the value of <code>@list</code> as <em>element</em>, <em>subjectMap</em>, <em>graph</em>, and
-            a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
-            property <code>@list</code> set to <em>flattenedList</em> and add it to <em>subject</em> for
-            <em>property</em>.</li>
-          <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
-            generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
-            to <em>subject</em> for <em>property</em>.</li>
-          <li>Otherwise, add <em>v</em> to <em>subject</em> for <em>property</em>.</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
-
-<p>After the above outlined algorithm has been executed, the subject map for all graphs including the default graph are contained in
-  <em>subjectMap</em>. To also create the subject map for the merged graph, execute the algorithm again, but pass <code>@merged</code>
-  for <em>graph</em>.</p>
 
 </section>
 
@@ -1029,76 +916,6 @@ language-native data structures MUST be used where applicable.</p>
   <li>If <em>output</em> is an <tref>array</tref>, append a copy of <em>item</em>, otherwise
     append a copy of <em>item</em> to <tref>active property</tref> in <em>output</em>.</li>
 </ol>
-</section>
-</section>
-
-<section>
-<h1>Flattening</h1>
-
-<p>Flattening is the process of taking a JSON-LD document, <a href="#expansion">expanding</a>
-  it, labeling all unlabeled nodes with a <tref>blank node</tref> identifier, and returning
-  an array of the <tref title="node">nodes</tref> defined in the document.</p>
-
-<p class="issue">It is still being discussed if the flatten() method should be added or not.
-  See <a href="https://github.com/json-ld/json-ld.org/issues/109">ISSUE-109</a>.</p>
-
-<p>For example, assume the following JSON-LD input document:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "knows": "http://xmlns.com/foaf/0.1/knows"
-  },
-  "@id": "http://example.com/markus",
-  "name": "Markus Lanthaler",
-  "knows": {
-    "name": "Manu Sporny"
-  }
-}
--->
-</pre>
-
-<p>Running the JSON-LD Flattening algorithm for the merged graph (<code>@merged</code>) against
-  the JSON-LD input document provided above would result in the following output:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[
-  {
-    "@id": "http://example.com/markus",
-    "http://xmlns.com/foaf/0.1/knows": [ { "@id": "_:t0" } ],
-    "http://xmlns.com/foaf/0.1/name": [ { "@value": "Markus Lanthaler" } ]
-  },
-  {
-    "@id": "_:t0",
-    "http://xmlns.com/foaf/0.1/name": [ { "@value": "Manu Sporny" } ]
-  }
-]
--->
-</pre>
-
-<section>
-<h2>Flattening Algorithm</h2>
-<p>The algorithm takes two input variables, an <em>element</em> to flatten and the
-  <em>graph</em> for which the <tref>node</tref> definitions should be returned. If <em>graph</em>
-  is not set, it will default to <code>@merged</code> which represents the result of
-  merging all graphs including the default graph (<code>@default</code>).</p>
-
-<ol class="algorithm">
-  <li>Expand <em>element</em> according the <a href="#expansion-algorithm">Expansion Algorithm</a>.</li>
-  <li>Generate a <em>subjectMap</em> according the <a href="#subject-map-generation">Subject Map Generation Algorithm</a>.</li>
-  <li>Initialize an empty array <em>result</em>.</li>
-  <li>If <em>subjectMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
-  <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em>:
-    <ol class="algorithm">
-      <li>Add <em>value</em> to <em>result</em>.</li>
-    </ol>
-  </li>
-  <li>Return <em>result</em>.</li>
-</ol>
-
 </section>
 </section>
 
