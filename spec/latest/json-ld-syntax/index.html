@@ -426,7 +426,8 @@ JSON, which is detailed in [[!RFC4627]].</p>
       one or more properties of that node. A <tref>JSON object</tref> is a
       node definition if it does not contain they keys <code>@value</code>,
       <code>@list</code> or <code>@set</code> and it has one or more keys other
-      than <code>@id</code>.</dd>
+      than <code>@id</code>. A node definition MAY be spread among different
+      parts of a document or even between different documents.</dd>
     <dt><tdef>node reference</tdef></dt><dd>
       A <tref>JSON object</tref> used to reference a node having only the
       <code>@id</code> key.</dd>
@@ -526,14 +527,13 @@ be used for this specification.
   <li>A <tref>node</tref> having an incoming edge MUST be an <tref>IRI</tref>, <tref>Blank Node</tref>, or value such as a number or string.</li>
   <li>A <tref>node</tref> MAY have both incoming and outgoing edges.</li>
   <li>An edge MUST be labeled with an <tref>absolute IRI</tref>, within the JSON-LD syntax, this label is called a <tdef>property</tdef>.</li>
-  <li>Two nodes related by an edge form a <tdef>statement</tdef> where the nodes are referred to <tdef>subject</tdef> and <tdef>object</tdef> and the edge referred to as the <tdef>predicate</tdef>*.</li>
   <li><tref title="IRI">IRIs</tref> used within a <tref>linked data graph</tref> SHOULD be dereferenceable to a <tref>Linked Data</tref> document describing the resource denoted by that <tref>IRI</tref>.</li>
 </ol>
 
 <div class="note">
   <p>A <tref>Linked Data</tref> document does not necessarily need to be expressed in JSON-LD. The notion of
     <tref>Linked Data</tref> is a concept independent of any given serialization format. In particular, any document based on
-    an RDF serialization format is a <tref>Linked Data</tref> document.</p> 
+    an RDF serialization format is a <tref>Linked Data</tref> document.</p>
 
   <p>This definition of <tref>Linked Data</tref> is entirely consistent with that in [[RDF-CONCEPTS]], although
     <tref>Linked Data</tref> may not be a valid RDF document, any RDF document is an expression of <tref>Linked Data</tref>.</p>
@@ -547,16 +547,16 @@ be used for this specification.
   <p>Note that this definition is provisional, and may be reverted to something closer to the original depending on community feedback.</p>
   <ol>
     <li><tref>Linked Data</tref> is a set of documents, each containing a representation of a <tref>linked data graph</tref>.</li>
-    <li>A <tref>linked data graph</tref> is an unordered labeled directed graph, where nodes are <tref>subject</tref>s or <tref>object</tref>s, and edges are labeled using <tref title="property">properties</tref>.</li>
-    <li>A <tref>subject</tref> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
-    <li>A <tref>subject</tref> SHOULD be labeled with an <tref><abbr title="Internationalized Resource Identifier">IRI</abbr></tref> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
-    <li>An <tref>object</tref> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
-    <li>An <tref>object</tref> MAY be labeled with an <tref>IRI</tref> or a label that is not an <tref>IRI</tref> such as plain text, internationalized text, or a strictly-typed data value.</li>
-    <li>A node MAY be a <tref>subject</tref> and an <tref>object</tref> at the same time.</li>
+    <li>A <tref>linked data graph</tref> is an unordered labeled directed graph, where nodes are <em>subject</em>s or <em>object</em>s, and edges are labeled using <tref title="property">properties</tref>.</li>
+    <li>A <em>subject</em> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
+    <li>A <em>subject</em> SHOULD be labeled with an <tref><abbr title="Internationalized Resource Identifier">IRI</abbr></tref> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
+    <li>An <em>object</em> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
+    <li>An <em>object</em> MAY be labeled with an <tref>IRI</tref> or a label that is not an <tref>IRI</tref> such as plain text, internationalized text, or a strictly-typed data value.</li>
+    <li>A node MAY be a <em>subject</em> and an <em>object</em> at the same time.</li>
     <li>A <tref>property</tref> is the label on an edge in a
       <tref>linked data graph</tref>.</li>
     <li>A <tref>property</tref> SHOULD be an <tref>IRI</tref>.</li>
-    <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>property</tref> or <tref>object</tref>.</li>
+    <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <em>subject</em>, <tref>property</tref> or <em>object</em>.</li>
   </ol>
 </div>
 
@@ -614,8 +614,7 @@ that are a core part of the language:</p>
   This keyword is described in <a href="#named-graphs"></a>.</dd>
 <dt><code>@id</code></dt>
 <dd>Used to uniquely identify <em>things</em> that are being described in the document.
-  This keyword is described in
-  <a href="#identifying-the-subject"></a>.</dd>
+  This keyword is described in <a href="#node-identifiers"></a>.</dd>
 <dt><code>@value</code></dt>
 <dd>Used to specify the data that is associated with a particular
   <tref>property</tref> in the graph. This keyword is described in
@@ -797,9 +796,10 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
 </pre>
 
 <p>In the example above, the <code>name</code> prefix is overridden in the
-more deeply nested <code>details</code> structure. Note that this is
-rarely a good authoring practice and is typically used when the
-JSON object has legacy applications using the structure of the object.</p>
+  more deeply nested <code>details</code> structure. Note that this is
+  rarely a good authoring practice and is typically used when there exist
+  legacy applications that depend on the specific structure of the
+  <tref>JSON object</tref>.</p>
 
 <p class="note">If a <tref>term</tref> is re-defined within a context, all previous
   rules associated with the previous definition are removed. A <tref>term</tref> defined
@@ -831,22 +831,20 @@ JSON object has legacy applications using the structure of the object.</p>
 </pre>
 
 <p class="note">To ensure the best possible performance, it is a best practice to
-put the <tref>context</tref> definition at the top of the JSON-LD document. If it isn't listed
-first, processors have to save each key-value pair until the <tref>context</tref> is processed.
-This creates a memory and complexity burden for certain types of
-low-memory footprint JSON-LD processors.</p>
+  put the <tref>context</tref> definition at the top of the JSON-LD document. If it isn't listed
+  first, processors have to save each key-value pair until the <tref>context</tref> is processed.
+  This creates a memory and complexity burden for certain types of
+  low-memory footprint JSON-LD processors.</p>
 
 <p class="note">The <code>null</code> value is processed in a special way
-in JSON-LD. Unless otherwise specified, a JSON-LD processor MUST act as if a
-key-value pair in the body of a JSON-LD document was never declared when
-the value equals <em>null</em>.
-If <code>@value</code>, <code>@list</code>, or <code>@set</code> is set
-to <em>null</em> in expanded form, then the entire JSON object is
-ignored. If <code>@context</code> is set to <em>null</em>, the
-<tref>active context</tref> is reset and when used within a
-<tref>context</tref>, it removes any definition associated with the key,
-unless otherwise specified.
-</p>
+  in JSON-LD. Unless otherwise specified, a JSON-LD processor MUST act as if a
+  key-value pair in the body of a JSON-LD document was never declared when
+  the value equals <em>null</em>. If <code>@value</code>, <code>@list</code>,
+  or <code>@set</code> is set to <em>null</em> in expanded form, then the
+  entire <tref>JSON object</tref> is ignored. If <code>@context</code> is set
+  to <em>null</em>, the <tref>active context</tref> is reset and when used
+  within a <tref>context</tref>, it removes any definition associated with
+  the key, unless otherwise specified.</p>
 
 </section>
 
@@ -874,11 +872,10 @@ something meaningful and unambiguous, like this:</p>
 requiring developers to drastically change their workflow.</p>
 
 <p class="note">The example above does not use the <code>@id</code> <tref>keyword</tref>
-to set the <tref>subject</tref> of the node being described above. This type
-of node is called an <tref>unlabeled node</tref>. It is advised that all nodes
-described in JSON-LD are given unique identifiers via the
-<code>@id</code> keyword unless the data is not intended to be linked to
-from other data sets.</p>
+to identify the node being described above. This type of node is called an
+<tref>unlabeled node</tref>. It is advised that all nodes described in JSON-LD are
+given unique identifiers via the <code>@id</code> keyword unless the data is not
+intended to be linked to from other data sets.</p>
 
 <p>A <tref>JSON object</tref> used to define property values is called a
   <tref>node definition</tref>. <tref title="node definition">Node definitions</tref>
@@ -1011,8 +1008,8 @@ lexical form of an absolute IRI.</p>
 -->
 </pre>
 
-<p>An <tref>IRI</tref> is generated when a JSON object is used in the
-value position that contains an <code>@id</code> keyword:</p>
+<p>An <tref>IRI</tref> is generated when a <tref>JSON object</tref> is used in the
+  value position that contains an <code>@id</code> keyword:</p>
 
 <pre class="example" data-transform="updateExample"
      title="Expanded IRI definition">
@@ -1026,7 +1023,7 @@ value position that contains an <code>@id</code> keyword:</p>
 </pre>
 
 <p class="note">Specifying a <tref>JSON object</tref> with an
-  <code>@id</code> key is used to identify that object using an
+  <code>@id</code> key is used to identify that <tref>node</tref> using an
   <tref>IRI</tref>. When the object has only the <code>@id</code>, it
   is called a <tref>node reference</tref>.
   This facility MAY also be used to link to another
@@ -1066,29 +1063,25 @@ the value into an IRI when processed by a JSON-LD Processor.</p>
 </section>
 
 <section>
-<h2>Identifying the Subject</h2>
+<h2>Node Identifiers</h2>
 
-<p>
-  To be able to externally reference nodes in a graph, it is important that each node has
+<p>To be able to externally reference nodes in a graph, it is important that each node has
   an unambiguous identifier. <tref>IRI</tref>s are a fundamental concept of
   <tref>Linked Data</tref>, and nodes should have a de-referencable
   identifier used to name and locate them. For nodes to be truly linked,
   de-referencing the identifier should result in a representation of that node
   (for example, using a URL to retrieve a web page).
   Associating an IRI with a node tells an application that the returned
-  document contains a description of the node requested.
-</p>
-<p>
-  JSON-LD documents may also contain descriptions of other nodes, so it is necessary to be able to
-  uniquely identify each node which may be externally referenced.
-</p>
-<p>A <tref>subject</tref>
-   of a <tref>JSON object</tref> is a node identified using the <code>@id</code> key. The subject is the
-first piece of information needed by the JSON-LD processor in order to
-create the (subject, property, object) tuple, also known as a triple.</p>
+  document contains a description of the node requested.</p>
+
+<p>JSON-LD documents may also contain descriptions of other nodes, so it is necessary to be able to
+  uniquely identify each node which may be externally referenced.</p>
+
+<p>The node of a <tref>JSON object</tref> is identified using the <code>@id</code>
+  <tref>keyword</tref>:</p>
 
 <pre class="example" data-transform="updateExample"
-     title="Identifying the Subject">
+     title="Identifying a node">
 <!--
 {
   "@context":
@@ -1108,21 +1101,20 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 -->
 </pre>
 
-<p>The example above would set the subject to the IRI
-<code>http://example.org/people#joebob</code>.
-</p>
+<p>The example above contains a node identified by the IRI
+  <code>http://example.org/people#joebob</code>.</p>
 
 <p>A <tref>JSON object</tref> used to define property values is called a
   <tref>node definition</tref>. <tref title="node definition">Node definitions</tref>
-  do not require an <code>@id</code>. A
-  <tref>node definition</tref>
+  do not require an <code>@id</code>. A <tref>node definition</tref>
   that does not contain an <code>@id</code> property defines properties of an
-  <tref>unlabeled node</tref>.</p>
+  <tref>unlabeled node</tref>. <tref title="node definition">Node definitions</tref> MAY
+  be spread among different parts of a document or even between different documents.</p>
 
 <p class="note">To ensure the best possible performance, when possible, it is a best practice
   to put JSON-LD <tref>keyword</tref>s, such as <code>@id</code> and
-  <code>@context</code> before other key-value pairs in a <tref>JSON
-  object</tref>. However, keys in a <tref>JSON object</tref> are not ordered,
+  <code>@context</code> before other key-value pairs in a <tref>JSON object</tref>.
+  However, keys in a <tref>JSON object</tref> are not ordered,
   so processors MUST NOT depend on key ordering. If keywords are not listed
   first, processors have to save each key-value pair until at least the
   <code>@context</code> and the <code>@id</code> are processed. Not
@@ -1136,11 +1128,9 @@ create the (subject, property, object) tuple, also known as a triple.</p>
 <section>
 <h2>Specifying the Type</h2>
 
-<p>The type of a particular node can be specified using the
-<code>@type</code> <tref>keyword</tref>. Specifying the type in this way will
-generate a triple of the form (subject, type, type-IRI). To be considered
-<tref>Linked Data</tref>, types MUST be uniquely identified by
-an <tref>IRI</tref>.</p>
+<p>The type of a particular node can be specified using the <code>@type</code>
+  <tref>keyword</tref>. To be considered <tref>Linked Data</tref>, types MUST
+  be uniquely identified by an <tref>IRI</tref>.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Specifying the type for a node">
@@ -1417,7 +1407,7 @@ advanced functionality in more detail.
 <ol>
   <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing the expanded form for specifying objects.</li>
+  <li>By utilizing the expanded form for specifying values.</li>
   <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
 </ol>
 
@@ -1472,18 +1462,18 @@ in the body of a JSON-LD document:</p>
 -->
 </pre>
 
-<p>Both examples above would generate an object with the value of
-<code>2010-05-29T14:17:39+02:00</code> and the type of
-<code>http://www.w3.org/2001/XMLSchema#dateTime</code>. Note that it is
-also possible to use a <tref>term</tref> or a <tref>compact IRI</tref> to
-express the value of a type.</p>
+<p>Both examples above would generate the value
+  <code>2010-05-29T14:17:39+02:00</code> with the type
+  <code>http://www.w3.org/2001/XMLSchema#dateTime</code>. Note that it is
+  also possible to use a <tref>term</tref> or a <tref>compact IRI</tref> to
+  express the value of a type.</p>
 
-The <code>@type</code> <tref>keyword</tref> is also used to associate a type
-with a <tref>node</tref>. The concept of an <tdef>node type</tdef> and
-a <tdef>value type</tdef> are different. This is similar to object-oriented
-programming languages where both scalar and structured types use the same
-class inheritance mechanism, even though scalar types and structured types are
-inherently different.
+<p>The <code>@type</code> <tref>keyword</tref> is also used to associate a type
+  with a <tref>node</tref>. The concept of an <tdef>node type</tdef> and
+  a <tdef>value type</tdef> are different. This is similar to object-oriented
+  programming languages where both scalar and structured types use the same
+  class inheritance mechanism, even though scalar types and structured types are
+  inherently different.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Example demonstrating the context-sensitivity for @type">
@@ -1502,19 +1492,17 @@ inherently different.
 -->
 </pre>
 
-<p>
-The first use of <code>@type</code> associates a <tref>node type</tref>
-(<code>http://schema.org/BlogPosting</code>) with the <tref>node</tref>,
-which is expressed using the <code>@id</code> <tref>keyword</tref>.
-The second use of <code>@type</code> associates a <tref>value type</tref>
-(<code>http://www.w3.org/2001/XMLSchema#dateTime</code>) with the
-<tref>object</tref>, which is expressed using the <code>@value</code>
-<tref>keyword</tref>. As a general rule, when <code>@value</code> and
-<code>@type</code> are used in the same <tref>JSON object</tref>
-in JSON-LD data, the <code>@type</code> <tref>keyword</tref> is expressing a
-<tref>value type</tref>. Otherwise, the <code>@type</code>
-<tref>keyword</tref> is expressing a <tref>node type</tref>.
-</p>
+<p>The first use of <code>@type</code> associates a <tref>node type</tref>
+  (<code>http://schema.org/BlogPosting</code>) with the <tref>node</tref>,
+  which is expressed using the <code>@id</code> <tref>keyword</tref>.
+  The second use of <code>@type</code> associates a <tref>value type</tref>
+  (<code>http://www.w3.org/2001/XMLSchema#dateTime</code>) with the
+  value expressed using the <code>@value</code> <tref>keyword</tref>. As a
+  general rule, when <code>@value</code> and <code>@type</code> are used in
+  the same <tref>JSON object</tref>, the <code>@type</code>
+  <tref>keyword</tref> is expressing a <tref>value type</tref>.
+  Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
+  <tref>node type</tref>.</p>
 
 </section>
 
@@ -1534,7 +1522,7 @@ in JSON-LD data, the <code>@type</code> <tref>keyword</tref> is expressing a
     <tref>keyword</tref> within a <code>@context</code> section.</li>
   <li>By utilizing the <code>@language</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing the expanded form for specifying objects.</li>
+  <li>By utilizing the expanded form for specifying values.</li>
   <li>By utilizing the <code>@container</code> <tref>keyword</tref> with a
   value of <code>@language</code> when defining a <tref>term</tref> within
   a <code>@context</code> section. This usage pattern is called a
@@ -1592,9 +1580,9 @@ in the body of a JSON-LD document:</p>
 -->
 </pre>
 
-<p>Both examples above would generate an object with the value of
-<code>JSON-LD Syntax</code> and the language of <code>en</code>, which is the
-[[!BCP47]] code for the English language.</p>
+<p>Both examples above would generate the value <code>JSON-LD Syntax</code>
+  tagged with the language <code>en</code>; which is the [[!BCP47]] code
+  for the English language.</p>
 
 <p>Systems that support multiple languages often need to express data values in
 each language. Typically, such systems also try to ensure that developers have
@@ -1627,11 +1615,11 @@ may be utilized.</p>
 </pre>
 
 <p>In the example above, the title is expressed in three languages; English,
-Russian, and Japanese. To access the data above in a programming language
-supporting dot-notation accessors for object properties, a developer may use the
-<strong>PROPERTY</strong>.<strong>LANGUAGE</strong> pattern. For example, to
-access the Japanese version of the title, a developer would use the following
-code snippet: <code>obj.title.ja</code>.</p>
+  Russian, and Japanese. To access the data above in a programming language
+  supporting dot-notation accessors for object properties, a developer may
+  use the <code>property.language</code> pattern. For example, to access the
+  Japanese version of the title, a developer would use the following code
+  snippet: <code>obj.title.ja</code>.</p>
 </section>
 
 <section>
@@ -2121,9 +2109,10 @@ processor will use direct string comparison when looking up
 <p>A JSON-LD author can express multiple values in a compact way by using
   <tref>array</tref>s. Since graphs do not describe ordering for links
   between nodes, arrays in JSON-LD do not provide an ordering of the
-  listed <tref title="object">objects</tref> by default. This is exactly the opposite from regular JSON
+  contained elements by default. This is exactly the opposite from regular JSON
   arrays, which are ordered by default. For example, consider the following
   simple document:</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
 {
@@ -2136,18 +2125,15 @@ processor will use direct string comparison when looking up
 </pre>
 
 <p>The markup shown above would result in three triples being generated,
-  each relating the node to an individual <tref>object</tref>, with no inherent order:</p>
+  each relating the node to an individual value, with no inherent order:</p>
+
+<p class="issue">Including an illustration might be better.</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "joe" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "bob" .
-<http://example.org/people#joebob>
-   <http://xmlns.com/foaf/0.1/nick>
-      "jaybee" .
+<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "joe" .
+<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "bob" .
+<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "jaybee" .
 -->
 </pre>
 
@@ -2174,14 +2160,12 @@ processor will use direct string comparison when looking up
 <p>The markup shown above would generate the following triples, again with
   no inherent order:</p>
 
+<p class="issue">Including an illustration might be better.</p>
+
 <pre class="example" data-transform="updateExample">
 <!--
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Das Kapital"@de .
-<http://example.org/articles/8>
-   <http://purl.org/dc/terms/title>
-      "Capital"@en .
+<http://example.org/articles/8> <http://purl.org/dc/terms/title> "Das Kapital"@de .
+<http://example.org/articles/8> <http://purl.org/dc/terms/title> "Capital"@en .
 -->
 </pre>
 
@@ -2251,11 +2235,12 @@ processor will use direct string comparison when looking up
 
 <section>
   <h2>Embedding</h2>
-  <p>
-    Object <tdef>embedding</tdef> is a JSON-LD feature that allows an author to
+
+  <p><tdef>Embedding</tdef> is a JSON-LD feature that allows an author to
     use <tref title="node definition">node definitions</tref> as
     <tref>property</tref> values. This is a commonly used mechanism for
     creating a parent-child relationship between two <tref>node</tref>s.</p>
+
   <p>The example shows two nodes related by a property from the first node:</p>
 
   <pre class="example" data-transform="updateExample">
@@ -2674,7 +2659,7 @@ a normative grammar for JSON-LD.</p>
 }
 -->
 </pre>
-<p>See <a href="#identifying-the-subject"></a>, <a href="#compact-iris"></a>,
+<p>See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
   and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
   <code>@id</code> values.</p>
 
@@ -3068,8 +3053,8 @@ RDF Concepts document.
 
 <section>
 <h4>Embedding</h4>
-<p>Both Turtle and JSON-LD allow embedding of objects, although Turtle only allows embedding of objects which
-  use <tref>unlabeled node</tref> identifiers.</p>
+<p>Both Turtle and JSON-LD allow embedding, although Turtle only allows embedding of
+  <tref title="unlabeled node">unlabeled nodes</tref>.</p>
 </section>
 
 <pre class="example" data-transform="updateExample">
