@@ -576,7 +576,7 @@ using the technique outlined in the previous section:
   </pre>
 
   <p>
-Transforming the object above back to RDF is as simple as calling the
+Transforming the node above back to RDF is as simple as calling the
 <code>toRDF()</code> method:
   </p>
 
@@ -676,14 +676,14 @@ document:
       within a <tref>context</tref>, it removes any definition associated
       with the key, unless otherwise specified.
     </dd>
-    <dt><tdef>subject definition</tdef></dt><dd>
-      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and
-      one or more properties of that subject. A <tref>JSON object</tref> is a
-      subject definition if it does not contain they keys <code>@value</code>,
+    <dt><tdef>node definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>node</tref> and
+      one or more properties of that node. A <tref>JSON object</tref> is a
+      node definition if it does not contain they keys <code>@value</code>,
       <code>@list</code> or <code>@set</code> and it has one or more keys
       other than <code>@id</code>.</dd>
-    <dt><tdef>subject reference</tdef></dt><dd>
-      A <tref>JSON object</tref> used to reference a subject having only the
+    <dt><tdef>node reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to reference a node having only the
       <code>@id</code> key.</dd>
     <dt><tdef>Linked Data</tdef></dt>
     <dd>A set of documents, each containing a representation of a
@@ -1439,7 +1439,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
     </ol>
   </li>
-  <li>Otherwise, <em>value</em> MUST be a <tref>subject definition</tref>, <tref>subject reference</tref>,
+  <li>Otherwise, <em>value</em> MUST be a <tref>node definition</tref>, <tref>node reference</tref>,
     or a <tref>JSON object</tref> having a <code>@value</code>.
     <ol class="algorithm">
       <li>If <em>value</em> has a <code>@value</code> property:
@@ -1759,7 +1759,7 @@ language-native data structures MUST be used where applicable.</p>
     <code>true</code>, the compacted value is that item; otherwise the compacted value is <em>element</em>.</li>
   <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
-      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>subject reference</tref>,
+      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>node reference</tref>,
         return the result of performing
         <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
       <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping to <code>@list</code>
@@ -1882,9 +1882,9 @@ language-native data structures MUST be used where applicable.</p>
 
 <ol class="algorithm">
   <li>Expand <em>element</em> according the <a href="#expansion-algorithm">Expansion Algorithm</a>.</li>
-  <li>Generate a <em>subjectMap</em> according the <a href="#subject-map-generation">Subject Map Generation Algorithm</a>.</li>
+  <li>Generate a <em>nodeMap</em> according the <a href="#node-map-generation">Node Map Generation Algorithm</a>.</li>
   <li>Initialize an empty array <em>result</em>.</li>
-  <li>If <em>subjectMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
+  <li>If <em>nodeMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
   <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em>:
     <ol class="algorithm">
       <li>Add <em>value</em> to <em>result</em>.</li>
@@ -1896,15 +1896,15 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
-<h3>Subject Map Generation</h3>
-<p>The Subject Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
-  <em>subjectMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
-  uniquely identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>subjectMap</em>
+<h3>Node Map Generation</h3>
+<p>The Node Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
+  <em>nodeMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
+  uniquely identified by an IRI get assigned a (new) <tref>blank node</tref> identifier. The resulting <em>nodeMap</em>
   document will have a property for every graph in the document whose value is another object with a property for every
   <tref>node</tref> represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
   under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
 
-<p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>subjectMap</em>,
+<p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>nodeMap</em>,
   <code>@default</code> as <em>graph</em>, and <tref>null</tref> as <em>list</em>.</p>
 
 <ol class="algorithm">
@@ -1915,56 +1915,56 @@ language-native data structures MUST be used where applicable.</p>
   <li>If the <code>@id</code> property exists and is an <tref>IRI</tref>, set <em>id</em> to its value, otherwise
     set it to a <tref>blank node</tref> identifier created by the
     <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm.</li>
-  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>subject reference</tref> to <em>list</em> using
+  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node reference</tref> to <em>list</em> using
     <em>id</em> at the value for <code>@id</code>.</li>
-  <li>Let <em>subjects</em> be the value in <em>subjectMap</em> where the key is <em>graph</em>; if no such
+  <li>Let <em>nodes</em> be the value in <em>nodeMap</em> where the key is <em>graph</em>; if no such
     value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
-    <em>subjects</em>, create a new <tref>JSON object</tref> <em>subject</em> with <em>id</em> as the value
-    for <code>@id</code>. Let <em>subject</em> be the value of <em>id</em> in <em>subjects</em>.</li>
+    <em>nodes</em>, create a new <tref>JSON object</tref> <em>node</em> with <em>id</em> as the value
+    for <code>@id</code>. Let <em>node</em> be the value of <em>id</em> in <em>nodes</em>.</li>
   <li>For each <em>property</em> that is not <code>@id</code> and each <em>value</em> in <em>element</em> ordered
     by <em>property</em>:
     <ol class="algorithm">
       <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm passing <em>value</em>
-        for <em>element</em>, <em>subjectMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
+        for <em>element</em>, <em>nodeMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
         is <code>@merged</code> use <em>graph</em>, otherwise use <em>id</em> for <em>graph</em> and then continue.</li>
       <li>If <em>property</em> is not <code>@type</code> and is a keyword, merge <code>property</code> and
-        <code>value</code> into <code>subject</code> and then continue.</li>
+        <code>value</code> into <code>node</code> and then continue.</li>
       <li>For each value <em>v</em> in the array <em>value</em>:
         <ol class="algorithm">
-          <li>If <em>v</em> is a <tref>subject definition</tref> or <tref>subject reference</tref>:
+          <li>If <em>v</em> is a <tref>node definition</tref> or <tref>node reference</tref>:
             <ol class="algorithm">
               <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
                 map <em>v</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a>
-                to avoid collisions. If one does not already exist, add a <tref>subject reference</tref> for
-                <em>v</em> into <em>subject</em> for <em>property</em>.</li>
-              <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>subjectMap</em>,
+                to avoid collisions. If one does not already exist, add a <tref>node reference</tref> for
+                <em>v</em> into <em>node</em> for <em>property</em>.</li>
+              <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>nodeMap</em>,
                 <em>graph</em>, and <tref>null</tref> for <em>list</em>.</li>
             </ol>
           </li>
           <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
-            with the value of <code>@list</code> as <em>element</em>, <em>subjectMap</em>, <em>graph</em>, and
+            with the value of <code>@list</code> as <em>element</em>, <em>nodeMap</em>, <em>graph</em>, and
             a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
-            property <code>@list</code> set to <em>flattenedList</em> and add it to <em>subject</em> for
+            property <code>@list</code> set to <em>flattenedList</em> and add it to <em>node</em> for
             <em>property</em>.</li>
           <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
             generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
-            to <em>subject</em> for <em>property</em>.</li>
-          <li>Otherwise, add <em>v</em> to <em>subject</em> for <em>property</em>.</li>
+            to <em>node</em> for <em>property</em>.</li>
+          <li>Otherwise, add <em>v</em> to <em>node</em> for <em>property</em>.</li>
         </ol>
       </li>
     </ol>
   </li>
 </ol>
 
-<p>After the above outlined algorithm has been executed, the subject map for all graphs including the default graph are contained in
-  <em>subjectMap</em>. To also create the subject map for the merged graph, execute the algorithm again, but pass <code>@merged</code>
+<p>After the above outlined algorithm has been executed, the node map for all graphs including the default graph are contained in
+  <em>nodeMap</em>. To also create the node map for the merged graph, execute the algorithm again, but pass <code>@merged</code>
   for <em>graph</em>.</p>
 
 </section>
 
 <section>
 <h3>Generate Blank Node Identifier</h3>
-<p>This algorithm is used by the <a href="#subject-map-generation">Subject Map Generation Algorithm</a> to
+<p>This algorithm is used by the <a href="#node-map-generation">Node Map Generation Algorithm</a> to
   deterministically name <tref>blank node</tref> identifiers. It uses a <em>identifier map</em>
   and <em>prefix</em> and takes a possibly <tref>null</tref> identifier and returns a new identifier based
   on <em>prefix</em>.</p>
@@ -2081,12 +2081,12 @@ language-native data structures MUST be used where applicable.</p>
 </pre>
 
   <p>The process of translating this to RDF then operates over each
-    <tref>subject definition</tref> to find a subject,
+    <tref>node definition</tref> to find a subject,
     each <tref>property</tref> to find an RDF <em>predicate</em>,
     and each value of that property to find an <tref>object</tref>.
     In this case, each property has just a single object:
     <code>foaf:name</code> identifies a <tref>literal</tref>, and
-    <code>foaf:knows</code> identifies a second <tref>subject definition</tref>
+    <code>foaf:knows</code> identifies a second <tref>node definition</tref>
     similar to Turtle's <code>blankNodePropertyList</code>.</p>
 
   <p>After expansion, JSON-LD <tref title="number">numbers</tref>,
@@ -2299,7 +2299,7 @@ language-native data structures MUST be used where applicable.</p>
 
   <ol class="algorithm">
     <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
-      containing <em>subjects</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
+      containing <em>nodes</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
     <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
       identified by
       an empty <tref>string</tref>.</li>
@@ -2325,12 +2325,12 @@ language-native data structures MUST be used where applicable.</p>
             <li>Skip to the next quad.</li>
           </ol>
         </li>
-        <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.subjects</em>
+        <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.nodes</em>
           does not contain an entry for <em>name</em>,
           create a new entry for <em>name</em> from a new
           <tref>JSON object</tref> with key/value pair of <code>@id</code> and
           a string representation of <em>name</em>.</li>
-        <li>Set <em>value</em> as the entry from <em>graph.subjects</em> for
+        <li>Set <em>value</em> as the entry from <em>graph.nodes</em> for
           <em>subject</em>, initializing it to a new
           <tref>JSON object</tref> with key/value pair of <code>@id</code> and
           a string representation of <em>subject</em> if necessary.</li>
@@ -2410,13 +2410,13 @@ language-native data structures MUST be used where applicable.</p>
       </ol>
     </li>
     <li>Create <em>array</em> as an empty <tref>array</tref>.</li>
-    <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.subjects</em>
+    <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.nodes</em>
       ordered by <em>subject</em>:
       <ol class="algorithm">
         <li>Add <em>entry</em> to <em>array</em>.</li>
         <li>If <em>graphs</em> has an entry for <em>subject</em>, add a property
           <code>@graph</code> in <em>entry</em> containing the ordered entries
-          from <em>graphs[subject].subjects</em>.</li>
+          from <em>graphs[subject].nodes</em>.</li>
       </ol>
     </li>
     <li>Return <em>array</em> as the result.</li>

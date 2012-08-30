@@ -344,12 +344,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><tdef>null</tdef></dt><dd>
       The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.
     </dd>
-    <dt><tdef>subject definition</tdef></dt><dd>
-      A <tref>JSON object</tref> used to represent a <tref>subject</tref> and one or more properties
-      of that subject. A <tref>JSON object</tref> is a subject definition if it does not contain the keys
+    <dt><tdef>node definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>node</tref> and one or more properties
+      of that node. A <tref>JSON object</tref> is a node definition if it does not contain the keys
       <code>@value</code>, <code>@list</code> or <code>@set</code> and it has one or more keys other than <code>@id</code>.</dd>
-    <dt><tdef>subject reference</tdef></dt><dd>
-      A <tref>JSON object</tref> used to reference a subject having only the <code>@id</code> key.</dd>
+    <dt><tdef>node reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to reference a node having only the <code>@id</code> key.</dd>
   </dl>
 </p>
 </section>
@@ -555,7 +555,7 @@ language-native data structures MUST be used where applicable.</p>
   <dt><code>@graph</code></dt><dd>Used to explicitly express a <tref>linked data graph</tref>.</dd>
   <dt><code>:</code></dt><dd>The separator for JSON keys and values that use <tref title="compact_iri">compact IRIs</tref>.</dd>
   <dt><code>@default</code></dt><dd>Used in <a href="#framing">Framing</a> to set the default value for
-    an output property when the framed <tref>subject definition</tref> does not include such a property.</dd>
+    an output property when the framed <tref>node definition</tref> does not include such a property.</dd>
   <dt><code>@explicit</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
     value of <tref>explicit inclusion flag</tref> within a specific frame.</dd>
   <dt><code>@omitDefault</code></dt><dd>Used in <a href="#framing">Framing</a> to override the
@@ -692,7 +692,7 @@ language-native data structures MUST be used where applicable.</p>
 <p class="issue" data-number="118">This algorithm is a work in progress. Presently, it only works
   for documents without named graphs.</p>
 
-<p class="issue" data-number="110">Currently, framing allows just to select subject definitions based
+<p class="issue" data-number="110">Currently, framing allows just to select node definitions based
   on <code>@type</code> matching or duck typing for included properties. It allows value properties to
   be explicitly matched based on defining the property and excluding things that are undefined, but it
   does not allow to be more specific about the types of values selected. Allowing this is currently
@@ -725,12 +725,12 @@ language-native data structures MUST be used where applicable.</p>
     the <tref>map of flattened subjects</tref> against <em>frame</em>:
     <ol class="algorithm">
       <li>If <em>frame</em> has a <code>@type</code> property containing
-        one or more <tref title="iri">IRIs</tref> match any <tref>subject definition</tref>
+        one or more <tref title="iri">IRIs</tref> match any <tref>node definition</tref>
         with a <code>@type</code> property including any of those <tref title="iri">IRIs</tref>.</li>
       <li>Otherwise, if <em>frame</em> has a <code>@type</code> property only
-        a empty <tref>JSON object</tref>, matches any <tref>subject definition</tref>
+        a empty <tref>JSON object</tref>, matches any <tref>node definition</tref>
         with a <code>@type</code> property, regardless of the actual values.</li>
-      <li>Otherwise, match if the <tref>subject definition</tref> contains all of the
+      <li>Otherwise, match if the <tref>node definition</tref> contains all of the
         non-<tref>keyword</tref> properties in <em>frame</em>.</li>
     </ol>
   </li>
@@ -752,10 +752,10 @@ language-native data structures MUST be used where applicable.</p>
           <li>If <em>existing</em> has a <em>parent</em> which is an <tref>array</tref> containing a
             <tref>JSON object</tref> with <code>@id</code> equal to <em>id</em>, <em>element</em> has
             already been embedded and can be overwritten, so set <em>embedOn</em> to <tref>true</tref>.</li>
-          <li>Otherwise, <em>existing</em> has a <em>parent</em> which is a <tref>subject definition</tref>.
+          <li>Otherwise, <em>existing</em> has a <em>parent</em> which is a <tref>node definition</tref>.
             Set <em>embedOn</em> to <tref>true</tref> if any of the items in <em>parent</em> <em>property</em>
-            is a <tref>subject definition</tref>
-            or <tref>subject reference</tref> for <em>id</em> because the embed can be overwritten.
+            is a <tref>node definition</tref>
+            or <tref>node reference</tref> for <em>id</em> because the embed can be overwritten.
           </li>
           <li>If <em>embedOn</em> is <tref>true</tref>, <em>existing</em> is already embedded but
             can be overwritten, so <a href="#remove-embed">Remove Embedded Definition</a> for <em>id</em>.
@@ -788,25 +788,25 @@ language-native data structures MUST be used where applicable.</p>
                     the value of an empty array. Append <em>list</em> to <em>property</em> in
                     <em>output</em>. Process each <em>listitem</em> in the <code>@list</code> array as follows:
                     <ol class="algorithm">
-                      <li>If <em>listitem</em> is a <tref>subject reference</tref>
+                      <li>If <em>listitem</em> is a <tref>node reference</tref>
                         process <em>listitem</em> recursively using this algorithm passing a new map of
                         <em>subjects</em> that contains the <code>@id</code> of <em>listitem</em> as the key
-                        and the <tref>subject definition</tref> from the original <tref>map of flattened subjects</tref>
+                        and the <tref>node definition</tref> from the original <tref>map of flattened subjects</tref>
                         as the value. Pass the first value from
                         <em>frame</em> for <em>property</em> as <em>frame</em>, <em>list</em>
                         as <em>parent</em>, and <code>@list</code> as <tref>active property</tref>.</li>
                       <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
                     </ol>
                   </li>
-                  <li>If <em>item</em> is a <tref>subject reference</tref>
+                  <li>If <em>item</em> is a <tref>node reference</tref>
                     process <em>item</em> recursively using this algorithm passing a new map as
                     <em>subjects</em> that contains the <code>@id</code> of <em>item</em> as the key and
-                    the <tref>subject definition</tref> from the original <tref>map of flattened subjects</tref>
+                    the <tref>node definition</tref> from the original <tref>map of flattened subjects</tref>
                     as the value. Pass the first value from
                     <em>frame</em> for <em>property</em> as <em>frame</em>, <em>output</em>
                     as <em>parent</em>, and <em>property</em> as <tref>active property</tref>.
-                  <div class="issue">Passing a <tref>subject reference</tref> doesn't work if this map
-                    is used recursively. Presently pass <tref>subject definition</tref> from original
+                  <div class="issue">Passing a <tref>node reference</tref> doesn't work if this map
+                    is used recursively. Presently pass <tref>node definition</tref> from original
                     <tref>map of flattened subjects</tref>.</div></li>
                   <li>Otherwise, append a copy of <em>item</em> to <tref>active property</tref> in
                     <em>output</em>.</li>
@@ -840,7 +840,7 @@ language-native data structures MUST be used where applicable.</p>
 </ol>
 
 <p>At the completion of the recursive algorithm, <em>results</em> will contain the top-level
-  <tref>subject definition</tref>s.</p>
+  <tref>node definition</tref>s.</p>
 <p>The final two steps of the framing algorithm require
   <em>results</em> to be compacted according to the
   <a href="../json-ld-api/index.html#compaction-algorithm">Compaction Algorithm</a> by using the
@@ -857,9 +857,9 @@ language-native data structures MUST be used where applicable.</p>
 
 <section id="remove-embed">
 <h3>Remove Embedded Definition</h3>
-<p>This algorithm replaces an already embedded <tref>subject definition</tref> with a
-  <tref>subject reference</tref>. It then recursively removes any entries in the
-  <tref>map of embeds</tref> that had the removed <tref>subject definition</tref> in
+<p>This algorithm replaces an already embedded <tref>node definition</tref> with a
+  <tref>node reference</tref>. It then recursively removes any entries in the
+  <tref>map of embeds</tref> that had the removed <tref>node definition</tref> in
   their parent chain.</p>
 <p class="issue">About as clear as mud</p>
 <p class="issue" data-number="119">The current behaviour avoids embedding the same data
@@ -869,23 +869,23 @@ language-native data structures MUST be used where applicable.</p>
 <ol class="algorithm">
   <li>Find <em>embed</em> from <tref>map of embeds</tref> for <em>id</em>.</li>
   <li>Let <em>parent</em> and <em>property</em> be from <em>embed</em>.</li>
-  <li>If <em>parent</em> is an array, replace the <tref>subject definition</tref> that matches
-    <em>id</em> with a <tref>subject reference</tref>. If parent is a <tref>JSON object</tref>,
-    replace the <tref>subject definition</tref> for <em>property</em> that matches <em>id</em>
-    with a <tref>subject reference</tref>.</li>
+  <li>If <em>parent</em> is an array, replace the <tref>node definition</tref> that matches
+    <em>id</em> with a <tref>node reference</tref>. If parent is a <tref>JSON object</tref>,
+    replace the <tref>node definition</tref> for <em>property</em> that matches <em>id</em>
+    with a <tref>node reference</tref>.</li>
   <li>Remove dependents for <em>id</em> in <tref>map of embeds</tref>
     by scanning the map for entries with <em>parent</em> that have an <code>@id</code> of <em>id</em>,
     removing that definition from the map, and then removing the dependents for the <em>parent</em> id
     recursively by repeating this step. This step will terminate when there are no more embed
-    entries containing the removed <tref>subject definition</tref>'s <code>@id</code> in their
+    entries containing the removed <tref>node definition</tref>'s <code>@id</code> in their
     parent chain.</li>
 </ol>
 </section>
 
 <section id="embed-values">
 <h3>Embed Values</h3>
-<p>This algorithm recursively embeds property values in <tref>subject definition</tref> <em>output</em>, given a
-  <tref>framing context</tref>, input <tref>subject definition</tref> <em>element</em>, <tref>active property</tref>,
+<p>This algorithm recursively embeds property values in <tref>node definition</tref> <em>output</em>, given a
+  <tref>framing context</tref>, input <tref>node definition</tref> <em>element</em>, <tref>active property</tref>,
   and <em>output</em>.</p>
 <ol class="algorithm">
   <li>For each <em>item</em> in <tref>active property</tref> of <em>element</em>:
@@ -896,15 +896,15 @@ language-native data structures MUST be used where applicable.</p>
         is an array, and appending to <tref>active property</tref> otherwise. Recursively call this
         algorithm passing <em>item</em> as <em>element</em>, <code>@list</code> as <tref>active property</tref>,
         and the new array as <em>output</em>. Continue to the next <em>item</em>.</li>
-      <li>If <em>item</em> is a <tref>subject reference</tref>:
+      <li>If <em>item</em> is a <tref>node reference</tref>:
         <ol class="algorithm">
           <li>If <tref>map of embeds</tref> does not contain an entry for the <code>@id</code> of <em>item</em>:
             <ol class="algorithm">
               <li>Initialize <em>embed</em> with <em>output</em> as <em>parent</em> and
                 <tref>active property</tref> as <em>property</em>
                 and add to <tref>map of embeds</tref>.</li>
-              <li>Initialize a new <tref>subject definition</tref> <em>o</em> to act as the
-                embedded <tref>subject definition</tref>.</li>
+              <li>Initialize a new <tref>node definition</tref> <em>o</em> to act as the
+                embedded <tref>node definition</tref>.</li>
               <li>For each <em>property</em> and <em>value</em> in the expanded definition for
                 <em>item</em> in <em>subjects</em>:
                 <ol class="algorithm">
