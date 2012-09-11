@@ -1862,7 +1862,7 @@ language-native data structures MUST be used where applicable.</p>
   <li>Generate a <em>nodeMap</em> according the <a href="#node-map-generation">Node Map Generation Algorithm</a>.</li>
   <li>Initialize an empty array <em>result</em>.</li>
   <li>If <em>nodeMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
-  <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em>:
+  <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em> ordered by <em>property</em>:
     <ol class="algorithm">
       <li>Add <em>value</em> to <em>result</em>.</li>
     </ol>
@@ -1882,18 +1882,20 @@ language-native data structures MUST be used where applicable.</p>
   under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
 
 <p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>nodeMap</em>,
-  <code>@default</code> as <em>graph</em>, and <tref>null</tref> as <em>list</em>.</p>
+  <code>@default</code> as <em>graph</em>, <tref>null</tref> as <em>list</em>, and <tref>null</tref> as <em>id</em>.</p>
 
 <ol class="algorithm">
   <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm
     and return.</li>
   <li>If <em>element</em> is not a <tref>JSON object</tref> or if it has a <code>@value</code> property,
     then if <em>list</em> is not <tref>null</tref>, append <em>element</em> to <em>list</em> and return.</li>
-  <li>If the <code>@id</code> property exists and is an <tref>IRI</tref>, set <em>id</em> to its value, otherwise
-    set it to a <tref>blank node</tref> identifier created by the
-    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm.</li>
+  <li>If <em>id</em> is <tref>null</tref> and if the <code>@id</code>
+    property exists and is an <tref>IRI</tref>, set <em>id</em> to its value,
+    otherwise set it to a <tref>blank node</tref> identifier created by the
+    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+    algorithm.</li>
   <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node reference</tref> to <em>list</em> using
-    <em>id</em> at the value for <code>@id</code>.</li>
+    <em>id</em> as the value for <code>@id</code>.</li>
   <li>Let <em>nodes</em> be the value in <em>nodeMap</em> where the key is <em>graph</em>; if no such
     value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
     <em>nodes</em>, create a new <tref>JSON object</tref> <em>node</em> with <em>id</em> as the value
@@ -1911,11 +1913,13 @@ language-native data structures MUST be used where applicable.</p>
           <li>If <em>v</em> is a <tref>node definition</tref> or <tref>node reference</tref>:
             <ol class="algorithm">
               <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
-                map <em>v</em> to a <a href="#generate-blank-node-identifier">new blank node identifier</a>
-                to avoid collisions. If one does not already exist, add a <tref>node reference</tref> for
+                map <em>v</em> to a <a
+                href="#generate-blank-node-identifier">new blank node
+                identifier</a> <em>name</em> to avoid collisions. If one does
+                not already exist, add a <tref>node reference</tref> for
                 <em>v</em> into <em>node</em> for <em>property</em>.</li>
               <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>nodeMap</em>,
-                <em>graph</em>, and <tref>null</tref> for <em>list</em>.</li>
+                <em>graph</em>, <tref>null</tref> for <em>list</em>, and <em>name</em> for <em>id</em>.</li>
             </ol>
           </li>
           <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
