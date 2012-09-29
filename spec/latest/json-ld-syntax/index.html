@@ -231,7 +231,7 @@
       }
 
       function updateExample(doc, content) {
-        // perform transformations to make it render and prettier
+        // perform visual transformations to make the example easier to read
         content = content.replace(/<!--/, '');
         content = content.replace(/-->/, '');
         content = _esc(content);
@@ -258,18 +258,18 @@ a single document.
 </section>
 
 <section id='sotd'>
-<p>This document has been under development for over 18 months in the
+<p>This document has been under development for over 20 months in the
 JSON for Linking Data Community Group. The document has recently been
 transferred to the RDF Working Group for review, improvement, and publication
 along the Recommendation track. The specification has undergone significant
-development, review, and changes during the course of the last 18 months.
+development, review, and changes during the course of the last 20 months.
 </p>
 <p>
 There are currently
 <a href="http://json-ld.org/#impl">five interoperable implementations</a>
 of this specification. There is
-a <a href="https://github.com/json-ld/json-ld.org/tree/master/test-suite">fairly complete test suite</a>
-and a
+a <a href="https://github.com/json-ld/json-ld.org/tree/master/test-suite"
+>fairly complete test suite</a> and a
 <a href="http://json-ld.org/playground/">live JSON-LD editor</a>
 that is capable of demonstrating the features described in
 this document. While development on implementations, the test suite
@@ -346,8 +346,8 @@ allows one to easily add meaning by simply adding or referencing a context.
 The syntax is designed to not disturb already deployed systems
 running on JSON, but provide a smooth upgrade path from JSON to JSON-LD.
 Finally, the format is intended to be easy to parse, efficient
-to generate, and only requires a very small memory footprint in order to
-operate.
+to generate, and can operate inside of devices that contain very little
+memory.
 </p>
 
 <section>
@@ -359,8 +359,8 @@ Data in JSON. The document is primarily intended for the following audiences:
 </p>
 
 <ul>
-  <li>Software developers that want to encode Linked Data in a way that is
-  cross-language compatible via JSON.</li>
+  <li>Software developers that want to encode Linked Data in a variety of
+  programing languages that can use JSON.</li>
   <li>Software developers that want to understand the design decisions and
   language syntax for JSON-LD.</li>
   <li>Software developers that want to implement processors and APIs for
@@ -375,61 +375,6 @@ for JSON-LD documents is the JSON-LD Application Programming Interface
 <p>
 To understand the basics in this specification you must first be familiar with
 JSON, which is detailed in [[!RFC4627]].</p>
-
-</section>
-
-<section>
-  <h3>General Terminology</h3>
-
-  <p>The following is an explanation of the general terminology used in this document:</p>
-
-  <dl>
-    <dt><tdef>JSON object</tdef></dt><dd>
-      An object structure is represented as a pair of curly brackets
-      surrounding zero or more name-value pairs. A name is a
-      <tref>string</tref>. A single colon comes after each name, separating the
-      name from the value. A single comma separates a value from a following
-      name. The names within an object SHOULD be unique.
-    </dd>
-    <dt><tdef>array</tdef></dt>
-    <dd>
-      In JSON, an array is an <em>ordered</em> sequence of zero or more values.
-      An array is represented as square brackets surrounding
-      zero or more values that are separated by commas.
-      While JSON-LD uses the same array representation as JSON,
-      the collection is <em>unordered</em> by default. While order is
-      preserved in regular JSON arrays, it is not in regular JSON-LD arrays
-      unless specific markup is provided
-      (see <a href="#sets-and-lists"></a>).</dd>
-    <dt><tdef>string</tdef></dt><dd>
-      A string is a sequence of zero or more Unicode characters,
-      wrapped in double quotes, using backslash escapes (if necessary). A
-      character is represented as a single character string.</dd>
-    <dt><tdef>number</tdef></dt>
-    <dd>
-      A number is similar to that used in most programming languages, except
-      that the octal and hexadecimal formats are not used and that leading
-      zeros are not allowed.</dd>
-    <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
-      Values that are used to express one of two possible boolean states.</dd>
-    <dt><tdef>null</tdef></dt><dd>
-      The null value is used to make the JSON-LD processor "forget" any
-      previously defined JSON key that is associated with the null value.
-      If a previous definition doesn't exist, the entire key-value is ignored.
-      If a previous definition of the key does exist, the previous
-      definition is undefined.</dd>
-    <dt><tdef>node definition</tdef></dt><dd>
-      A <tref>JSON object</tref> used to represent a <tref>node</tref> and
-      one or more properties of that node. A <tref>JSON object</tref> is a
-      node definition if it does not contain the keys <code>@value</code>,
-      <code>@list</code> or <code>@set</code> and it has one or more keys other
-      than <code>@id</code>. A node definition MAY be spread among different
-      parts of a document or even between different documents.</dd>
-    <dt><tdef>node reference</tdef></dt><dd>
-      A <tref>JSON object</tref> used to reference a node having only the
-      <code>@id</code> key.</dd>
-  </dl>
-</p>
 
 </section>
 
@@ -511,64 +456,119 @@ simple addition of a <tref>context</tref>. As more JSON-LD features are
 used, more semantics are added to the JSON markup.</p>
 
 <section>
-<h2>Linked Data</h2>
+<h2>Benefits of JSON-LD</h2>
 
 <p>
-The following definition for <tref>Linked Data</tref> is the one that will
-be used for this specification.
+JSON provides a number of benefits to software developers that need to
+serialize data:
 </p>
+
 <ol>
-  <li><tdef>Linked Data</tdef> is a set of documents, each containing a representation of a <tref>linked data graph</tref>.</li>
-  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where <tdef title="node">nodes</tdef> are <tref title="IRI">IRIs</tref> or <tref title="Blank Node">Blank Nodes</tref>, or other values.</li>
-  <li>A <tref>node</tref> having an outgoing edge MUST be an <tref>IRI</tref> or <tref>Blank Node</tref>.</li>
-  <li>A <tref>node</tref> having an incoming edge MUST be an <tref>IRI</tref>, <tref>Blank Node</tref>, or value such as a number or string.</li>
-  <li>A <tref>node</tref> MAY have both incoming and outgoing edges.</li>
-  <li>An edge MUST be labeled with an <tref>absolute IRI</tref>, within the JSON-LD syntax, this label is called a <tdef>property</tdef>.</li>
-  <li><tref title="IRI">IRIs</tref> used within a <tref>linked data graph</tref> SHOULD be dereferenceable to a <tref>Linked Data</tref> document describing the resource denoted by that <tref>IRI</tref>.</li>
+<li>It is easy for humans to read and write.</li>
+<li>It is easy for machines to parse and generate.</li>
+<li>It has a syntax that is familiar across a large number of programming 
+  languages.</li>
+<li>It is capable of representing many different types of data using two
+universal data structures; a collection of name/value pairs and lists.</li>
+</ol>
+
+<p>
+JSON has become a very popular data-interchange format on the Web, particularly
+for <a href="http://en.wikipedia.org/wiki/REST">REST</a>-based Web Services.
+Unfortunately, it has a number of short-comings that other Web-native data 
+formats do not have:
+</p>
+
+<ol>
+<li>There is no standardized, universal identifier mechanism for
+<tref>JSON object</tref>s.</li>
+<li>The meaning of the keys used in a 
+<tref>JSON object</tref>s are ambiguous and often conflict with other data
+published on the Web.  
+</li>
+<li>There is no standardized way for a value in a <tref>JSON object</tref> to 
+refer to a <tref>JSON object</tref> on a different site on the Web.</li>
+<li>A developer cannot express the language associated with a 
+<tref>string</tref> value in a standardized manner.</li>
+<li>There is no standard mechanism to associate datatypes with values such as 
+ dates, times, weights, and distances.</li>
+<li>There is no facility to express a Web of information (directed graph), 
+such as a social network, in a standardized manner.</li>
+</ol>
+
+<p>
+JSON-LD is a web-native standard, is 100% compatible with JSON,
+provides all of the facilities that JSON provides, and extends the
+language to provide the following core advantages:
+</p>
+
+<ol>
+<li>A universal identifier mechanism for <tref>JSON object</tref>s via
+the use of <tref>IRI</tref>s.</li>
+<li>A way to dis-ambiguate the keys used between multiple JSON documents
+by mapping them to <tref>IRI</tref>s via a <tref>context</tref>.
+</li>
+<li>A mechanism in which a value in a <tref>JSON object</tref> may 
+refer to a <tref>JSON object</tref> on a different site on the Web.</li>
+<li>The ability to express the language associated with a 
+<tref>string</tref> value.</li>
+<li>A way to associate datatypes with values such as dates, times, 
+  weights, and distances.</li>
+<li>A facility to express one or more directed graphs, such as a social 
+network, in a single document.</li>
+</ol>
+
+<p>
+Developers that require any of the facilities listed above will find
+JSON-LD of interest.
+</p>
+
+</section>
+
+<section>
+<h2>JSON-LD Data Model</h2>
+
+<p>
+<tdef>Linked Data</tdef> is a way of publishing data on the Web. In general,
+Linked Data has four properties; 1) It uses <tref>IRI</tref>s to name
+<em>things</em>, 2) It uses HTTP <tref>IRI</tref>s for those names, 3) The
+name links, when followed, provide more information about the name, and
+4) The data expresses links to data on other Web sites. These properties
+allow data published on the Web to work much like Web pages do today. One
+can start at one piece of Linked Data, and follow the links to other pieces 
+of data that are hosted on different sites across the Web.    
+</p>
+
+<p>
+JSON-LD is a way of expressing <tref>Linked Data</tref> on the Web. The 
+JSON-LD data model encapsulates the following concepts:
+</p>
+
+<ol>
+  <li>The JSON-LD data model is used to represent <tref>linked data graph</tref>s.</li>
+  <li>A <tdef>linked data graph</tdef> is an unordered labeled directed graph, where each <tdef>node</tdef> is a <tref>subject</tref> or <tref>object</tref>, and edges are labeled using <tref title="property">properties</tref>.</li>
+  <li>A <tdef>subject</tdef> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
+  <li>A <tref>subject</tref> SHOULD be labeled with an <tref><abbr title="Internationalized Resource Identifier">IRI</abbr></tref> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
+  <li>An <tdef>object</tdef> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
+  <li>An <tref>object</tref> MAY be labeled with an <tref>IRI</tref> or a label that is not an <tref>IRI</tref> such as plain text, internationalized text, or a strictly-typed data value.</li>
+  <li>A <tref>node</tref> MAY be a <tref>subject</tref> and an <tref>object</tref> at the same time.</li>
+  <li>A <tdef>property</tdef> is the label on an edge in a <tref>linked data graph</tref>.</li>
+  <li>A <tref>property</tref> SHOULD be an <tref>IRI</tref>.</li>
+  <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <tref>subject</tref>, <tref>property</tref> or <tref>object</tref>.</li>
 </ol>
 
 <div class="note">
-  <p>A <tref>Linked Data</tref> document does not necessarily need to be expressed in JSON-LD. The notion of
-    <tref>Linked Data</tref> is a concept independent of any given serialization format. In particular, any document based on
-    an RDF serialization format is a <tref>Linked Data</tref> document.</p>
-
-  <p>This definition of <tref>Linked Data</tref> is entirely consistent with that in [[RDF-CONCEPTS]], although
-    <tref>Linked Data</tref> may not be a valid RDF document, any RDF document is an expression of <tref>Linked Data</tref>.</p>
+  <p>
+A <tref>Linked Data</tref> document does not necessarily need to be expressed 
+in JSON-LD. The notion of <tref>Linked Data</tref> is a concept independent of 
+any given serialization format.
+  </p>
 </div>
 
-<p class="issue">An illustration of a linked data graph would probably help here.</p>
-
-<div class="issue" data-number="47">
-  <p>Richard Cyganiak suggests that the data model is at odds with [[RDF-CONCEPTS]] and should
-    be more closely aligned with it instead of creating new terminology.</p>
-  <p>Note that this definition is provisional, and may be reverted to something closer to the original depending on community feedback.</p>
-  <ol>
-    <li><tref>Linked Data</tref> is a set of documents, each containing a representation of a <tref>linked data graph</tref>.</li>
-    <li>A <tref>linked data graph</tref> is an unordered labeled directed graph, where nodes are <em>subject</em>s or <em>object</em>s, and edges are labeled using <tref title="property">properties</tref>.</li>
-    <li>A <em>subject</em> is any node in a <tref>linked data graph</tref> with at least one outgoing edge.</li>
-    <li>A <em>subject</em> SHOULD be labeled with an <tref><abbr title="Internationalized Resource Identifier">IRI</abbr></tref> (an Internationalized Resource Identifier as described in [[!RFC3987]]).</li>
-    <li>An <em>object</em> is a node in a <tref>linked data graph</tref> with at least one incoming edge.</li>
-    <li>An <em>object</em> MAY be labeled with an <tref>IRI</tref> or a label that is not an <tref>IRI</tref> such as plain text, internationalized text, or a strictly-typed data value.</li>
-    <li>A node MAY be a <em>subject</em> and an <em>object</em> at the same time.</li>
-    <li>A <tref>property</tref> is the label on an edge in a
-      <tref>linked data graph</tref>.</li>
-    <li>A <tref>property</tref> SHOULD be an <tref>IRI</tref>.</li>
-    <li>An <tref>IRI</tref> that is a label in a <tref>linked data graph</tref> SHOULD be dereferencable to a <tref>Linked Data</tref> document describing the labeled <em>subject</em>, <tref>property</tref> or <em>object</em>.</li>
-  </ol>
-</div>
-
-<p class="note">JSON-LD allows properties to be BNodes, while RDF does
-  not. When used as just JSON-LD, this is not unreasonable;
-  it only becomes an issue (and could raise an exception) when
-  transformed to RDF.</p>
-
-<p>Note that the definition for <tref>Linked Data</tref> above is silent on the
-topic of <tref title="unlabeled node">unlabeled nodes</tref>. Nevertheless, this specification allows for the expression
-of <tref title="unlabeled node">unlabeled nodes</tref>, as most graph-based data sets on the Web contain a number
-of associated nodes that are not named and thus are not directly
-de-referenceable.
+<img style="padding: 5px; border-style: solid; border-width: 1px; display: block; margin-left: auto; margin-right: auto;" src="linked-data-graph.png" title="An example of a linked data graph" longdesc="An example of a linked data graph showing two main nodes labeled with URLs for Alice and Bob. The Alice node contains two other connected nodes showing Alice's age (32) and name (Alice)."/>
+<p style="text-align: center;">
+Figure 1: An example of a linked data graph.
 </p>
-
 <p>JSON-LD defines a mechanism to map JSON terms, i.e., keys and values, to IRIs. This does not mean
 that JSON-LD requires every key or value to be an IRI, but rather ensures that
 keys and values can be mapped to IRIs if the developer desires to transform
@@ -577,20 +577,62 @@ that developers will generate good Linked Data for the Web. JSON-LD
 formalizes those techniques.
 </p>
 
-<p>We will be using the following JSON markup as the example for the
-rest of this section:
-</p>
+</section>
 
-<pre class="example" data-transform="updateExample"
-     title="Sample JSON object">
-<!--
-{
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
+<section>
+  <h2>General Terminology</h3>
+
+  <p>The following is an explanation of the general terminology used in this 
+  document. Many of the terms should be familiar to developers that have 
+  used JSON:</p>
+
+  <dl>
+    <dt><tdef>JSON object</tdef></dt><dd>
+      An object structure is represented as a pair of curly brackets
+      surrounding zero or more key-value pairs. A key is a
+      <tref>string</tref>. A single colon comes after each key, separating the
+      key from the value. A single comma separates a value from a following
+      key. The keys within an object SHOULD be unique.
+    </dd>
+    <dt><tdef>array</tdef></dt>
+    <dd>
+      In JSON, an array is an <em>ordered</em> sequence of zero or more values.
+      An array is represented as square brackets surrounding
+      zero or more values that are separated by commas.
+      While JSON-LD uses the same array representation as JSON,
+      the collection is <em>unordered</em> by default. While order is
+      preserved in regular JSON arrays, it is not in regular JSON-LD arrays
+      unless specific markup is provided
+      (see <a href="#sets-and-lists"></a>).</dd>
+    <dt><tdef>string</tdef></dt><dd>
+      A string is a sequence of zero or more Unicode characters,
+      wrapped in double quotes, using backslash escapes (if necessary). A
+      character is represented as a single character string.</dd>
+    <dt><tdef>number</tdef></dt>
+    <dd>
+      A number is similar to that used in most programming languages, except
+      that the octal and hexadecimal formats are not used and that leading
+      zeros are not allowed.</dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
+      Values that are used to express one of two possible boolean states.</dd>
+    <dt><tdef>null</tdef></dt><dd>
+      The null value is used to make a JSON-LD processor "forget" any
+      previously defined JSON key that is associated with the null value.
+      If a previous definition doesn't exist, the entire key-value is ignored.
+      If a previous definition of the key does exist, the previous
+      definition is undefined.</dd>
+    <dt><tdef>node definition</tdef></dt><dd>
+      A <tref>JSON object</tref> used to represent a <tref>node</tref> and
+      one or more properties of that node. A <tref>JSON object</tref> is a
+      node definition if it does not contain the keys <code>@value</code>,
+      <code>@list</code> or <code>@set</code> and it has one or more keys other
+      than <code>@id</code>. A node definition MAY be spread among different
+      parts of a document or even between different documents.</dd>
+    <dt><tdef>node reference</tdef></dt><dd>
+      A <tref>JSON object</tref> used to refer to a node that contains a
+      single key-value pair where the key is <code>@id</code>.</dd>
+  </dl>
+</p>
 
 </section>
 
@@ -700,9 +742,23 @@ context document that would look something like this:</p>
 -->
 </pre>
 
-<p>Assuming that this context document can be retrieved at <code>http://json-ld.org/contexts/person.jsonld</code>,
-  it can be referenced from a JSON-LD document by adding a single line. The JSON markup shown in the previous
-  section could be changed as follows:</p>
+<p>
+Let's assume that a developer starts with the following JSON document:
+</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Sample JSON object">
+<!--
+{
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
+
+<p>The developer can add a single line to the JSON document above
+to reference the context and transform it into a JSON-LD document:</p>
 
 <pre class="example" data-transform="updateExample"
      title="Adding context reference to JSON document">
@@ -3005,7 +3061,17 @@ RDF Concepts document.
   [[JSON-LD-API]] specification.
   </p>
 
-</section>
+  <p>JSON-LD allows properties to be BNodes, while RDF does
+  not. Expressing properties as BNodes in JSON-LD only becomes an issue 
+  (and could raise an exception) when it is transformed to RDF.</p>
+
+  <p>Note that the JSON-LD data model is silent on the topic of 
+  <tref title="unlabeled node">unlabeled nodes</tref>. Nevertheless, 
+  this specification allows for the expression of 
+  <tref title="unlabeled node">unlabeled nodes</tref>, as most graph-based data 
+  sets on the Web contain a number of associated nodes that are not named and 
+  thus are not directly de-referenceable.
+  </p>
 
 <section>
   <h3>Turtle</h3>
