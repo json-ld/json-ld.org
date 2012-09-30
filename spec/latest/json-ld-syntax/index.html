@@ -243,6 +243,7 @@
 <style type="text/css">
 .diff { font-weight:bold; color:#0a3; }
 .issue.resolved { display: none; }
+table, thead, tr, td { padding: 5px; border-width: 1px; border-spacing: 0px; border-style: solid; border-collapse: collapse;}
 </style>
 </head>
 
@@ -2177,18 +2178,33 @@ processor will use direct string comparison when looking up
 -->
 </pre>
 
-<p>The markup shown above would result in three triples being generated,
+<p>The markup shown above would result in the following data being generated,
   each relating the node to an individual value, with no inherent order:</p>
 
-<p class="issue">Including an illustration might be better.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "joe" .
-<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "bob" .
-<http://example.org/people#joebob> <http://xmlns.com/foaf/0.1/nick> "jaybee" .
--->
-</pre>
+<table class="example">
+<thead>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Object</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.org/people#joebob</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>joe</td>
+</tr>
+<tr>
+  <td>http://example.org/people#joebob</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>bob</td>
+</tr>
+<tr>
+  <td>http://example.org/people#joebob</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>jaybee</td>
+</tr>
+</tbody>
+</table>
 
 <p>Multiple values may also be expressed using the expanded form:</p>
 
@@ -2210,18 +2226,31 @@ processor will use direct string comparison when looking up
 }-->
 </pre>
 
-<p>The markup shown above would generate the following triples, again with
+<p>The markup shown above would generate the following data, again with
   no inherent order:</p>
 
-<p class="issue">Including an illustration might be better.</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-<http://example.org/articles/8> <http://purl.org/dc/terms/title> "Das Kapital"@de .
-<http://example.org/articles/8> <http://purl.org/dc/terms/title> "Capital"@en .
--->
-</pre>
-
+<table class="example">
+<thead>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Object</th>
+  <th>Language</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.org/articles/8</td>
+  <td>http://purl.org/dc/terms/title</td>
+  <td>Das Kapital</td>
+  <td>de</td>
+</tr>
+<tr>
+  <td>http://example.org/articles/8</td>
+  <td>http://purl.org/dc/terms/title</td>
+  <td>Capital</td>
+  <td>en</td>
+</tr>
+</tbody>
+</table>
 
 <p>As the notion of ordered collections is rather important in data
   modeling, it is useful to have specific language support. In JSON-LD,
@@ -2389,20 +2418,26 @@ processor will use direct string comparison when looking up
   <pre class="example" data-transform="updateExample">
   <!--
   {
-    "@context": ...,
+    "@context": {
+      "asOf": "http://purl.org/net/provenance/ns#accessedResource",
+      "Person": "http://xmlns.com/foaf/0.1/Person",
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows",
+      "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
     ****"@id": "http://example.org/graphs/73",
     "asOf": { "@value": "2012-04-09", "@type": "xsd:date" },
     "@graph":****
     [
       {
         "@id": "http://manu.sporny.org/i/public",
-        "@type": "foaf:Person",
+        "@type": "Person",
         "name": "Manu Sporny",
         "knows": "http://greggkellogg.net/foaf#me"
       },
       {
         "@id": "http://greggkellogg.net/foaf#me",
-        "@type": "foaf:Person",
+        "@type": "Person",
         "name": "Gregg Kellogg",
         "knows": "http://manu.sporny.org/i/public"
       }
@@ -2414,12 +2449,71 @@ processor will use direct string comparison when looking up
   <p>The example above expresses a <em>named</em>
     <tref>linked data graph</tref> that is identified by the <tref>IRI</tref>
     <code>http://example.org/graphs/73</code>. That graph is composed of the
-    statements about Manu and Gregg. Meta-data about the graph itself is also
+    statements about Manu and Gregg. Metadata about the graph itself is also
     expressed via the <code>asOf</code> property, which specifies when the
-    information was retrieved from the Web.</p>
+    information was retrieved from the Web. An alternative view of the
+    information above is represented in table form below:</p>
 
-  <p class="issue">These examples could all have TriG definitions of their RDF results,
-    but that would involve adding RDF earlier in the document.</p>
+<table class="example">
+<thead>
+  <th>Graph</th>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Object</th>
+  <th>Datatype</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://example.org/graphs/73</td>
+  <td>http://purl.org/net/provenance/ns#accessedResource</td>
+  <td>2012-04-09</td>
+  <td>http://www.w3.org/2001/XMLSchema#date</td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://manu.sporny.org/i/public</td>
+  <td>http://www.w3.org/2001/XMLSchema#type</td>
+  <td>http://xmlns.com/foaf/0.1/Person</td>
+  <td></td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://manu.sporny.org/i/public</td>
+  <td>http://xmlns.com/foaf/0.1/name</td>
+  <td>Manu Sporny</td>
+  <td></td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://manu.sporny.org/i/public</td>
+  <td>http://xmlns.com/foaf/0.1/knows</td>
+  <td>http://greggkellogg.net/foaf#me</td>
+  <td></td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://greggkellogg.net/foaf#me</td>
+  <td>http://www.w3.org/2001/XMLSchema#type</td>
+  <td>http://xmlns.com/foaf/0.1/Person</td>
+  <td></td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://greggkellogg.net/foaf#me</td>
+  <td>http://xmlns.com/foaf/0.1/name</td>
+  <td>Gregg Kellogg</td>
+  <td></td>
+</tr>
+<tr>
+  <td>http://example.org/graphs/73</td>
+  <td>http://greggkellogg.net/foaf#me</td>
+  <td>http://xmlns.com/foaf/0.1/knows</td>
+  <td>http://manu.sporny.org/i/public</td>
+  <td></td>
+</tr>
+</tbody>
+</table>
 
 </section>
 
@@ -3027,7 +3121,7 @@ a normative grammar for JSON-LD.</p>
 <section class="appendix informative">
 <h2>Relationship to Other Linked Data Formats and Data Models</h2>
 
-<p class="issue">
+<p class="issue" data-number="157">
 The intent of the Working Group and the Editors of this specification is to
 eventually align terminology used in this document with the terminology used
 in the RDF Concepts document [[!RDF-CONCEPTS]] to the extent to which it makes sense to do so.
