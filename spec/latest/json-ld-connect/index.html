@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSON-LD Connect 1.0</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<!--
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+<script type="text/javascript" src="../respec-w3c-common.js" class="remove"></script>
+<script type="text/javascript" src="../respec-w3c-extensions.js" class="remove"></script>
+<script type="text/javascript" class="remove">
+//<![CDATA[
+
+      var respecConfig = {
+          doRDFa: "1.1",
+          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+          specStatus:           "CG-DRAFT",
+          // if you wish the publication date to be other than today, set this
+          //publishDate:          "2012-08-30",
+          copyrightStart:       "2012",
+
+          // the specification's short name, as in http://www.w3.org/TR/short-name/
+          shortName:            "json-ld-connect",
+          subtitle:             "An Algorithm for Turning JSON-LD Data into Graphs",
+
+          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+          // and its maturity status
+          //previousPublishDate:  "2012-09-27",
+          //previousMaturity:     "unofficial",
+          //previousDiffURI:      "http://json-ld.org/spec/ED/json-ld-connect/YYYMMDD/",
+
+          // if there a publicly available Editor's Draft, this is the link
+          edDraftURI:           "http://json-ld.org/spec/latest/json-ld-connect/",
+
+          // if this is a LCWD, uncomment and set the end of its review period
+          // lcEnd: "2009-08-05",
+
+          // if you want to have extra CSS, append them to this list
+          // it is recommended that the respec.css stylesheet be kept
+          // extraCSS: [],
+
+          issueBase: "https://github.com/json-ld/json-ld.org/issues/",
+
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              { name: " Niklas Lindström", url: "http://neverspace.net/id#self" }
+          ],
+
+          // authors, add as many as you like.
+          // This is optional, uncomment if you have authors as well as editors.
+          // only "name" is required. Same format as editors.
+
+          authors:  [
+              { name: " Niklas Lindström", url: "http://neverspace.net/id#self" }
+          ],
+
+          // name of the WG
+          wg:           "Linking Data in JSON Community Group",
+
+          // URI of the public WG page
+          wgURI:        "http://json-ld.org/",
+
+          // name (with the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "public-linked-json@w3c.org",
+
+          // URI of the patent status for this WG, for Rec-track documents
+          // !!!! IMPORTANT !!!!
+          // This is important for Rec-track documents, do not copy a patent URI from a random
+          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+          // Team Contact.
+          wgPatentURI:  "",
+          maxTocLevel: 4,
+          preProcess: [ preProc ],
+          //alternateFormats: [ {uri: "diff-20120524.html", label: "diff to previous version"} ],
+      };
+
+//]]>
+  </script>
+<style type="text/css">
+.diff { font-weight:bold; color:#0a3; }
+</style>
+</head>
+
+<body>
+<section id="abstract">
+<p>JSON-LD Connect is a way of turning a JSON-LD document into a live graph of 
+interconnected and indexed objects.</p>
+</section>
+
+<section id='sotd'>
+<p>This document is an experimental work in progress.</p>
+</section>
+
+<section>
+<h1>Introduction</h1>
+<p>
+  A JSON-LD document is a representation of a directed graph. A single
+  directed graph can have many different serializations, each expressing 
+  exactly the same information. Developers wanting to work with interconnected 
+  <tref>JSON object</tref>s,
+  can use the connect algorithm described here to "stich together"
+  <tref>node definition</tref>s
+  and creating an index of important values mapped to each node. This enables 
+  navigation between node definitions via interlinking keys (representing arcs 
+  in graph nomenclature).
+</p>
+<p>
+  Technically, connect works by replacing each <tref>node reference</tref> in 
+  the input data with a real, programmatic object reference, to one, merged 
+  node definition. This results in the creation of a simple in-memory graph.
+</p>
+<p>
+  Out of the box, the connect process creates an index mapping node 
+  <code>@id</code> values to the <tref>node definition</tref>. It is also 
+  possible to configure the process to create additional indexes, as well as 
+  adding a local <tref>reverse key map</tref> to each node definition.
+</p>
+
+<!-- COMMON -->
+<section>
+<h2>How to Read this Document</h2>
+
+<p>
+This document is a detailed specification for Linked Data in JSON. The document 
+is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Software developers that want to implement processors and APIs for
+  JSON-LD.</li>
+  <li>Web developers who want to navigate JSON-LD documents as interconnected 
+  nodes.</li>
+</ul>
+
+<p>
+To understand the basics in this specification you must first be familiar with
+JSON, which is detailed in [[!RFC4627]]. You must also understand the
+JSON-LD Syntax [[!JSON-LD]], which is the base syntax used by all of the
+algorithms in this document,
+and the JSON-LD API [[!JSON-LD-API]]. To understand the API and how it is
+intended to operate  in a programming environment, it is useful to have working
+knowledge of the JavaScript programming language [[ECMA-262]] and
+WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
+familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
+
+</section>
+
+<!-- COMMON -->
+<section>
+  <h3>General Terminology</h3>
+
+  <p class="issue">The intent of the Working Group and the Editors of this
+    specification is to eventually align terminology used in this document
+    with the terminology used in the RDF Concepts document to the extent to
+    which it makes sense to do so. In general, if there is an analogue to
+    terminology used in this document in the RDF Concepts document, the
+    preference is to use the terminology in the RDF Concepts document.
+  </p>
+
+  <p>The following is an explanation of the general terminology used in this
+    document:</p>
+
+  <dl>
+    <dt><tdef>JSON object</tdef></dt>
+    <dd>An object structure is represented as a pair of curly brackets surrounding zero or
+      more name-value pairs. A name is a <tref>string</tref>. A single colon comes after
+      each name, separating the name from the value. A single comma separates a value
+      from a following name. The names within an object SHOULD be unique.</dd>
+    <dt><tdef>array</tdef></dt>
+    <dd>An array is represented as square brackets surrounding zero or more
+      values that are separated by commas.</dd>
+    <dt><tdef>string</tdef></dt>
+    <dd>A string is a sequence of zero or more Unicode (UTF-8) characters,
+      wrapped in double quotes, using backslash escapes (if necessary). A
+      character is represented as a single character string.</dd>
+    <dt><tdef>number</tdef></dt>
+    <dd>A number is similar to that used in most programming languages, except
+      that the octal and hexadecimal formats are not used and that leading
+      zeros are not allowed.</dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt>
+    <dd>Values that are used to express one of two possible boolean states.</dd>
+    <dt><tdef>null</tdef></dt>
+    <dd>The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.</dd>
+    <dt><tdef>keyword</tdef></dt>
+    <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
+      in the section titled <cite><a href="../json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
+    <dt><tdef>context</tdef></dt>
+    <dd>A a set of rules for interpreting a JSON-LD document as specified in
+      <cite><a href="../json-ld-syntax/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
+    <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
+    <dd>An Internationalized Resource Identifier as described in [[!RFC3987]].</dd>
+    <dt><tdef>Linked Data</tdef></dt>
+    <dd>A technique for creating a network of inter-connected data across different documents and Web sites.</dd>
+    <dt><tdef>JSON-LD graph</tdef></dt>
+    <dd>An unordered labeled directed graph, where <tref title="node">nodes</tref> are
+      <tref title="IRI">IRIs</tref> or <tref title="Blank Node">Blank Nodes</tref>, or other values.
+      A <tref>JSON-LD graph</tref> is a generalized representation of a
+      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
+      as defined in [[!RDF-CONCEPTS]].</dd>
+    <dt><tdef>named graph</tdef></dt>
+    <dd>A <tref>JSON-LD graph</tref> that is identified by an <tref>IRI</tref>.</dd>
+    <dt><tdef>graph name</tdef></dt>
+    <dd>The <tref>IRI</tref> identifying a <tref>named graph</tref>.</dd>
+    <dt><tdef>default graph</tdef></dt>
+    <dd>When executing an algorithm, the graph where data should be placed
+      if a <tref>named graph</tref> is not specified.</dd>
+    <dt><tdef>node</tdef></dt>
+    <dd>A piece of information that is represented in a <tref>JSON-LD graph</tref>.</dd>
+    <dt><tdef>node definition</tdef></dt>
+    <dd>A <tref>JSON object</tref> used to represent a <tref>node</tref> and
+      one or more properties of that node. A <tref>JSON object</tref> is a
+      node definition if it does not contain the keys <code>@value</code>,
+      <code>@list</code> or <code>@set</code> and it has one or more keys
+      other than <code>@id</code>.</dd>
+    <dt><tdef>node reference</tdef></dt>
+    <dd>A <tref>JSON object</tref> used to reference a node having only the
+      <code>@id</code> key.</dd>
+    <dt><tdef>blank node</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
+      identifier because it is either ephemeral in nature or does not contain information that needs to be
+      linked to from outside of the JSON-LD graph. A blank node is assigned an identifier starting with
+      the prefix <code>_:</code>.</dd>
+    <dt><tdef>property</tdef></dt>
+    <dd>The <tref>IRI</tref> label of an edge in a <tref>JSON-LD graph</tref>.</dd>
+    <dt><tdef>subject</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one outgoing edge, related to an <tref>object</tref> node through a <tref>property</tref>.</dd>
+    <dt><tdef>object</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one incoming edge.</dd>
+    <dt><tdef>quad</tdef></dt>
+    <dd>A piece of information that contains four items; a <tref>subject</tref>, a <tref>property</tref>,
+      an <tref>object</tref>, and a <tref>graph name</tref>.</dd>
+    <dt><tdef>literal</tdef></dt>
+    <dd>An <tref>object</tref> expressed as a value such as a string, number or in expanded form.</dd>
+  </dl>
+ </section>
+
+</section>
+
+<!-- COMMON -->
+<section>
+  <h2>Contributing</h2>
+
+  <p>There are a number of ways that one may participate in the development of
+    this specification:</p>
+
+  <ul>
+    <li>Technical discussion typically occurs on the public mailing list:
+      <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a></li>
+
+    <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+      on Tuesdays at 1500UTC on the second and fourth week of each month.</li>
+
+    <li>Specification bugs and issues should be reported in the
+      <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+    <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+      specification can be found on Github.</li>
+
+    <li>The <a href="http://webchat.freenode.net/?channels=json-ld">#json-ld</a>
+      IRC channel is available for real-time discussion on irc.freenode.net.</li>
+  </ul>
+
+</section>
+
+</section>
+
+<section>
+<h1>Algorithm</h1>
+
+<p>The algorithm described in this section is intended to operate on
+language-native data structures. That is, the serialization to a text-based
+JSON document isn't required as input or output, and language-native data 
+structures MUST be used where applicable.</p>
+
+<section>
+  <h2>Syntax Tokens and Keywords</h2>
+
+  <dl>
+    <dt><code>@rev</code></dt>
+    <dd>Used in <a href="#connect">Connect</a> to set the default key for
+      the <tref>reverse key map</tref>.</dd>
+  </dl>
+
+  <p>All JSON-LD tokens and keywords are case-sensitive.</p>
+</section>
+
+<section>
+<h2>Connect</h2>
+<p>
+  Connecting is the process of turning an input JSON-LD document into an 
+  interconnected and indexed data structure.
+</p>
+
+<section>
+<h3>Connect Algorithm Terms</h3>
+
+<dl>
+  <dt><tdef>current result object</tdef></td>
+  <dd>
+    A merged <tref>node definition</tref>.
+  </dd>
+  <dt><tdef>map of result objects</tdef></dt>
+  <dd>
+    a map of resulting <tref>node definition</tref>s that is the result of 
+    this algorithm.
+  </dd>
+  <dt><tdef>type map</tdef></dt>
+  <dd>
+    A map of types to sets (represented by arrays) of result objects.
+  </dd>
+  <dt><tdef>reverse key map</tdef></dt>
+  <dd>
+    a map of keys with arrays of subjects that link to the current node using 
+    that key.
+  </dd>
+  <dt><tdef>connected output</tdef></dt>
+  <dd>
+    The resulting object containing the <tref>map of result objects</tref>.
+  </dd>
+</dl>
+</section>
+
+<section>
+<h3>Connect Algorithm</h3>
+
+<p>
+  Create an <code>idMap</code> and a <code>typeMap</code>, being the 
+  <tref>map of result objects</tref> and <tref>type map</tref> of the 
+  <tref>connected output</tref> respectively.
+</p>
+
+<p>For each object, do the following series of steps:</p>
+
+<ol class="algorithm">
+  <li>
+    If the object has a key whose resolved meaning is <code>@id</code>,
+    find an existing object indexed by that id from the <code>idMap</code>. If 
+    one is found, use that as the <tref>current result object</tref>.
+  </li>
+  <li>
+    Otherwise (on no key or no existing), create a new object and use that as 
+    the result object.
+  </li>
+  <li>
+    For each key, value pair in the current object, do the following:
+    <ol class="algorithm">
+      <li>
+        If the resolved key meaning is <code>@id</code>, add the result object 
+        under that key to the <code>idMap</code>.
+      </li>
+      <li>
+        Else if the resolved key meaning is <code>@type</code>, add the result 
+        object under that key to the <code>typeMap</code>.
+      </li>
+      <li>
+        If the value is an object, create a new value by using the result of 
+        running these steps recursively with the value as input.
+      </li>
+      <li>
+        Otherwise, if the value is an array, create a new array. Then apply 
+        these steps recursively to each object in the array, appending each 
+        result to the new array.
+      </li>
+      <li>
+        Otherwise, use the value as the new value.
+      </li>
+      <li>
+        Add the key and the new value to the result object.
+      </li>
+    </ol>
+  </li>
+  <li>
+    Return the result object.
+  </li>
+</ol>
+
+<p>
+  If the <code>@rev</code> flag is used, pass the current key (called reverse 
+   link) and current object (called linking object) to each recursive call in 
+   the process above. At the end of the process, get or create a 
+   <em>revMap</em> from the current object. Get or create a list for the 
+   reverse link key from the revMap, and append the linking object to that. 
+   Then set that revMap on the current object.
+</p>
+
+<p>
+  The resulting <code>idMap</code> and <code>typeMap</code> are added to the 
+  final <tref>connected output</tref>.
+</p>
+
+<p class="issue">
+  This algorithm is a work in progress. It is currently undefined whether the 
+  creation of typeMaps and revMaps should be optional. It is also still 
+  undefined which keys will label these in the connected output.
+</p>
+
+</section>
+</section>
+
+</section>
+
+<section>
+  <h2>The Application Programming Interface</h2>
+
+  <section>
+    <!-- COMMON {{{ -->
+    <h3>JsonLdProcessor</h3>
+    <p>The JSON-LD processor interface is the high-level programming structure that developers
+      use to access the JSON-LD transformation methods. The definition below is an experimental
+      extension of the interface defined in the [[JSON-LD-API]].</p>
+
+    <p class="note">The JSON-LD API signatures are the same across all programming languages. Due
+      to the fact that asynchronous programming is uncommon in certain languages, developers MAY
+      implement processor with a synchronous interface instead. In that case, the <code>callback</code>
+      parameter MUST NOT be included and the result MUST be returned as return value instead.</p>
+    <!-- >}}}-->
+
+    <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
+
+      <dt>void connect()</dt>
+      <dd>
+        <a href="#connect">Connects</a> the given <code>input</code> according 
+        to the steps in the
+        <a href="#connect-algorithm">Connect Algorithm</a>. The <code>input</code>
+        is used to build the <tref>connected output</tref> and is returned if there are no errors.
+        Exceptions MUST be thrown if there are errors.
+
+        <dl class="parameters">
+          <dt>object or object[] or IRI input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the connecting upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to connect.</dd>
+          <dt>object or IRI? context</dt>
+          <dd>An optional external context to use additionally to the context embedded in
+            <code>input</code> when expanding the <code>input</code>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that MAY affect the connect algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
+        </dl>
+      </dd>
+
+    </dl>
+
+  </section>
+
+  <section>
+    <h3>Callbacks</h3>
+  <section>
+    <h3>JsonLdCallback</h3>
+    <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD representation
+      as the result of processing an API method.</p>
+    <p>See <dtref>JsonLdCallback</dtref> definition in [[!JSON-LD-API]].</p>
+  </section>
+  </section>
+
+  <section>
+    <h3>Data Structures</h3>
+    <p>This section describes datatype definitions used within the JSON-LD API.</p>
+
+    <section>
+    <h3>JsonLdOptions</h3>
+    <p>The <a>JsonLdOptions</a> type is used to convert a set of options to an 
+    interface method.</p>
+    <p>See <dtref>JsonLdOptions</dtref> definition in [[!JSON-LD-API]].</p>
+    </section>
+  </section>
+
+</section>
+
+<section class="appendix informative">
+  <h1>Acknowledgements</h1>
+  <p>A large amount of thanks goes out to the JSON-LD Community Group
+    participants who worked through many of the technical issues on the mailing
+    list and the weekly telecons. Of special mention are
+    <!-- TODO: maintain this -->
+    Manu Sporny, Dave Longley, Gregg Kellogg, Markus Lanthaler, François Daoust, 
+    and Zdenko 'Denny' Vrandečić.
+    The editors would like to thank Mark Birbeck, who provided a great deal of
+    the initial push behind the JSON-LD work via his work on RDFj.
+    The work of Dave Lehn and Mike Johnson are appreciated for reviewing,
+    and performing several implementations of the specification. Ian Davis is
+    thanked for this work on RDF/JSON. Thanks also to Nathan Rixham,
+    Bradley P. Allen,
+    Kingsley Idehen, Glenn McDonald, Alexandre Passant, Danny Ayers, Ted
+    Thibodeau Jr., Olivier Grisel, Josh Mandel, Eric Prud'hommeaux,
+    David Wood, Guus Schreiber, Pat Hayes, Sandro Hawke, and Richard
+    Cyganiak for their input on the specification.
+  </p>
+</section>
+
+</body>
+</html>
