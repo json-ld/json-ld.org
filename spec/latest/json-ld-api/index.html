@@ -1476,20 +1476,20 @@ language-native data structures MUST be used where applicable.</p>
     <ol class="algorithm">
       <li>If <em>value</em> has a <code>@value</code> property:
         <ol class="algorithm">
-          <li>If <em>value</em> has a <code>@type</code> property matching a
+          <li>If <em>value</em> has a <code>@type</code> property: if that type matches a
             <code>@type</code> coercion for <em>term</em>, <tref>term rank</tref>
             is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
             coercion and no <code>@language</code>, <tref>term rank</tref> is
             <code>1</code>, otherwise <code>0</code>.</li>
-          <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>, if <em>term</em> has
+          <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>: if <em>term</em> has
             no <code>@type</code> or <code>@language</code> it is <code>2</code>, otherwise <code>1</code>.</li>
-          <li>Otherwise, if <em>value</em> has no <code>@language</code> property, if <em>term</em> has
-            <code>@language</code> <tref>null</tref>, or <em>term</em> has no <code>@type</code> or
-            <code>@language</code> and the <tref>active context</tref> has no <code>@language</code>,
+          <li>Otherwise, if <em>value</em> has no <code>@language</code> property: if <em>term</em> has
+            <code>@language</code> <tref>null</tref> or ((<em>term</em> has no <code>@type</code> or
+            <code>@language</code>) and the <tref>active context</tref> has no <code>@language</code>),
             <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
           <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
-            <code>@language</code> definition for <em>term</em> (or
-            <em>term</em> has no <code>@type</code> or <code>@language</code> definition and
+            <code>@language</code> definition for <em>term</em> or
+            ((<em>term</em> has no <code>@type</code> or <code>@language</code> definition) and
             <code>@language</code> in the <tref>active context</tref> matches the
             <em>value</em> <code>@language</code>), <tref>term rank</tref> is
             <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
@@ -1803,7 +1803,13 @@ language-native data structures MUST be used where applicable.</p>
         that the result is an array with all <tref>null</tref> values removed. If there already exists a value for
         <tref>active property</tref> in <em>element</em> and the full IRI of <em>property</em> is also coerced to
         <code>@list</code>, return an error. Otherwise store the resulting array as value of <tref>active property</tref>
-        if empty or <em>property</em> otherwise.</li>
+        if empty or <em>property</em> otherwise.
+        <div class="issue">
+          This language is incorrect, since the current element contains only <code>@list</code>. It seems that
+          the intention is for when there is no term match, and we fall back on the full IRI, it's an
+          error if the full IRI term was defined with a list coercion.
+        </div>
+      </li>
       <li>Otherwise, construct <em>output</em> as a new <tref>JSON object</tref> used for returning the result
         of compacting <em>element</em>. For each <em>property</em> and <em>value</em> in <em>element:</em>
         <ol class="algorithm">
