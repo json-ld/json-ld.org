@@ -519,12 +519,13 @@ their data into <tref>Linked Data</tref>.
       zeros are not allowed.</dd>
     <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
       Values that are used to express one of two possible boolean states.</dd>
-    <dt><tdef>null</tdef></dt><dd>
-      The null value is used to make a JSON-LD processor "forget" any
-      previously defined JSON key that is associated with the null value.
-      If a previous definition doesn't exist, the entire key-value is ignored.
-      If a previous definition of the key does exist, the previous
-      definition is undefined.</dd>
+    <dt><tdef>null</tdef></dt>
+    <dd>The <code>null</code> value is processed in a special way in JSON-LD.
+      Unless otherwise specified, a JSON-LD processor MUST act as if a
+      key-value pair in the body of a JSON-LD document was never declared
+      when the value equals <em>null</em>. If <code>@value</code>,
+      <code>@list</code>, or <code>@set</code> is set to <em>null</em> in
+      expanded form, then the entire <tref>JSON object</tref> is ignored.</dd>
     <dt><tdef>node definition</tdef></dt><dd>
       A <tref>JSON object</tref> used to represent a <tref>node</tref> and
       one or more properties of that node. A <tref>JSON object</tref> is a
@@ -688,7 +689,7 @@ site-by-site basis. Contexts may also contain type information
 for certain <tref>term</tref>s as well as other processing instructions for
 the JSON-LD processor.</p>
 
-<p class="note">External JSON-LD context documents MAY contain extra information
+<p>External JSON-LD context documents MAY contain extra information
 located outside of the <code>@context</code> key, such as documentation about the
 <tref title="term">terms</tref> declared in the document. When importing a
 <code>@context</code> value from an external JSON-LD context document, any extra
@@ -756,11 +757,10 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   more deeply nested <code>details</code> structure. Note that this is
   rarely a good authoring practice and is typically used when there exist
   legacy applications that depend on the specific structure of the
-  <tref>JSON object</tref>.</p>
-
-<p class="note">If a <tref>term</tref> is re-defined within a context, all previous
-  rules associated with the previous definition are removed. A <tref>term</tref> defined
-  in a previous context MUST be removed, if it is re-defined to <code>null</code>.</p>
+  <tref>JSON object</tref>. If a <tref>term</tref> is re-defined within a
+  context, all previous rules associated with the previous definition are
+  removed. A <tref>term</tref> defined in a previous context MUST be removed,
+  if it is re-defined to <code>null</code>.</p>
 
 <p>The set of contexts defined within a specific <tref>node definition</tref> are
   referred to as <tdef>local context</tdef>s. Setting the context to <code>null</code>
@@ -792,16 +792,6 @@ can be processed when a JSON-LD processor does not have access to the Web.</p>
   first, processors have to save each key-value pair until the <tref>context</tref> is processed.
   This creates a memory and complexity burden for certain types of
   low-memory footprint JSON-LD processors.</p>
-
-<p class="note">The <code>null</code> value is processed in a special way
-  in JSON-LD. Unless otherwise specified, a JSON-LD processor MUST act as if a
-  key-value pair in the body of a JSON-LD document was never declared when
-  the value equals <em>null</em>. If <code>@value</code>, <code>@list</code>,
-  or <code>@set</code> is set to <em>null</em> in expanded form, then the
-  entire <tref>JSON object</tref> is ignored. If <code>@context</code> is set
-  to <em>null</em>, the <tref>active context</tref> is reset and when used
-  within a <tref>context</tref>, it removes any definition associated with
-  the key, unless otherwise specified.</p>
 
 </section>
 
@@ -975,7 +965,7 @@ semantic meaning.</p>
 -->
 </pre>
 
-<p class="note">Specifying a <tref>JSON object</tref> with an
+<p>Specifying a <tref>JSON object</tref> with an
   <code>@id</code> key is used to identify that <tref>node</tref> using an
   <tref>IRI</tref>. When the object has only the <code>@id</code>, it
   is called a <tref>node reference</tref>.
@@ -1063,18 +1053,6 @@ the value into an IRI when processed by a JSON-LD Processor.</p>
   that does not contain an <code>@id</code> property defines properties of an
   <tref>unlabeled node</tref>. <tref title="node definition">Node definitions</tref> MAY
   be spread among different parts of a document or even between different documents.</p>
-
-<p class="note">To ensure the best possible performance, when possible, it is a best practice
-  to put JSON-LD <tref>keyword</tref>s, such as <code>@id</code> and
-  <code>@context</code> before other key-value pairs in a <tref>JSON object</tref>.
-  However, keys in a <tref>JSON object</tref> are not ordered,
-  so processors MUST NOT depend on key ordering. If keywords are not listed
-  first, processors have to save each key-value pair until at least the
-  <code>@context</code> and the <code>@id</code> are processed. Not
-  specifying those keywords first creates a memory and complexity burden for
-  low-memory footprint processors, forcing them to use more memory and
-  computing cycles than necessary.</p>
-
 
 </section>
 
@@ -1187,8 +1165,8 @@ value by omitting the <code>@language</code> tag or setting it to
 -->
 </pre>
 
-<p class="note">Please note that language associations MUST only be applied
-  to plain literal <tref>string</tref>s. That is, <tref>typed value</tref>s
+<p>Please note that language associations MUST only be applied to plain
+  literal <tref>string</tref>s. That is, <tref>typed value</tref>s
   or values that are subject to <a href="#type-coercion"></a>
   won't be language tagged.</p>
 
@@ -1215,8 +1193,7 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
 </pre>
 
 <p class="note">JSON-LD allows one to associate language information with
-  <tref>term</tref>s.
-  See <a href="#expanded-term-definition"></a> for
+  <tref>term</tref>s. See <a href="#expanded-term-definition"></a> for
   more details.</p>
 
 </section>
@@ -1624,9 +1601,10 @@ Content-Type: ****application/json****
 -->
 </pre>
 
-<p class="note">JSON-LD documents served with the <code>application/ld+json</code> media type
-  MUST have all context information, including references to external contexts, within the
-  body of the document.</p>
+<p>Please note that JSON-LD documents served with the <code>application/ld+json</code>
+  media type MUST have all context information, including references to external
+  contexts, within the body of the document. Contexts linked via a
+  <code>describedby</code> HTTP Link Header MUST be ignored for such documents.</p>
 </section>
 
 <section>
