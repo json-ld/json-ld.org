@@ -2248,73 +2248,13 @@ processor will use direct string comparison when looking up
 
 <section>
   <h2>Named Graphs</h2>
-  <p>The <code>@graph</code> <tref>keyword</tref> is used to express a set of
-    JSON-LD <tref>node definition</tref>s that may not be directly related
-    to one another through a property. The mechanism may also be used where
-    <tref>embedding</tref> is not desirable to the application. For example:</p>
 
-  <pre class="example" data-transform="updateExample">
-  <!--
-  {
-    "@context": ...,
-    "****@graph****":
-    [
-      {
-        "@id": "http://manu.sporny.org/i/public",
-        "@type": "foaf:Person",
-        "name": "Manu Sporny",
-        "knows": "http://greggkellogg.net/foaf#me"
-      },
-      {
-        "@id": "http://greggkellogg.net/foaf#me",
-        "@type": "foaf:Person",
-        "name": "Gregg Kellogg",
-        "knows": "http://manu.sporny.org/i/public"
-      }
-    ]
-  }
-  -->
-  </pre>
-
-  <p>In this case, embedding doesn't work as each
-    <tref>node definition</tref> references the other. Using the
-    <code>@graph</code> <tref>keyword</tref> allows multiple resources to be
-    defined within an <tref>array</tref>, and allows the use of a shared
-    <tref>context</tref>. When used in a <tref>JSON object</tref> that is not otherwise
-    a <tref>node definition</tref>, this describes resources in the <em>default graph</em>.
-    This is equivalent to using multiple <tref
-    title="node definition">node definitions</tref> in array and defining
-    the <code>@context</code> within each <tref>node definition</tref>:</p>
-
-  <pre class="example" data-transform="updateExample">
-  <!--
-  ****[****
-    {
-      ****"@context": ...,****
-      "@id": "http://manu.sporny.org/i/public",
-      "@type": "foaf:Person",
-      "name": "Manu Sporny",
-      "knows": "http://greggkellogg.net/foaf#me"
-    },
-    {
-      ****"@context": ...,****
-      "@id": "http://greggkellogg.net/foaf#me",
-      "@type": "foaf:Person",
-      "name": "Gregg Kellogg",
-      "knows": "http://manu.sporny.org/i/public"
-    }
-  ****]****
-  -->
-  </pre>
-
-  <p>JSON-LD allows you to <em>name</em> things on the Web by assigning
-    an <code>@id</code> to them, which is typically an <tref>IRI</tref>.
-    This notion extends to the ability to identify graphs in the same
-    manner. A developer may name data expressed using the <code>@graph</code>
-    <tref>keyword</tref> by pairing it with an <code>@id</code>
-    <tref>keyword</tref>. This enables the developer to make statements
-    about a <tref>JSON-LD graph</tref> itself,
-    rather than just a single <tref>node</tref>.</p>
+  <p>At times, it is necessary to to make statements about a <tref>JSON-LD graph</tref>
+    itself, rather than just a single <tref>node</tref>. This can be done by
+    grouping a set of <tref title="node">nodes</tref> using the <code>@graph</code>
+    <tref>keyword</tref>. A developer MAY also name data expressed using the
+    <code>@graph</code> <tref>keyword</tref> by pairing it with an
+    <code>@id</code> <tref>keyword</tref> as shown in the following example:</p>
 
   <pre class="example" data-transform="updateExample">
   <!--
@@ -2347,74 +2287,134 @@ processor will use direct string comparison when looking up
   -->
   </pre>
 
-  <p>The example above expresses a <em>named</em>
-    <tref>JSON-LD graph</tref> that is identified by the <tref>IRI</tref>
+  <p>The example above expresses a <em>named</em> <tref>JSON-LD graph</tref>
+    that is identified by the <tref>IRI</tref>
     <code>http://example.org/graphs/73</code>. That graph is composed of the
     statements about Manu and Gregg. Metadata about the graph itself is also
     expressed via the <code>asOf</code> property, which specifies when the
     information was retrieved from the Web. An alternative view of the
     information above is represented in table form below:</p>
 
-<table class="example">
-<thead>
-  <th>Graph</th>
-  <th>Subject</th>
-  <th>Property</th>
-  <th>Object</th>
-  <th>Datatype</th>
-</thead>
-<tbody>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://example.org/graphs/73</td>
-  <td>http://purl.org/net/provenance/ns#accessedResource</td>
-  <td>2012-04-09</td>
-  <td>http://www.w3.org/2001/XMLSchema#date</td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://manu.sporny.org/i/public</td>
-  <td>http://www.w3.org/2001/XMLSchema#type</td>
-  <td>http://xmlns.com/foaf/0.1/Person</td>
-  <td></td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://manu.sporny.org/i/public</td>
-  <td>http://xmlns.com/foaf/0.1/name</td>
-  <td>Manu Sporny</td>
-  <td></td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://manu.sporny.org/i/public</td>
-  <td>http://xmlns.com/foaf/0.1/knows</td>
-  <td>http://greggkellogg.net/foaf#me</td>
-  <td></td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://greggkellogg.net/foaf#me</td>
-  <td>http://www.w3.org/2001/XMLSchema#type</td>
-  <td>http://xmlns.com/foaf/0.1/Person</td>
-  <td></td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://greggkellogg.net/foaf#me</td>
-  <td>http://xmlns.com/foaf/0.1/name</td>
-  <td>Gregg Kellogg</td>
-  <td></td>
-</tr>
-<tr>
-  <td>http://example.org/graphs/73</td>
-  <td>http://greggkellogg.net/foaf#me</td>
-  <td>http://xmlns.com/foaf/0.1/knows</td>
-  <td>http://manu.sporny.org/i/public</td>
-  <td></td>
-</tr>
-</tbody>
-</table>
+  <table class="example">
+  <thead>
+    <th>Graph</th>
+    <th>Subject</th>
+    <th>Property</th>
+    <th>Object</th>
+    <th>Datatype</th>
+  </thead>
+  <tbody>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://example.org/graphs/73</td>
+    <td>http://purl.org/net/provenance/ns#accessedResource</td>
+    <td>2012-04-09</td>
+    <td>http://www.w3.org/2001/XMLSchema#date</td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://manu.sporny.org/i/public</td>
+    <td>http://www.w3.org/2001/XMLSchema#type</td>
+    <td>http://xmlns.com/foaf/0.1/Person</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://manu.sporny.org/i/public</td>
+    <td>http://xmlns.com/foaf/0.1/name</td>
+    <td>Manu Sporny</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://manu.sporny.org/i/public</td>
+    <td>http://xmlns.com/foaf/0.1/knows</td>
+    <td>http://greggkellogg.net/foaf#me</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://greggkellogg.net/foaf#me</td>
+    <td>http://www.w3.org/2001/XMLSchema#type</td>
+    <td>http://xmlns.com/foaf/0.1/Person</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://greggkellogg.net/foaf#me</td>
+    <td>http://xmlns.com/foaf/0.1/name</td>
+    <td>Gregg Kellogg</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.org/graphs/73</td>
+    <td>http://greggkellogg.net/foaf#me</td>
+    <td>http://xmlns.com/foaf/0.1/knows</td>
+    <td>http://manu.sporny.org/i/public</td>
+    <td></td>
+  </tr>
+  </tbody>
+  </table>
+
+  <p>When <code>@graph</code> is used in a document's top-level object which
+    has no other <tref title="property">properties</tref> that are mapped
+    to an <tref>IRI</tref> or a <tref>keyword</tref> it is considered to
+    express the otherwise implicit default graph. This mechanism can be useful
+    when a number of <tref title="node">nodes</tref> thay may not directly
+    relate to one another through a property or where <tref>embedding</tref>
+    is not desirable to the application. For example:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": ...,
+    "****@graph****":
+    [
+      {
+        "@id": "http://manu.sporny.org/i/public",
+        "@type": "foaf:Person",
+        "name": "Manu Sporny",
+        "knows": "http://greggkellogg.net/foaf#me"
+      },
+      {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "@type": "foaf:Person",
+        "name": "Gregg Kellogg",
+        "knows": "http://manu.sporny.org/i/public"
+      }
+    ]
+  }
+  -->
+  </pre>
+
+  <p>In this case, embedding doesn't work as each <tref>node definition</tref>
+    references the other. Using the <code>@graph</code> <tref>keyword</tref>
+    allows multiple <tref title="node">nodes</tref> to be defined within an
+    <tref>array</tref>, and allows the use of a shared <tref>context</tref>.
+    This is equivalent to using multiple
+    <tref title="node definition">node definitions</tref> in array and defining
+    the <code>@context</code> within each <tref>node definition</tref>:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  [
+    {
+      ****"@context": ...,****
+      "@id": "http://manu.sporny.org/i/public",
+      "@type": "foaf:Person",
+      "name": "Manu Sporny",
+      "knows": "http://greggkellogg.net/foaf#me"
+    },
+    {
+      ****"@context": ...,****
+      "@id": "http://greggkellogg.net/foaf#me",
+      "@type": "foaf:Person",
+      "name": "Gregg Kellogg",
+      "knows": "http://manu.sporny.org/i/public"
+    }
+  ]
+  -->
+  </pre>
 
 </section>
 
