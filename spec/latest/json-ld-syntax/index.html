@@ -586,8 +586,8 @@ that are a core part of the language:</p>
 <dd>Used to express an unordered set of data.
   This keyword is described in the section titled <a href="#sets-and-lists"></a>.</dd>
 <dt><code>@vocab</code></dt>
-<dd>Used to set the base <tref>IRI</tref> for all property IRIs affected by the
-  <tref>active context</tref>. This keyword is described in section <a href="#iris"></a>.</dd>
+<dd>Used to expand properties and values in <code>@type</code> with a common prefix
+  <tref>IRI</tref>. This keyword is described in section <a href="#iris"></a>.</dd>
 <dt><code>@graph</code></dt><dd>Used to explicitly label a <tref>JSON-LD graph</tref>.
   This keyword is described in <a href="#named-graphs"></a>.</dd>
 <dt><code>:</code></dt>
@@ -841,29 +841,25 @@ intended to be linked to from other data sets.</p>
 <section>
 <h2>IRIs</h2>
 
-<p><tref title="IRI">IRIs</tref> are fundamental to <tref>Linked Data</tref>
-as that is how most <tref title="node">nodes</tref>s and all
-<tref title="property">properties</tref> are
-identified. <tref>IRI</tref>s can be expressed in a variety of different ways
-in JSON-LD.</p>
-
-<p>An <tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>
-  (an Internationalized Resource Identifier) is described in [[!RFC3987]])
-  and the use with JSON-LD conforms to the definition of
-  <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri">IRI</a></cite> in [[!RDF-CONCEPTS]].</p>
+<p><tdef title="IRI"><abbr title="Internationalized Resource Identifier">IRIs</abbr></tdef>
+  (Internationalized Resource Identifiers are fundamental to <tref>Linked Data</tref> as
+  that is how most <tref title="node">nodes</tref>s and <tref title="property">properties</tref>
+  are identified. <tref>IRI</tref>s can be expressed in a variety of different ways in JSON-LD:</p>
 
 <ol>
-  <li>Except within a <tref>context</tref> definition, <tref>term</tref>s in the key position in
-    a <tref>JSON object</tref> that have a mapping or a vocabulary base <tref>IRI</tref> in the
-    <tref>active context</tref> are expanded to an <tref>IRI</tref> by JSON-LD processors.</li>
+  <li>Except within a <tref>context</tref> definition, <tref title="term">terms</tref> in the
+    key position in a <tref>JSON object</tref> that have a mapping in the <tref>active context</tref>
+    are expanded to an <tref>IRI</tref> by JSON-LD processors. If there's a <code>@vocab</code>
+    mapping in the active context also <tref title="term">terms</tref> without an explicit mapping
+    in the active context are expanded to an <tref>IRI</tref>.</li>
   <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
     <code>@id</code> or <code>@type</code>.</li>
   <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value of any key for which there
     are <tref>coercion</tref> rules in effect that identify the value as an <code>@id</code>.</li>
 </ol>
 
-<p>IRIs may be represented as an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>, a <tref>term</tref>,
-  a <tref>compact IRI</tref>, or as a value relative to <code>@vocab</code>.</p>
+<p>IRIs may be represented as an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>,
+  a <tref>compact IRI</tref>, or a <tref>term</tref>.</p>
 
 <p>An <tdef>absolute IRI</tdef> is defined in [[!RFC3987]] containing a <em>scheme</em> along with
   <em>path</em> and optional <em>query</em> and <em>fragment</em> segments. A <tdef>relative IRI</tdef> is an IRI
@@ -939,13 +935,13 @@ semantic meaning.</p>
 <code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#compact-iris"></a> for more details.</p>
 
 <p>It is often common that all types and properties come from the same vocabulary. JSON-LD's
-  <code>@vocab</code> keyword allows to set a base <tref>IRI</tref> to be used for all properties and types
-  that that do not match a <tref>term</tref>, a <tref>prefix</tref>, or an <tref>absolute IRI</tref>
+  <code>@vocab</code> keyword allows to set a common prefix to be used for all properties and types
+  that neither match a <tref>term</tref> nor a <tref>compact IRI</tref> or an <tref>absolute IRI</tref>
   (i.e., do not contain a colon). The <code>@vocab</code> mapping MUST have a value of a simple string with the
   lexical form of an absolute IRI.</p>
 
 <pre class="example" data-transform="updateExample"
-     title="Vocabulary base IRI">
+     title="Using a common vocabulary prefix">
 <!--
 {
   ****"@context": {
