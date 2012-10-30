@@ -1287,12 +1287,17 @@ language-native data structures MUST be used where applicable.</p>
               with the lexical form of an <tref>absolute IRI</tref>, or <tref>null</tref>. Add the vocabulary mapping to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each property in <em>context</em> perform the following steps:
               <ol class="algorithm">
-                <li>If the property's value is a simple <tref>string</tref>, determine the IRI mapping value by
+                <li>If the <em>property</em> has finished processing, continue to the next <em>property</em>. If
+                  the <em>property</em> is still processing, return an error because a cyclical dependency has been
+                  detected. Otherwise, mark the <em>property</em> as processing.</li>
+                <li>If the <em>property</em> has the form of a <tref>compact IRI</tref> and the resulting prefix is in
+                  <em>context</em>, then process the prefix starting at step 2.4.3.1. Otherwise, continue.</li>
+                <li>If the <em>property</em>'s <em>value</em> is a simple <tref>string</tref>, determine the IRI mapping value by
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
-                  mapping is an <tref>absolute IRI</tref>, merge the property into the <tref>local context</tref>
-                  <tref>term mapping</tref>, unless the property is a JSON-LD <tref>keyword</tref>, in which
+                  mapping is an <tref>absolute IRI</tref>, merge the <em>property</em> into the <tref>local context</tref>
+                  <tref>term mapping</tref>, unless the <em>property</em> is a JSON-LD <tref>keyword</tref>, in which
                   case return an error.</li>
-                <li>Otherwise, if the property's value is <tref>null</tref> remove mapping, coercion,
+                <li>Otherwise, if the <em>property</em>'s <em>value</em> is <tref>null</tref> remove mapping, coercion,
                   container and language information associated with property from the
                   <tref>local context</tref>.</li>
                 <li>Otherwise, the <em>property</em>'s <em>value</em> MUST be a <tref>JSON object</tref>.
@@ -1309,7 +1314,7 @@ language-native data structures MUST be used where applicable.</p>
                       by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
                       If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
                       <em>property</em> into the <tref>local context</tref> <tref>term mapping</tref>.</li>
-                    <li>If the <em>property</em> has the form of of a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
+                    <li>If the <em>property</em> has the form of a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
                       the <em>value</em> MAY have a <code>@id</code> property with a string value which MUST have the
                       form of a <tref>term</tref>, <tref>compact IRI</tref>, or absolute <tref>IRI</tref>.
                       Determine the IRI mapping by performing <a href="#iri-expansion">IRI Expansion</a> on the associated
@@ -1329,9 +1334,8 @@ language-native data structures MUST be used where applicable.</p>
                       <em>property</em>.</li>
                   </ol>
                 </li>
-                <li>Merge the <tref>local context</tref> into the <tref>active context</tref>.</li>
-                <li>Repeat <a href="#object-context">Step 2.4.2</a> until no entries are added to the <tref>local
-                  context</tref>.</li>
+                <li>Mark the <em>property</em> as finished processing and merge the <tref>local context</tref> into
+                  the <tref>active context</tref>.</li>
               </ol>
             </li>
           </ol>
@@ -1339,12 +1343,6 @@ language-native data structures MUST be used where applicable.</p>
       </ol>
     </li>
   </ol>
-
-  <p class="note">It can be difficult to distinguish between a <tref>compact IRI</tref> and an <tref>absolute IRI</tref>,
-    as a <tref>compact IRI</tref> may seem to be a valid IRI <em>scheme</em>. When performing repeated IRI expansion,
-    a term used as a prefix may not have a valid mapping due to dependencies in resolving term definitions. By
-    continuing <a href="#object-context">Step 2.3.2</a> until no changes are made, mappings to IRIs created
-    using an undefined term prefix will eventually expand to an <tref>absolute IRI</tref>s.</p>
 
 </section>
 
