@@ -1287,14 +1287,16 @@ language-native data structures MUST be used where applicable.</p>
               with the lexical form of an <tref>absolute IRI</tref>, or <tref>null</tref>. Add the vocabulary mapping to the <tref>local context</tref>.</li>
             <li id="object-context">Otherwise, for each property in <em>context</em> perform the following steps:
               <ol class="algorithm">
-                <li>If the <em>property</em> has finished processing, continue to the next <em>property</em>. If
-                  the <em>property</em> is still processing, return an error because a cyclical dependency has been
-                  detected. Otherwise, mark the <em>property</em> as processing.</li>
+                <li id="context-process-property">If the <em>property</em> has no processing state set, set it to <em>processing</em>.
+                  Otherwise, if the <em>property</em>'s processing state is <em>finished</em>, continue to the
+                  next <em>property</em>. Otherwise, if the <em>property</em>'s processing state is <em>processing</em>,
+                  return an error because a cyclical dependency has been detected.</li>
                 <li>If the <em>property</em> has the form of a <tref>compact IRI</tref> and the resulting prefix is in
-                  <em>context</em>, then process the prefix starting at step 2.4.3.1. Otherwise, continue.</li>
+                  <em>context</em>, then process the prefix starting at <a href="#context-process-property">step 2.4.3.1</a>.
+                  Otherwise, continue.</li>
                 <li>If the <em>property</em>'s <em>value</em> is a simple <tref>string</tref>, determine the IRI mapping value by
                   performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
-                  mapping is an <tref>absolute IRI</tref>, merge the <em>property</em> into the <tref>local context</tref>
+                  mapping is an <tref>absolute IRI</tref>, overwrite the <em>property</em> in the <tref>local context</tref>
                   <tref>term mapping</tref>, unless the <em>property</em> is a JSON-LD <tref>keyword</tref>, in which
                   case return an error.</li>
                 <li>Otherwise, if the <em>property</em>'s <em>value</em> is <tref>null</tref> remove mapping, coercion,
@@ -1334,8 +1336,8 @@ language-native data structures MUST be used where applicable.</p>
                       <em>property</em>.</li>
                   </ol>
                 </li>
-                <li>Mark the <em>property</em> as finished processing and merge the <tref>local context</tref> into
-                  the <tref>active context</tref>.</li>
+                <li>Set the <em>property</em>'s processing state to <em>finished</em> and merge the
+                  <tref>local context</tref> into the <tref>active context</tref>.</li>
               </ol>
             </li>
           </ol>
@@ -1349,14 +1351,25 @@ language-native data structures MUST be used where applicable.</p>
 <section>
   <h2>IRI Expansion</h2>
   <p>Keys and some values are evaluated to produce an <tref>IRI</tref>. This section defines an algorithm for
-    transforming a value representing an IRI into an actual IRI.</p>
+    transforming a value representing an IRI into an actual IRI. If <tref>IRI</tref> expansion
+    occurs during context processing, the <tref>local context</tref> that is being processed 
+    is passed to this algorithm.</p>
 
   <p>The algorithm for generating an IRI is:
     <ol class="algorithm">
+      <li>If a <tref>local context</tref> is being processed and the value is in the
+        <tref>local context</tref> but the value's processing state is not <em>finished</em>, then
+        process the value using <a href="#context-process-property">step 2.4.3.1</a> of the
+        <a href="#context">Context Processing algorithm</a>.
       <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for the value using
-        a case-sensitive comparison, use the mapped value as an IRI.</li>
+        a case-sensitive comparison, use the mapped value as an IRI, unless a <tref>local context</tref>
+        is being processed, in which case, return the result of recursing to expand the mapped value.</li>
       <li>Otherwise, split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
       <li>If the prefix is a '_' (underscore), the value represents a named <tref>blank node</tref>.</li>
+      <li>If a <tref>local context</tref> is being processed and the <em>prefix</em> is in the
+        <tref>local context</tref> but it's processing state is not <em>finished</em>, then
+        process the <em>prefix</em> using <a href="#context-process-property">step 2.4.3.1</a> of the
+        <a href="#context">Context Processing algorithm</a>.
       <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em> using
         a case-sensitive comparison, and <em>suffix</em> does not does not begin with '//'
         (i.e., it does not match a <em>hier-part</em> including
