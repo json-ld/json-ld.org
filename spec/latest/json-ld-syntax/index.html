@@ -490,11 +490,11 @@ JSON, which is detailed in [[!RFC4627]].</p>
 <h1>Terminology</h1>
 
 <section>
-  <h2>General Terminology</h3>
+  <h2>General Terminology</h2>
 
-  <p>The following is an explanation of the general terminology used in this
-  document. Many of the terms should be familiar to developers that have
-  used JSON:</p>
+  <p>This document uses terms defined in JSON [[!RFC4627]] described in the
+    following list. Refer to the JSON grammar section in JSON for formal
+    definitions.</p>
 
   <dl>
     <dt><tdef>JSON object</tdef></dt><dd>
@@ -502,18 +502,17 @@ JSON, which is detailed in [[!RFC4627]].</p>
       surrounding zero or more key-value pairs. A key is a
       <tref>string</tref>. A single colon comes after each key, separating the
       key from the value. A single comma separates a value from a following
-      key. The keys within an object SHOULD be unique.
+      key.
     </dd>
     <dt><tdef>array</tdef></dt>
     <dd>
+      An array structure is represented as square brackets surrounding zero
+      or more values (or elements). Elements are separated by commas.
       In JSON, an array is an <em>ordered</em> sequence of zero or more values.
-      An array is represented as square brackets surrounding
-      zero or more values that are separated by commas.
       While JSON-LD uses the same array representation as JSON,
       the collection is <em>unordered</em> by default. While order is
       preserved in regular JSON arrays, it is not in regular JSON-LD arrays
-      unless specific markup is provided
-      (see <a href="#sets-and-lists"></a>).</dd>
+      unless specific markup is provided (see <a href="#sets-and-lists"></a>).</dd>
     <dt><tdef>string</tdef></dt><dd>
       A string is a sequence of zero or more Unicode characters,
       wrapped in double quotes, using backslash escapes (if necessary). A
@@ -526,25 +525,12 @@ JSON, which is detailed in [[!RFC4627]].</p>
     <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
       Values that are used to express one of two possible boolean states.</dd>
     <dt><tdef>null</tdef></dt>
-    <dd>The <code>null</code> value is processed in a special way in JSON-LD.
-      Unless otherwise specified, a JSON-LD processor MUST act as if a
-      key-value pair in the body of a JSON-LD document was never declared
-      when the value equals <em>null</em>. If <code>@value</code>,
+    <dd>The <code>null</code> value. Unless otherwise specified, a key-value
+      pair in the body of a JSON-LD document whose value is <em>null</em>
+      has the same meaning as if the key was not defined. If <code>@value</code>,
       <code>@list</code>, or <code>@set</code> is set to <em>null</em> in
       expanded form, then the entire <tref>JSON object</tref> is ignored.</dd>
-    <dt><tdef>node definition</tdef></dt><dd>
-      A <tref>JSON object</tref> used to represent a <tref>node</tref> and
-      one or more properties of that node. A <tref>JSON object</tref> is a
-      node definition if it does not contain the keys <code>@value</code>,
-      <code>@list</code> or <code>@set</code> and it has one or more keys other
-      than <code>@id</code>. A node definition MAY be spread among different
-      parts of a document or even between different documents.</dd>
-    <dt><tdef>node reference</tdef></dt><dd>
-      A <tref>JSON object</tref> used to refer to a node that contains a
-      single key-value pair where the key is <code>@id</code>.</dd>
   </dl>
-</p>
-
 </section>
 
 <section>
@@ -620,17 +606,11 @@ case-sensitive.</p>
 <section>
 <h2>The Context</h2>
 
-<p>In JSON-LD, a <tdef>context</tdef> is used to map <tref>term</tref>s, i.e., properties with associated
-  values in an JSON document, to <tref>IRI</tref>s. A <tdef>term</tdef> is a short word that expands to an
-  <tref>IRI</tref>. <tref>Term</tref>s MAY be defined as any valid JSON <tref>string</tref> other
-  than a JSON-LD <tref>keyword</tref>. To avoid
-  forward-compatibility issues, <tref>term</tref>s starting with an <code>@</code> character SHOULD NOT be used
-  as they might be used as <tref title="keyword">keywords</tref> in future versions of JSON-LD. Furthermore,
-  the use of empty terms (<code>""</code>) is discouraged as not all programming languages are able to handle
-  empty property names.</p>
+<p>In JSON-LD, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>, i.e., properties with associated
+  values in an JSON document, to <tref title="IRI">IRIs</tref>.</p>
 <p>The Web uses <tref title="IRI">IRIs</tref> for unambiguous identification. The
-  idea is that these <tref>term</tref>s mean something that may be of use to other developers and that it is useful to
-  give them an unambiguous identifier. That is, it is useful for <tref>term</tref>s to expand to IRIs so that
+  idea is that these <tref title="term">terms</tref> mean something that may be of use to other developers and that it is useful to
+  give them an unambiguous identifier. That is, it is useful for <tref title="term">terms</tref> to expand to IRIs so that
   developers don't accidentally step on each other's <tdef>vocabulary</tdef> terms and other resources. Furthermore, developers, and
   machines, are able to use this <tref>IRI</tref> (by plugging it directly into a web browser, for instance) to go to
   the term and get a definition of what the term means. This mechanism is analogous to the way we can use
@@ -1357,7 +1337,7 @@ advanced functionality in more detail.
 <ol>
   <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing the expanded form for specifying values.</li>
+  <li>By utilizing an <tref>expanded typed value</tref>.</li>
   <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
 </ol>
 
@@ -1419,7 +1399,7 @@ in the body of a JSON-LD document:</p>
   express the value of a type.</p>
 
 <p>The <code>@type</code> <tref>keyword</tref> is also used to associate a type
-  with a <tref>node</tref>. The concept of an <tdef>node type</tdef> and
+  with a <tref>node</tref>. The concept of a <tdef>node type</tdef> and
   a <tdef>value type</tdef> are different. This is similar to object-oriented
   programming languages where both scalar and structured types use the same
   class inheritance mechanism, even though scalar types and structured types are
@@ -1462,7 +1442,7 @@ in the body of a JSON-LD document:</p>
 <p>
   A string with an associated language, also known as a
   <tdef>language-tagged string</tdef>, is indicated by associating a string with
-  an language code as defined in [[!BCP47]]. Language-tagged strings may be
+  a language code as defined in [[!BCP47]]. Language-tagged strings may be
   expressed in JSON-LD in four ways:
 </p>
 
@@ -1471,11 +1451,11 @@ in the body of a JSON-LD document:</p>
     <tref>keyword</tref> within a <code>@context</code> section.</li>
   <li>By utilizing the <code>@language</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing the expanded form for specifying values.</li>
-  <li>By utilizing the <code>@container</code> <tref>keyword</tref> with a
-  value of <code>@language</code> when defining a <tref>term</tref> within
-  a <code>@context</code> section. This usage pattern is called a
-  <tdef>language map</tdef>.</li>
+  <li>By utilizing an <tref>expanded language-tagged string</tref>.</li>
+  <li>By utilizing a <tref>language map</tref>, provided the underlying
+    <code>term</code> is defined with a <code>@container</code>
+    <tref>keyword</tref> whose value is <code>@language</code> within
+    a <code>@context</code> section.</li>
 </ol>
 
 <p>The first example uses the <code>@language</code> keyword to associate a
@@ -1536,7 +1516,7 @@ in the body of a JSON-LD document:</p>
 <p>Systems that support multiple languages often need to express data values in
 each language. Typically, such systems also try to ensure that developers have
 a programatically easy way to navigate the datastructures for the
-language-specific data. In this case, <tref>language map</tref>s
+language-specific data. In this case, <tref title="language map">language maps</tref>
 may be utilized.</p>
 
 <pre class="example" data-transform="updateExample"
@@ -2643,31 +2623,28 @@ a normative grammar for JSON-LD.</p>
 <p>This appendix restates the syntactic conventions described in the
   previous sections more formally.</p>
 
-<p>A JSON-LD processor SHOULD attempt to process non-conforming
-  JSON-LD documents. Conformance violations MUST be reported through a
-  conformance violation callback mechanism defined in the [[JSON-LD-API]].</p>
+<p>A <tref>JSON-LD processor</tref> SHOULD attempt to process non-conforming
+  <tref title="JSON-LD document">JSON-LD documents</tref>. Conformance violations
+  MUST be reported through a conformance violation callback mechanism defined in
+  the [[JSON-LD-API]].</p>
 
-<p>For a JSON-LD document to be conforming, it MUST be a valid JSON document
-  as described in [[!RFC4627]].</p>
+<p class="note">The JSON-LD context allows <tref title="keyword">keywords</tref>
+  to be aliased within the <tref>active context</tref> (see
+  <a href="#aliasing-keywords"></a>). Whenever a <tref>keyword</tref> is
+  discussed in this grammar, this is also understood to apply to an alias for
+  that <tref>keyword</tref>. For example, if the <tref>active context</tref>
+  defines the <tref>term</tref> <code>id</code> as an alias for <code>@id</code>,
+  that alias may be legitimately used as a substitution for <code>@id</code>.
+  Note that <tref>keyword</tref> aliases are not expanded during context
+  processing.</p>
 
-<p>JSON-LD introduces a number of keywords of the form '<code>@</code>'
-  followed by a set of one or more lower case alphabetic characters
-  (<code>@[a-z]+</code>). JSON-LD documents SHOULD NOT define terms beginning
-  with '<code>@</code>'.
-  (See <a href="#syntax-tokens-and-keywords"></a> for a complete definition of JSON-LD keywords).</p>
+<p>A <tref>JSON-LD document</tref> MUST be a valid JSON document as described
+  in [[!RFC4627]].</p>
 
-<p class="note">The JSON-LD context allows <tref title="keyword">keywords</tref> to be
-  aliased within the <tref>active context</tref>. Whenever a <tref>keyword</tref> is
-  discussed, this is also understood to apply to an alias for that <tref>keyword</tref>
-  For example, if the <tref>active context</tref> defines the <tref>term</tref> <code>id</code> as
-  an alias for <code>@id</code>, that alias may be legitimately used as a substitution
-  for <code>@id</code>. Note that <tref>keyword</tref> aliases are not expanded during
-  context processing.</p>
-
-<p>A JSON-LD document is either a
-  a single <tref>node definition</tref>
-  or a JSON <tref>array</tref> containing a set of
-  one or more <tref title="node definition">node definitions</tref>.</p>
+<p>A <tref>JSON-LD document</tref> MUST be a single <tref>node definition</tref>
+  or a JSON <tref>array</tref> containing a set of one or more
+  <tref title="node definition">node definitions</tref>.
+  (@@@ plus @graph exception to the rule?)</p>
 <pre class="example" data-transform="updateExample"
      title="Simple node definition">
 <!--
@@ -2697,11 +2674,27 @@ a normative grammar for JSON-LD.</p>
 
 <section id="grammar-node-definition">
 <h3>Node Definition</h3>
-<p>A <tref>node definition</tref> is a <tref>JSON object</tref>
-  containing one or more key-value pairs. Keys are <tref>IRI</tref>s,
-  <tref>compact IRI</tref>s,
-  <tref>term</tref>s defined within the <tref>active context</tref>, or one of the
-  following keywords:</p>
+
+<p>A <tdef>node definition</tdef> represents one or more properties of a
+  <tref>node</tref> in the <tref>JSON-LD graph</tref> produced by
+  <tref title="JSON-LD processor">JSON-LD processors</tref> during expansion.
+  The properties of a <tref>node</tref> in the <tref>JSON-LD graph</tref>
+  may be spread among different <tref title="node definition">node definitions</tref>
+  within a document or even between different documents. When that happens,
+  a <tref>JSON-LD processor</tref> merges these properties during expansion to
+  create the <tref>node</tref> (see expansion algorithm in [[!JSON-LD-API]]).</p>
+
+<p>In a JSON-LD document, a <tref>JSON object</tref> is a
+  <tref>node definition</tref> if it does not contain the keys
+  <code>@value</code>, <code>@list</code> or <code>@set</code>
+  and it has one or more keys other than <code>@id</code>.</p>
+
+<p>A <tref>node definition</tref> MUST be a <tref>JSON object</tref> that contains
+  one or more key-value pairs. Keys MUST either be
+  <tref title="IRI">IRIs</tref>,
+  <tref title="compact IRI">compact IRIs</tref>,
+  <tref title="term">terms</tref> valid in the <tref>active context</tref>, or
+  one of the following <tref title="keyword">keywords</tref>:</p>
 <ul>
   <li><code>@context</code>,</li>
   <li><code>@graph</code>,</li>
@@ -2711,9 +2704,8 @@ a normative grammar for JSON-LD.</p>
 <p>If the <tref>node definition</tref> contains the <code>@context</code>
   key, its value MUST be one of the following:</p>
 <ul>
-  <li>a <tref>string</tref> with the lexical form of <tref>IRI</tref>,</li>
-  <li>a <tref>JSON object</tref> conforming the the syntax requirements stated
-    in <a href="#grammar-context"></a>, or</li>
+  <li>an <tref>IRI</tref>,</li>
+  <li>a <tref>context definition</tref>, or</li>
   <li>an <tref>array</tref> composed of any number of the previous two expressions.</li>
 </ul>
 <pre class="example" data-transform="updateExample"
@@ -2727,16 +2719,16 @@ a normative grammar for JSON-LD.</p>
 }
 -->
 </pre>
-<p>See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
-  and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
-  <code>@id</code> values.</p>
 
 <p>If the <tref>node definition</tref> contains the <code>@id</code>
-  key, it's value
-  MUST be a <tref>string</tref> having the lexical form of <tref>IRI</tref>,
-  <tref>compact IRI</tref> (including <tref>unlabeled node</tref>), or a
-  <tref>term</tref> defined in the <tref>active context</tref> expanding
-  into an <tref>IRI</tref> or an <tref>unlabeled node</tref>.</p>
+  key, its value MUST be
+  an <tref>IRI</tref>,
+  a <tref>compact IRI</tref> (including <tref>unlabeled node</tref> identifiers), or
+  a <tref>term</tref> defined in the <tref>active context</tref> expanding
+  into an <tref>IRI</tref> or an <tref>unlabeled node</tref> identifier.
+  See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
+  and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
+  <code>@id</code> values.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Node definition with @id">
@@ -2752,16 +2744,18 @@ a normative grammar for JSON-LD.</p>
 </pre>
 
 <p>If the <tref>node definition</tref> contains the <code>@type</code>
-  key, it's value
-  MUST be either a <tref>string</tref> having the lexical form of
-  <tref>absolute IRI</tref>, <tref>compact IRI</tref>, a <tref>term</tref> defined in the
-  <tref>active context</tref> expanding into an <tref>absolute IRI</tref>,
-  or an <tref>array</tref> of any of these.</p>
+  key, its value MUST be either
+  an <tref>absolute IRI</tref>,
+  a <tref>compact IRI</tref> (excluding <tref>unlabeled node</tref> identifiers),
+  a <tref>term</tref> defined in the <tref>active context</tref> expanding into an <tref>absolute IRI</tref>, or
+  an <tref>array</tref> of any of these.
+  See <a href="#specifying-the-type"></a> for further discussion on
+  <code>@type</code> values.</p>
 
-<p>A JSON-LD processor SHOULD process non-conforming documents
+<p>A <tref>JSON-LD processor</tref> SHOULD process non-conforming documents
   having <code>@type</code> values including <tref>node definition</tref> or
   <tref>node reference</tref> entries but MUST
-  discard everything except for the value of the <code>@id</code> key.</p>
+  discard everything except for the value of the <code>@id</code> key.
 
 <pre class="example" data-transform="updateExample"
      title="Node definition with @type">
@@ -2776,17 +2770,17 @@ a normative grammar for JSON-LD.</p>
 }
 -->
 </pre>
-<p>See <a href="#specifying-the-type"></a> for further discussion on
-  <code>@type</code> values.</p>
 
 <p>If the <tref>node definition</tref> contains the <code>@graph</code>
-  key, it's value MUST
-  be a <tref>node definition</tref> or an <tref>array</tref> of zero or more
-  <tref title="node definition">node definitions</tref>. If the
-  <tref>node definition</tref> contains an <code>@id</code> keyword,
-  its value is used as the label of a named graph.</p>
+  key, its value MUST be
+  a <tref>node definition</tref> or
+  an <tref>array</tref> of zero or more <tref title="node definition">node definitions</tref>.
+  If the <tref>node definition</tref> contains an <code>@id</code> keyword,
+  its value is used as the label of a named graph.
+  See <a href="#named-graphs"></a> for further discussion on
+  <code>@graph</code> values.</p>
 
-<p class="note">As a special case, if the <tref>JSON object</tref> contains no
+<p class="note">As a special case, if a <tref>JSON object</tref> contains no
   keys other than <code>@graph</code> and <code>@context</code>, and the
   <tref>JSON object</tref> is the root of the JSON-LD document, the
   <tref>JSON object</tref> is not treated as a <tref>node definition</tref>; this
@@ -2820,15 +2814,14 @@ a normative grammar for JSON-LD.</p>
 -->
 </pre>
 
-<p>See <a href="#named-graphs"></a> for further discussion on
-  <code>@graph</code> values.</p>
-
-<p>A JSON-LD document MUST NOT contain any <tref>keyword</tref> or
+<p>A <tref>JSON-LD document</tref> MUST NOT contain any <tref>keyword</tref> or
   alias that expands to another keyword.</p>
+<!-- tidoust: clarify? -->
 
-<p>Other keys MUST expand to an <tref>absolute IRI</tref> using the
-  <tref>active context</tref>. The values associated with these keys
-  may be any of the following:</p>
+<p>Keys in a <tref>node definition</tref> that are not
+  <tref title="keyword">keywords</tref> MUST expand to an <tref>absolute IRI</tref>
+  using the <tref>active context</tref>. The values associated with these keys
+  MUST be one of the following:</p>
 
 <ul>
   <li><tref>string</tref>,</li>
@@ -2838,11 +2831,10 @@ a normative grammar for JSON-LD.</p>
   <li><tref>null</tref>,</li>
   <li><tref>node reference</tref>,</li>
   <li><tref>node definition</tref>,</li>
-  <li><tref>typed value</tref>,</li>
-  <li><tref>language-tagged string</tref>,</li>
-  <li><code>@set</code> or <code>@list</code>
-    definition (see <a href="#sets-and-lists"></a>),</li>
-  <li>an <tref>array</tref> zero or more of these, or</li>
+  <li><tref>expanded typed value</tref>,</li>
+  <li><tref>expanded language-tagged string</tref>,</li>
+  <li><tref>list</tref> or <tref>set</tref>,</li>
+  <li>an <tref>array</tref> of zero or more of the above possibilities, or</li>
   <li>a <tref>language map</tref></li>
 </ul>
 
@@ -2850,10 +2842,24 @@ a normative grammar for JSON-LD.</p>
 
 <section id="grammar-node-reference">
 <h2>Node Reference</h2>
-<p>A <tref>JSON object</tref> containing only the <code>@id</code>
-  (or an alias for <code>@id</code>) is a <tref>node reference</tref> and not a
-  <tref>node definition</tref>.
-</p>
+
+<p>A <tdef>node reference</tdef> allows authors to reference a <tref>node</tref>
+  in the graph by its unique identifier.</p>
+
+<p>A <tref>node reference</tref> MUST be a <tref>JSON object</tref> that contains a
+  single key-value pair where the key is <code>@id</code> (or an alias for
+  <code>@id</code>, see <a href="#aliasing-keywords"></a>).</p>
+
+<p>The value of the <code>@id</code> key in a <tref>node reference</tref> MUST be
+  an <tref>IRI</tref>,
+  a <tref>compact IRI</tref> (including <tref>unlabeled node</tref> identifiers), or
+  a <tref>term</tref> defined in the <tref>active context</tref> expanding
+  into an <tref>IRI</tref> or an <tref>unlabeled node</tref> identifier.</p>
+
+<p>See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
+  and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
+  <code>@id</code> values.</p>
+
 <pre class="example" data-transform="updateExample"
      title="Explicit node reference">
 <!--
@@ -2882,12 +2888,32 @@ a normative grammar for JSON-LD.</p>
 </pre>
 </section>
 
+<section id="grammar-term-reference">
+  <h2>Term</h2>
+  <p>A <tdef>term</tdef> is a short-hand <tref>string</tref> that expands
+    to an <tref>IRI</tref> or an <tref>unlabeled node</tref> identifier when
+    processed by a <tref>JSON-LD processor</tref>.</p>
+
+  <p>A <tref>term</tref> MUST NOT equal any of the JSON-LD
+    <tref title="keyword">keywords</tref>.</p>
+
+  <p>To avoid forward-compatibility issues, a <tref>term</tref> SHOULD NOT start
+    with an <code>@</code> character as future versions of JSON-LD may introduce
+    additional <tref title="keyword">keywords</tref>. Furthermore, the use of
+    empty terms (<code>""</code>) is discouraged as not all programming languages
+    are able to handle empty property names.</p>
+</section>
+
 <section id="grammar-language-map">
 <h2>Language Map</h2>
+<p>A <tdef>language map</tdef> is used to associate a language with a value in a
+  way that allows easy programmatic access.</p>
+
 <p>A <tref>language map</tref> may be used as a term value within a
   <tref>node definition</tref> if the term is defined with
   <code>@container</code> set to <code>@language</code>.</p>
-<p>The keys of a <tref>language map</tref> MUST be a [[BCP47]] string
+
+<p>The keys of a <tref>language map</tref> MUST be [[BCP47]] <tref title="string">strings</tref>
   with an associated value that is any of the following types:</p>
 <ul>
   <li><tref>string</tref>,</li>
@@ -2897,10 +2923,8 @@ a normative grammar for JSON-LD.</p>
   <li><tref>null</tref>,</li>
   <li><tref>node reference</tref>,</li>
   <li><tref>node definition</tref>,</li>
-  <li><tref>typed value</tref>,</li>
-  <li><tref>language-tagged string</tref>,</li>
-  <li><code>@set</code> or <code>@list</code>
-    definition (see <a href="#sets-and-lists"></a>), or</li>
+  <li><tref>expanded typed value</tref>,</li>
+  <li><tref>list</tref> or <tref>set</tref>, or</li>
   <li>an <tref>array</tref> zero or more of these</li>
 </ul>
 <p class="issue resolved" data-number="133">We had also discussed values other than strings, such as those that might represent a more reified version of a value with other properties, such as is described using <a href="http://www.w3.org/TR/skos-reference/skos-xl.html">SKOS-XL</a>.</p>
@@ -2931,97 +2955,117 @@ a normative grammar for JSON-LD.</p>
 
 <section id="grammar-expanded-values">
 <h2>Expanded Values</h2>
-<p>An <tdef>expanded value</tdef> is a <tref>JSON object</tref> containing the
-  <code>@value</code> key, or an alias for the <code>@value</code> value key.
-  It MAY
-  also contain the <code>@type</code> or <code>@language</code> keys, or their
-  respective keyword aliases. An <tref>expanded value</tref> MUST NOT
-  contain keys other than <code>@value</code>, <code>@language</code>, and
-  <code>@type</code>.
-  An <tref>expanded value</tref> MUST NOT contain both the
-  <code>@language</code> and <code>@type</code> keys.</p>
-  <p>The value of the <code>@value</code> key, or its alias, MUST be either a
-  <tref>string</tref>, <tref>number</tref>, <tref>true</tref>, or
-  <tref>false</tref>.</p>
-<p>If an <tref>expanded value</tref> contains a <code>@language</code> key,
-  it MUST NOT contain any other key except <code>@value</code>. The value of
-  the <code>@language</code> key MUST have the lexical form described in
-  [[!BCP47]], or be <tref>null</tref>.</p>
-<p>If an <tref>expanded value</tref> contains a <code>@type</code> key, it
-  MUST NOT contain any other key except <code>@value</code>. The value of
-  <code>@type</code> MUST be a <tref>term</tref>, <tref>compact IRI</tref>,
-  <tref>absolute IRI</tref>, or <code>null</code>.</p>
+
+<p>An <tdef>expanded value</tdef> is used to explicitly associate a type or a
+  language with a value to create a <tref>typed value</tref> or a <tref>language-tagged
+  string</tref>.</p>
+
+<p>An <tref>expanded value</tref> MUST be a <tref>JSON object</tref> containing the
+  <code>@value</code> key. It MAY also contain a <code>@type</code> or
+  a <code>@language</code> key but MUST NOT contain both a <code>@type</code>
+  and a <code>@language</code> key. An <tref>expanded value</tref> MUST NOT
+  contain keys other than
+  <code>@value</code>,
+  <code>@language</code>, and
+  <code>@type</code>.</p>
+
+<p>An <tref>expanded value</tref> that contains a <code>@type</code> key is
+  called an <tdef>expanded typed value</tdef>. An <tref>expanded value</tref>
+  that contains a <code>@language</code> key is called an <tdef>expanded
+  language-tagged string</tdef>. An <tref>expanded value</tref> that contains
+  neither the <code>@type</code> key or the <code>@language</code> key is both
+  an <tref>expanded typed value</tref> and an <tref>expanded language-tagged
+  string</tref>.</p>
+
+<p>The value of the <code>@value</code> key MUST be either a
+  <tref>string</tref>, <tref>number</tref>, <tref>true</tref>, <tref>false</tref>
+  or <tref>null</tref>.</p>
+
+<p>The value of the <code>@language</code> key MUST have the lexical form
+  described in [[!BCP47]], or be <tref>null</tref>.</p>
+
+<p>The value of the
+  <code>@type</code> key MUST be a <tref>term</tref>, a <tref>compact IRI</tref>,
+  an <tref>absolute IRI</tref>, or <code>null</code>.</p>
+
 <p>See <a href="#typed-values"></a> and <a href="#language-tagged-strings"></a>
-  for a further discussion of
+  for further discussion of
   <tref title="expanded value">expanded values</tref>.</p>
 </section>
 
 <section id="grammar-set-list">
 <h2>List and Set Values</h2>
 
-<p>A <tdef>list</tdef> is a <tref>JSON object</tref> having only the <code>@list</code>
-  <tref>keyword</tref>. Its value MUST be an <tref>array</tref> of any of the following:</p>
+<p>A <tdef>list</tdef> represents an <em>ordered</em> set of values.
+  A <tdef>set</tdef> represents an <em>unordered</em> set of values.
+  Unless otherwise specified (typically through the use of a <tref>list</tref>),
+  <tref title="array">arrays</tref> are unordered in JSON-LD.
+  As such, the <code>@set</code> keyword is not stricto senso necessary.
+  It is defined for symmetry with the <code>@list</code> keyword.</p>
+</p>
+
+<p>A <tref>list</tref> MUST be a <tref>JSON object</tref> that contains a single key-value pair where the key is <code>@list</code>.</p>
+
+<p>A <tref>set</tref> MUST be a <tref>JSON object</tref> that contains a single key-value pair where the key is <code>@set</code>.</p>
+
+<p>In both cases, the value associated with the key MUST be an <tref>array</tref> of any of the following:</p>
 <ul>
   <li><tref>string</tref>,</li>
+  <li><tref>number</tref>,</li>
+  <li><tref>true</tref>,</li>
+  <li><tref>false</tref>,</li>
+  <li><tref>null</tref>,</li>
   <li><tref>node reference</tref>,</li>
   <li><tref>node definition</tref>,</li>
-  <li><tref>typed value</tref>, or</li>
-  <li><tref>language-tagged string</tref>.</li>
+  <li><tref>expanded typed value</tref>, or</li>
+  <li><tref>expanded language-tagged string</tref></li>
 </ul>
-<p>A <tdef>set</tdef> is a <tref>JSON object</tref> having only the <code>@set</code>
-  <tref>keyword</tref>. Its value MUST be an <tref>array</tref> of any of the following:</p>
-<ul>
-  <li><tref>string</tref>,</li>
-  <li><tref>node reference</tref>,</li>
-  <li><tref>node definition</tref>,</li>
-  <li><tref>typed value</tref>,</li>
-  <li><tref>language-tagged string</tref>,</li>
-  <li><code>@set</code> or <code>@list</code>
-    definition (see <a href="#sets-and-lists"></a>), or</li>
-  <li>an <tref>array</tref> zero or more of these.</li>
-</ul>
-<p>See <a href="#sets-and-lists"></a> for a further discussion of List and Set Values.</p>
+
+<p>See <a href="#sets-and-lists"></a> for further discussion of List and Set Values.</p>
 </section>
 
 <section id="grammar-context">
 <h2>Context Definition</h2>
-<p>A <tdef>context definition</tdef> is a <tref>JSON object</tref>
-  containing one or more key-value pairs. Keys are non-keyword <tref title="string">strings</tref>
-  or the <code>@language</code> or <code>@vocab</code> <tref title="keyword">keywords</tref>.
-  A <tref>context definition</tref>
-  SHOULD NOT contain any keys having the lexical form of <tref>keyword</tref> other than
-  <code>@language</code> or <code>@vocab</code>.</p>
+<p>A <tdef>context definition</tdef> defines a <tref>local context</tref> in a <tref>node definition</tref>.</p>
+
+<p>A <tref>context definition</tref> MUST be a <tref>JSON object</tref>
+  containing one or more key-value pairs. Keys MUST either be
+  <tref title="term">terms</tref> or <code>@language</code> or <code>@vocab</code> <tref title="keyword">keywords</tref>.
+
 <p>If the <tref>context definition</tref> has a <code>@language</code> key,
-  the value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
+  its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 <p>If the <tref>context definition</tref> has a <code>@vocab</code> key,
-  the value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
-<p>Other keys are <tref>term</tref> definitions. Their values MUST be either a
-  <tref>string</tref>, or a <tref>JSON object</tref> having the form of an <tref>expanded term
-  definition</tref> (see <a href="#expanded-term-definition"></a>).</p>
-<p>An <tdef>expanded term definition</tdef> is composed of zero or more keys from <code>@id</code>,
+  its value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
+
+<p><tref>Term</tref> values MUST be either a
+  <tref>string</tref>, or an <tref>expanded term definition</tref>.</p>
+
+<p>An <tdef>expanded term definition</tdef> is used to describe the mapping
+  between a <tref>term</tref> and its expanded identifier, as well as other
+  properties of the value associated with the <tref>term</tref> when it is
+  used as key in a <tref>node definition</tref>.</p>
+
+<p>An <tref>expanded term definition</tref> MUST be a <tref>JSON object</tref>
+  composed of zero or more keys from <code>@id</code>,
   <code>@type</code>, <code>@language</code> or <code>@container</code>. An
-  <tref>expanded term definition</tref> SHOULD NOT contain any other keys.
+  <tref>expanded term definition</tref> SHOULD NOT contain any other keys. [@@@ the previous statements contradict themselves]
   All values associated with <code>@id</code> MUST expand to an <tref>absolute IRI</tref>.</p>
 <p>If the <tref>term</tref> definition is not a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
   the <tref>expanded term
   definition</tref> MUST include the <code>@id</code> key.</p>
+
 <p>If the <tref>expanded term definition</tref> contains the <code>@id</code> <tref>keyword</tref>,
-  it MUST be a <tref>string</tref> having the lexical form of <tref>IRI</tref>,
-  <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining <tref>context
-  definition</tref> or the <tref>active context</tref>, or an <tref>array</tref> composed of any of the previous allowed values.</p>
+  its value MUST be an <tref>IRI</tref>, a <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining <tref>context definition</tref> or the <tref>active context</tref>, or an <tref>array</tref> composed of any of the previous allowed values.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@type</code> <tref>keyword</tref>,
-  it MUST be a <tref>string</tref> having the lexical form of <tref>absolute IRI</tref>,
-  <tref>compact IRI</tref>, or a <tref>term</tref> defined in the defining <tref>context
-  definition</tref> or the <tref>active context</tref>.</p>
+  its value MUST be an <tref>absolute IRI</tref>, a <tref>compact IRI</tref>, or a <tref>term</tref> defined in the defining <tref>context definition</tref> or the <tref>active context</tref>.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
-  the value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
+  its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>,
-  the value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, or be <tref>null</tref>.
+  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, or be <tref>null</tref>.
   If the value is <code>@language</code>, when the <tref>term</tref> is used outside of the <code>@context</code>, the
-  associated value MUST be a <tref>JSON object</tref> whose keys are <tref>string</tref>s that are [[BCP47]] language identifiers.
-  The values associated with each [[BCP47]] language string MUST be a <tref>string</tref> or an <tref>array</tref> of <tref>string</tref>s.</p>
+  associated value MUST be a <tref>language map</tref>.</p>
 <p>See <a href="#the-context"></a> and <a href="#expanded-term-definition"></a>
-  for a further discussion of contexts.</p>
+  for further discussion of contexts.</p>
 </section>
 <pre class="example" data-transform="updateExample"
      title="Context definition with simple terms, expanded term definitions and @language">
