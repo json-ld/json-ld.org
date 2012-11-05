@@ -9,241 +9,91 @@
   out in the same tree and use relative links so that they'll work offline,
   -->
 <script type="text/javascript" src="../respec-w3c-common.js" class="remove"></script>
+<script type="text/javascript" src="../respec-w3c-extensions.js" class="remove"></script>
 <script type="text/javascript" class="remove">
 //<![CDATA[
-    var preProc = {
-          apply:  function(c) {
-                    // extend the bibliography entries
-                    berjon.biblio["MICRODATA"] = "<cite><a href=\"http://www.w3.org/TR/2012/WD-microdata-20120329/\">HTML Microdata</a></cite> Ian Hickson Editor. World Wide Web Consortium (work in progress). 29 March 2012. This edition of the HTML Microdata specification is http://www.w3.org/TR/2012/WD-microdata-20120329/. The <a href=\"http://www.w3.org/TR/microdata/\">latest edition of HTML Microdata</a> is available at http://www.w3.org/TR/microdata/";
-                    berjon.biblio["JSON-LD-API"] = "<cite><a href=\"http://json-ld.org/spec/ED/json-ld-api/20120524/\">The JSON-LD API 1.0</a></cite> Manu Sporny, Gregg Kellogg, Dave Longley, Markus Lanthaler, Editors. World Wide Web Consortium (work in progress). 24 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://json-ld.org/spec/ED/json-ld-api/20120524/. The <a href=\"http://json-ld.org/spec/latest/json-ld-api/\">latest edition of the JSON-LD Syntax</a> is available at http://json-ld.org/spec/latest/json-ld-api/";
-                    berjon.biblio["RDF-CONCEPTS"] = "<cite><a href=\"http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/\">RDF 1.1 Concepts and Abstract Syntax</a></cite> Richard Cyganiak, David Wood, Editors. World Wide Web Consortium (work in progress). 30 May 2012. Editor's Draft. This edition of the JSON-LD Syntax specification is http://www.w3.org/TR/2011/WD-rdf11-concepts-20110830/. The <a href=\"http://www.w3.org/TR/rdf11-concepts/\">latest edition of the JSON-LD Syntax</a> is available at http://www.w3.org/TR/rdf11-concepts/";
-                    berjon.biblio["TURTLE-TR"] = "Eric Prud'hommeaux, Gavin Carothers. <cite><a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">Turtle: Terse RDF Triple Language.</a></cite> 09 August 2011. W3C Working Draft. URL: <a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">http://www.w3.org/TR/2011/WD-turtle-20110809/</a>";
-                    berjon.biblio["RFC5988"] = "<cite><a href=\"http://tools.ietf.org/rfc/rfc5988\">Web Linking</a></cite> M. Nottingham. Editor. October 2010. IETF Standard. URL: <a href=\"http://tools.ietf.org/rfc/rfc5988.txt\">http://tools.ietf.org/rfc/rfc5988.txt</a>";
+  var respecConfig = {
+      doRDFa: "1.1",
+      // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+      specStatus:           "ED",
+      // if you wish the publication date to be other than today, set this
+      //publishDate:          "2012-08-30",
+      copyrightStart:       "2010",
 
-                    // process the document before anything else is done
-                    var refs = document.querySelectorAll('adef') ;
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var sp = document.createElement( 'dfn' ) ;
-                        var tit = item.getAttribute('title') ;
-                        if (!tit) {
-                            tit = con;
-                        }
-                        sp.className = 'adef' ;
-                        sp.title=tit ;
-                        sp.innerHTML = con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                    refs = document.querySelectorAll('aref') ;
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var sp = document.createElement( 'a' ) ;
-                        sp.className = 'aref' ;
-                        sp.setAttribute('title', con);
-                        sp.innerHTML = '@'+con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                    // local type references
-                    refs = document.querySelectorAll('ldtref') ;
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        if (!item) continue ;
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var ref = item.getAttribute('title') ;
-                        if (!ref) {
-                            ref = item.textContent ;
-                        }
-                        if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
-                            ref = ref.replace(/\s+/g, '_') ;
-                        }
-                        var sp = document.createElement( 'a' ) ;
-                        sp.className = 'type';
-                        sp.title = ref ;
-                        sp.innerHTML = con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                    // external type references
-                    refs = document.querySelectorAll('dtref') ;
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        if (!item) continue ;
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var ref = item.getAttribute('title') ;
-                        if (!ref) {
-                            ref = item.textContent ;
-                        }
-                        if (ref) {
-                            ref = ref.replace(/\n/g, '_') ;
-                            ref = ref.replace(/\s+/g, '_') ;
-                        }
-                        var sp = document.createElement( 'a' ) ;
-                        sp.className = 'externalDFN';
-                        sp.title = ref ;
-                        sp.innerHTML = con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                    // now do terms
-                    refs = document.querySelectorAll('tdef') ;
-                    var tdefs = [];
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        if (!item) continue ;
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var ref = item.getAttribute('title') ;
-                        if (!ref) {
-                            ref = item.textContent ;
-                        }
-                        if (ref) {
-                            ref = ref.replace(/\s+/g, '_').toLowerCase() ;
-                        }
+      // the specification's short name, as in http://www.w3.org/TR/short-name/
+      shortName:            "json-ld-syntax",
+      subtitle:             "A Context-based JSON Serialization for Linking Data",
 
-                        if ( tdefs[ref]) {
-                          throw "Duplicate definition of term '" + ref + "'" ;
-                        }
+      // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+      // and its maturity status
+      previousPublishDate:  "2012-08-30",
+      previousMaturity:     "FPWD",
+      previousDiffURI:      "http://www.w3.org/TR/2012/WD-json-ld-syntax-20120830/",
+      diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
 
-                        var sp = document.createElement( 'dfn' ) ;
-                        tdefs[ref] = sp ;
-                        sp.title = ref ;
-                        sp.innerHTML = con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                    // now term references
-                    refs = document.querySelectorAll('tref') ;
-                    for (var i = 0; i < refs.length; i++) {
-                        var item = refs[i];
-                        if (!item) continue ;
-                        var p = item.parentNode ;
-                        var con = item.innerHTML ;
-                        var ref = item.getAttribute('title') ;
-                        if (!ref) {
-                            ref = item.textContent ;
-                        }
-                        if (ref) {
-                            ref = ref.replace(/\s+/g, '_').toLowerCase() ;
-                        }
+      // if there a publicly available Editor's Draft, this is the link
+      edDraftURI:           "http://dvcs.w3.org/hg/json-ld/raw-file/default/spec/latest/json-ld-syntax/index.html",
 
-                        if ( !tdefs[ref]) {
-                          throw "Reference to undefined term '" + ref + "'" ;
-                        }
-                        var sp = document.createElement( 'a' ) ;
-                        var id = item.textContent ;
-                        sp.className = 'tref' ;
-                        sp.title = ref ;
-                        sp.innerHTML = con ;
-                        p.replaceChild(sp, item) ;
-                    }
-                }
-        } ;
+      // if this is a LCWD, uncomment and set the end of its review period
+      // lcEnd: "2009-08-05",
 
+      issueBase: "https://github.com/json-ld/json-ld.org/issues/",
 
-      var respecConfig = {
-          doRDFa: "1.1",
-          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
-          specStatus:           "ED",
-          // if you wish the publication date to be other than today, set this
-          //publishDate:          "2012-08-30",
-          copyrightStart:       "2010",
+      // if you want to have extra CSS, append them to this list
+      // it is recommended that the respec.css stylesheet be kept
+      // extraCSS:             [],
 
-          // the specification's short name, as in http://www.w3.org/TR/short-name/
-          shortName:            "json-ld-syntax",
-          subtitle:             "A Context-based JSON Serialization for Linking Data",
+      // editors, add as many as you like
+      // only "name" is required
+      editors:  [
+          { name: "Manu Sporny", url: "http://manu.sporny.org/",
+            company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+          { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+            company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
+          { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+            company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
+      ],
 
-          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
-          // and its maturity status
-          previousPublishDate:  "2012-08-30",
-          previousMaturity:     "FPWD",
-          previousDiffURI:      "http://www.w3.org/TR/2012/WD-json-ld-syntax-20120830/",
-          diffTool:             "http://www.aptest.com/standards/htmldiff/htmldiff.pl",
+      // authors, add as many as you like.
+      // This is optional, uncomment if you have authors as well as editors.
+      // only "name" is required. Same format as editors.
+      authors:  [
+          { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+            company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+          { name: "Dave Longley", url: "http://digitalbazaar.com/",
+            company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
+          { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+            company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
+          { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+            company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" },
+          { name: "Mark Birbeck", url: "http://webbackplane.com/",
+            company: "Backplane Ltd.", companyURL: "http://webbackplane.com/" }
+      ],
 
-          // if there a publicly available Editor's Draft, this is the link
-          edDraftURI:           "http://dvcs.w3.org/hg/json-ld/raw-file/default/spec/latest/json-ld-syntax/index.html",
+      // name of the WG
+      wg:           "RDF Working Group",
 
-          // if this is a LCWD, uncomment and set the end of its review period
-          // lcEnd: "2009-08-05",
+      // URI of the public WG page
+      wgURI:        "http://www.w3.org/2011/rdf-wg/",
 
-          issueBase: "https://github.com/json-ld/json-ld.org/issues/",
+      // name (with the @w3c.org) of the public mailing to which comments are due
+      wgPublicList: "public-rdf-comments",
 
-          // if you want to have extra CSS, append them to this list
-          // it is recommended that the respec.css stylesheet be kept
-          // extraCSS:             [],
-
-          // editors, add as many as you like
-          // only "name" is required
-          editors:  [
-              { name: "Manu Sporny", url: "http://manu.sporny.org/",
-                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
-              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
-                company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
-              { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
-                company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
-          ],
-
-          // authors, add as many as you like.
-          // This is optional, uncomment if you have authors as well as editors.
-          // only "name" is required. Same format as editors.
-          authors:  [
-              { name: "Manu Sporny", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
-              { name: "Dave Longley", url: "http://digitalbazaar.com/",
-                company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/"},
-              { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
-                company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
-              { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
-                company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" },
-              { name: "Mark Birbeck", url: "http://webbackplane.com/",
-                company: "Backplane Ltd.", companyURL: "http://webbackplane.com/" }
-          ],
-
-          // name of the WG
-          wg:           "RDF Working Group",
-
-          // URI of the public WG page
-          wgURI:        "http://www.w3.org/2011/rdf-wg/",
-
-          // name (with the @w3c.org) of the public mailing to which comments are due
-          wgPublicList: "public-rdf-comments",
-
-          // URI of the patent status for this WG, for Rec-track documents
-          // !!!! IMPORTANT !!!!
-          // This is important for Rec-track documents, do not copy a patent URI from a random
-          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
-          // Team Contact.
-          wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/46168/status",
-          maxTocLevel: 4,
-          preProcess: [ preProc ]
-          //alternateFormats: [ {uri: "diff-20120712.html", label: "diff to previous version"} ]
-      };
-
-      function _esc(s) {
-          s = s.replace(/&/g,'&amp;');
-          s = s.replace(/>/g,'&gt;');
-          s = s.replace(/"/g,'&quot;');
-          s = s.replace(/</g,'&lt;');
-          return s;
-      }
-
-      function updateExample(doc, content) {
-        // perform visual transformations to make the example easier to read
-        content = content.replace(/<!--/, '');
-        content = content.replace(/-->/, '');
-        content = _esc(content);
-        content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="diff">$1</span>') ;
-        return content ;
-      }
+      // URI of the patent status for this WG, for Rec-track documents
+      // !!!! IMPORTANT !!!!
+      // This is important for Rec-track documents, do not copy a patent URI from a random
+      // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+      // Team Contact.
+      wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/46168/status",
+      maxTocLevel: 4,
+      preProcess: [ preProc ]
+      //alternateFormats: [ {uri: "diff-20120712.html", label: "diff to previous version"} ]
+  };
 //]]>
-  </script>
+</script>
 <style type="text/css">
-.diff { font-weight:bold; color:#0a3; }
-.issue.resolved { display: none; }
-table, thead, tr, td { padding: 5px; border-width: 1px; border-spacing: 0px; border-style: solid; border-collapse: collapse;}
+  .diff { font-weight:bold; color:#0a3; }
+  table, thead, tr, td { padding: 5px; border-width: 1px; border-spacing: 0px; border-style: solid; border-collapse: collapse;}
 </style>
 </head>
 
@@ -2619,7 +2469,7 @@ have to be written to operate on
 <h2>JSON-LD Grammar</h2>
 <em>This section is normative</em>
 
-<p class="issue resolved" data-number="114">This section is an attempt to formalize
+<p class="issue" data-number="114">This section is an attempt to formalize
 a normative grammar for JSON-LD.</p>
 
 <p>This appendix restates the syntactic conventions described in the
@@ -2885,7 +2735,7 @@ a normative grammar for JSON-LD.</p>
     definition (see <a href="#sets-and-lists"></a>), or</li>
   <li>an <tref>array</tref> zero or more of these</li>
 </ul>
-<p class="issue resolved" data-number="133">We had also discussed values other than strings, such as those that might represent a more reified version of a value with other properties, such as is described using <a href="http://www.w3.org/TR/skos-reference/skos-xl.html">SKOS-XL</a>.</p>
+<p class="issue" data-number="133">We are also discussing values other than strings, such as those that might represent a more reified version of a value with other properties, such as is described using <a href="http://www.w3.org/TR/skos-reference/skos-xl.html">SKOS-XL</a>.</p>
 <pre class="example" data-transform="updateExample"
      title="Language map expressing a property in three languages">
 <!--
