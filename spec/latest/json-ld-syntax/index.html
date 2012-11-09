@@ -538,21 +538,19 @@ Mapping those keys to IRIs gives the data global context. If two
 developers use the same IRI to describe a property, they are more than likely
 expressing the same concept. This allows both developers to re-use each others'
 data without having to agree to how their data will interoperate on a
-site-by-site basis. Contexts may also contain type information
-for certain <tref title="term">terms</tref> as well as other processing instructions for
-the JSON-LD processor.</p>
+site-by-site basis. Contexts may also contain type, language or additional information
+for certain <tref title="term">terms</tref>.</p>
 
 <p>External JSON-LD context documents may contain extra information
 located outside of the <code>@context</code> key, such as documentation about the
-<tref title="term">terms</tref> declared in the document. When importing a
-<code>@context</code> value from an external JSON-LD context document,
-<tref title="JSON-LD processor">JSON-LD processors</tref> MUST discard
-information contained outside of the <code>@context</code> value.</p>
+<tref title="term">terms</tref> declared in the document. Information contained
+outside of the <code>@context</code> value is simply discarded when the document
+is used as an external JSON-LD context document
+(see <a href="#referencing-contexts-from-json-documents"></a>).</p>
 
 <p>Contexts may also be specified in-line. This ensures that
-  <tref title="JSON-LD document">JSON-LD documents</tref>
-  can be processed when a <tref>JSON-LD processor</tref> does not have access to
-  the Web.</p>
+  <tref title="JSON-LD document">JSON-LD documents</tref> can be understood
+  even in the absence of a connection to the Web.</p>
 
 <pre class="example" data-transform="updateExample"
      title="In-line context definition">
@@ -581,8 +579,8 @@ information contained outside of the <code>@context</code> value.</p>
 
 <p>Contexts may be used at any time a <tref>node definition</tref> is defined.
   A <tref>node definition</tref> may specify multiple contexts, using an
-  <tref>array</tref>, which <tref title="JSON-LD processor">JSON-LD processors</tref>
-  process in order. This is useful when an author would like to use an existing context
+  <tref>array</tref>, processed in order.
+  This is useful when an author would like to use an existing context
   and add application-specific terms to the existing context. Duplicate context
   <tref title="term">terms</tref> are overridden using a last-defined-overrides
   mechanism.</p>
@@ -615,8 +613,9 @@ information contained outside of the <code>@context</code> value.</p>
   legacy applications that depend on the specific structure of the
   <tref>JSON object</tref>. If a <tref>term</tref> is re-defined within a
   context, all previous rules associated with the previous definition are
-  removed. A <tref>term</tref> defined in a previous context MUST be removed
-  by the <tref>JSON-LD processor</tref> if it is re-defined to <code>null</code>.</p>
+  removed. If that <tref>term</tref> is re-defined to <code>null</code>,
+  the <tref>term</tref> is effectively removed from the list of
+  <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
 
 <p>The set of contexts defined within a specific <tref>node definition</tref> are
   referred to as <tdef title="local context">local contexts</tdef>. Setting the context to <code>null</code>
@@ -698,8 +697,7 @@ intended to be linked to from other data sets.</p>
 
 <ol>
   <li>Except within a <tref>context</tref> definition, <tref title="term">terms</tref> in the
-    key position in a <tref>JSON object</tref> that have a mapping in the <tref>active context</tref>
-    are expanded to an <tref>IRI</tref> by JSON-LD processors. If there's a <code>@vocab</code>
+    key position in a <tref>JSON object</tref> that have a mapping in the <tref>active context</tref> expand to an <tref>IRI</tref>. If there's a <code>@vocab</code>
     mapping in the active context also <tref title="term">terms</tref> without an explicit mapping
     in the active context are expanded to an <tref>IRI</tref>.</li>
   <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
@@ -752,7 +750,7 @@ intended to be linked to from other data sets.</p>
 -->
 </pre>
 
-<p><tref title="term">Terms</tref> are case sensitive, and MUST be matched by a <tref>JSON-LD processor</tref> using a case-sensitive comparison.</p>
+<p><tref title="term">Terms</tref> are case sensitive.</p>
 
 <p>JSON keys that do not expand to an absolute IRI are ignored, or removed
 in some cases, by the [[JSON-LD-API]]. However, JSON keys that do not include
@@ -850,7 +848,7 @@ a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
 <p>In the example above, even though the value
 <code>http://manu.sporny.org/</code> is expressed as a JSON
 <tref>string</tref>, the type <tref>coercion</tref> rules will transform
-the value into an IRI when processed by a JSON-LD Processor.</p>
+the value into an IRI when generating the <tref>JSON-LD graph</tref>.</p>
 
 </section>
 
@@ -1049,8 +1047,7 @@ be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
   <h2>JSON-LD Syntax</h2>
 
   <p>A <tref>JSON-LD document</tref> is first, and foremost, a JSON document
-    (as defined in [[!RFC4627]]), and any syntactically correct JSON document
-    MUST be processed by a conforming <tref>JSON-LD processor</tref>. However, JSON-LD
+    (as defined in [[!RFC4627]]). However, JSON-LD
     describes a specific syntax to use for expressing Linked Data. This
     includes the use of specific keywords, as identified in <a
     href="#syntax-tokens-and-keywords"></a> for
@@ -1111,8 +1108,7 @@ advanced functionality in more detail.
     prepending the mapped <em>prefix</em> to the (possibly empty) <em>suffix</em>
     using textual concatenation.  If no prefix mapping is defined, the value is interpreted
     as an <tref>absolute IRI</tref>. If the prefix is an underscore
-    (<code>_</code>), the IRI remains unchanged. This effectively means that every term
-    containing a colon will be interpreted by a JSON-LD processor as an IRI.
+    (<code>_</code>), the IRI remains unchanged.
   </p>
   <p>Consider the following example:</p>
   <pre class="example" data-transform="updateExample"
@@ -1553,8 +1549,7 @@ the data type to be specified with each piece of data.</p>
 <p><tref title="term">Terms</tref> or <tref title="compact_iri">compact IRIs</tref> used as the value of a
   <code>@type</code> key may be defined within the same context. This means that one may specify a
   <tref>term</tref> like <code>xsd</code> and then use <code>xsd:integer</code> within the same
-  context definition - the JSON-LD processor will be able to determine the proper expansion for
-  <code>xsd:integer</code>.</p>
+  context definition.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
 <tref title="typed value">typed values</tref>, IRIs and lists.</p>
@@ -1706,8 +1701,8 @@ to do the following:</p>
 <p>Unfortunately, the approach above produces redundant data and would become a
 publishing burden for large data sets.
 In these situations, the author may use
-a <tdef>property generator</tdef> to express a <tref>term</tref> once, but have
-the JSON-LD processor expand the single statement into multiple statements.
+a <tdef>property generator</tdef> to express a <tref>term</tref> that maps to
+multiple <tref title="property">properties</tref> in the <tref>JSON-LD graph</tref>.
 This method can be accomplished by using the following markup pattern:</p>
 
 <pre class="example" data-transform="updateExample"
@@ -1727,8 +1722,7 @@ This method can be accomplished by using the following markup pattern:</p>
 </pre>
 
 <p>While the term above is only used once outside of the <code>@context</code>,
-a JSON-LD processor will internally transform the document above into
-the following set of statements:</p>
+the document above is equivalent to the following set of statements:</p>
 
 <pre class="example" data-transform="updateExample">
 <!--
@@ -1841,8 +1835,8 @@ In the first approach, <code>foaf:age</code> declares both the
 <tref>IRI</tref> for the <tref>term</tref> (using short-form) as well as the
 <code>@type</code> associated with the <tref>term</tref>. In the second
 approach, only the <code>@type</code> associated with the <tref>term</tref> is
-specified. The JSON-LD processor will derive the full <tref>IRI</tref> for
-<code>foaf:homepage</code> by looking up the <code>foaf</code>
+specified. The full <tref>IRI</tref> for
+<code>foaf:homepage</code> is determined by looking up the <code>foaf</code>
 <tref>prefix</tref> in the
 <tref>context</tref>.
 </p>
@@ -1878,10 +1872,9 @@ specified. The JSON-LD processor will derive the full <tref>IRI</tref> for
 In order for the <tref>absolute IRI</tref> to match above, the <tref>absolute IRI</tref> needs to be used in the <tref>JSON-LD document</tref>. Also note that <code>foaf:homepage</code>
 will not use the <code>{ "@type": "@id" }</code> declaration because
 <code>foaf:homepage</code> is not the same as
-<code>http://xmlns.com/foaf/0.1/homepage</code>. That is, a <tref>JSON-LD
-processor</tref> will use direct string comparison when looking up
-<tref title="term">terms</tref> in a <tref>context</tref> before it applies the
-<tref>prefix</tref> lookup mechanism.
+<code>http://xmlns.com/foaf/0.1/homepage</code>. That is, <tref title="term">terms</tref>
+are looked up in a <tref>context</tref> using direct string comparison before the
+<tref>prefix</tref> lookup mechanism is applied.
 </p>
 
 <p>The only exception for using terms in the <tref>context</tref> is that
@@ -2041,7 +2034,6 @@ processor</tref> will use direct string comparison when looking up
 </pre>
 
 <p class="note">List of lists are not allowed in this version of JSON-LD.
-  If a list of lists is detected, a JSON-LD processor will throw an exception.
   This decision was made due to the extreme amount of added complexity when
   processing lists of lists.</p>
 
@@ -2057,8 +2049,7 @@ processor</tref> will use direct string comparison when looking up
   contains a single value.</p>
 
 <p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document, i.e., outside <code>@context</code> MUST be ignored by
-  JSON-LD processors.</p>
+  document has no meaning and is not allowed by the JSON-LD grammar (see <a href="#json-ld-grammar"></a>).</p>
 
 </section>
 
@@ -2468,11 +2459,6 @@ a normative grammar for JSON-LD.</p>
 <p>This appendix restates the syntactic conventions described in the
   previous sections more formally.</p>
 
-<p>A <tref>JSON-LD processor</tref> SHOULD attempt to process non-conforming
-  <tref title="JSON-LD document">JSON-LD documents</tref>. Conformance violations
-  MUST be reported through a conformance violation callback mechanism defined in
-  the [[JSON-LD-API]].</p>
-
 <p class="note">The JSON-LD context allows <tref title="keyword">keywords</tref>
   to be aliased within the <tref>active context</tref> (see
   <a href="#aliasing-keywords"></a>). Whenever a <tref>keyword</tref> is
@@ -2520,13 +2506,13 @@ a normative grammar for JSON-LD.</p>
 <h3>Node Definition</h3>
 
 <p>A <tdef>node definition</tdef> represents one or more properties of a
-  <tref>node</tref> in the <tref>JSON-LD graph</tref> produced by
-  <tref title="JSON-LD processor">JSON-LD processors</tref> during expansion.
+  <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+  <tref>JSON-LD document</tref>.
   The properties of a <tref>node</tref> in the <tref>JSON-LD graph</tref>
   may be spread among different <tref title="node definition">node definitions</tref>
-  within a document or even between different documents. When that happens,
-  a <tref>JSON-LD processor</tref> merges these properties during expansion to
-  create the <tref>node</tref> (see expansion algorithm in [[!JSON-LD-API]]).</p>
+  within a document. When that happens,
+  the keys of the different <tref title="node definition">node definitions</tref>
+  are merged to create the properties of the resulting <tref>node</tref>.</p>
 
 <p>In a JSON-LD document, a <tref>JSON object</tref> is a
   <tref>node definition</tref> if it does not contain the keys
@@ -2595,11 +2581,6 @@ a normative grammar for JSON-LD.</p>
   an <tref>array</tref> of any of these.
   See <a href="#specifying-the-type"></a> for further discussion on
   <code>@type</code> values.</p>
-
-<p>A <tref>JSON-LD processor</tref> SHOULD process non-conforming documents
-  having <code>@type</code> values including <tref>node definition</tref> or
-  <tref>node reference</tref> entries but MUST
-  discard everything except for the value of the <code>@id</code> key.
 
 <pre class="example" data-transform="updateExample"
      title="Node definition with @type">
@@ -2735,8 +2716,7 @@ a normative grammar for JSON-LD.</p>
 <section id="grammar-term-reference">
   <h2>Term</h2>
   <p>A <tdef>term</tdef> is a short-hand <tref>string</tref> that expands
-    to an <tref>IRI</tref> or an <tref>unlabeled node</tref> identifier when
-    processed by a <tref>JSON-LD processor</tref>.</p>
+    to an <tref>IRI</tref> or an <tref>unlabeled node</tref> identifier.</p>
 
   <p>A <tref>term</tref> MUST NOT equal any of the JSON-LD
     <tref title="keyword">keywords</tref>.</p>
