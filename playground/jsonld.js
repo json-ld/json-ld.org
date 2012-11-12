@@ -1910,11 +1910,8 @@ function _expandValue(ctx, property, value, base) {
 
   // special-case expand @id and @type (skips '@id' expansion)
   var prop = _expandTerm(ctx, property);
-  if(prop === '@id') {
+  if(prop === '@id' || prop === '@type') {
     rval = _expandTerm(ctx, value, base);
-  }
-  else if(prop === '@type') {
-    rval = _expandTerm(ctx, value);
   }
   else {
     // get type definition from context
@@ -1983,12 +1980,11 @@ function _toRDF(element, namer, subject, property, graph, callback) {
 
       var object = {
         nominalValue: value,
-        interfaceName: 'LiteralNode'
-      };
-
-      object.datatype = {
-        nominalValue: datatype,
-        interfaceName: 'IRI'
+        interfaceName: 'LiteralNode',
+        datatype: {
+          nominalValue: datatype,
+          interfaceName: 'IRI'
+        }
       };
       if('@language' in element && datatype === XSD_STRING) {
         object.language = element['@language'];
@@ -2127,7 +2123,7 @@ function _rdfToObject(o, useNativeTypes) {
   if('datatype' in o) {
     var type = o.datatype.nominalValue;
     if(useNativeTypes) {
-      // use native datatypes for certain xsd types
+      // use native types for certain xsd types
       if(type === XSD_BOOLEAN) {
         if(rval['@value'] === 'true') {
           rval['@value'] = true;
@@ -3181,9 +3177,8 @@ function _compactIri(ctx, iri, value) {
     }
   }
 
-  // no matching terms,
+  // no matching terms, use iri
   if(terms.length === 0) {
-    // use iri
     return iri;
   }
 
