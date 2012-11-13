@@ -578,9 +578,32 @@ is used as an external JSON-LD context document
 </pre>
 
 <p>Contexts may be used at any time a <tref>node definition</tref> is defined.
-  A <tref>node definition</tref> may specify multiple contexts, using an
-  <tref>array</tref>, processed in order.
-  This is useful when an author would like to use an existing context
+  In particular, a <tref>JSON-LD document</tref> may define more than one context,
+  as in the following example:</p>
+<pre class="example" data-transform="updateExample"
+     title="Multiple separate contexts">
+<!--
+[
+  {
+    ****"@context": "http://example.org/contexts/person.jsonld",****
+    "name": "Manu Sporny",
+    "homepage": "http://manu.sporny.org/",
+    "depiction": "http://twitter.com/account/profile_image/manusporny"
+  },
+  {
+    ****"@context": "http://example.org/contexts/place.jsonld",****
+    "name": "The Empire State Building",
+    "description": "The Empire State Building is a 102-story landmark in New York City.",
+    "geo": {
+      "latitude": "40.75",
+      "longitude": "73.98"
+    }
+  }
+]
+-->
+</pre>
+
+<p>This is useful when an author would like to use an existing context
   and add application-specific terms to the existing context. Duplicate context
   <tref title="term">terms</tref> are overridden using a last-defined-overrides
   mechanism.</p>
@@ -617,7 +640,8 @@ is used as an external JSON-LD context document
   the <tref>term</tref> is effectively removed from the list of
   <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
 
-<p>The set of contexts defined within a specific <tref>node definition</tref> are
+<p>A <tref>node definition</tref> may specify multiple contexts, using an
+  <tref>array</tref>, processed in order. The set of contexts defined within a specific <tref>node definition</tref> are
   referred to as <tdef title="local context">local contexts</tdef>. Setting the context to <code>null</code>
   effectively resets the <tref>active context</tref> to an empty context. The
   <tdef>active context</tdef> refers to the accumulation of <tref title="local context">local contexts</tref>
@@ -815,8 +839,7 @@ in JSON-LD documents - the keys just don't expand to unambiguous identifiers.</p
 <p>Specifying a <tref>JSON object</tref> with an
   <code>@id</code> key is used to identify that <tref>node</tref> using an
   <tref>IRI</tref>. When the object has only the <code>@id</code>, it
-  is called a <tref>node reference</tref>.
-  This facility may also be used to link to another
+  is called a <tref>node reference</tref>. This facility may also be used to link to another
   <tref>node definition</tref> using a mechanism called
   <tref>embedding</tref>, which is covered in the section titled
   <a href="#embedding"></a>.</p>
@@ -855,7 +878,7 @@ the value into an IRI when generating the <tref>JSON-LD graph</tref>.</p>
 <section>
 <h2>Node Identifiers</h2>
 
-<p>To be able to externally reference nodes in a graph, it is important that each node has
+<p>To be able to externally reference nodes in a graph, it is important that each <tref>node</tref> has
   an unambiguous identifier. <tref title="IRI">IRIs</tref> are a fundamental concept of
   <tref>Linked Data</tref>, and nodes should have a de-referencable
   identifier used to name and locate them. For nodes to be truly linked,
@@ -894,11 +917,42 @@ the value into an IRI when generating the <tref>JSON-LD graph</tref>.</p>
 <p>The example above contains a node identified by the IRI
   <code>http://example.org/people#joebob</code>.</p>
 
-<p>A <tref>JSON object</tref> used to define property values is called a
+<p>A <tref>JSON object</tref> used to define property values of a <tref>node</tref> is called a
   <tref>node definition</tref>. <tref title="node definition">Node definitions</tref>
   do not require an <code>@id</code>. A <tref>node definition</tref>
   that does not contain an <code>@id</code> property defines properties of an
   <tref>unlabeled node</tref>.</p>
+
+<p>Once defined, the <tref>node</tref>'s unique identifier can be used to refer to
+  it from other parts of the document or from external documents, using
+  a <tref>node definition</tref> that only contains an <code>@id</code> key:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Referencing a node using its unique identifier">
+<!--
+{
+  "@context": ...,
+  "@graph": [
+    {
+      "@id": "http://example.org/library",
+      "@type": "ex:Library",
+      ****"ex:contains": {"@id": "http://example.org/library/the-republic"}****
+    }, {
+      "@id": "http://example.org/library/the-republic",
+      "@type": "ex:Book",
+      "dc:creator": "Plato",
+      "dc:title": "The Republic",
+      ****"ex:contains": {"@id": "http://example.org/library/the-republic#introduction"}****
+    }, {
+      "@id": "http://example.org/library/the-republic#introduction",
+      "@type": "ex:Chapter",
+      "dc:description": "An introductory chapter on The Republic.",
+      "dc:title": "The Introduction"
+    }
+  ]
+}
+}-->
+</pre>
 
 </section>
 
@@ -936,6 +990,20 @@ pattern:</p>
 -->
 </pre>
 
+<p>The value of a <code>@type</code> key may also be a <tref>term</tref> defined in the <tref>active context</tref>:</p>
+<pre class="example" data-transform="updateExample"
+     title="Using a term as the value of an @type key">
+<!--
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "@id": "http://manu.sporny.org/i/public",
+  ****"@type": "Person"****,
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "depiction": "http://twitter.com/account/profile_image/manusporny"
+}
+-->
+</pre>
 
 </section>
 
@@ -2201,7 +2269,8 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     relate to one another through a property or where <tref>embedding</tref>
     is not desirable to the application. For example:</p>
 
-  <pre class="example" data-transform="updateExample">
+  <pre class="example" data-transform="updateExample"
+    title="Using @graph to explicitly express the default graph">
   <!--
   {
     "@context": ...,
@@ -2232,7 +2301,8 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <tref title="node definition">node definitions</tref> in array and defining
     the <code>@context</code> within each <tref>node definition</tref>:</p>
 
-  <pre class="example" data-transform="updateExample">
+  <pre class="example" data-transform="updateExample"
+    title="Context needs to be duplicated if @graph is not used">
   <!--
   [
     {
@@ -2475,32 +2545,6 @@ a normative grammar for JSON-LD.</p>
 <p>A <tref>JSON-LD document</tref> MUST be a single <tref>node definition</tref>
   or a JSON <tref>array</tref> containing a set of one or more
   <tref title="node definition">node definitions</tref>.</p>
-<pre class="example" data-transform="updateExample"
-     title="Simple node definition">
-<!--
-{
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-<pre class="example" data-transform="updateExample"
-     title="Array of node definitions">
-<!--
-[
-  {
-    "name": "Manu Sporny",
-    "homepage": "http://manu.sporny.org/",
-    "depiction": "http://twitter.com/account/profile_image/manusporny"
-  }, {
-    "name": "Gregg Kellogg",
-    "homepage": "http://greggkellogg.net/",
-    "depiction": "http://twitter.com/account/profile_image/gkellogg"
-  }
-]
--->
-</pre>
 
 <section id="grammar-node-definition">
 <h3>Node Definition</h3>
@@ -2538,17 +2582,6 @@ a normative grammar for JSON-LD.</p>
   <li>a <tref>context definition</tref>, or</li>
   <li>an <tref>array</tref> composed of any number of the previous two expressions.</li>
 </ul>
-<pre class="example" data-transform="updateExample"
-     title="Node definition with external context">
-<!--
-{
-  ****"@context": "http://json-ld.org/contexts/person.jsonld"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
 
 <p>If the <tref>node definition</tref> contains the <code>@id</code>
   key, its value MUST be
@@ -2560,19 +2593,6 @@ a normative grammar for JSON-LD.</p>
   and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
   <code>@id</code> values.</p>
 
-<pre class="example" data-transform="updateExample"
-     title="Node definition with @id">
-<!--
-{
-  "@context": "http://json-ld.org/contexts/person.jsonld",
-  ****"@id": "http://manu.sporny.org/i/public"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
 <p>If the <tref>node definition</tref> contains the <code>@type</code>
   key, its value MUST be either
   an <tref>absolute IRI</tref>,
@@ -2581,20 +2601,6 @@ a normative grammar for JSON-LD.</p>
   an <tref>array</tref> of any of these.
   See <a href="#specifying-the-type"></a> for further discussion on
   <code>@type</code> values.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Node definition with @type">
-<!--
-{
-  "@context": "http://json-ld.org/contexts/person.jsonld",
-  "@id": "http://manu.sporny.org/i/public",
-  ****"@type": "Person"****,
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
 
 <p>If the <tref>node definition</tref> contains the <code>@graph</code>
   key, its value MUST be
@@ -2613,31 +2619,6 @@ a normative grammar for JSON-LD.</p>
   definitions</tref> that may not form a connected graph. This allows a
   <tref>context</tref> to be defined which is shared by all of the constituent
   <tref title="node definition">node definitions</tref>.</p>
-
-
-<pre class="example" data-transform="updateExample"
-     title="Multiple node definitions with a single context using @graph">
-<!--
-{
-  "@context": ...,
-  "****@graph****":
-  [
-    {
-      "@id": "http://manu.sporny.org/i/public",
-      "@type": "foaf:Person",
-      "name": "Manu Sporny",
-      "knows": "http://greggkellogg.net/foaf#me"
-    },
-    {
-      "@id": "http://greggkellogg.net/foaf#me",
-      "@type": "foaf:Person",
-      "name": "Gregg Kellogg",
-      "knows": "http://manu.sporny.org/i/public"
-    }
-  ]
-}
--->
-</pre>
 
 <p>A <tref>JSON-LD document</tref> MUST NOT contain any <tref>keyword</tref> or
   alias that expands to another keyword.</p>
@@ -2685,32 +2666,6 @@ a normative grammar for JSON-LD.</p>
   and <a href="#identifying-unlabeled-nodes"></a> for further discussion on
   <code>@id</code> values.</p>
 
-<pre class="example" data-transform="updateExample"
-     title="Explicit node reference">
-<!--
-{
-  "@context": ...,
-  "@graph": [
-    {
-      "@id": "http://example.org/library",
-      "@type": "ex:Library",
-      ****"ex:contains": {"@id": "http://example.org/library/the-republic"}****
-    }, {
-      "@id": "http://example.org/library/the-republic",
-      "@type": "ex:Book",
-      "dc:creator": "Plato",
-      "dc:title": "The Republic",
-      ****"ex:contains": {"@id": "http://example.org/library/the-republic#introduction"}****
-    }, {
-      "@id": "http://example.org/library/the-republic#introduction",
-      "@type": "ex:Chapter",
-      "dc:description": "An introductory chapter on The Republic.",
-      "dc:title": "The Introduction"
-    }
-  ]
-}
-}-->
-</pre>
 </section>
 
 <section id="grammar-term-reference">
@@ -2726,6 +2681,9 @@ a normative grammar for JSON-LD.</p>
     additional <tref title="keyword">keywords</tref>. Furthermore, the use of
     empty terms (<code>""</code>) is discouraged as not all programming languages
     are able to handle empty property names.</p>
+
+  <p>See <a href="#the-context"></a> and <a href="#iris"></a> for further discussion
+    on mapping <tref title="term">terms</tref> to <tref title="IRI">IRIs</tref>.</p>
 </section>
 
 <section id="grammar-language-map">
@@ -2752,29 +2710,7 @@ a normative grammar for JSON-LD.</p>
   <li>an <tref>array</tref> zero or more of these</li>
 </ul>
 <p class="issue" data-number="133">We are also discussing values other than strings, such as those that might represent a more reified version of a value with other properties, such as is described using <a href="http://www.w3.org/TR/skos-reference/skos-xl.html">SKOS-XL</a>.</p>
-<pre class="example" data-transform="updateExample"
-     title="Language map expressing a property in three languages">
-<!--
-{
-  "@context":
-  {
-    "title":
-    {
-      "@id": "http://purl.org/dc/terms/title"
-      ****"@container": "@language"****
-    }
-  },
-...
-  "title":
-  ****{
-    "en": "JSON-LD Syntax",
-    "ru": "JSON-LD Синтаксис",
-    "ja": "JSON-LDの構文"
-  }****
-...
-}
--->
-</pre>
+<p>See <a href="#language-tagged-strings"></a> for further discussion on language maps.</p>
 </section>
 
 <section id="grammar-expanded-values">
@@ -2813,7 +2749,7 @@ a normative grammar for JSON-LD.</p>
   an <tref>absolute IRI</tref>, or <code>null</code>.</p>
 
 <p>See <a href="#typed-values"></a> and <a href="#language-tagged-strings"></a>
-  for further discussion of
+  for further discussion on
   <tref title="expanded value">expanded values</tref>.</p>
 </section>
 
@@ -2845,7 +2781,7 @@ a normative grammar for JSON-LD.</p>
   <li><tref>expanded language-tagged string</tref></li>
 </ul>
 
-<p>See <a href="#sets-and-lists"></a> for further discussion of List and Set Values.</p>
+<p>See <a href="#sets-and-lists"></a> for further discussion on List and Set Values.</p>
 </section>
 
 <section id="grammar-context">
@@ -2892,22 +2828,9 @@ a normative grammar for JSON-LD.</p>
 <p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is, the definition of a term cannot depend on the definition of another term if that other term also depends on the first term.</p>
 
 <p>See <a href="#the-context"></a> and <a href="#expanded-term-definition"></a>
-  for further discussion of contexts.</p>
+  for further discussion on contexts.</p>
 </section>
-<pre class="example" data-transform="updateExample"
-     title="Context definition with simple terms, expanded term definitions and @language">
-<!--
-{
-  "@language": "en",
-  "xsd": "http://www.w3.org/2001/XMLSchema#",
-  "foaf": "http://xmlns.com/foaf/0.1/",
-  "name": "foaf:name",
-  "depiction": {"@id": "foaf:depiction", "@type": "@id"},
-  "modified": {"@id": "http://purl.org/dc/terms/modified", "@type": "xsd:dateTime"},
-  "homepage": {"@id": "foaf:homepage", "@type": "@id", "@container": "@list"}
-}
--->
-</pre>
+
 </section>
 
 <section class="appendix normative">
