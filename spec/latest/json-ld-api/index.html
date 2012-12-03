@@ -1181,8 +1181,8 @@ language-native data structures MUST be used where applicable.</p>
                       Determine the IRI by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
                       If the result of the IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the
                       <tref>local context</tref> <tref>coercion mapping</tref> using the lexical value of the <em>property</em>.</li>
-                    <li>If the <em>value</em> has a <code>@container</code> property, its value MUST be <code>@list</code> or
-                      <code>@set</code>. Merge the <tref>list mapping</tref> or <tref>set mapping</tref> into the
+                    <li>If the <em>value</em> has a <code>@container</code> property, its value MUST be <code>@list</code>,
+                      <code>@set</code>, or <code>@language</code>. Merge the <tref>list mapping</tref> or <tref>set mapping</tref> into the
                       <tref>local context</tref> using the lexical value of the <em>property</em>.</li>
                     <li>If the <em>value</em> has a <code>@language</code> property but no <code>@type</code> property, the value of the
                       <code>@language</code> property MUST be a <tref>string</tref> or <tref>null</tref>.
@@ -1337,7 +1337,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
     </ol>
   </li>
-  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>, <tref>node object</tref>,
+  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>,
     or a <tref>JSON object</tref> having a <code>@value</code>.
     <ol class="algorithm">
       <li>If <em>value</em> has a <code>@value</code> property:
@@ -1353,6 +1353,11 @@ language-native data structures MUST be used where applicable.</p>
             <code>@language</code> <tref>null</tref> or ((<em>term</em> has no <code>@type</code> or
             <code>@language</code>) and the <tref>active context</tref> has no <code>@language</code>),
             <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
+          <li>Otherwise, if <em>value</em> has only a <code>@value</code> and <code>@language</code> property 
+            and <em>term</em> has a <code>@container</code> key associated with a value of
+            <code>@language</code> in the <tref>active context</tref>, 
+            <tref>term rank</tref> is <code>1</code>,
+            otherwise <code>-Infinity</code>.</li>
           <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
             <code>@language</code> definition for <em>term</em> or
             ((<em>term</em> has no <code>@type</code> or <code>@language</code> definition) and
@@ -1536,10 +1541,31 @@ language-native data structures MUST be used where applicable.</p>
             If <em>property</em> is <code>@list</code> and any entry in <em>value</em> is a
             <tref>JSON object</tref> containing an <code>@list</code> property, return an error, as
             lists of lists are not supported.</li>
+          <li>Otherwise, if the <em>property</em> is not a keyword and its associated <tref>term</tref> entry in
+          the <tref>active context</tref> has a <code>@container</code> key associated with a value of <code>@language</code>,
+          process the associated <em>value</em> as a <em>language map</em>:
+            <ol class="algorithm">
+              <li>Set <em>multilingual array</em> to an empty array.</li>
+              <li>For each key-value in the <em>language map</em>:
+                <ol class="algorithm">
+                  <li>Create a new <tref>JSON Object</tref>, referred to as an <em>expanded language object</em>.
+                  <li>Add a key-value pair to the <em>expanded language object</em> where the
+                    key is <code>@value</code> and the value is 
+                    the value associated with the key in the <em>language map</em>.</li>
+                  <li>Add a key-value pair to the <em>expanded language object</em> where the
+                    key is <code>@language</code>, and the value is the key in the
+                    <em>language map</em>, transformed to lowercase.
+                  </li>
+                  <li>Append the <em>expanded language object</em> to the <em>multilingual array</em>.
+                </ol>
+              </li>
+              <li>Set the <em>value</em> associated with <em>property</em> to the <em>multilingual array</em>.</li>
+            </ol>
+          </li>
           <li>Otherwise, expand <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
             <tref>active property</tref>.</li>
           <li>If <em>property</em> is not a keyword
-            and <tref>active property</tref> has a <code>@container</code> <code>@list</code>
+            and <tref>active property</tref> has a <code>@container</code> key associated with a value of <code>@list</code>
             and the expanded <em>value</em> is not <tref>null</tref>,
             convert <em>value</em> to an <tref>object</tref> with an <code>@list</code> property whose value is
             set to <em>value</em> (unless <em>value</em> is already in that form).</li>
@@ -1700,6 +1726,23 @@ language-native data structures MUST be used where applicable.</p>
               <li>Set <tref>active property</tref> to the result of performing
                 <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
               <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+            </ol>
+          </li>
+          <li>If the <em>value</em> is an <tref>array</tref> and <tref>property</tref> is
+            a <tref>term</tref> in the <tref>active context</tref> that contains a
+            <code>@container</code> key associated with a value of <code>@language</code>, process
+            the <em>value</em> as a <em>multilingual array</em>:
+            <ol class="algorithm">
+              <li>Set <em>language map</em> to an empty <tref>JSON Object</tref>.</li>
+              <li>For each <em>item</em> in <em>multilingual array</em>, add a key-value 
+                pair to the <em>language map</em> where the key
+                is the value associated with the <code>@language</code> key in
+                <em>item</em>, and the value is the value associated with the
+                <code>@value</code> key in <em>item</em>.</li>
+              </li>
+              <li>Create an entry in <em>output</em> for <tref>active property</tref> and 
+                <em>language map</em>, appending to an existing entry if necessary.
+              </li>
             </ol>
           </li>
           <li>For each <em>item</em> in <em>value</em>:
