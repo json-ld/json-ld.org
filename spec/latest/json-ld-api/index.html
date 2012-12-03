@@ -515,15 +515,20 @@ jsonld.toRDF(jsonldDocument, rdfCallback);
       if a <tref>named graph</tref> is not specified.</dd>
     <dt><tdef>node</tdef></dt>
     <dd>A piece of information that is represented in a <tref>JSON-LD graph</tref>.</dd>
-    <dt><tdef>node definition</tdef></dt>
-    <dd>A <tref>JSON object</tref> used to represent a <tref>node</tref> and
-      one or more properties of that node. A <tref>JSON object</tref> is a
-      node definition if it does not contain the keys <code>@value</code>,
-      <code>@list</code> or <code>@set</code> and it has one or more keys
-      other than <code>@id</code>.</dd>
-    <dt><tdef>node reference</tdef></dt>
-    <dd>A <tref>JSON object</tref> used to reference a node having only the
-      <code>@id</code> key.</dd>
+    <dt><tdef>node object</tdef></dt>
+    <dd>A <tref>node object</tref> represents zero or more properties of a
+      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+      JSON-LD document.
+  
+      A <tref>JSON Object</tref> is a <tref>node object</tref> if
+      it exists outside of the JSON-LD Context and:</p>
+  
+      <ul>
+        <li>it does not contain the <code>@value</code>, <code>@list</code>, 
+        or <code>@set</code> keywords, or</li>
+        <li>it does not contain the <code>@graph</code> keyword and is
+        the top-most <tref>JSON Object</tref> in the JSON-LD document.
+      </ul></dd>
     <dt><tdef>blank node</tdef></dt>
     <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
       identifier because it is either ephemeral in nature or does not contain information that needs to be
@@ -1332,7 +1337,7 @@ language-native data structures MUST be used where applicable.</p>
       <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
     </ol>
   </li>
-  <li>Otherwise, <em>value</em> MUST be a <tref>node definition</tref>, <tref>node reference</tref>,
+  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>, <tref>node object</tref>,
     or a <tref>JSON object</tref> having a <code>@value</code>.
     <ol class="algorithm">
       <li>If <em>value</em> has a <code>@value</code> property:
@@ -1657,7 +1662,7 @@ language-native data structures MUST be used where applicable.</p>
     <code>true</code>, the compacted value is that item; otherwise the compacted value is <em>element</em>.</li>
   <li>Otherwise, if <em>element</em> is an object:
     <ol class="algorithm">
-      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>node reference</tref>,
+      <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>node object</tref>,
         return the result of performing
         <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
       <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping to <code>@list</code>
@@ -1818,7 +1823,7 @@ language-native data structures MUST be used where applicable.</p>
     otherwise set it to a <tref>blank node</tref> identifier created by the
     <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
     algorithm.</li>
-  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node reference</tref> to <em>list</em> using
+  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node object</tref> to <em>list</em> using
     <em>id</em> as the value for <code>@id</code>.</li>
   <li>Let <em>nodes</em> be the value in <em>nodeMap</em> where the key is <em>graph</em>; if no such
     value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
@@ -1834,13 +1839,13 @@ language-native data structures MUST be used where applicable.</p>
         <code>value</code> into <code>node</code> and then continue.</li>
       <li>For each value <em>v</em> in the array <em>value</em>:
         <ol class="algorithm">
-          <li>If <em>v</em> is a <tref>node definition</tref> or <tref>node reference</tref>:
+          <li>If <em>v</em> is a <tref>node object</tref> or <tref>node object</tref>:
             <ol class="algorithm">
               <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
                 map <em>v</em> to a <a
                 href="#generate-blank-node-identifier">new blank node
                 identifier</a> <em>name</em> to avoid collisions. If one does
-                not already exist, add a <tref>node reference</tref> for
+                not already exist, add a <tref>node object</tref> for
                 <em>v</em> into <em>node</em> for <em>property</em>.</li>
               <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>nodeMap</em>,
                 <em>graph</em>, <tref>null</tref> for <em>list</em>, and <em>name</em> for <em>id</em>.</li>
@@ -1986,12 +1991,12 @@ language-native data structures MUST be used where applicable.</p>
 </pre>
 
   <p>The process of translating this to RDF then operates over each
-    <tref>node definition</tref> to find a subject,
+    <tref>node object</tref> to find a subject,
     each <tref>property</tref> to find an <tref>RDF predicate</tref>,
     and each value of that property to find an <tref>object</tref>.
     In this case, each property has just a single object:
     <code>foaf:name</code> identifies a <tref>literal</tref>, and
-    <code>foaf:knows</code> identifies a second <tref>node definition</tref>
+    <code>foaf:knows</code> identifies a second <tref>node object</tref>
     similar to Turtle's <code>blankNodePropertyList</code>.</p>
 
   <p>After expansion, JSON-LD <tref title="number">numbers</tref>,
