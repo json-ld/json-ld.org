@@ -297,43 +297,65 @@ JSON, which is detailed in [[!RFC4627]].</p>
 </section>
 
 <section class="normative">
-<h1>JSON-LD Data Model</h1>
+  <h1>Data Model</h1>
 
-<p>JSON-LD is a way of expressing <tref>Linked Data</tref> on the Web. The
-  JSON-LD data model encapsulates the following concepts:</p>
+  <p>JSON-LD is a serialization format for <tref>Linked Data</tref> based on JSON.
+    It is therefore important to distinguish between the syntax, which is defined
+    by JSON in [[RFC4627]], and <tdef title="JSON-LD data model">JSON-LD's data model</tdef>
+    which is defined as follows:</p>
 
-<ol>
-  <li>The <tdef>JSON-LD data model</tdef> is used to represent
-    <tref title="JSON-LD graph">JSON-LD graphs</tref>.</li>
-  <li>A <tdef>JSON-LD graph</tdef> is an unordered labeled directed graph,
-    where <tdef title="node">nodes</tdef> are <tref title="IRI">IRIs</tref>
-    or <tref title="blank node">Blank Nodes</tref>, or other values.</li>
-  <li>A node having an outgoing edge must be an <tref>IRI</tref> or
-    <tref>Blank Node</tref>.</li>
-  <li>A node having an incoming edge must be an <tref>IRI</tref>,
-    <tref>Blank Node</tref>, or value such as a number or string.</li>
-  <li>A node may have both incoming and outgoing edges.</li>
-  <li>An edge should be labeled with an <tref>IRI</tref>. Within the
-    JSON-LD syntax, this label is called a <tdef>property</tdef>.</li>
-  <li><tref title="IRI">IRIs</tref> used within a <tref>JSON-LD graph</tref>
-    should be dereferenceable to a <tref>Linked Data</tref> document describing
-    the resource denoted by that IRI.</li>
-</ol>
+  <ul>
+    <li>A <tdef>JSON-LD document</tdef> serializes a collection of
+      <tref title="JSON-LD graph">JSON-LD graphs</tref> and comprises exactly one
+      <tdef>default graph</tdef> and zero or more <tdef title="named graph">named graphs</tdef>.</li>
+    <li>The default graph does not have a name and MAY be empty.</li>
+    <li>Each named graph is a pair consisting of an <tref>IRI</tref> or <tref>blank node</tref>
+      (the <tdef>graph name</tdef>) and a <tref>JSON-LD graph</tref>. Whenever possible, the
+      <tref>graph name</tref> SHOULD be an <tref>IRI</tref>.</li>
+    <li>A <tdef>JSON-LD graph</tdef> is a labeled directed graph, i.e., a set of
+      <tref title="node">nodes</tref> connected by <tref title="edge">edges</tref>.
+    <li>Every <tdef>edge</tdef> has a direction associated with it and is labeled with
+      an <tref>IRI</tref> or a <tref>blank node identifier</tref>. Within the JSON-LD syntax
+      these edge labels are called <tdef title="property">properties</tdef>. Whenever possible, an
+      <tref>edge</tref> SHOULD be labeled with an <tref>IRI</tref>.</li>
+    <li>Every <tdef>node</tdef> is an <tref>IRI</tref>, a <tref>blank node</tref>,
+      a <tref>JSON-LD value</tref>, or a <tref>list</tref>.</li>
+    <li>A node having an outgoing edge MUST be an <tref>IRI</tref> or a
+      <tref>blank node</tref>.</li>
+    <li>A <tref>JSON-LD graph</tref> SHOULD NOT contain unconnected <tref title="node">nodes</tref>,
+      i.e., nodes which are not connected by an <tref>edge</tref> to any other <tref>node</tref>.</li>
+    <li>An <tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef>
+      (Internationalized Resource Identifier) is a string that conforms to the syntax
+      defined in [[RFC3987]]. <tref title="IRI">IRIs</tref> used within a
+      <tref>JSON-LD graph</tref> SHOULD return a <tref>Linked Data</tref> document describing
+      the resource denoted by that IRI when being dereferenced.</li>
+    <li>A blank node is a <tref>node</tref> which is neither an <tref>IRI</tref>,
+      nor a <tref>JSON-LD value</tref>, or a <tref>list</tref>. A blank node MAY be identified
+      by a <tref>blank node identifier</tref>.</li>
+    <li>A <tdef>blank node identifier</tdef> is a string that can be used as an identifier
+      for a <tref>blank node</tref> within the scope of a <tref>JSON-LD document</tref>.
+      Blank node identifiers begin with <code>_:</code>.</li>
+    <li>A <tdef>JSON-LD value</tdef> is a <tref>string</tref>, a <tref>number</tref>,
+      <tref>true</tref> or <tref>false</tref>, a <tref>typed value</tref>, or a
+      <tref>language-tagged string</tref>.</li>
+    <li>A <tdef>typed value</tdef> consists of a value, which is a string, and a type, which is an IRI.</li>
+    <li>A <tdef>language-tagged string</tdef> consists of a string and a non-empty language
+      tag as defined by [[BCP47]]. The language tag must be well-formed according to section
+      <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9</a> of [[BCP47]], and MUST
+      be normalized to lowercase.</li>
+    <li>A <tdef>list</tdef> is an ordered sequence of <tref title="IRI">IRIs</tref>,
+      <tref title="blank node">blank nodes</tref>, and
+      <tref title="JSON-LD value">JSON-LD values</tref>.</li>
+  </ul>
 
-<p>
-  <img style="padding: 5px; border-style: solid; border-width: 1px; display: block; margin-left: auto; margin-right: auto;"
-  src="linked-data-graph.png" title="An example of a JSON-LD graph"
-  longdesc="An example of a JSON-LD graph showing two main nodes labeled with URLs for Alice and Bob. The Alice node contains two other connected nodes showing Alice's age (32) and name (Alice)."/>
-</p>
-<p style="text-align: center;">Figure 1: An example of a JSON-LD graph.</p>
-<p>There are a number of best practices that can ensure that developers
-  will generate good <tref>Linked Data</tref> for the Web. JSON-LD
-  formalizes those techniques by providing a mechanism to map JSON data,
-  i.e., keys and values, to <tref title="IRI">IRIs</tref>. This does not mean
-  that JSON-LD requires every key or value to be an IRI, but rather ensures that
-  keys and values can be mapped to IRIs if the developer desires to transform
-  their data into <tref>Linked Data</tref>.</p>
+  <p><tref title="JSON-LD document">JSON-LD documents</tref> MAY contain data that cannot be
+    represented by the <tref title="JSON-LD data model">data model</tref> defined above.
+    Unless otherwise specified, such data is ignored when a <tref>JSON-LD document</tref>
+    is being processed. This means, e.g., that properties which are not mapped to an
+    <tref>IRI</tref> or <tref>blank node</tref> will be ignored.</p>
 
+  <p style="text-align: center"><img src="linked-data-graph.png" title="An illustration of JSON-LD's data model"></p>
+  <p style="text-align: center">Figure&nbsp;1: An illustration of JSON-LD's data model.</p>
 </section>
 
 <section class="normative">
@@ -445,7 +467,7 @@ case-sensitive.</p>
 
 <p>The JSON-LD Syntax specification describes the conformance criteria for JSON-LD documents (relevant to authors and authoring tool implementors).</p>
 
-<p>A <tdef>JSON-LD document</tdef> complies with this specification if it follows the normative statements for documents defined in sections <a href="#referencing-contexts-from-json-documents"></a> and <a href="#json-ld-grammar"></a>. For convenience, normative statements for documents are often phrased as statements on the properties of the document.</p>
+<p>A <tref>JSON-LD document</tref> complies with this specification if it follows the normative statements for documents defined in sections <a href="#referencing-contexts-from-json-documents"></a> and <a href="#json-ld-grammar"></a>. For convenience, normative statements for documents are often phrased as statements on the properties of the document.</p>
 
 <p>The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL in this Recommendation have the meaning defined in [[!RFC2119]].</p>
 
@@ -717,8 +739,7 @@ intended to be linked to from other data sets.</p>
 <section>
 <h2>IRIs</h2>
 
-<p><tdef title="IRI"><abbr title="Internationalized Resource Identifier">IRIs</abbr></tdef>
-  (Internationalized Resource Identifiers are fundamental to <tref>Linked Data</tref> as
+<p><tref title="IRI">IRIs</tref> (Internationalized Resource Identifiers) are fundamental to <tref>Linked Data</tref> as
   that is how most <tref title="node">nodes</tref> and <tref title="property">properties</tref>
   are identified. <tref title="IRI">IRIs</tref> can be expressed in a variety of different ways in JSON-LD:</p>
 
@@ -1243,7 +1264,7 @@ advanced functionality in more detail.
 
 <p>
   A value with an associated type, also known as a
-  <tdef>typed value</tdef>, is indicated by associating a value with
+  <tref>typed value</tref>, is indicated by associating a value with
   an <tref>IRI</tref> which indicates the value's type. Typed values may be
   expressed in JSON-LD in three ways:
 </p>
@@ -1355,7 +1376,7 @@ in the body of a JSON-LD document:</p>
 
 <p>
   A string with an associated language, also known as a
-  <tdef>language-tagged string</tdef>, is indicated by associating a string with
+  <tref>language-tagged string</tref>, is indicated by associating a string with
   a language code as defined in [[!BCP47]]. Language-tagged strings may be
   expressed in JSON-LD in four ways:
 </p>
@@ -2777,7 +2798,7 @@ a normative grammar for JSON-LD.</p>
 <section id="grammar-set-list">
 <h2>List and Set Values</h2>
 
-<p>A <tdef>list</tdef> represents an <em>ordered</em> set of values.
+<p>A <tref>list</tref> represents an <em>ordered</em> set of values.
   A <tdef>set</tdef> represents an <em>unordered</em> set of values.
   Unless otherwise specified (typically through the use of a <tref>list</tref>),
   <tref title="array">arrays</tref> are unordered in JSON-LD.
@@ -2854,29 +2875,41 @@ a normative grammar for JSON-LD.</p>
 </section>
 
 <section class="appendix normative">
-<h2>Relationship to RDF</h2>
+  <h2>Relationship to RDF</h2>
 
-<p class="issue" data-number="157">
-  The intent of the Working Group and the Editors of this specification is to
-  eventually align terminology used in this document with the terminology used
-  in the RDF Concepts document [[!RDF-CONCEPTS]] to the extent to which it makes sense to do so.
-  In general, if there is an analogue to terminology used in this document in
-  the RDF Concepts document, the preference is to use the terminology in the
-  RDF Concepts document.
-</p>
+  <p>The RDF data model, as outlined in [[!RDF-CONCEPTS]], is an abstract syntax for
+    representing a directed graph of information. It is a subset of
+    <tref title="JSON-LD data model">JSON-LD's data model</tref> with a few
+    additional constraints. The differences between the two data models are:</p>
 
-<p>The RDF data model, as outlined in [[!RDF-CONCEPTS]], is an abstract
-  syntax for representing a directed graph of information. JSON-LD is
-  capable of serializing any RDF graph, and performing full RDF to
-  JSON-LD to RDF round-tripping. A complete description the algorithms to
-  convert from RDF to JSON-LD and from JSON-LD to RDF are included in the
-  JSON-LD API [[JSON-LD-API]] specification.</p>
+  <ul>
+    <li>In JSON-LD <tref title="graph name">graph names</tref> can be
+      <tref title="IRI">IRIs</tref> or <tref title="blank node">blank nodes</tref>
+      whereas in RDF graph names have to be <tref title="IRI">IRIs</tref>.</li>
+    <li>In JSON-LD <tref title="property">properties</tref> can be
+      <tref title="IRI">IRIs</tref> or <tref title="blank node">blank nodes</tref>
+      whereas in RDF properties (predicates) have to be
+      <tref title="IRI">IRIs</tref>.</li>
+    <li>In contrast to RDF graphs <tref title="JSON-LD graph">JSON-LD graphs</tref>
+      support unconnected <tref title="node">nodes</tref>, i.e., nodes which are not
+      connected to any other node.</li>
+    <li>In JSON-LD lists are part of the data model whereas in RDF they are part of
+      a vocabulary, namely [[RDF-SCHEMA]].</li>
+    <li>RDF values are either typed <em>literals</em>
+      (<tref title="typed value">typed values</tref>) or <em>language-tagged strings</em>
+      (<tref title="language-tagged string">language-tagged strings</tref>) whereas
+      JSON-LD also supports JSON's native data types, i.e., <tref title="number">number</tref>,
+      <tref title="string">strings</tref>, and the boolean values <tref>true</tref>
+      and <tref>false</tref>. The JSON-LD API [[JSON-LD-API]] specification defines
+      the conversion rules between JSON's native data types and RDF's counterparts to
+      allow full round-tripping.</li>
 
-<p>JSON-LD allows properties to be <tref title="blank node">blank nodes</tref>,
-  while RDF does not. Expressing properties as
-  <tref title="blank node">blank nodes</tref> in JSON-LD only becomes an issue
-  (and could raise an exception) when it is transformed to RDF.</p>
+  </ul>
 
+  <p>Summarized these differences mean that JSON-LD is capable of serializing any RDF
+    graph and most, but not all, JSON-LD documents can be transformed to RDF. A complete
+    description of the algorithms to convert from RDF to JSON-LD and from
+    JSON-LD to RDF is included in the JSON-LD API [[JSON-LD-API]] specification.</p>
 </section>
 
 <section class="appendix informative">
