@@ -574,486 +574,6 @@ jsonld.toRDF(jsonldDocument, rdfCallback);
 </section>
 
 <section>
-  <h2>The Application Programming Interface</h2>
-
-  <p>This API provides a clean mechanism that enables developers to convert
-  JSON-LD data into a a variety of output formats that are easier to work
-  with in various programming languages. If a JSON-LD API is provided in
-  a programming environment, the entirety of the following API MUST be
-  implemented.</p>
-
-  <section>
-    <h3>JsonLdProcessor</h3>
-
-    <p>The JSON-LD processor interface is the high-level programming structure that developers
-      use to access the JSON-LD transformation methods.</p>
-
-    <p>The JSON-LD API signatures are the same across all programming languages. Due
-      to the fact that asynchronous programming is uncommon in certain languages, developers MAY
-      implement a processor with a synchronous interface instead. In that case, the <code>callback</code>
-      parameter MUST NOT be included and the result MUST be returned as a return value instead.</p>
-
-    <dl title="[Constructor] interface JsonLdProcessor" class="idl">
-
-      <dt>void expand()</dt>
-      <dd>
-        <a href="#expansion">Expands</a> the given <code>input</code> according to
-        the steps in the <a href="#expansion-algorithm">Expansion Algorithm</a>. The
-        <code>input</code> MUST be copied, expanded and returned if there are
-        no errors. If the expansion fails, an appropriate error MUST be
-        returned via the callback.
-
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
-            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>.</dd>
-        </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error type
-            will be set in the error sent to the <code>callback</code>.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. The list of lists feature is
-            not supported in this version of JSON-LD due to the algorithmic
-            complexity associated with conversion to RDF.</dd>
-        </dl>
-      </dd>
-
-      <dt>void compact()</dt>
-      <dd>
-        <a href="#compaction">Compacts</a> the given <code>input</code> using the
-        <code>context</code> according to the steps in the
-        <a href="#compaction-algorithm">Compaction Algorithm</a>. The
-        <code>input</code> MUST be copied, compacted and returned if there are
-        no errors. If the compaction fails, an appropriate error MUST be
-        returned via the callback.
-
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-           <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
-            <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
-          <dt>object or IRI context</dt>
-          <dd>The context to use when compacting the <code>input</code>; either in the
-            form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>. This also includes <code>optimize</code>,
-            which if set will cause processor-specific optimization.</dd>
-        </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error
-            would be returned via the <code>callback</code>.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>CONFLICTING_DATATYPES</dt>
-          <dd>The target datatype specified in the coercion rule and the
-            datatype for the typed literal do not match.</dd>
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. The list of lists feature is
-            not supported in this version of JSON-LD due to the algorithmic
-            complexity associated with conversion to RDF.</dd>
-        </dl>
-      </dd>
-
-      <dt>void fromRDF()</dt>
-      <dd>Creates a JSON-LD document given an set of <ldtref title="Quad">Quads</ldtref>.
-        <dl class="parameters">
-          <dt>Quad[] input</dt>
-          <dd>A set of <tref title="JSON-LD graph">JSON-LD graphs</tref> represented as an array of <ldtref title="Quad">Quads</ldtref>.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that will affect the algorithm. This includes <code>notType</code>,
-            which if set to <tref>true</tref> causes the resulting document to use <code>rdf:type</code>
-            as a property, instead of <code>@type</code>.</dd>
-        </dl>
-      </dd>
-
-      <dt>void toRDF()</dt>
-      <dd>
-        Processes the <code>input</code> according to the
-        <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
-        the provided <code>callback</code> for each <ldtref>Quad</ldtref> generated.
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or a <a>IRI</a>
-            referencing the JSON-LD document to convert to RDF.</dd>
-          <dt>QuadCallback callback</dt>
-          <dd>A callback that is called when the input <code>input</code> has been converted
-            to <ldtref title="Quad">Quads</ldtref>.
-          </dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the conversion to RDF such as, e.g.,
-            the input document's base <tref>IRI</tref>.</dd>
-        </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error will
-            be returned.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. This is not supported in this
-            version of JSON-LD.</dd>
-        </dl>
-
-      </dd>
-
-    </dl>
-
-  </section>
-
-  <section>
-    <h3>Callbacks</h3>
-
-    <p class="issue" data-number="153">
-    Developers should note that the details of error handling and
-    conformance handling are being actively debated.
-    </p>
-
-    <p>JSON-LD processors utilize a variety of callbacks in order to return
-    information in an asynchronous manner to calling applications. This section
-    details the parameters sent to those callbacks as well as the desired
-    operation of the callbacks.
-    </p>
-
-    <section>
-      <h3>JsonLdProcessingError</h3>
-      <p>The <a>JsonLdError</a> type is used to encapsulate a variety of
-      parameters that outline the cause of a particular
-      <a>JsonLdProcessor</a> error.</p>
-
-      <dl title="dictionary JsonLdProcessingError" class="idl">
-        <dt>string type</dt>
-        <dd>a string representing the particular error type,
-          such as <code>LIST_OF_LISTS_DETECTED</code>, as described in
-          the various algorithms in this document.</dd>
-        <dt>string operation</dt>
-        <dd>a string representing the operation that was being performed
-          when the conformance issue was raised. Valid values for the
-          string include <code>compact</code>, <code>expand</code>,
-        <code>toRDF</code>, and <code>fromRDF</code>.</dd>
-        <dt>object or object[] source</dt>
-          <dd>An object reference to the original JSON-LD document being
-          processed.</dd>
-        <dt>string sourceKey</dt>
-          <dd>The key value associated with the value that triggered the
-          conformance issue.</dd>
-        <dt>object or object[] or string or number sourceValue</dt>
-          <dd>The value that triggered the conformance issue.</dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>JsonLdCallback</h3>
-      <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD
-        representation as the result of processing an API method.</p>
-
-      <dl title="[NoInterfaceObject Callback] interface JsonLdCallback"
-          class="idl">
-
-        <dt>void processingComplete()</dt>
-        <dd>This callback is invoked when processing is complete.
-        <dl class="parameters">
-           <dt>JsonLdProcessingError error</dt>
-           <dd>If the value is <code>null</code>, then no error occurred. If
-             the value is non-<code>null</code>, a processing error occurred
-             and the details will be contained within the <code>error</code>
-             object.
-           </dd>
-           <dt>object or object[] document</dt>
-           <dd>The processed JSON-LD document.</dd>
-        </dl>
-        </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>QuadCallback</h3>
-      <p>The <a>QuadCallback</a> is called whenever the processor generates a
-      quad during processing.</p>
-
-      <dl title="[NoInterfaceObject Callback] interface QuadCallback"
-          class="idl">
-
-        <dt>void quad()</dt>
-        <dd>This callback is invoked whenever a quad is generated by the processor.
-        <dl class="parameters">
-           <dt>JsonLdProcessingError error</dt>
-           <dd>If the value is <code>null</code>, then no error occurred. If
-             the value is non-<code>null</code>, a processing error occurred
-             and the details will be contained within the <code>error</code>
-             object.
-           </dd>
-           <dt>Quad[] quads</dt>
-           <dd>If there is no error, the quads that have been generated.</dd>
-        </dl>
-        </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>ConformanceCallback</h3>
-
-      <p>The <a>ConformanceCallback</a> MAY be specified in the
-      <a>JsonLdOptions</a> via the <code>conformanceCallback</code> parameter.
-      If specified, the callback is called whenever a recoverable conformance
-      issue is detected. The developer may then determine whether or not
-      processing should continue based on the type of conformance issue.</p>
-
-      <dl title="[NoInterfaceObject Callback] interface ConformanceCallback"
-          class="idl">
-
-        <dt>void issue()</dt>
-        <dd>This callback is invoked when a conformance issue is detected by
-          the JSON-LD processor.
-        <dl class="parameters">
-           <dt>JsonLdProcessingError issue</dt>
-           <dd>Details about the conformance issue.
-           </dd>
-           <dt>function callback</dt>
-           <dd>A function that MUST be called when the program has determined
-             how to respond to the conformance issue. A single parameter must be
-             passed to the callback. The value of the parameter should be
-             <code>null</code> if processing should continue by acting as if the
-             key-value that triggered the issue never existed. The
-             <code>issue</code> SHOULD be passed to the callback without
-             modification if processing should stop.</dd>
-        </dl>
-        </dd>
-      </dl>
-    </section>
-  </section>
-
-  <section>
-    <h3>Data Structures</h3>
-    <p>This section describes datatype definitions used within the JSON-LD API.</p>
-
-    <section>
-    <h3>IRI</h3>
-    <p>The <a>IRI</a> datatype represents an <tref>IRI</tref>.</p>
-    <div title="typedef DOMString IRI" class="idl">
-      This datatype indicates that <em>IRI</em> is interpreted as an Internationalized
-      Resource Identifier [[!RFC3987]] identifying a document, which when parsed as JSON yields
-      either a <tref>JSON object</tref> or <tref>array</tref>.
-    </div>
-    </section>
-
-    <section>
-    <h3>JsonLdOptions</h3>
-    <p>The <a>JsonLdOptions</a> type is used to pass various options to the <a>JsonLdProcessor</a> methods.</p>
-    <dl title="dictionary JsonLdOptions" class="idl">
-      <dt>IRI? base</dt>
-      <dd>The Base IRI to use when expanding the document. This overrides the value of
-        <em>input</em> if it is a <a>IRI</a>. If not specified and <em>input</em> is not
-        an <a>IRI</a>, the base IRI defaults to the current document IRI if in a browser context,
-        or the empty string if there is no document context.
-      </dd>
-      <dt>object or IRI expandContext = null</dt>
-      <dd>A context that is used to initialize the active context when expanding a document.</dd>
-      <dt>boolean compactArrays = true</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
-        one element with that element during compaction. If set to <code>false</code>,
-        all arrays will remain arrays even if they have just one element.
-      </dd>
-      <dt>boolean flatten = false</dt>
-      <dd>If set to a value that is not <code>false</code>,
-        the JSON-LD processor must modify the output of the
-        <a href="#compaction-algorithm">Compaction Algorithm</a>
-        or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
-        coalescing all properties associated with each
-        <tref>subject</tref> via the
-        <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
-        of <code>flatten</code> MUST be either an <tref>IRI</tref> value
-        representing the name of the graph to flatten, or <code>true</code>.
-        If the value is <code>true</code>, then the first graph encountered in
-        the input document is selected and flattened.
-      </dd>
-      <dt>boolean optimize = false</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
-        optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
-        to produce even compacter representations. The algorithm for compaction
-        optimization is beyond the scope of this specification and thus
-        not defined. Consequently, different implementations MAY implement
-        different optimization algorithms.
-      </dd>
-      <dt>boolean useRdfType = false</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor will use the
-        expanded <code>rdf:type</code> IRI as the property instead of
-        <code>@type</code> when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
-      </dd>
-      <dt>boolean useNativeTypes = true</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
-        datatyped literals to JSON native types instead of using the
-        expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
-        <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
-        <code>xsd:integer</code> and <code>xsd:double</code> values will be
-        converted to
-        <tref title="number">JSON numbers</tref>.
-      </dd>
-      <dt>function conformanceCallback = null</dt>
-      <dd>The purpose of this option is to instruct the processor about whether
-        or not it should continue processing. If the value is <code>null</code>,
-        the processor should ignore any key-value pair associated with any
-        recoverable conformance issue and continue processing. More details
-        about this feature can be found in the <a>ConformanceCallback</a>
-        section.
-      </dd>
-    </dl>
-    </section>
-
-    <p>The following data structures are used for representing data about
-      RDF quads. They are used for normalization, and <a href="#rdf-conversion">RDF conversion</a>.
-    </p>
-
-    <section>
-    <h3>Quad</h3>
-    <p>The <a>Quad</a> interface represents an RDF Quad. An RDF Quad is an
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>
-      [[!RDF-CONCEPTS]] with an optional fourth element, the graph name, being a
-      <ldtref>Node</ldtref>.
-    </p>
-    <dl title="[NoInterfaceObject] interface Quad" class="idl">
-      <dt>readonly attribute Node subject</dt>
-      <dd>The <tref>subject</tref> associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node property</dt>
-      <dd>The <tref>property</tref> associated with the <a>Quad</a>.
-        Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
-        <tref>property</tref></dd>
-      <dt>readonly attribute Node object</dt>
-      <dd>The <tref>object</tref> associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node? graph</dt>
-      <dd>If present, the name associated with the <a>Quad</a> identifying
-        it as a member of a <tref>named graph</tref>. If it is missing, the quad
-        is a member of the <tref>default graph</tref>.
-        <div class="issue" data-number="125">This element is at risk, and may be removed.</div>
-      </dd>
-    </dl>
-    </section>
-
-    <section>
-    <h3>Node</h3>
-    <p><ldtref>Node</ldtref> is the base class of <ldtref>IRI</ldtref>,
-    <ldtref>BlankNode</ldtref>, and <ldtref>Literal</ldtref>. It is the IDL
-    representation of a <tref>JSON-LD graph</tref> <tref>node</tref>.</p>
-    <dl title="[NoInterfaceObject] interface Node" class="idl">
-    </dl>
-    </section>
-
-    <section>
-    <h3>IRI</h3>
-    <p>A <tref>node</tref> that is an <tref>IRI</tref>.</p>
-    <dl title="[NoInterfaceObject] interface IRI : Node"
-        class="idl">
-        <dt>readonly attribute DOMString value</dt>
-        <dd>The IRI identifier of the <tref>node</tref> as a [[UNICODE]] string.</dd>
-    </dl>
-    </section>
-
-    <section>
-    <h3>Blank Node</h3>
-
-    <p>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that
-    does not contain a dereferenceable identifier because it is either
-    ephemeral in nature or does not contain information that needs to be linked
-    to from outside of a <tref>JSON-LD graph</tref>.
-    A <tref>blank node</tref> is assigned a <tref>blank node identifier</tref> starting
-    with the prefix <code>_:</code> and an implementation dependent,
-    auto-generated suffix that is unique to all information associated with the
-    particular <tref>blank node</tref>.
-    </p>
-
-    <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
-      <dt>readonly attribute DOMString identifier</dt>
-      <dd>The temporary identifier of the <tref>blank node</tref>.
-        The <code>identifier</code> MUST NOT be relied upon in any way between two
-        separate processing runs of the same document or with a different document.</dd>
-    </dl>
-
-    <p class="note">Developers and authors must not assume that the
-      value of a <tref>blank node</tref> will remain the same between two
-      processing runs. <a>BlankNode</a> values are only valid for the
-      most recent processing run on the document. <a>BlankNode</a>
-      values will often be generated differently by different processors.</p>
-
-    <p>Implementers MUST ensure that <a>BlankNode</a> values are unique
-      within the current environment, two <ldtref title="BlankNode">BlankNodes</ldtref>
-      are considered equal if, and only if, their values are strictly equal.</p>
-    </section>
-
-    <section>
-      <h3>Literal</h3>
-      <p>Literals represent values such as numbers, dates and strings in
-        RDF data. A <ldtref>Literal</ldtref> is comprised of three attributes:
-      </p>
-
-      <ul>
-        <li>a lexical form of the <code>value</code></li>
-        <li>an optional <code>language</code> tag</li>
-        <li>a <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
-      </ul>
-
-      <p>Literals representing plain text in a natural language may have a
-        <code>language</code> tag specified by a string token, as specified in
-        [[!BCP47]], normalized to lowercase
-        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
-        They also have a datatype attribute such as <code>xsd:string</code>.
-        If unspecified, the <code>datatype</code> defaults to <code>xsd:string</code>.
-      </p>
-
-      <p>Literals representing values with a specific datatype, such as
-        the integer 72, may have a <code>datatype</code> attribute specified in the form
-        of a <a>IRI</a> (e.g.,
-        <code>xsd:integer</code>).</p>
-
-      <p> See[[!RDF-CONCEPTS]] definition for
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</p>
-
-      <dl title="[NoInterfaceObject] interface Literal : Node" class="idl">
-        <dt>readonly attribute DOMString value</dt>
-        <dd>The lexical form of the Literal's value.</dd>
-        <dt>readonly attribute DOMString? language</dt>
-        <dd>An optional language tag as defined in [[!BCP47]], normalized to lowercase.</dd>
-        <dt>readonly attribute IRI? datatype</dt>
-        <dd>An optional datatype identified by a IRI.</dd>
-      </dl>
-    </section>
-  </section>
-
-</section>
-
-<section>
 <h1>Algorithms</h1>
 
 <p>All algorithms described in this section are intended to operate on
@@ -2480,6 +2000,486 @@ language-native data structures MUST be used where applicable.</p>
   This is problematic as other JSON parsers might not understand those escaping characters.
   There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
   between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
+
+</section>
+
+<section>
+  <h2>The Application Programming Interface</h2>
+
+  <p>This API provides a clean mechanism that enables developers to convert
+  JSON-LD data into a a variety of output formats that are easier to work
+  with in various programming languages. If a JSON-LD API is provided in
+  a programming environment, the entirety of the following API MUST be
+  implemented.</p>
+
+  <section>
+    <h3>JsonLdProcessor</h3>
+
+    <p>The JSON-LD processor interface is the high-level programming structure that developers
+      use to access the JSON-LD transformation methods.</p>
+
+    <p>The JSON-LD API signatures are the same across all programming languages. Due
+      to the fact that asynchronous programming is uncommon in certain languages, developers MAY
+      implement a processor with a synchronous interface instead. In that case, the <code>callback</code>
+      parameter MUST NOT be included and the result MUST be returned as a return value instead.</p>
+
+    <dl title="[Constructor] interface JsonLdProcessor" class="idl">
+
+      <dt>void expand()</dt>
+      <dd>
+        <a href="#expansion">Expands</a> the given <code>input</code> according to
+        the steps in the <a href="#expansion-algorithm">Expansion Algorithm</a>. The
+        <code>input</code> MUST be copied, expanded and returned if there are
+        no errors. If the expansion fails, an appropriate error MUST be
+        returned via the callback.
+
+        <dl class="parameters">
+          <dt>object or object[] or IRI input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>.</dd>
+        </dl>
+
+        <dl title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this error type
+            will be set in the error sent to the <code>callback</code>.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
+        </dl>
+
+        <dl title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. The list of lists feature is
+            not supported in this version of JSON-LD due to the algorithmic
+            complexity associated with conversion to RDF.</dd>
+        </dl>
+      </dd>
+
+      <dt>void compact()</dt>
+      <dd>
+        <a href="#compaction">Compacts</a> the given <code>input</code> using the
+        <code>context</code> according to the steps in the
+        <a href="#compaction-algorithm">Compaction Algorithm</a>. The
+        <code>input</code> MUST be copied, compacted and returned if there are
+        no errors. If the compaction fails, an appropriate error MUST be
+        returned via the callback.
+
+        <dl class="parameters">
+          <dt>object or object[] or IRI input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
+          <dt>object or IRI context</dt>
+          <dd>The context to use when compacting the <code>input</code>; either in the
+            form of an <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
+            input document's base <tref>IRI</tref>. This also includes <code>optimize</code>,
+            which if set will cause processor-specific optimization.</dd>
+        </dl>
+
+        <dl title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this error
+            would be returned via the <code>callback</code>.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
+        </dl>
+
+        <dl title="ProcessingError">
+          <dt>CONFLICTING_DATATYPES</dt>
+          <dd>The target datatype specified in the coercion rule and the
+            datatype for the typed literal do not match.</dd>
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. The list of lists feature is
+            not supported in this version of JSON-LD due to the algorithmic
+            complexity associated with conversion to RDF.</dd>
+        </dl>
+      </dd>
+
+      <dt>void fromRDF()</dt>
+      <dd>Creates a JSON-LD document given an set of <ldtref title="Quad">Quads</ldtref>.
+        <dl class="parameters">
+          <dt>Quad[] input</dt>
+          <dd>A set of <tref title="JSON-LD graph">JSON-LD graphs</tref> represented as an array of <ldtref title="Quad">Quads</ldtref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that will affect the algorithm. This includes <code>notType</code>,
+            which if set to <tref>true</tref> causes the resulting document to use <code>rdf:type</code>
+            as a property, instead of <code>@type</code>.</dd>
+        </dl>
+      </dd>
+
+      <dt>void toRDF()</dt>
+      <dd>
+        Processes the <code>input</code> according to the
+        <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
+        the provided <code>callback</code> for each <ldtref>Quad</ldtref> generated.
+        <dl class="parameters">
+          <dt>object or object[] or IRI input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or a <a>IRI</a>
+            referencing the JSON-LD document to convert to RDF.</dd>
+          <dt>QuadCallback callback</dt>
+          <dd>A callback that is called when the input <code>input</code> has been converted
+            to <ldtref title="Quad">Quads</ldtref>.
+          </dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that MAY affect the conversion to RDF such as, e.g.,
+            the input document's base <tref>IRI</tref>.</dd>
+        </dl>
+
+        <dl title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this error will
+            be returned.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
+        </dl>
+
+        <dl title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
+      </dd>
+
+    </dl>
+
+  </section>
+
+  <section>
+    <h3>Callbacks</h3>
+
+    <p class="issue" data-number="153">
+    Developers should note that the details of error handling and
+    conformance handling are being actively debated.
+    </p>
+
+    <p>JSON-LD processors utilize a variety of callbacks in order to return
+    information in an asynchronous manner to calling applications. This section
+    details the parameters sent to those callbacks as well as the desired
+    operation of the callbacks.
+    </p>
+
+    <section>
+      <h3>JsonLdProcessingError</h3>
+      <p>The <a>JsonLdError</a> type is used to encapsulate a variety of
+      parameters that outline the cause of a particular
+      <a>JsonLdProcessor</a> error.</p>
+
+      <dl title="dictionary JsonLdProcessingError" class="idl">
+        <dt>string type</dt>
+        <dd>a string representing the particular error type,
+          such as <code>LIST_OF_LISTS_DETECTED</code>, as described in
+          the various algorithms in this document.</dd>
+        <dt>string operation</dt>
+        <dd>a string representing the operation that was being performed
+          when the conformance issue was raised. Valid values for the
+          string include <code>compact</code>, <code>expand</code>,
+        <code>toRDF</code>, and <code>fromRDF</code>.</dd>
+        <dt>object or object[] source</dt>
+          <dd>An object reference to the original JSON-LD document being
+          processed.</dd>
+        <dt>string sourceKey</dt>
+          <dd>The key value associated with the value that triggered the
+          conformance issue.</dd>
+        <dt>object or object[] or string or number sourceValue</dt>
+          <dd>The value that triggered the conformance issue.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>JsonLdCallback</h3>
+      <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD
+        representation as the result of processing an API method.</p>
+
+      <dl title="[NoInterfaceObject Callback] interface JsonLdCallback"
+          class="idl">
+
+        <dt>void processingComplete()</dt>
+        <dd>This callback is invoked when processing is complete.
+        <dl class="parameters">
+           <dt>JsonLdProcessingError error</dt>
+           <dd>If the value is <code>null</code>, then no error occurred. If
+             the value is non-<code>null</code>, a processing error occurred
+             and the details will be contained within the <code>error</code>
+             object.
+           </dd>
+           <dt>object or object[] document</dt>
+           <dd>The processed JSON-LD document.</dd>
+        </dl>
+        </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>QuadCallback</h3>
+      <p>The <a>QuadCallback</a> is called whenever the processor generates a
+      quad during processing.</p>
+
+      <dl title="[NoInterfaceObject Callback] interface QuadCallback"
+          class="idl">
+
+        <dt>void quad()</dt>
+        <dd>This callback is invoked whenever a quad is generated by the processor.
+        <dl class="parameters">
+           <dt>JsonLdProcessingError error</dt>
+           <dd>If the value is <code>null</code>, then no error occurred. If
+             the value is non-<code>null</code>, a processing error occurred
+             and the details will be contained within the <code>error</code>
+             object.
+           </dd>
+           <dt>Quad[] quads</dt>
+           <dd>If there is no error, the quads that have been generated.</dd>
+        </dl>
+        </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>ConformanceCallback</h3>
+
+      <p>The <a>ConformanceCallback</a> MAY be specified in the
+      <a>JsonLdOptions</a> via the <code>conformanceCallback</code> parameter.
+      If specified, the callback is called whenever a recoverable conformance
+      issue is detected. The developer may then determine whether or not
+      processing should continue based on the type of conformance issue.</p>
+
+      <dl title="[NoInterfaceObject Callback] interface ConformanceCallback"
+          class="idl">
+
+        <dt>void issue()</dt>
+        <dd>This callback is invoked when a conformance issue is detected by
+          the JSON-LD processor.
+        <dl class="parameters">
+           <dt>JsonLdProcessingError issue</dt>
+           <dd>Details about the conformance issue.
+           </dd>
+           <dt>function callback</dt>
+           <dd>A function that MUST be called when the program has determined
+             how to respond to the conformance issue. A single parameter must be
+             passed to the callback. The value of the parameter should be
+             <code>null</code> if processing should continue by acting as if the
+             key-value that triggered the issue never existed. The
+             <code>issue</code> SHOULD be passed to the callback without
+             modification if processing should stop.</dd>
+        </dl>
+        </dd>
+      </dl>
+    </section>
+  </section>
+
+  <section>
+    <h3>Data Structures</h3>
+    <p>This section describes datatype definitions used within the JSON-LD API.</p>
+
+    <section>
+    <h3>IRI</h3>
+    <p>The <a>IRI</a> datatype represents an <tref>IRI</tref>.</p>
+    <div title="typedef DOMString IRI" class="idl">
+      This datatype indicates that <em>IRI</em> is interpreted as an Internationalized
+      Resource Identifier [[!RFC3987]] identifying a document, which when parsed as JSON yields
+      either a <tref>JSON object</tref> or <tref>array</tref>.
+    </div>
+    </section>
+
+    <section>
+    <h3>JsonLdOptions</h3>
+    <p>The <a>JsonLdOptions</a> type is used to pass various options to the <a>JsonLdProcessor</a> methods.</p>
+    <dl title="dictionary JsonLdOptions" class="idl">
+      <dt>IRI? base</dt>
+      <dd>The Base IRI to use when expanding the document. This overrides the value of
+        <em>input</em> if it is a <a>IRI</a>. If not specified and <em>input</em> is not
+        an <a>IRI</a>, the base IRI defaults to the current document IRI if in a browser context,
+        or the empty string if there is no document context.
+      </dd>
+      <dt>object or IRI expandContext = null</dt>
+      <dd>A context that is used to initialize the active context when expanding a document.</dd>
+      <dt>boolean compactArrays = true</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
+        one element with that element during compaction. If set to <code>false</code>,
+        all arrays will remain arrays even if they have just one element.
+      </dd>
+      <dt>boolean flatten = false</dt>
+      <dd>If set to a value that is not <code>false</code>,
+        the JSON-LD processor must modify the output of the
+        <a href="#compaction-algorithm">Compaction Algorithm</a>
+        or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
+        coalescing all properties associated with each
+        <tref>subject</tref> via the
+        <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
+        of <code>flatten</code> MUST be either an <tref>IRI</tref> value
+        representing the name of the graph to flatten, or <code>true</code>.
+        If the value is <code>true</code>, then the first graph encountered in
+        the input document is selected and flattened.
+      </dd>
+      <dt>boolean optimize = false</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
+        optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
+        to produce even compacter representations. The algorithm for compaction
+        optimization is beyond the scope of this specification and thus
+        not defined. Consequently, different implementations MAY implement
+        different optimization algorithms.
+      </dd>
+      <dt>boolean useRdfType = false</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor will use the
+        expanded <code>rdf:type</code> IRI as the property instead of
+        <code>@type</code> when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
+      </dd>
+      <dt>boolean useNativeTypes = true</dt>
+      <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
+        datatyped literals to JSON native types instead of using the
+        expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
+        <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
+        <code>xsd:integer</code> and <code>xsd:double</code> values will be
+        converted to
+        <tref title="number">JSON numbers</tref>.
+      </dd>
+      <dt>function conformanceCallback = null</dt>
+      <dd>The purpose of this option is to instruct the processor about whether
+        or not it should continue processing. If the value is <code>null</code>,
+        the processor should ignore any key-value pair associated with any
+        recoverable conformance issue and continue processing. More details
+        about this feature can be found in the <a>ConformanceCallback</a>
+        section.
+      </dd>
+    </dl>
+    </section>
+
+    <p>The following data structures are used for representing data about
+      RDF quads. They are used for normalization, and <a href="#rdf-conversion">RDF conversion</a>.
+    </p>
+
+    <section>
+    <h3>Quad</h3>
+    <p>The <a>Quad</a> interface represents an RDF Quad. An RDF Quad is an
+      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>
+      [[!RDF-CONCEPTS]] with an optional fourth element, the graph name, being a
+      <ldtref>Node</ldtref>.
+    </p>
+    <dl title="[NoInterfaceObject] interface Quad" class="idl">
+      <dt>readonly attribute Node subject</dt>
+      <dd>The <tref>subject</tref> associated with the <a>Quad</a>.</dd>
+      <dt>readonly attribute Node property</dt>
+      <dd>The <tref>property</tref> associated with the <a>Quad</a>.
+        Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
+        <tref>property</tref></dd>
+      <dt>readonly attribute Node object</dt>
+      <dd>The <tref>object</tref> associated with the <a>Quad</a>.</dd>
+      <dt>readonly attribute Node? graph</dt>
+      <dd>If present, the name associated with the <a>Quad</a> identifying
+        it as a member of a <tref>named graph</tref>. If it is missing, the quad
+        is a member of the <tref>default graph</tref>.
+        <div class="issue" data-number="125">This element is at risk, and may be removed.</div>
+      </dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>Node</h3>
+    <p><ldtref>Node</ldtref> is the base class of <ldtref>IRI</ldtref>,
+    <ldtref>BlankNode</ldtref>, and <ldtref>Literal</ldtref>. It is the IDL
+    representation of a <tref>JSON-LD graph</tref> <tref>node</tref>.</p>
+    <dl title="[NoInterfaceObject] interface Node" class="idl">
+    </dl>
+    </section>
+
+    <section>
+    <h3>IRI</h3>
+    <p>A <tref>node</tref> that is an <tref>IRI</tref>.</p>
+    <dl title="[NoInterfaceObject] interface IRI : Node"
+        class="idl">
+        <dt>readonly attribute DOMString value</dt>
+        <dd>The IRI identifier of the <tref>node</tref> as a [[UNICODE]] string.</dd>
+    </dl>
+    </section>
+
+    <section>
+    <h3>Blank Node</h3>
+
+    <p>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that
+    does not contain a dereferenceable identifier because it is either
+    ephemeral in nature or does not contain information that needs to be linked
+    to from outside of a <tref>JSON-LD graph</tref>.
+    A <tref>blank node</tref> is assigned a <tref>blank node identifier</tref> starting
+    with the prefix <code>_:</code> and an implementation dependent,
+    auto-generated suffix that is unique to all information associated with the
+    particular <tref>blank node</tref>.
+    </p>
+
+    <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
+      <dt>readonly attribute DOMString identifier</dt>
+      <dd>The temporary identifier of the <tref>blank node</tref>.
+        The <code>identifier</code> MUST NOT be relied upon in any way between two
+        separate processing runs of the same document or with a different document.</dd>
+    </dl>
+
+    <p class="note">Developers and authors must not assume that the
+      value of a <tref>blank node</tref> will remain the same between two
+      processing runs. <a>BlankNode</a> values are only valid for the
+      most recent processing run on the document. <a>BlankNode</a>
+      values will often be generated differently by different processors.</p>
+
+    <p>Implementers MUST ensure that <a>BlankNode</a> values are unique
+      within the current environment, two <ldtref title="BlankNode">BlankNodes</ldtref>
+      are considered equal if, and only if, their values are strictly equal.</p>
+    </section>
+
+    <section>
+      <h3>Literal</h3>
+      <p>Literals represent values such as numbers, dates and strings in
+        RDF data. A <ldtref>Literal</ldtref> is comprised of three attributes:
+      </p>
+
+      <ul>
+        <li>a lexical form of the <code>value</code></li>
+        <li>an optional <code>language</code> tag</li>
+        <li>a <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
+      </ul>
+
+      <p>Literals representing plain text in a natural language may have a
+        <code>language</code> tag specified by a string token, as specified in
+        [[!BCP47]], normalized to lowercase
+        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
+        They also have a datatype attribute such as <code>xsd:string</code>.
+        If unspecified, the <code>datatype</code> defaults to <code>xsd:string</code>.
+      </p>
+
+      <p>Literals representing values with a specific datatype, such as
+        the integer 72, may have a <code>datatype</code> attribute specified in the form
+        of a <a>IRI</a> (e.g.,
+        <code>xsd:integer</code>).</p>
+
+      <p> See[[!RDF-CONCEPTS]] definition for
+      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</p>
+
+      <dl title="[NoInterfaceObject] interface Literal : Node" class="idl">
+        <dt>readonly attribute DOMString value</dt>
+        <dd>The lexical form of the Literal's value.</dd>
+        <dt>readonly attribute DOMString? language</dt>
+        <dd>An optional language tag as defined in [[!BCP47]], normalized to lowercase.</dd>
+        <dt>readonly attribute IRI? datatype</dt>
+        <dd>An optional datatype identified by a IRI.</dd>
+      </dl>
+    </section>
+  </section>
 
 </section>
 
