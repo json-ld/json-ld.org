@@ -1297,6 +1297,10 @@ language-native data structures MUST be used where applicable.</p>
               <li>Add <tref>active property</tref> and the compacted <em>value</em> to <em>output</em>.</li>
             </ol>
           </li>
+          <li>Otherwise, if <em>property</em> is <code>@annotation</code> and
+            <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref>
+            that contains a <code>@container</code> key associated with a value of <code>@annotation</code>,
+            skip this entry.</li>
           <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>.</li>
           <li>If <em>value</em> is empty:
             <ol class="algorithm">
@@ -1305,38 +1309,39 @@ language-native data structures MUST be used where applicable.</p>
               <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
             </ol>
           </li>
-          <li>If the <em>value</em> is an <tref>array</tref> and <tref>property</tref> is
-            a <tref>term</tref> in the <tref>active context</tref> that contains a
-            <code>@container</code> key associated with a value of <code>@language</code>, process
-            the <em>value</em> as a <em>multilingual array</em>:
-            <ol class="algorithm">
-              <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
-                for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
-              <li>Set <em>language map</em> to an empty <tref>JSON Object</tref>.</li>
-              <li>For each <em>item</em> in <em>multilingual array</em>, add a key-value
-                pair to the <em>language map</em> where the key
-                is the value associated with the <code>@language</code> key in
-                <em>item</em>, and the value is the value associated with the
-                <code>@value</code> key in <em>item</em>.</li>
-              </li>
-              <li>Create an entry in <em>output</em> for <tref>active property</tref> and
-                <em>language map</em>, appending to an existing entry if necessary.
-              </li>
-            </ol>
-          </li>
           <li>For each <em>item</em> in <em>value</em>:
             <ol class="algorithm">
               <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
                 for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
               <li>Compact <em>item</em> by recursively performing this algorithm passing a copy of
                 the <tref>active context</tref> and the <tref>active property</tref>.</li>
-              <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
-                to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
-              <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
-                has a <code>@container</code> mapping to <code>@set</code> or if the
-                <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
-                <code>false</code>, convert <em>value</em> to an array.</li>
-              <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+              <li>If <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref> that contains a
+                <code>@container</code> key associated with a value of <code>@language</code> or <code>@annotation</code>,
+                then
+                <ol class="algorithm">
+                  <li>Unless such an entry already exists, create an entry in <em>output</em>
+                    for <tref>active property</tref> set to an empty <tref>JSON object</tref>
+                    as <em>map object</em>.</li>
+                    <li>If an entry already exists in <em>map object</em> for key, convert it
+                      to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+                    <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                      has a <code>@container</code> mapping to <code>@set</code> or if the
+                      <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                      <code>false</code>, convert <em>value</em> to an array.</li>
+                    <li>Create an entry in <em>map object</em> for key and <em>value</em>.</li>
+                </ol>
+              </li>
+              <li>Otherwise,
+                <ol class="algorithm">
+                  <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
+                    to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+                  <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                    has a <code>@container</code> mapping to <code>@set</code> or if the
+                    <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                    <code>false</code>, convert <em>value</em> to an array.</li>
+                  <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+                </ol>
+              </li>
             </ol>
           </li>
         </ol>
