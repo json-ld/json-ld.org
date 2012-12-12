@@ -1119,6 +1119,25 @@ language-native data structures MUST be used where applicable.</p>
               <li>Set the <em>value</em> associated with <em>property</em> to the <em>multilingual array</em>.</li>
             </ol>
           </li>
+          <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> and <em>property</em> is not a keyword and its associated <tref>term</tref> entry in
+          the <tref>active context</tref> has a <code>@container</code> key associated with a value of <code>@annotation</code>,
+          process the associated <em>value</em> as a <em>annotation map</em>:
+            <ol class="algorithm">
+              <li>Set <em>annotation array</em> to an empty array.</li>
+              <li>For each key-value pair in the <em>annotation map</em> ordered case-sensitively by key, and for each value, if value is an <tref>array</tref>:
+                <ol class="algorithm">
+                  <li>Set <em>expanded value</em> to the result of expanding value recursively using
+                    this algorithm, passing copies of the <tref>active context</tref> and
+                    <tref>active property</tref>.</li>
+                  <li>Add key from the <em>annotation map</em> to <em>expanded value</em> using the
+                    key <code>@annotation</code>, unless <em>expanded value</em> already has an
+                    <code>@annotation</code> key.</li>
+                  <li>Append <em>expanded value</em> to the <em>annotation array</em>.
+                </ol>
+              </li>
+              <li>Set the <em>value</em> associated with <em>property</em> to the <em>annotation array</em>.</li>
+            </ol>
+          </li>
           <li>Otherwise, expand <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
             <tref>active property</tref>.</li>
           <li>If <em>property</em> is not a keyword
@@ -1291,6 +1310,8 @@ language-native data structures MUST be used where applicable.</p>
             <code>@container</code> key associated with a value of <code>@language</code>, process
             the <em>value</em> as a <em>multilingual array</em>:
             <ol class="algorithm">
+              <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
+                for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
               <li>Set <em>language map</em> to an empty <tref>JSON Object</tref>.</li>
               <li>For each <em>item</em> in <em>multilingual array</em>, add a key-value
                 pair to the <em>language map</em> where the key
