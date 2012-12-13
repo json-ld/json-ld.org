@@ -375,22 +375,11 @@ var data = "
 -->
   </pre>
 
-  <p>
-A developer can use the JSON-LD API to transform the markup above into a
-JSON-LD document:
-  </p>
-
-  <pre class="example" data-transform="updateExample">
-function conversionCallback(result)
-{
-  console.log("JSON-LD Document: ", result);
-};
-
-jsonld.fromRDF(data, conversionCallback, {"format": "ntriples"});
-  </pre>
+  <p>A developer can use the
+    <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>.</p>
 
   <p>
-The following expanded output would be the result of the call above:
+The following expanded output would be the result performing this transformation:
   </p>
 
   <pre class="example" data-transform="updateExample">
@@ -419,23 +408,9 @@ using the technique outlined in the previous section:
 }
   </pre>
 
-  <p>
-Transforming the node above back to RDF is as simple as calling the
-<code>toRDF()</code> method:
-  </p>
-
-  <pre class="example" data-transform="updateExample">
-var jsonldDocument = ...; // assign the JSON-LD document here
-
-function rdfCallback(quads)
-{
-  console.log("RDF Data: ", quads);
-};
-
-jsonld.toRDF(jsonldDocument, rdfCallback);
-  </pre>
-
-</section>
+  <p>Transforming the node above back to RDF using the
+    <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</p>
+  </section>
 
 </section>
 
@@ -452,7 +427,7 @@ jsonld.toRDF(jsonldDocument, rdfCallback);
 
   <p>There are two classes of products that can claim conformance to this
     specification: <tref title="JSON-LD Implementation">JSON-LD Implementations</tref>
-    and <tref title="JSON-LD Processor">JSON-LD Processors</tref>.
+    and <tref title="JSON-LD Processor">JSON-LD Processors</tref>.</p>
 
   <p>A conforming <tdef>JSON-LD Implementation</tdef> is a system capable of transforming
     JSON-LD documents according the algorithms defined in this specification.</p>
@@ -545,31 +520,37 @@ jsonld.toRDF(jsonldDocument, rdfCallback);
     <dd>A <tref>node object</tref> represents zero or more properties of a
       <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
       JSON-LD document. A <tref>JSON Object</tref> is a <tref>node object</tref>
-      if it exists outside of the JSON-LD Context and:</p>
+      if it exists outside of the JSON-LD Context and:
       <ul>
         <li>it does not contain the <code>@value</code>, <code>@list</code>,
         or <code>@set</code> keywords, or</li>
         <li>it does not contain the <code>@graph</code> keyword and is
-        the top-most <tref>JSON Object</tref> in the JSON-LD document.
-      </ul></dd>
+        the top-most <tref>JSON Object</tref> in the JSON-LD document.</li>
+      </ul>
+    </dd>
     <dt><tdef>blank node</tdef></dt>
     <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
       identifier because it is either ephemeral in nature or does not contain information that needs to be
       linked to from outside of the JSON-LD graph.</dd>
     <dt><tdef>blank node identifier</tdef></dt>
     <dd>A blank node identifier is a string that can be used as an identifier for a <tref>blank node</tref> within
-      the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.
-    <dt><tdef>property</tdef></dt>
-    <dd>The <tref>IRI</tref> label of an edge in a <tref>JSON-LD graph</tref>.</dd>
+      the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.</dd>
     <dt><tdef>subject</tdef></dt>
     <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one outgoing edge, related to an <tref>object</tref> node through a <tref>property</tref>.</dd>
+    <dt><tdef>property</tdef></dt>
+    <dd>The <tref>IRI</tref> label of an edge in a <tref>JSON-LD graph</tref>.
+      Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
+      <tref>property</tref>.</dd>
     <dt><tdef>object</tdef></dt>
     <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one incoming edge.</dd>
+    <dt><tdef>literal</tdef></dt>
+    <dd>An <tref>object</tref> expressed as a value such as a <tref>string</tref>, <tref>number</tref> or in <tref>expanded form</tref>.</dd>
+    <dt><tdef>triple</tdef></dt>
+    <dd>A piece of information that contains three items; a <tref>subject</tref>, a <tref>property</tref>,
+      and an <tref>object</tref>.</dd>
     <dt><tdef>quad</tdef></dt>
     <dd>A piece of information that contains four items; a <tref>subject</tref>, a <tref>property</tref>,
       an <tref>object</tref>, and a <tref>graph name</tref>.</dd>
-    <dt><tdef>literal</tdef></dt>
-    <dd>An <tref>object</tref> expressed as a value such as a <tref>string</tref>, <tref>number</tref> or in <tref>expanded form</tref>.</dd>
   </dl>
 </section>
 
@@ -1104,7 +1085,7 @@ language-native data structures MUST be used where applicable.</p>
               <li>Set <em>multilingual array</em> to an empty array.</li>
               <li>For each key-value pair in the <em>language map</em> ordered case-sensitively by key, and for each value, if value is an <tref>array</tref>:
                 <ol class="algorithm">
-                  <li>Create a new <tref>JSON Object</tref>, referred to as an <em>expanded language object</em>.
+                  <li>Create a new <tref>JSON Object</tref>, referred to as an <em>expanded language object</em>.</li>
                   <li>Add a key-value pair to the <em>expanded language object</em> where the
                     key is <code>@value</code> and the value is
                     the value associated with the key in the <em>language map</em>, which MUST be a
@@ -1113,7 +1094,7 @@ language-native data structures MUST be used where applicable.</p>
                     key is <code>@language</code>, and the value is the key in the
                     <em>language map</em>, transformed to lowercase, which MUST be valid according to [[!BCP47]].
                   </li>
-                  <li>Append the <em>expanded language object</em> to the <em>multilingual array</em>.
+                  <li>Append the <em>expanded language object</em> to the <em>multilingual array</em>.</li>
                 </ol>
               </li>
               <li>Set the <em>value</em> associated with <em>property</em> to the <em>multilingual array</em>.</li>
@@ -1132,7 +1113,7 @@ language-native data structures MUST be used where applicable.</p>
                   <li>Add key from the <em>annotation map</em> to <em>expanded value</em> using the
                     key <code>@annotation</code>, unless <em>expanded value</em> already has an
                     <code>@annotation</code> key.</li>
-                  <li>Append <em>expanded value</em> to the <em>annotation array</em>.
+                  <li>Append <em>expanded value</em> to the <em>annotation array</em>.</li>
                 </ol>
               </li>
               <li>Set the <em>value</em> associated with <em>property</em> to the <em>annotation array</em>.</li>
@@ -1529,14 +1510,14 @@ language-native data structures MUST be used where applicable.</p>
       formats using the algorithms specified in this section.</p>
 
     <p>The JSON-LD Processing Model describes processing rules for extracting RDF
-      from a JSON-LD document, and for transforming an array of <a>Quad</a> retrieved by processing
+      from a JSON-LD document, and for transforming an array of <tref>Quad</tref> retrieved by processing
       another serialization format into JSON-LD. Note that many uses of JSON-LD may not require
       generation of RDF.</p>
 
     <p>The processing algorithms described in this section are provided in
       order to demonstrate how one might implement a JSON-LD to RDF processor.
       Conformant implementations are only required to produce the same type and
-      number of quads during the output process and are not required to
+      number of <tref title="quad">quads</tref> during the output process and are not required to
       implement the algorithm exactly as described.</p>
 
     <section class="informative">
@@ -1547,7 +1528,7 @@ language-native data structures MUST be used where applicable.</p>
 
       <p>As with other grammars used for describing <tref>Linked Data</tref>, a key
         concept is that of a <tref>node</tref> in a <tref>JSON-LD graph</tref>.
-        Nodes may be of three basic types. The first is the <ldtref>IRI</ldtref>,
+        Nodes may be of three basic types. The first is the <tref>IRI</tref>,
         which is used to refer to
         <tref title="node">nodes</tref> in other <tref title="JSON-LD graph">JSON-LD graphs</tref>.
         The second is the <tref>blank node</tref>, which are nodes for which an external name does not
@@ -1725,7 +1706,7 @@ language-native data structures MUST be used where applicable.</p>
             <li>If <tref>active object</tref> is not <tref>null</tref>:
               <ol class="algorithm">
                 <li>If neither <tref>active subject</tref> nor <tref>active property</tref> are <tref>null</tref>,
-                  generate a <a>Quad</a>
+                  generate a <tref>Quad</tref>
                   representing <tref>active subject</tref>, <tref>active property</tref>,
                   <tref>active object</tref>, and <tref>graph name</tref>.</li>
                 <li>Return <tref>active object</tref>.</li>
@@ -1733,7 +1714,7 @@ language-native data structures MUST be used where applicable.</p>
             </li>
             <li id="processing-step-subject">If <em>element</em> has a <code>@id</code> property,
               the value MUST be a <tref>string</tref>, set the <tref>active subject</tref> to the previously
-              <tref>expanded value</tref> (either a <tref>blank node</tref> or an <ldtref>IRI</ldtref>).</li>
+              <tref>expanded value</tref> (either a <tref>blank node</tref> or an <tref>IRI</tref>).</li>
             <li>
               Otherwise, if <em>element</em> does not have a <code>@id</code> property, set the <tref>active
               subject</tref> to newly generated <tref>blank node</tref>.</li>
@@ -1767,10 +1748,10 @@ language-native data structures MUST be used where applicable.</p>
           <tref>active subject</tref>, <tref>active property</tref>, and <tref>graph name</tref>.</li>
 
         <li>Otherwise, if <em>element</em> is a <tref>string</tref>, then the <tref>active property</tref>
-          must be <code>rdf:type</code> so set the <tref>active object</tref> to an <ldtref>IRI</ldtref>.</li>
+          must be <code>rdf:type</code> so set the <tref>active object</tref> to an <tref>IRI</tref>.</li>
 
         <li>If any of these steps created an <tref>active object</tref> and neither <tref>active subject</tref>
-          nor <tref>active property</tref> are <tref>null</tref>, generate a <a>Quad</a> using
+          nor <tref>active property</tref> are <tref>null</tref>, generate a <tref>Quad</tref> using
           <tref>active subject</tref>,<tref>active property</tref>, <tref>active object</tref> and
           <tref>graph name</tref>.
         </li>
@@ -1793,7 +1774,7 @@ language-native data structures MUST be used where applicable.</p>
           If <em>array</em> is empty return <code>rdf:nil</code>.
         </li>
         <li>
-          Otherwise, generate a <a>Quad</a> using using the <tref>active subject</tref>, <tref>active property</tref>
+          Otherwise, generate a <tref>Quad</tref> using using the <tref>active subject</tref>, <tref>active property</tref>
           and a newly generated <tref>blank node</tref> identified as <em>first <tref>blank node</tref></em>.
         </li>
         <li>
@@ -1809,7 +1790,7 @@ language-native data structures MUST be used where applicable.</p>
             </li>
             <li>Unless this is the last element in <em>array</em>, generate a new <tref>blank node</tref> identified as
               <em>rest blank node</em>, otherwise use <code>rdf:nil</code>.</li>
-            <li>Generate a new <a>Quad</a> using <em>first blank node</em>,
+            <li>Generate a new <tref>Quad</tref> using <em>first blank node</em>,
               <code>rdf:rest</code> and <em>rest blank node</em>.</li>
             <li>Set <em>first blank node</em> to
               <em>rest blank node</em>.</li>
@@ -1821,15 +1802,16 @@ language-native data structures MUST be used where applicable.</p>
 
     <section>
       <h2>Convert from RDF Algorithm</h2>
-      <p>In some cases, data exists natively in Triples or Quads form; for example, if the data was originally
+      <p>In some cases, data exists natively in <tref title="triple">Triples</tref>
+        or <tref title="quad">Quads</tref> form; for example, if the data was originally
         represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
-        an array of <ldtref title="Quad">Quads</ldtref> into a JSON-LD document.</p>
+        an array of <tref title="quad">Quads</tref> into a JSON-LD document.</p>
       <p>When expanding <tref>typed literal</tref> values having a datatype of <code>xsd:string</code>,
         the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
         MUST have only a <code>@value</code> property.</p>
 
       <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
-        array of <a>Quad</a> representations.</p>
+        array of <tref>Quad</tref> representations.</p>
 
       <ol class="algorithm">
         <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
@@ -1837,7 +1819,7 @@ language-native data structures MUST be used where applicable.</p>
         <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
           identified by
           an empty <tref>string</tref>.</li>
-        <li>For each quad in <em>input</em>:
+        <li>For each <tref>quad</tref> in <em>input</em>:
           <ol class="algorithm">
             <li>Set <em>graph</em> to the entry in <em>graphs</em> identified
               by <em>name</em>, initializing it to a new entry using the mechanism
@@ -1848,7 +1830,7 @@ language-native data structures MUST be used where applicable.</p>
               <em>object</em> in <tref>expanded form</tref>, as described in
               <a href="#value-expansion">Value Expansion</a>. Add the
               resulting <em>object representation</em> to the entry indexed by
-              <em>first</em>, and skip to the next quad.</li>
+              <em>first</em>, and skip to the next <tref>quad</tref>.</li>
             <li>If <em>property</em> is <code>rdf:rest</code>:
               <ol class="algorithm">
                 <li>If <em>object</em> is a <tref>blank node</tref>, use the entry in
@@ -1856,7 +1838,7 @@ language-native data structures MUST be used where applicable.</p>
                   to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
                   <em>object</em> to the entry indexed by <em>rest</em>.
                 </li>
-                <li>Skip to the next quad.</li>
+                <li>Skip to the next <tref>quad</tref>.</li>
               </ol>
             </li>
             <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.nodes</em>
@@ -2131,58 +2113,6 @@ language-native data structures MUST be used where applicable.</p>
             complexity associated with conversion to RDF.</dd>
         </dl>
       </dd>
-
-      <dt>void fromRDF()</dt>
-      <dd>Creates a JSON-LD document given an set of <ldtref title="Quad">Quads</ldtref>.
-        <dl class="parameters">
-          <dt>Quad[] input</dt>
-          <dd>A set of <tref title="JSON-LD graph">JSON-LD graphs</tref> represented as an array of <ldtref title="Quad">Quads</ldtref>.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that will affect the algorithm. This includes <code>notType</code>,
-            which if set to <tref>true</tref> causes the resulting document to use <code>rdf:type</code>
-            as a property, instead of <code>@type</code>.</dd>
-        </dl>
-      </dd>
-
-      <dt>void toRDF()</dt>
-      <dd>
-        Processes the <code>input</code> according to the
-        <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>, calling
-        the provided <code>callback</code> for each <ldtref>Quad</ldtref> generated.
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or a <a>IRI</a>
-            referencing the JSON-LD document to convert to RDF.</dd>
-          <dt>QuadCallback callback</dt>
-          <dd>A callback that is called when the input <code>input</code> has been converted
-            to <ldtref title="Quad">Quads</ldtref>.
-          </dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the conversion to RDF such as, e.g.,
-            the input document's base <tref>IRI</tref>.</dd>
-        </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error will
-            be returned.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. This is not supported in this
-            version of JSON-LD.</dd>
-        </dl>
-
-      </dd>
-
     </dl>
 
   </section>
@@ -2215,8 +2145,7 @@ language-native data structures MUST be used where applicable.</p>
         <dt>string operation</dt>
         <dd>a string representing the operation that was being performed
           when the conformance issue was raised. Valid values for the
-          string include <code>compact</code>, <code>expand</code>,
-        <code>toRDF</code>, and <code>fromRDF</code>.</dd>
+          string include <code>compact</code>, and <code>expand</code>.</dd>
         <dt>object or object[] source</dt>
           <dd>An object reference to the original JSON-LD document being
           processed.</dd>
@@ -2247,30 +2176,6 @@ language-native data structures MUST be used where applicable.</p>
            </dd>
            <dt>object or object[] document</dt>
            <dd>The processed JSON-LD document.</dd>
-        </dl>
-        </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>QuadCallback</h3>
-      <p>The <a>QuadCallback</a> is called whenever the processor generates a
-      quad during processing.</p>
-
-      <dl title="[NoInterfaceObject Callback] interface QuadCallback"
-          class="idl">
-
-        <dt>void quad()</dt>
-        <dd>This callback is invoked whenever a quad is generated by the processor.
-        <dl class="parameters">
-           <dt>JsonLdProcessingError error</dt>
-           <dd>If the value is <code>null</code>, then no error occurred. If
-             the value is non-<code>null</code>, a processing error occurred
-             and the details will be contained within the <code>error</code>
-             object.
-           </dd>
-           <dt>Quad[] quads</dt>
-           <dd>If there is no error, the quads that have been generated.</dd>
         </dl>
         </dd>
       </dl>
@@ -2312,16 +2217,6 @@ language-native data structures MUST be used where applicable.</p>
   <section>
     <h3>Data Structures</h3>
     <p>This section describes datatype definitions used within the JSON-LD API.</p>
-
-    <section>
-    <h3>IRI</h3>
-    <p>The <a>IRI</a> datatype represents an <tref>IRI</tref>.</p>
-    <div title="typedef DOMString IRI" class="idl">
-      This datatype indicates that <em>IRI</em> is interpreted as an Internationalized
-      Resource Identifier [[!RFC3987]] identifying a document, which when parsed as JSON yields
-      either a <tref>JSON object</tref> or <tref>array</tref>.
-    </div>
-    </section>
 
     <section>
     <h3>JsonLdOptions</h3>
@@ -2385,125 +2280,7 @@ language-native data structures MUST be used where applicable.</p>
       </dd>
     </dl>
     </section>
-
-    <p>The following data structures are used for representing data about
-      RDF quads. They are used for normalization, and <a href="#rdf-conversion">RDF conversion</a>.
-    </p>
-
-    <section>
-    <h3>Quad</h3>
-    <p>The <a>Quad</a> interface represents an RDF Quad. An RDF Quad is an
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>
-      [[!RDF-CONCEPTS]] with an optional fourth element, the graph name, being a
-      <ldtref>Node</ldtref>.
-    </p>
-    <dl title="[NoInterfaceObject] interface Quad" class="idl">
-      <dt>readonly attribute Node subject</dt>
-      <dd>The <tref>subject</tref> associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node property</dt>
-      <dd>The <tref>property</tref> associated with the <a>Quad</a>.
-        Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
-        <tref>property</tref></dd>
-      <dt>readonly attribute Node object</dt>
-      <dd>The <tref>object</tref> associated with the <a>Quad</a>.</dd>
-      <dt>readonly attribute Node? graph</dt>
-      <dd>If present, the name associated with the <a>Quad</a> identifying
-        it as a member of a <tref>named graph</tref>. If it is missing, the quad
-        is a member of the <tref>default graph</tref>.
-        <div class="issue" data-number="125">This element is at risk, and may be removed.</div>
-      </dd>
-    </dl>
-    </section>
-
-    <section>
-    <h3>Node</h3>
-    <p><ldtref>Node</ldtref> is the base class of <ldtref>IRI</ldtref>,
-    <ldtref>BlankNode</ldtref>, and <ldtref>Literal</ldtref>. It is the IDL
-    representation of a <tref>JSON-LD graph</tref> <tref>node</tref>.</p>
-    <dl title="[NoInterfaceObject] interface Node" class="idl">
-    </dl>
-    </section>
-
-    <section>
-    <h3>IRI</h3>
-    <p>A <tref>node</tref> that is an <tref>IRI</tref>.</p>
-    <dl title="[NoInterfaceObject] interface IRI : Node"
-        class="idl">
-        <dt>readonly attribute DOMString value</dt>
-        <dd>The IRI identifier of the <tref>node</tref> as a [[UNICODE]] string.</dd>
-    </dl>
-    </section>
-
-    <section>
-    <h3>Blank Node</h3>
-
-    <p>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that
-    does not contain a dereferenceable identifier because it is either
-    ephemeral in nature or does not contain information that needs to be linked
-    to from outside of a <tref>JSON-LD graph</tref>.
-    A <tref>blank node</tref> is assigned a <tref>blank node identifier</tref> starting
-    with the prefix <code>_:</code> and an implementation dependent,
-    auto-generated suffix that is unique to all information associated with the
-    particular <tref>blank node</tref>.
-    </p>
-
-    <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
-      <dt>readonly attribute DOMString identifier</dt>
-      <dd>The temporary identifier of the <tref>blank node</tref>.
-        The <code>identifier</code> MUST NOT be relied upon in any way between two
-        separate processing runs of the same document or with a different document.</dd>
-    </dl>
-
-    <p class="note">Developers and authors must not assume that the
-      value of a <tref>blank node</tref> will remain the same between two
-      processing runs. <a>BlankNode</a> values are only valid for the
-      most recent processing run on the document. <a>BlankNode</a>
-      values will often be generated differently by different processors.</p>
-
-    <p>Implementers MUST ensure that <a>BlankNode</a> values are unique
-      within the current environment, two <ldtref title="BlankNode">BlankNodes</ldtref>
-      are considered equal if, and only if, their values are strictly equal.</p>
-    </section>
-
-    <section>
-      <h3>Literal</h3>
-      <p>Literals represent values such as numbers, dates and strings in
-        RDF data. A <ldtref>Literal</ldtref> is comprised of three attributes:
-      </p>
-
-      <ul>
-        <li>a lexical form of the <code>value</code></li>
-        <li>an optional <code>language</code> tag</li>
-        <li>a <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
-      </ul>
-
-      <p>Literals representing plain text in a natural language may have a
-        <code>language</code> tag specified by a string token, as specified in
-        [[!BCP47]], normalized to lowercase
-        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
-        They also have a datatype attribute such as <code>xsd:string</code>.
-        If unspecified, the <code>datatype</code> defaults to <code>xsd:string</code>.
-      </p>
-
-      <p>Literals representing values with a specific datatype, such as
-        the integer 72, may have a <code>datatype</code> attribute specified in the form
-        of a <a>IRI</a> (e.g.,
-        <code>xsd:integer</code>).</p>
-
-      <p> See[[!RDF-CONCEPTS]] definition for
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</p>
-
-      <dl title="[NoInterfaceObject] interface Literal : Node" class="idl">
-        <dt>readonly attribute DOMString value</dt>
-        <dd>The lexical form of the Literal's value.</dd>
-        <dt>readonly attribute DOMString? language</dt>
-        <dd>An optional language tag as defined in [[!BCP47]], normalized to lowercase.</dd>
-        <dt>readonly attribute IRI? datatype</dt>
-        <dd>An optional datatype identified by a IRI.</dd>
-      </dl>
-    </section>
   </section>
-
 </section>
 
 <section class="appendix">

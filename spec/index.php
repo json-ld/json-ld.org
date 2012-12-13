@@ -129,6 +129,21 @@ foreach ($drafts as $date => $dir) {
                  <li><a href="latest/rdf-graph-normalization/">latest</a></li>
 <?php
 
+$drafts = getDrafts('json-ld-rdf');
+
+foreach ($drafts as $date => $dir) {
+    print("                 <li><a href=\"$dir/\">$date</a></li>");
+}
+
+?>
+               </ul>
+
+
+               <h2>JSON-LD RDF API</h2>
+               <ul>
+                 <li><a href="latest/json-ld-rdf/">latest</a></li>
+<?php
+
 $drafts = getDrafts('rdf-graph-normalization');
 
 foreach ($drafts as $date => $dir) {

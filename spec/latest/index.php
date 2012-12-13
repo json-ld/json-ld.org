@@ -46,6 +46,9 @@ print <<< htmlcode
                  <li><a href="json-ld-framing/">JSON-LD Framing</a> - JSON-LD
                  Framing describes the Application Programming Interface for
                  flattening and framing JSON-LD documents.</li>
+                 <li><a href="json-ld-rdf/">JSON-LD RDF API</a> - JSON-LD
+                 RDF AP describes the Application Programming Interface for
+                 transforming JSON-LD to RDF.</li>
                  <li><a href="rdf-graph-normalization/">RDF Graph Normalization</a> - 
                  The RDF Graph Normalization document is a general algorithm for
                  serializing RDF graphs. It is most useful when comparing

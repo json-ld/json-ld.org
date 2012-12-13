@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSON-LD RDF API</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<!--
+  === NOTA BENE ===
+  For the three scripts below, if your spec resides on dev.w3 you can check them
+  out in the same tree and use relative links so that they'll work offline,
+  -->
+<script type="text/javascript" src="../respec-w3c-common.js" class="remove"></script>
+<script type="text/javascript" src="../respec-w3c-extensions.js" class="remove"></script>
+<script type="text/javascript" class="remove">
+//<![CDATA[
+    var respecConfig = {
+        // extend the bibliography entries
+        "localBiblio": localBibliography,
+
+        doRDFa: "1.1",
+        // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+        specStatus:           "CG-DRAFT",
+        // if you wish the publication date to be other than today, set this
+        //publishDate:          "2012-08-30",
+        copyrightStart:       "2012",
+
+        // the specification's short name, as in http://www.w3.org/TR/short-name/
+        shortName:            "json-ld-rdf",
+        subtitle:             "JSON-LD API extensions for transforming to RDF",
+
+        // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+        // and its maturity status
+        //previousPublishDate:  "2012-09-27",
+        //previousMaturity:     "unofficial",
+        //previousDiffURI:      "http://json-ld.org/spec/ED/json-ld-rdf/YYYMMDD/",
+
+        // if there a publicly available Editor's Draft, this is the link
+        edDraftURI:           "http://json-ld.org/spec/latest/json-ld-rdf/",
+
+        // if this is a LCWD, uncomment and set the end of its review period
+        // lcEnd: "2009-08-05",
+
+        // if you want to have extra CSS, append them to this list
+        // it is recommended that the respec.css stylesheet be kept
+        // extraCSS: [],
+
+        issueBase: "https://github.com/json-ld/json-ld.org/issues/",
+
+        // editors, add as many as you like
+        // only "name" is required
+        editors:  [
+        { name: "Manu Sporny", url: "http://manu.sporny.org/",
+          company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" },
+        { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+          company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" },
+        { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+          company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
+        ],
+
+        // authors, add as many as you like.
+        // This is optional, uncomment if you have authors as well as editors.
+        // only "name" is required. Same format as editors.
+
+        authors:  [
+        { name: "Gregg Kellogg", url: "http://greggkellogg.net/",
+          company: "Kellogg Associates", companyURL: "http://kellogg-assoc.com/" }
+        ],
+
+        // name of the WG
+        wg:           "Linking Data in JSON Community Group",
+
+        // URI of the public WG page
+        wgURI:        "http://json-ld.org/",
+
+        // name (with the @w3c.org) of the public mailing to which comments are due
+        wgPublicList: "public-linked-json@w3c.org",
+
+        // URI of the patent status for this WG, for Rec-track documents
+        // !!!! IMPORTANT !!!!
+        // This is important for Rec-track documents, do not copy a patent URI from a random
+        // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+        // Team Contact.
+        wgPatentURI:  "",
+        maxTocLevel: 4,
+        preProcess: [ preProc ],
+        //alternateFormats: [ {uri: "diff-20120524.html", label: "diff to previous version"} ],
+    };
+//]]>
+  </script>
+<style type="text/css">
+.diff { font-weight:bold; color:#0a3; }
+</style>
+</head>
+
+<body>
+<section id="abstract">
+<p>JSON-LD RDF API describes access methods for transforming and abstract RDF represention
+  into JSON-LD and back..</p>
+</section>
+
+<section id='sotd'>
+<p>This document is an experimental work in progress.</p>
+</section>
+
+<section>
+<h1>Introduction</h1>
+
+<!-- COMMON -->
+<section>
+<h2>How to Read this Document</h2>
+
+<p>
+This document is a detailed specification for Linked Data in JSON. The document
+is primarily intended for the following audiences:
+</p>
+
+<ul>
+  <li>Software developers that want to implement processors and APIs for
+  JSON-LD.</li>
+  <li>Web developers who want to navigate JSON-LD documents as interconnected
+  nodes.</li>
+</ul>
+
+<p>
+To understand the basics in this specification you must first be familiar with
+JSON, which is detailed in [[!RFC4627]]. You must also understand the
+JSON-LD Syntax [[!JSON-LD]], which is the base syntax used by all of the
+algorithms in this document,
+and the JSON-LD API [[!JSON-LD-API]]. To understand the API and how it is
+intended to operate  in a programming environment, it is useful to have working
+knowledge of the JavaScript programming language [[ECMA-262]] and
+WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
+familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
+
+</section>
+
+<!-- COMMON -->
+<section>
+  <h3>General Terminology</h3>
+
+  <p class="issue">The intent of the Working Group and the Editors of this
+    specification is to eventually align terminology used in this document
+    with the terminology used in the RDF Concepts document to the extent to
+    which it makes sense to do so. In general, if there is an analogue to
+    terminology used in this document in the RDF Concepts document, the
+    preference is to use the terminology in the RDF Concepts document.
+  </p>
+
+  <p>The following is an explanation of the general terminology used in this
+    document:</p>
+
+  <dl>
+    <dt><tdef>JSON object</tdef></dt>
+    <dd>An object structure is represented as a pair of curly brackets surrounding zero or
+      more name-value pairs. A name is a <tref>string</tref>. A single colon comes after
+      each name, separating the name from the value. A single comma separates a value
+      from a following name. The names within an object SHOULD be unique.</dd>
+    <dt><tdef>array</tdef></dt>
+    <dd>An array is represented as square brackets surrounding zero or more
+      values that are separated by commas.</dd>
+    <dt><tdef>string</tdef></dt>
+    <dd>A string is a sequence of zero or more Unicode (UTF-8) characters,
+      wrapped in double quotes, using backslash escapes (if necessary). A
+      character is represented as a single character string.</dd>
+    <dt><tdef>number</tdef></dt>
+    <dd>A number is similar to that used in most programming languages, except
+      that the octal and hexadecimal formats are not used and that leading
+      zeros are not allowed.</dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt>
+    <dd>Values that are used to express one of two possible boolean states.</dd>
+    <dt><tdef>null</tdef></dt>
+    <dd>The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.</dd>
+    <dt><tdef>keyword</tdef></dt>
+    <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
+      in the section titled <cite><a href="../json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
+    <dt><tdef>context</tdef></dt>
+    <dd>A a set of rules for interpreting a JSON-LD document as specified in
+      <cite><a href="../json-ld-syntax/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
+    <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
+    <dd>An Internationalized Resource Identifier as described in [[!RFC3987]].</dd>
+    <dt><tdef>Absolute IRI</tdef></dt>
+    <dd>An absolute IRI is defined in [[!RFC3987]] containing a <em>scheme</em> along with a <em>path</em> and
+      optional <em>query</em> and fragment segments.</dd>
+    <dt><tdef>Relative IRI</tdef></dt>
+    <dd>A relative IRI is an IRI that is relative some other <tref>absolute IRI</tref>;
+      in the case of JSON-LD this is the base location of the document.</dd>
+    <dt><tdef>Linked Data</tdef></dt>
+    <dd>A technique for creating a network of inter-connected data across different documents and Web sites.</dd>
+    <dt><tdef>JSON-LD graph</tdef></dt>
+    <dd>An unordered labeled directed graph, where <tref title="node">nodes</tref> are
+      <tref title="IRI">IRIs</tref> or <tref title="blank node">blank nodes</tref>, or other values.
+      A <tref>JSON-LD graph</tref> is a generalized representation of a
+      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
+      as defined in [[!RDF-CONCEPTS]].</dd>
+    <dt><tdef>named graph</tdef></dt>
+    <dd>A <tref>JSON-LD graph</tref> that is identified by an <tref>IRI</tref>.</dd>
+    <dt><tdef>graph name</tdef></dt>
+    <dd>The <tref>IRI</tref> identifying a <tref>named graph</tref>.</dd>
+    <dt><tdef>default graph</tdef></dt>
+    <dd>When executing an algorithm, the graph where data should be placed
+      if a <tref>named graph</tref> is not specified.</dd>
+    <dt><tdef>node</tdef></dt>
+    <dd>A piece of information that is represented in a <tref>JSON-LD graph</tref>.</dd>
+    <dt><tdef>node object</tdef></dt>
+    <dd>A <tref>node object</tref> represents zero or more properties of a
+      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+      JSON-LD document. A <tref>JSON Object</tref> is a <tref>node object</tref>
+      if it exists outside of the JSON-LD Context and:
+      <ul>
+        <li>it does not contain the <code>@value</code>, <code>@list</code>,
+        or <code>@set</code> keywords, or</li>
+        <li>it does not contain the <code>@graph</code> keyword and is
+        the top-most <tref>JSON Object</tref> in the JSON-LD document.</li>
+      </ul>
+    </dd>
+    <dt><tdef>blank node</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
+      identifier because it is either ephemeral in nature or does not contain information that needs to be
+      linked to from outside of the JSON-LD graph.</dd>
+    <dt><tdef>blank node identifier</tdef></dt>
+    <dd>A blank node identifier is a string that can be used as an identifier for a <tref>blank node</tref> within
+      the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.</dd>
+    <dt><tdef>subject</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one outgoing edge, related to an <tref>object</tref> node through a <tref>property</tref>.</dd>
+    <dt><tdef>property</tdef></dt>
+    <dd>The <tref>IRI</tref> label of an edge in a <tref>JSON-LD graph</tref>.
+      Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
+      <tref>property</tref>.</dd>
+    <dt><tdef>object</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one incoming edge.</dd>
+    <dt><tdef>literal</tdef></dt>
+    <dd>An <tref>object</tref> expressed as a value such as a <tref>string</tref>, <tref>number</tref> or in <em>expanded form</em>
+    (See Expansion in [[!JSON-LD-API]]).</dd>
+    <dt><tdef>triple</tdef></dt>
+    <dd>A piece of information that contains three items; a <tref>subject</tref>, a <tref>property</tref>,
+      and an <tref>object</tref>.</dd>
+    <dt><tdef>quad</tdef></dt>
+    <dd>A piece of information that contains four items; a <tref>subject</tref>, a <tref>property</tref>,
+      an <tref>object</tref>, and a <tref>graph name</tref>.</dd>
+  </dl>
+ </section>
+
+</section>
+
+<!-- COMMON -->
+<section>
+  <h2>Contributing</h2>
+
+  <p>There are a number of ways that one may participate in the development of
+    this specification:</p>
+
+  <ul>
+    <li>Technical discussion typically occurs on the public mailing list:
+      <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a></li>
+
+    <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
+      on Tuesdays at 1500UTC on the second and fourth week of each month.</li>
+
+    <li>Specification bugs and issues should be reported in the
+      <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+
+    <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+      specification can be found on Github.</li>
+
+    <li>The <a href="http://webchat.freenode.net/?channels=json-ld">#json-ld</a>
+      IRC channel is available for real-time discussion on irc.freenode.net.</li>
+  </ul>
+
+</section>
+
+</section>
+
+<section>
+  <h2>The Application Programming Interface</h2>
+
+  <p>This API extends the API defined in [[!JSON-LD-API]].
+    It is inprovides a clean mechanism that enables developers to convert
+  JSON-LD data to various RDF formats to allow greater interoperability with
+  Linked Data applications. If a JSON-LD API with the RDF extension is provided in
+  a programming environment, the entirety of the following API MUST be
+  implemented.</p>
+
+  <section>
+    <h3>JsonLdProcessor</h3>
+
+    <p>The JSON-LD processor interface is the high-level programming structure that developers
+      use to access the JSON-LD transformation methods.</p>
+
+    <p>The JSON-LD API signatures are the same across all programming languages. Due
+      to the fact that asynchronous programming is uncommon in certain languages, developers MAY
+      implement a processor with a synchronous interface instead. In that case, the <code>callback</code>
+      parameter MUST NOT be included and the result MUST be returned as a return value instead.</p>
+
+    <dl title="[Constructor] interface JsonLdProcessor" class="idl">
+      <dt>void fromRDF()</dt>
+      <dd>Creates a JSON-LD document given an set of
+        <ldtref title="Quad">Quads</ldtref> according to the
+        <cite><a href="../json-ld-api/#convert-from-rdf-algorithm">Convert from RDF Algorithm</a></cite>
+        defined in [[!JSON-LD-API]].
+        <dl class="parameters">
+          <dt>Quad[] input</dt>
+          <dd>A set of <tref title="JSON-LD graph">JSON-LD graphs</tref> represented as an array of <ldtref title="Quad">Quads</ldtref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on
+            the given <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that will affect the algorithm. This includes <code>notType</code>,
+            which if set to <tref>true</tref> causes the resulting document to use <code>rdf:type</code>
+            as a property, instead of <code>@type</code>.</dd>
+        </dl>
+      </dd>
+
+      <dt>void toRDF()</dt>
+      <dd>
+        Processes the <code>input</code> according to the
+        <cite><a href="../json-ld-api/#convert-to-rdf-algorithm">Convert to RDF Algorithm</a></cite>
+        defined in [[!JSON-LD-API]], calling
+        the provided <code>callback</code> for each <ldtref>Quad</ldtref> generated.
+        <dl class="parameters">
+          <dt>object or object[] or IRI input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to convert to RDF or a <a>IRI</a>
+            referencing the JSON-LD document to convert to RDF.</dd>
+          <dt>QuadCallback callback</dt>
+          <dd>A callback that is called when the input <code>input</code> has been converted
+            to <ldtref title="Quad">Quads</ldtref>.
+          </dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options that MAY affect the conversion to RDF such as, e.g.,
+            the input document's base <tref>IRI</tref>.</dd>
+        </dl>
+
+        <dl title="InvalidContext">
+          <dt>INVALID_SYNTAX</dt>
+          <dd>A general syntax error was detected in the <code>@context</code>.
+            For example, if a <code>@type</code> key maps to anything other than
+            <code>@id</code> or an <tref>absolute IRI</tref>, this error will
+            be returned.</dd>
+          <dt>LOAD_ERROR</dt>
+          <dd>There was a problem encountered loading a remote context.</dd>
+        </dl>
+
+        <dl title="ProcessingError">
+          <dt>LIST_OF_LISTS_DETECTED</dt>
+          <dd>A list of lists was detected. This is not supported in this
+            version of JSON-LD.</dd>
+        </dl>
+
+      </dd>
+    </dl>
+
+  </section>
+
+  <section>
+    <h3>Callbacks</h3>
+
+    <p class="issue" data-number="153">
+    Developers should note that the details of error handling and
+    conformance handling are being actively debated.
+    </p>
+
+    <p>JSON-LD processors utilize a variety of callbacks in order to return
+    information in an asynchronous manner to calling applications. This section
+    details the parameters sent to those callbacks as well as the desired
+    operation of the callbacks.
+    </p>
+
+    <section>
+      <h3>QuadCallback</h3>
+      <p>The <a>QuadCallback</a> is called whenever the processor generates a
+      quad during processing.</p>
+
+      <dl title="[NoInterfaceObject Callback] interface QuadCallback"
+          class="idl">
+
+        <dt>void quad()</dt>
+        <dd>This callback is invoked whenever a quad is generated by the processor.
+        <dl class="parameters">
+           <dt>JsonLdProcessingError error</dt>
+           <dd>If the value is <code>null</code>, then no error occurred. If
+             the value is non-<code>null</code>, a processing error occurred
+             and the details will be contained within the <code>error</code>
+             object.
+           </dd>
+           <dt>Quad[] quads</dt>
+           <dd>If there is no error, the quads that have been generated.</dd>
+        </dl>
+        </dd>
+      </dl>
+    </section>
+
+  </section>
+
+  <section>
+    <h3>Data Structures</h3>
+    <p>The following data structures are used for representing data about
+      RDF quads. They are used for normalization, and <a href="#rdf-conversion">RDF conversion</a>.
+    </p>
+
+    <section>
+    <h3>IRI</h3>
+    <p>The <a>IRI</a> datatype represents an <tref>IRI</tref>.</p>
+    <div title="typedef DOMString IRI" class="idl">
+      This datatype indicates that <em>IRI</em> is interpreted as an Internationalized
+      Resource Identifier [[!RFC3987]] identifying a document, which when parsed as JSON yields
+      either a <tref>JSON object</tref> or <tref>array</tref>.
+    </div>
+    </section>
+
+    <section>
+      <h3>Quad</h3>
+      <p>The <a>Quad</a> interface represents an RDF Quad. An RDF Quad is an
+        <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">RDF triple</a></cite>
+        [[!RDF-CONCEPTS]] with an optional fourth element, the graph name, being a
+        <ldtref>Node</ldtref>.
+      </p>
+      <dl title="[NoInterfaceObject] interface Quad" class="idl">
+        <dt>readonly attribute Node subject</dt>
+        <dd>The <tref>subject</tref> associated with the <a>Quad</a>.</dd>
+        <dt>readonly attribute Node property</dt>
+        <dd>The <tref>property</tref> associated with the <a>Quad</a>.</dd>
+        <dt>readonly attribute Node object</dt>
+        <dd>The <tref>object</tref> associated with the <a>Quad</a>.</dd>
+        <dt>readonly attribute Node? graph</dt>
+        <dd>If present, the name associated with the <a>Quad</a> identifying
+          it as a member of a <tref>named graph</tref>. If it is missing, the quad
+          is a member of the <tref>default graph</tref>.
+          <div class="issue" data-number="125">This element is at risk, and may be removed.</div>
+        </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>Node</h3>
+      <p><ldtref>Node</ldtref> is the base class of <ldtref>IRI</ldtref>,
+      <ldtref>BlankNode</ldtref>, and <ldtref>Literal</ldtref>. It is the IDL
+      representation of a <tref>JSON-LD graph</tref> <tref>node</tref>.</p>
+      <dl title="[NoInterfaceObject] interface Node" class="idl">
+      </dl>
+      </section>
+
+      <section>
+      <h3>IRI</h3>
+      <p>A <tref>node</tref> that is an <tref>IRI</tref>.</p>
+      <dl title="[NoInterfaceObject] interface IRI : Node"
+          class="idl">
+          <dt>readonly attribute DOMString value</dt>
+          <dd>The IRI identifier of the <tref>node</tref> as a [[UNICODE]] string.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>Blank Node</h3>
+
+      <p>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that
+      does not contain a dereferenceable identifier because it is either
+      ephemeral in nature or does not contain information that needs to be linked
+      to from outside of a <tref>JSON-LD graph</tref>.
+      A <tref>blank node</tref> is assigned a <tref>blank node identifier</tref> starting
+      with the prefix <code>_:</code> and an implementation dependent,
+      auto-generated suffix that is unique to all information associated with the
+      particular <tref>blank node</tref>.
+      </p>
+
+      <dl title="[NoInterfaceObject] interface BlankNode : Node" class="idl">
+        <dt>readonly attribute DOMString identifier</dt>
+        <dd>The temporary identifier of the <tref>blank node</tref>.
+          The <code>identifier</code> MUST NOT be relied upon in any way between two
+          separate processing runs of the same document or with a different document.</dd>
+      </dl>
+
+      <p class="note">Developers and authors must not assume that the
+        value of a <tref>blank node</tref> will remain the same between two
+        processing runs. <a>BlankNode</a> values are only valid for the
+        most recent processing run on the document. <a>BlankNode</a>
+        values will often be generated differently by different processors.</p>
+
+      <p>Implementers MUST ensure that <a>BlankNode</a> values are unique
+        within the current environment, two <ldtref title="BlankNode">BlankNodes</ldtref>
+        are considered equal if, and only if, their values are strictly equal.</p>
+    </section>
+
+    <section>
+      <h3>Literal</h3>
+      <p>Literals represent values such as numbers, dates and strings in
+        RDF data. A <ldtref>Literal</ldtref> is comprised of three attributes:
+      </p>
+
+      <ul>
+        <li>a lexical form of the <code>value</code></li>
+        <li>an optional <code>language</code> tag</li>
+        <li>a <code>datatype</code> specified by an <ldtref>IRI</ldtref></li>
+      </ul>
+
+      <p>Literals representing plain text in a natural language may have a
+        <code>language</code> tag specified by a string token, as specified in
+        [[!BCP47]], normalized to lowercase
+        (e.g., <code>'en'</code>, <code>'fr'</code>, <code>'en-gb'</code>).
+        They also have a datatype attribute such as <code>xsd:string</code>.
+        If unspecified, the <code>datatype</code> defaults to <code>xsd:string</code>.
+      </p>
+
+      <p>Literals representing values with a specific datatype, such as
+        the integer 72, may have a <code>datatype</code> attribute specified in the form
+        of a <a>IRI</a> (e.g.,
+        <code>xsd:integer</code>).</p>
+
+      <p> See[[!RDF-CONCEPTS]] definition for
+      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>.</p>
+
+      <dl title="[NoInterfaceObject] interface Literal : Node" class="idl">
+        <dt>readonly attribute DOMString value</dt>
+        <dd>The lexical form of the Literal's value.</dd>
+        <dt>readonly attribute DOMString? language</dt>
+        <dd>An optional language tag as defined in [[!BCP47]], normalized to lowercase.</dd>
+        <dt>readonly attribute IRI? datatype</dt>
+        <dd>An optional datatype identified by a IRI.</dd>
+      </dl>
+    </section>
+  </section>
+</section>
+</html>
