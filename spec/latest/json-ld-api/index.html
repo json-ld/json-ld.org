@@ -209,8 +209,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   JSON-LD documents so that they may be easily processed in various programming
   environments.</p>
 
-<p>There are three major types of transformation that are discussed in this document:
-  compaction, expansion, and RDF conversion.</p>
+<p>There are four major types of transformation that are discussed in this document:
+  expansion, compaction, flattening, and RDF conversion.</p>
 
 <section class="informative">
   <h2>Expansion</h2>
@@ -224,16 +224,16 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <pre class="example" data-transform="updateExample">
   <!--
   {
-    "@context":
-    {
+    "@context": {
       "name": "http://xmlns.com/foaf/0.1/name",
       "homepage": {
         "@id": "http://xmlns.com/foaf/0.1/homepage",
         "@type": "@id"
       }
     },
+    "@id": "http://me.markus-lanthaler.com/",
     "name": "Markus Lanthaler",
-    "homepage": "http://me.markus-lanthaler.com/"
+    "homepage": "http://www.markus-lanthaler.com/"
   }
   -->
   </pre>
@@ -244,15 +244,15 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <pre class="example" data-transform="updateExample">
   <!--
   {
-    "@context":
-    {
+    "@context": {
       "homepage": {
         "@id": "http://xmlns.com/foaf/0.1/homepage",
         "@type": "@id"
       }
     },
+    "@id": "http://me.markus-lanthaler.com/",
     "****http://xmlns.com/foaf/0.1/name****": "Markus Lanthaler",
-    "homepage": "http://me.markus-lanthaler.com/"
+    "homepage": "http://www.markus-lanthaler.com/"
   }
   -->
   </pre>
@@ -272,22 +272,18 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   [
     {
       "@id": "http://me.markus-lanthaler.com/",
-      "http://xmlns.com/foaf/0.1/homepage": [
-        {
-          "@id": "http://www.markus-lanthaler.com/"
-        }
-      ],
       "http://xmlns.com/foaf/0.1/name": [
-        {
-          "@value": "Markus Lanthaler"
-        }
+        { "@value": "Markus Lanthaler" }
+      ],
+      "http://xmlns.com/foaf/0.1/homepage": [
+        { "@id": "http://www.markus-lanthaler.com/" }
       ]
     }
   ]
   -->
   </pre>
 
-  <p>Note that in the output above; all <tref>context</tref> definitions have
+  <p>Note that in the output above all <tref>context</tref> definitions have
     been removed, all <tref title="term">terms</tref> and <tref title="prefix">prefixes</tref>
     have been expanded to absolute <tref title="IRI">IRIs</tref>, and all
     <tref title="JSON-LD value">JSON-LD values</tref> are expressed in <tref>expanded form</tref>.
@@ -314,15 +310,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   [
     {
       "@id": "http://me.markus-lanthaler.com/",
-      "http://xmlns.com/foaf/0.1/homepage": [
-        {
-          "@id": "http://www.markus-lanthaler.com/"
-        }
-      ],
       "http://xmlns.com/foaf/0.1/name": [
-        {
-          "@value": "Markus Lanthaler"
-        }
+        { "@value": "Markus Lanthaler" }
+      ],
+      "http://xmlns.com/foaf/0.1/homepage": [
+        { "@id": "http://www.markus-lanthaler.com/" }
       ]
     }
   ]
@@ -360,8 +352,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       }
     },
     "@id": "http://me.markus-lanthaler.com/",
-    "homepage": "http://www.markus-lanthaler.com/",
-    "name": "Markus Lanthaler"
+    "name": "Markus Lanthaler",
+    "homepage": "http://www.markus-lanthaler.com/"
   }
   -->
   </pre>
@@ -376,6 +368,121 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     to <code>name</code>, it could have also have been mapped to any other term
     provided by the developer.</p>
 
+</section>
+
+<section class="informative">
+  <h2>Flattening</h2>
+  <p>While expansion ensures that a document is in a uniform structure, flattening
+    goes a step further and ensures that also the shape of the data is deterministic.
+    In expanded documents properties of a single <tref>node</tref> may still be
+    spread across a number of different <tref title="JSON object">JSON objects</tref>.
+    By flattening a document, all properties of a <tref>node</tref> are collected in a
+    single <tref>JSON object</tref> and all <tref title="blank node">blank nodes</tref>
+    are labeled with a <tref>blank node identifier</tref>. Often this drastically
+    simplifies the code to process JSON-LD data.</p>
+
+  <p>For example, assume the following JSON-LD input document:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows"
+    },
+    "@id": "http://me.markus-lanthaler.com/",
+    "name": "Markus Lanthaler",
+    "knows": [
+      {
+        "name": "Manu Sporny",
+        "knows": {
+          "@id": "http://greggkellogg.net/foaf#me"
+        }
+      },
+      {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "name": "Gregg Kellogg"
+      }
+    ]
+  }
+  -->
+  </pre>
+
+  <p>Running the <a href="#flattening-algorithm">Flattening Algorithm</a>
+    returns the following document:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  [
+    {
+      "@id": "http://me.markus-lanthaler.com/",
+      "http://xmlns.com/foaf/0.1/name": [
+        { "@value": "Markus Lanthaler" }
+      ],
+      "http://xmlns.com/foaf/0.1/knows": [
+        { "@id": "_:t0" },
+        { "@id": "http://greggkellogg.net/foaf#me" }
+      ]
+    },
+    {
+      "@id": "_:t0",
+      "http://xmlns.com/foaf/0.1/name": [
+        { "@value": "Manu Sporny" }
+      ],
+      "http://xmlns.com/foaf/0.1/knows": [
+        { "@id": "http://greggkellogg.net/foaf#me" }
+      ]
+    },
+    {
+      "@id": "http://greggkellogg.net/foaf#me",
+      "http://xmlns.com/foaf/0.1/name": [
+        { "@value": "Gregg Kellogg" }
+      ]
+    }
+  ]
+  -->
+  </pre>
+
+  <p>Note how in the output above all properties of a <tref>node</tref> are collected in a
+    single <tref>JSON object</tref> and how the <tref>blank node</tref> representing
+    &quot;Manu Sporny&quot; has been assigned the <tref>blank node identifier</tref>
+    <code>_:t0</code>.</p>
+
+  <p>To make it easier for humans to read such a flattened document it can be compacted.
+    Using the same context as the input document, the flattened and compacted document
+    would look as follows:</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows"
+    },
+    "@graph": [
+      {
+        "@id": "http://me.markus-lanthaler.com/",
+        "name": "Markus Lanthaler",
+        "knows": [
+          { "@id": "_:t0" },
+          { "@id": "http://greggkellogg.net/foaf#me" }
+        ]
+      },
+      {
+        "@id": "_:t0",
+        "name": "Manu Sporny",
+        "knows": {
+          "@id": "http://greggkellogg.net/foaf#me"
+        }
+      },
+      {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "name": "Gregg Kellogg"
+      }
+    ]
+  }
+  -->
+  </pre>
 </section>
 
 <section class="informative">
@@ -1244,165 +1351,117 @@ language-native data structures MUST be used where applicable.</p>
     Finally, add a <code>@context</code> property to <em>element</em> and set it to the initially passed <em>context</em>.</p>
 </section>
 
-<section>
-<h1>Flattening</h1>
+  <section>
+    <h2>Flattening Algorithm</h2>
+    <p>The algorithm takes two input variables, an <em>element</em> to flatten and the
+      <em>graph</em> for which the <tref>node</tref> definitions should be returned. If <em>graph</em>
+      is not set, it will default to <code>@merged</code> which represents the result of
+      merging all graphs including the default graph (<code>@default</code>). This algorithm expects
+      <em>element</em> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
 
-<p>Flattening is the process of taking a JSON-LD document, <a href="#expansion">expanding</a>
-  it, labeling all <tref title="blank node">blank nodes</tref> with a <tref>blank node identifier</tref>, and returning
-  an array of the <tref title="node">nodes</tref> defined in the document.</p>
-
-<p>For example, assume the following JSON-LD input document:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "knows": "http://xmlns.com/foaf/0.1/knows"
-  },
-  "@id": "http://example.com/markus",
-  "name": "Markus Lanthaler",
-  "knows": {
-    "name": "Manu Sporny"
-  }
-}
--->
-</pre>
-
-<p>Running the JSON-LD Flattening algorithm for the merged graph (<code>@merged</code>) against
-  the JSON-LD input document provided above would result in the following output:</p>
-
-<pre class="example" data-transform="updateExample">
-<!--
-[
-  {
-    "@id": "http://example.com/markus",
-    "http://xmlns.com/foaf/0.1/knows": [ { "@id": "_:t0" } ],
-    "http://xmlns.com/foaf/0.1/name": [ { "@value": "Markus Lanthaler" } ]
-  },
-  {
-    "@id": "_:t0",
-    "http://xmlns.com/foaf/0.1/name": [ { "@value": "Manu Sporny" } ]
-  }
-]
--->
-</pre>
-
-<section>
-<h2>Flattening Algorithm</h2>
-<p>The algorithm takes two input variables, an <em>element</em> to flatten and the
-  <em>graph</em> for which the <tref>node</tref> definitions should be returned. If <em>graph</em>
-  is not set, it will default to <code>@merged</code> which represents the result of
-  merging all graphs including the default graph (<code>@default</code>). This algorithm expects
-  <em>element</em> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
-
-<ol class="algorithm">
-  <li>Expand <em>element</em> according the <a href="#expansion-algorithm">Expansion Algorithm</a>.</li>
-  <li>Generate a <em>nodeMap</em> according the <a href="#node-map-generation">Node Map Generation Algorithm</a>.</li>
-  <li>Initialize an empty array <em>result</em>.</li>
-  <li>If <em>nodeMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
-  <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em> ordered by <em>property</em>:
     <ol class="algorithm">
-      <li>Add <em>value</em> to <em>result</em>.</li>
-    </ol>
-  </li>
-  <li>Return <em>result</em>.</li>
-</ol>
-
-</section>
-
-<section>
-<h3>Node Map Generation</h3>
-<p>The Node Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
-  <em>nodeMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
-  uniquely identified by an IRI get assigned a (new) <tref>blank node identifier</tref>. The resulting <em>nodeMap</em>
-  document will have a property for every graph in the document whose value is another object with a property for every
-  <tref>node</tref> represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
-  under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
-
-<p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>nodeMap</em>,
-  <code>@default</code> as <em>graph</em>, <tref>null</tref> as <em>list</em>, and <tref>null</tref> as <em>id</em>.</p>
-
-<ol class="algorithm">
-  <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm
-    and return.</li>
-  <li>If <em>element</em> is not a <tref>JSON object</tref> or if it has a <code>@value</code> property,
-    then if <em>list</em> is not <tref>null</tref>, append <em>element</em> to <em>list</em> and return.</li>
-  <li>If <em>id</em> is <tref>null</tref> and if the <code>@id</code>
-    property exists and is an <tref>IRI</tref>, set <em>id</em> to its value,
-    otherwise set it to a <tref>blank node identifier</tref> created by the
-    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-    algorithm.</li>
-  <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node object</tref> to <em>list</em> using
-    <em>id</em> as the value for <code>@id</code>.</li>
-  <li>Let <em>nodes</em> be the value in <em>nodeMap</em> where the key is <em>graph</em>; if no such
-    value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
-    <em>nodes</em>, create a new <tref>JSON object</tref> <em>node</em> with <em>id</em> as the value
-    for <code>@id</code>. Let <em>node</em> be the value of <em>id</em> in <em>nodes</em>.</li>
-  <li>For each <em>property</em> that is not <code>@id</code> and each <em>value</em> in <em>element</em> ordered
-    by <em>property</em>:
-    <ol class="algorithm">
-      <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm passing <em>value</em>
-        for <em>element</em>, <em>nodeMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
-        is <code>@merged</code> use <em>graph</em>, otherwise use <em>id</em> for <em>graph</em> and then continue.</li>
-      <li>If <em>property</em> is not <code>@type</code> and is a keyword, merge <code>property</code> and
-        <code>value</code> into <code>node</code> and then continue.</li>
-      <li>For each value <em>v</em> in the array <em>value</em>:
+      <li>Expand <em>element</em> according the <a href="#expansion-algorithm">Expansion Algorithm</a>.</li>
+      <li>Generate a <em>nodeMap</em> according the <a href="#node-map-generation">Node Map Generation Algorithm</a>.</li>
+      <li>Initialize an empty array <em>result</em>.</li>
+      <li>If <em>nodeMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
+      <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em> ordered by <em>property</em>:
         <ol class="algorithm">
-          <li>If <em>v</em> is a <tref>node object</tref> or <tref>node object</tref>:
+          <li>Add <em>value</em> to <em>result</em>.</li>
+        </ol>
+      </li>
+      <li>Return <em>result</em>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Node Map Generation</h2>
+    <p>The Node Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
+      <em>nodeMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
+      uniquely identified by an IRI get assigned a (new) <tref>blank node identifier</tref>. The resulting <em>nodeMap</em>
+      document will have a property for every graph in the document whose value is another object with a property for every
+      <tref>node</tref> represented in the document. While the default graph is stored under the <code>@default</code> property and the merged graph
+      under the <code>@merged</code> property, all other graphs are stored under their respective <tref title="IRI">IRIs</tref>.</p>
+
+    <p>The algorithm takes as input the expanded JSON-LD document as <em>element</em>, the initially empty <em>nodeMap</em>,
+      <code>@default</code> as <em>graph</em>, <tref>null</tref> as <em>list</em>, and <tref>null</tref> as <em>id</em>.</p>
+
+    <ol class="algorithm">
+      <li>If <em>element</em> is an array, process each entry in <em>element</em> recursively, using this algorithm
+        and return.</li>
+      <li>If <em>element</em> is not a <tref>JSON object</tref> or if it has a <code>@value</code> property,
+        then if <em>list</em> is not <tref>null</tref>, append <em>element</em> to <em>list</em> and return.</li>
+      <li>If <em>id</em> is <tref>null</tref> and if the <code>@id</code>
+        property exists and is an <tref>IRI</tref>, set <em>id</em> to its value,
+        otherwise set it to a <tref>blank node identifier</tref> created by the
+        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+        algorithm.</li>
+      <li>If <em>list</em> is not <tref>null</tref>, append a new <tref>node object</tref> to <em>list</em> using
+        <em>id</em> as the value for <code>@id</code>.</li>
+      <li>Let <em>nodes</em> be the value in <em>nodeMap</em> where the key is <em>graph</em>; if no such
+        value exists, insert a new <tref>JSON object</tref> for the key <em>graph</em>. If <em>id</em> is not in
+        <em>nodes</em>, create a new <tref>JSON object</tref> <em>node</em> with <em>id</em> as the value
+        for <code>@id</code>. Let <em>node</em> be the value of <em>id</em> in <em>nodes</em>.</li>
+      <li>For each <em>property</em> that is not <code>@id</code> and each <em>value</em> in <em>element</em> ordered
+        by <em>property</em>:
+        <ol class="algorithm">
+          <li>If <em>property</em> is <code>@graph</code>, recursively call this algorithm passing <em>value</em>
+            for <em>element</em>, <em>nodeMap</em>, <tref>null</tref> for <em>list</em> and if <em>graph</em>
+            is <code>@merged</code> use <em>graph</em>, otherwise use <em>id</em> for <em>graph</em> and then continue.</li>
+          <li>If <em>property</em> is not <code>@type</code> and is a keyword, merge <code>property</code> and
+            <code>value</code> into <code>node</code> and then continue.</li>
+          <li>For each value <em>v</em> in the array <em>value</em>:
             <ol class="algorithm">
-              <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
-                map <em>v</em> to a <a
-                href="#generate-blank-node-identifier">new blank node
-                identifier</a> <em>name</em> to avoid collisions. If one does
-                not already exist, add a <tref>node object</tref> for
-                <em>v</em> into <em>node</em> for <em>property</em>.</li>
-              <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>nodeMap</em>,
-                <em>graph</em>, <tref>null</tref> for <em>list</em>, and <em>name</em> for <em>id</em>.</li>
+              <li>If <em>v</em> is a <tref>node object</tref> or <tref>node object</tref>:
+                <ol class="algorithm">
+                  <li>If the property <code>@id</code> is not an <tref>IRI</tref> or it does not exist,
+                    map <em>v</em> to a <a
+                    href="#generate-blank-node-identifier">new blank node
+                    identifier</a> <em>name</em> to avoid collisions. If one does
+                    not already exist, add a <tref>node object</tref> for
+                    <em>v</em> into <em>node</em> for <em>property</em>.</li>
+                  <li>Recursively call this algorithm passing <em>v</em> for <em>value</em>, <em>nodeMap</em>,
+                    <em>graph</em>, <tref>null</tref> for <em>list</em>, and <em>name</em> for <em>id</em>.</li>
+                </ol>
+              </li>
+              <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
+                with the value of <code>@list</code> as <em>element</em>, <em>nodeMap</em>, <em>graph</em>, and
+                a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
+                property <code>@list</code> set to <em>flattenedList</em> and add it to <em>node</em> for
+                <em>property</em>.</li>
+              <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
+                generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
+                to <em>node</em> for <em>property</em>.</li>
+              <li>Otherwise, add <em>v</em> to <em>node</em> for <em>property</em>.</li>
             </ol>
           </li>
-          <li>Otherwise if <em>v</em> has the property <code>@list</code> then recursively call this algorithm
-            with the value of <code>@list</code> as <em>element</em>, <em>nodeMap</em>, <em>graph</em>, and
-            a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
-            property <code>@list</code> set to <em>flattenedList</em> and add it to <em>node</em> for
-            <em>property</em>.</li>
-          <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
-            generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
-            to <em>node</em> for <em>property</em>.</li>
-          <li>Otherwise, add <em>v</em> to <em>node</em> for <em>property</em>.</li>
         </ol>
       </li>
     </ol>
-  </li>
-</ol>
 
-<p>After the above outlined algorithm has been executed, the node map for all graphs including the default graph are contained in
-  <em>nodeMap</em>. To also create the node map for the merged graph, execute the algorithm again, but pass <code>@merged</code>
-  for <em>graph</em>.</p>
+    <p>After the above outlined algorithm has been executed, the node map for all graphs including the default graph are contained in
+      <em>nodeMap</em>. To also create the node map for the merged graph, execute the algorithm again, but pass <code>@merged</code>
+      for <em>graph</em>.</p>
+  </section>
 
-</section>
+  <section>
+    <h2>Generate Blank Node Identifier</h2>
+    <p>This algorithm is used by the <a href="#node-map-generation">Node Map Generation Algorithm</a> to
+      deterministically name <tref title="blank node identifier">blank node identifiers</tref>. It uses a <em>identifier map</em>
+      and <em>prefix</em> and takes a possibly <tref>null</tref> identifier and returns a new identifier based
+      on <em>prefix</em>.</p>
+    <p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>. The
+      default value of <em>prefix</em> is <code>_:t</code>.</p>
 
-<section>
-<h3>Generate Blank Node Identifier</h3>
-<p>This algorithm is used by the <a href="#node-map-generation">Node Map Generation Algorithm</a> to
-  deterministically name <tref title="blank node identifier">blank node identifiers</tref>. It uses a <em>identifier map</em>
-  and <em>prefix</em> and takes a possibly <tref>null</tref> identifier and returns a new identifier based
-  on <em>prefix</em>.</p>
-<p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>. The
-  default value of <em>prefix</em> is <code>_:t</code>.</p>
-
-<ol class="algorithm">
-  <li>If the old identifier is not <tref>null</tref> and is in the <em>identifier map</em>,
-    return the mapped identifier.</li>
-  <li>Otherwise, if the old identifier is not <tref>null</tref>, create a new entry in
-    <em>identifier map</em> initialized to the current value of <em>next identifier</em>. Increment
-    <em>next identifier</em> by adding one to the integer suffix. Return the mapped identifier.</li>
-  <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
-    original value.</li>
-</ol>
-</section>
-
-</section>
+    <ol class="algorithm">
+      <li>If the old identifier is not <tref>null</tref> and is in the <em>identifier map</em>,
+        return the mapped identifier.</li>
+      <li>Otherwise, if the old identifier is not <tref>null</tref>, create a new entry in
+        <em>identifier map</em> initialized to the current value of <em>next identifier</em>. Increment
+        <em>next identifier</em> by adding one to the integer suffix. Return the mapped identifier.</li>
+      <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
+        original value.</li>
+    </ol>
+  </section>
 
   <section>
     <h2>RDF Conversion Algorithms</h2>
