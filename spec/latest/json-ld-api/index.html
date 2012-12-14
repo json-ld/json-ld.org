@@ -569,28 +569,26 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <section>
   <h3>General Terminology</h3>
 
-  <p class="issue">The intent of the Working Group and the Editors of this
-    specification is to eventually align terminology used in this document
-    with the terminology used in the RDF Concepts document to the extent to
-    which it makes sense to do so. In general, if there is an analogue to
-    terminology used in this document in the RDF Concepts document, the
-    preference is to use the terminology in the RDF Concepts document.
-  </p>
-
-  <p>The following is an explanation of the general terminology used in this
-    document:</p>
+  <p>This document uses the following terms as defined in JSON [[!RFC4627]]. Refer
+    to the <em>JSON Grammar</em> section in [[!RFC4627]] for formal definitions.</p>
 
   <dl>
     <dt><tdef>JSON object</tdef></dt>
-    <dd>An object structure is represented as a pair of curly brackets surrounding zero or
-      more name-value pairs. A name is a <tref>string</tref>. A single colon comes after
-      each name, separating the name from the value. A single comma separates a value
-      from a following name. The names within an object SHOULD be unique.</dd>
+    <dd>An object structure is represented as a pair of curly brackets
+      surrounding zero or more key-value pairs. A key is a
+      <tref>string</tref>. A single colon comes after each key, separating the
+      key from the value. A single comma separates a value from a following
+      key.</dd>
     <dt><tdef>array</tdef></dt>
-    <dd>An array is represented as square brackets surrounding zero or more
-      values that are separated by commas.</dd>
+    <dd>An array structure is represented as square brackets surrounding zero
+      or more values (or elements). Elements are separated by commas.
+      In JSON, an array is an <em>ordered</em> sequence of zero or more values.
+      While JSON-LD uses the same array representation as JSON,
+      the collection is <em>unordered</em> by default. While order is
+      preserved in regular JSON arrays, it is not in regular JSON-LD arrays
+      unless specific markup is provided (see <a href="#sets-and-lists"></a>).</dd>
     <dt><tdef>string</tdef></dt>
-    <dd>A string is a sequence of zero or more Unicode (UTF-8) characters,
+    <dd>A string is a sequence of zero or more Unicode characters,
       wrapped in double quotes, using backslash escapes (if necessary). A
       character is represented as a single character string.</dd>
     <dt><tdef>number</tdef></dt>
@@ -600,54 +598,55 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><tdef>true</tdef> and <tdef>false</tdef></dt>
     <dd>Values that are used to express one of two possible boolean states.</dd>
     <dt><tdef>null</tdef></dt>
-    <dd>The use of the <tref>null</tref> value within JSON-LD is used to ignore or reset values.</dd>
-    <dt><tdef>JSON-LD value</tdef></dt>
-    <dd>A <tref>JSON-LD value</tref> is a <tref>string</tref>, a <tref>number</tref>,
-      <tref>true</tref> or <tref>false</tref>, a <tref>typed literal</tref>, or a
-      <tref>language-tagged string</tref>.</dd>
+    <dd>The <tref>null</tref> value. A key-value pair in the
+      <code>@context</code> where the value, or the <code>@id</code> of the
+      value, is <tref>null</tref> explicitly decouples a term's association
+      with an IRI. A key-value pair in the body of a JSON-LD document whose
+      value is <tref>null</tref> has the same meaning as if the key-value pair
+      was not defined. If <code>@value</code>, <code>@list</code>, or
+      <code>@set</code> is set to <tref>null</tref> in expanded form, then
+      the entire <tref>JSON object</tref> is ignored.</dd>
+  </dl>
+
+  <p>Furthermore, the following terminology is used throughout this document:</p>
+
+  <dl>
     <dt><tdef>keyword</tdef></dt>
     <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
       in the section titled <cite><a href="../json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
     <dt><tdef>context</tdef></dt>
     <dd>A a set of rules for interpreting a JSON-LD document as specified in
       <cite><a href="../json-ld-syntax/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
+    <dt><tdef>JSON-LD document</tdef></dt>
+    <dd>A <tref>JSON-LD document</tref> is a serialization of a collection of
+      <tref title="JSON-LD graph">JSON-LD graphs</tref> and comprises exactly one
+      <tref>default graph</tref> and zero or more <tref title="named graph">named graphs</tref>.</dd>
+    <dt><tdef>named graph</tdef></dt>
+    <dd>A named graph is a pair consisting of an <tref>IRI</tref> or <tref>blank node</tref>
+      (the <tdef>graph name</tdef>) and a <tref>JSON-LD graph</tref>.</dd>
+    <dt><tdef>default graph</tdef></dt>
+    <dd>The default graph is the only graph in a JSON-LD document which has no <tref>graph name</tref>.</dd>
+    <dt><tdef>JSON-LD graph</tdef></dt>
+    <dd>A labeled directed graph, i.e., a set of <tref title="node">nodes</tref> connected by <tref title="edge">edges</tref>,
+      as specified in the <cite><a href="../json-ld-syntax/#data-model">Data Model</a></cite> section of the JSON-LD syntax
+      specification [[!JSON-LD]].</dd>
+    <dt><tdef>edge</tdef></dt>
+    <dd>Every <tref>edge</tref> has a direction associated with it and is labeled with
+      an <tref>IRI</tref> or a <tref>blank node identifier</tref>. Within the JSON-LD syntax
+      these edge labels are called <tdef title="property">properties</tdef>. Whenever possible, an
+      <tref>edge</tref> SHOULD be labeled with an <tref>IRI</tref>.</dd>
+    <dt><tdef>node</tdef></dt>
+    <dd>Every <tref>node</tref> is an <tref>IRI</tref>, a <tref>blank node</tref>,
+      a <tref>JSON-LD value</tref>, or a <tref>list</tref>.</dd>
     <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
-    <dd>An Internationalized Resource Identifier as described in [[!RFC3987]].</dd>
-    <dt><tdef>Absolute IRI</tdef></dt>
+    <dd>An <tref>IRI</tref> (Internationalized Resource Identifier) is a string that conforms to the syntax
+      defined in [[RFC3987]].</dd>
+    <dt><tdef>absolute IRI</tdef></dt>
     <dd>An absolute IRI is defined in [[!RFC3987]] containing a <em>scheme</em> along with a <em>path</em> and
       optional <em>query</em> and fragment segments.</dd>
-    <dt><tdef>Relative IRI</tdef></dt>
+    <dt><tdef>relative IRI</tdef></dt>
     <dd>A relative IRI is an IRI that is relative some other <tref>absolute IRI</tref>;
       in the case of JSON-LD this is the base location of the document.</dd>
-    <dt><tdef>Linked Data</tdef></dt>
-    <dd>A technique for creating a network of inter-connected data across different documents and Web sites.</dd>
-    <dt><tdef>JSON-LD graph</tdef></dt>
-    <dd>An unordered labeled directed graph, where <tref title="node">nodes</tref> are
-      <tref title="IRI">IRIs</tref> or <tref title="blank node">blank nodes</tref>, or other values.
-      A <tref>JSON-LD graph</tref> is a generalized representation of a
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
-      as defined in [[!RDF-CONCEPTS]].</dd>
-    <dt><tdef>named graph</tdef></dt>
-    <dd>A <tref>JSON-LD graph</tref> that is identified by an <tref>IRI</tref>.</dd>
-    <dt><tdef>graph name</tdef></dt>
-    <dd>The <tref>IRI</tref> identifying a <tref>named graph</tref>.</dd>
-    <dt><tdef>default graph</tdef></dt>
-    <dd>When executing an algorithm, the graph where data should be placed
-      if a <tref>named graph</tref> is not specified.</dd>
-    <dt><tdef>node</tdef></dt>
-    <dd>A piece of information that is represented in a <tref>JSON-LD graph</tref>.</dd>
-    <dt><tdef>node object</tdef></dt>
-    <dd>A <tref>node object</tref> represents zero or more properties of a
-      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
-      JSON-LD document. A <tref>JSON Object</tref> is a <tref>node object</tref>
-      if it exists outside of the JSON-LD Context and:
-      <ul>
-        <li>it does not contain the <code>@value</code>, <code>@list</code>,
-        or <code>@set</code> keywords, or</li>
-        <li>it does not contain the <code>@graph</code> keyword and is
-        the top-most <tref>JSON Object</tref> in the JSON-LD document.</li>
-      </ul>
-    </dd>
     <dt><tdef>blank node</tdef></dt>
     <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
       identifier because it is either ephemeral in nature or does not contain information that needs to be
@@ -655,22 +654,21 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><tdef>blank node identifier</tdef></dt>
     <dd>A blank node identifier is a string that can be used as an identifier for a <tref>blank node</tref> within
       the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.</dd>
-    <dt><tdef>subject</tdef></dt>
-    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one outgoing edge, related to an <tref>object</tref> node through a <tref>property</tref>.</dd>
-    <dt><tdef>property</tdef></dt>
-    <dd>The <tref>IRI</tref> label of an edge in a <tref>JSON-LD graph</tref>.
-      Within JSON-LD, an <tdef>RDF predicate</tdef> is refered to as a
-      <tref>property</tref>.</dd>
-    <dt><tdef>object</tdef></dt>
-    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> with at least one incoming edge.</dd>
-    <dt><tdef>literal</tdef></dt>
-    <dd>An <tref>object</tref> expressed as a value such as a <tref>string</tref>, <tref>number</tref> or in <tref>expanded form</tref>.</dd>
-    <dt><tdef>triple</tdef></dt>
-    <dd>A piece of information that contains three items; a <tref>subject</tref>, a <tref>property</tref>,
-      and an <tref>object</tref>.</dd>
-    <dt><tdef>quad</tdef></dt>
-    <dd>A piece of information that contains four items; a <tref>subject</tref>, a <tref>property</tref>,
-      an <tref>object</tref>, and a <tref>graph name</tref>.</dd>
+    <dt><tdef>JSON-LD value</tdef></dt>
+    <dd>A <tref>JSON-LD value</tref> is a <tref>string</tref>, a <tref>number</tref>,
+      <tref>true</tref> or <tref>false</tref>, a <tref>typed value</tref>, or a
+      <tref>language-tagged string</tref>.</dd>
+    <dt><tdef>typed value</tdef></dt>
+    <dd>A <tref>typed value</tref> consists of a value, which is a string, and a type, which is an <tref>IRI</tref>.</li>
+    <dt><tdef>language-tagged string</tdef></dt>
+    <dd>A <tref>language-tagged string</tref> consists of a string and a non-empty language
+      tag as defined by [[BCP47]]. The language tag must be well-formed according to section
+      <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9</a> of [[BCP47]], and MUST
+      be normalized to lowercase.</dd>
+    <dt><tdef>list</tdef></dt>
+    <dd>A <tref>list</tref> is an ordered sequence of <tref title="IRI">IRIs</tref>,
+      <tref title="blank node">blank nodes</tref>, and
+      <tref title="JSON-LD value">JSON-LD values</tref>.</dd>
   </dl>
 </section>
 
@@ -678,81 +676,62 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <h1>Algorithms</h1>
 
 <p>All algorithms described in this section are intended to operate on
-language-native data structures. That is, the serialization to a text-based
-JSON document isn't required as input or output to any of these algorithms and
-language-native data structures MUST be used where applicable.</p>
+  language-native data structures. That is, the serialization to a text-based
+  JSON document isn't required as input or output to any of these algorithms and
+  language-native data structures MUST be used where applicable.</p>
 
 <section>
   <h2>Algorithm Terms</h2>
   <dl>
     <dt><tdef>active subject</tdef></dt>
-    <dd>
-      the currently active subject that the processor should use when
-      processing.
-    </dd>
+    <dd>The currently active subject that the processor should use when
+      processing.</dd>
     <dt><tdef>active property</tdef></dt>
-    <dd>
-      the currently active property that the processor should use when
+    <dd>The currently active property that the processor should use when
       processing. The active property is represented in the original lexical form, which
-      is used for finding coercion mappings in the <tref>active context</tref>.
-    </dd>
+      is used for finding coercion mappings in the <tref>active context</tref>.</dd>
     <dt><tdef>active object</tdef></dt>
-    <dd>
-      the currently active object that the processor should use when
-      processing.
-    </dd>
+    <dd>The currently active object that the processor should use when
+      processing.</dd>
     <dt><tdef>active context</tdef></dt>
-    <dd>
-      a context that is used to resolve <tref>term</tref>s while the processing
+    <dd>A context that is used to resolve <tref>term</tref>s while the processing
       algorithm is running. The <tref>active context</tref> is the context
-      contained within the <tref>processor state</tref>.
-    </dd>
-    <dt><tdef>compact IRI</tdef></dt>
-    <dd>
-      a compact IRI is has the form of <tref>prefix</tref> and <em>suffix</em> and is used as a way
-      of expressing an IRI without needing to define separate <tref>term</tref> definitions for
-      each IRI contained within a common vocabulary identified by <tref>prefix</tref>.
-    </dd>
+      contained within the <tref>processor state</tref>.</dd>
     <dt><tdef>local context</tdef></dt>
-    <dd>
-      a context that is specified within a <tref>JSON object</tref>,
-      specified via the <code>@context</code> <tref>keyword</tref>.
-    </dd>
+    <dd>A context that is specified within a <tref>JSON object</tref>,
+      specified via the <code>@context</code> <tref>keyword</tref>.</dd>
     <dt><tdef>processor state</tdef></dt>
-    <dd>
-      the <tref>processor state</tref>, which includes the <tref>active
+    <dd>The <tref>processor state</tref>, which includes the <tref>active
       context</tref>, <tref>active subject</tref>, and
       <tref>active property</tref>. The <tref>processor state</tref> is managed
       as a stack with elements from the previous <tref>processor state</tref>
       copied into a new <tref>processor state</tref> when entering a new
-      <tref>JSON object</tref>.
-    </dd>
+      <tref>JSON object</tref>.</dd>
     <dt><tdef>JSON-LD input</tdef></dt>
-    <dd>
-      The JSON-LD data structure that is provided as input to the algorithm.
-    </dd>
+    <dd>The JSON-LD data structure that is provided as input to the algorithm.</dd>
     <dt><tdef>JSON-LD output</tdef></dt>
-    <dd>
-      The JSON-LD data structure that is produced as output by the algorithm.
+    <dd>The JSON-LD data structure that is produced as output by the algorithm.</dd>
+    <dt><tdef>term</tdef></dt>
+    <dd>A <tref>term</tref> is a short word defined in a context that MAY be expanded to an <tref>IRI</tref></dd>
+    <dt><tdef>compact IRI</tdef></dt>
+    <dd>A compact IRI is has the form of <tdef>prefix</tdef>:<em>suffix</em> and is used as a way
+      of expressing an IRI without needing to define separate <tref>term</tref> definitions for
+      each IRI contained within a common vocabulary identified by <tref>prefix</tref>.</dd>
+    <dt><tdef>node object</tdef></dt>
+    <dd>A <tref>node object</tref> represents zero or more properties of a
+      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+      JSON-LD document. A <tref>JSON object</tref> is a <tref>node object</tref>
+      if it exists outside of the JSON-LD <tref>context</tref> and:
+      <ul>
+        <li>it does not contain the <code>@value</code>, <code>@list</code>,
+          or <code>@set</code> keywords, or</li>
+        <li>it is not the top-level <tref>JSON object</tref> in the JSON-LD document containing
+          the <code>@graph</code> keyword.</li>
+      </ul>
     </dd>
-    <dt><tdef>term</tdef></dt><dd>
-      A <tref>term</tref> is a short word defined in a context that MAY be expanded to an <tref>IRI</tref>
-    </dd>
-    <dt><tdef>prefix</tdef></dt><dd>
-      A <tref>prefix</tref> is a <tref>term</tref> that expands to a vocabulary base IRI. It
-      is typically used along with a <em>suffix</em> to form a <tref>compact IRI</tref> to create an IRI
-      within a vocabulary.
-    </dd>
-    <dt><tdef>language-tagged string</tdef></dt><dd>
-      A <tref>language-tagged string</tref> is a <tref>literal</tref> without a datatype, including
-      a language. See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-string">languaged-tagged string</a></cite>
-      in [[!RDF-CONCEPTS]].
-    </dd>
-    <dt><tdef>typed literal</tdef></dt><dd>
-      A <tref>typed literal</tref> is a <tref>literal</tref> with an associated <tref>IRI</tref>
-      which indicates the literal's datatype. See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</a></cite>
-      in [[!RDF-CONCEPTS]].
-    </dd>
+    <dt><tdef>quad</tdef></dt>
+    <dd>An <em>RDF triple</em> as specified by [[RDF-CONCEPTS]] augmented with a a fourth component,
+      a <tref>graph name</tref>.</dd>
   </dl>
 </section>
 
@@ -1054,7 +1033,7 @@ language-native data structures MUST be used where applicable.</p>
       object:
       <ol class="algorithm">
         <li>Set the first key-value pair to <code>@value</code> and the unexpanded <em>value</em>.</li>
-        <li>If the <tref>active property</tref> is the target of typed literal coercion, set the second key-value pair
+        <li>If the <tref>active property</tref> is the target of type coercion, set the second key-value pair
           to <code>@type</code> and the associated coercion datatype expanded according to the
           <a href="#iri-expansion">IRI Expansion</a> rules.</li>
         <li>Otherwise, if the <tref>active property</tref> is the target of language tagging, set the second key-value
@@ -1067,7 +1046,7 @@ language-native data structures MUST be used where applicable.</p>
 
 <section>
   <h2>Value Compaction</h2>
-  <p>Some values, such as <tref title="IRI">IRIs</tref> and <tref title="typed literal">typed literals</tref>, may be expressed in an
+  <p>Some values, such as <tref title="IRI">IRIs</tref> and <tref title="typed value">typed values</tref>, may be expressed in an
     <tref>expanded form</tref> (<tdef>expanded value</tdef>) in JSON-LD. These values are required to be compacted at
     times when processing JSON-LD documents. A value is said to be in <tdef>compacted form</tdef> after
     the application of this algorithm on an <tref>expanded value</tref>.
@@ -1089,7 +1068,7 @@ language-native data structures MUST be used where applicable.</p>
           value is the value associated with the <code>@id</code> key,
           processed according to the
           <a href="#iri-compaction">IRI Compaction</a> steps.</li>
-        <li>If the coercion target is a <tref>typed literal</tref>, the compacted
+        <li>If the coercion target is a <tref>typed value</tref>, the compacted
           value is the value associated with the <code>@value</code> key.</li>
       </ol>
     </li>
@@ -1164,7 +1143,7 @@ language-native data structures MUST be used where applicable.</p>
                 <li>Set <em>multilingual array</em> to an empty array.</li>
                 <li>For each key-value pair in the <em>language map</em> ordered case-sensitively by key, and for each value, if value is an <tref>array</tref>:
                   <ol class="algorithm">
-                    <li>Create a new <tref>JSON Object</tref>, referred to as an <em>expanded language object</em>.</li>
+                    <li>Create a new <tref>JSON object</tref>, referred to as an <em>expanded language object</em>.</li>
                     <li>Add a key-value pair to the <em>expanded language object</em> where the
                       key is <code>@value</code> and the value is
                       the value associated with the key in the <em>language map</em>, which MUST be a
@@ -1203,7 +1182,7 @@ language-native data structures MUST be used where applicable.</p>
             <li>If <em>property</em> is not a keyword
               and <tref>active property</tref> has a <code>@container</code> key associated with a value of <code>@list</code>
               and the expanded <em>value</em> is not <tref>null</tref>,
-              convert <em>value</em> to an <tref>object</tref> with an <code>@list</code> property whose value is
+              convert <em>value</em> to a <tref>JSON object</tref> with an <code>@list</code> property whose value is
               set to <em>value</em> (unless <em>value</em> is already in that form).</li>
             <li>Convert <em>value</em> to <tref>array</tref> form unless <em>value</em> is <tref>null</tref> or <em>property</em> is
               <code>@id</code>, <code>@type</code>, <code>@value</code>, or <code>@language</code>.</li>
@@ -1503,25 +1482,25 @@ language-native data structures MUST be used where applicable.</p>
               If <em>element</em> has a <code>@value</code> property:
               <ol class="algorithm">
                 <li>If the value of <code>@value</code> is a <tref>number</tref>, set the
-                  <tref>active object</tref> to a <tref>typed literal</tref> using a <tref>canonical lexical form</tref>
+                  <tref>active object</tref> to a <tref>typed value</tref> using a <tref>canonical lexical form</tref>
                   of the value as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.
                   Set datatype to the value of the <code>@type</code> property if it exists, otherwise
                   either <code>xsd:integer</code> or <code>xsd:double</code>, depending
                   on if the value contains a fractional and/or an exponential component.</li>
                 <li>Otherwise, if the value of <code>@value</code> is <strong>true</strong> or <strong>false</strong>,
-                  set the <tref>active object</tref> to a <tref>typed literal</tref> created from the
+                  set the <tref>active object</tref> to a <tref>typed value</tref> created from the
                   <tref>canonical lexical form</tref> of the value. Set datatype to the value of the <code>@type</code>
                   property if it exists, otherwise <code>xsd:boolean</code>.</li>
                 <li>
                   Otherwise, if <em>element</em> contains a <code>@type</code> property, set the
-                  <tref>active object</tref> to a <tref>typed literal</tref>.
+                  <tref>active object</tref> to a <tref>typed value</tref>.
                 </li>
                 <li>
                   Otherwise, if <em>element</em> contains a <code>@language</code> property, set the
                   <tref>active object</tref> to a <tref>language-tagged string</tref>.
                 </li>
                 <li>
-                  Otherwise, set the <tref>active object</tref> to a <tref>typed literal</tref>
+                  Otherwise, set the <tref>active object</tref> to a <tref>typed value</tref>
                   using <code>xsd:string</code> as the datatype.
                 </li>
               </ol>
@@ -1630,11 +1609,11 @@ language-native data structures MUST be used where applicable.</p>
 
     <section>
       <h2>Convert from RDF Algorithm</h2>
-      <p>In some cases, data exists natively in <tref title="triple">Triples</tref>
-        or <tref title="quad">Quads</tref> form; for example, if the data was originally
-        represented in an RDF graph or triple/quad store. This algorithm is designed to simply translate
-        an array of <tref title="quad">Quads</tref> into a JSON-LD document.</p>
-      <p>When expanding <tref>typed literal</tref> values having a datatype of <code>xsd:string</code>,
+      <p>In some cases, data exists natively in the form of triples or or <tref title="quad">quads</tref>;
+        for example, if the data was originally represented in an RDF graph or triple/quad store. This
+        algorithm is designed to simply translate an array of <tref title="quad">quads</tref> into a
+        JSON-LD document.</p>
+      <p>When expanding <tref title="typed value">typed values</tref> having a datatype of <code>xsd:string</code>,
         the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
         MUST have only a <code>@value</code> property.</p>
 
@@ -1678,7 +1657,7 @@ language-native data structures MUST be used where applicable.</p>
               <em>subject</em>, initializing it to a new
               <tref>JSON object</tref> with key/value pair of <code>@id</code> and
               <em>subject</em> represented in <tref>expanded IRI form</tref> if necessary.</li>
-            <li>If <em>property</em> is <code>rdf:type</code>, <em>object</em> is not a <tref>literal</tref>, and the
+            <li>If <em>property</em> is <code>rdf:type</code>, <em>object</em> is not a <tref>JSON-LD value</tref>, and the
               <code class="idlMemberName"><a href="#widl-JsonLdOptions-useRdfType">useRdfType</a></code>
               option is not present or <tref>false</tref>:
               <ol class="algorithm">
@@ -1687,7 +1666,7 @@ language-native data structures MUST be used where applicable.</p>
               </ol>
             </li>
 
-            <li>Otherwise, if <em>object</em> is a <tref>typed literal</tref> and the
+            <li>Otherwise, if <em>object</em> is a <tref>typed value</tref> and the
               <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
               option is set to <tref>true</tref>:
               <ol class="algorithm">
@@ -1934,7 +1913,7 @@ language-native data structures MUST be used where applicable.</p>
         <dl title="ProcessingError">
           <dt>CONFLICTING_DATATYPES</dt>
           <dd>The target datatype specified in the coercion rule and the
-            datatype for the typed literal do not match.</dd>
+            datatype for the typed value do not match.</dd>
           <dt>LIST_OF_LISTS_DETECTED</dt>
           <dd>A list of lists was detected. The list of lists feature is
             not supported in this version of JSON-LD due to the algorithmic
@@ -2068,8 +2047,7 @@ language-native data structures MUST be used where applicable.</p>
         the JSON-LD processor must modify the output of the
         <a href="#compaction-algorithm">Compaction Algorithm</a>
         or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
-        coalescing all properties associated with each
-        <tref>subject</tref> via the
+        coalescing all properties associated with each <tref>node</tref> via the
         <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
         of <code>flatten</code> MUST be either an <tref>IRI</tref> value
         representing the name of the graph to flatten, or <code>true</code>.
@@ -2091,7 +2069,7 @@ language-native data structures MUST be used where applicable.</p>
       </dd>
       <dt>boolean useNativeTypes = true</dt>
       <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
-        datatyped literals to JSON native types instead of using the
+        <tref title="typed value">typed values</tref> to JSON native types instead of using the
         expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
         <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
         <code>xsd:integer</code> and <code>xsd:double</code> values will be
