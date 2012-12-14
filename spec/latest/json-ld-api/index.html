@@ -729,6 +729,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           the <code>@graph</code> keyword.</li>
       </ul>
     </dd>
+    <dt><tdef>list object</tdef></dt>
+    <dd>A <tref>list object</tref> is a <tref>JSON object</tref> that has a <code>@list</code>
+      member.</dd>
+    <dt><tdef>scalar</tdef></dt>
+    <dd>A scalar is either a JSON <tref>string</tref>, <tref>number</tref>, <tref>true</tref>,
+      or <tref>false</tref>.</dd>
     <dt><tdef>quad</tdef></dt>
     <dd>An <em>RDF triple</em> as specified by [[RDF-CONCEPTS]] augmented with a a fourth component,
       a <tref>graph name</tref>.</dd>
@@ -1097,124 +1103,206 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     is <tref>null</tref>, <tref>active property</tref> is set to <tref>null</tref>, and
     <em>element</em> is set to the <tref>JSON-LD input</tref>. This algorithm expects the
     <tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
+
   <ol class="algorithm">
-    <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
-      using this algorithm, passing copies of the <tref>active context</tref> and <tref>active property</tref>.
-      If has a <code>@container</code> set to <code>@list</code> and any entry in <em>element</em> is an
-      <tref>array</tref>, or is a <tref>JSON object</tref> containing a <code>@list</code> property,
-      return an error, as lists of lists are not allowed.
-      If the expanded entry is null, drop it. If it's an array, merge its entries with <em>element</em>'s entries.</li>
-    <li>Otherwise, if <em>element</em> is an object
+    <li>If <em>element</em> is a <tref>scalar</tref>, expand it according to the
+      <a href="#value-expansion">Value Expansion</a> algorithm, passing copies of the
+      <tref>active context</tref> and <tref>active property</tref> and return.</li>
+    <li>If <em>element</em> is <tref>null</tref>, return.</li>
+    <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
-        <li>If <em>element</em> has a <code>@context</code> property, update the <tref>active context</tref> according to
-          the steps outlined in <a href="#context-processing">Context Processing</a> and remove the <code>@context</code>
-          property.</li>
-        <li>Then, proceed and process each <em>property</em> and <em>value</em> in <em>element</em> as follows:
-          <ol class="algorithm">
-            <li>Remove <em>property</em> from <em>element</em>, expand
-              <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a>.
-              Set the <tref>active property</tref> to the original un-expanded <em>property</em> if
-              <em>property</em> is not a <tref>keyword</tref>.</li>
-            <li>If <em>property</em> does not expand to a keyword or an <tref>absolute IRI</tref> (i.e., it doesn't contain a colon),
-              continue with the next property from <em>element</em>.</li>
-            <li>If <em>value</em> is <tref>null</tref> and <em>property</em> is not <code>@value</code>, continue with the next
-              property from <em>element</em>.</li>
-            <li>If the <em>property</em> is <code>@id</code> the <em>value</em> MUST be a <tref>string</tref>.
-              Expand the <em>value</em> according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-            <li>Otherwise, if the <em>property</em> is <code>@type</code>:
-              <ol class="algorithm">
-                <li>If <em>value</em> is a <tref>string</tref>, expand according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-                <li>Otherwise, if <em>value</em> is an <tref>array</tref>, all elements must be <tref>string</tref>s.
-                  Expand <em>value</em> for each of its entries according to <a href="#iri-expansion">IRI Expansion</a>.</li>
-              </ol>
-            </li>
-            <li>Otherwise, if the <em>property</em> is <code>@value</code> or <code>@language</code> the <em>value</em> MUST NOT be a
-              <tref>JSON object</tref> or an <tref>array</tref>.</li>
-            <li>Otherwise, if the <em>property</em> is <code>@list</code> or <code>@set</code> expand <em>value</em>
-              recursively using this algorithm, passing copies of the <tref>active context</tref> and <em>active property</em>. If the expanded
-              <em>value</em> is not an <tref>array</tref>, convert it to an <tref>array</tref>.
-              If <em>property</em> is <code>@list</code> and any entry in <em>value</em> is a
-              <tref>JSON object</tref> containing an <code>@list</code> property, return an error, as
-              lists of lists are not supported.</li>
-            <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> and <em>property</em> is not a keyword and its associated <tref>term</tref> entry in
-            the <tref>active context</tref> has a <code>@container</code> key associated with a value of <code>@language</code>,
-            process the associated <em>value</em> as a <em>language map</em>:
-              <ol class="algorithm">
-                <li>Set <em>multilingual array</em> to an empty array.</li>
-                <li>For each key-value pair in the <em>language map</em> ordered case-sensitively by key, and for each value, if value is an <tref>array</tref>:
-                  <ol class="algorithm">
-                    <li>Create a new <tref>JSON object</tref>, referred to as an <em>expanded language object</em>.</li>
-                    <li>Add a key-value pair to the <em>expanded language object</em> where the
-                      key is <code>@value</code> and the value is
-                      the value associated with the key in the <em>language map</em>, which MUST be a
-                      <tref>string</tref> or <tref>array</tref> of <tref title="string">strings</tref>.</li>
-                    <li>Add a key-value pair to the <em>expanded language object</em> where the
-                      key is <code>@language</code>, and the value is the key in the
-                      <em>language map</em>, transformed to lowercase, which MUST be valid according to [[!BCP47]].
-                    </li>
-                    <li>Append the <em>expanded language object</em> to the <em>multilingual array</em>.</li>
-                  </ol>
-                </li>
-                <li>Set the <em>value</em> associated with <em>property</em> to the <em>multilingual array</em>.</li>
-              </ol>
-            </li>
-            <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> and <em>property</em> is not a keyword and its associated <tref>term</tref> entry in
-            the <tref>active context</tref> has a <code>@container</code> key associated with a value of <code>@annotation</code>,
-            process the associated <em>value</em> as a <em>annotation map</em>:
-              <ol class="algorithm">
-                <li>Set <em>annotation array</em> to an empty array.</li>
-                <li>For each key-value pair in the <em>annotation map</em> ordered case-sensitively by key, and for each value, if value is an <tref>array</tref>:
-                  <ol class="algorithm">
-                    <li>Set <em>expanded value</em> to the result of expanding value recursively using
-                      this algorithm, passing copies of the <tref>active context</tref> and
-                      <tref>active property</tref>.</li>
-                    <li>Add key from the <em>annotation map</em> to <em>expanded value</em> using the
-                      key <code>@annotation</code>, unless <em>expanded value</em> already has an
-                      <code>@annotation</code> key.</li>
-                    <li>Append <em>expanded value</em> to the <em>annotation array</em>.</li>
-                  </ol>
-                </li>
-                <li>Set the <em>value</em> associated with <em>property</em> to the <em>annotation array</em>.</li>
-              </ol>
-            </li>
-            <li>Otherwise, expand <em>value</em> recursively using this algorithm, passing copies of the <tref>active context</tref> and
-              <tref>active property</tref>.</li>
-            <li>If <em>property</em> is not a keyword
-              and <tref>active property</tref> has a <code>@container</code> key associated with a value of <code>@list</code>
-              and the expanded <em>value</em> is not <tref>null</tref>,
-              convert <em>value</em> to a <tref>JSON object</tref> with an <code>@list</code> property whose value is
-              set to <em>value</em> (unless <em>value</em> is already in that form).</li>
-            <li>Convert <em>value</em> to <tref>array</tref> form unless <em>value</em> is <tref>null</tref> or <em>property</em> is
-              <code>@id</code>, <code>@type</code>, <code>@value</code>, or <code>@language</code>.</li>
-            <li>If <em>value</em> is not <tref>null</tref>, either merge <em>value</em> into an existing <em>property</em> property of
-              <em>element</em> or create a new <em>property</em> property with <em>value</em> as value.</li>
-          </ol>
-        </li>
-        <li>If the processed <em>element</em> has an <code>@value</code> property
-          <ol class="algorithm">
-            <li><em>element</em> MUST NOT have more than one other property, which can either be <code>@language</code> or <code>@type</code>
-              with a <tref>string</tref> value.</li>
-            <li>if the value of <code>@value</code> equals <tref>null</tref>,
-              replace <em>element</em> with the value of <code>@value</code>.</li>
-          </ol>
-        </li>
-        <li>Otherwise, if <em>element</em> has an <code>@type</code> property and its value is not in the form of an
-          <tref>array</tref>, convert it to an <tref>array</tref>.</li>
-        <li>If <em>element</em> has an <code>@set</code> or <code>@list</code> property, it MUST be the only property.
-          Set <em>element</em> to the value of <code>@set</code>; leave <code>@list</code> untouched.</li>
-        <li>If <em>element</em> has just a <code>@language</code> property, set <em>element</em> to <tref>null</tref>.</li>
+        <li>initialize an empty array <em>result</em>.</li>
+        <li>Expand each <em>item</em> by recursively using this algorithm, passing copies of
+          the <tref>active context</tref> and <tref>active property</tref>.</li>
+        <li>If the <tref title="active property">active property's</tref>
+          <tdef>container mapping</tdef> is set to <code>@list</code> and the expanded
+          <em>item</em> is an <tref>array</tref> or a <tref>list object</tref> trigger
+          a <code class="error">LIST_OF_LISTS_DETECTED</code> error.</li>
+        <li>If the expanded <em>item</em> is <tref>null</tref>, drop it.</li>
+        <li>Otherwise, if the expanded <em>item</em> is an <tref>array</tref>, merge its
+          entries with <em>result's</em> entries.</li>
+        <li>Otherwise, append <em>item</em> to <em>result</em>.</li>
+        <li>Finally, set <em>element</em> to <em>result</em> and return.</li>
       </ol>
     </li>
-    <li>Otherwise, expand <em>element</em> according to the <a href="#value-expansion">Value Expansion</a> rules,
-      passing copies of the <tref>active context</tref> and <tref>active property</tref>.</li>
+    <li>Otherwise, <em>element</em> must be an object.
+      <ol class="algorithm">
+        <li>If <em>element</em> has a <code>@context</code> member, update the
+          <tref>active context</tref> according to the steps outlined in
+          <a href="#context-processing">Context Processing</a> and remove the
+          <code>@context</code> member.</li>
+        <li>Initialize an empty <tref>JSON object</tref> <em>result</em> and</li>
+        <li>then process each <em>property</em> and <em>value</em> in <em>element</em>
+          ordered by <em>property</em> as follows:
+          <ol class="algorithm">
+            <li>Set <em>expanded property</em> to the result of expanding
+               <em>property</em> according to the steps outlined in
+               <a href="#iri-expansion">IRI Expansion</a>.</li>
+            <li>If <em>expanded property</em> is a <tref>keyword</tref>, process it as
+              follows:
+              <ol class="algorithm">
+                <li>If <em>expanded property</em> equals <code>@id</code>, set the <code>@id</code>
+                  member of <em>result</em> to the result of expanding <em>value</em>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a>. If <em>value</em>
+                  is not a <tref>string</tref> trigger an <code class="error">INVALID_ID_VALUE</code>
+                  error.</li>
+                <li>If <em>expanded property</em> equals <code>@type</code>, set the <code>@type</code>
+                  member of <em>result</em> to the result of expanding <em>value</em>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a>. If <em>value</em>
+                  is neither a <tref>string</tref> nor an <tref>array</tref> of
+                  <tref title="string">strings</tref> trigger an <code class="error">INVALID_TYPE_VALUE</code>
+                  error. Empty <tref title="array">arrays</tref> are ignored.</li>
+                <li>If <em>expanded property</em> equals <code>@value</code>, set the <code>@value</code>
+                  member of <em>result</em> to <em>value</em>. If <em>value</em> is neither a <tref>scalar</tref>
+                  nor <tref>null</tref> trigger an <code class="error">INVALID_VALUE_OBJECT_VALUE</code> error.</li>
+                <li>If <em>expanded property</em> equals <code>@language</code>, set the <code>@language</code>
+                  member of <em>result</em> to the lowercased <em>value</em>. If <em>value</em> is not
+                  a valid language tag according [[!BCP47]], trigger an
+                  <code class="error">INVALID_LANGUAGE_VALUE</code> error.</li>
+                <li>If <em>expanded property</em> equals <code>@annotation</code>, set the <code>@annotation</code>
+                  member of <em>result</em> to <em>value</em>. If <em>value</em> is not a <tref>string</tref>
+                  trigger an <code class="error">INVALID_ANNOTATION_VALUE</code> error.</li>
+                <li>If <em>expanded property</em> equals <code>@set</code> or <code>@list</code>, set the
+                  <em>expanded property</em> member of <em>result</em> to the result of expanding <em>value</em> by
+                  recursively using this algorithm, passing copies of the <tref>active context</tref> and
+                  <tref>active property</tref>.</li>
+                <li>If <em>expanded property</em> equals <code>@graph</code>, set the <code>@graph</code>
+                  member of <em>result</em> to the result of expanding <em>value</em> by
+                  recursively using this algorithm, passing copies of the <tref>active context</tref> and
+                  <code>@graph</code> as <tref>active property</tref>.</li>
+                <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+              </ol>
+            </li>
+            <li>If <em>expanded property</em> is not an <tref>absolute IRI</tref>,i.e., it doesn't contain a colon,
+              continue with the next member from <em>element</em>.</li>
+            <li>Otherwise, if <em>property's</em> <tref>container mapping</tref> is set to
+              <code>@language</code>
+              <ol class="algorithm">
+                <li>Initialize a new empty <tref>array</tref> <em>language map values</em>.</li>
+                <li>Process each <em>key</em>-<em>val</em> pair of <em>value</em> ordered by
+                  <em>key</em> as follows:
+                  <ol class="algorithm">
+                    <li>If <em>val</em> is not an array, transform it to one.</li>
+                    <li>For each item of <em>val</em>, construct a new <tref>JSON object</tref>
+                      consisting of two members: <code>@value</code> set to the currently
+                      processed item and <code>@language</code> set to the lowercased <em>key</em>.
+                      If <em>val</em> is not a <tref>string</tref>, trigger a
+                      <code class="error">LANGUAGE_MAP_INVALID_VALUE</code> error; if <em>key</em>
+                      is not a valid language tag according [[!BCP47]], trigger an
+                      <code class="error">LANGUAGE_MAP_INVALID_KEY</code> error. Otherwise append
+                      the object to <em>language map values</em>.</li>
+                  </ol>
+                </li>
+                <li>Set <em>value</em> to <em>language map values</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, if <em>property's</em> <tref>container mapping</tref> is set to
+              <code>@annotation</code>
+              <ol class="algorithm">
+                <li>Initialize a new empty <tref>array</tref> <em>annotation map values</em>.</li>
+                <li>Process each <em>key</em>-<em>val</em> pair of <em>value</em> ordered by
+                  <em>key</em> as follows:
+                  <ol class="algorithm">
+                    <li>If <em>val</em> is not an array, transform it to one.</li>
+                    <li>Expand <em>val</em> by recursively using this algorithm, passing copies of
+                      the <tref>active context</tref> and <tref>active property</tref>.</li>
+                    <li>Add to each item of <em>val</em> a member <code>@annotation</code> set to
+                      <em>key</em> if no such member exists yet and append the resulting
+                      <tref>JSON object</tref> to <em>annotation map values</em>.</li>
+                  </ol>
+                </li>
+                <li>Set <em>value</em> to <em>annotation map values</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, expand <em>value</em> by recursively using this algorithm, passing
+              copies of the <tref>active context</tref> and <em>property</em> as
+              <tref>active property</tref>.</li>
+            <li>If the expanded <em>value</em> equals <tref>null</tref>, continue with the next
+              <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+            <li>If <em>property's</em> <tref>container mapping</tref> is set to <code>@list</code> and
+              <em>value</em> is either not an <tref>JSON object</tref> or a <tref>JSON object</tref>
+              without an <code>@list</code> member, replace <em>value</em> with a
+              <tref>JSON object</tref> with an <code>@list</code> member whose value is set to
+              <em>value</em> (wrapped in an <tref>array</tref> if it is not already one).</li>
+            <li>If <em>expanded property</em> is an <tref>array</tref>,
+              <ol class="algorithm">
+                <li>label all <tref title="blank node">blank nodes</tref> in <em>value</em> with
+                  <tref title="blank node identifier">blank node identifiers</tref> by using the
+                  <a href="#label-blank-nodes-algorithm">Label Blank Nodes Algorithm</a>.</li>
+                <li>Then, for each <em>iri</em> of <em>expanded property</em> create merge a copy
+                  of <em>value</em> into the <em>iri</em> member of the <em>result</em>
+                  <tref>JSON object</tref>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, merge <em>value</em> into the <em>iri</em> member of the <em>result</em>
+              <tref>JSON object</tref>.</li>
+          </ol>
+        </li>
+        <li>Set <em>element</em> to <em>result</em> and <em>numProperties</em> to the number of members
+          of <em>result</em>.</li>
+        <li>If <em>element</em> has an <code>@annotation</code> member, decrease <em>numProperties</em>
+          by 1.</li>
+        <li>If <em>element</em> has an <code>@value</code> member,
+          <ol class="algorithm">
+            <li>decrease <em>numProperties</em> by 1.</li>
+            <li>If <em>element</em> has an <code>@language</code> member, decrease <em>numProperties</em>
+              by 1 and check that the value of the <code>@value</code> member is a string. If not,
+              trigger an <code class="error">INVALID_LANGUAGE_TAGGED_STRING</code> error.</li>
+            <li>Otherwise, if <em>element</em> has an <code>@type</code> member, decrease
+              <em>numProperties</em> by 1 and check that the value of the <code>@type</code> member is a
+              string. If not, trigger an <code class="error">INVALID_TYPED_VALUE</code> error.</li>
+            <li>If <em>numProperties</em> is greater than 0, trigger an
+              <code class="error">INVALID_VALUE_OBJECT</code> error.</li>
+            <li>If the value of the <code>@value</code> member equals <tref>null</tref>, set
+              <em>element</em> to <tref>null</tref>.</li>
+            <li>Return.</li>
+          </ol>
+        </li>
+        <li>If <em>element</em> has an <code>@type</code> member whose value is not an <tref>array</tref>,
+          transform it to an <tref>array</tref>.</li>
+        <li>If <em>element</em> has an <code>@list</code> or <code>@set</code> member and
+          <em>numProperties</em> is greater than 1, trigger an
+          <code class="error">INVALID_SET_OR_LIST_OBJECT</code> error.</li>
+        <li>Otherwise, if <em>element</em> has an <code>@set</code> member, set <em>element</em> to
+          the value of that member.</li>
+        <li>Otherwise, if <em>element</em> has just an <code>@language</code> member, set <em>element</em>
+          to null.</li>
+      </ol>
+    </li>
   </ol>
 
-  <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>JSON object</tref> with just a <code>@graph</code>
-    property, <em>element</em> is set to the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
+  <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an
+    <tref>JSON object</tref> with just a <code>@graph</code> member, <em>element</em> is set to
+    the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
     it is wrapped into an <tref>array</tref>.</p>
 
-  <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-flatten">flatten</a></code> option is not <code>false</code>, run the
-    <a href="#flattening-algorithm">Flattening Algorithm</a>.</p>
+  <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-flatten">flatten</a></code>
+    option is not <code>false</code>, run the <a href="#flattening-algorithm">Flattening Algorithm</a>.</p>
+</section>
+
+<section>
+  <h2>Label Blank Nodes Algorithm</h2>
+
+  <p>The algorithm takes a single input variable: an <em>element</em> to be labeled with
+    <tref title="blank node identifier">blank node identifiers</tref>.</p>
+
+  <ol class="algorithm">
+    <li>If <em>element</em> is an <tref>array</tref>, recursively apply this
+      algorithm to all its items.</li>
+    <li>Otherwise, if <em>element</em> is a <tref>JSON object</tref> with a
+      <code>@list</code> member, recursively apply this algorithm to all items
+      of the <code>@list</code> member's value.</li>
+    <li>Otherwise, if <em>element</em> is a <tref>JSON object</tref>
+      <ol class="algorithm">
+        <li>For each <em>key</em>-<em>value</em> pair ordered by <em>key</em>
+          recursively apply this algorithm to <em>value</em>.</li>
+        <li>If <em>element</em> does not have an <code>@id</code> member,
+          create a new <code>@id</code> member and assign it a new
+          <tref>blank node identifier</tref> according the
+          <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a> algorithm.</li>
+      </ol>
+    </li>
+  </ol>
 </section>
 
 <section>
