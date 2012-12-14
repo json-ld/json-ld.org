@@ -1856,23 +1856,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
             input document's base <tref>IRI</tref>.</dd>
         </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error type
-            will be set in the error sent to the <code>callback</code>.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. The list of lists feature is
-            not supported in this version of JSON-LD due to the algorithmic
-            complexity associated with conversion to RDF.</dd>
-        </dl>
       </dd>
 
       <dt>void compact()</dt>
@@ -1899,26 +1882,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
             input document's base <tref>IRI</tref>. This also includes <code>optimize</code>,
             which if set will cause processor-specific optimization.</dd>
         </dl>
-
-        <dl title="InvalidContext">
-          <dt>INVALID_SYNTAX</dt>
-          <dd>A general syntax error was detected in the <code>@context</code>.
-            For example, if a <code>@type</code> key maps to anything other than
-            <code>@id</code> or an <tref>absolute IRI</tref>, this error
-            would be returned via the <code>callback</code>.</dd>
-          <dt>LOAD_ERROR</dt>
-          <dd>There was a problem encountered loading a remote context.</dd>
-        </dl>
-
-        <dl title="ProcessingError">
-          <dt>CONFLICTING_DATATYPES</dt>
-          <dd>The target datatype specified in the coercion rule and the
-            datatype for the typed value do not match.</dd>
-          <dt>LIST_OF_LISTS_DETECTED</dt>
-          <dd>A list of lists was detected. The list of lists feature is
-            not supported in this version of JSON-LD due to the algorithmic
-            complexity associated with conversion to RDF.</dd>
-        </dl>
       </dd>
     </dl>
 
@@ -1935,34 +1898,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       parameters sent to those callbacks.</p>
 
     <section>
-      <h3>JsonLdProcessingError</h3>
-      <p>The <a>JsonLdError</a> type is used to encapsulate a variety of
-      parameters that outline the cause of a particular
-      <a>JsonLdProcessor</a> error.</p>
-
-      <dl title="dictionary JsonLdProcessingError" class="idl">
-        <dt>DOMString type</dt>
-        <dd>a string representing the particular error type,
-          such as <code>LIST_OF_LISTS_DETECTED</code>, as described in
-          the various algorithms in this document.</dd>
-        <dt>DOMString operation</dt>
-        <dd>a string representing the operation that was being performed
-          when the conformance issue was raised. Valid values for the
-          string include <code>compact</code>, and <code>expand</code>.</dd>
-        <dt>object or object[] source</dt>
-          <dd>An object reference to the original JSON-LD document being
-          processed.</dd>
-        <dt>DOMString sourceKey</dt>
-          <dd>The key value associated with the value that triggered the
-          conformance issue.</dd>
-        <dt>any or any[] sourceValue</dt>
-          <dd>The value that triggered the conformance issue.</dd>
-      </dl>
-    </section>
-
-    <section>
       <h3>JsonLdCallback</h3>
-      <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD
+      <p>The JsonLdCallback is used to return a processed JSON-LD
         representation as the result of processing an API method.</p>
 
       <dl title="callback JsonLdCallback = void" class="idl">
@@ -1982,57 +1919,100 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <p>This section describes datatype definitions used within the JSON-LD API.</p>
 
     <section>
-    <h3>JsonLdOptions</h3>
-    <p>The <a>JsonLdOptions</a> type is used to pass various options to the <a>JsonLdProcessor</a> methods.</p>
-    <dl title="dictionary JsonLdOptions" class="idl">
-      <dt>DOMString base</dt>
-      <dd>The Base IRI to use when expanding the document. This overrides the value of
-        <em>input</em> if it is a <a>IRI</a>. If not specified and <em>input</em> is not
-        an <a>IRI</a>, the base IRI defaults to the current document IRI if in a browser context,
-        or the empty string if there is no document context.
-      </dd>
-      <dt>object or DOMString expandContext = null</dt>
-      <dd>A context that is used to initialize the active context when expanding a document.</dd>
-      <dt>boolean compactArrays = true</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
-        one element with that element during compaction. If set to <code>false</code>,
-        all arrays will remain arrays even if they have just one element.
-      </dd>
-      <dt>boolean flatten = false</dt>
-      <dd>If set to a value that is not <code>false</code>,
-        the JSON-LD processor must modify the output of the
-        <a href="#compaction-algorithm">Compaction Algorithm</a>
-        or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
-        coalescing all properties associated with each <tref>node</tref> via the
-        <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
-        of <code>flatten</code> MUST be either an <tref>IRI</tref> value
-        representing the name of the graph to flatten, or <code>true</code>.
-        If the value is <code>true</code>, then the first graph encountered in
-        the input document is selected and flattened.
-      </dd>
-      <dt>boolean optimize = false</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
-        optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
-        to produce even compacter representations. The algorithm for compaction
-        optimization is beyond the scope of this specification and thus
-        not defined. Consequently, different implementations MAY implement
-        different optimization algorithms.
-      </dd>
-      <dt>boolean useRdfType = false</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor will use the
-        expanded <code>rdf:type</code> IRI as the property instead of
-        <code>@type</code> when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
-      </dd>
-      <dt>boolean useNativeTypes = true</dt>
-      <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
-        <tref title="typed value">typed values</tref> to JSON native types instead of using the
-        expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
-        <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
-        <code>xsd:integer</code> and <code>xsd:double</code> values will be
-        converted to
-        <tref title="number">JSON numbers</tref>.
-      </dd>
-    </dl>
+      <h3>JsonLdOptions</h3>
+      <p>The <a>JsonLdOptions</a> type is used to pass various options to the <a>JsonLdProcessor</a> methods.</p>
+      <dl title="dictionary JsonLdOptions" class="idl">
+        <dt>DOMString base</dt>
+        <dd>The Base IRI to use when expanding the document. This overrides the value of
+          <em>input</em> if it is a <a>IRI</a>. If not specified and <em>input</em> is not
+          an <a>IRI</a>, the base IRI defaults to the current document IRI if in a browser context,
+          or the empty string if there is no document context.
+        </dd>
+        <dt>object or DOMString expandContext = null</dt>
+        <dd>A context that is used to initialize the active context when expanding a document.</dd>
+        <dt>boolean compactArrays = true</dt>
+        <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
+          one element with that element during compaction. If set to <code>false</code>,
+          all arrays will remain arrays even if they have just one element.
+        </dd>
+        <dt>boolean flatten = false</dt>
+        <dd>If set to a value that is not <code>false</code>,
+          the JSON-LD processor must modify the output of the
+          <a href="#compaction-algorithm">Compaction Algorithm</a>
+          or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
+          coalescing all properties associated with each <tref>node</tref> via the
+          <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
+          of <code>flatten</code> MUST be either an <tref>IRI</tref> value
+          representing the name of the graph to flatten, or <code>true</code>.
+          If the value is <code>true</code>, then the first graph encountered in
+          the input document is selected and flattened.
+        </dd>
+        <dt>boolean optimize = false</dt>
+        <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
+          optimize the output of the <a href="#compaction-algorithm">Compaction Algorithm</a>
+          to produce even compacter representations. The algorithm for compaction
+          optimization is beyond the scope of this specification and thus
+          not defined. Consequently, different implementations MAY implement
+          different optimization algorithms.
+        </dd>
+        <dt>boolean useRdfType = false</dt>
+        <dd>If set to <code>true</code>, the JSON-LD processor will use the
+          expanded <code>rdf:type</code> IRI as the property instead of
+          <code>@type</code> when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
+        </dd>
+        <dt>boolean useNativeTypes = true</dt>
+        <dd>If set to <code>true</code>, the JSON-LD processor will try to convert
+          <tref title="typed value">typed values</tref> to JSON native types instead of using the
+          expanded object form when <a href="#convert-from-rdf-algorithm">converting from RDF</a>.
+          <code>xsd:boolean</code> values will be converted to <tref>true</tref> or <tref>false</tref>.
+          <code>xsd:integer</code> and <code>xsd:double</code> values will be
+          converted to
+          <tref title="number">JSON numbers</tref>.
+        </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>JsonLdProcessingError</h3>
+      <p>The JsonLdProcessingError type is used to encapsulate a variety of
+      parameters that outline the cause of a particular
+      <a>JsonLdProcessor</a> error.</p>
+
+      <dl title="dictionary JsonLdProcessingError" class="idl">
+        <dt>JsonLdErrorCode code</dt>
+        <dd>a string representing the particular error type, as described in
+          the various algorithms in this document.</dd>
+        <dt>DOMString operation</dt>
+        <dd>a string representing the operation that was being performed
+          when the conformance issue was raised. Valid values for the
+          string include <code>compact</code>, and <code>expand</code>.</dd>
+        <dt>object or object[] source</dt>
+          <dd>An object reference to the original JSON-LD document being
+          processed.</dd>
+        <dt>DOMString sourceKey</dt>
+          <dd>The key value associated with the value that triggered the
+          conformance issue.</dd>
+        <dt>any or any[] sourceValue</dt>
+          <dd>The value that triggered the conformance issue.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>JsonLdErrorCode</h3>
+      <p>The JsonLdErrorCode represent the collection of valid JSON-LD error
+        codes.</p>
+
+      <dl title="enum JsonLdErrorCode" class="idl">
+        <dt>INVALID_SYNTAX</dt>
+        <dd>A violation of the grammar as defined by the JSON-LD syntax specification
+          [[!JSON-LD]] was detected.</dd>
+        <dt>LOAD_ERROR</dt>
+        <dd>There was a problem encountered loading a remote context.</dd>
+        <dt>LIST_OF_LISTS_DETECTED</dt>
+        <dd>A list of lists was detected. List of lists are not supported in
+          this version of JSON-LD due to the algorithmic complexity associated
+          with conversion to RDF.</dd>
+      </dl>
     </section>
   </section>
 </section>
