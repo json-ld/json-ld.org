@@ -383,58 +383,46 @@ document; compaction, expansion, and RDF conversion.
 </section>
 
 <section>
-  <h3>RDF Conversion</h3>
-  <p>
-JSON-LD can be used to losslessly express the RDF data model as described in
-the RDF Concepts document  [[RDF-CONCEPTS]]. This ensures that
-data can be round-tripped from any RDF syntax, like N-Triples or TURTLE,
-without any loss in the fidelity of the data. Assume the following RDF input
-in N-Triples format:
-  </p>
+  <h2>RDF Conversion</h2>
+  <p>JSON-LD can be used to serialize data expressed in RDF as described in
+    [[RDF-CONCEPTS]]. This ensures that data can be round-tripped from and to
+    any RDF syntax without any loss in the fidelity of the data.</p>
+
+  <p>For example, assume the following RDF input serialized in Turtle [[TURTLE-TR]]:</p>
 
   <pre class="example" data-transform="updateExample">
-<!--
-var data = "
-<http://manu.sporny.org/about/#manu> <http://xmlns.com/foaf/0.1/name> \"Manu Sporny\" .\n
-<http://manu.sporny.org/about/#manu> <http://xmlns.com/foaf/0.1/homepage> <http://manu.sporny.org/> .";
--->
+  <!--
+  <http://me.markus-lanthaler.com/> <http://xmlns.com/foaf/0.1/name> "Markus Lanthaler" .
+  <http://me.markus-lanthaler.com/> <http://xmlns.com/foaf/0.1/homepage> <http://www.markus-lanthaler.com/> .
+  -->
   </pre>
 
-  <p>A developer can use the
-    <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>.</p>
-
-  <p>
-The following expanded output would be the result performing this transformation:
-  </p>
+  <p>Using the <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a> a
+    developer could transform this document into expanded JSON-LD:</p>
 
   <pre class="example" data-transform="updateExample">
-[{
-  "@id": "http://manu.sporny.org/about/#manu",
-  "http://xmlns.com/foaf/0.1/name": [{
-    "@value": "Manu Sporny"
-  }],
-  "http://xmlns.com/foaf/0.1/homepage": [{
-    "@id": "http://manu.sporny.org/"
-  }]
-}]
+  <!--
+  [
+    {
+      "@id": "http://me.markus-lanthaler.com/",
+      "http://xmlns.com/foaf/0.1/name": [
+        {
+          "@value": "Markus Lanthaler"
+        }
+      ],
+      "http://xmlns.com/foaf/0.1/homepage": [
+        {
+          "@id": "http://www.markus-lanthaler.com/"
+        }
+      ]
+    }
+  ]
+  -->
   </pre>
 
-  <p>
-Note that the output above, could easily be compacted to produce the following
-using the technique outlined in the previous section:
-  </p>
-
-  <pre class="example" data-transform="updateExample">
-{
-  "@context": "http://json-ld.org/contexts/person.jsonld",
-  "@id": "http://manu.sporny.org/about/#manu",
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
-}
-  </pre>
-
-  <p>Transforming the node above back to RDF using the
-    <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</p>
+  <p>Note that the output above could easily be compacted using the technique outlined
+    in the previous section. It is also possible to transform the JSON-LD document back
+    to RDF using the <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</p>
   </section>
 
 </section>
@@ -1421,148 +1409,16 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
   <section>
-    <h2>RDF Conversion</h2>
+    <h2>RDF Conversion Algorithms</h2>
 
-    <p>A JSON-LD document MAY be converted between other RDF-compatible document
-      formats using the algorithms specified in this section.</p>
+    <p>This specification describes algorithms to transform JSON-LD documents to an array of
+      RDF <tref title="quad">quads</tref> and vice-versa. Note that many uses of JSON-LD
+      may not require generation of RDF.</p>
 
-    <p>The JSON-LD Processing Model describes processing rules for extracting RDF
-      from a JSON-LD document, and for transforming an array of <tref>Quad</tref> retrieved by processing
-      another serialization format into JSON-LD. Note that many uses of JSON-LD may not require
-      generation of RDF.</p>
-
-    <p>The processing algorithms described in this section are provided in
-      order to demonstrate how one might implement a JSON-LD to RDF processor.
-      Conformant implementations are only required to produce the same type and
-      number of <tref title="quad">quads</tref> during the output process and are not required to
-      implement the algorithm exactly as described.</p>
-
-    <section class="informative">
-      <h4>Overview</h4>
-      <p>JSON-LD is intended to have an easy to parse grammar that closely models existing
-        practice in using JSON for describing object representations. This allows the use
-        of existing libraries for parsing JSON.</p>
-
-      <p>As with other grammars used for describing <tref>Linked Data</tref>, a key
-        concept is that of a <tref>node</tref> in a <tref>JSON-LD graph</tref>.
-        Nodes may be of three basic types. The first is the <tref>IRI</tref>,
-        which is used to refer to
-        <tref title="node">nodes</tref> in other <tref title="JSON-LD graph">JSON-LD graphs</tref>.
-        The second is the <tref>blank node</tref>, which are nodes for which an external name does not
-        exist, or is not known. The third is a <tref>Literal</tref>, which express
-        values such as strings, dates and other information having a lexical
-        form, possibly including an explicit language or datatype.</p>
-
-      <p>Data described with JSON-LD may be considered to be a graph made
-        up of <tref>subject</tref> and <tref>object</tref>
-        <tref title="node">nodes</tref> related via a <tref>property</tref>
-        <tref>node</tref>. Specific implementations may also choose to operate
-        on the document as a normal JSON description of objects having
-        attributes. Both approaches are valid ways to interact with JSON-LD
-        documents.</p>
-    </section>
-
-    <section class="informative">
-      <h4>Parsing Examples</h4>
-
-      <p>The following examples show simple transformations of JSON-LD documents to Turtle [[TURTLE-TR]].</p>
-
-      <p>The first example uses a simple document containing a simple FOAF profile:</p>
-
-      <pre class="example" data-transform="updateExample">
-      <!--
-      {
-        "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
-        "@id": "http://greggkellogg.net/foaf#me",
-        "@type": "foaf:Person",
-        "foaf:name": "Gregg Kellogg",
-        "foaf:knows": {
-          "@type": "foaf:Person",
-          "foaf:name": "Manu Sporny"
-        }
-      }
-      -->
-      </pre>
-
-      <p>This translates fairly directly to a similar Turtle document:</p>
-
-      <pre class="example" data-transform="updateExample">
-      <!--
-      @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-
-      <http://greggkellogg.net/foaf#me> a foaf:Person;
-        foaf:name "Gregg Kellogg";
-        foaf:knows [ a foaf:Person; foaf:name "Manu Sporny"].
-      -->
-      </pre>
-
-      <p>The actual parsing steps first require that the JSON-LD document be expanded,
-        to eliminate the <code>@context</code>:</p>
-
-      <pre class="example" data-transform="updateExample">
-      <!--
-      [{
-        "@id": "http://greggkellogg.net/foaf#me",
-        "@type": ["http://xmlns.com/foaf/0.1/Person"],
-        "http://xmlns.com/foaf/0.1/name": [{"@value": "Gregg Kellogg"}],
-        "http://xmlns.com/foaf/0.1/knows": [{
-          "@type": ["http://xmlns.com/foaf/0.1/Person"],
-          "http://xmlns.com/foaf/0.1/name": [{"@value": "Manu Sporny"}]
-        }]
-      }]
-      -->
-      </pre>
-
-      <p>The process of translating this to RDF then operates over each
-        <tref>node object</tref> to find a subject,
-        each <tref>property</tref> to find an <tref>RDF predicate</tref>,
-        and each value of that property to find an <tref>object</tref>.
-        In this case, each property has just a single object:
-        <code>foaf:name</code> identifies a <tref>literal</tref>, and
-        <code>foaf:knows</code> identifies a second <tref>node object</tref>
-        similar to Turtle's <code>blankNodePropertyList</code>.</p>
-
-      <p>After expansion, JSON-LD <tref title="number">numbers</tref>,
-        <tref title="true">booleans</tref>, <tref title="typed literal">typed literals</tref>,
-        <tref title="language-tagged string">language-tagged-strings</tref>,
-        and <tref title="iri">IRIs</tref> become explicit, and can be directly
-        transformed into their RDF representations.</p>
-
-      <pre class="example" data-transform="updateExample">
-      <!--
-      [{
-        "@id": "http://greggkellogg.net/foaf#me",
-        "@type": ["http://xmlns.com/foaf/0.1/Person"],
-        "http://xmlns.com/foaf/0.1/name": [{"@value": "Gregg Kellogg"}],
-        ****"http://xmlns.com/foaf/0.1/currentProject": [{"@id": "http://json-ld.org/"}],
-        "http://xmlns.com/foaf/0.1/birthday": [{
-          "@value": "1957-02-27",
-          "@type": "http://www.w3.org/2001/XMLSchema#date"
-        }],****
-        "http://xmlns.com/foaf/0.1/knows": [{
-          "@type": ["http://xmlns.com/foaf/0.1/Person"],
-          "http://xmlns.com/foaf/0.1/name": [{"@value": "Manu Sporny"}]
-        }]
-      }]
-      -->
-      </pre>
-
-      <p>Translates to:</p>
-
-      <pre class="example" data-transform="updateExample">
-      <!--
-      @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
-
-      <http://greggkellogg.net/foaf#me> a foaf:Person;
-        foaf:name "Gregg Kellogg";
-        ****foaf:currentProject <http://json-ld.org/>;
-        foaf:birthday "1957-02-27"^^xsd:date;****
-        foaf:knows [ a foaf:Person; foaf:name "Manu Sporny"].
-      -->
-      </pre>
-
-    </section>
+    <p>The processing algorithms described in this section are provided in order to demonstrate
+      how one might implement a JSON-LD to RDF processor. Conformant implementations are only
+      required to produce the same type andnumber of <tref title="quad">quads</tref> but are
+      not required to implement the algorithm exactly as described.</p>
 
     <section>
       <h3>Convert to RDF Algorithm</h3>
