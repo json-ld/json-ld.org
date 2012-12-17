@@ -378,6 +378,11 @@ that are a core part of the language:</p>
 <dd>Used to express an unordered set of data and to ensure that values are always
   represented as arrays. This keyword is described in the section titled
   <a href="#sets-and-lists"></a>.</dd>
+<dt><code>@annotation</code></dt>
+<dd>Used to specify that a container is used to index information and
+  that processing should continue deeper into a JSON data structure. 
+  This keyword is described in the section titled
+  <a href="#data-annotations"></a>.</dd>
 <dt><code>@vocab</code></dt>
 <dd>Used to expand properties and values in <code>@type</code> with a common prefix
   <tref>IRI</tref>. This keyword is described in section <a href="#iris"></a>.</dd>
@@ -2357,6 +2362,132 @@ using only the JSON-LD <tref>context</tref>.</p>
 
 </section>
 
+<section>
+<h2>Data Annotations</h2>
+
+<p>It is common for developers using JSON to utilize database-like 
+index information in their markup. For example, indexing article information 
+by language or employees by a government issued ID number. Data annotations
+allow content that would otherwise be disconnected in a JSON-LD graph to be
+connected by instructing the JSON-LD processor to ignore the indexing
+information an continue processing deeper into the JSON data structure.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Data annotations">
+<!--
+{
+  "@context":
+  {
+     "schema": "http://schema.org/",
+     "Article": "schema:Blog",
+     "name": "schema:name",
+     "articleBody": "schema:articleBody",
+     "wordCount": "schema:wordCount",
+     "commentCount": "http://example.com/schema/wordCount",
+     "blogPost": {
+       "@id": "schema:blogPost",
+       ****"@container": "@annotation"****
+  },
+  "@id": "http://example.com/",
+  "@type": "Blog",
+  "name": "World Financial News",
+  ****"blogPost": {
+     "en": {
+       "@id": "http://example.com/posts/1/en",
+       "articleBody": "World commodities were up today with heavy trading of crude oil...",
+       "wordCount": 1539,
+       "commentCount": 64
+     },
+     "de": {
+       "@id": "http://example.com/posts/1/de",
+       "articleBody": "Welt Rohstoffe waren bis heute mit schweren Handel mit Rohöl...",
+       "wordCount": 1204,
+       "commentCount": 23
+     }****
+  }
+}
+-->
+</pre>
+
+<p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
+been marked as a <em>data annotation container</em>. The <strong>en</strong>,
+<strong>de</strong>, and <strong>ja</strong> keys will effectively be ignored
+by the JSON-LD Processor as <em>annotations</em>. The interpretation of the
+data above is expressed in the table below:
+</p>
+
+  <table class="example">
+  <thead>
+    <th>Subject</th>
+    <th>Property</th>
+    <th>Object</th>
+    <th>Datatype</th>
+  </thead>
+  <tbody>
+  <tr>
+    <td>http://example.com/</td>
+    <td>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</td>
+    <td>http://schema.org/Blog</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/</td>
+    <td>http://schema.org/name</td>
+    <td>World Financial News</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/</td>
+    <td>http://schema.org/blogPost</td>
+    <td>http://example.com/posts/1/en</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/</td>
+    <td>http://schema.org/blogPost</td>
+    <td>http://example.com/posts/1/de</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/en</td>
+    <td>http://schema.org/articleBody</td>
+    <td>World commodities were up today with heavy trading of crude oil...</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/en</td>
+    <td>http://schema.org/wordCount</td>
+    <td>1539</td>
+    <td>http://www.w3.org/2001/XMLSchema#integer</td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/en</td>
+    <td>http://example.com/schema/commentCount</td>
+    <td>64</td>
+    <td>http://www.w3.org/2001/XMLSchema#integer</td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/de</td>
+    <td>http://schema.org/articleBody</td>
+    <td>Welt Rohstoffe waren bis heute mit schweren Handel mit Rohöl...</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/de</td>
+    <td>http://schema.org/wordCount</td>
+    <td>1204</td>
+    <td>http://www.w3.org/2001/XMLSchema#integer</td>
+  </tr>
+  <tr>
+    <td>http://example.com/posts/1/de</td>
+    <td>http://example.com/schema/commentCount</td>
+    <td>23</td>
+    <td>http://www.w3.org/2001/XMLSchema#integer</td>
+  </tr>
+  </tbody>
+  </table>
+
+</section>
 
 <section>
 <h2>Explicitly Ignoring Data</h2>
