@@ -689,7 +689,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><tdef>active property</tdef></dt>
     <dd>The currently active property that the processor should use when
       processing. The active property is represented in the original lexical form, which
-      is used for finding coercion mappings in the <tref>active context</tref>.</dd>
+      is used for finding type mappings in the <tref>active context</tref>.</dd>
     <dt><tdef>active object</tdef></dt>
     <dd>The currently active object that the processor should use when
       processing.</dd>
@@ -743,99 +743,117 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
   <h2 id="context">Context Processing</h2>
-  <p>Processing of JSON-LD data structure is managed recursively.
-    During processing, each rule is applied using information provided by the <tref>active context</tref>.
-    Processing begins by pushing a new <tref>processor state</tref> onto the <tref>processor state</tref> stack.
-    If a <tref>local context</tref> is encountered, information from the <tref>local context</tref> is merged
-    into the <tref>active context</tref>.</p>
-  <p>The <tref>active context</tref> is used for expanding properties and values of a <tref>JSON object</tref> (or elements
-    of an array) using a <tdef>term mapping</tdef>. It is also used to maintain
-    <tdef>coercion mapping</tdef>s from terms to datatypes, <tdef>language mapping</tdef>s from terms to language codes,
-    and <tdef>list mapping</tdef>s and <tdef>set mapping</tdef>s for terms. Processors MUST use the
-    lexical form of the property when creating a mapping, as lookup is performed on lexical forms, not
-    expanded IRI representations.</p>
-  <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a <code>@context</code>
-    property with a <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
-    When processing a <tref>local context</tref>, special processing rules apply:</p>
 
-  <p class="issue">This algorithm needs to be reviewed and updated.</p>
+  <p>Processing of JSON-LD data structure is managed recursively. During processing, each
+    rule is applied using information provided by the <tref>active context</tref>.</p>
+
+  <p>The <tref>active context</tref> contains the active <tdef title="term definition">term definitions</tdef>
+    which specify how properties and values have to be interpreted as well as the current
+    <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each <tref>term definition</tref> consists
+    of an <tdef>IRI mapping</tdef> and optionally a <tdef>type mapping</tdef> from terms to datatypes or
+    <tdef>language mapping</tdef> from terms to language codes, and a <tdef>container mapping</tdef>.</p>
+
+  <p>If a <tref>local context</tref> is encountered, information from the <tref>local context</tref>
+    is merged into the <tref>active context</tref>. A <tref>local context</tref> is identified within
+    a <tref>JSON object</tref> having a <code>@context</code> member with a <tref>string</tref>,
+    <tref>array</tref> or a <tref>JSON object</tref> value.</p>
+
+  <p>This algorithm specifies how the <tref>active context</tref> is updated with a
+    <tref>local context</tref>. The algorithm takes three input variables: an <tref>active context</tref>,
+    a <tref>local context</tref>, and an array of already included remote contexts <em>remoteContexts</em>. To
+    begin, <em>remoteContexts</em> is initialized to an empty array.</p>
 
   <ol class="algorithm">
-    <li>Create a new, empty <tref>local context</tref>.</li>
-    <li>Let <em>context</em> be the value of <code>@context</code>
+    <li>If the <tref>local context</tref> is not an array, transform it to one.</li>
+    <li>Process each item <em>context</em> of the <tref>local context</tref> as follows:
       <ol class="algorithm">
-        <li id="process-context">If <em>context</em> equals <tref>null</tref>, clear the <tref>active context</tref>.</li>
-        <li>If <em>context</em> is an <tref>array</tref>, process each element as <em>context</em> in order
-          by starting at <a href="#process-context">Step 2.1</a>.</li>
-        <li>If <em>context</em> is a <tref>string</tref>, it MUST have a lexical form of <tref>IRI</tref>.
+        <li>If <em>context</em> equals <tref>null</tref>, reset the <tref>active context</tref>
+          and continue with the next item.</li>
+        <li>If <em>context</em> is a <tref>string</tref>:
           <ol class="algorithm">
             <li>Expand <em>context</em> according to <a href="#iri-expansion">IRI Expansion</a>.</li>
+            <li>If <em>context</em> is in the <em>remoteContexts</em> array, raise an
+              <code class="error">RECURSIVE_CONTEXT_INCLUSION</code> error. Otherwise, add
+              <em>context</em> to <em>remoteContexts</em>.</li>
             <li>Dereference <em>context</em>.</li>
-            <li>If the resulting document is a JSON document, extract the top-level <code>@context</code>
-              element using the JSON Pointer "/@context" as described in [[!JSON-POINTER]]. Set <em>context</em>
-              to the extracted content and process it by starting at <a href="#process-context">Step 2.1</a>.</li>
+            <li>If the resulting document is a JSON document consisting of a top-level
+              <tref>JSON object</tref> that has a <code>@context</code> member recursively invoke
+              this algorithm passing a copy of <tref>active context</tref>, the value of the
+              <code>@context</code> member as <tref>local context</tref>, and a copy of
+                the <em>remoteContexts</em> array. <tref title="relative IRI">Relative IRIs</tref>
+                are expanded using the remote context's IRI. Otherwise raise an
+                <code class="error">INVALID_REMOTE_CONTEXT</code> error.</li>
+            <li>Continue with the next item from <em>context</em>.</li>
           </ol>
-        </li>
-        <li>If <em>context</em> is a <tref>JSON object</tref>, perform the following steps:
+        </<li>
+        <li>If <em>context</em> is not a <tref>JSON object</tref>, raise an
+          <code class="error">INVALID_LOCAL_CONTEXT</code> error.</li>
+        <li>Otherwise, if <em>context</em> is an <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
-            <li>If <em>context</em> has a <code>@language</code> property, it MUST have a value of a
-              simple <tref>string</tref> with the lexical form described in [[!BCP47]], or <tref>null</tref>. Add the
-              lowercased language tag to the <tref>local context</tref>.</li>
-            <li>If <em>value</em> has a <code>@vocab</code> key, it MUST have a value of a simple <tref>string</tref>
-              with the lexical form of an <tref>absolute IRI</tref>, or <tref>null</tref>. Add the vocabulary mapping to the <tref>local context</tref>.</li>
-            <li id="object-context">Otherwise, for each property in <em>context</em> perform the following steps:
+            <li>If <em>context</em> has a <code>@vocab</code> member: if its value is not
+              a valid <tref>absolute IRI</tref> or <tref>null</tref> trigger an
+              <code class="error">INVALID_VOCAB_MAPPING</code> error; otherwise set the
+              <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref> to
+              its value and remove the <code>@vocab</code> member from <em>context</em>.</li>
+            <li>If <em>context</em> has a <code>@language</code> member: if its value is not
+              a valid language tag according [[!BCP47]] or <tref>null</tref> trigger an
+              <code class="error">INVALID_DEFAULT_LANGUAGE</code> error; otherwise set the
+              <tref title="active context">active context's</tref> <tref>default language</tref> to
+              its value and remove the <code>@language</code> member from <em>context</em>.</li>
+            <li>For each other <em>key</em>-<em>value</em> pair in <em>context</em> perform the
+              following steps:
               <ol class="algorithm">
-                <li id="context-process-property">If the <em>property</em> has no processing state set, set it to <em>processing</em>.
-                  Otherwise, if the <em>property</em>'s processing state is <em>finished</em>, continue to the
-                  next <em>property</em>. Otherwise, if the <em>property</em>'s processing state is <em>processing</em>,
-                  return an error because a cyclical dependency has been detected.</li>
-                <li>If the <em>property</em> has the form of a <tref>compact IRI</tref> and the resulting prefix is in
-                  <em>context</em>, then process the prefix starting at <a href="#context-process-property">step 2.4.3.1</a>.
-                  Otherwise, continue.</li>
-                <li>If the <em>property</em>'s <em>value</em> is a simple <tref>string</tref>, determine the IRI mapping value by
-                  performing <a href="#iri-expansion">IRI Expansion</a> on the associated value. If the result of the IRI
-                  mapping is an <tref>absolute IRI</tref>, overwrite the <em>property</em> in the <tref>local context</tref>
-                  <tref>term mapping</tref>, unless the <em>property</em> is a JSON-LD <tref>keyword</tref>, in which
-                  case return an error.</li>
-                <li>Otherwise, if the <em>property</em>'s <em>value</em> is <tref>null</tref> remove mapping, coercion,
-                  container and language information associated with property from the
-                  <tref>local context</tref>.</li>
-                <li>Otherwise, the <em>property</em>'s <em>value</em> MUST be a <tref>JSON object</tref>.
+                <li>Remove the <em>key</em>-<em>value</em> pair from <em>context</em>.</li>
+                <li>If <em>key</em> is a JSON-LD <tref>keyword</tref>, continue with the next
+                  <em>key</em>-<em>value</em> pair.</li>
+                <li>If <em>value</em> equals <tref>null</tref>, replace the <tref>term definition</tref>
+                  for <em>key</em> in the <tref>active context</tref> with an <tref>IRI mapping</tref>
+                  set to <tref>null</tref> and continue with the next <em>key</em>-<em>value</em> pair.</li>
+                <li>If <em>value</em> is a <tref>string</tref>, expand it according to the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>. If the result is neither a
+                  <tref>keyword</tref> nor a valid <tref>absolute IRI</tref>, trigger an
+                  <code class="error">INVALID_TERM_DEFINITION</code> error. Otherwise replace the
+                  <tref>term definition</tref> for <em>key</em> in the <tref>active context</tref> with
+                  an <tref>IRI mapping</tref> set to the expanded <em>value</em> and continue with
+                  the next <em>key</em>-<em>value</em> pair.</li>
+                <li>If <em>value</em> is not a <tref>JSON object</tref>, trigger an
+                  <code class="error">INVALID_TERM_DEFINITION</code> error</li>
+                <li>If <tref>term definition</tref> for <em>key</em> exists in the
+                  <tref>active context</tref>, remove it.</li>
+                <li>Initialize a new, empty <tref>term definition</tref> <em>definition</em>.</li>
+                <li>If <em>value</em> has an <code>@id</code> member with a value <em>val</em>
                   <ol class="algorithm">
-                    <li>If the <em>property</em> is a JSON-LD <tref>keyword</tref> and the value has
-                      <code>@id</code>, <code>@language</code> or <code>@type</code> properties, return an error.
-                      <div class="issue">Undecided if <code>@type</code> or <code>@graph</code> can take a
-                        <code>@container</code> with <code>@set</code>.
-                      </div>
-                    </li>
-                    <li>If the <em>property</em> has the form of <tref>term</tref>, its <em>value</em> MUST have an
-                      <code>@id</code> property with a string value which MUST have the form of a <tref>term</tref>,
-                      <tref>compact IRI</tref>, or <tref>absolute IRI</tref>. Determine the IRI mapping
-                      by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
-                      If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
-                      <em>property</em> into the <tref>local context</tref> <tref>term mapping</tref>.</li>
-                    <li>If the <em>property</em> has the form of a <tref>compact IRI</tref> or <tref>absolute IRI</tref>,
-                      the <em>value</em> MAY have a <code>@id</code> property with a string value which MUST have the
-                      form of a <tref>term</tref>, <tref>compact IRI</tref>, or absolute <tref>IRI</tref>.
-                      Determine the IRI mapping by performing <a href="#iri-expansion">IRI Expansion</a> on the associated
-                      value. If the result of the IRI mapping is an <tref>absolute IRI</tref>, merge the
-                      <em>property</em> into the <tref>local context</tref> <tref>term mapping</tref>.</li>
-                    <li>If the <em>value</em> has a <code>@type</code> property, its value MUST have the form of a <tref>term</tref>,
-                      <tref>compact IRI</tref>, <tref>absolute IRI</tref>, or the <tref>keyword</tref> <code>@id</code>.
-                      Determine the IRI by performing <a href="#iri-expansion">IRI Expansion</a> on the associated value.
-                      If the result of the IRI mapping is an <tref>absolute IRI</tref> or <code>@id</code>, merge into the
-                      <tref>local context</tref> <tref>coercion mapping</tref> using the lexical value of the <em>property</em>.</li>
-                    <li>If the <em>value</em> has a <code>@container</code> property, its value MUST be <code>@list</code>,
-                      <code>@set</code>, or <code>@language</code>. Merge the <tref>list mapping</tref> or <tref>set mapping</tref> into the
-                      <tref>local context</tref> using the lexical value of the <em>property</em>.</li>
-                    <li>If the <em>value</em> has a <code>@language</code> property but no <code>@type</code> property, the value of the
-                      <code>@language</code> property MUST be a <tref>string</tref> or <tref>null</tref>.
-                      Merge the lowercased language tag into the <tref>local context</tref> using the lexical value of the
-                      <em>property</em>.</li>
+                    <li>and <em>val</em> is an <tref>array</tref>, expand each item according the
+                      <a href="#iri-expansion">IRI Expansion algorithm</a>. If an item does not expand to
+                      a valid <tref>absolute IRI</tref>, raise an
+                      <code class="error">INVALID_PROPERTY_GENERATOR</code> error; otherwise sort
+                      <em>val</em> and store it as <tref>IRI mapping</tref> in <em>definition</em>.</li>
+                    <li>Otherwise, if <em>val</em> is a <tref>string</tref>, expand it according the
+                      <a href="#iri-expansion">IRI Expansion algorithm</a>. Set the <tref>IRI mapping</tref> of
+                      <em>definition</em> to the expanded <em>val</em>.</li>
                   </ol>
                 </li>
-                <li>Set the <em>property</em>'s processing state to <em>finished</em> and merge the
-                  <tref>local context</tref> into the <tref>active context</tref>.</li>
+                <li>If the <tref>IRI mapping</tref> of <em>definition</em> is set to <tref>null</tref> or a
+                  <tref>keyword</tref>, store the <em>definition</em> as the <tref>term definition</tref>
+                  for <em>key</em> in the <tref>active context</tref> and continue with the next
+                  <em>key</em>-<em>value</em> pair from <em>context</em>.</li>
+                <li>Otherwise, set the <tref>IRI mapping</tref> of <em>definition</em> to the result of
+                  expanding <em>key</em> according the <a href="#iri-expansion">IRI Expansion algorithm</a>.</li>
+                <li>If <em>value</em> has an <code>@type</code> member with a value <em>val</em> and <em>val</em>
+                  is not a <tref>string</tref> or does not expand to an absolute IRI using the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>, raise an
+                  <code class="error">INVALID_TYPE_MAPPING</code> error. Otherwise set the
+                  <tref>IRI mapping</tref> of <em>definition</em> to the expanded <em>val</em>.</li>
+                <li>Otherwise, if <em>value</em> has an <code>@language</code> member with a value <em>val</em>
+                  that is a valid language tag according [[!BCP47]] or <tref>null</tref>, set the
+                  <tref>language mapping</tref> of <em>definition</em> to the lowercased <em>val</em>.
+                  If <em>val</em> is not a valid language tag or <tref>null</tref>, raise an
+                  <code class="error">INVALID_LANGUAGE_MAPPING</code> error.</li>
+                <li>f <em>value</em> has an <code>@container</code> member with a value <em>val</em> that
+                  equals <code>@list</code>, <code>@set</code>, or <code>@annotation</code>, set the
+                  <tref>container mapping</tref> of <em>definition</em> to <em>val</em>.
+                  If <em>val</em> is not one of those values, raise an
+                  <code class="error">INVALID_CONTAINER_MAPPING</code> error.</li>
               </ol>
             </li>
           </ol>
@@ -843,7 +861,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       </ol>
     </li>
   </ol>
-
 </section>
 
 <section>
@@ -1130,7 +1147,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>Expand each <em>item</em> by recursively using this algorithm, passing copies of
           the <tref>active context</tref> and <tref>active property</tref>.</li>
         <li>If the <tref title="active property">active property's</tref>
-          <tdef>container mapping</tdef> is set to <code>@list</code> and the expanded
+          <tref>container mapping</tref> is set to <code>@list</code> and the expanded
           <em>item</em> is an <tref>array</tref> or a <tref>list object</tref> trigger
           a <code class="error">LIST_OF_LISTS_DETECTED</code> error.</li>
         <li>If the expanded <em>item</em> is <tref>null</tref>, drop it.</li>
