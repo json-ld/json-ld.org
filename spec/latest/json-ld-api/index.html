@@ -928,9 +928,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>JSON object</tref> with just a <code>@graph</code> member, <em>element</em> is set to
     the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
     it is wrapped into an <tref>array</tref>.</p>
-
-  <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-flatten">flatten</a></code>
-    option is not <code>false</code>, run the <a href="#flattening-algorithm">Flattening Algorithm</a>.</p>
 </section>
 
 <section>
@@ -2038,8 +2035,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <dd>A callback that is called when processing is complete on
             the given <code>input</code>.</dd>
           <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>.</dd>
+          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
+            to set the input document's base <tref>IRI</tref>.</dd>
         </dl>
       </dd>
 
@@ -2063,9 +2060,37 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <dd>A callback that is called when processing is complete on
             the given <code>input</code>.</dd>
           <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the expansion algorithm such as, e.g., the
-            input document's base <tref>IRI</tref>. This also includes <code>optimize</code>,
-            which if set will cause processor-specific optimization.</dd>
+          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
+            to set the input document's base <tref>IRI</tref>. This also includes
+            the <code>optimize</code> flag, which, if set, will allow processor-specific
+            optimization.</dd>
+        </dl>
+      </dd>
+
+      <dt>void flatten()</dt>
+      <dd>
+        <a href="#flattening">Flattens</a> the given <code>input</code> and
+        <a href="#compaction">compacts</a> it using the passed <code>context</code>
+          according to the steps in the <a href="#flattening-algorithm">Flattening Algorithm</a>.
+          The <code>input</code> MUST be copied, flattened, compacted, and returned
+          if there are no errors. If the compaction fails, an appropriate error MUST be
+          returned via the callback.
+
+        <dl class="parameters">
+          <dt>(object or object[] or DOMString) input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects or an <tref>IRI</tref>
+            referencing the JSON-LD document to flatten.</dd>
+          <dt>(object or DOMString) context</dt>
+          <dd>The context to use when compacting the flattened <code>input</code>; either
+            in the form of an <tref>JSON object</tref> or as <tref>IRI</tref>. To keep
+            the result in expanded form, an empty <tref>JSON object</tref> can
+            be passed.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing is complete on the given
+            <code>input</code>.</dd>
+          <dt>optional JsonLdOptions? options</dt>
+          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
+            to set the input document's base <tref>IRI</tref>.</dd>
         </dl>
       </dd>
     </dl>
@@ -2119,18 +2144,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
           one element with that element during compaction. If set to <code>false</code>,
           all arrays will remain arrays even if they have just one element.
-        </dd>
-        <dt>boolean flatten = false</dt>
-        <dd>If set to a value that is not <code>false</code>,
-          the JSON-LD processor must modify the output of the
-          <a href="#compaction-algorithm">Compaction Algorithm</a>
-          or the <a href="#expansion-algorithm">Expansion Algorithm</a> by
-          coalescing all properties associated with each <tref>node</tref> via the
-          <a href="#flattening-algorithm">Flattening Algorithm</a>. The value
-          of <code>flatten</code> MUST be either an <tref>IRI</tref> value
-          representing the name of the graph to flatten, or <code>true</code>.
-          If the value is <code>true</code>, then the first graph encountered in
-          the input document is selected and flattened.
         </dd>
         <dt>boolean optimize = false</dt>
         <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
