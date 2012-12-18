@@ -1145,32 +1145,37 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
   <h2>Value Expansion</h2>
+
   <p>Some values in JSON-LD can be expressed in a <tref>compacted form</tref>. These values
     are required to be expanded at times when processing JSON-LD documents.
     A value is said to be in <tdef>expanded form</tdef> after
     the application of this algorithm.</p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
-
   <p>The algorithm for expanding a <em>value</em> takes an <tref>active property</tref>
     and <tref>active context</tref>. It is implemented as follows:</p>
+
   <ol class="algorithm">
-    <li>If <em>value</em> is <tref>null</tref>, the <em>value</em> is already expanded.</li>
-    <li>If <tref>active property</tref> is <code>@graph</code> or the target of an <code>@id</code> coercion,
-      expand the value into an object with a key-value pair where the key is <code>@id</code> and the value is
-      the expanded IRI according to the <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-    <li>Otherwise, if <tref>active property</tref> is not a <tref>keyword</tref>, then expand <em>value</em> into an
-      object:
-      <ol class="algorithm">
-        <li>Set the first key-value pair to <code>@value</code> and the unexpanded <em>value</em>.</li>
-        <li>If the <tref>active property</tref> is the target of type coercion, set the second key-value pair
-          to <code>@type</code> and the associated coercion datatype expanded according to the
-          <a href="#iri-expansion">IRI Expansion</a> rules.</li>
-        <li>Otherwise, if the <tref>active property</tref> is the target of language tagging, set the second key-value
-          pair to <code>@language</code> and the value of the language tagging from the <tref>active context</tref>.</li>
-      </ol>
-    </li>
-    <li>Otherwise, <em>value</em> is already expanded.</li>
+    <li>If <em>value</em> is <tref>null</tref>, return <tref>null</tref>.</li>
+    <li>Initialize an empty object <em>result</em>.</li>
+    <li>If <tref>active property</tref> is <code>@graph</code> or the
+      <tref title="active property">active property's</tref> <tref>type mapping</tref> is set to
+      <code>@id</code>, add a key-value pair to <em>result</em> where the key is <code>@id</code>
+      and the value is the result of expanding <em>value</em> according to the
+      <a href="#iri-expansion">IRI Expansion algorithm</a> passing <code>true</code> for the
+      <em>documentRelative</em> flag. Then return <em>result</em>.</li>
+    <li>Add a key-value pair to <em>result</em> where the key is <code>@value</code>
+      and the value is <em>value</em>.</li>
+    <li>If the <tref>active property</tref> has a <tref>type mapping</tref>, add a key-value
+      pair to <em>result</em> where the key is <code>@type</code> and the value is the
+      <tref>IRI</tref> associated with the <tref>type mapping</tref> or a newly
+      <a href="#generate-blank-node-identifier">generated blank node identifier</a> if the
+      <tref>type mapping</tref> is set to a <tref>blank node identifier</tref>.</li>
+    <li>Otherwise, if <em>value</em> is a <tref>string</tref> and the <tref>active property</tref> has a
+      <tref>language mapping</tref> or an <tref>default language</tref> is set in the <tref>active context</tref>,
+      add a key-value pair to <em>result</em> where the key is <code>@language</code> and the value is the
+      language tag associated with the <tref>language mapping</tref> or the <tref>active property</tref> or the
+      <tref>default language</tref>.</li>
+    <li>Return <em>result</em>.</li>
   </ol>
 </section>
 
