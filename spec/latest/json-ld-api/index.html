@@ -557,7 +557,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     from the result that would be obtained by the specification's algorithms.</p>
 
   <p>This specification does not define how JSON-LD Implementations or Processors handle
-    non-conforming input documents.</p>
+    non-conforming input documents. This implies that JSON-LD Implementations or Processors
+    MUST NOT attempt to correct malformed IRIs or language tags; however, they MAY issue
+    validation warnings.</p>
 
   <p class="note">Implementers can partially check their level of conformance to
     this specification by successfully passing the test cases of the JSON-LD test
@@ -810,8 +812,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                   nor <tref>null</tref> trigger an <code class="error">INVALID_VALUE_OBJECT_VALUE</code> error.</li>
                 <li>If <em>expanded property</em> equals <code>@language</code>, set the <code>@language</code>
                   member of <em>result</em> to the lowercased <em>value</em>. If <em>value</em> is not
-                  a valid language tag according [[!BCP47]], trigger an
-                  <code class="error">INVALID_LANGUAGE_VALUE</code> error.</li>
+                  a <tref>string</tref>, trigger an <code class="error">INVALID_LANGUAGE_VALUE</code> error.</li>
                 <li>If <em>expanded property</em> equals <code>@annotation</code>, set the <code>@annotation</code>
                   member of <em>result</em> to <em>value</em>. If <em>value</em> is not a <tref>string</tref>
                   trigger an <code class="error">INVALID_ANNOTATION_VALUE</code> error.</li>
@@ -840,9 +841,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                       consisting of two members: <code>@value</code> set to the currently
                       processed item and <code>@language</code> set to the lowercased <em>key</em>.
                       If <em>val</em> is not a <tref>string</tref>, trigger a
-                      <code class="error">LANGUAGE_MAP_INVALID_VALUE</code> error; if <em>key</em>
-                      is not a valid language tag according [[!BCP47]], trigger an
-                      <code class="error">LANGUAGE_MAP_INVALID_KEY</code> error. Otherwise append
+                      <code class="error">LANGUAGE_MAP_INVALID_VALUE</code> error. Otherwise append
                       the object to <em>language map values</em>.</li>
                   </ol>
                 </li>
@@ -985,13 +984,14 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <code class="error">INVALID_LOCAL_CONTEXT</code> error.</li>
         <li>Otherwise, if <em>context</em> is an <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
-            <li>If <em>context</em> has a <code>@vocab</code> member: if its value is not
-              a valid <tref>absolute IRI</tref> or <tref>null</tref> trigger an
-              <code class="error">INVALID_VOCAB_MAPPING</code> error; otherwise set the
-              <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref> to
-              its value and remove the <code>@vocab</code> member from <em>context</em>.</li>
-            <li>If <em>context</em> has a <code>@language</code> member: if its value is not
-              a valid language tag according [[!BCP47]] or <tref>null</tref> trigger an
+            <li>If <em>context</em> has a <code>@vocab</code> member: if its value is neither
+              an <tref>absolute IRI</tref>, i.e., it does not contain a colon (<code>:</code>),
+              nor <tref>null</tref>, trigger an <code class="error">INVALID_VOCAB_MAPPING</code>
+              error; otherwise set the <tref title="active context">active context's</tref>
+              <tref>vocabulary mapping</tref> to its value and remove the <code>@vocab</code>
+              member from <em>context</em>.</li>
+            <li>If <em>context</em> has a <code>@language</code> member: if its value is neither
+              a <tref>string</tref> nor <tref>null</tref>, trigger an
               <code class="error">INVALID_DEFAULT_LANGUAGE</code> error; otherwise set the
               <tref title="active context">active context's</tref> <tref>default language</tref> to
               its value and remove the <code>@language</code> member from <em>context</em>.</li>
@@ -1005,11 +1005,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                   for <em>key</em> in the <tref>active context</tref> with an <tref>IRI mapping</tref>
                   set to <tref>null</tref> and continue with the next <em>key</em>-<em>value</em> pair.</li>
                 <li>If <em>value</em> is a <tref>string</tref>, expand it according to the
-                  <a href="#iri-expansion">IRI Expansion algorithm</a>. If the result is neither a
-                  <tref>keyword</tref> nor a valid <tref>absolute IRI</tref>, trigger an
-                  <code class="error">INVALID_TERM_DEFINITION</code> error. Otherwise replace the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a> and replace the
                   <tref>term definition</tref> for <em>key</em> in the <tref>active context</tref> with
-                  an <tref>IRI mapping</tref> set to the expanded <em>value</em> and continue with
+                  an <tref>IRI mapping</tref> set to the expanded <em>value</em>. Continue with
                   the next <em>key</em>-<em>value</em> pair.</li>
                 <li>If <em>value</em> is not a <tref>JSON object</tref>, trigger an
                   <code class="error">INVALID_TERM_DEFINITION</code> error</li>
@@ -1019,9 +1017,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                 <li>If <em>value</em> has an <code>@id</code> member with a value <em>val</em>
                   <ol class="algorithm">
                     <li>and <em>val</em> is an <tref>array</tref>, expand each item according the
-                      <a href="#iri-expansion">IRI Expansion algorithm</a>. If an item does not expand to
-                      a valid <tref>absolute IRI</tref>, raise an
-                      <code class="error">INVALID_PROPERTY_GENERATOR</code> error; otherwise sort
+                      <a href="#iri-expansion">IRI Expansion algorithm</a>. If an item is not a <tref>string</tref>,
+                      raise an <code class="error">INVALID_PROPERTY_GENERATOR</code> error; otherwise sort
                       <em>val</em> and store it as <tref>IRI mapping</tref> in <em>definition</em>.</li>
                     <li>Otherwise, if <em>val</em> is a <tref>string</tref>, expand it according the
                       <a href="#iri-expansion">IRI Expansion algorithm</a>. Set the <tref>IRI mapping</tref> of
@@ -1035,14 +1032,14 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                 <li>Otherwise, set the <tref>IRI mapping</tref> of <em>definition</em> to the result of
                   expanding <em>key</em> according the <a href="#iri-expansion">IRI Expansion algorithm</a>.</li>
                 <li>If <em>value</em> has an <code>@type</code> member with a value <em>val</em> and <em>val</em>
-                  is not a <tref>string</tref> or does not expand to an absolute IRI using the
+                  is not a <tref>string</tref> or does not expand to an <tref>absolute IRI</tref> using the
                   <a href="#iri-expansion">IRI Expansion algorithm</a>, raise an
                   <code class="error">INVALID_TYPE_MAPPING</code> error. Otherwise set the
                   <tref>IRI mapping</tref> of <em>definition</em> to the expanded <em>val</em>.</li>
                 <li>Otherwise, if <em>value</em> has an <code>@language</code> member with a value <em>val</em>
-                  that is a valid language tag according [[!BCP47]] or <tref>null</tref>, set the
-                  <tref>language mapping</tref> of <em>definition</em> to the lowercased <em>val</em>.
-                  If <em>val</em> is not a valid language tag or <tref>null</tref>, raise an
+                  that is a <tref>string</tref> or <tref>null</tref>, set the <tref>language mapping</tref> of
+                  <em>definition</em> to the lowercased <em>val</em>. If <em>val</em> is neither a
+                  <tref>string</tref> nor <tref>null</tref>, raise an
                   <code class="error">INVALID_LANGUAGE_MAPPING</code> error.</li>
                 <li>f <em>value</em> has an <code>@container</code> member with a value <em>val</em> that
                   equals <code>@list</code>, <code>@set</code>, or <code>@annotation</code>, set the
