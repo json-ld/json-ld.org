@@ -751,7 +751,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     which specify how properties and values have to be interpreted as well as the current
     <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each <tref>term definition</tref> consists
     of an <tdef>IRI mapping</tdef> and optionally a <tdef>type mapping</tdef> from terms to datatypes or
-    <tdef>language mapping</tdef> from terms to language codes, and a <tdef>container mapping</tdef>.</p>
+    <tdef>language mapping</tdef> from terms to language codes, and a <tdef>container mapping</tdef>. If an
+    <tref>IRI mapping</tref> maps a term to multiple <tref="IRI">IRIs</tref> it is said to be a
+    <tdef>property generator</tdef>.</p>
 
   <p>If a <tref>local context</tref> is encountered, information from the <tref>local context</tref>
     is merged into the <tref>active context</tref>. A <tref>local context</tref> is identified within
@@ -762,6 +764,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>local context</tref>. The algorithm takes three input variables: an <tref>active context</tref>,
     a <tref>local context</tref>, and an array of already included remote contexts <em>remoteContexts</em>. To
     begin, <em>remoteContexts</em> is initialized to an empty array.</p>
+
+  <p>All calls of the <a href="#iri-expansion">IRI Expansion algorithm</a> pass the value specified in the
+    algorithm along with the <tref>active context</tref>, the currently being processed <tref>local context</tref>,
+    and <code>true</code> for the <em>vocabRelative</em> flag.</p>
 
   <ol class="algorithm">
     <li>If the <tref>local context</tref> is not an array, transform it to one.</li>
@@ -865,48 +871,84 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
   <h2>IRI Expansion</h2>
-  <p>Keys and some values are evaluated to produce an <tref>IRI</tref>. This section defines an algorithm for
-    transforming a value representing an IRI into an <tref>absolute IRI</tref>. If <tref>IRI</tref> expansion
-    occurs during context processing, the <tref>local context</tref> that is being processed
-    is passed to this algorithm. After application of this algorithm, values processed by this
-    algorithm are said to be in <tdef>expanded IRI form</tdef>, although this may also include
-    named <tref title="blank node">blank nodes</tref>.</p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>In JSON-LD documents keys and some values are evaluated to produce an <tref>IRI</tref>.
+    This section defines an algorithm for transforming strings representing an IRI into an
+    <tref>absolute IRI</tref>. If IRI expansion occurs during context processing, the
+    <tref>local context</tref> that is being processed is passed to this algorithm.
+    After application of this algorithm, values processed by this algorithm are said to be
+    in <tdef>expanded IRI form</tdef>, although this may also include
+    <tref title="blank node identifier">blank node identifiers</tref> and
+    JSON-LD <tref title="keyword">keywords</tref>.</p>
 
-  <p>The algorithm for generating an IRI is:
-    <ol class="algorithm">
-      <li>If a <tref>local context</tref> is being processed and the value is in the
-        <tref>local context</tref> but the value's processing state is not <em>finished</em>, then
-        process the value using <a href="#context-process-property">step 2.4.3.1</a> of the
-        <a href="#context">Context Processing algorithm</a>.</li>
-      <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for the value using
-        a case-sensitive comparison, use the mapped value, unless a <tref>local context</tref>
-        is being processed, in which case, return the result of recursing to expand the mapped value.</li>
-      <li>Otherwise, split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
-      <li>If the prefix is a '_' (underscore), the value represents a named <tref>blank node</tref>.</li>
-      <li>If a <tref>local context</tref> is being processed and the <em>prefix</em> is in the
-        <tref>local context</tref> but it's processing state is not <em>finished</em>, then
-        process the <em>prefix</em> using <a href="#context-process-property">step 2.4.3.1</a> of the
-        <a href="#context">Context Processing algorithm</a>.</li>
-      <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em> using
-        a case-sensitive comparison, and <em>suffix</em> does not does not begin with '//'
-        (i.e., it does not match a <em>hier-part</em> including
-        <em>authority</em> (as defined in [[!RFC3986]]), generate an <tref>IRI</tref>
-        by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
-        suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
-      <li>Otherwise, if the IRI being processed does not contain a colon and is a property, i.e., a key in
-        a <tref>JSON object</tref>, or the value of <code>@type</code> and the active context has a
-        <code>@vocab</code> mapping, join the mapped value to the suffix using textual concatenation.</li>
-      <li>Otherwise, if the IRI being processed does not contain a colon and is not a property, i.e., not a key in a
-        <tref>JSON object</tref> treat it as a <tref>relative IRI</tref> and resolve it against the base IRI as
-        per [[RFC3986]] using only the basic algorithm in section&nbsp;5.2. Neither <em>Syntax-Based Normalization</em>
-        nor <em>Scheme-Based Normalization</em> (described in sections&nbsp;6.2.2 and&nbsp;6.2.3 of [[RFC3986]]) are performed.
-        Characters additionally allowed in IRI references are treated in the same way that unreserved characters are
-        treated in URI references, per section&nbsp;6.5 of [[RFC3987]].</li>
-      <li>Otherwise, use the value directly as an IRI.</li>
-    </ol>
-  </p>
+  <p>The algorithm takes two mandatory and four optional input variables: a <em>value</em>
+    to be expanded, an <tref>active context</tref>, two flags <em>documentRelative</em> and
+    <em>vocabRelative</em> specifying whether <em>value</em> should be interpreted as
+    <tref>relative IRI</tref> against the document's base IRI or the
+    <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref>,
+    along with an <tref>local context</tref> passed when this algorithm is used in
+    <a href="#context-processing">Context Processing</a>, and finally an array
+    <em>path</em> which is used to detect cyclic <tref title="IRI mapping">IRI mappings</tref>.
+    If not passed, the two flags are set to <code>false</code> and <em>path</em> is
+    initialized to an empty <tref>array</tref> by default.</p>
+
+  <p>The algorithm for generating an IRI is:</p>
+
+  <ol class="algorithm">
+    <li>If <em>value</em> is <tref>null</tref> or a JSON-LD <tref>keyword</tref>, return
+      <em>value</em> as is.</li>
+    <li>If a <tref>local context</tref> has been passed
+      <ol class="algorithm">
+        <li>and <em>value</em> is in the <em>path</em> array, raise a
+          <code class="error">CYCLIC_IRI_MAPPING</code> error. Otherwise append <em>value</em>
+          to <em>path</em>.</li>
+        <li>If <tref>local context</tref> contains an <tref>IRI mapping</tref> for <em>value</em>
+          that is not a <tref>property generator</tref> return the result of recursively calling
+          this algorithm passing the <tref>IRI</tref> of the <tref>IRI mapping</tref> as new
+          <em>value</em>, the <tref>active context</tref> and <tref>local context</tref>,
+          <em>path</em>, and <code>true</code> for the <em>vocabRelative</em> flag. If the result
+          is a <tref>property generator</tref>, raise an
+          <code class="error">PROPERTY_GENERATOR_IN_TERM_DEFINITION</code> error.</li>
+        </li>
+      </ol>
+    </li>
+    <li>If an <tref>IRI mapping</tref> exists for <em>value</em> in the <tref>active context</tref>
+      that is not a <tref>property generator</tref> return its <tref>IRI</tref>.</li>
+    <li>If <em>value</em> contains a colon (<code>:</code>), perform the following steps:
+      <ol class="algorithm">
+        <li>Split <em>value</em> into a <em>prefix</em> and <em>suffix</em> at the first occurrence of
+          a colon (<code>:</code>).</li>
+        <li>If <em>suffix</em> begins with <code>//</code> or <em>prefix</em> equals <code>_</code>,
+          return <em>value</em> as is.</li>
+        <li>If a <tref>local context</tref> has been passed, expand <em>prefix</em> by recursively
+          invoking this algorithm passing <em>prefix</em> as <em>value</em>, the <tref>active context</tref>
+          and <tref>local context</tref>, <em>path</em>, and <code>true</code> for the
+          <em>vocabRelative</em> flag. If the expanded <em>prefix</em> contains a colon (<code>:</code>)
+          generate and return an <tref>IRI</tref> by prepending the expanded <em>prefix</em> to the
+          (possibly empty) <em>suffix</em> using textual concatenation.</li>
+        <li>Otherwise, if the <tref>active context</tref> contains an <tref>IRI mapping</tref> for
+          <em>prefix</em> that is not a <tref>property generator</tref>, generate and return an
+          <tref>IRI</tref> by prepending the <tref>IRI</tref> mapped to <em>prefix</em> to the
+          (possibly empty) <em>suffix</em> using textual concatenation.</li>
+      </ol>
+    </li>
+    <li>Otherwise, if the <em>vocabRelative</em> flag is set to <code>true</code> and the
+      <tref>active context</tref> contains a <tref>vocabulary mapping</tref>, generate and return an
+      <tref>IRI</tref> by prepending the <tref>IRI</tref> of the <tref>vocabulary mapping</tref>
+      to the <em>value</em> using textual concatenation.</li>
+    <li>Otherwise, if the <em>documentRelative</em> flag is set to <code>true</code>, resolve <em>value</em>
+      against the base IRI as per [[!RFC3986]] and return the resulting <tref>IRI</tref>. Only the basic
+      algorithm in section&nbsp;5.2 of [[!RFC3986]] is used; neither <em>Syntax-Based Normalization</em>
+      nor <em>Scheme-Based Normalization</em> (as described in sections&nbsp;6.2.2 and&nbsp;6.2.3 of [[!RFC3986]])
+      are performed. Characters additionally allowed in IRI references are treated in the same way that
+      unreserved characters are treated in URI references, per section&nbsp;6.5 of [[!RFC3987]]</li>
+    <li>Otherwise return <em>value</em> as is.</li>
+  </ol>
+
+  <p>If the result of the algorithm above is a <tref>blank node identifier</tref>, i.e., a string that begins with
+    <code>_:</code>, and no <tref>local context</tref> has been passed,
+    <a href="#generate-blank-node-identifier">generated a new blank node identifier</a> before returning the
+    final result.</p>
 </section>
 
 <section>
@@ -1167,20 +1209,23 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>then process each <em>property</em> and <em>value</em> in <em>element</em>
           ordered by <em>property</em> as follows:
           <ol class="algorithm">
-            <li>Set <em>expanded property</em> to the result of expanding
-               <em>property</em> according to the steps outlined in
-               <a href="#iri-expansion">IRI Expansion</a>.</li>
+            <li>If the <tref>active context</tref> contains a <tref>property generator</tref> for
+               <em>property</em> set <em>expanded property</em> to its <tref title="IRI">IRIs</tref>,
+               otherwise set it to the result of expanding <em>property</em> according to the steps
+               outlined in <a href="#iri-expansion">IRI Expansion</a> (passing <code>true</code> for
+               the <em>vocabRelative</em> flag).</li>
             <li>If <em>expanded property</em> is a <tref>keyword</tref>, process it as
               follows:
               <ol class="algorithm">
                 <li>If <em>expanded property</em> equals <code>@id</code>, set the <code>@id</code>
                   member of <em>result</em> to the result of expanding <em>value</em>
-                  according the <a href="#iri-expansion">IRI Expansion algorithm</a>. If <em>value</em>
-                  is not a <tref>string</tref> trigger an <code class="error">INVALID_ID_VALUE</code>
-                  error.</li>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> (passing <code>true</code>
+                  for the <em>documentRelative</em> flag). If <em>value</em> is not a <tref>string</tref>
+                  trigger an <code class="error">INVALID_ID_VALUE</code> error.</li>
                 <li>If <em>expanded property</em> equals <code>@type</code>, set the <code>@type</code>
                   member of <em>result</em> to the result of expanding <em>value</em>
-                  according the <a href="#iri-expansion">IRI Expansion algorithm</a>. If <em>value</em>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> (passing <code>true</code>
+                  for both the <em>documentRelative</em> and the <em>vocabRelative</em> flag). If <em>value</em>
                   is neither a <tref>string</tref> nor an <tref>array</tref> of
                   <tref title="string">strings</tref> trigger an <code class="error">INVALID_TYPE_VALUE</code>
                   error. Empty <tref title="array">arrays</tref> are ignored.</li>
