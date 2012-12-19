@@ -1234,105 +1234,128 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <p class="issue">This algorithm hasn't been updated yet.</p>
 
   <ol class="algorithm">
-    <li>If <em>element</em> is an <tref>array</tref>, process each entry in <em>element</em> recursively
-      using this algorithm, passing a copy of the <tref>active context</tref> and the <tref>active property</tref>.
-      If <em>element</em> has a single item and the
-      <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
-      <code>true</code>, the compacted value is that item; otherwise the compacted value is <em>element</em>.</li>
-    <li>Otherwise, if <em>element</em> is an object:
+    <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
-        <li>If <em>element</em> has an <code>@value</code> property or element is a <tref>node object</tref>,
-          return the result of performing
-          <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
-        <li>Otherwise, if the <tref>active property</tref> has a <code>@container</code> mapping to <code>@list</code>
-          and <em>element</em> has a corresponding <code>@list</code> property, recursively compact that
-          property's value passing a copy of the <tref>active context</tref> and the <tref>active property</tref> ensuring
-          that the result is an array with all <tref>null</tref> values removed. If there already exists a value for
-          <tref>active property</tref> in <em>element</em> and the full IRI of <em>property</em> is also coerced to
-          <code>@list</code>, return an error. Otherwise store the resulting array as value of <tref>active property</tref>
-          if empty or <em>property</em> otherwise.
-          <div class="issue">
-            This language is incorrect, since the current element contains only <code>@list</code>. It seems that
-            the intention is for when there is no term match, and we fall back on the full IRI, it's an
-            error if the full IRI term was defined with a list coercion.
-          </div>
-        </li>
-        <li>Otherwise, construct <em>output</em> as a new <tref>JSON object</tref> used for returning the result
-          of compacting <em>element</em>. For each <em>property</em> and <em>value</em> in <em>element:</em>
+        <li>Initialize a new empty array <em>result</em>.</li>
+        <li>Process each item in <em>element</em> recursively using this algorithm,
+          passing a copy of the <tref>active context</tref>, <strong>inverse context</strong>,
+          and the <tref>active property</tref>. Add each compacted item to <em>result</em>
+          unless it is <tref>null</tref>.</li>
+        <li>If <em>result</em> has a single item and the
+          <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+          option is set to <code>true</code>, return that item; otherwise return
+          <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>If <em>element</em> is not a <tref>JSON object</tref> it is already in
+      compact form, return it as is.</li>
+    <li>If <em>element</em> has an <code>@value</code> or <code>@id</code> member,
+      replace <em>element</em> with the result of the
+      <a href="#value-compaction">Value Compaction algorithm</a>. If the updated
+      <em>element</em> is a <tref>scalar</tref>, return it as it cannot be further
+      compacted.</li>
+    <li>Initialize a new empty <tref>JSON object</tref> result.</li>
+    <li>Process each <em>property</em> and <em>value</em> in <em>element</em> ordered
+      by <em>property</em> as follows:
+      <ol class="algorithm">
+        <li>If <em>property</em> is a JSON-LD <tref>keyword</tref>
           <ol class="algorithm">
-            <li>If <em>property</em> is <code>@id</code> or <code>@type</code>
-              <ol class="algorithm">
-                <li>Set <tref>active property</tref> to the result of performing
-                  <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
-                <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
-                  <a href="#iri-compaction">IRI Compaction</a> on <em>value</em>.</li>
-                <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>. Perform <a href="#iri-compaction">IRI Compaction</a>
-                  on every entry of <em>value</em>. If <em>value</em> contains just one entry and the
-                  <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
-                  <code>true</code>, <em>value</em> is set to that entry.</li>
-                <li>Add <tref>active property</tref> and the compacted <em>value</em> to <em>output</em>.</li>
-              </ol>
-            </li>
-            <li>Otherwise, if <em>property</em> is <code>@annotation</code> and
-              <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref>
-              that contains a <code>@container</code> key associated with a value of <code>@annotation</code>,
-              skip this entry.</li>
-            <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>.</li>
-            <li>If <em>value</em> is empty:
-              <ol class="algorithm">
-                <li>Set <tref>active property</tref> to the result of performing
-                  <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
-                <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
-              </ol>
-            </li>
-            <li>For each <em>item</em> in <em>value</em>:
-              <ol class="algorithm">
-                <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
-                  for <em>property</em> and <em>item</em> using the <tref>active context</tref>.</li>
-                <li>Compact <em>item</em> by recursively performing this algorithm passing a copy of
-                  the <tref>active context</tref> and the <tref>active property</tref>.</li>
-                <li>If <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref> that contains a
-                  <code>@container</code> key associated with a value of <code>@language</code> or <code>@annotation</code>,
-                  then
-                  <ol class="algorithm">
-                    <li>Unless such an entry already exists, create an entry in <em>output</em>
-                      for <tref>active property</tref> set to an empty <tref>JSON object</tref>
-                      as <em>map object</em>.</li>
-                      <li>If an entry already exists in <em>map object</em> for key, convert it
-                        to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
-                      <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
-                        has a <code>@container</code> mapping to <code>@set</code> or if the
-                        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
-                        <code>false</code>, convert <em>value</em> to an array.</li>
-                      <li>Create an entry in <em>map object</em> for key and <em>value</em>.</li>
-                  </ol>
-                </li>
-                <li>Otherwise,
-                  <ol class="algorithm">
-                    <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
-                      to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
-                    <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
-                      has a <code>@container</code> mapping to <code>@set</code> or if the
-                      <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
-                      <code>false</code>, convert <em>value</em> to an array.</li>
-                    <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
-                  </ol>
-                </li>
-              </ol>
-            </li>
-          </ol>
+            <li>and <em>property</em> equals <code>@id</code>, compact <em>value</em>
+              according the rules of the <a href="#iri-compaction">IRI Compaction algorithm</a>.</li>
+            <li>Otherwise, if <em>property</em> equals <code>@type</code>, compact <em>value</em>
+              (or each item of <em>value</em> if it is an <tref>array</tref>) according the rules of the
+              <a href="#iri-compaction">IRI Compaction algorithm</a> <strong>VOCAB</strong>.
+              If <em>value</em> is an <tref>array</tref> consisting of just one item, replace
+              <em>value</em> with that item.</li>
+            <li>Otherwise, if <em>property</em> equals <code>@graph</code>, compact <em>value</em>
+              by recursively invoking this algorithm, passing a copy of the <tref>active context</tref>,
+              <strong>inverse context</strong>, and <em>property</em> as <tref>active property</tref>
+              ensuring that the result is an <tref>array</tref>.</li>
+            <li>Set <tref>active property</tref> to the result of performing
+              <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+            <li>Set the <tref>active property</tref> member of <em>result</em> to <em>value</em>.</li>
+            <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
         </li>
       </ol>
     </li>
-    <li>Otherwise, return <em>element</em> as the compacted <em>element</em>.
-      <div class="issue">Perhaps this should also call <a href="#value-compaction">Value Compaction</a> on
-        native types and strings, which could consolidate potential transformation in one place.</div>
+    <li>If <em>value</em> is an empty <tref>array</tref>,
+      <ol class="algorithm">
+        <li>set <tref>active property</tref> to the result of performing
+          <a href="#iri-compaction">IRI Compaction</a> <strong>VOCAB</strong> on <em>property</em>.</li>
+        <li class="issue">How should property generators be handled in this context?</li>
+        <li>Ensure that <em>result</em> has an <tref>active property</tref> member; if not create it
+          and set its value to an empty <tref>array</tref>.</li>
+        <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+      </ol>
+    </li>
+    <li>Otherwise perform the following steps for each <em>item</em> of <em>value</em>:
+      <ol class="algorithm">
+        <li>Set <tref>active property</tref> to the result of performing
+          <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+        <li>If <tref>active property</tref> is a <tref>JSON object</tref>, i.e., it is a
+          <tref>property generator</tref>, perform the following steps:
+          <ol class="algorithm">
+            <li>Try to <a href="#find-and-remove-property-generator-duplicates">find and remove the property generator duplicates</a>
+              for each item <em>generator</em> of the <code>propertyGenerators</code> member.
+              As soon as the first <em>generator</em> returns <code>true</code>, i.e., the first matching
+              property generator was found, set <tref>active property</tref> to <em>generator</em> and stop
+              trying the other potential property generators.</li>
+            <li>If no matching property generator was found, set <tref>active property</tref> to the value
+              of the <code>term</code> member of <tref>active property</tref> to fall back to a <tref>term</tref>,
+              <tref>compact IRI</tref>, or the full <tref>IRI</tref>.</li>
+          </ol>
+        </li>
+        <li>If the <tref title="active property">active property's</tref> <tref>container mapping</tref>
+          is set to <code>@language</code> or <code>@annotation</code>
+          <ol class="algorithm">
+            <li>Unless <em>result</em> has already an <tref>active property</tref> member, create one and
+              initialize its value to an empty <tref>JSON object</tref>. This object is called <em>mapObject</em>.</li>
+            <li>Set <em>index</em> to the value of the <code>@language</code> or
+              <code>@annotation</code> member of <em>item</em> (depending on the value of the
+              <tref title="active property">active property's</tref> <tref>container mapping</tref>).</li>
+            <li>First compact <em>item</em> using the <a href="#value-compaction">Value Compaction algorithm</a>
+              then compact it by recursively invoking this algorithm passing a copy of the
+              <tref>active context</tref>, <strong>inverse context</strong>, and the
+              <tref>active property</tref>.</li>
+            <li>If no <em>index</em> member exists in the <em>mapObject</em> create one and set its value
+              to <em>item</em>; otherwise append <em>item</em> to the <em>index</em> member (converting it to
+              an array if it is not one already).</li>
+            <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+          </ol>
+        </li>
+        <li>If <em>item</em> is a <tref>JSON object</tref> having a <code>@list</code> member,
+          <ol class="algorithm">
+            <li>compact the value of that member by recursively invoking this algorithm passing
+              a copy of the <tref>active context</tref>, <strong>inverse context</strong>, and the
+              <tref>active property</tref> ensuring that the result is an <tref>array</tref>.</li>
+            <li>If the <tref title="active property">active property's</tref> <tref>container mapping</tref>
+              is set to <code>@list</code>, set the <tref>active property</tref> member of <em>result</em>
+              to the value of <em>item's</em> <code>@list</code> member. If such an member already exists
+              in result, raise an <code class="error">COMPACTION_TO_LIST_OF_LISTS</code> error; otherwise
+              continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+          </ol>
+        </li>
+        <li>If <em>item</em> is a <tref>JSON object</tref>, compact it by recursively
+          invoking this algorithm passing a copy of the <tref>active context</tref>,
+          <strong>inverse context</strong>, and the <tref>active property</tref>.</li>
+        <li>If no <tref>active property</tref> member exists in <em>result</em> create one and set its value
+          to <em>item</em>; otherwise append <em>item</em> to the <tref>active property</tref> member
+          (converting it to an <tref>array</tref> if it is not one already).</li>
+        <li>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+          option is set to <code>false</code> or the <tref title="active property">active property's</tref>
+          <tref>container mapping</tref> is set to <code>@list</code> or <code>@set</code>, convert the
+          value of the <tref>active property</tref> member of <em>result</em> to an <tref>array</tref> if
+          it is not one already.</li>
+      </ol>
     </li>
   </ol>
 
-  <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>, put <em>element</em> into the
-    <code>@graph</code> property of a new <tref>JSON object</tref> and then set <em>element</em> to that <tref>JSON object</tref>.
-    Finally, add a <code>@context</code> property to <em>element</em> and set it to the initially passed <em>context</em>.</p>
+
+  <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>
+    replace it with a new <tref>JSON object</tref> with a single member whose name is the result of
+    compacting the value <code>@graph</code> with the <a href="#iri-compaction">IRI Compaction algorithm</a>
+    and whose value is <em>element</em>. Finally, add a <code>@context</code> property to <em>element</em>
+    and set it to the initially passed <em>context</em>.</p>
 </section>
 
 <section>
