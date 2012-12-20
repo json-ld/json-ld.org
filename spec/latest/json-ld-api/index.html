@@ -1222,13 +1222,15 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <section>
   <h2>Compaction Algorithm</h2>
 
-  <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
-    and an <em>element</em> to be compacted. To begin, the <tref>active context</tref> is
-    set to the result of performing <a href="#context-processing">Context Processing</a> on the passed <em>context</em>,
-    <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the result of performing the
-    <a href="#expansion-algorithm">Expansion Algorithm</a> on the <tref>JSON-LD input</tref> which is expected to be a
-    a well-formed JSON-LD document as defined in [[!JSON-LD]]. This removes any existing
-    context to allow the given <tref>active context</tref> to be cleanly applied.</p>
+  <p>The algorithm takes four input variables: an <tref>active context</tref>,
+    an <tref>inverse context</tref>, an <tref>active property</tref>, and an <em>element</em>
+    to be compacted. To begin, the <tref>active context</tref> is set to the result of performing
+    <a href="#context-processing">Context Processing</a> on the passed <em>context</em>,
+    <tref>inverse context</tref> is set to the result of
+    <a href="#context-processing">creating an inverse context</a> from the <tref>active context</tref>,
+    <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to
+    the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a>
+    on the <tref>JSON-LD input</tref>.</p>
 
   <p class="issue">This algorithm hasn't been updated yet.</p>
 
@@ -1260,10 +1262,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>If <em>property</em> is a JSON-LD <tref>keyword</tref>
           <ol class="algorithm">
             <li>and <em>property</em> equals <code>@id</code>, compact <em>value</em>
-              according the rules of the <a href="#iri-compaction">IRI Compaction algorithm</a>.</li>
+              according the rules of the <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a>.</li>
             <li>Otherwise, if <em>property</em> equals <code>@type</code>, compact <em>value</em>
               (or each item of <em>value</em> if it is an <tref>array</tref>) according the rules of the
-              <a href="#iri-compaction">IRI Compaction algorithm</a> <strong>VOCAB</strong>.
+              <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a> <strong>VOCAB</strong>.
               If <em>value</em> is an <tref>array</tref> consisting of just one item, replace
               <em>value</em> with that item.</li>
             <li>Otherwise, if <em>property</em> equals <code>@graph</code>, compact <em>value</em>
@@ -1271,7 +1273,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               <strong>inverse context</strong>, and <em>property</em> as <tref>active property</tref>
               ensuring that the result is an <tref>array</tref>.</li>
             <li>Set <tref>active property</tref> to the result of performing
-              <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+              <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em>.</li>
             <li>Set the <tref>active property</tref> member of <em>result</em> to <em>value</em>.</li>
             <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
         </li>
@@ -1280,7 +1282,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <li>If <em>value</em> is an empty <tref>array</tref>,
       <ol class="algorithm">
         <li>set <tref>active property</tref> to the result of performing
-          <a href="#iri-compaction">IRI Compaction</a> <strong>VOCAB</strong> on <em>property</em>.</li>
+          <a href="#iri-compaction-algorithm">IRI Compaction</a> <strong>VOCAB</strong> on <em>property</em>.</li>
         <li class="issue">How should property generators be handled in this context?</li>
         <li>Ensure that <em>result</em> has an <tref>active property</tref> member; if not create it
           and set its value to an empty <tref>array</tref>.</li>
@@ -1290,7 +1292,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <li>Otherwise perform the following steps for each <em>item</em> of <em>value</em>:
       <ol class="algorithm">
         <li>Set <tref>active property</tref> to the result of performing
-          <a href="#iri-compaction">IRI Compaction</a> on <em>property</em>.</li>
+          <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em>.</li>
         <li>If <tref>active property</tref> is a <tref>JSON object</tref>, i.e., it is a
           <tref>property generator</tref>, perform the following steps:
           <ol class="algorithm">
@@ -1349,152 +1351,273 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </li>
   </ol>
 
-
   <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>
     replace it with a new <tref>JSON object</tref> with a single member whose name is the result of
-    compacting the value <code>@graph</code> with the <a href="#iri-compaction">IRI Compaction algorithm</a>
+    compacting the value <code>@graph</code> with the <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a>
     and whose value is <em>element</em>. Finally, add a <code>@context</code> property to <em>element</em>
     and set it to the initially passed <em>context</em>.</p>
 </section>
 
 <section>
-  <h2>IRI Compaction</h2>
-  <p>Some keys and values are expressed using <tref>IRI</tref>s. This section defines an
-    algorithm for transforming an IRI (<em>iri</em>) to a <tref>term</tref> or <tref>compact IRI</tref> using the
-    <tref>term</tref>s specified in the <tref>active context</tref> using an optional <em>value</em>.</p>
+  <h2>IRI Compaction Algorithm</h2>
 
-<section>
-  <h3>IRI Compaction Algorithm</h3>
+  <p>This section defines an algorithm for transforming an <tref>IRI</tref> to a
+    <tref>term</tref> or <tref>compact IRI</tref>. If a <em>value</em> is passed
+    it is used to choose the best matching <tref>term</tref>.</p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>This algorithm takes three mandatory and two optional parameters. The mandatory
+    parameters are the <em>iri</em> to be compacted, an <tref>active context</tref>,
+    and an <tref>inverse context</tref>. Optionally it is possible to pass a <em>value</em>
+    and a <em>vocabRelative</em> flag which specifies whether the passed <em>iri</em>
+    should be compacted using the <tref title="active context">active context's</tref>
+    <tref>vocabulary mapping</tref>. If the <em>vocabRelative</em> flag is not set
+    it defaults to <code>false</code>.</p>
 
-  <p>The algorithm for generating a <tref>compact IRI</tref> is:
-    <ol class="algorithm">
-      <li>Create an empty list of terms <em>terms</em> that will be populated with
-        <tref>term</tref>s that are ranked according to how closely they match
-        <em>value</em>. Initialize <em>highest rank</em> to <code>0</code>,
-        and set a flag <em>list container</em> to <code>false</code>.</li>
-      <li>For each <em>term</em> in the <tref>active context</tref>:
-        <ol class="algorithm">
-          <li>If the <em>term</em>'s <tref>IRI</tref> is not a complete match against
-            <em>iri</em>, continue to the next <em>term</em>.</li>
-          <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>:
-            <ol class="algorithm">
-              <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, continue
-                to the next <em>term</em>.</li>
-              <li>If <em>list container</em> is <code>true</code> and <em>term</em> does not have a
-                <code>container</code> set to <code>@list</code> and <em>value</em> is <tref>null</tref>,
-                continue to the next <em>term</em>.</li>
-            </ol>
-          </li>
-          <li>Otherwise, if <em>term</em> has a <code>container</code> set to <code>@list</code>,
-            continue to the next <em>term</em>.</li>
-          <li>Set <em>rank</em> to the <tref>term rank</tref> of <em>value</em> by passing
-            passing <em>term</em>, <em>value</em>, and <tref>active context</tref> to
-            the <a href="#term-rank-algorithm">Term Rank Algorithm</a>.</li>
-          <li>If <em>rank</em> is greater than <code>0</code>:
-            <ol class="algorithm">
-              <li>If <em>term</em> has a <code>container</code> set to <code>@set</code>, then add
-                <code>1</code> to <em>rank</em>.</li>
-              <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>
-                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>container</code>
-                set to <code>@list</code>, then set <em>list container</em> to <code>true</code>, clear
-                <em>terms</em>, set <em>highest rank</em> to <em>rank</em>, and add <em>term</em> to <em>terms</em>.</li>
-              <li>Otherwise, if <em>rank</em> is greater than or equal to <em>highest rank</em>:
-                <ol class="algorithm">
-                  <li>If <em>rank</em> is greater than <em>highest rank</em>, clear <em>terms</em> and set
-                    <em>highest rank</em> to <em>rank</em>.</li>
-                  <li>Add <em>term</em> to <em>terms</em>.</li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>If <em>terms</em> is empty, and the <tref>active context</tref> has a <code>@vocab</code>
-        which is a prefix of <em>iri</em> where
-        the resulting <tref>relative IRI</tref> is not a <tref>term</tref> in the
-        <tref>active context</tref>. The resulting <tref>relative IRI</tref> is the
-        unmatched part of <em>iri</em>.</li>
-      <li>If <em>terms</em> is empty, add a <tref>compact IRI</tref> representation of <em>iri</em>
-        for each <tref>term</tref> in the <tref>active context</tref> which
-        maps to an <tref>IRI</tref> which is a prefix for <em>iri</em> where
-        the resulting <tref>compact IRI</tref> is not a <tref>term</tref> in the
-        <tref>active context</tref>. The resulting <tref>compact IRI</tref> is the
-        <tref>term</tref> associated with the partially
-        matched IRI in the <tref>active context</tref> concatenated with a
-        colon (:) character and the unmatched part of <em>iri</em>.</li>
-      <li>If <em>terms</em> is empty, the <tref>IRI</tref> being processed is a property or the
-        value of <code>@type</code> and <code>@vocab</code> is not null and matches the beginning
-        of <em>iri</em>, return the unmatched portion of <em>iri</em>. Otherwise return
-        <em>iri</em>.</li>
-      <li>Otherwise, return the shortest and lexicographically least value in <em>terms</em>.</li>
-    </ol>
-  </p>
+  <p>The algorithm for generating a <tref>compact IRI</tref> is:</p>
+
+  <ol class="algorithm">
+    <li>Initialize a variable <em>result</em> to <tref>null</tref>.</li>
+    <li>If an entry for <em>iri</em> exists in the <tref>inverse context</tref>,
+      perform the following steps:
+      <ol class="algorithm">
+        <li>If a <em>value</em> has been passed, perform the following steps:
+          <ol class="algorithm">
+            <li>Initialize <em>queryPath</em>, which will be used to query the
+              <tref>inverse context</tref>, to an empty <tref>array</tref></li>
+            <li id="calculate-value-profile-algorithm">Initialize <em>container</em>
+              to <code>@set</code>, <em>typeOrLanguage</em>, and <em>typeLanguageValue</em>
+              to <tref>null</tref>.</li>
+            <li>If <em>value</em> is a <tref>JSON object</tref>
+              <ol class="algorithm">
+                <li>and it has an <code>@annotation</code> member, set <em>container</em> to
+                  <code>@annotation</code>.</li>
+                <li>If <em>value</em> has an <code>@id</code> member, set
+                  <em>typeOrLanguage</em> to <code>@type</code> and <em>typeLanguageValue</em>
+                  to <code>@id</code>.</li>
+                <li>Otherwise, if <em>value</em> has an <code>@value</code> member,
+                  <ol class="algorithm">
+                    <li>and an <code>@type</code> member, set <em>typeOrLanguage</em> to
+                      <code>@type</code> and <em>typeLanguageValue</em> to the value of the
+                      <code>@type</code> member of <em>value</em>.</li>
+                    <li>Otherwise, if it has an <code>@language</code> member, set
+                      <em>typeOrLanguage</em> to <code>@language</code> and
+                      <em>typeLanguageValue</em> to the value of the <code>@language</code>
+                      member of <em>value</em>. If <em>value</em> has no <code>@annotation</code>
+                      member, set <em>container</em> to <code>@language</code></li>
+                    <li>Otherwise, if the value of <em>value's</em> <code>@value</code>
+                      member is is a <tref>string</tref>, set <em>typeOrLanguage</em> to
+                      <code>@language</code> and <em>typeLanguageValue</em> to
+                      <code>@null</code>.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, if <em>value</em> has an <code>@list</code> member,
+                  <ol class="algorithm">
+                    <li>If the <code>@list</code> member has at least one item, update
+                      <em>container</em>, <em>typeOrLanguage</em>, and
+                      <em>typeLanguageValue</em> by recursively running the steps
+                      <a href="#calculate-value-profile-algorithm">2.1.2</a> to
+                      2.1.3.4 (which will never be true since list of lists are not
+                      allowed) of this algorithm passing the first item of <em>value's</em>
+                      <code>@list</code> member as new <em>value</em>.</li>
+                    <li>If <em>value</em> has no <code>@annotation</code> member, set
+                      <em>container</em> to <code>@list</code>.</li>
+                    <li>Starting from the second item of <em>value's</em> <code>@list</code>
+                      member, recursively run the steps
+                      <a href="#calculate-value-profile-algorithm">2.1.2</a> to
+                      2.1.3.4 (which will never be true since list of lists are not
+                      allowed) of this algorithm passing the item as new <em>value</em>. If
+                      the resulting <em>typeOrLanguage</em> or <em>typeLanguageValue</em>
+                      differ from the current value of <em>typeOrLanguage</em> or
+                      <em>typeLanguageValue</em>, set both to <tref>null</tref> and stop
+                      processing the <code>@list</code> items.</li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
+            <li>If the <em>container</em> equals <code>@list</code>, set the first item of
+              <em>queryPath</em> to an <tref>array</tref> consisting of the two elements
+              <code>@list</code> and <code>null</code>; otherwise set it to an array
+              consisting of three elements where the first element is the value of <em>container</em>
+               and the other two elements are <code>@set</code> and <code>@null</code>.</li>
+            <li>If <em>typeOrLanguage</em> is <tref>null</tref>, set the second and the the
+              third item of <em>queryPath</em> to an <tref>array</tref> consisting of a
+              single element <code>@null</code>.</li>
+            <li>Otherwise, set the second item of <em>queryPath</em> to an <tref>array</tref>
+              consisting of two elements where the first element is the value of
+              <em>typeOrLanguage</em> and the second element is <code>@null</code>. Set the
+              third item of <em>queryPath</em> to an <tref>array</tref> whose first element
+              <em>typeLanguageValue</em> and whose second element is <code>@null</code>.</li>
+            <li><a href="#inverse-context-query-algorithm">Query the inverse context</a> and
+              store the result in <em>result</em>.</li>
+            <li>If <em>result</em> is a a <tref>string</tref> or a <tref>JSON object</tref> with a
+              <code>term</code> member, return <em>result</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if the entry for <em>iri</em> in the <tref>inverse context</tref>
+          has a <code>term</code> member, return its value.</li>
+      </ol>
+    </li>
+    <li>For each <em>termIri</em>-<em>termDefinition</em> pair in <tref>inverse context</tref>
+      sorted in reverse order by <em>termIri</em> the (longest <em>termIri</em> comes first),
+      perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>termDefinition</em> does not have a <code>term</code> member, i.e., it is
+          a property generator, continue with the next <em>termIri</em>-<em>termDefinition</em>
+          pair from <tref>inverse context</tref>.</li>
+        <li>Otherwise, if <em>iri</em> begins with <em>termIri</em> and is longer than
+          <em>termIri</em>, generate a <tref>compact IRI</tref> by concatenating the value
+          of the <code>term</code> member of <em>termDefinition</em> with a colon
+          (<code>:</code>) character and the unmatched part of <em>iri</em>.</li>
+        <li>If the resulting <tref>compact IRI</tref> has an entry in the <tref>active context</tref>,
+          continue with the next <em>termIri</em>-<em>termDefinition</em> pair from
+          <tref>inverse context</tref> as the <tref>compact IRI</tref> cannot be used.</li>
+        <li>Otherwise, if result is <tref>null</tref>, return the <tref>compact IRI</tref>; if it is
+          not null, set the <code>term</code> member of <em>result</em> to the <tref>compact IRI</tref>
+          and return <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>If the <em>vocabRelative</em> flag is set to <code>true</code>, the
+      <tref>active context</tref> has a <tref>vocabulary mapping</tref>, and <em>iri</em>
+      begins with the IRI of the <tref>vocabulary mapping</tref> but is longer
+      <ol class="algorithm">
+        <li>Set <em>vocabIri</em> to the unmatched part of <em>iri</em>.</li>
+        <li>If there does not exist an entry for <em>vocabIri</em> in the <tref>active context</tref>,
+          return <em>vocabIri</em> if <em>result</em> is <tref>null</tref>; if it is not
+          <tref>null</tref> set the <code>term</code> member of <em>result</em> to
+          <em>vocabIri</em> and return <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>If <em>result</em> is <tref>null</tref>, return <em>iri</em> as is.</li>
+    <li>Otherwise set the <code>term</code> member of <em>result</em> to <em>iri</em> and
+      return <em>result</em>.</li>
+  </ol>
 </section>
 
 <section>
-<h3>Term Rank Algorithm</h3>
-<p>When selecting among multiple possible terms for a given property, it may be that multiple
-  <tref title="term">terms</tref> are defined with the same <tref>IRI</tref>, but differ in <code>@type</code>, <code>@container</code>
-  or <code>@language</code>. The purpose of this algorithm is to take a <tref>term</tref>
-  and a value and give it a <tdef>term rank</tdef>. The selection can then be based, partly, on
-  the term having the highest <tref>term rank</tref>.</p>
-<p>Given a <tref>term</tref> <em>term</em>, <em>value</em>, and <tref>active context</tref>
-  determine the <tref>term rank</tref> using the following steps:</p>
+  <h2>Inverse Context Creation</h2>
 
-<p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>An <tref>active context</tref> as produced by the
+    <a href="#context-processing">Context Processing</a> algorithm is very
+    efficient for <a href="#iri-expansion">expanding</a>
+    <tref title="term">terms</tref> and <tref title="compact IRI">compact IRIs</tref>
+    to <tref title="IRI">IRIs</tref> but is of limited use for the opposite
+    operation: <a href="#iri-compaction-algorithm">IRI compaction</a>. Hence,
+    this algorithm introduces the notion of an <tref>inverse context</tref>
+    which brings the same efficiency to <a href="#iri-compaction-algorithm">IRI compaction</a>.
+    An <tdef>inverse context</tdef> a tree of <tref title="JSON object">JSON objects</tref>
+    which allow to efficiently select a <tref>term</tref> for a <tref>IRI</tref>-value
+    pair.</p>
 
-<ol class="algorithm">
-  <li>If <em>value</em> is <tref>null</tref>, <tref>term rank</tref> is <code>3</code>.</li>
-  <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>:
-    <ol class="algorithm">
-      <li>If the <code>@list</code> property is an empty array, if <em>term</em> has <code>@container</code>
-        set to <code>@list</code>, <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
-      <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
-    </ol>
-  </li>
-  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>,
-    or a <tref>JSON object</tref> having a <code>@value</code>.
-    <ol class="algorithm">
-      <li>If <em>value</em> has a <code>@value</code> property:
-        <ol class="algorithm">
-          <li>If <em>value</em> has a <code>@type</code> property: if that type matches a
-            <code>@type</code> coercion for <em>term</em>, <tref>term rank</tref>
-            is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
-            coercion and no <code>@language</code>, <tref>term rank</tref> is
-            <code>1</code>, otherwise <code>0</code>.</li>
-          <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>: if <em>term</em> has
-            no <code>@type</code> or <code>@language</code> it is <code>2</code>, otherwise <code>1</code>.</li>
-          <li>Otherwise, if <em>value</em> has no <code>@language</code> property: if <em>term</em> has
-            <code>@language</code> <tref>null</tref> or ((<em>term</em> has no <code>@type</code> or
-            <code>@language</code>) and the <tref>active context</tref> has no <code>@language</code>),
-            <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
-          <li>Otherwise, if <em>value</em> has only a <code>@value</code> and <code>@language</code> property
-            and <em>term</em> has a <code>@container</code> key associated with a value of
-            <code>@language</code> in the <tref>active context</tref>,
-            <tref>term rank</tref> is <code>1</code>,
-            otherwise <code>-Infinity</code>.</li>
-          <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
-            <code>@language</code> definition for <em>term</em> or
-            ((<em>term</em> has no <code>@type</code> or <code>@language</code> definition) and
-            <code>@language</code> in the <tref>active context</tref> matches the
-            <em>value</em> <code>@language</code>), <tref>term rank</tref> is
-            <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
-            coercion and no <code>@language</code>, <tref>term rank</tref> is
-            <code>1</code>, otherwise <code>0</code>.</li>
-        </ol>
-      </li>
-      <li>Otherwise, if <em>term</em> has <code>@type</code> coerced to <code>@id</code>,
-        <tref>term rank</tref> is <code>3</code>, otherwise
-        if <em>term</em> has no <code>@type</code> coercion and no <code>@language</code>,
-        <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
-    </ol>
-  </li>
-  <li>Return <tref>term rank</tref>.</li>
-</ol>
+  <p>The value takes an <tref>active context</tref> and returns the corresponding
+    <tref>inverse context</tref>.</p>
+
+  <ol class="algorithm">
+    <li>Set <em>defaultLanguage</em> to <tref title="active context">active context's</tref
+      <tref>default language</tref> if there is one; otherwise set it to <code>@null</code>.</li>
+    <li>For each <tref>term definition</tref> in the <tref>active context</tref>
+      perform the following steps:
+      <ol class="algorithm">
+        <li>If the <tref title="term">term's</tref> <tref>IRI mapping</tref> is set to
+          <tref>null</tref> continue with the next <tref>term definition</tref>.</li>
+        <li>Set <em>container</em> to the value of the <tref title="term">term's</tref>
+          <tref>container mapping</tref> or <code>@null</code> if no such mapping exists.</li>
+        <li>If the <tref>term</tref> is a <tref>property generator</tref>, set <em>termType</em>
+          to <code>propertyGenerators</code>.</li>
+        <li>Otherwise set  set <em>termType</em> to <code>term</code> and append the
+          <tref>term</tref> to the <code>term</code> member of the <tref>JSON object</tref> for
+          the <tref title="term">term's</tref> IRI in <tref>inverse context</tref>
+          (append <em>term</em> to <code>inverseContext[iri]['term']</code>).</li>
+        <li>For each <em>iri</em> mapped to the <tref>term</tref>, perform the following steps:
+          <ol class="algorithm">
+            <li>If the <tref>term</tref> has a <tref>type mapping</tref> to <em>type</em>,
+              append the <tref>term</tref> to
+              <code>inverseContext[iri][container]['@type'][type][termType]</code>, e.g.,
+              <code>inverseContext['http://...']['@list']['@type']['http://...']['term']</code>.</li>
+            <li>Otherwise, if the <tref>term</tref> has a <tref>language mapping</tref> store the
+              associated language in <em>language</em>, replacing <tref>null</tref> with
+              <code>@null</code>. Then append the <tref>term</tref> to
+              <code>inverseContext[iri][container]['@language'][language][termType]</code>, e.g.,
+              <code>inverseContext['http://...']['@list']['@language']['de']['term']</code>.</li>
+            <li>Otherwise append the <tref>term</tref> to
+              <code>inverseContext[iri][container]['@null']['@null'][termType]</code> as well as
+              <code>inverseContext[iri][container]['@language'][defaultLanguage][termType]</code>
+              to take the <tref>default language</tref> into consideration for terms without
+              explicit <tref>language mapping</tref>.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>Remove all but the shortest and lexicographically least <tref>term</tref> in each
+      <code>term</code> member in <tref>inverse context</tref>. The result is thus a single
+      <tref>string</tref> value.</li>
+    <li>Finally, sort the <tref>array</tref> associated with every <code>propertyGenerators</code> member in
+      <tref>inverse context</tref> lexicographically (shortest <tref title="term">terms</tref> come
+      first).</li>
+  </ol>
 </section>
 
+<section>
+  <h2>Inverse Context Query Algorithm</h2>
+
+  <p>It is possible that multiple <tref title="term">terms</tref> that differ
+    in their <tref title="container mapping">container</tref>,
+    <tref title="type mapping">type</tref>, or <tref>language mapping</tref> are
+    mapped to the same <tref>IRI</tref>. The purpose of this algorithm is to query
+    the <tref>inverse context</tref> to return either the best matching <tref>term</tref>,
+    or a list of potential <tref title="property generator">property generators</tref>
+    along with a <tref>term</tref> to fall back to if none of the
+    <tref title="property generator">property generators</tref> can be applied.</p>
+
+  <p>This algorithm takes an <em>inverseContextSubtree</em>, a <em>queryPath</em>
+    as generated by the <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a>
+    and a <em>level</em> parameter which is initialized to <code>0</code> if nothing else
+    is passed. The algorithm returns either a <tref>string</tref> representing the best matching
+    <tref>term</tref> or a <tref>JSON object</tref> consisting of a
+    <code>propertyGenerators</code> member, containing a sorted <tref>array</tref> of
+    potential <tref title="property generator">property generators</tref>,
+    and an optional <code>term</code> member containing a <tref>term</tref> to fall back
+    to if none of the <tref title="property generator">property generators</tref>
+    can be applied.</p>
+
+  <ol class="algorithm">
+    <li>Initialize <em>result</em> to <tref>null</tref>.</li>
+    <li>If <em>level</em> equals <code>3</code>, i.e., the deepest nested
+      <tref>JSON object</tref> in the <tref>inverse context</tref> has been reached,
+      perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>inverseContextSubtree</em> has a <code>propertyGenerators</code> member,
+          copy that member into a new <tref>JSON object</tref> and store that object in
+          <em>result</em>.</li>
+        <li>If <em>inverseContextSubtree</em> has a <code>term</code> member and
+          <em>result</em> is <tref>null</tref>, return the value of that member;
+          otherwise <em>result</em> is a <tref>JSON object</tref>, copy the <code>term</code>
+          member into <em>result</em> and return <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>Otherwise, for each <em>entry</em> of the <tref>array</tref> in <em>queryPath's</em>
+      <em>level'd</em> position (<code>queryPath[level]</code>), perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>inverseContextSubtree</em> has no <em>entry</em> member, continue with
+          the next <em>entry</em>.</li>
+        <li>Otherwise set <em>tmpResult</em> to the result of recursively invoking this
+          algorithm passing the <em>entry</em> member of <em>inverseContextSubtree</em> as
+          new <em>inverseContextSubtree</em>, <em>queryPath</em>, and <em>level</em> + <code>1</code>
+          as new <em>level</em>.</li>
+        <li>If <em>tmpResult</em> is a <tref>string</tref> and <em>result</em> is
+          <tref>null</tref>, return <em>tmpResult</em>; otherwise, if <em>result</em> is
+          not <tref>null</tref>, transform <em>tmpResult</em> to a <tref>JSON object</tref>
+          whose <code>propertyGenerators</code> member is set to an empty <tref>array</tref>
+          and whose <code>term</code> member is set to <em>tmpResult</em>.</li>
+        <li>If <em>result</em> is <tref>null</tref>, replace it with <em>tmpResult</em>.</li>
+        <li>Otherwise, append each item of the <code>propertyGenerator</code> member of
+          <em>tmpResult</em> to the <code>propertyGenerator</code> member of <em>result</em>
+          unless it is already in <em>result's</em> member. If <em>result</em> has no
+          <code>term</code> member but <em>tmpResult</em> does, copy <em>tmpResult's</em>
+          <code>term</code> member into <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>Return <em>result</em>.</li>
+  </ol>
 </section>
 
 <section>
@@ -1514,7 +1637,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       then the compacted value is the value of <code>@value</code>.</li>
     <li>Otherwise, if <tref>active property</tref> is <code>@graph</code>, the compacted value is the
       value associated with the <code>@id</code> key, processed according to
-      the <a href="#iri-compaction">IRI Compaction</a> steps.</li>
+      the <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a coercion target for the
       key that matches the expression of the value, compact the value using the
       following steps:
@@ -1522,20 +1645,20 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>If the coercion target is an <code>@id</code>, the compacted
           value is the value associated with the <code>@id</code> key,
           processed according to the
-          <a href="#iri-compaction">IRI Compaction</a> steps.</li>
+          <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
         <li>If the coercion target is a <tref>typed value</tref>, the compacted
           value is the value associated with the <code>@value</code> key.</li>
       </ol>
     </li>
     <li>Otherwise, if <em>value</em> contains an <code>@id</code> key, the compacted value is <em>value</em> with
       the value of <code>@id</code> processed according to the
-      <a href="#iri-compaction">IRI Compaction</a> steps.</li>
+      <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
     <li>Otherwise, if the <tref>active context</tref> contains a <code>@language</code>, which
       matches the <code>@language</code> of the value, or the value has only a <code>@value</code> key, the compacted
       value is the value associated with the <code>@value</code> key.</li>
     <li>Otherwise, if the value contains a <code>@type</code> key, the compacted value
       is <em>value</em> with the <code>@type</code> value processed according to the
-      <a href="#iri-compaction">IRI Compaction</a> steps.</li>
+      <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
     <li>Otherwise, the value is not modified.</li>
   </ol>
 </section>
