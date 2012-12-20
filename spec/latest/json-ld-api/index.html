@@ -1312,8 +1312,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               <code>@annotation</code> member of <em>item</em> (depending on the value of the
               <tref title="active property">active property's</tref> <tref>container mapping</tref>).</li>
             <li>First compact <em>item</em> using the <a href="#value-compaction">Value Compaction algorithm</a>
-              then compact it by recursively invoking this algorithm passing a copy of the
-              <tref>active context</tref>, <tref>inverse context</tref>, and the
+              passing <em>index</em> as <em>containerValue</em>, then compact it by recursively invoking this
+              algorithm passing a copy of the <tref>active context</tref>, <tref>inverse context</tref>, and the
               <tref>active property</tref>.</li>
             <li>If no <em>index</em> member exists in the <em>mapObject</em> create one and set its value
               to <em>item</em>; otherwise append <em>item</em> to the <em>index</em> member (converting it to
@@ -1626,9 +1626,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     is said to be in <tdef>compacted form</tdef>.</p>
 
   <p>This algorithm takes a <em>value</em>, an <tref>active context</tref>, an
-    <tref>inverse context</tref>, and an <tref>active property</tref>.</p>
+    <tref>inverse context</tref>, an <tref>active property</tref>, and an optional
+    <em>containerValue</em>.</p>
 
   <ol class="algorithm">
+    <li>If a <em>containerValue</em> has been passed, the <tref>active property</tref> has a
+      <tref>container mapping</tref> set to <code>@annotation</code> and <em>value</em>
+      has an <code>@annotation</code> member which equals <em>containerValue</em>, remove that member.</li>
     <li>If <em>value</em> is a <tref>JSON object</tref> having a single member <code>@id</code>,
       return the result of performing <a href="#iri-compaction-algorithm">IRI Compaction</a> on that
       member's value.</li>
@@ -1640,6 +1644,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           from <em>value</em>.</li>
         <li>Otherwise, if the <tref>active property</tref> has a <tref>language mapping</tref> and
           <em>value</em> has a corresponding <code>@language</code> member, remove the
+          <code>@language</code> member from <em>value</em>.</li>
+        <li>Otherwise, if a <em>containerValue</em> has been passed, the <tref>active property</tref>
+          has a <tref>container mapping</tref> set to <code>@language</code>, and <em>value</em> has
+          a <code>@language</code> member which equals <em>containerValue</em>, remove the
           <code>@language</code> member from <em>value</em>.</li>
         <li>Otherwise, if the <tref>active context</tref> has a <tref>default language</tref>
           <ol class="algorithm">
