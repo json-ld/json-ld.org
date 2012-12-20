@@ -1619,44 +1619,41 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
   <h2>Value Compaction</h2>
-  <p>Some values, such as <tref title="IRI">IRIs</tref> and <tref title="typed value">typed values</tref>, may be expressed in an
-    <tref>expanded form</tref> (<tdef>expanded value</tdef>) in JSON-LD. These values are required to be compacted at
-    times when processing JSON-LD documents. A value is said to be in <tdef>compacted form</tdef> after
-    the application of this algorithm on an <tref>expanded value</tref>.
-  </p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>Expansion transforms all values into <tref>expanded form</tref>in JSON-LD. This algorithm
+    does the opposite, it compacts an algorithm according the <tref>term definition</tref>
+    of the passed <tref>active property</tref>. After the application of this algorithm a value
+    is said to be in <tdef>compacted form</tdef>.</p>
 
-  <p>The algorithm for compacting an <tref>expanded value</tref> <em>value</em> takes an <tref>active property</tref>
-    and <tref>active context</tref>. It is implemented as follows:</p>
+  <p>This algorithm takes a <em>value</em>, an <tref>active context</tref>, an
+    <tref>inverse context</tref>, and an <tref>active property</tref>.</p>
+
   <ol class="algorithm">
-    <li>If <em>value</em> only has one property and the <tref>active context</tref> has no default language,
-      then the compacted value is the value of <code>@value</code>.</li>
-    <li>Otherwise, if <tref>active property</tref> is <code>@graph</code>, the compacted value is the
-      value associated with the <code>@id</code> key, processed according to
-      the <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
-    <li>Otherwise, if the <tref>active context</tref> contains a coercion target for the
-      key that matches the expression of the value, compact the value using the
-      following steps:
+    <li>If <em>value</em> is a <tref>JSON object</tref> having a single member <code>@id</code>,
+      return the result of performing <a href="#iri-compaction-algorithm">IRI Compaction</a> on that
+      member's value.</li>
+    <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@value</code>
+      member, perform the following steps:
       <ol class="algorithm">
-        <li>If the coercion target is an <code>@id</code>, the compacted
-          value is the value associated with the <code>@id</code> key,
-          processed according to the
-          <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
-        <li>If the coercion target is a <tref>typed value</tref>, the compacted
-          value is the value associated with the <code>@value</code> key.</li>
+        <li>If the <tref>active property</tref> has a <tref>type mapping</tref> and <em>value</em>
+          has a corresponding <code>@type</code> member, remove the <code>@type</code> member
+          from <em>value</em>.</li>
+        <li>Otherwise, if the <tref>active property</tref> has a <tref>language mapping</tref> and
+          <em>value</em> has a corresponding <code>@language</code> member, remove the
+          <code>@language</code> member from <em>value</em>.</li>
+        <li>Otherwise, if the <tref>active context</tref> has a <tref>default language</tref>
+          <ol class="algorithm">
+            <li>and the <em>value</em> has a corresponding <code>@language</code> member, remove the
+              <code>@language</code> member from <em>value</em>.</li>
+            <li>Otherwise, or if the value of <em>value's</em> <code>@value</code> member is a
+              <tref>string</tref>, return <em>value</em>.</li>
+          </ol>
+        </li>
+        <li>If <em>value</em> has just a <code>@value</code> member, return the value of that
+          member.</li>
       </ol>
     </li>
-    <li>Otherwise, if <em>value</em> contains an <code>@id</code> key, the compacted value is <em>value</em> with
-      the value of <code>@id</code> processed according to the
-      <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
-    <li>Otherwise, if the <tref>active context</tref> contains a <code>@language</code>, which
-      matches the <code>@language</code> of the value, or the value has only a <code>@value</code> key, the compacted
-      value is the value associated with the <code>@value</code> key.</li>
-    <li>Otherwise, if the value contains a <code>@type</code> key, the compacted value
-      is <em>value</em> with the <code>@type</code> value processed according to the
-      <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
-    <li>Otherwise, the value is not modified.</li>
+    <li>Return <em>value</em> as is.</li>
   </ol>
 </section>
 
