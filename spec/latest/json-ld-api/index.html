@@ -1232,14 +1232,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a>
     on the <tref>JSON-LD input</tref>.</p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
-
   <ol class="algorithm">
     <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
         <li>Initialize a new empty array <em>result</em>.</li>
         <li>Process each item in <em>element</em> recursively using this algorithm,
-          passing a copy of the <tref>active context</tref>, <strong>inverse context</strong>,
+          passing a copy of the <tref>active context</tref>, <tref>inverse context</tref>,
           and the <tref>active property</tref>. Add each compacted item to <em>result</em>
           unless it is <tref>null</tref>.</li>
         <li>If <em>result</em> has a single item and the
@@ -1265,12 +1263,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               according the rules of the <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a>.</li>
             <li>Otherwise, if <em>property</em> equals <code>@type</code>, compact <em>value</em>
               (or each item of <em>value</em> if it is an <tref>array</tref>) according the rules of the
-              <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a> <strong>VOCAB</strong>.
-              If <em>value</em> is an <tref>array</tref> consisting of just one item, replace
-              <em>value</em> with that item.</li>
+              <a href="#iri-compaction-algorithm">IRI Compaction algorithm</a> with the
+              <em>vocabRelative</em> flag set to <code>true</code>. If <em>value</em> is an
+              <tref>array</tref> consisting of just one item, replace <em>value</em> with that item.</li>
             <li>Otherwise, if <em>property</em> equals <code>@graph</code>, compact <em>value</em>
               by recursively invoking this algorithm, passing a copy of the <tref>active context</tref>,
-              <strong>inverse context</strong>, and <em>property</em> as <tref>active property</tref>
+              <tref>inverse context</tref>, and <em>property</em> as <tref>active property</tref>
               ensuring that the result is an <tref>array</tref>.</li>
             <li>Set <tref>active property</tref> to the result of performing
               <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em>.</li>
@@ -1282,8 +1280,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <li>If <em>value</em> is an empty <tref>array</tref>,
       <ol class="algorithm">
         <li>set <tref>active property</tref> to the result of performing
-          <a href="#iri-compaction-algorithm">IRI Compaction</a> <strong>VOCAB</strong> on <em>property</em>.</li>
-        <li class="issue">How should property generators be handled in this context?</li>
+          <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em> with the
+          <em>vocabRelative</em> flag set to <code>true</code>.</li>
+        <li>If <tref>active property</tref> is a <tref>JSON object</tref>, i.e., it is a
+          <tref>property generator</tref>, set <tref>active property</tref> to the result of performing the
+          <a href="#find-and-remove-property-generator-duplicates">Find and Remove Property Generator Duplicates</a>
+          algorithm passing <em>element</em>, <em>property</em>, <tref>null</tref> for value, the
+          <tref>active context</tref>, and <tref>active property</tref>.</li>
         <li>Ensure that <em>result</em> has an <tref>active property</tref> member; if not create it
           and set its value to an empty <tref>array</tref>.</li>
         <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
@@ -1292,19 +1295,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <li>Otherwise perform the following steps for each <em>item</em> of <em>value</em>:
       <ol class="algorithm">
         <li>Set <tref>active property</tref> to the result of performing
-          <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em>.</li>
+          <a href="#iri-compaction-algorithm">IRI Compaction</a> on <em>property</em> with the
+              <em>vocabRelative</em> flag set to <code>true</code>.</li>
         <li>If <tref>active property</tref> is a <tref>JSON object</tref>, i.e., it is a
-          <tref>property generator</tref>, perform the following steps:
-          <ol class="algorithm">
-            <li>Try to <a href="#find-and-remove-property-generator-duplicates">find and remove the property generator duplicates</a>
-              for each item <em>generator</em> of the <code>propertyGenerators</code> member.
-              As soon as the first <em>generator</em> returns <code>true</code>, i.e., the first matching
-              property generator was found, set <tref>active property</tref> to <em>generator</em> and stop
-              trying the other potential property generators.</li>
-            <li>If no matching property generator was found, set <tref>active property</tref> to the value
-              of the <code>term</code> member of <tref>active property</tref> to fall back to a <tref>term</tref>,
-              <tref>compact IRI</tref>, or the full <tref>IRI</tref>.</li>
-          </ol>
+          <tref>property generator</tref>, set <tref>active property</tref> to the result of performing the
+          <a href="#find-and-remove-property-generator-duplicates">Find and Remove Property Generator Duplicates</a>
+          algorithm passing <em>element</em>, <em>property</em>, <em>item</em>, the
+          <tref>active context</tref>, and <tref>active property</tref>.</li>
         </li>
         <li>If the <tref title="active property">active property's</tref> <tref>container mapping</tref>
           is set to <code>@language</code> or <code>@annotation</code>
@@ -1316,7 +1313,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               <tref title="active property">active property's</tref> <tref>container mapping</tref>).</li>
             <li>First compact <em>item</em> using the <a href="#value-compaction">Value Compaction algorithm</a>
               then compact it by recursively invoking this algorithm passing a copy of the
-              <tref>active context</tref>, <strong>inverse context</strong>, and the
+              <tref>active context</tref>, <tref>inverse context</tref>, and the
               <tref>active property</tref>.</li>
             <li>If no <em>index</em> member exists in the <em>mapObject</em> create one and set its value
               to <em>item</em>; otherwise append <em>item</em> to the <em>index</em> member (converting it to
@@ -1327,7 +1324,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>If <em>item</em> is a <tref>JSON object</tref> having a <code>@list</code> member,
           <ol class="algorithm">
             <li>compact the value of that member by recursively invoking this algorithm passing
-              a copy of the <tref>active context</tref>, <strong>inverse context</strong>, and the
+              a copy of the <tref>active context</tref>, <tref>inverse context</tref>, and the
               <tref>active property</tref> ensuring that the result is an <tref>array</tref>.</li>
             <li>If the <tref title="active property">active property's</tref> <tref>container mapping</tref>
               is set to <code>@list</code>, set the <tref>active property</tref> member of <em>result</em>
@@ -1338,7 +1335,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         </li>
         <li>If <em>item</em> is a <tref>JSON object</tref>, compact it by recursively
           invoking this algorithm passing a copy of the <tref>active context</tref>,
-          <strong>inverse context</strong>, and the <tref>active property</tref>.</li>
+          <tref>inverse context</tref>, and the <tref>active property</tref>.</li>
         <li>If no <tref>active property</tref> member exists in <em>result</em> create one and set its value
           to <em>item</em>; otherwise append <em>item</em> to the <tref>active property</tref> member
           (converting it to an <tref>array</tref> if it is not one already).</li>
@@ -1660,6 +1657,37 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       is <em>value</em> with the <code>@type</code> value processed according to the
       <a href="#iri-compaction-algorithm">IRI Compaction</a> steps.</li>
     <li>Otherwise, the value is not modified.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Find and Remove Property Generator Duplicates</h2>
+
+  <p>Input <em>element</em>, <em>property</em>, <em>value</em>, <tref>active context</tref>,
+    <tref>active property</tref>.</p>
+
+  <ol class="algorithm">
+    <li>For each item <em>propertyGenerator</em> of the <tref>array</tref> which is the
+      value of the <code>propertyGenerators</code> member of <tref>active property</tref> perform
+      the following steps:
+      <ol class="algorithm">
+        <li>Check that a member exists for each <tref>IRI</tref> associated with the
+          <em>propertyGenerator</em>. If <em>value</em> is not <tref>null</tref> also check
+          whether each of those members that contains <em>value</em>. Values are considered to be equal
+          if they are of the same type and have the same value(s); <tref title="node object">node objects</tref>
+          are considered to be equal if all members match, except if no <code>@id</code> member exists (i.e., it is
+          an unlabeled <tref>blank node</tref>, in that case <tref title="node object">node objects</tref> are never
+          considered to be equal.
+          </li>
+        <li>If that's not the case, continue with the next <em>properyGenerator</em>.</li>
+        <li>Otherwise, remove <em>value</em> from every member. If the resulting value
+          of a member is an empty <tref>array</tref>, remove the member altogether
+          from <em>element</em>.</li>
+        <li>Return <em>propertyGenerator</em>.</li>
+      </ol>
+    </li>
+    <li>Return the value of the <code>term</code> member of <tref>active property</tref>
+      since no matching <tref>property generator</tref> has been found.</li>
   </ol>
 </section>
 
