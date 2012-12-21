@@ -1704,29 +1704,44 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   </ol>
 </section>
 
-  <section>
-    <h2>Flattening Algorithm</h2>
-    <p>The algorithm takes two input variables, an <em>element</em> to flatten and the
-      <em>graph</em> for which the <tref>node</tref> definitions should be returned. If <em>graph</em>
-      is not set, it will default to <code>@merged</code> which represents the result of
-      merging all graphs including the default graph (<code>@default</code>). This algorithm expects
-      <em>element</em> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
+<section>
+  <h2>Flattening Algorithm</h2>
 
-    <p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>The algorithm takes two input variables, an <em>element</em> to flatten and a
+    <em>context</em> used to compact the flattened document.</p>
 
-    <ol class="algorithm">
-      <li>Expand <em>element</em> according the <a href="#expansion-algorithm">Expansion Algorithm</a>.</li>
-      <li>Generate a <em>nodeMap</em> according the <a href="#node-map-generation">Node Map Generation Algorithm</a>.</li>
-      <li>Initialize an empty array <em>result</em>.</li>
-      <li>If <em>nodeMap</em> has no property <em>graph</em>, return <em>result</em>, otherwise set <em>definitions</em> to its value.</li>
-      <li>Foreach <em>property</em> and <em>value</em> of of <em>definitions</em> ordered by <em>property</em>:
-        <ol class="algorithm">
-          <li>Add <em>value</em> to <em>result</em>.</li>
-        </ol>
-      </li>
-      <li>Return <em>result</em>.</li>
-    </ol>
-  </section>
+  <ol class="algorithm">
+    <li>Expand <em>element</em> according the
+      <a href="#expansion-algorithm">Expansion algorithm</a>.</li>
+    <li>Generate a <em>nodeMap</em> according the
+      <a href="#node-map-generation">Node Map Generation algorithm</a>.</li>
+    <li>Let <em>defaultGraph</em> be the value of the <code>@default</code> member of
+      <em>nodeMap</em>; a <tref>JSON object</tref> representing the <tref>default graph</tref>.</li>
+    <li>For each other <em>graphName</em>-<em>graph</em> pair in <em>nodeMap</em>
+      perform the following steps:
+      <ol class="algorithm">
+        <li>If <em>defaultGraph</em> does not have a <em>graphName</em> member, create
+          one and initialize its value to a <tref>JSON object</tref> consisting of an
+          <code>@id</code> member whose value is set to <em>graphName</em>.</li>
+        <li>Add a <code>@graph</code> member set to an empty <tref>array</tref>
+          (referred to as <em>nodes</em>) to the <tref>JSON object</tref> which is the
+          value of the <em>graphName</em> member of <em>nodeMap</em>.</li>
+        <li>For each <em>id</em>-<em>node</em> pair in <em>graph</em>, add <em>node</em>
+          to the <em>nodes</em> <tref>array</tref>.</li>
+      </ol>
+    </li>
+    <li>Initialize an empty <tref>array</tref> flattened.</li>
+    <li>For each <em>id</em>-<em>node</em> pair in <em>defaultGraph</em>, add <em>node</em>
+      to <em>flattened</em>.</li>
+    <li>If <em>context</em> equals <tref>null</tref>, return <em>flattened</em>.</li>
+    <li>Otherwise, return the result of compacting <em>flattened</em> according the
+      <a href="#compaction-algorithm">Compaction algorithm</a> passing <em>context</em>
+      ensuring that the compaction result uses the <code>@graph</code> keyword (or its alias)
+      at the top-level, even if the context is empty or if there is only one element to
+      put in the <code>@graph</code> <tref>array</tref>. This ensures that the returned
+      document has a deterministic structure.</li>
+  </ol>
+</section>
 
   <section>
     <h2>Node Map Generation</h2>
