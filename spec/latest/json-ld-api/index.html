@@ -1205,23 +1205,27 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
   <h2>Generate Blank Node Identifier</h2>
-  <p>This algorithm is used by the <a href="#node-map-generation">Node Map Generation Algorithm</a> to
-    deterministically name <tref title="blank node identifier">blank node identifiers</tref>. It uses a <em>identifier map</em>
-    and <em>prefix</em> and takes a possibly <tref>null</tref> identifier and returns a new identifier based
-    on <em>prefix</em>.</p>
-  <p>The variable <em>next identifier</em> is initialized to <em>prefix</em> appended with <code>0</code>. The
-    default value of <em>prefix</em> is <code>_:t</code>.</p>
 
-  <p class="issue">This algorithm hasn't been updated yet.</p>
+  <p>This algorithm is used to generate new
+    <tref title="blank node identifier">blank node identifiers</tref> or to relabel existing
+    <tref title="blank node identifier">blank node identifiers</tref> with a new one to avoid
+    collision by the introduction of new ones. It needs to keep an <em>identifier map</em>,
+    a <em>counter</em>, and a <em>prefix</em> between its executions to be able to generate new
+    <tref title="blank node identifier">blank node identifiers</tref>. The <em>counter</em>
+    is initialized to <code>0</code> and <em>prefix</em> is set to <code>_:t</code> by default.</p>
+
+  <p>The algorithm takes a single input variable <em>identifier</em> which might be
+    <tref>null</tref>.</p>
 
   <ol class="algorithm">
-    <li>If the old identifier is not <tref>null</tref> and is in the <em>identifier map</em>,
+    <li>If the <em>identifier</em> is not <tref>null</tref> and is in the <em>identifier map</em>,
       return the mapped identifier.</li>
-    <li>Otherwise, if the old identifier is not <tref>null</tref>, create a new entry in
-      <em>identifier map</em> initialized to the current value of <em>next identifier</em>. Increment
-      <em>next identifier</em> by adding one to the integer suffix. Return the mapped identifier.</li>
-    <li>Otherwise, increment <em>next identifier</em> by adding one to the integer suffix and return its
-      original value.</li>
+    <li>Otherwise, generate a new <em>blankNodeIdentifier</em> by concatenating <em>prefix</em>
+      and <em>counter</em>.</li>
+    <li>Increment <em>counter</em> by <code>1</code>.</li>
+    <li>If <em>identifier</em> is not <tref>null</tref>, create a new entry in
+      <em>identifier map</em> set to <em>blankNodeIdentifer</em>.</li>
+    <li>Return <em>blankNodeIdentifier</em>.</li>
   </ol>
 </section>
 
