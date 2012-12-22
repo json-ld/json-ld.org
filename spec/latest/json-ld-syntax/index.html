@@ -2365,12 +2365,17 @@ using only the JSON-LD <tref>context</tref>.</p>
 <section>
 <h2>Data Annotations</h2>
 
-<p>It is common for developers using JSON to utilize database-like
-index information in their markup. For example, indexing article information
-by language or employees by a government issued ID number. Data annotations
-allow content that would otherwise be disconnected in a JSON-LD graph to be
-connected by instructing the JSON-LD processor to ignore the indexing
-information and continue processing deeper into the JSON data structure.</p>
+<p>It is common for developers using JSON to organize their data in ways
+that makes working with the data more efficient. It is often that these methods 
+of organizing data are not meant to express Linked Data, but should survive
+transformation by JSON-LD. For example, if a developer 
+organizes employees in a JSON-LD document by a company-issued ID number, 
+JSON-LD should not destroy that 'database index' when transforming the data. 
+Data annotations allow content that would otherwise be removed from 
+a JSON-LD graph to be
+preserved by instructing the JSON-LD processor to syntactically preserve 
+the annotation information and continue processing deeper into the JSON 
+data structure.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Data annotations">
@@ -2412,8 +2417,11 @@ information and continue processing deeper into the JSON data structure.</p>
 <p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
 been marked as a <em>data annotation container</em>. The <strong>en</strong>,
 <strong>de</strong>, and <strong>ja</strong> keys will effectively be ignored
-by the JSON-LD Processor as <em>annotations</em>. The interpretation of the
-data above is expressed in the table below:
+semantically, but preserved syntactically, by the JSON-LD Processor as 
+<em>annotations</em>. The interpretation of the data above is expressed in 
+the table below. Note how the annotations do not appear in the Linked Data
+below, but would continue to exist if the document were compacted or expanded 
+using a JSON-LD processor:
 </p>
 
   <table class="example">
@@ -2493,7 +2501,11 @@ data above is expressed in the table below:
 <h2>Explicitly Ignoring Data</h2>
 
 <p>At times, it becomes necessary to explicitly ignore data expressed in JSON
-documents because it has no semantic meaning. For this purpose, an author
+documents because it has no semantic meaning. For example, when the
+<code>@vocab</code> keyword is used, every key in a JSON-LD object is 
+appended to the vocabulary <tref>IRI</tref>. The author may not want that
+behavior to apply to every key, and it may be easier to specify just the keys
+that they want the JSON-LD processor to ignore. For this purpose, an author
 may associate the <tref>null</tref> keyword with a <tref>term</tref> in the
 JSON-LD Context.</p>
 
@@ -2732,7 +2744,7 @@ a normative grammar for JSON-LD.</p>
 
 <p class="note">The JSON-LD context allows <tref title="keyword">keywords</tref>
   <a href="#aliasing-keywords"></a>). Whenever a <tref>keyword</tref> is
-  discussed in this grammar, this is also understood to apply to an alias for
+  discussed in this grammar, the statements also apply to an alias for
   that <tref>keyword</tref>. For example, if the <tref>active context</tref>
   defines the <tref>term</tref> <code>id</code> as an alias for <code>@id</code>,
   that alias may be legitimately used as a substitution for <code>@id</code>.
@@ -2758,7 +2770,7 @@ a normative grammar for JSON-LD.</p>
 
   <ul>
     <li>it does not contain the <code>@value</code>, <code>@list</code>,
-    or <code>@set</code> keywords, or</li>
+    <code>@annotation</code>, or <code>@set</code> keywords, or</li>
     <li>it does not contain the <code>@graph</code> keyword and is
     the top-most <tref>JSON Object</tref> in the JSON-LD document.
   </ul>
@@ -2789,7 +2801,8 @@ a normative grammar for JSON-LD.</p>
   <li>an <tref>array</tref> composed of any number of the previous two expressions.</li>
 </ul>
 
-<p>If the <tref>node object</tref> contains the <code>@id</code> key, its value MUST be
+<p>If the <tref>node object</tref> contains the <code>@id</code> key, 
+  its value MUST be
   an <tref>IRI</tref>,
   a <tref>compact IRI</tref> (including <tref title="blank node identifier">blank node identifiers</tref>), or
   a <tref>term</tref> defined in the <tref>active context</tref> expanding
@@ -2825,9 +2838,15 @@ a normative grammar for JSON-LD.</p>
   <tref>context</tref> to be defined which is shared by all of the constituent
   <tref title="node object">node objects</tref>.</p>
 
-<p>A <tref>JSON-LD document</tref> MUST NOT contain any <tref>keyword</tref> or
-  alias that expands to another keyword.</p>
-<!-- tidoust: clarify? -->
+<p>A <tref>JSON-LD document</tref> MUST NOT contain any <tref>keyword</tref> 
+  that expands to another keyword.</p>
+<!-- 
+  tidoust: clarify?  
+  msporny: This restriction prevents confusing JSON-LD Contexts where, 
+  for example, @id is an alias for @type, thus preventing the use of 
+  @id altogether. The previous text said "or alias", which I believe was an
+  error, so I removed it.
+-->
 
 <p>Keys in a <tref>node object</tref> that are not
   <tref title="keyword">keywords</tref> MUST expand to an <tref>absolute IRI</tref>
@@ -2844,8 +2863,9 @@ a normative grammar for JSON-LD.</p>
   <li><tref>expanded typed value</tref>,</li>
   <li><tref>expanded language-tagged string</tref>,</li>
   <li><tref>list</tref> or <tref>set</tref>,</li>
-  <li>an <tref>array</tref> of zero or more of the above possibilities, or</li>
-  <li>a <tref>language map</tref></li>
+  <li>an <tref>array</tref> of zero or more of the possibilities above,</li>
+  <li>a <tref>language map</tref>, or </li>
+  <li>an <tref>annotation map</tref></li>
 </ul>
 
 </section>
@@ -2884,6 +2904,30 @@ a normative grammar for JSON-LD.</p>
 <p>See <a href="#language-tagged-strings"></a> for further discussion on language maps.</p>
 </section>
 
+<section id="grammar-annotation-map">
+<h2>Annotation Map</h2>
+<p>An <tdef>annotation map</tdef> allows keys that have no semantic meaning, 
+  but should be preserved regardless, to be used in JSON-LD documents. 
+  An <tref>annotation map</tref> may 
+  be used as a <tref>term</tref> value within a <tref>node object</tref> if the 
+  term is defined with <code>@container</code> set to <code>@annotation</code>. 
+  The keys of a <tref>annotation map</tref> MUST be 
+  <tref title="string">strings</tref> with an associated value that is any
+  of the following types:</p>
+<ul>
+  <li><tref>string</tref>,</li>
+  <li><tref>number</tref>,</li>
+  <li><tref>true</tref>,</li>
+  <li><tref>false</tref>,</li>
+  <li><tref>null</tref>,</li>
+  <li><tref>node object</tref>,</li>
+  <li><tref>expanded value</tref>,</li>
+  <li>an <tref>array</tref> of zero or more of the above possibilities</li>
+</ul>
+<p>See <a href="#data-annotations"></a> for further information on this 
+topic.</p>
+</section>
+
 <section id="grammar-expanded-values">
 <h2>Expanded Values</h2>
 
@@ -2901,19 +2945,22 @@ a normative grammar for JSON-LD.</p>
   An <tref>expanded value</tref> that contains a <code>@language</code> key
   is called an <tdef>expanded language-tagged string</tdef>.</p>
 
-<p>The value of the <code>@value</code> key MUST be either a
-  <tref>string</tref>, <tref>number</tref>, <tref>true</tref>, <tref>false</tref>
-  or <tref>null</tref>.</p>
+<p>The value associated with the <code>@value</code> key MUST be either a
+  <tref>string</tref>, <tref>number</tref>, <tref>true</tref>, 
+  <tref>false</tref> or <tref>null</tref>.</p>
 
-<p>The value of the <code>@language</code> key MUST have the lexical form
-  described in [[!BCP47]], or be <tref>null</tref>.</p>
+<p>The value associated with the <code>@language</code> key MUST have the 
+  lexical form described in [[!BCP47]], or be <tref>null</tref>.</p>
 
-<p>The value of the
-  <code>@type</code> key MUST be a <tref>term</tref>, a <tref>compact IRI</tref>,
+<p>The value associated with the <code>@annotation</code> key MUST be a 
+  <tref>string</tref>.</p>
+
+<p>The value associated with the <code>@type</code> key MUST be a 
+  <tref>term</tref>, a <tref>compact IRI</tref>,
   an <tref>absolute IRI</tref>, or <code>null</code>.</p>
 
 <p>See <a href="#typed-values"></a> and <a href="#language-tagged-strings"></a>
-  for further discussion on
+  for more information on
   <tref title="expanded value">expanded values</tref>.</p>
 </section>
 
@@ -2988,9 +3035,12 @@ a normative grammar for JSON-LD.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
   its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>,
-  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, or be <tref>null</tref>.
+  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, <code>@annotation</code>, or be <tref>null</tref>.
   If the value is <code>@language</code>, when the <tref>term</tref> is used outside of the <code>@context</code>, the
-  associated value MUST be a <tref>language map</tref>.</p>
+  associated value MUST be a <tref>language map</tref>. If the value is 
+  <code>@annotation</code>, when the <tref>term</tref> is used outside of 
+  the <code>@context</code>, the associated value MUST be an 
+  <tref>annotation map</tref>.</p>
 
 <p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is, the definition of a term cannot depend on the definition of another term if that other term also depends on the first term.</p>
 
