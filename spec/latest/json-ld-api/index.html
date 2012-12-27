@@ -801,7 +801,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                otherwise set it to the result of expanding <em>property</em> according to the steps
                outlined in <a href="#iri-expansion">IRI Expansion</a> (passing <code>true</code> for
                the <em>vocabRelative</em> flag).</li>
-            <li>If <em>expanded property</em> is <tref>null</tref>, skip the 
+            <li>If <em>expanded property</em> is <tref>null</tref>, skip the
               current <em>property</em>-<em>value</em> pair and continue to the
               next <em>property</em>-<em>value</em> pair in <em>element</em>.
             </li>
@@ -1029,35 +1029,34 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                 <li>Initialize a new, empty <tref>term definition</tref> <em>definition</em>.</li>
                 <li>If <em>value</em> has an <code>@id</code> member with a value <em>val</em>:
                   <ol class="algorithm">
-                    <li>if <em>val</em> is <tref>null</tref>, set 
-                    <em>definition</em> to <em>val</em>.
-                    <li>if <em>val</em> is an <tref>array</tref>, process each 
-                      <em>item</em> in the array:
+                    <li>if <em>val</em> is an <tref>array</tref>,:
                       <ol class="algorithm">
-                        <li>if <em>item</em> is a <tref>string</tref> expand it
-                          according the <a href="#iri-expansion">IRI Expansion algorithm</a>.
-                        </li>
-                        <li>otherwise, raise an 
-                          <code class="error">INVALID_PROPERTY_GENERATOR</code> 
-                          error.
-                        </li>
+                        <li>expand each <em>item</em> in the array according the
+                          <a href="#iri-expansion">IRI Expansion algorithm</a> if it is a
+                          <tref>string</tref>. If am <em>item</em> is not a <tref>string</tref>,
+                          raise an <code class="error">INVALID_PROPERTY_GENERATOR</code> error; if
+                          <em>item</em> does not expand to an <tref>absolute IRI</tref> or
+                          <tref>blank node identifier</tref>, i.e., it does not contain a colon
+                          (<code>:</code>) after expansion, raise an
+                          <code class="error">INVALID_PROPERTY_GENERATOR_IRI_MAPPING</code> error.</li>
+                        <li>Lexicographically sort <em>val</em> and set the <tref>IRI mapping</tref>
+                          of <em>definition</em> to <em>val</em>.</li>
                       </ol>
-                    <li>if <em>val</em> is an <tref>array</tref>, 
-                      lexicographically sort <em>val</em> and set
-                      <em>definition</em> to <em>val</em>.</li>
-                    <li>Otherwise, if <em>val</em> is a <tref>string</tref>, 
-                      expand it according the
-                      <a href="#iri-expansion">IRI Expansion algorithm</a> and
-                      set <em>definition</em> to <em>val</em>. 
-                    </li>
+                    <li>Otherwise, expand <em>val</em> according the
+                      <a href="#iri-expansion">IRI Expansion algorithm</a> and set the
+                      <tref>IRI mapping</tref> of <em>definition</em> to <em>val</em>.</li>
                   </ol>
                 </li>
-                <li>If the <tref>IRI mapping</tref> of <em>definition</em> is set to <tref>null</tref> or a
-                  <tref>keyword</tref>, store the <em>definition</em> as the <tref>term definition</tref>
-                  for <em>key</em> in the <tref>active context</tref> and continue with the next
-                  <em>key</em>-<em>value</em> pair from <em>context</em>.</li>
                 <li>Otherwise, set the <tref>IRI mapping</tref> of <em>definition</em> to the result of
                   expanding <em>key</em> according the <a href="#iri-expansion">IRI Expansion algorithm</a>.</li>
+                <li>If the <tref>IRI mapping</tref> of <em>definition</em> is set to <tref>null</tref> or a
+                  <tref>keyword</tref>, store <em>definition</em> as the <tref>term definition</tref>
+                  for <em>key</em> in the <tref>active context</tref> and continue with the next
+                  <em>key</em>-<em>value</em> pair from <em>context</em>.</li>
+                <li>Otherwise, if the <tref>IRI mapping</tref> of <em>definition</em> is set to
+                  a <tref>string</tref> which does not contain a colon (<code>:</code>), i.e., it is
+                  neither an <tref>absolute IRI</tref> nor a <tref>blank node identifier</tref>,
+                  raise an <code class="error">INVALID_TERM_IRI_MAPPING</code> error.</li>
                 <li>If <em>value</em> has an <code>@type</code> member with a value <em>val</em> and <em>val</em>
                   is not a <tref>string</tref> or does not expand to an <tref>absolute IRI</tref> using the
                   <a href="#iri-expansion">IRI Expansion algorithm</a>, raise an
