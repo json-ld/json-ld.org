@@ -767,13 +767,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
 
   <ol class="algorithm">
-    <li>If <em>element</em> is a <tref>scalar</tref>, expand it according to the
+    <li>If <em>element</em> is a <tref>scalar</tref> or <tref>null</tref>, expand it according to the
       <a href="#value-expansion">Value Expansion</a> algorithm, passing copies of the
       <tref>active context</tref> and <tref>active property</tref> and return.</li>
-    <li>If <em>element</em> is <tref>null</tref>, return.</li>
     <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
-        <li>initialize an empty array <em>result</em>.</li>
+        <li>initialize an empty <tref>array</tref> <em>result</em>.</li>
         <li>Expand each <em>item</em> by recursively using this algorithm, passing copies of
           the <tref>active context</tref> and <tref>active property</tref>.</li>
         <li>If the <tref title="active property">active property's</tref>
@@ -790,73 +789,68 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <ol class="algorithm">
         <li>If <em>element</em> has a <code>@context</code> member, update the
           <tref>active context</tref> according to the steps outlined in
-          <a href="#context-processing">Context Processing</a> and remove the
-          <code>@context</code> member.</li>
+          <a href="#context-processing">Context Processing</a>.</li>
         <li>Initialize an empty <tref>JSON object</tref> <em>result</em>.</li>
 
-        <li>Process each <em>property</em> and <em>value</em> in <em>element</em>
+        <li>Process each <em>property</em> and <em>value</em> in <em>element</em> other than <code>@contect</code>
           ordered by <em>property</em> as follows:
           <ol class="algorithm">
-
-        <li>For each <tref>property generator</tref> <em>pg</em> in the <tref>active context</tref>
-          ordered lexically by term name:
-          <ol class="algorithm">
-            <li>Remove <em>property</em> from <em>element</em>, expand
-              <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a>
-              as <em>expanded property</em> passing <code>true</code> for <em>vocabRelative</em> and <em>relableBlankNodes</em> flags.
+            <li>Expand
+              <em>property</em> according to the steps outlined in <a href="#iri-expansion">IRI Expansion</a> relative
+              to the <tref>vocabulary mapping</tref> from the <tref>active context</tref>
+              and re-labeling <tref title="blank node">Blank Nodes</tref>.
               Set the <tref>active property</tref> to the original un-expanded <em>property</em> if
               <em>property</em> is not a <tref>keyword</tref>.</li>
             <li>If <em>expanded property</em> is an <tref>array</tref>, remove every element which is not a
               <tref>absolute IRI</tref>.</li>
             <li>If <em>expanded property</em> is an empty array, or <code>null</code>,
-              continue with the next property from <em>element</em>.
+              continue with the next property from <em>element</em>.</li>
             <li>If <em>expanded property</em> is a <tref>keyword</tref>, process it as
               follows:
               <ol class="algorithm">
                 <li>If <em>expanded property</em> is <code>@id</code>, <em>value</em> MUST be a <tref>string</tref>.
                   Set the <code>@id</code>
-                  member of <em>result</em> to the result of expanding <em>value</em>
+                  member in <em>result</em> to the result of expanding <em>value</em>
                   according the <a href="#iri-expansion">IRI Expansion algorithm</a> (passing <code>true</code>
                   for the <em>documentRelative</em> and <em>relabelBlankNodes</em> flags).</li>
                 <li>If <em>expanded property</em> is <code>@type</code>, <em>value</em> MUST be a <tref>string</tref>
                   or <tref>array</tref> of <tref title="string">strings</tref>. Set the <code>@type</code>
                   member of <em>result</em> to the result of expanding <em>value</em>
-                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> (passing <code>true</code>
-                  for both the <em>documentRelative</em>, <em>vocabRelative</em>, and <em>relabelBlankNodes</em> flags).
-                  Empty <tref title="array">arrays</tref> are ignored.</li>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the document base
+                  and re-labeling <tref title="blank node">Blank Nodes</tref>, unless that result
+                  is an empty <tref>array</tref>.</li>
                 <li>If <em>expanded property</em> is <code>@value</code>, <em>value</em> MUST be a <tref>scalar</tref>
                   or <tref>null</tref>. Set the <code>@value</code>
                   member of <em>result</em> to <em>value</em>.</li>
                 <li>If <em>expanded property</em> is <code>@language</code>, <em>value</em> MUST be a <tref>string</tref>
-                  or <tref>null</tref>.
+                  with the lexical form described in [[!BCP47]] or <tref>null</tref>.
                   Set the <code>@language</code> member of <em>result</em> to the lowercased <em>value</em>.</li>
                 <li>If <em>expanded property</em> is <code>@annotation</code> <em>value</em> MUST be a <tref>string</tref>.
                   Set the <code>@annotation</code> member of <em>result</em> to <em>value</em>.</li>
                 <li>If <em>expanded property</em> is <code>@set</code> or <code>@list</code>, set the
                   <em>expanded property</em> member of <em>result</em> to the result of expanding <em>value</em> by
-                  recursively using this algorithm, passing copies of the <tref>active context</tref> and
+                  recursively using this algorithm, along with the <tref>active context</tref> and
                   <tref>active property</tref>.</li>
                 <li>If <em>expanded property</em> id <code>@graph</code>, set the <code>@graph</code>
                   member of <em>result</em> to the result of expanding <em>value</em> by
-                  recursively using this algorithm, passing copies of the <tref>active context</tref> and
+                  recursively using this algorithm, along with the <tref>active context</tref> and
                   <code>@graph</code> as <tref>active property</tref>.</li>
                 <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
               </ol>
             </li>
-            <li>If <em>expanded property</em> is neither a <tref>blank node identifier</tref> nor an
-              <tref>absolute IRI</tref>,i.e., it is <tref>null</tref> or does not contain a colon
-              (<code>:</code>), continue with the next member from <em>element</em>.</li>
-            <li>Otherwise, if <em>property's</em> <tref>container mapping</tref> is set to
-              <code>@language</code>
+            <li>If <em>expanded property</em> does not have the form of <tref>blank node identifier</tref> or an
+              <tref>absolute IRI</tref>, continue with the next member from <em>element</em>.</li>
+            <li>Otherwise, if <em>property's</em> <tref>container mapping</tref> is set to <code>@language</code>:
               <ol class="algorithm">
                 <li>Initialize a new empty <tref>array</tref> <em>language map values</em>.</li>
                 <li>Process each <em>key</em>-<em>val</em> pair of <em>value</em> ordered by
                   <em>key</em> as follows:
                   <ol class="algorithm">
-                    <li>If <em>val</em> is not an array, transform it to one.</li>
-                    <li>For each item of <em>val</em>, construct a new <tref>JSON object</tref>
+                    <li>Transform <em>val</em> to <tref>array</tref> form, if necessary.</li>
+                    <li>For each <em>item</em> of <em>val</em>, construct a new <tref>JSON object</tref>
                       consisting of two members: <code>@value</code> set to the currently
-                      processed item, which MUST be a <tref>string</tref>, and <code>@language</code> set to the lowercased <em>key</em>.
+                      processed <em>item</em>, which MUST be a <tref>string</tref>, and <code>@language</code>
+                      set to the lowercased <em>key</em>.
                       Append the object to <em>language map values</em>.</li>
                   </ol>
                 </li>
@@ -870,11 +864,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                 <li>Process each <em>key</em>-<em>val</em> pair of <em>value</em> ordered by
                   <em>key</em> as follows:
                   <ol class="algorithm">
-                    <li>If <em>val</em> is not an array, transform it to one.</li>
-                    <li>Expand <em>val</em> by recursively using this algorithm, passing copies of
+                    <li>Transform <em>val</em> to <tref>array</tref> form, if necessary.</li>
+                    <li>Expand <em>val</em> by recursively using this algorithm, using
                       the <tref>active context</tref> and <tref>active property</tref>.</li>
-                    <li>Add to each item of <em>val</em> a member <code>@annotation</code> set to
-                      <em>key</em> if no such member exists and append the resulting
+                    <li>Add to each <em>item</em> of <em>val</em> an <code>@annotation</code> member set to
+                      <em>key</em> if no such member exists in <em>item</em>, and append the resulting
                       <tref>JSON object</tref> to <em>annotation map values</em>.</li>
                   </ol>
                 </li>
@@ -884,16 +878,16 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
             <li>Otherwise, expand <em>value</em> by recursively using this algorithm, passing
               copies of the <tref>active context</tref> and <em>property</em> as
               <tref>active property</tref>.</li>
-            <li>If the expanded <em>value</em> is <tref>null</tref>, continue with the next
-              <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
+            <li>Continue to the next <em>property</em>-<em>value</em> pair from <em>element</em>
+              if <em>value</em> is <tref>null</tref>.</li>
             <li>If <em>property's</em> <tref>container mapping</tref> is set to <code>@list</code> and
-              <em>value</em> is either not an <tref>JSON object</tref> or a <tref>JSON object</tref>
-              without an <code>@list</code> member, replace <em>value</em> with a
-              <tref>JSON object</tref> with an <code>@list</code> member whose value is set to
-              <em>value</em> (wrapped in an <tref>array</tref> if it is not already one).</li>
-            <li>If <em>expanded property</em> is an <tref>array</tref>,
+              <em>value</em> is not a <tref>JSON object</tref> or is a <tref>JSON object</tref>
+              without a <code>@list</code> member, replace <em>value</em> with a
+              <tref>JSON object</tref> having a <code>@list</code> member whose value is set to
+              <em>value</em>, ensuring that <em>value</em> is an <tref>array</tref>.</li>
+            <li>If <em>expanded property</em> is an <tref>array</tref>:
               <ol class="algorithm">
-                <li>label all <tref title="blank node">blank nodes</tref> in <em>value</em> with
+                <li>Label all <tref title="blank node">blank nodes</tref> in <em>value</em> with
                   <tref title="blank node identifier">blank node identifiers</tref> by using the
                   <a href="#label-blank-nodes-algorithm">Label Blank Nodes Algorithm</a>.</li>
                 <li>Then, for each <em>iri</em> of <em>expanded property</em> merge a copy
@@ -901,18 +895,21 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                   <tref>JSON object</tref> as an <tref>array</tref> member.</li>
               </ol>
             </li>
+            <li>Otherwise, merge a copy
+              of <em>value</em> into the <em>expanded property</em> member of the <em>result</em>
+              <tref>JSON object</tref> as an <tref>array</tref> member.</li>
           </ol>
         </li>
         <li>Set <em>element</em> to <em>result</em>.</li>
         <li>If the processed <em>element</em> has an <code>@value</code> property
           <ol class="algorithm">
-            <li>Remove any <code>@type</code> or <code>@language</code> members with <tref>null</tref> or empty values.</tref>
+            <li>Remove any <code>@type</code> or <code>@language</code> members with <tref>null</tref> or empty values.</li>
             <li>Other than <code>@annotation</code>, <em>element</em> MUST NOT have more than one other member,
               which can either be <code>@language</code> or <code>@type</code> with a <tref>string</tref> value.</li>
             <li>If the value of <code>@value</code> is <tref>null</tref>, replace <em>element</em> with <tref>null</tref>.</li>
           </ol>
         </li>
-        <li>Otherwise, if <em>element</em> has an <code>@type</code> member and its value is not in the form of an
+        <li>If <em>element</em> has a <code>@type</code> member and its value is not in the form of an
           <tref>array</tref>, convert it to an <tref>array</tref>.</li>
         <li>If <em>element</em> has an <code>@set</code> or <code>@list</code> member, it MUST be the only member other than
           <code>@annotation</code>.
@@ -926,9 +923,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>JSON object</tref> with just a <code>@graph</code> member, <em>element</em> is set to
     the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
     it is wrapped into an <tref>array</tref>.</p>
-
-  <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-flatten">flatten</a></code> option is not <code>false</code>, run the
-    <a href="#flattening-algorithm">Flattening Algorithm</a>.</p>
 </section>
 
 <section>
@@ -941,102 +935,91 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     into the <tref>active context</tref>.</p>
 
   <p>The <tref>active context</tref> contains the active <tdef title="term definition">term definitions</tdef>
-    which specify how properties and values have to be interpreted as well as the current
+    which specify how properties and values are interpreted as well as the current
     <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each <tref>term definition</tref> consists
     of an <tdef>IRI mapping</tdef> and optionally a <tdef>type mapping</tdef> from terms to datatypes or
     <tdef>language mapping</tdef> from terms to language codes, and a <tdef>container mapping</tdef>. If an
-    <tref>IRI mapping</tref> maps a term to multiple <tref="IRI">IRIs</tref> it is said to be a
+    <tref>IRI mapping</tref> maps a term to multiple <tref title="IRI">IRIs</tref> it is said to be a
     <tdef>property generator</tdef>.</p>
 
   <p>A <tref>local context</tref> is identified within a <tref>JSON object</tref> having a <code>@context</code>
-    property with a <tref>string</tref>, <tref>array</tref> or a <tref>JSON object</tref> value.
-    When processing a <tref>local context</tref>, special processing rules apply:</p>
-
-  <p>All calls of the <a href="#iri-expansion">IRI Expansion algorithm</a> pass the value specified in the
-    algorithm along with the <tref>local context</tref> and <code>true</code> for the <em>vocabRelative</em> flag.</p>
+    property with a <tref>string</tref>, <tref>JSON object</tref>, or <tref>array</tref> of either value.</p>
 
   <ol class="algorithm">
-    <li>Initialize <tref>local context</tref> with a copy of any passed <tref>active context</tref>, or to an empty
-      <tref>JSON object</tref> otherwise.</li>
+    <li>Initialize <tref>local context</tref> with a copy of any passed <tref>active context</tref>, or to be empty otherwise.</li>
     <li>Let <em>context</em> be the value of <code>@context</code>
       <ol class="algorithm">
         <li id="process-context">If <em>context</em> equals <tref>null</tref>, clear <tref>local context</tref>.</li>
         <li>If <em>context</em> is an <tref>array</tref>, process each element as <em>context</em> in order
-          recursively using this algorithm using the <tref>local context</tref>.</li>
+          recursively using this algorithm along with <tref>local context</tref> as the <tref>active context</tref>.</li>
         <li>If <em>context</em> is a <tref>string</tref>, it MUST have a lexical form of <tref>IRI</tref>.
           <ol class="algorithm">
             <li>Expand <em>context</em> according to <a href="#iri-expansion">IRI Expansion</a>
-              using the <tref>local context</tref> relative to the enclosing document.
+              relative to the enclosing document.
               Processors MUST NOT process a previously processed <em>context</em>.</li>
-            <li>Dereference <em>context</em>.</li>
-            <li>The resulting document MUST be a JSON document; extract the value of any <code>@context</code>
-              key and process it's value recursively using this algorithm using the <tref>local context</tref>.</li>
+            <li>The resulting dereferencing <em>context</em> MUST be a JSON document; process the resulting
+              <tref>array</tref> or <tref>JSON object</tref> recursively using this algorithm with
+              <tref>local context</tref> as the <tref>active context</tref>.</li>
           </ol>
         </li>
         <li>Otherwise, <em>context</em> MUST be a <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
             <li>If the <tref>local context</tref> does not have a <tref>vocabulary mapping</tref>, initialize
-              it to the document base.</tref>
+              it to the document base.</li>
             <li>If <em>context</em> has a <code>@vocab</code> member, it MUST have a value of a
-              simple <tref>string</tref> with the lexical form described in [[!BCP47]], or <tref>null</tref>.
+              simple <tref>string</tref> with the lexical form of <tref>absolute IRI</tref>,
+              <tref>Blank Node identifier</tref>, or <tref>null</tref>.
               Set the <tref title="active context">local context's</tref>
-              <tref>vocabulary mapping</tref> to its value and remove the <code>@vocab</code>
-              member from <em>context</em>.</li>
+              <tref>vocabulary mapping</tref> to this value.</li>
             <li>If <em>context</em> has a <code>@language</code> member it MUST have a value of a
               simple <tref>string</tref> with the lexical form described in [[!BCP47]], or <tref>null</tref>.
               Set the
               <tref title="active context">local context's</tref> <tref>default language</tref> to
-              its value and remove the <code>@language</code> member from <em>context</em>.</li>
+              its value.</li>
             <li>For each other <em>key</em>-<em>value</em> pair in <em>context</em> perform the
               following steps:
               <ol class="algorithm">
-                <li>Remove the <em>key</em>-<em>value</em> pair from <em>context</em>.
-                  <span class="issue">We have lost the iterative nature of this algorithm, which allows for
-                    multiple passes to resolve prefix dependencies, and the ability to detect cycles.</span></li>
                 <li>If <em>key</em> is a JSON-LD <tref>keyword</tref>, continue with the next
                   <em>key</em>-<em>value</em> pair.</li>
                 <li>If <em>value</em> is <tref>null</tref>, replace the <tref>term definition</tref>
-                  for <em>key</em> in the <tref>active context</tref> with an <tref>IRI mapping</tref>
+                  for <em>key</em> in the <tref>local context</tref> with an <tref>IRI mapping</tref>
                   set to <tref>null</tref> and continue with the next <em>key</em>-<em>value</em> pair.</li>
                 <li>If <em>value</em> is a <tref>string</tref>, expand it according to the
-                  <a href="#iri-expansion">IRI Expansion algorithm</a> using the <tref>local context</tref>
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>
                   relative to the <tref>vocabulary mapping</tref> and replace the
                   <tref>term definition</tref> for <em>key</em> in the <tref>local context</tref> with
                   an <tref>IRI mapping</tref> set to the expanded <em>value</em>. Continue with
                   the next <em>key</em>-<em>value</em> pair.</li>
                 <li>Otherwise, <em>value</em> MUST be a <tref>JSON object</tref>.
-                  If <tref>term definition</tref> for <em>key</em> exists in
-                  the <tref>active context</tref>, remove it.</li>
-                <li>Initialize a new, empty <tref>term definition</tref> <em>definition</em>.</li>
+                  Set <tref>term definition</tref> for <em>key</em> to a new, empty <tref>term definition</tref> <em>definition</em>.</li>
                 <li>If <em>value</em> has an <code>@id</code> member with a value <em>val</em>:
                   <ol class="algorithm">
                     <li>if <em>val</em> is an <tref>array</tref>, each <em>item</em> in <em>val</em>
                       MUST be a <tref>string</tref>:
                       <ol class="algorithm">
-                        <li>expand each <em>item</em> in the array according the
-                          <a href="#iri-expansion">IRI Expansion algorithm</a>;
-                          <em>item</em> MUST expand to an <tref>absolute IRI</tref> or
-                          <tref>blank node identifier</tref>.</li>
+                        <li>Expand each <em>item</em> in the array according the
+                          <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the <tref>vocabulary mapping</tref>.</li>
                         <li>Lexicographically sort <em>val</em> and set the <tref>IRI mapping</tref>
-                          of <em>definition</em> to <em>val</em>.</li>
+                          of <em>definition</em> to expanded <em>val</em>.</li>
                       </ol>
-                    <li>Otherwise, expand <em>val</em> according the
-                      <a href="#iri-expansion">IRI Expansion algorithm</a> and set the
-                      <tref>IRI mapping</tref> of <em>definition</em> to <em>val</em>.</li>
+                    </li>
+                    <li>Otherwise, set the
+                      <tref>IRI mapping</tref> of <em>definition</em> to the result of expanding <em>val</em> according the
+                      <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the <tref>vocabulary mapping</tref>.</li>
                   </ol>
                 </li>
                 <li>Otherwise, set the <tref>IRI mapping</tref> of <em>definition</em> to the result of
-                  expanding <em>key</em> according the <a href="#iri-expansion">IRI Expansion algorithm</a>.</li>
-                <li>If the <tref>IRI mapping</tref> of <em>definition</em> is set to <tref>null</tref> or a
+                  expanding <em>key</em> according the <a href="#iri-expansion">IRI Expansion algorithm</a>
+                  relative to the <tref>vocabulary mapping</tref>.</li>
+                <li>If the <tref>IRI mapping</tref> of <em>definition</em> is <tref>null</tref> or a
                   <tref>keyword</tref>, store <em>definition</em> as the <tref>term definition</tref>
                   for <em>key</em> in the <tref>local context</tref> and continue with the next
                   <em>key</em>-<em>value</em> pair from <em>context</em>.</li>
-                <li>Otherwise, if <tref>IRI mapping</tref> of <em>definition</em> MUST be
-                  a <tref>string</tref> with the lexical representation of <tref>absolute IRI</tref>.</li>
                 <li>If <em>value</em> has an <code>@type</code> member with a value <em>val</em>,
-                  <em>val</em> MUST expand to an <tref>absolute IRI</tref> using the
-                  <a href="#iri-expansion">IRI Expansion algorithm</a>. Set the
-                  <tref>type mapping</tref> of <em>definition</em> to the expanded <em>val</em>.</li>
+                  set the <tref>type mapping</tref> of <em>definition</em> the
+                  result of expanding <em>val</em> using the <a
+                  href="#iri-expansion">IRI Expansion algorithm</a> relative to
+                  the <tref>vocabulary mapping</tref>.</li>
                 <li>Otherwise, if <em>value</em> has an <code>@language</code> member with a value <em>val</em>,
                   <em>val</em> MUST be a <tref>string</tref> having the lexical representation defined in [[!BCP47]]
                   or <tref>null</tref>, set the <tref>language mapping</tref> of
@@ -1232,10 +1215,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
             the <a href="#term-rank-algorithm">Term Rank Algorithm</a>.</li>
           <li>If <em>rank</em> is greater than <code>0</code>:
             <ol class="algorithm">
-              <li>If <em>term</em> has a <code>container</code> set to <code>@set</code>, then add
+              <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, then add
                 <code>1</code> to <em>rank</em>.</li>
               <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>
-                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>container</code>
+                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>@container</code>
                 set to <code>@list</code>, then set <em>list container</em> to <code>true</code>, clear
                 <em>terms</em>, set <em>highest rank</em> to <em>rank</em>, and add <em>term</em> to <em>terms</em>.</li>
               <li>Otherwise, if <em>rank</em> is greater than or equal to <em>highest rank</em>:
@@ -1288,21 +1271,21 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, continue
                 to the next <em>term</em>.</li>
               <li>If <em>list container</em> is <code>true</code> and <em>term</em> does not have a
-                <code>container</code> set to <code>@list</code> and <em>value</em> is <tref>null</tref>,
+                <code>@container</code> set to <code>@list</code> and <em>value</em> is <tref>null</tref>,
                 continue to the next <em>term</em>.</li>
             </ol>
           </li>
-          <li>Otherwise, if <em>term</em> has a <code>container</code> set to <code>@list</code>,
+          <li>Otherwise, if <em>term</em> has a <code>@container</code> set to <code>@list</code>,
             continue to the next <em>term</em>.</li>
           <li>Set <em>rank</em> to the <tref>term rank</tref> of <em>value</em> by passing
             passing <em>term</em>, <em>value</em>, and <tref>active context</tref> to
             the <a href="#term-rank-algorithm">Term Rank Algorithm</a>.</li>
           <li>If <em>rank</em> is greater than <code>0</code>:
             <ol class="algorithm">
-              <li>If <em>term</em> has a <code>container</code> set to <code>@set</code>, then add
+              <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, then add
                 <code>1</code> to <em>rank</em>.</li>
               <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>
-                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>container</code>
+                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>@container</code>
                 set to <code>@list</code>, then set <em>list container</em> to <code>true</code>, clear
                 <em>terms</em>, set <em>highest rank</em> to <em>rank</em>, and add <em>term</em> to <em>terms</em>.</li>
               <li>Otherwise, if <em>rank</em> is greater than or equal to <em>highest rank</em>:
