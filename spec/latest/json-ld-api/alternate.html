@@ -1046,52 +1046,40 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     algorithm are said to be in <tdef>expanded IRI form</tdef>, although this may also include
     named <tref title="blank node">blank nodes</tref>.</p>
 
-  <p>The algorithm takes two mandatory and three optional input variables: a <em>value</em>
-    to be expanded, an <tref>active context</tref>, three flags <em>documentRelative</em>,
-    <em>vocabRelative</em> specifying whether <em>value</em> should be interpreted as
-    <tref>relative IRI</tref> against the document's base IRI or the
-    <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref>,
-    and <em>relabelBlankNodes</em> indicating that values expanding to a <tref>blank node identifier</tref>
-    are to be re-labeled.</p>
+  <p>The algorithm is passed a <em>value</em> and an <tref>active context</tref> and may be used
+    to expand values relative to a <em>document base</em> or a <tref>vocabulary mapping</tref>. It
+    may also re-label <tref title="blank node identifier">Blank Node identifiers</tref>.</p>
 
   <p>The algorithm for generating an IRI is:</p>
 
   <ol class="algorithm">
-    <li>If a <tref>local context</tref> is being processed and the value is in the
-      <tref>local context</tref> but the value's processing state is not <em>finished</em>, then
-      process the value using <a href="#context-process-property">step 2.4.3.1</a> of the
-      <a href="#context">Context Processing algorithm</a>.</li>
-    <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for the value using
-      a case-sensitive comparison, use the mapped value, unless a <tref>local context</tref>
-      is being processed, in which case, return the result of recursing to expand the mapped value.</li>
-    <li>Otherwise, split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
-    <li>If the prefix is a '_' (underscore), the value represents a named <tref>blank node</tref>.</li>
-    <li>If a <tref>local context</tref> is being processed and the <em>prefix</em> is in the
-      <tref>local context</tref> but it's processing state is not <em>finished</em>, then
-      process the <em>prefix</em> using <a href="#context-process-property">step 2.4.3.1</a> of the
-      <a href="#context">Context Processing algorithm</a>.</li>
-    <li>If the <tref>active context</tref> contains a <tref>term</tref> mapping for <em>prefix</em> using
-      a case-sensitive comparison, and <em>suffix</em> does not does not begin with '//'
-      (i.e., it does not match a <em>hier-part</em> including
-      <em>authority</em> (as defined in [[!RFC3986]]), generate an <tref>IRI</tref>
-      by prepending the mapped prefix to the (possibly empty) suffix using textual concatenation. Note that an empty
-      suffix and no suffix (meaning the value contains no ':' string at all) are treated equivalently.</li>
-    <li>Otherwise, if the <em>vocabRelative</em> flag is set to <code>true</code> and the
-      <tref>active context</tref> contains a <tref>vocabulary mapping</tref>, generate and return an
-      <tref>IRI</tref> by prepending the <tref>IRI</tref> of the <tref>vocabulary mapping</tref>
-      to the <em>value</em> using textual concatenation.</li>
-    <li>Otherwise, if the <em>documentRelative</em> flag is set to <code>true</code>, resolve <em>value</em>
-      against the base IRI as per [[!RFC3986]] and return the resulting <tref>IRI</tref>. Only the basic
+    <li>If the <tref>active context</tref> contains a <tref>term definition</tref> for the <em>value</em> 
+      that is not a <tref>property generator</tref>, set <em>value</em> to the <tref>IRI mapping</tref>.</li>
+    <li>If <em>value</em> contains a <code>:</code>:
+      <ol class="algorithm">
+        <li>Split the value into a <em>prefix</em> and <em>suffix</em> from the first occurrence of ':'.</li>
+        <li>Unless <em>prefix</em> is <code>_</code> or <em>suffix</em> begins with <em>//</em>:
+          <ol class="algorithm">
+            <li>Expand <em>prefix</em> recursively using this algorithm, ensuring that <em>prefix</em>. Such expansion
+              MUST NOT result in repeatedly expanding the same <em>prefix</em>.</li>
+            <li>Set <em>value</em> to the expanded result appending <em>suffix</em> using textual concatenation.</li>
+          </ol>
+        </li>
+        <li>If <em>value</em> is a <tref>Blank Node identifier</tref> and <tref>Blank Node identifier</tref> re-labeling is requested,
+          set <em>value</em> to the result of performing <a href="#generate-blank-node-identifier">generated a new blank node identifier</a>.</li>
+        <li>Return <em>value</em>.</li>
+      </ol>
+    </li>
+    <li>Otherwise, if performing expansion relative to a <tref>vocabulary mapping</tref>, return the result
+      of appending <em>value</em> to this mapping using textual concatenation.</li>
+    <li>Otherwise, if performing expansion relative to a <em>document base</em>, return the result of resolving <em>value</em>
+      against the <em>document base</em> as per [[!RFC3986]] and return the resulting <tref>IRI</tref>. Only the basic
       algorithm in section&nbsp;5.2 of [[!RFC3986]] is used; neither <em>Syntax-Based Normalization</em>
       nor <em>Scheme-Based Normalization</em> (as described in sections&nbsp;6.2.2 and&nbsp;6.2.3 of [[!RFC3986]])
       are performed. Characters additionally allowed in IRI references are treated in the same way that
       unreserved characters are treated in URI references, per section&nbsp;6.5 of [[!RFC3987]]</li>
-    <li>Otherwise return <em>value</em> as is.</li>
+    <li>Otherwise, return <em>value</em> as is.</li>
   </ol>
-
-  <p>If the <em>relabelBlankNodes</em> flag ist set, and the result of the algorithm above is a <tref>blank node identifier</tref>,
-    <a href="#generate-blank-node-identifier">generated a new blank node identifier</a> before returning the
-    final result.</p>
 </section>
 
 <section>
@@ -1198,74 +1186,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <ol class="algorithm">
           <li>If the <em>term</em>'s <tref>IRI</tref> is not a complete match against
             <em>iri</em>, continue to the next <em>term</em>.</li>
-          <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>
-            and not containing the property <code>@annotation</code>:
-            <ol class="algorithm">
-              <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, continue
-                to the next <em>term</em>.</li>
-              <li>If <em>list container</em> is <code>true</code> and <em>term</em> does not have a
-                <code>@container</code> set to <code>@list</code> and <em>value</em> is <tref>null</tref>,
-                continue to the next <em>term</em>.</li>
-            </ol>
-          </li>
-          <li>Otherwise, if <em>term</em> has a <code>@container</code> set to <code>@list</code>,
-            continue to the next <em>term</em>.</li>
-          <li>Set <em>rank</em> to the <tref>term rank</tref> of <em>value</em> by passing
-            passing <em>term</em>, <em>value</em>, and <tref>active context</tref> to
-            the <a href="#term-rank-algorithm">Term Rank Algorithm</a>.</li>
-          <li>If <em>rank</em> is greater than <code>0</code>:
-            <ol class="algorithm">
-              <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, then add
-                <code>1</code> to <em>rank</em>.</li>
-              <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>
-                and <em>list container</em> is <code>false</code> and <em>term</em> has a <code>@container</code>
-                set to <code>@list</code>, then set <em>list container</em> to <code>true</code>, clear
-                <em>terms</em>, set <em>highest rank</em> to <em>rank</em>, and add <em>term</em> to <em>terms</em>.</li>
-              <li>Otherwise, if <em>rank</em> is greater than or equal to <em>highest rank</em>:
-                <ol class="algorithm">
-                  <li>If <em>rank</em> is greater than <em>highest rank</em>, clear <em>terms</em> and set
-                    <em>highest rank</em> to <em>rank</em>.</li>
-                  <li>Add <em>term</em> to <em>terms</em>.</li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>If <em>terms</em> is empty, and the <tref>active context</tref> has a <code>@vocab</code>
-        which is a prefix of <em>iri</em> where
-        the resulting <tref>relative IRI</tref> is not a <tref>term</tref> in the
-        <tref>active context</tref>. The resulting <tref>relative IRI</tref> is the
-        unmatched part of <em>iri</em>.</li>
-      <li>If <em>terms</em> is empty, add a <tref>compact IRI</tref> representation of <em>iri</em>
-        for each <tref>term</tref> in the <tref>active context</tref> which
-        maps to an <tref>IRI</tref> which is a prefix for <em>iri</em> where
-        the resulting <tref>compact IRI</tref> is not a <tref>term</tref> in the
-        <tref>active context</tref>. The resulting <tref>compact IRI</tref> is the
-        <tref>term</tref> associated with the partially
-        matched IRI in the <tref>active context</tref> concatenated with a
-        colon (:) character and the unmatched part of <em>iri</em>.</li>
-      <li>If <em>terms</em> is empty, the <tref>IRI</tref> being processed is a property or the
-        value of <code>@type</code> and <code>@vocab</code> is not null and matches the beginning
-        of <em>iri</em>, return the unmatched portion of <em>iri</em>. Otherwise return
-        <em>iri</em>.</li>
-      <li>Otherwise, return the shortest and lexicographically least value in <em>terms</em>.</li>
-    </ol>
-  </p>
-</section>
-
-<section>
-  <h3>IRI Compaction Algorithm</h3>
-  <p>The algorithm for generating a <tref>compact IRI</tref> is:
-    <ol class="algorithm">
-      <li>Create an empty list of terms <em>terms</em> that will be populated with
-        <tref>term</tref>s that are ranked according to how closely they match
-        <em>value</em>. Initialize <em>highest rank</em> to <code>0</code>,
-        and set a flag <em>list container</em> to <code>false</code>.</li>
-      <li>For each <em>term</em> in the <tref>active context</tref>:
-        <ol class="algorithm">
-          <li>If the <em>term</em>'s <tref>IRI</tref> is not a complete match against
-            <em>iri</em>, continue to the next <em>term</em>.</li>
           <li>If <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>:
             <ol class="algorithm">
               <li>If <em>term</em> has a <code>@container</code> set to <code>@set</code>, continue
@@ -1299,12 +1219,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           </li>
         </ol>
       </li>
-      <li>If <em>terms</em> is empty, and the <tref>active context</tref> has a <code>@vocab</code>
+      <li>If <em>terms</em> is empty, and the <tref>active context</tref> has a <tref>vocabulary mapping</tref>
         which is a prefix of <em>iri</em> where
         the resulting <tref>relative IRI</tref> is not a <tref>term</tref> in the
         <tref>active context</tref>. The resulting <tref>relative IRI</tref> is the
-        unmatched part of <em>iri</em>, unless the <tref>relative IRI</tref> is also a term in the
-        <tref>active context</tref>.</li>
+        unmatched part of <em>iri</em>.</li>
       <li>If <em>terms</em> is empty, add a <tref>compact IRI</tref> representation of <em>iri</em>
         for each <tref>term</tref> in the <tref>active context</tref> which
         maps to an <tref>IRI</tref> which is a prefix for <em>iri</em> where
@@ -1328,52 +1247,55 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <tref title="term">terms</tref> are defined with the same <tref>IRI</tref>, but differ in <code>@type</code>, <code>@container</code>
   or <code>@language</code>. The purpose of this algorithm is to take a <tref>term</tref>
   and a value and give it a <tdef>term rank</tdef>. The selection can then be based, partly, on
-  the term having the highest <tref>term rank</tref>.</p>
+  the <tref>term</tref> having the highest <tref>term rank</tref>.</p>
 <p>Given a <tref>term</tref> <em>term</em>, <em>value</em>, and <tref>active context</tref>
   determine the <tref>term rank</tref> using the following steps:</p>
 <ol class="algorithm">
   <li>If <em>value</em> is <tref>null</tref>, <tref>term rank</tref> is <code>3</code>.</li>
-  <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> containing only the property <code>@list</code>:
+  <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> containing only the member <code>@list</code>:
     <ol class="algorithm">
-      <li>If the <code>@list</code> property is an empty array, if <em>term</em> has <code>@container</code>
-        set to <code>@list</code>, <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
-      <li>Otherwise, return the sum of the <tref>term rank</tref>s for every entry in the list.</li>
+      <li>If the value of the <code>@list</code> member is an empty <tref>array</tref>,
+        return <code>1</code> if <em>term</em> has <tref>container mapping</tref> of
+        <code>@list</code>, otherwise <code>0</code>.</li>
+      <li>Otherwise, return the minimum of the <tref>term rank</tref> for every entry in the list.</li>
     </ol>
   </li>
-  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>,
-    or a <tref>JSON object</tref> having a <code>@value</code>.
+  <li>Otherwise, if <em>value</em> is a <tref>JSON object</tref> having a <code>@value</code> member:
     <ol class="algorithm">
-      <li>If <em>value</em> has a <code>@value</code> property:
+      <li>If <em>value</em> has a <code>@type</code> member: if that type matches a
+        <tref>type mapping</tref> for <em>term</em>, <tref>term rank</tref>
+        is <code>3</code>, otherwise if <em>term</em> has no <tref>type mapping</tref> and no <tref>language mapping</tref>,
+        <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
+      <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>: if <em>term</em> has
+        no <tref>type mapping</tref> and no <tref>language mapping</tref>,
+        <tref>term rank</tref> is <code>2</code>, otherwise <code>1</code>.</li>
+      <li>Otherwise, if <em>value</em> does not have a <code>@language</code> member:
         <ol class="algorithm">
-          <li>If <em>value</em> has a <code>@type</code> property: if that type matches a
-            <code>@type</code> coercion for <em>term</em>, <tref>term rank</tref>
-            is <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
-            coercion and no <code>@language</code>, <tref>term rank</tref> is
-            <code>1</code>, otherwise <code>0</code>.</li>
-          <li>Otherwise, if <code>@value</code> is not a <tref>string</tref>: if <em>term</em> has
-            no <code>@type</code> or <code>@language</code> it is <code>2</code>, otherwise <code>1</code>.</li>
-          <li>Otherwise, if <em>value</em> has no <code>@language</code> property: if <em>term</em> has
-            <code>@language</code> <tref>null</tref> or ((<em>term</em> has no <code>@type</code> or
-            <code>@language</code>) and the <tref>active context</tref> has no <code>@language</code>),
-            <tref>term rank</tref> is <code>3</code>, otherwise <code>0</code>.</li>
-          <li>Otherwise, if <em>value</em> has only a <code>@value</code> and <code>@language</code> property
-            and <em>term</em> has a <code>@container</code> key associated with a value of
-            <code>@language</code> in the <tref>active context</tref>,
-            <tref>term rank</tref> is <code>1</code>,
-            otherwise <code>-Infinity</code>.</li>
-          <li>Otherwise, if <em>value</em> has a <code>@language</code> property matching a
-            <code>@language</code> definition for <em>term</em> or
-            ((<em>term</em> has no <code>@type</code> or <code>@language</code> definition) and
-            <code>@language</code> in the <tref>active context</tref> matches the
-            <em>value</em> <code>@language</code>), <tref>term rank</tref> is
-            <code>3</code>, otherwise if <em>term</em> has no <code>@type</code>
-            coercion and no <code>@language</code>, <tref>term rank</tref> is
-            <code>1</code>, otherwise <code>0</code>.</li>
+          <li>If <em>term</em> has a <tref>language mapping</tref> set to <tref>null</tref>, <tref>term rank</tref> is <code>3</code>.</li>
+          <li>Otherwise, if <em>term</em> has no <tref>type mapping</tref> and no <tref>language mapping</tref> and
+            there is no <tref>default language</tref>, <tref>term rank</tref> is <code>3</code>.</li>
+          <li>Otherwise, if <em>term</em> has no <tref>type mapping</tref> and no <tref>language mapping</tref>,
+            <tref>term rank</tref> is <code>2</code>.</li>
+          <li>Otherwise, <tref>term rank</tref> is <code>0</code>.</li>
         </ol>
       </li>
-      <li>Otherwise, if <em>term</em> has <code>@type</code> coerced to <code>@id</code>,
+      <li>Otherwise, if <em>term</em> has a <tref>container mapping</tref> of
+        <code>@language</code>, <tref>term rank</tref> is <code>3</code>.</li>
+      <li>Otherwise, if the value of the <code>@language</code> member in <em>value</em>
+        is the same as the <tref>language mapping</tref> for <em>term</em>, <tref>term rank</tref> is <code>2</code>.</li>
+      <li>Otherwise, if <em>term</em> has no <tref>type mapping</tref> and no <tref>language mapping</tref> and
+        the <tref>default language</tref> is the same as the value of the <code>@language</code> member in <em>value</em>,
+        <tref>term rank</tref> is <code>2</code>.</li>
+      <li>Otherwise, if <em>term</em> has no <tref>type mapping</tref> and no <tref>language mapping</tref>,
+        <tref>term rank</tref> is <code>1</code>.</li>
+      <li>Otherwise, <tref>term rank</tref> is <code>0</code>.</li>
+    </ol>
+  </li>
+  <li>Otherwise, <em>value</em> MUST be a <tref>node object</tref>.
+    <ol class="algorithm">
+      <li>If <em>term</em> has <tref>IRI mapping</tref> of <code>@id</code>,
         <tref>term rank</tref> is <code>3</code>, otherwise
-        if <em>term</em> has no <code>@type</code> coercion and no <code>@language</code>,
+        if <em>term</em> has no <tref>IRI mapping</tref> and no <tref>language mapping</tref>,
         <tref>term rank</tref> is <code>1</code>, otherwise <code>0</code>.</li>
     </ol>
   </li>
