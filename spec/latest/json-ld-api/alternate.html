@@ -1037,8 +1037,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 </section>
 
-<section>
-  <h2>IRI Expansion</h2>
+<section id="iri-expansion">
+  <h2>IRI Expansion Algorithm</h2>
   <p>Keys and some values are evaluated to produce an <tref>IRI</tref>. This section defines an algorithm for
     transforming a value representing an IRI into an <tref>absolute IRI</tref>. If <tref>IRI</tref> expansion
     occurs during context processing, the <tref>local context</tref> that is being processed
@@ -1082,8 +1082,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   </ol>
 </section>
 
-<section>
-  <h2>Value Expansion</h2>
+<section id="value-expansion">
+  <h2>Value Expansion Algorithm</h2>
 
   <p>Some values in JSON-LD can be expressed in a <tref>compacted form</tref>. These values
     are required to be expanded at times when processing JSON-LD documents.
@@ -1167,6 +1167,153 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <em>identifier map</em> set to <em>blankNodeIdentifer</em>.</li>
     <li>Return <em>blankNodeIdentifier</em>.</li>
   </ol>
+</section>
+
+<section>
+  <h2>Compaction Algorithm</h2>
+
+  <p>The algorithm takes three input variables: an <tref>active context</tref>, an <tref>active property</tref>,
+    and an <em>element</em> to be compacted. To begin, the <tref>active context</tref> is
+    set to the result of performing <a href="#context-processing">Context Processing</a> on the passed <em>context</em>,
+    <tref>active property</tref> is set to <tref>null</tref>, and <em>element</em> is set to the result of performing the
+    <a href="#expansion-algorithm">Expansion Algorithm</a> on the <tref>JSON-LD input</tref> which is expected to be a
+    a well-formed JSON-LD document as defined in [[!JSON-LD]]. This removes any existing
+    context to allow the given <tref>active context</tref> to be cleanly applied.</p>
+
+  <p>This algorithm can optionally be called to compact arrays contiaining a single element.</p>
+
+  <ol class="algorithm">
+    <li>If <em>element</em> is an <tref>array</tref>,
+      <ol class="algorithm">
+        <li>Initialize a new empty array <em>result</em>.</li>
+        <li>Process each item in <em>element</em> recursively using this algorithm,
+          passing a copy of the <tref>active context</tref> and the <tref>active property</tref>. 
+          dd each compacted item to <em>result</em> unless it is <tref>null</tref>.</li>
+        <li>If <em>result</em> has a single item and the
+          algorithm is invoked with the compact arrays option, return that item; otherwise return <em>result</em>.</li>
+      </ol>
+    </li>
+    <li>If <em>element</em> is not a <tref>JSON object</tref> it is already in
+      compact form, return it as is.</li>
+    <li>If <em>element</em> has an <code>@value</code> property or element has only the <code>@id</code> property,
+      return the result of performing
+      <a href="#value-compaction">Value Compaction</a> on <em>element</em> using <tref>active property</tref>.</li>
+    <li>Otherwise, if <em>element</em> has a <code>@list</code> property:
+      <ol class="algorithm">
+        <li>Recursively compact the value of the <code>@list</code> property using <code>@list</code> as the
+          <tref>active property</tref> ensuring that the result is an <tref>array</tref>.</li>
+        <li>If <tref>active property</tref> has a <tref>container mapping</tref> of <code>@list</code>, return
+          that <tref>array</tref>.</li>
+        <li>Create a new <tref>JSON object</tref> <em>list</em> with a key being the result of performing
+          <a href="#iri-compaction">IRI Compaction</a> on <code>@list</code> and the <tref>array</tref> from above as
+          the value.</li>
+        <li>If <em>element</em> has a <code>@annotation</code> property add a key/value pair to <em>list</em> composed
+          of the result of performing
+          <a href="#iri-compaction">IRI Compaction</a> on <code>@annotation</code> and the value of the <code>@annotation</code>
+          property in <em>element</em>.</li>
+        <li>Return <em>list</em>.</li>
+      </ol>
+    </li>
+    <li>Otherwise, construct <em>output</em> as a new <tref>JSON object</tref> used for returning the result
+      of compacting <em>element</em>.</li>
+    <li>For each <tref>property generator</tref> <em>term</em> in the <tref>active context</tref> ordered
+      lexically:
+      <ol class="algorithm">
+        <li>Set <em>p</em> to the first entry in <tref>IRI mapping</tref> for <em>term</em>.</li>
+        <li>Continue to the next <tref>property generator</tref> if <em>p</em> is not a property of <em>element</em>.</li>
+        <li>Create an empty <tref>array</tref> <em>items</em> used to hold common value items for this <tref>property generator</tref>.</li>
+        <li>For each <em>item</em> in the value of <em>p</em> in <em>element</em>:
+          <ol class="algorithm">
+            <li>Continue to the next <em>item</em> unless every property value in <em>element</em> where the property
+              is in <tref>IRI mapping</tref> for <em>term</em> having an equivalent item, using
+              <a href="find-property-generator-equivalents">Find Property Generator Equivalents</a>.</li>
+            <li>Remove every property value item in <em>element</em> where the property
+              is in <tref>IRI mapping</tref> for <em>term</em> is an equivalent item, using
+              <a href="find-property-generator-equivalents">Find Property Generator Equivalents</a>.</li>
+            <li>Append <em>item</em> to <em>iterms</em></li>
+          </ol>
+        </li>
+        <li>If <em>items</em> is not empty or the value of every property from <tref>IRI mapping</tref> in <em>element</em>
+          does not exist, or is empty:
+          <ol class="algorithm">
+            <li>Add an entry to <em>output</em> for <em>term</em> and <em>items</em> ensuring that it is an <tref>array</tref>
+              if the <tref>container mapping</tref> for <em>term</em> is <code>@set</code>.</li>
+            <li>Remove every property in <em>element</em> from <tref>IRI mapping</tref> for <em>term</em> who's value
+              is empty.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>For each <em>property</em> and <em>value</em> in <em>element:</em>
+      <ol class="algorithm">
+        <li>If <em>property</em> is <code>@id</code> or <code>@type</code>
+          <ol class="algorithm">
+            <li>Set <tref>active property</tref> to the result of performing
+              <a href="#iri-compaction">IRI Compaction</a> on <em>property</em> relative to <tref>vocabulary mapping</tref>.</li>
+            <li>If <em>value</em> is a <tref>string</tref>, the compacted <em>value</em> is the result of performing
+              <a href="#iri-compaction">IRI Compaction</a> on <em>value</em> relative to <em>document base</em>.</li>
+            <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>. Perform <a href="#iri-compaction">IRI Compaction</a>
+              on every entry of <em>value</em> relative to either <em>document base</em> or <tref>vocabulary mapping</tref>
+              depnding on if <em>property</em> is <code>@id</code> or <code>@type</code>.
+              If <em>value</em> contains just one entry and the
+                algorithm is invoked with the compact arrays option, <em>value</em> is set to that entry.</li>
+            <li>Add <tref>active property</tref> and the compacted <em>value</em> to <em>output</em>.</li>
+          </ol>
+        </li>
+        <li>Otherwise, if <em>property</em> is <code>@annotation</code> and
+          <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref>
+          that contains a <code>@container</code> key associated with a value of <code>@annotation</code>,
+          skip this entry.</li>
+        <li>Otherwise, <em>value</em> MUST be an <tref>array</tref>.</li>
+        <li>If <em>value</em> is empty:
+          <ol class="algorithm">
+            <li>Set <tref>active property</tref> to the result of performing
+              <a href="#iri-compaction">IRI Compaction</a> on <em>property</em> relative to <tref>vocabulary mapping</tref>.</li>
+            <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+          </ol>
+        </li>
+        <li>For each <em>item</em> in <em>value</em>:
+          <ol class="algorithm">
+            <li>Set <tref>active property</tref> to the result of performing <a href="#iri-compaction">IRI Compaction</a>
+              for <em>property</em> and <em>item</em> relative to <tref>vocabulary mapping</tref>.</li>
+            <li>Compact <em>item</em> by recursively performing this algorithm passing a copy of
+              the <tref>active context</tref> and the <tref>active property</tref>.</li>
+            <li>If <tref>active property</tref> is a <tref>term</tref> in the <tref>active context</tref> that contains a
+              <code>@container</code> key associated with a value of <code>@language</code> or <code>@annotation</code>,
+              then
+              <ol class="algorithm">
+                <li>Unless such an entry already exists, create an entry in <em>output</em>
+                  for <tref>active property</tref> set to an empty <tref>JSON object</tref>
+                  as <em>map object</em>.</li>
+                  <li>If an entry already exists in <em>map object</em> for key, convert it
+                    to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+                  <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                    has a <code>@container</code> mapping to <code>@set</code> or if the
+                    <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                    <code>false</code>, convert <em>value</em> to an array.</li>
+                  <li>Create an entry in <em>map object</em> for key and <em>value</em>.</li>
+              </ol>
+            </li>
+            <li>Otherwise,
+              <ol class="algorithm">
+                <li>If an entry already exists in <em>output</em> for <tref>active property</tref>, convert it
+                  to an <tref>array</tref> if necessary, and append the compacted <em>value</em>.</li>
+                <li>Otherwise, if the compacted <em>value</em> is not an <tref>array</tref> and <tref>active property</tref>
+                  has a <code>@container</code> mapping to <code>@set</code> or if the
+                  <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code> option is set to
+                  <code>false</code>, convert <em>value</em> to an array.</li>
+                <li>Create an entry in <em>output</em> for <tref>active property</tref> and <em>value</em>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an <tref>array</tref>, put <em>element</em> into the
+    <code>@graph</code> property of a new <tref>JSON object</tref> and then set <em>element</em> to that <tref>JSON object</tref>.
+    Finally, add a <code>@context</code> property to <em>element</em> and set it to the initially passed <em>context</em>.</p>
 </section>
 
 <section>
@@ -1303,8 +1450,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </ol>
 </section>
 
-<section>
-  <h2>Value Compaction</h2>
+<section id="value-compaction">
+  <h2>Value Compaction Algorithm</h2>
   <p>Some values, such as <tref title="IRI">IRIs</tref> and <tref title="typed value">typed values</tref>, may be expressed in an
     <tref>expanded form</tref> (<tdef>expanded value</tdef>) in JSON-LD. These values are required to be compacted at
     times when processing JSON-LD documents. A value is said to be in <tdef>compacted form</tdef> after
@@ -1345,35 +1492,25 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </section>
 
 <section>
-  <h2>Find and Remove Property Generator Duplicates</h2>
+  <h2>Find Property Generator Equivalents</h2>
 
-  <p>This algorithm checks if a specific value exists for all <tref title="IRI">IRIs</tref>
-    associated with a <tref>property generator</tref> and if so, it removes them. The
-    algorithm takes five parameters: <em>element</em>, <em>property</em>, <em>value</em>,
-    <tref>active context</tref>, <tref>active property</tref>.</p>
+  <p>This algorithm checks determins if two values <em>source</em> and <em>target</em> are equivalent
+    for the purposes removing duplicates when performing <a href="compaction">Compaction</a>.</p>
 
   <ol class="algorithm">
-    <li>For each item <em>propertyGenerator</em> of the <tref>array</tref> which is the
-      value of the <code>propertyGenerators</code> member of <tref>active property</tref> perform
-      the following steps:
-      <ol class="algorithm">
-        <li>Check that a member exists for each <tref>IRI</tref> associated with the
-          <em>propertyGenerator</em>. If <em>value</em> is not <tref>null</tref> also check
-          whether each of those members that contains <em>value</em>. Values are considered to be equal
-          if they are of the same type and have the same value(s); <tref title="node object">node objects</tref>
-          are considered to be equal if all members match, except if no <code>@id</code> member exists (i.e., it is
-          an unlabeled <tref>blank node</tref>, in that case <tref title="node object">node objects</tref> are never
-          considered to be equal.
-          </li>
-        <li>If that's not the case, continue with the next <em>propertyGenerator</em>.</li>
-        <li>Otherwise, remove <em>value</em> from every member. If the resulting value
-          of a member is an empty <tref>array</tref>, remove the member altogether
-          from <em>element</em>.</li>
-        <li>Return <em>propertyGenerator</em>.</li>
-      </ol>
-    </li>
-    <li>Return the value of the <code>term</code> member of <tref>active property</tref>
-      since no matching <tref>property generator</tref> has been found.</li>
+    <li>If <em>source</em> and <em>target</em> are both <tref title="array">arrays</tref> with the same length,
+      return <code>true</code> if each item from <em>source</em> is equivalent to the matching item
+      from <em>target</em> by recursively invoking this algorithm, otherwise return <code>false</code>.</li>
+    <li>Otherwise, if both <em>source</em> and <em>target</em> are <tref title="json object">JSON objects</tref>
+      having a <code>@value</code> member, return <code>true</code> if every <em>key</em>-<em>value</em> is
+      equivalent, <code>false</code> otherwise.</li>
+    <li>Otherwise, if <em>source</em> and <em>target</em> are <tref title="json object">JSON objects</tref>
+      having a <code>@list</code> member, return <code>true</code> if they have the same <code>@annotation</code>
+      values (if any) and if the values of their respective <code>@list</code> properties are equivalent by
+      recursively invoking this algorithm, otherwise return <code>false</code>.</li>
+    <li>Otherwise, if <em>source</em> and <em>target</em> are <tref title="json object">JSON objects</tref>
+      having a <code>@id</code> member, return <code>true</code> if those values are equivalent.</li>
+    <li>Otherwise, return <code>false</code>.</li>
   </ol>
 </section>
 
