@@ -2354,19 +2354,17 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
     <section>
       <h3>JsonLdCallback</h3>
-      <p>The <a>JsonLdCallback</a> is called when an API method
-        of <a>JsonLdProcessor</a> has completed successfully, detected an
-        issue, or been terminated by a fatal error.</p>
+      <p>The <a>JsonLdCallback</a> is called when an API method of
+        <a>JsonLdProcessor</a> has been completed, either successfully or
+        by a fatal error.</p>
 
       <dl title="callback JsonLdCallback = void" class="idl">
-        <dt>JsonLdProcessingIssue issue</dt>
-        <dd>If the value is <code>null</code>, then no issue was detected
-          during processing. If the value is non-<code>null</code>, a
-          processing issue was detected and the details will be contained
-          within the <code>issue</code> object.</dd>
+        <dt>JsonLdError error</dt>
+        <dd>If the value is <tref>null</tref>, then no issue was detected
+          during processing. Otherwise, a processing issue was detected and
+          the details are contained within the <em>error</em> object.</dd>
         <dt>object or object[] document</dt>
-        <dd>The output JSON-LD document at the time the issue was
-          detected.</dd>
+        <dd>The processed JSON-LD document.</dd>
       </dl>
     </section>
   </section>
@@ -2391,17 +2389,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
           one element with that element during compaction. If set to <code>false</code>,
           all arrays will remain arrays even if they have just one element.
-        </dd>
-        <dt>JsonLdCallback issueCallback = null</dt>
-        <dd>If set to a function, the JSON-LD processor will use this callback
-          whenever it generates a warning, recoverable error, or fatal error
-          while processing the JSON-LD document. This callback is typically
-          used to convey debugging information regarding markup issues from the
-          JSON-LD processor to the developer. Note that this callback SHOULD be
-          used if a developer is interested in detecting issues while a
-          document is being processed as the <code>callback</code> parameter
-          provided to each API method is only used to report no errors or
-          fatal errors.
         </dd>
         <dt>boolean optimize = false</dt>
         <dd>If set to <code>true</code>, the JSON-LD processor is allowed to
@@ -2429,20 +2416,15 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </section>
 
     <section>
-      <h3>JsonLdProcessingIssue</h3>
+      <h3>JsonLdError</h3>
 
-      <p class="issue" data-number="153">Developers should note that the details of
-        processor issue handling are being actively debated.</p>
+      <p>The <a>JsonLdError</a> type is used to report processing errors
+        to a <a>JsonLdCallback</a>.</p>
 
-      <p>The <a>JsonLdProcessingIssue</a> type is used to report processing
-        issues to a <a>JsonLdCallback</a>.</p>
-
-      <dl title="dictionary JsonLdProcessingIssue" class="idl">
-        <dt>JsonLdProcessorCode code</dt>
-        <dd>a string representing the particular issue type, as described in
+      <dl title="dictionary JsonLdError" class="idl">
+        <dt>JsonLdErrorCode code</dt>
+        <dd>a string representing the particular error type, as described in
           the various algorithms in this document.</dd>
-        <dt>JsonLdProcessorIssueSeverity severity</dt>
-        <dd>a string representing the severity of the issue.</dd>
         <dt>DOMString? message</dt>
         <dd>an optional error message containing additional debugging information.
           The specific contents of error messages are outside the scope of this
@@ -2451,11 +2433,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </section>
 
     <section>
-      <h3>JsonLdProcessorCode</h3>
-      <p>The JsonLdProcessorCode represent the collection of valid JSON-LD error
+      <h3>JsonLdErrorCode</h3>
+      <p>The <a>JsonLdErrorCode</a> represents the collection of valid JSON-LD error
         codes.</p>
 
-      <dl title="enum JsonLdProcessorCode" class="idl">
+      <dl title="enum JsonLdErrorCode" class="idl">
         <dt>invalidSyntax</dt>
         <dd>A violation of the grammar as defined by the JSON-LD syntax specification
           [[!JSON-LD]] was detected.</dd>
@@ -2465,28 +2447,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <dd>A list of lists was detected. List of lists are not supported in
           this version of JSON-LD due to the algorithmic complexity associated
           with conversion to RDF.</dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>JsonLdProcessorIssueSeverity</h3>
-      <p>The JsonLdProcessorIssueSeverity represents the collection of
-        valid JSON-LD processing severity codes.</p>
-
-      <dl title="enum JsonLdProcessorIssueSeverity" class="idl">
-        <dt>warning</dt>
-        <dd>A warning is used when the processor has detected markup that may
-          could negatively impact the final output of the processor. Warnings
-          MAY be used to convey alternate markup suggestions to the document
-          author.</dd>
-        <dt>recoverableError</dt>
-        <dd>A recoverable error is used when the processor detects markup
-          that violates rules outlined in the JSON-LD specifications, but
-          is able to recover from the error and continue processing.</dd>
-        <dt>fatalError</dt>
-        <dd>A fatal error is used when the processor detects markup
-          that violates rules outlined in the JSON-LD specifications and is
-          not able to recover from the error.</dd>
       </dl>
     </section>
 
