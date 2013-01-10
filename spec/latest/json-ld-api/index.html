@@ -768,7 +768,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <ol class="algorithm">
     <li>If <em>element</em> is a <tref>scalar</tref>, expand it according to the
       <a href="#value-expansion">Value Expansion</a> algorithm, passing copies of the
-      <tref>active context</tref> and <tref>active property</tref> and return.</li>
+      <tref>active context</tref> and <tref>active property</tref> and return. If the
+      <tref>active property</tref> equals <tref>null</tref> or <code>@graph</code>
+      set <em>element</em> to <tref>null</tref> instead and return.</li>
     <li>If <em>element</em> is <tref>null</tref>, return.</li>
     <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
@@ -905,6 +907,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           of <em>result</em>.</li>
         <li>If <em>element</em> has an <code>@annotation</code> member, decrease <em>numProperties</em>
           by 1.</li>
+        <li>If the <tref>active property</tref> equals <tref>null</tref> or <code>@graph</code> and
+          <em>element</em> has an <code>@value</code> member, <em>numProperties</em> equals <code>0</code>,
+          or <em>element</em> consists of only an <code>@id</code> member, set <em>element</em> to
+          <tref>null</tref> and return.</li>
         <li>If <em>element</em> has an <code>@value</code> member,
           <ol class="algorithm">
             <li>decrease <em>numProperties</em> by 1.</li>
@@ -937,7 +943,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <p>If, after the algorithm outlined above is run, the resulting <em>element</em> is an
     <tref>JSON object</tref> with just a <code>@graph</code> member, <em>element</em> is set to
     the value of <code>@graph</code>'s value. Finally, if <em>element</em> is a <tref>JSON object</tref>,
-    it is wrapped into an <tref>array</tref>.</p>
+    it is wrapped into an <tref>array</tref>, if <em>element</em> equals <tref>null</tref>, an empty
+    <tref>array</tref> is returned.</p>
 </section>
 
 <section>
@@ -1803,11 +1810,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </li>
     <li>If <em>element</em> has an <code>@value</code> member, perform the following steps:
       <ol class="algorithm">
-        <li>If <tref>active property</tref> is <tref>null</tref>,
-          <a href="#generate-blank-node-identifier">generate a blank node identifier</a> <em>id</em>
-          and store <em>element</em> as value of the member <em>id</em> in <em>activeGraph</em>.
-          <p class="issue" data-number="207">Handling of free-floating values is still being discussed.</p></li>
-        <li>Otherwise, if no <em>list</em> has been passed, merge <em>element</em> into the
+        <li>If no <em>list</em> has been passed, merge <em>element</em> into the
           <tref>active property</tref> member of the <tref>active subject</tref> in
           <em>activeGraph</em>.</li>
         <li>Otherwise, append <em>element</em> to the <code>@list</code> member of <em>list</em>.</li>
@@ -1820,11 +1823,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <code>@list</code> whose value is initialized to an empty <tref>array</tref>.</li>
         <li>Recursively call this algorithm passing the value of <em>element's</em>
           <code>@list</code> member as new <em>element</em> and <em>result</em> as <em>list</em>.</li>
-        <li>If <tref>active property</tref> is <tref>null</tref>,
-          <a href="#generate-blank-node-identifier">generate a blank node identifier</a> <em>id</em>
-          and store <em>result</em> as value of the member <em>id</em> in <em>activeGraph</em>.
-          <p class="issue" data-number="207">Handling of free-floating values is still being discussed.</p></li>
-        <li>Otherwise, add <em>result</em> to the the value of the <tref>active property</tref> member
+        <li>Add <em>result</em> to the the value of the <tref>active property</tref> member
           of the <tref>active subject</tref> in <em>activeGraph</em>.</li>
       </ol>
     </li>
