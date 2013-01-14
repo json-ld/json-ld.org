@@ -767,9 +767,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
 
   <ol class="algorithm">
-    <li>If <em>element</em> is a <tref>scalar</tref> or <tref>null</tref>, expand it according to the
+    <li>If <em>element</em> is a <tref>scalar</tref> or <tref>null</tref>,
+      set <em>element</em> to the result of expanding it according to the
       <a href="#value-expansion">Value Expansion</a> algorithm, passing copies of the
-      <tref>active context</tref> and <tref>active property</tref> and return.</li>
+      <tref>active context</tref> and <tref>active property</tref> and return. If the
+      <tref>active property</tref> is <tref>null</tref> or <code>@graph</code>
+      return <tref>null</tref>.</li>
     <li>If <em>element</em> is an <tref>array</tref>,
       <ol class="algorithm">
         <li>initialize an empty <tref>array</tref> <em>result</em>.</li>
@@ -782,7 +785,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>Otherwise, if the expanded <em>item</em> is an <tref>array</tref>, merge its
           entries with <em>result's</em> entries.</li>
         <li>Otherwise, append <em>item</em> to <em>result</em>.</li>
-        <li>Finally, set <em>element</em> to <em>result</em> and return.</li>
+        <li>Finally, return <em>result</em>.</li>
       </ol>
     </li>
     <li>Otherwise, if <em>element</em> MUST be an object
@@ -811,12 +814,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                 <li>If <em>expanded property</em> is <code>@id</code>, <em>value</em> MUST be a <tref>string</tref>.
                   Set the <code>@id</code>
                   member in <em>result</em> to the result of expanding <em>value</em>
-                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> (passing <code>true</code>
-                  for the <em>documentRelative</em> and <em>relabelBlankNodes</em> flags).</li>
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the
+                  <em>document base</em> and re-labeling <tref title="blank node">Blank Nodes</tref>.</li>
                 <li>If <em>expanded property</em> is <code>@type</code>, <em>value</em> MUST be a <tref>string</tref>
                   or <tref>array</tref> of <tref title="string">strings</tref>. Set the <code>@type</code>
                   member of <em>result</em> to the result of expanding <em>value</em>
-                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the document base
+                  according the <a href="#iri-expansion">IRI Expansion algorithm</a> relative to the <em>document base</em>
                   and re-labeling <tref title="blank node">Blank Nodes</tref>, unless that result
                   is an empty <tref>array</tref>.</li>
                 <li>If <em>expanded property</em> is <code>@value</code>, <em>value</em> MUST be a <tref>scalar</tref>
@@ -827,19 +830,15 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                   Set the <code>@language</code> member of <em>result</em> to the lowercased <em>value</em>.</li>
                 <li>If <em>expanded property</em> is <code>@annotation</code> <em>value</em> MUST be a <tref>string</tref>.
                   Set the <code>@annotation</code> member of <em>result</em> to <em>value</em>.</li>
-                <li>If <em>expanded property</em> is <code>@set</code> or <code>@list</code>, set the
+                <li>If <em>expanded property</em> is <code>@set</code>, <code>@list</code>, or <code>@graph</code>, set the
                   <em>expanded property</em> member of <em>result</em> to the result of expanding <em>value</em> by
                   recursively using this algorithm, along with the <tref>active context</tref> and
-                  <tref>active property</tref>.</li>
-                <li>If <em>expanded property</em> id <code>@graph</code>, set the <code>@graph</code>
-                  member of <em>result</em> to the result of expanding <em>value</em> by
-                  recursively using this algorithm, along with the <tref>active context</tref> and
-                  <code>@graph</code> as <tref>active property</tref>.</li>
+                  <tref>active property</tref>. If <em>expanded property</em> is <code>@list</code>
+                  and <tref>active property</tref> is <tref>null</tref> or
+                  <code>@graph</code>, pass <code>@list</code> as <tref>active property</tref> instead.</li>
                 <li>Continue with the next <em>property</em>-<em>value</em> pair from <em>element</em>.</li>
               </ol>
             </li>
-            <li>If <em>expanded property</em> does not have the form of <tref>blank node identifier</tref> or an
-              <tref>absolute IRI</tref>, continue with the next member from <em>element</em>.</li>
             <li>Otherwise, if <em>property's</em> <tref>container mapping</tref> is set to <code>@language</code>:
               <ol class="algorithm">
                 <li>Initialize a new empty <tref>array</tref> <em>language map values</em>.</li>
@@ -866,7 +865,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                   <ol class="algorithm">
                     <li>Transform <em>val</em> to <tref>array</tref> form, if necessary.</li>
                     <li>Expand <em>val</em> by recursively using this algorithm, using
-                      the <tref>active context</tref> and <tref>active property</tref>.</li>
+                      the <tref>active context</tref> and <em>property</em>.</li>
                     <li>Add to each <em>item</em> of <em>val</em> an <code>@annotation</code> member set to
                       <em>key</em> if no such member exists in <em>item</em>, and append the resulting
                       <tref>JSON object</tref> to <em>annotation map values</em>.</li>
@@ -879,7 +878,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               copies of the <tref>active context</tref> and <em>property</em> as
               <tref>active property</tref>.</li>
             <li>Continue to the next <em>property</em>-<em>value</em> pair from <em>element</em>
-              if <em>value</em> is <tref>null</tref>.</li>
+              if <em>value</em> is <tref>null</tref> and <em>property</em>.</li>
             <li>If <em>property's</em> <tref>container mapping</tref> is set to <code>@list</code> and
               <em>value</em> is not a <tref>JSON object</tref> or is a <tref>JSON object</tref>
               without a <code>@list</code> member, replace <em>value</em> with a
@@ -901,7 +900,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           </ol>
         </li>
         <li>Set <em>element</em> to <em>result</em>.</li>
-        <li>If the processed <em>element</em> has an <code>@value</code> property
+        <li>If the <tref>active property</tref> is <tref>null</tref> or <code>@graph</code> and
+          <em>element</em> has a <code>@value</code> member without an <code>@annotation</code> member,
+          or <em>element</em> consists of only an <code>@id</code> member, set <em>element</em> to <tref>null</tref>.</li>
+        <li>Otherwise, if the processed <em>element</em> has an <code>@value</code> property
           <ol class="algorithm">
             <li>Remove any <code>@type</code> or <code>@language</code> members with <tref>null</tref> or empty values.</li>
             <li>Other than <code>@annotation</code>, <em>element</em> MUST NOT have more than one other member,
@@ -915,6 +917,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <code>@annotation</code>.
           Set <em>element</em> to the value of <code>@set</code>; leave <code>@list</code> untouched.</li>
         <li>If <em>element</em> has just a <code>@language</code> property, set <em>element</em> to <tref>null</tref>.</li>
+        <li>Return <em>element</em>.</li>
       </ol>
     </li>
   </ol>
@@ -965,7 +968,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li>Otherwise, <em>context</em> MUST be a <tref>JSON object</tref>, perform the following steps:
           <ol class="algorithm">
             <li>If the <tref>local context</tref> does not have a <tref>vocabulary mapping</tref>, initialize
-              it to the document base.</li>
+              it to the <em>document base</em>.</li>
             <li>If <em>context</em> has a <code>@vocab</code> member, it MUST have a value of a
               simple <tref>string</tref> with the lexical form of <tref>absolute IRI</tref>,
               <tref>Blank Node identifier</tref>, or <tref>null</tref>.
@@ -1553,8 +1556,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   </ol>
 </section>
 
-<section>
-  <h2>Node Map Generation</h2>
+<section id="node-map-generation">
+  <h2>Node Map Generation Algorithm</h2>
   <p>The Node Map Generation algorithm takes as input an expanded JSON-LD document and results in a <tref>JSON object</tref>
     <em>nodeMap</em> holding a flat representation of the graphs and <tref title="node">nodes</tref> represented in the document. All <tref title="node">nodes</tref> that are not
     uniquely identified by an IRI get assigned a (new) <tref>blank node identifier</tref>. The resulting <em>nodeMap</em>
@@ -1608,9 +1611,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               a new array <em>flattenedList</em> as <em>list</em>. Create a new <tref>JSON object</tref> with the
               property <code>@list</code> set to <em>flattenedList</em> and add it to <em>node</em> for
               <em>property</em>.</li>
-            <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
-              generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
-              to <em>node</em> for <em>property</em>.</li>
+             <li>If <tref>active property</tref> is <tref>null</tref> or <code>@graph</code>,
+               <a href="#generate-blank-node-identifier">generate a blank node identifier</a> <em>id</em>
+               and store <em>result</em> as value of the member <em>id</em> in <em>activeGraph</em>.</li>
+             <li>Otherwise, if <em>property</em> is <code>@type</code> and <em>v</em> is not an <tref>IRI</tref>,
+               generate a <a href="#generate-blank-node-identifier">new blank node identifier</a> and add it
+               to <em>node</em> for <em>property</em>.</li>
             <li>Otherwise, add <em>v</em> to <em>node</em> for <em>property</em>.</li>
           </ol>
         </li>
