@@ -1133,9 +1133,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <code class="error">property generator in term definition</code> error.</li>
       </ol>
     </li>
-    <li>If an <tref>IRI mapping</tref> exists for <em>value</em> in the <tref>active context</tref>
-      that is not a <tref>property generator</tref> return the value of the
-      <tref>IRI mapping</tref>.</li>
+    <li>If the <em>vocabRelative</em> flag is set to <code>true</code> and an <tref>IRI mapping</tref>
+      exists for <em>value</em> in the <tref>active context</tref> that is not a
+      <tref>property generator</tref>, return the value of the <tref>IRI mapping</tref>.</li>
     <li>If <em>value</em> contains a colon (<code>:</code>), perform the following steps:
       <ol class="algorithm">
         <li>Split <em>value</em> into a <em>prefix</em> and <em>suffix</em> at the first occurrence of
@@ -1415,8 +1415,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
   <ol class="algorithm">
     <li>Initialize a variable <em>result</em> to <tref>null</tref>.</li>
-    <li>If an entry for <em>iri</em> exists in the <tref>inverse context</tref>,
-      perform the following steps:
+    <li>If the <em>vocabRelative</em> flag is set to <code>true</code> and an entry for
+      <em>iri</em> exists in the <tref>inverse context</tref>, perform the following steps:
       <ol class="algorithm">
         <li>If a <em>value</em> has been passed, perform the following steps:
           <ol class="algorithm">
@@ -1506,15 +1506,18 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <em>termIri</em>, generate a <tref>compact IRI</tref> by concatenating the value
           of the <code>term</code> member of <em>termDefinition</em> with a colon
           (<code>:</code>) character and the unmatched part of <em>iri</em>.</li>
-        <li>If the resulting <tref>compact IRI</tref> has an entry in the <tref>active context</tref>,
-          continue with the next <em>termIri</em>-<em>termDefinition</em> pair from
-          <tref>inverse context</tref> as the <tref>compact IRI</tref> cannot be used.</li>
+        <li>If the resulting <tref>compact IRI</tref> has an entry in the <tref>active context</tref>
+          and the <em>vocabRelative</em> flag is set to <code>true</code> or the <tref>IRI mapping</tref>
+          does not correspond to <em>iri</em>, continue with the next <em>termIri</em>-<em>termDefinition</em>
+          pair from <tref>inverse context</tref> as the <tref>compact IRI</tref> cannot be used.</li>
         <li>Otherwise, if result is <tref>null</tref>, return the <tref>compact IRI</tref>; if it is
           not null, set the <code>term</code> member of <em>result</em> to the <tref>compact IRI</tref>
           and return <em>result</em>.</li>
       </ol>
     </li>
-    <li>If the <em>vocabRelative</em> flag is set to <code>true</code>, the
+    <li>If the <em>vocabRelative</em> flag is set to <code>false</code>, transform <em>iri</em> to an
+      IRI relative to the base IRI and return it.</li>
+    <li>Otherwise, if the <em>vocabRelative</em> flag is set to <code>true</code>, the
       <tref>active context</tref> has a <tref>vocabulary mapping</tref>, and <em>iri</em>
       begins with the IRI of the <tref>vocabulary mapping</tref> but is longer
       <ol class="algorithm">
