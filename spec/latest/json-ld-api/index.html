@@ -1416,13 +1416,14 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <tref>term</tref> or <tref>compact URL</tref>. If a <em>value</em> is passed
     it is used to choose the best matching <tref>term</tref>.</p>
 
-  <p>This algorithm takes three mandatory and two optional parameters. The mandatory
+  <p>This algorithm takes three mandatory and three optional parameters. The mandatory
     parameters are the <em>url</em> to be compacted, an <tref>active context</tref>,
-    and an <tref>inverse context</tref>. Optionally it is possible to pass a <em>value</em>
-    and a <em>vocabRelative</em> flag which specifies whether the passed <em>url</em>
+    and an <tref>inverse context</tref>. Optionally it is possible to pass a <em>value</em>,
+    a <em>vocabRelative</em> flag which specifies whether the passed <em>url</em>
     should be compacted using the <tref title="active context">active context's</tref>
-    <tref>vocabulary mapping</tref>. If the <em>vocabRelative</em> flag is not set
-    it defaults to <code>false</code>.</p>
+    <tref>vocabulary mapping</tref>, and a base <tref>URL</tref> which, when passed, is used
+    to transform the passed <em>url</em> to a <tref title="relative URL">relative URLs</tref>
+    if the <em>vocabRelative</em> flag is set to false (which is its default value).</p>
 
   <p>The algorithm for generating a <tref>compact URL</tref> is:</p>
 
@@ -1528,8 +1529,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           and return <em>result</em>.</li>
       </ol>
     </li>
-    <li>If the <em>vocabRelative</em> flag is set to <code>false</code>, transform <em>url</em> to an
-      URL relative to the base URL and return it.</li>
+    <li>If the <em>vocabRelative</em> flag is set to <code>false</code> and a base <tref>URL</tref> has
+       been passed, transform <em>url</em> to a <tref>relative URL</tref>.</li>
     <li>Otherwise, if the <em>vocabRelative</em> flag is set to <code>true</code>, the
       <tref>active context</tref> has a <tref>vocabulary mapping</tref>, and <em>url</em>
       begins with the URL of the <tref>vocabulary mapping</tref> but is longer
@@ -2492,6 +2493,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <em>input</em> if it is a <a>URL</a>. If not specified and <em>input</em> is not
           an <a>URL</a>, the base URL defaults to the current document URL if in a browser context,
           or the empty string if there is no document context.
+          <p class="issue atrisk" title="Feature at risk">The default value of this option
+            implies that all URLs that cannot be compacted otherwise are transformed to relative URLs
+            during compaction. To avoid that data is being lost, developers thus have to store the
+            base URL along with the compacted document. This might be problematic in practice and
+            thus the default behavior might be changed in future.</p>
         </dd>
         <dt>object or DOMString expandContext = null</dt>
         <dd>A context that is used to initialize the active context when expanding a document.</dd>
