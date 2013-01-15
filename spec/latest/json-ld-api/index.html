@@ -1547,15 +1547,99 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     operation: <a href="#url-compaction-algorithm">URL compaction</a>. Hence,
     this algorithm introduces the notion of an <tref>inverse context</tref>
     which brings the same efficiency to <a href="#url-compaction-algorithm">URL compaction</a>.
-    An <tdef>inverse context</tdef> a tree of <tref title="JSON object">JSON objects</tref>
+    An <tdef>inverse context</tdef> is a tree of <tref title="JSON object">JSON objects</tref>
     which allow to efficiently select a <tref>term</tref> for a <tref>URL</tref>-value
-    pair.</p>
+    pair. Consider the following <tref>context</tref>:</p>
 
-  <p>The value takes an <tref>active context</tref> and returns the corresponding
+  <pre class="example" data-transform="updateExample"
+       title="A context containing of two terms and a property generator">
+  <!--
+  {
+    "@context": {
+      ****"name"****: "http://xmlns.com/foaf/0.1/name",
+      ****"homepage"****: {
+        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@type": "@id"
+      },
+      ****"gender"****: {
+        "@id": [ "http://xmlns.com/foaf/0.1/gender", "http://schema.org/gender" ],
+        "@language": "en"
+      }
+    }
+  }
+  -->
+  </pre>
+
+  <p>The corresponding <tref>inverse context</tref> looks as shown below. All entries of
+    the <tref>context</tref> above are first indexed by <tref>URL</tref>, followed by
+    their <tref>container mapping</tref>, and finally by their
+    <tref title="language mapping">language</tref> or <tref>type mapping</tref>. If a
+    specific mapping is not set or <tref>null</tref>, the entry is indexed under the
+     respective <code>@null</code> member instead.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="The inverse context corresponding to the context above">
+  <!--
+  {
+    "http://xmlns.com/foaf/0.1/homepage": {
+      "term": "homepage",
+      "@null": {
+        "@type": {
+          "@id": {
+            "term": ****"homepage"****
+          }
+        }
+      }
+    },
+    "http://xmlns.com/foaf/0.1/gender": {
+      "@null": {
+        "@language": {
+          "en": {
+            "propertyGenerators": [ ****"gender"**** ]
+          }
+        }
+      }
+    },
+    "http://xmlns.com/foaf/0.1/name": {
+      "term": "name",
+      "@null": {
+        "@language": {
+          "@null": {
+            "term": ****"name"****
+          }
+        },
+        "@null": {
+          "@null": {
+            "term": ****"name"****
+          }
+        }
+      }
+    },
+    "http://schema.org/gender": {
+      "@null": {
+        "@language": {
+          "en": {
+            "propertyGenerators": [ ****"gender"**** ]
+          }
+        }
+      }
+    }
+  }
+  -->
+  </pre>
+
+  <p>Please note that the <tref>property generator</tref> <code>gender</code> and the <tref>term</tref>
+    <code>name</code> are included twice in <tref>inverse context</tref>. While <code>gender</code>
+    is included once for each <tref>URL</tref> it is mapped to, <code>name</code> is included
+    twice since it has neither a <tref>type mapping</tref> nor a <tref>language mapping</tref>.
+    It can thus be used for <tref title="string">strings</tref> without an associated language
+    (the first entry), or all other (untyped) <tref title="JSON-LD value">values</tref>.</p>
+
+  <p>The following algorithm takes an <tref>active context</tref> and returns the corresponding
     <tref>inverse context</tref>.</p>
 
   <ol class="algorithm">
-    <li>Set <em>defaultLanguage</em> to <tref title="active context">active context's</tref
+    <li>Set <em>defaultLanguage</em> to <tref title="active context">active context's</tref>
       <tref>default language</tref> if there is one; otherwise set it to <code>@null</code>.</li>
     <li>For each <tref>term definition</tref> in the <tref>active context</tref>
       perform the following steps:
@@ -1574,13 +1658,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <ol class="algorithm">
             <li>If the <tref>term</tref> has a <tref>type mapping</tref> to <em>type</em>,
               append the <tref>term</tref> to
-              <code>inverseContext[url][container]['@type'][type][termType]</code>, e.g.,
-              <code>inverseContext['http://...']['@list']['@type']['http://...']['term']</code>.</li>
+              <code>inverseContext[url][container]['@type'][type][termType]</code> (e.g.,
+              <code>inverseContext['http://...']['@list']['@type']['http://...']['term']</code>).</li>
             <li>Otherwise, if the <tref>term</tref> has a <tref>language mapping</tref> store the
               associated language in <em>language</em>, replacing <tref>null</tref> with
               <code>@null</code>. Then append the <tref>term</tref> to
-              <code>inverseContext[url][container]['@language'][language][termType]</code>, e.g.,
-              <code>inverseContext['http://...']['@list']['@language']['de']['term']</code>.</li>
+              <code>inverseContext[url][container]['@language'][language][termType]</code> (e.g.,
+              <code>inverseContext['http://...']['@list']['@language']['de']['term']</code>).</li>
             <li>Otherwise append the <tref>term</tref> to
               <code>inverseContext[url][container]['@null']['@null'][termType]</code> as well as
               <code>inverseContext[url][container]['@language'][defaultLanguage][termType]</code>
