@@ -380,10 +380,10 @@
     JSON-LD documents (relevant to authors and authoring tool implementors).</p>
 
   <p>A <tref>JSON-LD document</tref> complies with this specification if it follows
-    the normative statements for documents defined in sections
-    <a href="#referencing-contexts-from-json-documents"></a> and <a href="#json-ld-grammar"></a>.
-    For convenience, normative statements for documents are often phrased as statements
-    on the properties of the document.</p>
+    the normative statements in section <a href="#json-ld-grammar"></a>. JSON documents
+    can be interpreted as JSON-LD by following the normative statements in section
+    <a href="#the-context"></a>. For convenience, normative statements for documents
+    are often phrased as statements on the properties of the document.</p>
 
   <p>The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
     RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL in this Recommendation have the
@@ -391,261 +391,359 @@
 </section>
 
 <section class="normative">
-<h1>Basic Concepts</h1>
+  <h1>Basic Concepts</h1>
 
-<section>
-<h2>The Context</h2>
-
-<p>In JSON-LD, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>, i.e., properties with associated
-  values in an JSON document, to <tref title="IRI">IRIs</tref>.</p>
-<p>The Web uses <tref title="IRI">IRIs</tref> for unambiguous identification. The
-  idea is that these <tref title="term">terms</tref> mean something that may be of use to other developers and that it is useful to
-  give them an unambiguous identifier. That is, it is useful for <tref title="term">terms</tref> to expand to IRIs so that
-  developers don't accidentally step on each other's <tdef>vocabulary</tdef> terms and other resources. Furthermore, developers, and
-  machines, are able to use this <tref>IRI</tref> (by plugging it directly into a web browser, for instance) to go to
-  the term and get a definition of what the term means. This mechanism is analogous to the way we can use
-  <a href="http://wordnet.princeton.edu/">WordNet</a> today to see the definition of words in the English language.
-  Developers and machines need the same sort of definition of terms. <tref title="IRI">IRIs</tref> provide a way to
-  ensure that these terms are unambiguous. For example, the term <code>name</code> may
-  map directly to the IRI <code>http://xmlns.com/foaf/0.1/name</code>. This allows JSON-LD documents to be constructed
-  using the common JSON practice of simple key-value pairs while ensuring that the data is useful outside of the
-  page, API or database in which it resides.</p>
-
-<p>Note that, to avoid forward-compatibility issues, terms starting with an <code>@</code> character are to be avoided as they might be used as keywords in future versions of JSON-LD. Furthermore, the use of empty <tref title="term">terms</tref> (<code>""</code>)
-  is discouraged as not all programming languages are able to handle empty
-  property names.
-</p>
-
-<p>In a JSON-LD document, the mapping between <tref title="term">terms</tref> and
-  <tref title="IRI">IRIs</tref> is typically collected in a <tref>context definition</tref>
-  that would look something like this:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Context definition">
-<!--
-{
-  "@context":
-  {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "depiction":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/depiction",
-      "@type": "@id"
-    },
-    "homepage":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    },
-  }
-}
--->
-</pre>
-
-<p>
-Let's assume that a developer starts with the following JSON document:
-</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Sample JSON document">
-<!--
-{
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>The developer can add a single line to the JSON document above
-to reference the context and transform it into a JSON-LD document:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Referencing a JSON-LD context">
-<!--
-{
-  ****"@context": "http://json-ld.org/contexts/person.jsonld",****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>The additions above transform the previous JSON document into a JSON document
-with added semantics because the <code>@context</code> specifies how the
-<strong>name</strong>, <strong>homepage</strong>, and <strong>depiction</strong>
-terms map to <tref title="IRI">IRIs</tref>.
-Mapping those keys to IRIs gives the data global context. If two
-developers use the same IRI to describe a property, they are more than likely
-expressing the same concept. This allows both developers to re-use each others'
-data without having to agree to how their data will interoperate on a
-site-by-site basis. Contexts may also contain type, language or additional information
-for certain <tref title="term">terms</tref>.</p>
-
-<p>External JSON-LD context documents may contain extra information
-located outside of the <code>@context</code> key, such as documentation about the
-<tref title="term">terms</tref> declared in the document. Information contained
-outside of the <code>@context</code> value is simply discarded when the document
-is used as an external JSON-LD context document
-(see <a href="#referencing-contexts-from-json-documents"></a>).</p>
-
-<p>Contexts may also be specified in-line. This ensures that
-  <tref title="JSON-LD document">JSON-LD documents</tref> can be understood
-  even in the absence of a connection to the Web.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="In-line context definition">
-<!--
-{
-  ****"@context":
-  {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "depiction":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/depiction",
-      "@type": "@id"
-    },
-    "homepage":
-    {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    },
-  },****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>Contexts may be used at any time a <tref>node object</tref> is defined.
-  In particular, a <tref>JSON-LD document</tref> may define more than one context,
-  as in the following example:</p>
-<pre class="example" data-transform="updateExample"
-     title="Multiple separate contexts">
-<!--
-[
-  {
-    ****"@context": "http://example.org/contexts/person.jsonld",****
-    "name": "Manu Sporny",
-    "homepage": "http://manu.sporny.org/",
-    "depiction": "http://twitter.com/account/profile_image/manusporny"
-  },
-  {
-    ****"@context": "http://example.org/contexts/place.jsonld",****
-    "name": "The Empire State Building",
-    "description": "The Empire State Building is a 102-story landmark in New York City.",
-    "geo": {
-      "latitude": "40.75",
-      "longitude": "73.98"
-    }
-  }
-]
--->
-</pre>
-
-<p>This is useful when an author would like to use an existing context
-  and add application-specific terms to the existing context. Duplicate context
-  <tref title="term">terms</tref> are overridden using a last-defined-overrides
-  mechanism.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Scoped contexts within node objects">
-<!--
-{
-  ****"@context":
-  {
-    "name": "http://example.com/person#name",
-    "details": "http://example.com/person#details"
-  },****
-  "****name****": "Markus Lanthaler",
-  ...
-  "details":
-  {
-    ****"@context": {
-      "name": "http://example.com/organization#name"
-    },****
-    "****name****": "Graz University of Technology"
-  }
-}
--->
-</pre>
-
-<p>In the example above, the <code>name</code> prefix is overridden in the
-  more deeply nested <code>details</code> structure. Note that this is
-  rarely a good authoring practice and is typically used when there exist
-  legacy applications that depend on the specific structure of the
-  <tref>JSON object</tref>. If a <tref>term</tref> is re-defined within a
-  context, all previous rules associated with the previous definition are
-  removed. If that <tref>term</tref> is re-defined to <code>null</code>,
-  the <tref>term</tref> is effectively removed from the list of
-  <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
-
-<p>A <tref>node object</tref> may specify multiple contexts, using an
-  <tref>array</tref>, processed in order. The set of contexts defined within a specific <tref>node object</tref> are
-  referred to as <tdef title="local context">local contexts</tdef>. Setting the context to <code>null</code>
-  effectively resets the <tref>active context</tref> to an empty context. The
-  <tdef>active context</tdef> refers to the accumulation of <tref title="local context">local contexts</tref>
-  that are in scope at a specific point within the document. The following example
-  specifies an external context and then layers a local context on top of the external
-  context:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Combining external and local contexts">
-<!--
-{
-  ****"@context": [
-    "http://json-ld.org/contexts/person.jsonld",
-    {
-      "pic": "http://xmlns.com/foaf/0.1/depiction"
-    }
-  ],****
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  ****"pic": "http://twitter.com/account/profile_image/manusporny"****
-}
--->
-</pre>
-
-<p class="note">To ensure the best possible performance, it is a best practice to
-  put the <tref>context</tref> definition at the top of the JSON-LD document. If it isn't listed
-  first, processors have to save each key-value pair until the <tref>context</tref> is processed.
-  This creates a memory and complexity burden for certain types of
-  low-memory footprint JSON-LD processors.</p>
-
-</section>
-
-<section>
-  <h2>From JSON to JSON-LD</h2>
-
-  <p>If a set of <tref title="term">terms</tref> such as, <strong>name</strong>,
-    <strong>homepage</strong>, and <strong>depiction</strong>,
-    are defined in a <tref>context</tref>, and that context is used to resolve the
-    names in <tref title="JSON object">JSON objects</tref>, machines are able to automatically expand the terms to
-    something unambiguous like this:</p>
+  <p>JSON [[RFC4627]] is a lightweight, language-independent data-interchange format.
+    It is easy to parse and easy to generate. However, it is difficult to integrate JSON
+    from different sources as the data has just local meaning. Furthermore, JSON has no
+    built-in support for hyperlinks - a fundamental building block on the Web. Let's look
+    at an example that we will be using for the rest of this section:</p>
 
   <pre class="example" data-transform="updateExample"
-       title="Expanded terms">
+       title="Sample JSON document">
+  <!--
+  {
+    "name": "Manu Sporny",
+    "homepage": "http://manu.sporny.org/",
+    "image": "http://twitter.com/account/profile_image/manusporny",
+    "knows": [
+      {
+        "name": "Markus Lanthaler"
+      },
+      {
+        "name": "Gregg Kellogg"
+      }
+    ]
+  }
+  -->
+  </pre>
+
+  <p>It's obvious for humans that the data is about a person whose name is "Manu Sporny"
+    and that the <code>homepage</code> property contains the URL of that person's homepage.
+    On the other hand, a machine doesn't have such an intuitive understanding and sometimes
+    even for humans it is difficult to resolve ambiguities in such representations. This problem
+    can be solved by using unambiguous identifiers to denote the different concepts instead of
+    <tref title="term">terms</tref> such as "name", "homepage", etc.</p>
+
+  <p><tref>Linked Data</tref>, and the Web in general, uses <tref title="IRI">IRIs</tref>
+    (Internationalized Resource Identifiers as described in [[!RFC3987]]) for unambiguous
+    identification. The idea is to assign <tref title="IRI">IRIs</tref> to something that may
+    be of use to other developers and that it is useful to give them an unambiguous identifier.
+    That is, it is useful for <tref title="term">terms</tref> to expand to <tref title="IRI">IRIs</tref>
+    so that developers don't accidentally step on each other's terms. Furthermore, developers and
+    machines, are able to use this <tref>IRI</tref> (by using a web browser, for instance) to go to
+    the term and get a definition of what the term means. This mechanism is analogous to the way we
+    can, e.g., use <a href="http://www.wikipedia.org/">Wikipedia</a> to see the definition of words.</p>
+
+  <p>Leveraging the well-known <a href="http://xmlns.com/foaf/spec/">FOAF vocabulary</a>,
+    the example above could thus be unambiguously expressed as follows:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document using full IRIs instead of terms">
   <!--
   {
     "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
-    "****http://xmlns.com/foaf/0.1/homepage****": "http://manu.sporny.org"
-    "****http://xmlns.com/foaf/0.1/depiction****": "http://twitter.com/account/profile_image/manusporny"
+    "****http://xmlns.com/foaf/0.1/homepage****": { "****@id****": "http://manu.sporny.org/" },
+    "****http://xmlns.com/foaf/0.1/img****": { "****@id****": "http://twitter.com/account/profile_image/manusporny" },
+    "****http://xmlns.com/foaf/0.1/knows****": [
+      {
+        "****http://xmlns.com/foaf/0.1/name****": "Markus Lanthaler"
+      },
+      {
+        "****http://xmlns.com/foaf/0.1/name****": "Gregg Kellogg"
+      }
+    ]
   }
-   -->
+  -->
   </pre>
 
-  <p>Doing this allows JSON to be unambiguously machine-readable without
-    requiring developers to drastically change their workflow. A <tref>JSON object</tref>
-     used to define property values of a <tref>node</tref> is called a <tref>node object</tref>.</p>
+  <p>Every property is unambiguously identified by an <tref>IRI</tref> and all values
+    representing <tref title="IRI">IRIs</tref> are explicitly marked as such by the
+    <code>@id</code> <tref>keyword</tref>. While this is a completely valid JSON-LD
+    document that is unambiguous and very specific, it also very verbose and difficult
+    to work with for human users. To address this issue, JSON-LD introduces the notion
+    of a <tref>context</tref> as described in the next section.</p>
 
-  <p class="note">The example above does not use the <code>@id</code> <tref>keyword</tref>
-    to identify the node being described above. This type of node is called a
-    <tref>blank node</tref>. It is advised that all <tref title="node object">node objects</tref>
-    in JSON-LD are identified by <tref title="IRI">IRIs</tref> via the <code>@id</code>
-    keyword unless the data is not intended to be linked to from other data sets.</p>
-</section>
+  <section>
+    <h2>The Context</h2>
+
+    <p>Simply speaking, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>,
+      i.e., <tref title="property">properties</tref> with associated values, to
+      <tref title="IRI">IRIs</tref>. Any valid <tref>string</tref> that is not a
+      reserved JSON-LD <tref>keyword</tref> can be used as a <tref>term</tref>. To
+      avoid forward-compatibility issues, <tref title="term">terms</tref> starting with
+      an&nbsp;<code>@</code> character are to be avoided as they might be used as
+      keywords in future versions of JSON-LD. Furthermore, the use of empty
+      <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
+      programming languages are able to handle empty property names.</p>
+
+    <p>For the sample document in the previous section, a <tref>context</tref> would
+      look something like this:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Context for the sample document in the previous section">
+    <!--
+    {
+      "****@context****":
+      {
+        "name": "http://xmlns.com/foaf/0.1/name",
+        "image": {
+          "@id": "http://xmlns.com/foaf/0.1/img",
+          "@type": "@id"
+        },
+        "homepage": {
+          "@id": "http://xmlns.com/foaf/0.1/homepage",
+          "@type": "@id"
+        },
+        "knows": "http://xmlns.com/foaf/0.1/knows"
+      }
+    }
+    -->
+    </pre>
+
+    <p>As <tref>context</tref> above shows, the value of a <tdef>term definition</tdef> can
+      either be 1)&nbsp;a simple string mapping the <tref>term</tref> to an <tref>IRI</tref>,
+      or 2)&nbsp;an <tref>expanded term definition</tref> in the form of a <tref>JSON object</tref>
+      to allow additional information to be associated with the term.</p>
+
+    <p><tref title="expanded term definition">Expanded term definitions</tref> may
+      be used to associate <a href="#type-coercion">type</a> or
+      <a href="#string-internationalization">language information</a> (as in the
+      example above which specifies that the  values of <code>image</code> and
+      <code>homepage</code> are <tref title="IRI">IRIs</tref>) with a term.
+      Furthermore, they allow terms to be used for <a href="#data-annotations">annotation maps</a>
+      and to specify whether <tref title="array">array</tref> values are to be
+      interpreted as <a href="#sets-and-lists">sets or lists</a>.
+      <tref title="expanded term definition">Expanded term definitions</tref> may
+      be defined using <tref title="absolute IRI">absolute</tref> or
+      <tref title="compact IRI">compact IRIs</tref> as keys. This mechanism is
+      mainly used to associate type or language information with an
+      <tref title="absolute IRI">absolute</tref> or <tref>compact IRI</tref>.</p>
+
+    <p class="note">While it is possible to define a <tref>compact IRI</tref>, or
+      an <tref>absolute IRI</tref> to expand to some other unrelated <tref>IRI</tref>
+      (for example, <code>foaf:name</code> expanding to
+      <code>http://example.org/unrelated#species</code>), such usage is strongly
+      discouraged.</p>
+
+    <p><tref title="context">Contexts</tref> can either be directly embedded
+      into the document or be referenced. Assuming the context document in the previous
+      example can be retrieved at <code>http://json-ld.org/contexts/person.jsonld</code>,
+      it can be referenced by adding a single line and allows a JSON-LD document to
+      be expressed much more concisely as shown in the example below:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Referencing a JSON-LD context">
+    <!--
+    {
+      ****"@context": "http://json-ld.org/contexts/person.jsonld",****
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/",
+      "image": "http://twitter.com/account/profile_image/manusporny",
+      "knows": [
+        {
+          "name": "Markus Lanthaler"
+        },
+        {
+          "name": "Gregg Kellogg"
+        }
+      ]
+    }
+    -->
+    </pre>
+
+    <p>The referenced context not only specifies how the terms map to
+      <tref title="IRI">IRIs</tref> in the FOAF vocabulary but also specifies that
+      the values of the <code>homepage</code> and <code>image</code> property
+      can be interpreted as an <tref>IRI</tref> (<code>"@type": "@id"</code>,
+      see section <a href="#iris"></a> for more details). This information gives the
+      data global context and allows developers to re-use each others data
+      without having to agree to how their data will interoperate on a
+      site-by-site basis. External JSON-LD context documents may contain extra
+      information located outside of the <code>@context</code> key, such as
+      documentation about the <tref title="term">terms</tref> declared in the
+      document. Information contained outside of the <code>@context</code> value
+      is ignored when the document is used as an external JSON-LD context document.</p>
+
+    <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
+      <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
+      be unambiguously machine-readable without requiring developers to drastically
+      change their workflow and provides an upgrade path for existing infrastructure
+      without breaking existing clients that rely on the <code>application/json</code>
+      media type.</p>
+
+    <p>In order to use an external context with an ordinary JSON document, an author
+      MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in
+      an HTTP Link Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
+      link relation. The referenced document MUST have a top-level <tref>JSON object</tref>.
+      The <code>@context</code> subtree within that object is added to the top-level
+      <tref>JSON object</tref> of the referencing document. If an <tref>array</tref>
+      is at the top-level of the referencing document and its items are
+      <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
+      subtree is added to all <tref>array</tref> items. All extra information located outside
+      of the <code>@context</code> subtree in the referenced document MUST be
+      discarded. Effectively this means that the <tref>active context</tref> is
+      initialized with the referenced external <tref>context</tref>.</p>
+
+    <p>The following example demonstrates the use of an external context with an
+      ordinary JSON document:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Referening a JSON-LD context from a JSON document via an HTTP Link Header">
+    <!--
+    GET /ordinary-json-document.json HTTP/1.1
+    Host: example.com
+    Accept: application/ld+json,application/json,*/*;q=0.1
+
+    ====================================
+
+    HTTP/1.0 200 OK
+    ...
+    Content-Type: ****application/json****
+    ****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
+
+    {
+      "name": "Markus Lanthaler",
+      "homepage": "http://www.markus-lanthaler.com/",
+      "depiction": "http://twitter.com/account/profile_image/markuslanthaler"
+    }
+    -->
+    </pre>
+
+    <p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
+      served with the <code>application/ld+json</code>
+      media type MUST have all context information, including references to external
+      contexts, within the body of the document. Contexts linked via a
+      <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
+      ignored for such documents.</p>
+
+    <p>As already mentioned, in <tref title="JSON-LD document">JSON-LD documents</tref>
+      it is also possible to embed <tref title="context">contexts</tref> directly
+      into the document. This has the advantage that
+      <tref title="JSON-LD document">JSON-LD documents</tref> can be processed
+      even in the absence of a connection to the Web.</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="In-line context definition">
+    <!--
+    {
+      ****"@context":
+      {
+        "name": "http://xmlns.com/foaf/0.1/name",
+        "image": {
+          "@id": "http://xmlns.com/foaf/0.1/img",
+          "@type": "@id"
+        },
+        "homepage": {
+          "@id": "http://xmlns.com/foaf/0.1/homepage",
+          "@type": "@id"
+        }
+      },****
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/",
+      "image": "http://twitter.com/account/profile_image/manusporny"
+    }
+    -->
+    </pre>
+
+    <p>Contexts may be used at any time a <tref>JSON object</tref> is defined
+      (except inside a context definition). In particular, a
+      <tref>JSON-LD document</tref> may define more than one context, as in the
+      following example:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Multiple separate contexts">
+    <!--
+    [
+      {
+        ****"@context": "http://example.org/contexts/person.jsonld",****
+        "name": "Manu Sporny",
+        "homepage": "http://manu.sporny.org/",
+        "depiction": "http://twitter.com/account/profile_image/manusporny"
+      },
+      {
+        ****"@context": "http://example.org/contexts/place.jsonld",****
+        "name": "The Empire State Building",
+        "description": "The Empire State Building is a 102-story landmark in New York City.",
+        "geo": {
+          "latitude": "40.75",
+          "longitude": "73.98"
+        }
+      }
+    ]
+    -->
+    </pre>
+
+    <p>This is useful when an author would like to use an existing context
+      and add application-specific terms to the existing context. Duplicate context
+      <tref title="term">terms</tref> are overridden using a last-defined-overrides
+      mechanism.</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Scoped contexts within node objects">
+    <!--
+    {
+      ****"@context":
+      {
+        "name": "http://example.com/person#name",
+        "details": "http://example.com/person#details"
+      },****
+      "****name****": "Markus Lanthaler",
+      ...
+      "details":
+      {
+        ****"@context": {
+          "name": "http://example.com/organization#name"
+        },****
+        "****name****": "Graz University of Technology"
+      }
+    }
+    -->
+    </pre>
+
+    <p>In the example above, the <code>name</code> prefix is overridden in the
+      more deeply nested <code>details</code> structure. Note that this is
+      rarely a good authoring practice and is typically used when there exist
+      legacy applications that depend on the specific structure of the
+      <tref>JSON object</tref>. If a <tref>term</tref> is re-defined within a
+      context, all previous rules associated with the previous definition are
+      removed. If that <tref>term</tref> is re-defined to <code>null</code>,
+      the <tref>term</tref> is effectively removed from the list of
+      <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
+
+    <p>Multiple contexts may be combined using an <tref>array</tref>, which is processed
+      in order. The set of contexts defined within a specific <tref>JSON object</tref> is
+      referred to as <tdef title="local context">local contexts</tdef>. Setting a
+      <tref>local context</tref> to <code>null</code> effectively resets the
+      <tref>active context</tref> to an empty context. The <tdef>active context</tdef>
+      refers to the accumulation of <tref title="local context">local contexts</tref>
+      that are in scope at a specific point within the document. The following example
+      specifies an external context and then layers an embedded context on top of
+      the external context:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Combining external and local contexts">
+    <!--
+    {
+      ****"@context": [
+        "http://json-ld.org/contexts/person.jsonld",
+        {
+          "pic": "http://xmlns.com/foaf/0.1/depiction"
+        }
+      ],****
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/",
+      ****"pic": "http://twitter.com/account/profile_image/manusporny"****
+    }
+    -->
+    </pre>
+
+    <p class="note">To ensure the best possible performance, it is a best practice to
+      put the <tref>context</tref> definition at the top of the JSON-LD document. If it isn't listed
+      first, processors have to save each key-value pair until the <tref>context</tref> is processed.
+      This creates a memory and complexity burden for certain types of
+      low-memory footprint JSON-LD processors.</p>
+  </section>
 
 <section>
 <h2>IRIs</h2>
@@ -1054,10 +1152,9 @@ advanced functionality in more detail.
   <h2>Compact IRIs</h2>
   <p>
     <tref title="term">Terms</tref> in <tref>Linked Data</tref> documents may draw from
-    a number of different <tref title="vocabulary">vocabularies</tref>.
-    At times, declaring every single <tref>term</tref> that a document uses can require the
-    developer to declare tens, if not hundreds of potential
-    <tref>vocabulary</tref> <tref title="term">terms</tref> that are used across an
+    a number of different vocabularies. At times, declaring every single <tref>term</tref>
+    that a document uses can require the developer to declare tens, if not hundreds of potential
+    vocabulary <tref title="term">terms</tref> that are used across an
     application. This is a concern for at least two reasons: the
     first is the cognitive load on the developer of remembering all of the
     <tref title="term">terms</tref>, and the second is the serialized size of the
@@ -1073,12 +1170,11 @@ advanced functionality in more detail.
     For example, the prefix <code>foaf</code> may be used as a short
     hand for the Friend-of-a-Friend vocabulary, which is identified using
     the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append
-    any of the FOAF <tref>vocabulary</tref> terms to the end of the prefix
-    to specify a short-hand version of the <tref>absolute IRI</tref> for the
-    <tref>vocabulary</tref> term. For example, <code>foaf:name</code> would
-    be expanded out to the IRI <code>http://xmlns.com/foaf/0.1/name</code>.
-    Instead of having to remember and type out the entire IRI, the developer
-    can instead use the prefix in their JSON-LD markup.
+    any of the FOAF vocabulary terms to the end of the prefix to specify a short-hand
+    version of the <tref>absolute IRI</tref> for the vocabulary term. For example,
+    <code>foaf:name</code> would be expanded out to the IRI
+    <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember and
+    type out the entire IRI, the developer can instead use the prefix in their JSON-LD markup.
   </p>
   <p>Terms are interpreted as <tref title="compact IRI">compact IRIs</tref> if they contain at least one
     colon and the first colon is not followed by two slashes (<code>//</code>, as in
@@ -1120,13 +1216,14 @@ advanced functionality in more detail.
 }
 -->
   </pre>
-  <p>
-    In this example, two different <tref title="vocabulary">vocabularies</tref>
-    are referred to using prefixes. Those prefixes are then used as type and
-    property values using the compact IRI <code>prefix:suffix</code> notation.
-  </p>
+
+  <p>In this example, two different vocabularies are referred to using prefixes.
+    Those prefixes are then used as type and property values using the compact
+    IRI <code>prefix:suffix</code> notation.</p>
+
   <p>It's also possible to use compact IRIs within the context as shown in the
     following example:</p>
+
   <pre class="example" data-transform="updateExample"
      title="Using vocabularies">
 <!--
@@ -1373,144 +1470,6 @@ may be utilized.</p>
   use the <code>property.language</code> pattern. For example, to access the
   Japanese version of the title, a developer would use the following code
   snippet: <code>obj.title.ja</code>.</p>
-</section>
-
-<section>
-<h2>Referencing Contexts from JSON Documents</h2>
-
-<p>Ordinary JSON documents can be transformed into JSON-LD documents by referencing
-to an external JSON-LD <tref>context</tref> in an HTTP Link Header. Doing this
-allows JSON to be unambiguously machine-readable without requiring developers to
-drastically change their workflow and provides an upgrade path for existing
-infrastructure without breaking existing clients that rely on the <code>application/json</code>
-media type.
-</p>
-
-<p>
-In order to use an external context with an ordinary JSON document, an author
-MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in an HTTP Link
-Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code> link relation.
-
-The referenced document MUST have a top-level <tref>node object</tref>. The
-<code>@context</code> subtree within that object is added to the top-level
-<tref>node object</tref> of the referencing document. If an <tref>array</tref> is at the top-level of the
-referencing document and its items are <tref title="node object">node objects</tref>, the <code>@context</code>
-subtree is added to all <tref>array</tref> items. All extra information located outside
-of the <code>@context</code> subtree in the referenced document MUST be
-discarded.
-</p>
-
-<p>The following example demonstrates the use of an external context with an
-ordinary JSON document:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Specifing context through HTTP header">
-<!--
-GET /ordinary-json-document.json HTTP/1.1
-Host: example.com
-Accept: application/ld+json,application/json,*/*;q=0.1
-
-====================================
-
-HTTP/1.0 200 OK
-...
-Content-Type: ****application/json****
-****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
-
-{
-  "name": "Markus Lanthaler",
-  "homepage": "http://www.markus-lanthaler.com/",
-  "depiction": "http://twitter.com/account/profile_image/markuslanthaler"
-}
--->
-</pre>
-
-<p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
-  served with the <code>application/ld+json</code>
-  media type MUST have all context information, including references to external
-  contexts, within the body of the document. Contexts linked via a
-  <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
-  ignored for such documents.</p>
-
-</section>
-
-<section>
-<h3>Expanded Term Definition</h3>
-
-<p>Within a <tref>context</tref> definition, <tref title="term">terms</tref> may be
-   defined using an <tref>expanded term definition</tref> to allow for additional information
-   associated with the <tref>term</tref> to be specified (see also
-   <a href="#type-coercion"></a> and
-   <a href="#sets-and-lists"></a>).</p>
-
-<p>Instead of using a string representation of an IRI, the IRI may be
-specified using a <tref>JSON object</tref> having an <code>@id</code> key,
-and a <tref>term</tref>, a <tref>compact IRI</tref>, or an
-<tref>absolute IRI</tref> as value.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded term definition">
-<!--
-{
-  "@context":
-  {
-    "foaf": ****{ "@id": "http://xmlns.com/foaf/0.1/" }****,
-    "name": ****{ "@id": "http://xmlns.com/foaf/0.1/name" }****,
-    "homepage": ****{ "@id": "foaf:homepage" }****,
-    "depiction": ****{ "@id": "foaf:depiction" }****
-  },
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "depiction": "http://twitter.com/account/profile_image/manusporny"
-}
--->
-</pre>
-
-<p>This allows additional information to be associated with the term. This
-  may be used for <a href="#type-coercion"></a>,
-  <a href="#sets-and-lists"></a>, or to associate language
-  information with a <tref>term</tref> as shown in the following example:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded term definition with language">
-<!--
-{
-  "@context": {
-    ...
-    "ex": "http://example.com/",
-    "@language": "ja",
-    "name": { "@id": "ex:name", ****"@language": null**** },
-    "occupation": { "@id": "ex:occupation" },
-    "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
-    "occupation_cs": { "@id": "ex:occupation", ****"@language": "cs"**** }
-  },
-  ****"name": "Yagyū Muneyoshi",
-  "occupation": "忍者",
-  "occupation_en": "Ninja",
-  "occupation_cs": "Nindža",****
-  ...
-}
--->
-</pre>
-
-<p>The example above would associate <em>忍者</em> with the specified default
-  language code <code>ja</code>, <em>Ninja</em> with the language code
-  <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
-  The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
-  associated with any language code since <code>@language</code> was reset to
-  <tref>null</tref> in the <tref>expanded term definition</tref>.</p>
-
-<p>Expanded terms may also be defined using <tref title="compact IRI">compact IRIs</tref> or
-  <tref title="absolute_IRI">absolute IRIs</tref> as keys. If the definition does not include an
-  <code>@id</code> key, the expanded IRI is determined by performing expansion of the key
-  within the current <tref>active context</tref>. This mechanism is mainly used to associate type or language
-  information with a <tref>compact IRI</tref> or an <tref>absolute IRI</tref>.</p>
-
-<p class="note">While it is possible to define a
-  <tref>compact IRI</tref>, or an absolute IRI to expand to some
-  other unrelated IRI (for example, <code>foaf:name</code> expanding to
-  <code>http://example.org/unrelated#species</code>),
-  such usage is strongly discouraged.</p>
 </section>
 
 <section>
