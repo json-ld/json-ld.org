@@ -470,11 +470,12 @@
 
     <p>Simply speaking, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>,
       i.e., <tref title="property">properties</tref> with associated values, to
-      <tref title="IRI">IRIs</tref>. Any valid <tref>string</tref> that is not a
-      reserved JSON-LD <tref>keyword</tref> can be used as a <tref>term</tref>. To
-      avoid forward-compatibility issues, <tref title="term">terms</tref> starting with
-      an&nbsp;<code>@</code> character are to be avoided as they might be used as
-      keywords in future versions of JSON-LD. Furthermore, the use of empty
+      <tref title="IRI">IRIs</tref>. <tref title="term">Terms</tref> are case sensitive
+      and any valid <tref>string</tref> that is not a reserved JSON-LD <tref>keyword</tref>
+      can be used as a <tref>term</tref>. To avoid forward-compatibility issues,
+      <tref title="term">terms</tref> starting with an&nbsp;<code>@</code> character are
+      to be avoided as they might be used as <tref title="keyword">keywords</tref>
+      in future versions of JSON-LD. Furthermore, the use of empty
       <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
       programming languages are able to handle empty property names.</p>
 
@@ -746,174 +747,195 @@
   </section>
 
 <section>
-<h2>IRIs</h2>
+  <h2>IRIs</h2>
 
-<p><tref title="IRI">IRIs</tref> (Internationalized Resource Identifiers
-  [[!RFC3987]]) are fundamental to <tref>Linked Data</tref> as that is how most
-  <tref title="node">nodes</tref> and <tref title="property">properties</tref>
-  are identified. In JSON-LD, IRIs may be represented as an
-  <tref>absolute IRI</tref> or a <tref>relative IRI</tref>. An
-  <tdef>absolute IRI</tdef> is defined in [[!RFC3987]] as containing a
-  <em>scheme</em> along with <em>path</em> and optional <em>query</em> and
-  <em>fragment</em> segments. A <tdef>relative IRI</tdef> is an IRI
-  that is relative to some other <tref>absolute IRI</tref>.
-  In JSON-LD all <tref title="relative IRI">relative IRIs</tref> are resolved
-  relative to the <tdef>base IRI</tdef> associated with the document, which
-  is typically the directory path containing the document.</p>
+  <p><tref title="IRI">IRIs</tref> (Internationalized Resource Identifiers
+    [[!RFC3987]]) are fundamental to <tref>Linked Data</tref> as that is how most
+    <tref title="node">nodes</tref> and <tref title="property">properties</tref>
+    are identified. In JSON-LD, IRIs may be represented as an
+    <tref>absolute IRI</tref> or a <tref>relative IRI</tref>. An
+    <tdef>absolute IRI</tdef> is defined in [[!RFC3987]] as containing a
+    <em>scheme</em> along with <em>path</em> and optional <em>query</em> and
+    <em>fragment</em> segments. A <tdef>relative IRI</tdef> is an IRI
+    that is relative to some other <tref>absolute IRI</tref>.
+    In JSON-LD all <tref title="relative IRI">relative IRIs</tref> are resolved
+    relative to the <tdef>base IRI</tdef> associated with the document, which
+    is typically the directory path containing the document.</p>
 
-<p>IRIs can be expressed directly in the key position like so:</p>
+  <p><tref title="absolute IRI">IRIs</tref> can be expressed directly in the key
+    position like so:</p>
 
-<pre class="example" data-transform="updateExample"
-     title="IRI as a key">
-<!--
-{
-...
-  "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
-...
-}
--->
-</pre>
-
-<p>In the example above, the key <code>http://xmlns.com/foaf/0.1/name</code> is interpreted
-  as an <tref>IRI</tref> because it contains a colon
-  (<code>:</code>) and the 'http' <tref>prefix</tref> does not exist in
-  the context.</p>
-
-<p>Term-to-IRI expansion occurs if the key matches a <tref>term</tref> defined
-  within the <tref>active context</tref>:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Term expansion from context definition">
-<!--
-{
-  "****@context****":
+  <pre class="example" data-transform="updateExample"
+       title="IRI as a key">
+  <!--
   {
-    "****name****": "****http://xmlns.com/foaf/0.1/name****"
-...
-  },
-  "****name****": "Manu Sporny",
-  "status": "trollin'",
-...
-}
--->
-</pre>
+  ...
+    "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
+  ...
+  }
+  -->
+  </pre>
 
-<p><tref title="term">Terms</tref> are case sensitive.</p>
+  <p>In the example above, the key <code>http://xmlns.com/foaf/0.1/name</code>
+    is interpreted as an <tref>absolute IRI</tref> because it contains a colon
+    (<code>:</code>) and the "http" <tref>prefix</tref> does not exist in
+    the context.</p>
 
-<p>JSON keys that do not expand to an absolute IRI are ignored, or removed
-in some cases, by the [[JSON-LD-API]]. However, JSON keys that do not include
-a mapping in the <tref>context</tref> are still considered valid expressions
-in JSON-LD documents - the keys just don't expand to unambiguous identifiers.</p>
+  <p>Term-to-IRI expansion occurs if the key matches a <tref>term</tref> defined
+    within the <tref>active context</tref>:</p>
 
-<p><tref title="prefix">Prefixes</tref> are expanded when the form of the value is a
-  <tref>compact IRI</tref> represented as a <code>prefix:suffix</code>
-  combination, and the prefix matches a <tref>term</tref> defined within the
-  <tref>active context</tref>:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Prefix expansion">
-<!--
-{
-  "****@context****":
+  <pre class="example" data-transform="updateExample"
+       title="Term expansion from context definition">
+  <!--
   {
-    "****foaf****": "****http://xmlns.com/foaf/0.1/****"
-...
-  },
-  "****foaf:name****": "Manu Sporny",
-...
-}
--->
-</pre>
-
-<p><code>foaf:name</code> above will automatically expand out to the IRI
-<code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#compact-iris"></a> for more details.</p>
-
-<p>At times, all properties and types may come from the same vocabulary. JSON-LD's
-  <code>@vocab</code> keyword allows an author to set a common prefix to be used
-  for all properties and types that do not match a <tref>term</tref> or a
-  <tref>compact IRI</tref> or an <tref>absolute IRI</tref> (i.e., the string does
-  not contain a colon).</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Using a common vocabulary prefix">
-<!--
-{
-  ****"@context": {
-    "@vocab": "http://xmlns.com/foaf/1.0/"
-  },****
-  "@type": ****"Person"****,
-  ****"name"****: "Manu Sporny",
-}
--->
-</pre>
-
-<p>An <tref>IRI</tref> is generated when a <tref>JSON object</tref> is used in
-  the value position and contains an <code>@id</code> keyword:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded IRI definition">
-<!--
-{
-...
-  "homepage": { "****@id****": "http://manu.sporny.org" }
-...
-}
--->
-</pre>
-
-<p>Specifying a <tref>JSON object</tref> with an
-  <code>@id</code> key is used to identify that <tref>node</tref> using an
-  <tref>IRI</tref>. This facility may also be used to link to another
-  <tref>node object</tref> using a mechanism called
-  <tref>embedding</tref>, which is covered in the section titled
-  <a href="#embedding"></a>.</p>
-
-<p>If type <tref>coercion</tref> rules are specified in the <code>@context</code> for
-a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Type coercion">
-<!--
-{****
-  "@context":
-  {
-    ...
-    "homepage":
+    "****@context****":
     {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    }
-    ...
-  }****
-...
-  "homepage": "http://manu.sporny.org/",
-...
-}
--->
-</pre>
+      "****name****": "****http://xmlns.com/foaf/0.1/name****"
+  ...
+    },
+    "****name****": "Manu Sporny",
+    "status": "trollin'",
+  ...
+  }
+  -->
+  </pre>
 
-<p>In the example above, even though the value
-<code>http://manu.sporny.org/</code> is expressed as a JSON
-<tref>string</tref>, the type <tref>coercion</tref> rules will transform
-the value into an IRI when generating the <tref>JSON-LD graph</tref>.</p>
+  <p>JSON keys that do not expand to an absolute IRI are ignored, or removed
+    in some cases, by the [[JSON-LD-API]]. However, JSON keys that do not include
+    a mapping in the <tref>context</tref> are still considered valid expressions
+    in JSON-LD documents—the keys just don't expand to unambiguous identifiers.</p>
 
-In summary, <tref title="IRI">IRIs</tref> can be expressed in a variety of
-different ways in JSON-LD:</p>
+  <p><tref title="prefix">Prefixes</tref> are expanded when the form of the value
+    is a <tref>compact IRI</tref> represented as a <code>prefix:suffix</code>
+    combination, and the prefix matches a <tref>term</tref> defined within the
+    <tref>active context</tref>:</p>
 
-<ol>
-  <li><tref>JSON object</tref> keys that have a <tref>term</tref> mapping in
-    the <tref>active context</tref> expand to an <tref>IRI</tref>
-    (only applies outside of the <tref>context definition</tref>).</li>
-  <li>If there is a <code>@vocab</code> mapping in the active context,
-    <tref>JSON object</tref> keys without an explicit mapping
-    in the <tref>active context</tref> are expanded to an <tref>IRI</tref>.</li>
-  <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
-    <code>@id</code> or <code>@type</code>.</li>
-  <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value of any key for which there
-    are <tref>coercion</tref> rules that contain a <code>@type</code> key that is
-    set to a value of <code>@id</code>.</li>
-</ol>
+  <pre class="example" data-transform="updateExample"
+       title="Prefix expansion">
+  <!--
+  {
+    "****@context****":
+    {
+      "****foaf****": "****http://xmlns.com/foaf/0.1/****"
+  ...
+    },
+    "****foaf:name****": "Manu Sporny",
+  ...
+  }
+  -->
+  </pre>
 
+  <p><code>foaf:name</code> above will automatically expand out to the IRI
+    <code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#compact-iris"></a>
+    for more details.</p>
+
+  <p>At times, all properties and types may come from the same vocabulary. JSON-LD's
+    <code>@vocab</code> keyword allows an author to set a common prefix to be used
+    for all properties and types that do not match a <tref>term</tref> or are neither
+    a <tref>compact IRI</tref> nor an <tref>absolute IRI</tref> (i.e., they do
+    not contain a colon).</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Using a common vocabulary prefix">
+  <!--
+  {
+    ****"@context": {
+      "@vocab": "http://xmlns.com/foaf/1.0/"
+    },****
+    "@type": ****"Person"****,
+    ****"name"****: "Manu Sporny",
+  }
+  -->
+  </pre>
+
+  <p>If <code>@vocab</code> is used but certain keys in an
+    <tref title="JSON object">object</tref> should not be expanded using
+    the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
+    to <tref>null</tref> in the <tref>context</tref>. For instance, in the
+    example below the <code>databaseId</code> member would be ignored by a
+    JSON-LD processor.</p></p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Using the null keyword to ignore data">
+  <!--
+  {
+    "@context":
+    {
+       "@vocab": "http://schema.org/",
+       ****"databaseId": null****
+    },
+    "name": "Manu Sporny",
+    ****"databaseId": "23987520"****
+  }
+  -->
+  </pre>
+
+  <p>An <tref>IRI</tref> is generated when a <tref>JSON object</tref> is used in
+    the value position and contains an <code>@id</code> keyword:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Expanded IRI definition">
+  <!--
+  {
+  ...
+    "homepage": { "****@id****": "http://manu.sporny.org" }
+  ...
+  }
+  -->
+  </pre>
+
+  <p>Specifying a <tref>JSON object</tref> with an
+    <code>@id</code> key is used to identify that <tref>node</tref> using an
+    <tref>IRI</tref>. This facility may also be used to link to another
+    <tref>node object</tref> using a mechanism called
+    <tref>embedding</tref>, which is covered in the section titled
+    <a href="#embedding"></a>.</p>
+
+  <p>If type <tref>coercion</tref> rules are specified in the <code>@context</code> for
+  a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Type coercion">
+  <!--
+  {****
+    "@context":
+    {
+      ...
+      "homepage":
+      {
+        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@type": "@id"
+      }
+      ...
+    }****
+  ...
+    "homepage": "http://manu.sporny.org/",
+  ...
+  }
+  -->
+  </pre>
+
+  <p>In the example above, even though the value <code>http://manu.sporny.org/</code>
+    is expressed as a JSON <tref>string</tref>, the type <tref>coercion</tref>
+    rules will transform the value into an IRI when generating the
+    <tref>JSON-LD graph</tref>.</p>
+
+  <p>In summary, <tref title="IRI">IRIs</tref> can be expressed in a variety of
+    different ways in JSON-LD:</p>
+
+  <ol>
+    <li><tref>JSON object</tref> keys that have a <tref>term</tref> mapping in
+      the <tref>active context</tref> expand to an <tref>IRI</tref>
+      (only applies outside of the <tref>context definition</tref>).</li>
+    <li>If there is a <code>@vocab</code> mapping in the active context,
+      <tref>JSON object</tref> keys without an explicit mapping
+      in the <tref>active context</tref> are expanded to an <tref>IRI</tref>.</li>
+    <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
+      <code>@id</code> or <code>@type</code>.</li>
+    <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value of any key for which there
+      are <tref>coercion</tref> rules that contain a <code>@type</code> key that is
+      set to a value of <code>@id</code>.</li>
+  </ol>
 </section>
 
 <section>
@@ -2343,41 +2365,6 @@ are looked up in a <tref>context</tref> using direct string comparison before th
       </tr>
     </tbody>
   </table>
-</section>
-
-<section>
-  <h2>Explicitly Ignoring Data</h2>
-
-  <p>At times, it becomes necessary to explicitly ignore data expressed in JSON
-    documents because it has no semantic meaning. For example, when the
-    <code>@vocab</code> keyword is used, every key in a JSON-LD object is
-    appended to the vocabulary <tref>IRI</tref>. The author may not want that
-    behavior to apply to every key, and it may be easier to specify just the keys
-    that they want the JSON-LD processor to ignore. For this purpose, an author
-    may associate the <tref>null</tref> keyword with a <tref>term</tref> in the
-    JSON-LD Context.</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Using the null keyword to ignore data">
-  <!--
-  {
-    "@context":
-    {
-       "@vocab": "http://schema.org/",
-       ****"databaseId": null****
-    },
-    "name": "Manu Sporny",
-    "description": "That guy",
-    "gender": "Male",
-    ****"databaseId": "23987520"****
-  }
-  -->
-  </pre>
-
-  <p>In the example above, the author has used <code>@vocab</code> to expand all
-    properties to <tref title="IRI">IRIs</tref> but has expressed that the
-    <code>databaseId</code> value should not be processed by the JSON-LD processor
-    by associating it with the <tref>null</tref> keyword in the JSON-LD Context.</p>
 </section>
 
 <section>
