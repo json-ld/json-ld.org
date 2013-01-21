@@ -1036,6 +1036,28 @@ pattern:</p>
     code with the two <tref title="string">strings</tref> <em>花澄</em> and <em>科学者</em>.
     Languages codes are defined in [[!BCP47]].</p>
 
+  <p>To clear the default language for a subtree, <code>@language</code> can
+    be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Clearing default language">
+  <!--
+  {
+    "@context": {
+      ...
+      "@language": "ja"
+    },
+    "name": "花澄",
+    "details": {
+  ****    "@context": {
+        "@language": null
+      }****,
+      "occupation": "Ninja"
+    }
+  }
+  -->
+  </pre>
+
   <p>Second, it is possible to associate a language with a specific <tref>term</tref>
     using an <tref>expanded term definition</tref>:</p>
 
@@ -1068,7 +1090,48 @@ pattern:</p>
     associated with any language code since <code>@language</code> was reset to
     <tref>null</tref> in the <tref>expanded term definition</tref>.</p>
 
-  <p>Second, it is possible to override the default language by using an <tref>expanded value</tref>:</p>
+  <p>Please note that language associations can only be applied to plain
+    literal <tref title="string">strings</tref>. That is,
+    <tref title="typed value">typed values</tref> or values that are subject
+    to <a href="#type-coercion"></a> cannot be language tagged.</p>
+
+  <p>Just as in the example above, systems often need to express the value of a
+    property in multiple languages. Typically, such systems also try to ensure that
+    developers have a programmatically easy way to navigate the data structures for
+    the language-specific data. In this case, <tref title="language map">language maps</tref>
+    may be utilized.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Language map expressing a property in three languages">
+  <!--
+  {
+    "@context":
+    {
+      ...
+      "occupation": { "@id": "ex:occupation", ****"@container": "@language"**** }
+    },
+    "name": "Yagyū Muneyoshi",
+    "occupation":
+    ****{
+      "ja": "忍者",
+      "en": "Ninja",
+      "cs": "Nindža"
+    }****
+    ...
+  }
+  -->
+  </pre>
+
+  <p>The example above expresses exactly the same information as the previous
+    example but consolidates all values in a single property. To access the
+    value in a specific language in a programming language supporting dot-notation
+    accessors for object properties, a developer may use the
+    <code>property.language</code> pattern. For example, to access the occupation
+    in English, a developer would use the following code snippet:
+    <code>obj.occupation.en</code>.</p>
+
+  <p>Third, it is possible to override the default language by using an
+    <tref>expanded value</tref>:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Overriding default language using an expanded value">
@@ -1087,9 +1150,9 @@ pattern:</p>
   -->
   </pre>
 
-  <p>Third, it is possible to override the default language or specify a plain
-  value by omitting the <code>@language</code> tag or setting it to
-  <code>null</code> when expressing the <tref>expanded value</tref>:</p>
+  <p>This makes it possible to specify a plain string by omitting the
+    <code>@language</code> tag or setting it to <code>null</code> when expressing
+    it using an <tref>expanded value</tref>:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Removing language information using an expanded value">
@@ -1111,32 +1174,6 @@ pattern:</p>
   -->
   </pre>
 
-  <p>Please note that language associations can only be applied to plain
-    literal <tref title="string">strings</tref>. That is,
-    <tref title="typed value">typed values</tref> or values that are subject
-    to <a href="#type-coercion"></a> cannot be language tagged.</p>
-
-  <p>To clear the default language for a subtree, <code>@language</code> can
-  be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Clearing default language">
-  <!--
-  {
-    "@context": {
-      ...
-      "@language": "ja"
-    },
-    "name": "花澄",
-    "details": {
-  ****    "@context": {
-        "@language": null
-      }****,
-      "occupation": "Ninja"
-    }
-  }
-  -->
-  </pre>
 </section>
 </section>
 
@@ -1358,121 +1395,6 @@ in the body of a JSON-LD document:</p>
   Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
   <tref>node type</tref>.</p>
 
-</section>
-
-<section>
-<h2>Language-tagged Strings</h2>
-
-<p>
-  A string with an associated language, also known as a
-  <tref>language-tagged string</tref>, is indicated by associating a string with
-  a language code as defined in [[!BCP47]]. Language-tagged strings may be
-  expressed in JSON-LD in four ways:
-</p>
-
-<ol>
-  <li>By defining a global language using the <code>@language</code>
-    <tref>keyword</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing the <code>@language</code> <tref>keyword</tref> when defining
-    a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing an <tref>expanded language-tagged string</tref>.</li>
-  <li>By utilizing a <tref>language map</tref>, provided the underlying
-    <code>term</code> is defined with a <code>@container</code>
-    <tref>keyword</tref> whose value is <code>@language</code> within
-    a <code>@context</code> section.</li>
-</ol>
-
-<p>The first example uses the <code>@language</code> keyword to associate a
-type with a particular <tref>term</tref> in the <code>@context</code>:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded term definition with language coercion">
-<!--
-{
-  ****"@context":
-  {
-    "title":
-    {
-      "@id": "http://purl.org/dc/terms/title",
-      "@language": "en"
-    }
-  },****
-...
-  "title": "JSON-LD Syntax",
-...
-}
--->
-</pre>
-
-<p>The <em>modified</em> key's value above is automatically
-  language coerced to a English value because of the information specified in
-  the <code>@context</code>.</p>
-
-<p>The second example uses the expanded form of setting the language information
-in the body of a JSON-LD document:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded value with language">
-<!--
-{
-  "@context":
-  {
-    "title":
-    {
-      "@id": "http://purl.org/dc/terms/title"
-    }
-  },
-...
-  "title":
-  ****{
-    "@value": "JSON-LD Syntax",
-    "@language": "en"
-  }****
-...
-}
--->
-</pre>
-
-<p>Both examples above would generate the value <code>JSON-LD Syntax</code>
-  tagged with the language <code>en</code>; which is the [[!BCP47]] code
-  for the English language.</p>
-
-<p>Systems that support multiple languages often need to express data values in
-each language. Typically, such systems also try to ensure that developers have
-a programatically easy way to navigate the datastructures for the
-language-specific data. In this case, <tref title="language map">language maps</tref>
-may be utilized.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Language map expressing a property in three languages">
-<!--
-{
-  "@context":
-  {
-    "title":
-    {
-      "@id": "http://purl.org/dc/terms/title",
-      ****"@container": "@language"****
-    }
-  },
-...
-  "title":
-  ****{
-    "en": "JSON-LD Syntax",
-    "ru": "JSON-LD Синтаксис",
-    "ja": "JSON-LDの構文"
-  }****
-...
-}
--->
-</pre>
-
-<p>In the example above, the title is expressed in three languages; English,
-  Russian, and Japanese. To access the data above in a programming language
-  supporting dot-notation accessors for object properties, a developer may
-  use the <code>property.language</code> pattern. For example, to access the
-  Japanese version of the title, a developer would use the following code
-  snippet: <code>obj.title.ja</code>.</p>
 </section>
 
 <section>
