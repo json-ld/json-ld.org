@@ -50,6 +50,8 @@ var jsonld = {};
  *          [strict] use strict mode (default: true).
  *          [optimize] true to optimize the compaction (default: false).
  *          [graph] true to always output a top-level graph (default: false).
+ *          [skipExpansion] true to assume the input is expanded and skip
+ *            expansion, false not to, defaults to false.
  *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, compacted, ctx) called once the operation completes.
  */
@@ -81,12 +83,22 @@ jsonld.compact = function(input, ctx) {
   if(!('graph' in options)) {
     options.graph = false;
   }
+  if(!('skipExpansion' in options)) {
+    options.skipExpansion = false;
+  }
   if(!('resolver' in options)) {
     options.resolver = jsonld.urlResolver;
   }
 
+  var expand = function(input, options, callback) {
+    if(options.skipExpansion) {
+      return callback(null, input);
+    }
+    jsonld.expand(input, options, callback);
+  };
+
   // expand input then do compaction
-  jsonld.expand(input, options, function(err, expanded) {
+  expand(input, options, function(err, expanded) {
     if(err) {
       return callback(new JsonLdError(
         'Could not expand input before compaction.',
@@ -109,9 +121,8 @@ jsonld.compact = function(input, ctx) {
         }
 
         // do compaction
-        input = expanded;
         var compacted = new Processor().compact(
-          activeCtx, null, input, options);
+          activeCtx, null, expanded, options);
         cleanup(null, compacted, activeCtx, options);
       }
       catch(ex) {
@@ -316,8 +327,9 @@ jsonld.flatten = function(input, context, options, callback) {
       return callback(null, flattened);
     }
 
-    // compact result (force @graph option to true)
+    // compact result (force @graph option to true, skip expansion)
     options.graph = true;
+    options.skipExpansion = true;
     jsonld.compact(flattened, ctx, options, function(err, compacted, ctx) {
       if(err) {
         return callback(new JsonLdError(
@@ -400,8 +412,9 @@ jsonld.frame = function(input, frame) {
         return callback(ex);
       }
 
-      // compact result (force @graph option to true)
+      // compact result (force @graph option to true, skip expansion)
       opts.graph = true;
+      opts.skipExpansion = true;
       jsonld.compact(framed, ctx, opts, function(err, compacted, ctx) {
         if(err) {
           return callback(new JsonLdError(
@@ -462,8 +475,9 @@ jsonld.objectify = function(input, ctx) {
       return callback(ex);
     }
 
-    // compact result (force @graph option to true)
+    // compact result (force @graph option to true, skip expansion)
     options.graph = true;
+    options.skipExpansion = true;
     jsonld.compact(flattened, ctx, options, function(err, compacted, ctx) {
       if(err) {
         return callback(new JsonLdError(
@@ -796,6 +810,47 @@ jsonld.ContextCache.prototype.set = function(url, ctx) {
   }
   this.order.push(url);
   this.cache[url] = {ctx: ctx, expires: (+new Date() + this.expires)};
+};
+
+/**
+ * Creates an active context cache.
+ *
+ * @param size the maximum size of the cache.
+ */
+jsonld.ActiveContextCache = function(size) {
+  this.order = [];
+  this.cache = {};
+  this.size = size || 100;
+};
+jsonld.ActiveContextCache.prototype.get = function(activeCtx, localCtx) {
+  var key1 = JSON.stringify(activeCtx);
+  var key2 = JSON.stringify(localCtx);
+  var level1 = this.cache[key1];
+  if(level1 && key2 in level1) {
+    return level1[key2];
+  }
+  return null;
+};
+jsonld.ActiveContextCache.prototype.set = function(
+  activeCtx, localCtx, result) {
+  if(this.order.length === this.size) {
+    var entry = this.order.shift();
+    delete this.cache[entry.activeCtx][entry.localCtx];
+  }
+  var key1 = JSON.stringify(activeCtx);
+  var key2 = JSON.stringify(localCtx);
+  this.order.push({activeCtx: key1, localCtx: key2});
+  if(!(key1 in this.cache)) {
+    this.cache[key1] = {};
+  }
+  this.cache[key1][key2] = result;
+};
+
+/**
+ * Default JSON-LD cache.
+ */
+jsonld.cache = {
+  activeCtx: new jsonld.ActiveContextCache()
 };
 
 /**
@@ -2293,8 +2348,18 @@ Processor.prototype.toRDF = function(
  * @return the new active context.
  */
 Processor.prototype.processContext = function(activeCtx, localCtx, options) {
+  var rval = null;
+
+  // get context from cache if available
+  if(jsonld.cache.activeCtx) {
+    rval = jsonld.cache.activeCtx.get(activeCtx, localCtx);
+    if(rval) {
+      return rval;
+    }
+  }
+
   // initialize the resulting context
-  var rval = activeCtx.clone();
+  rval = activeCtx.clone();
 
   // normalize local context to an array of @context objects
   if(_isObject(localCtx) && '@context' in localCtx &&
@@ -2374,6 +2439,11 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
     for(var key in ctx) {
       _defineContextMapping(rval, ctx, key, '@vocab', defined);
     }
+  }
+
+  // cache result
+  if(jsonld.cache.activeCtx) {
+    jsonld.cache.activeCtx.set(activeCtx, localCtx, rval);
   }
 
   return rval;
@@ -3295,7 +3365,10 @@ function _frame(state, subjects, frame, parent, property) {
           if('@default' in next) {
             preserve = _clone(next['@default']);
           }
-          output[prop] = {'@preserve': preserve};
+          if(!_isArray(preserve)) {
+            preserve = [preserve];
+          }
+          output[prop] = [{'@preserve': [preserve]}];
         }
       }
 
@@ -4420,35 +4493,27 @@ function _getInitialContext(options) {
     },
     namer: namer,
     inverse: null,
-    getInverse: function() {
-      if(this.inverse) {
-        return this.inverse;
-      }
-      this.inverse = _createInverseContext(this);
-      return this.inverse;
-    },
-    clone: function() {
-      var child = {};
-      child['@base'] = this['@base'];
-      child.keywords = _clone(this.keywords);
-      child.mappings = _clone(this.mappings);
-      child.namer = this.namer;
-      child.clone = this.clone;
-      child.inverse = null;
-      child.getInverse = this.getInverse;
-      return child;
-    }
+    getInverse: _createInverseContext,
+    clone: _cloneActiveContext
   };
 
   /**
-   * Generates an inverse context for use in the compaction algorithm.
+   * Generates an inverse context for use in the compaction algorithm, if
+   * not already generated for the given active context.
    *
    * @param activeCtx the active context to create the inverse context from.
    *
    * @return the inverse context.
    */
   function _createInverseContext(activeCtx) {
-    var inverse = {};
+    if(!activeCtx) {
+      activeCtx = this;
+    }
+    // lazily create inverse
+    if(activeCtx.inverse) {
+      return activeCtx.inverse;
+    }
+    var inverse = activeCtx.inverse = {};
 
     // handle default language
     var defaultLanguage = activeCtx['@language'] || '@none';
@@ -4558,6 +4623,23 @@ function _getInitialContext(options) {
         e.term = term;
       }
     }
+  }
+
+  /**
+   * Clones an active context, creating a child active context.
+   *
+   * @return a clone (child) of the active context.
+   */
+  function _cloneActiveContext() {
+    var child = {};
+    child['@base'] = this['@base'];
+    child.keywords = _clone(this.keywords);
+    child.mappings = _clone(this.mappings);
+    child.namer = this.namer;
+    child.clone = this.clone;
+    child.inverse = null;
+    child.getInverse = this.getInverse;
+    return child;
   }
 }
 
