@@ -402,23 +402,15 @@
   {
     "name": "Manu Sporny",
     "homepage": "http://manu.sporny.org/",
-    "image": "http://twitter.com/account/profile_image/manusporny",
-    "knows": [
-      {
-        "name": "Markus Lanthaler"
-      },
-      {
-        "name": "Gregg Kellogg"
-      }
-    ]
+    "image": "http://manu.sporny.org/images/manu.png"
   }
   -->
   </pre>
 
   <p>It's obvious for humans that the data is about a person whose name is "Manu Sporny"
     and that the <code>homepage</code> property contains the URL of that person's homepage.
-    On the other hand, a machine doesn't have such an intuitive understanding and sometimes
-    even for humans it is difficult to resolve ambiguities in such representations. This problem
+    A machine doesn't have such an intuitive understanding and sometimes,
+    even for humans, it is difficult to resolve ambiguities in such representations. This problem
     can be solved by using unambiguous identifiers to denote the different concepts instead of
     <tref title="term">terms</tref> such as "name", "homepage", etc.</p>
 
@@ -428,36 +420,28 @@
     be of use to other developers and that it is useful to give them an unambiguous identifier.
     That is, it is useful for <tref title="term">terms</tref> to expand to <tref title="IRI">IRIs</tref>
     so that developers don't accidentally step on each other's terms. Furthermore, developers and
-    machines, are able to use this <tref>IRI</tref> (by using a web browser, for instance) to go to
+    machines are able to use this <tref>IRI</tref> (by using a web browser, for instance) to go to
     the term and get a definition of what the term means.</p>
 
-  <p>Leveraging the well-known <a href="http://xmlns.com/foaf/spec/">FOAF vocabulary</a>,
-    the example above could thus be unambiguously expressed as follows:</p>
+  <p>Leveraging the well-known <a href="http://schema.org/">schema.org vocabulary</a>,
+    the example above could be unambiguously expressed as follows:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Sample JSON-LD document using full IRIs instead of terms">
   <!--
   {
-    "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
-    "****http://xmlns.com/foaf/0.1/homepage****": { "****@id****": "http://manu.sporny.org/" },
-    "****http://xmlns.com/foaf/0.1/img****": { "****@id****": "http://twitter.com/account/profile_image/manusporny" },
-    "****http://xmlns.com/foaf/0.1/knows****": [
-      {
-        "****http://xmlns.com/foaf/0.1/name****": "Markus Lanthaler"
-      },
-      {
-        "****http://xmlns.com/foaf/0.1/name****": "Gregg Kellogg"
-      }
-    ]
+    "****http://schema.org/name****": "Manu Sporny",
+    "****http://schema.org/url****": ****{ "@id": ****"http://manu.sporny.org/" ****}****,
+    "****http://schema.org/image****": ****{ "@id": ****"http://manu.sporny.org/images/manu.png" ****}****
   }
   -->
   </pre>
 
-  <p>Every property is unambiguously identified by an <tref>IRI</tref> and all values
+  <p>In the example above, every property is unambiguously identified by an <tref>IRI</tref> and all values
     representing <tref title="IRI">IRIs</tref> are explicitly marked as such by the
-    <code>@id</code> <tref>keyword</tref>. While this is a completely valid JSON-LD
-    document that is unambiguous and very specific, it also very verbose and difficult
-    to work with for human users. To address this issue, JSON-LD introduces the notion
+    <code>@id</code> <tref>keyword</tref>. While this is a valid JSON-LD
+    document that is very specific about its data, the document is also overly verbose and difficult
+    to work with for human developers. To address this issue, JSON-LD introduces the notion
     of a <tref>context</tref> as described in the next section.</p>
 
   <section>
@@ -467,12 +451,7 @@
       i.e., <tref title="property">properties</tref> with associated values, to
       <tref title="IRI">IRIs</tref>. <tref title="term">Terms</tref> are case sensitive
       and any valid <tref>string</tref> that is not a reserved JSON-LD <tref>keyword</tref>
-      can be used as a <tref>term</tref>. To avoid forward-compatibility issues,
-      <tref title="term">terms</tref> starting with an&nbsp;<code>@</code> character are
-      to be avoided as they might be used as <tref title="keyword">keywords</tref>
-      in future versions of JSON-LD. Furthermore, the use of empty
-      <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
-      programming languages are able to handle empty property names.</p>
+      can be used as a <tref>term</tref>.</p>
 
     <p>For the sample document in the previous section, a <tref>context</tref> would
       look something like this:</p>
@@ -481,47 +460,42 @@
          title="Context for the sample document in the previous section">
     <!--
     {
-      "****@context****":
+      ****"@context":
       {
-        "name": "http://xmlns.com/foaf/0.1/name",
+        "name": "http://schema.org/name",
         "image": {
-          "@id": "http://xmlns.com/foaf/0.1/img",
+          "@id": "http://schema.org/image",
           "@type": "@id"
         },
         "homepage": {
-          "@id": "http://xmlns.com/foaf/0.1/homepage",
+          "@id": "http://schema.org/url",
           "@type": "@id"
-        },
-        "knows": "http://xmlns.com/foaf/0.1/knows"
-      }
+        }
+      }****
     }
     -->
     </pre>
 
     <p>As the <tref>context</tref> above shows, the value of a <tdef>term definition</tdef> can
       either be a simple string, mapping the <tref>term</tref> to an <tref>IRI</tref>,
-      or a <tref>JSON object</tref> which allows additional information to be associated
-      with the term (making it an <tref>expanded term definition</tref>).</p>
+      or a <tref>JSON object</tref>.</p>
 
-    <p><tdef title="expanded term definition">Expanded term definitions</tdef> may
+    <p>When a <tref>JSON object</tref> is
+      associated with a term, it is called an <tref>expanded term definition</tref>. 
+      <tdef title="expanded term definition">Expanded term definitions</tdef> may
       be used to associate <a href="#type-coercion">type</a> or
-      <a href="#string-internationalization">language information</a> (as in the
-      example above which specifies that the  values of <code>image</code> and
-      <code>homepage</code> are <tref title="IRI">IRIs</tref>) with a term.
-      Furthermore, they allow terms to be used for <a href="#data-annotations">annotation maps</a>
+      <a href="#string-internationalization">language information</a> with a 
+      term.
+      The example above specifies that the values of <code>image</code> and
+      <code>homepage</code> terms are <tref title="IRI">IRIs</tref>.
+      They also allow terms to be used for <a href="#data-annotations">annotation maps</a>
       and to specify whether <tref title="array">array</tref> values are to be
       interpreted as <a href="#sets-and-lists">sets or lists</a>.
       <tref title="expanded term definition">Expanded term definitions</tref> may
       be defined using <tref title="absolute_iri">absolute</tref> or
-      <tref title="compact_iri">compact IRIs</tref> as keys. This mechanism is
+      <tref title="compact_iri">compact IRIs</tref> as keys, which is
       mainly used to associate type or language information with an
       <tref title="absolute_iri">absolute</tref> or <tref>compact IRI</tref>.</p>
-
-    <p class="note">While it is possible to define a <tref>compact IRI</tref>, or
-      an <tref>absolute IRI</tref> to expand to some other unrelated <tref>IRI</tref>
-      (for example, <code>foaf:name</code> expanding to
-      <code>http://example.org/unrelated#species</code>), such usage is strongly
-      discouraged.</p>
 
     <p><tref title="context">Contexts</tref> can either be directly embedded
       into the document or be referenced. Assuming the context document in the previous
@@ -536,23 +510,15 @@
       ****"@context": "http://json-ld.org/contexts/person.jsonld",****
       "name": "Manu Sporny",
       "homepage": "http://manu.sporny.org/",
-      "image": "http://twitter.com/account/profile_image/manusporny",
-      "knows": [
-        {
-          "name": "Markus Lanthaler"
-        },
-        {
-          "name": "Gregg Kellogg"
-        }
-      ]
+      "image": "http://manu.sporny.org/images/manu.png"
     }
     -->
     </pre>
 
     <p>The referenced context not only specifies how the terms map to
-      <tref title="IRI">IRIs</tref> in the FOAF vocabulary but also specifies that
+      <tref title="IRI">IRIs</tref> in the Schema.org vocabulary but also specifies that
       the values of the <code>homepage</code> and <code>image</code> property
-      can be interpreted as an <tref>IRI</tref> (<code>"@type": "@id"</code>,
+      can be interpreted as an <tref>IRI</tref> (e.g. <code>"@type": "@id"</code>,
       see section <a href="#iris"></a> for more details). This information gives the
       data global context and allows developers to re-use each other's data
       without having to agree to how their data will interoperate on a
@@ -572,170 +538,22 @@
     {
       ****"@context":
       {
-        "name": "http://xmlns.com/foaf/0.1/name",
+        "name": "http://schema.org/name",
         "image": {
-          "@id": "http://xmlns.com/foaf/0.1/img",
+          "@id": "http://schema.org/image",
           "@type": "@id"
         },
         "homepage": {
-          "@id": "http://xmlns.com/foaf/0.1/homepage",
+          "@id": "http://schema.org/url",
           "@type": "@id"
         }
       },****
       "name": "Manu Sporny",
       "homepage": "http://manu.sporny.org/",
-      "image": "http://twitter.com/account/profile_image/manusporny"
+      "image": "http://manu.sporny.org/images/manu.png"
     }
     -->
     </pre>
-
-    <p>Contexts may be used at any time a <tref>JSON object</tref> is defined
-      (except inside a context definition). In particular, a
-      <tref>JSON-LD document</tref> may use more than one context:</p>
-
-    <pre class="example" data-transform="updateExample"
-         title="Using multiple contexts">
-    <!--
-    [
-      {
-        ****"@context": "http://example.org/contexts/person.jsonld",****
-        "name": "Manu Sporny",
-        "homepage": "http://manu.sporny.org/",
-        "depiction": "http://twitter.com/account/profile_image/manusporny"
-      },
-      {
-        ****"@context": "http://example.org/contexts/place.jsonld",****
-        "name": "The Empire State Building",
-        "description": "The Empire State Building is a 102-story landmark in New York City.",
-        "geo": {
-          "latitude": "40.75",
-          "longitude": "73.98"
-        }
-      }
-    ]
-    -->
-    </pre>
-
-    <p>Duplicate context <tref title="term">terms</tref> are overridden using a
-      last-defined-wins mechanism.</p>
-
-    <pre class="example" data-transform="updateExample"
-         title="Scoped contexts within node objects">
-    <!--
-    {
-      ****"@context":
-      {
-        "name": "http://example.com/person#name",
-        "details": "http://example.com/person#details"
-      },****
-      "****name****": "Markus Lanthaler",
-      ...
-      "details":
-      {
-        ****"@context": {
-          "name": "http://example.com/organization#name"
-        },****
-        "****name****": "Graz University of Technology"
-      }
-    }
-    -->
-    </pre>
-
-    <p>In the example above, the <code>name</code> <tref>term</tref> is overridden
-      in the more deeply nested <code>details</code> structure. Note that this is
-      rarely a good authoring practice and is typically used when working with
-      legacy applications that depend on a specific structure of the
-      <tref>JSON object</tref>. If a <tref>term</tref> is redefined within a
-      context, all previous rules associated with the previous definition are
-      removed. If a <tref>term</tref> is redefined to <code>null</code>,
-      the <tref>term</tref> is effectively removed from the list of
-      <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
-
-    <p>Multiple contexts may be combined using an <tref>array</tref>, which is processed
-      in order. The set of contexts defined within a specific <tref>JSON object</tref> are
-      referred to as <tdef title="local context">local contexts</tdef>. The
-      <tdef>active context</tdef> refers to the accumulation of
-      <tref title="local context">local contexts</tref> that are in scope at a
-      specific point within the document. Setting a <tref>local context</tref>
-      to <code>null</code> effectively resets the <tref>active context</tref>
-      to an empty context. The following example specifies an external context
-      and then layers an embedded context on top of the external context:</p>
-
-    <pre class="example" data-transform="updateExample"
-         title="Combining external and local contexts">
-    <!--
-    {
-      ****"@context": [
-        "http://json-ld.org/contexts/person.jsonld",
-        {
-          "pic": "http://xmlns.com/foaf/0.1/depiction"
-        }
-      ],****
-      "name": "Manu Sporny",
-      "homepage": "http://manu.sporny.org/",
-      ****"pic": "http://twitter.com/account/profile_image/manusporny"****
-    }
-    -->
-    </pre>
-
-    <p class="note">It is a best practice to put the <tref>context</tref> definition
-      at the top of the JSON-LD document.</p>
-
-    <section>
-      <h2>Referencing Contexts from JSON Documents</h2>
-
-      <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
-        <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
-        be unambiguously machine-readable without requiring developers to drastically
-        change their workflow and provides an upgrade path for existing infrastructure
-        without breaking existing clients that rely on the <code>application/json</code>
-        media type.</p>
-
-      <p>In order to use an external context with an ordinary JSON document, an author
-        MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in
-        an HTTP Link Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
-        link relation. The referenced document MUST have a top-level <tref>JSON object</tref>.
-        The <code>@context</code> subtree within that object is added to the top-level
-        <tref>JSON object</tref> of the referencing document. If an <tref>array</tref>
-        is at the top-level of the referencing document and its items are
-        <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
-        subtree is added to all <tref>array</tref> items. All extra information located outside
-        of the <code>@context</code> subtree in the referenced document MUST be
-        discarded. Effectively this means that the <tref>active context</tref> is
-        initialized with the referenced external <tref>context</tref>.</p>
-
-      <p>The following example demonstrates the use of an external context with an
-        ordinary JSON document:</p>
-
-      <pre class="example" data-transform="updateExample"
-           title="Referencing a JSON-LD context from a JSON document via an HTTP Link Header">
-      <!--
-      GET /ordinary-json-document.json HTTP/1.1
-      Host: example.com
-      Accept: application/ld+json,application/json,*/*;q=0.1
-
-      ====================================
-
-      HTTP/1.0 200 OK
-      ...
-      Content-Type: ****application/json****
-      ****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
-
-      {
-        "name": "Markus Lanthaler",
-        "homepage": "http://www.markus-lanthaler.com/",
-        "image": "http://twitter.com/account/profile_image/markuslanthaler"
-      }
-      -->
-      </pre>
-
-      <p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
-        served with the <code>application/ld+json</code>
-        media type MUST have all context information, including references to external
-        contexts, within the body of the document. Contexts linked via a
-        <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
-        ignored for such documents.</p>
-    </section>
   </section>
 
 <section>
@@ -762,13 +580,13 @@
   <!--
   {
   ...
-    "****http://xmlns.com/foaf/0.1/name****": "Manu Sporny",
+    "****http://schema.org/name****": "Manu Sporny",
   ...
   }
   -->
   </pre>
 
-  <p>In the example above, the key <code>http://xmlns.com/foaf/0.1/name</code>
+  <p>In the example above, the key <code>http://schema.org/name</code>
     is interpreted as an <tref>absolute IRI</tref> because it contains a colon
     (<code>:</code>) and the "http" <tref>prefix</tref> does not exist in
     the context.</p>
@@ -782,7 +600,7 @@
   {
     "****@context****":
     {
-      "****name****": "****http://xmlns.com/foaf/0.1/name****"
+      "****name****": "****http://schema.org/name****"
   ...
     },
     "****name****": "Manu Sporny",
@@ -797,30 +615,6 @@
     a mapping in the <tref>context</tref> are still considered valid expressions
     in JSON-LD documents—the keys just don't expand to unambiguous identifiers.</p>
 
-  <p><tref title="prefix">Prefixes</tref> are expanded when the form of the value
-    is a <tref>compact IRI</tref> represented as a <code>prefix:suffix</code>
-    combination, and the prefix matches a <tref>term</tref> defined within the
-    <tref>active context</tref>:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Prefix expansion">
-  <!--
-  {
-    "****@context****":
-    {
-      "****foaf****": "****http://xmlns.com/foaf/0.1/****"
-  ...
-    },
-    "****foaf:name****": "Manu Sporny",
-  ...
-  }
-  -->
-  </pre>
-
-  <p><code>foaf:name</code> above will automatically expand out to the IRI
-    <code>http://xmlns.com/foaf/0.1/name</code>. See <a href="#compact-iris"></a>
-    for more details.</p>
-
   <p>At times, all properties and types may come from the same vocabulary. JSON-LD's
     <code>@vocab</code> keyword allows an author to set a common prefix to be used
     for all properties and types that do not match a <tref>term</tref> or are neither
@@ -832,32 +626,10 @@
   <!--
   {
     ****"@context": {
-      "@vocab": "http://xmlns.com/foaf/1.0/"
+      "@vocab": "http://schema.org/"
     },****
     "@type": ****"Person"****,
     ****"name"****: "Manu Sporny",
-  }
-  -->
-  </pre>
-
-  <p>If <code>@vocab</code> is used but certain keys in an
-    <tref title="JSON object">object</tref> should not be expanded using
-    the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
-    to <tref>null</tref> in the <tref>context</tref>. For instance, in the
-    example below the <code>databaseId</code> member would be ignored by a
-    JSON-LD processor.</p></p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Using the null keyword to ignore data">
-  <!--
-  {
-    "@context":
-    {
-       "@vocab": "http://schema.org/",
-       ****"databaseId": null****
-    },
-    "name": "Manu Sporny",
-    ****"databaseId": "23987520"****
   }
   -->
   </pre>
@@ -895,7 +667,7 @@
       ...
       "homepage":
       {
-        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@id": "http://schema.org/homepage",
         "@type": "@id"
       }
       ...
@@ -910,7 +682,8 @@
   <p>In the example above, even though the value <code>http://manu.sporny.org/</code>
     is expressed as a JSON <tref>string</tref>, the type <tref>coercion</tref>
     rules will transform the value into an IRI when generating the
-    <tref>JSON-LD graph</tref>.</p>
+    <tref>JSON-LD graph</tref>. See <a href="#type-coercion"></a> for more
+    details about this feature.</p>
 
   <p>In summary, <tref title="IRI">IRIs</tref> can be expressed in a variety of
     different ways in JSON-LD:</p>
@@ -933,16 +706,20 @@
 <section>
   <h2>Node Identifiers</h2>
 
-  <p>To be able to externally reference nodes in a graph, it is important that each <tref>node</tref> has
+  <p>To be able to externally reference <tref title="node">nodes</tref> 
+    in a <tref title="json-ld_graph">graph</tref>, it is important that each <tref>node</tref> have
     an unambiguous identifier. <tref title="IRI">IRIs</tref> are a fundamental concept of
-    <tref>Linked Data</tref>, and nodes should have a de-referenceable
-    identifier used to name and locate them. For nodes to be truly linked,
-    de-referencing the identifier should result in a representation of that node.
-    Associating an IRI with a node tells an application that the returned
-    document contains a description of the node requested.</p>
+    <tref>Linked Data</tref>, and <tref title="node">nodes</tref> should have a de-referenceable
+    identifier used to name and locate them. For <tref title="node">nodes</tref>  to be truly linked,
+    de-referencing the identifier should result in a representation of that <tref>node</tref>.
+    Associating an <tref>IRI</tref> with a <tref>node</tref> tells an application that it
+    can fetch the resource associated with the IRI and get back a description of the 
+    <tref>node</tref>.</p>
 
-  <p>JSON-LD documents may also contain descriptions of other nodes, so it is necessary to be able to
-    uniquely identify each node which may be externally referenced.</p>
+  <p><tref title="json-ld_document">JSON-LD documents</tref> may also contain descriptions 
+    of other <tref title="node">nodes</tref>, so it is necessary to be able to
+    uniquely identify each <tref>node</tref> so that the data is associated
+    with the correct <tref>node</tref> in an unambiguous way.</p>
 
   <p>A <tref>node</tref> is identified using the <code>@id</code>
     <tref>keyword</tref>:</p>
@@ -956,12 +733,12 @@
       ...
       "homepage":
       {
-        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@id": "http://schema.org/homepage",
         "@type": "@id"
       }
     },
     "****@id****": "****http://example.org/people#joebob****",
-    "homepage": "http://manu.sporny.org/",
+    "homepage": "http://joebob.example.com/",
     ...
   }
   -->
@@ -983,14 +760,14 @@
 <!--
 {
 ...
-  "@id": "http://example.org/people#joebob",
-  "****@type****": "****http://xmlns.com/foaf/0.1/Person****",
+  "@id": "http://example.org/places#BrewEats",
+  "****@type****": "****http://schema.org/Restaurant****",
 ...
 }
 -->
 </pre>
 
-<p>A node can be assigned more than one type by using <tref title="array">arrays</tref>:</p>
+<p>A node can be assigned more than one type by using an <tref>array</tref>:</p>
 
 <pre class="example" data-transform="updateExample"
      title="Specifying multiple types for a node">
@@ -1011,14 +788,401 @@
 {
   "@context": {
     ...
-    ****"Person": "http://xmlns.com/foaf/0.1/Person"****
+    ****"Restaurant": "http://schema.org/Restaurant", ****
+    ****"Brewery": "http://schema.org/Brewery"****
   }
-  "@id": "http://manu.sporny.org/i/public",
-  ****"@type": "Person"****,
+  "@id": "http://example.org/places#BrewEats",
+  ****"@type": ["Restaurant", "Brewery"]****,
   ...
 }
 -->
 </pre>
+
+</section>
+</section>
+
+<section>
+<h1>Advanced Concepts</h1>
+
+<em>This section is normative.</em>
+
+<p>JSON-LD has a number of features that provide functionality above and beyond
+the core functionality described above. The following section describes this
+advanced functionality in more detail.
+</p>
+
+<section>
+  <h2>Compact IRIs</h2>
+  <p>A document on the Web that defines one or more IRIs for use as
+    <tref title="property">properties</tref> in Linked Data is called a vocabulary.
+    <tref title="term">Terms</tref> in <tref>Linked Data</tref> documents may draw from
+    a number of different vocabularies. At times, declaring every single <tref>term</tref>
+    that a document uses can require the developer to declare tens, if not hundreds of potential
+    vocabulary <tref title="term">terms</tref> that are used across an
+    application. This is a concern for at least two reasons: the
+    first is the cognitive load on the developer of remembering all of the
+    <tref title="term">terms</tref>, and the second is the serialized size of the
+    <tref>context</tref> if it is specified inline. In order to address these issues,
+    the concept of a <tref>compact IRI</tref> is introduced.</p>
+  <p>
+    A <tdef>compact IRI</tdef> is a way of expressing an <tref>IRI</tref>
+    using a <em>prefix</em> and <em>suffix</em> separated by a colon (<code>:</code>) which is
+    similar to the <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">CURIE Syntax</a></cite>
+    in [[RDFA-CORE]]. The <tdef>prefix</tdef> is a <tref>term</tref> taken from the
+    <tref>active context</tref> and is a short string identifying a
+    particular <tref>IRI</tref> in a JSON-LD document.
+    For example, the prefix <code>foaf</code> may be used as a short
+    hand for the Friend-of-a-Friend vocabulary, which is identified using
+    the IRI <code>http://schema.org/</code>. A developer may append
+    any of the FOAF vocabulary terms to the end of the prefix to specify a short-hand
+    version of the <tref>absolute IRI</tref> for the vocabulary term. For example,
+    <code>foaf:name</code> would be expanded out to the IRI
+    <code>http://schema.org/name</code>. Instead of having to remember and
+    type out the entire IRI, the developer can instead use the prefix in their JSON-LD markup.
+  </p>
+  
+  <p><tref title="prefix">Prefixes</tref> are expanded when the form of the value
+    is a <tref>compact IRI</tref> represented as a <code>prefix:suffix</code>
+    combination, and the prefix matches a <tref>term</tref> defined within the
+    <tref>active context</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Prefix expansion">
+  <!--
+  {
+    "****@context****":
+    {
+      "****schema****": "****http://schema.org/****"
+  ...
+    },
+    "****schema:name****": "Manu Sporny",
+  ...
+  }
+  -->
+  </pre>
+
+  <p><code>schema:name</code> above will automatically expand out to the IRI
+    <code>http://schema.org/name</code>.</p>
+
+  <p>Terms are interpreted as <tref title="compact_iri">compact IRIs</tref> if they contain at least one
+    colon and the first colon is not followed by two slashes (<code>//</code>, as in
+    <code>http://example.com</code>). To generate the full <tref>IRI</tref>,
+    the value is first split into a <em>prefix</em> and <em>suffix</em> at the first
+    occurrence of a colon (<code>:</code>). If the <tref>active context</tref>
+    contains a term mapping for <em>prefix</em>, an IRI is generated by
+    prepending the mapped <em>prefix</em> to the (possibly empty) <em>suffix</em>
+    using textual concatenation.  If no prefix mapping is defined, the value is interpreted
+    as an <tref>absolute IRI</tref>. If the prefix is an underscore
+    (<code>_</code>), the IRI remains unchanged.
+  </p>
+  <p>Consider the following example:</p>
+  <pre class="example" data-transform="updateExample"
+     title="Compact IRIs">
+<!--
+{
+  "@context":
+  {
+    ****"dc": "http://purl.org/dc/elements/1.1/",****
+    ****"ex": "http://example.org/vocab#"****
+  },
+  "@id": "http://example.org/library",
+  "@type": ****"ex:Library"****,
+  ****"ex:contains"****:
+  {
+    "@id": "http://example.org/library/the-republic",
+    "@type": ****"ex:Book"****,
+    ****"dc:creator"****: "Plato",
+    ****"dc:title"****: "The Republic",
+    ****"ex:contains"****:
+    {
+      "@id": "http://example.org/library/the-republic#introduction",
+      "@type": ****"ex:Chapter"****,
+      ****"dc:description"****: "An introductory chapter on The Republic.",
+      ****"dc:title"****: "The Introduction"
+    }
+  }
+}
+-->
+  </pre>
+
+  <p>In this example, two different vocabularies are referred to using prefixes.
+    Those prefixes are then used as type and property values using the compact
+    IRI <code>prefix:suffix</code> notation.</p>
+
+  <p>It's also possible to use compact IRIs within the context as shown in the
+    following example:</p>
+
+  <pre class="example" data-transform="updateExample"
+     title="Using vocabularies">
+<!--
+{
+  "@context":
+  {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "foaf": "http://schema.org/",
+    ****"foaf:homepage"****: { "@type": "@id" },
+    "picture": { "@id": ****"foaf:depiction"****, "@type": "@id" }
+  },
+  "@id": "http://me.markus-lanthaler.com/",
+  "@type": "foaf:Person",
+  "foaf:name": "Markus Lanthaler",
+  "foaf:homepage": "http://www.markus-lanthaler.com/",
+  "picture": "http://twitter.com/account/profile_image/markuslanthaler"
+}
+-->
+  </pre>
+</section>
+
+<section>
+<h2>Typed Values</h2>
+
+<p>
+  A value with an associated type, also known as a
+  <tref>typed value</tref>, is indicated by associating a value with
+  an <tref>IRI</tref> which indicates the value's type. Typed values may be
+  expressed in JSON-LD in three ways:
+</p>
+
+<ol>
+  <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
+    a <tref>term</tref> within a <code>@context</code> section.</li>
+  <li>By utilizing an <tref>expanded typed value</tref>.</li>
+  <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
+</ol>
+
+<p>The first example uses the <code>@type</code> keyword to associate a
+type with a particular <tref>term</tref> in the <code>@context</code>:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Expanded term definition with type coercion">
+<!--
+{
+  ****"@context":
+  {
+    "modified":
+    {
+      "@id": "http://purl.org/dc/terms/modified",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  },****
+...
+  "modified": "2010-05-29T14:17:39+02:00",
+...
+}
+-->
+</pre>
+
+<p>The <em>modified</em> key's value above is automatically type coerced to a
+dateTime value because of the information specified in the
+<code>@context</code>.</p>
+
+<p>The second example uses the expanded form of setting the type information
+in the body of a JSON-LD document:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Expanded value with type">
+<!--
+{
+  "@context":
+  {
+    "modified":
+    {
+      "@id": "http://purl.org/dc/terms/modified"
+    }
+  },
+...
+  "modified":
+  ****{
+    "@value": "2010-05-29T14:17:39+02:00",
+    "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  }****
+...
+}
+-->
+</pre>
+
+<p>Both examples above would generate the value
+  <code>2010-05-29T14:17:39+02:00</code> with the type
+  <code>http://www.w3.org/2001/XMLSchema#dateTime</code>. Note that it is
+  also possible to use a <tref>term</tref> or a <tref>compact IRI</tref> to
+  express the value of a type.</p>
+
+<p>The <code>@type</code> <tref>keyword</tref> is also used to associate a type
+  with a <tref>node</tref>. The concept of a <tdef>node type</tdef> and
+  a <tdef>value type</tdef> are different. This is similar to object-oriented
+  programming languages where both scalar and structured types use the same
+  class inheritance mechanism, even though scalar types and structured types are
+  inherently different.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Example demonstrating the context-sensitivity for @type">
+<!--
+{
+...
+  "@id": "http://example.org/posts#TripToWestVirginia",
+  ****"@type": "http://schema.org/BlogPosting"****,
+  "modified":
+  {
+    "@value": "2010-05-29T14:17:39+02:00",
+    ****"@type": "http://www.w3.org/2001/XMLSchema#dateTime"****
+  }
+...
+}
+-->
+</pre>
+
+<p>The first use of <code>@type</code> associates a <tref>node type</tref>
+  (<code>http://schema.org/BlogPosting</code>) with the <tref>node</tref>,
+  which is expressed using the <code>@id</code> <tref>keyword</tref>.
+  The second use of <code>@type</code> associates a <tref>value type</tref>
+  (<code>http://www.w3.org/2001/XMLSchema#dateTime</code>) with the
+  value expressed using the <code>@value</code> <tref>keyword</tref>. As a
+  general rule, when <code>@value</code> and <code>@type</code> are used in
+  the same <tref>JSON object</tref>, the <code>@type</code>
+  <tref>keyword</tref> is expressing a <tref>value type</tref>.
+  Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
+  <tref>node type</tref>.</p>
+
+</section>
+
+<section>
+<h2>Type Coercion</h2>
+
+<p>JSON-LD supports the coercion of values to particular data types.
+Type <tdef>coercion</tdef> allows someone deploying JSON-LD to coerce the incoming or
+outgoing values to the proper data type based on a mapping of data type <tref title="IRI">IRIs</tref> to
+<tref title="term">terms</tref>. Using type coercion, value representation is preserved without requiring
+the data type to be specified with each piece of data.</p>
+
+<p>Type coercion is specified within an <tref>expanded term definition</tref>
+  using the <code>@type</code> key. The value of this key expands to an <tref>IRI</tref>.
+  Alternatively, the <tref>keyword</tref> <code>@id</code> may be used as value to indicate
+  that within the body of a JSON-LD document, a string value of a <tref>term</tref> coerced to
+  <code>@id</code> is to be interpreted as an <tref>IRI</tref>.</p>
+
+<p><tref title="term">Terms</tref> or <tref title="compact_iri">compact IRIs</tref> used as the value of a
+  <code>@type</code> key may be defined within the same context. This means that one may specify a
+  <tref>term</tref> like <code>xsd</code> and then use <code>xsd:integer</code> within the same
+  context definition.</p>
+
+<p>The example below demonstrates how a JSON-LD author can coerce values to
+<tref title="typed value">typed values</tref>, IRIs and lists.</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Expanded term definition with types">
+<!--
+{
+  "@context":
+  {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "name": "http://schema.org/name",
+    "age":
+    ****{
+      "@id": "http://schema.org/age",
+      "@type": "xsd:integer"
+    }****,
+    "homepage":
+    ****{
+      "@id": "http://schema.org/homepage",
+      "@type": "@id",
+      "@container": "@list"
+    }****
+  },
+  "@id": "http://example.com/people#john",
+  "name": "John Smith",
+  "age": ****"41"****,
+  "homepage":
+  ****[
+    "http://personal.example.org/",
+    "http://work.example.com/jsmith/"
+  ]****
+}
+-->
+</pre>
+
+<p>The markup shown above would generate the following data. The data has no inherent order
+  except for the values of the <code>http://schema.org/homepage</code> property
+  which represent an ordered list.</p>
+
+<table class="example">
+<thead>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Object</th>
+  <th>Datatype</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.com/people#john</td>
+  <td>http://schema.org/name</td>
+  <td>John Smith</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>http://example.com/people#john</td>
+  <td>http://schema.org/age</td>
+  <td>41</td>
+  <td>http://www.w3.org/2001/XMLSchema#integer</td>
+</tr>
+<tr>
+  <td rowspan="2">http://example.com/people#john</td>
+  <td rowspan="2">http://schema.org/homepage</td>
+  <td>http://personal.example.org/</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>http://work.example.com/jsmith/</td>
+  <td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+
+<p>Terms may also be defined using <tref title="absolute_iri">absolute IRIs</tref> or <tref title="compact_iri">compact IRIs</tref>.
+  This allows coercion rules to be applied to keys which are not represented as a simple <tref>term</tref>.
+  For example:</p>
+
+<pre class="example" data-transform="updateExample"
+     title="Term definitions using compact and absolute IRIs">
+<!--
+{
+  "@context":
+  {
+    "foaf": "http://schema.org/",
+    "****foaf:age****":
+    {
+      ****"@id": "http://schema.org/age"****,
+      "@type": "xsd:integer"
+    },
+    "****http://schema.org/homepage****":
+    {
+      "@type": "@id"
+    }
+  },
+  "foaf:name": "John Smith",
+  "****foaf:age****": "41",
+  "****http://schema.org/homepage****":
+  [
+    "http://personal.example.org/",
+    "http://work.example.com/jsmith/"
+  ]
+}
+-->
+</pre>
+
+<p>In this case the <code>@id</code> definition in the term definition is optional, but if it does exist, the <tref>compact IRI</tref>
+  or <tref>IRI</tref> is treated as a <tref>term</tref> (not a <code>prefix:suffix</code> construct)
+  so that the actual definition of a <tref>prefix</tref> becomes unnecessary. Type coercion is performed using
+  the unexpanded value of the key, which has to match exactly an entry in the <tref>active context</tref>.</p>
+
+<p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
+  expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
+  For example, one could specify that <code>dog</code> and <code>cat</code> both expanded to <code>http://example.com/vocab#animal</code>.
+  Doing this could be useful for establishing different type coercion or language specification rules. It also allows a <tref>compact IRI</tref> (or even an
+  absolute <tref>IRI</tref>) to be defined as something else entirely. For example, one could specify that
+  the <tref>term</tref> <code>http://example.org/zoo</code> should expand to
+  <code>http://example.org/river</code>, but this usage is discouraged because it would lead to a
+  great deal of confusion among developers attempting to understand the JSON-LD document.</p>
+
 
 </section>
 
@@ -1188,369 +1352,196 @@
   </pre>
 
 </section>
+
+<section>
+    <h2>Advanced Context Usage</h2>
+    <p>Contexts may be used at any time a <tref>JSON object</tref> is defined
+      (except inside a context definition). In particular, a
+      <tref>JSON-LD document</tref> may use more than one context:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Using multiple contexts">
+    <!--
+    [
+      {
+        ****"@context": "http://example.org/contexts/person.jsonld",****
+        "name": "Manu Sporny",
+        "homepage": "http://manu.sporny.org/",
+        "depiction": "http://twitter.com/account/profile_image/manusporny"
+      },
+      {
+        ****"@context": "http://example.org/contexts/place.jsonld",****
+        "name": "The Empire State Building",
+        "description": "The Empire State Building is a 102-story landmark in New York City.",
+        "geo": {
+          "latitude": "40.75",
+          "longitude": "73.98"
+        }
+      }
+    ]
+    -->
+    </pre>
+
+    <p>Duplicate context <tref title="term">terms</tref> are overridden using a
+      last-defined-wins mechanism.</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Scoped contexts within node objects">
+    <!--
+    {
+      ****"@context":
+      {
+        "name": "http://example.com/person#name",
+        "details": "http://example.com/person#details"
+      },****
+      "****name****": "Markus Lanthaler",
+      ...
+      "details":
+      {
+        ****"@context": {
+          "name": "http://example.com/organization#name"
+        },****
+        "****name****": "Graz University of Technology"
+      }
+    }
+    -->
+    </pre>
+
+    <p>In the example above, the <code>name</code> <tref>term</tref> is overridden
+      in the more deeply nested <code>details</code> structure. Note that this is
+      rarely a good authoring practice and is typically used when working with
+      legacy applications that depend on a specific structure of the
+      <tref>JSON object</tref>. If a <tref>term</tref> is redefined within a
+      context, all previous rules associated with the previous definition are
+      removed. If a <tref>term</tref> is redefined to <code>null</code>,
+      the <tref>term</tref> is effectively removed from the list of
+      <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
+
+    <p>Multiple contexts may be combined using an <tref>array</tref>, which is processed
+      in order. The set of contexts defined within a specific <tref>JSON object</tref> are
+      referred to as <tdef title="local context">local contexts</tdef>. The
+      <tdef>active context</tdef> refers to the accumulation of
+      <tref title="local context">local contexts</tref> that are in scope at a
+      specific point within the document. Setting a <tref>local context</tref>
+      to <code>null</code> effectively resets the <tref>active context</tref>
+      to an empty context. The following example specifies an external context
+      and then layers an embedded context on top of the external context:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Combining external and local contexts">
+    <!--
+    {
+      ****"@context": [
+        "http://json-ld.org/contexts/person.jsonld",
+        {
+          "pic": "http://schema.org/depiction"
+        }
+      ],****
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/",
+      ****"pic": "http://twitter.com/account/profile_image/manusporny"****
+    }
+    -->
+    </pre>
+
+    <p class="note">It is a best practice to put the <tref>context</tref> definition
+      at the top of the JSON-LD document.</p>
+
+    <p class="note">While it is possible to define a <tref>compact IRI</tref>, or
+      an <tref>absolute IRI</tref> to expand to some other unrelated <tref>IRI</tref>
+      (for example, <code>foaf:name</code> expanding to
+      <code>http://example.org/unrelated#species</code>), such usage is strongly
+      discouraged.</p>
+
+    <p class="note">To avoid forward-compatibility issues,
+      <tref title="term">terms</tref> starting with an&nbsp;<code>@</code> character are
+      to be avoided as they might be used as <tref title="keyword">keywords</tref>
+      in future versions of JSON-LD. Furthermore, the use of empty
+      <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
+      programming languages are able to handle empty property names.</p>
+
+    <section>
+      <h2>Referencing Contexts</h2>
+
+      <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
+        <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
+        be unambiguously machine-readable without requiring developers to drastically
+        change their workflow and provides an upgrade path for existing infrastructure
+        without breaking existing clients that rely on the <code>application/json</code>
+        media type.</p>
+
+      <p>In order to use an external context with an ordinary JSON document, an author
+        MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in
+        an HTTP Link Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
+        link relation. The referenced document MUST have a top-level <tref>JSON object</tref>.
+        The <code>@context</code> subtree within that object is added to the top-level
+        <tref>JSON object</tref> of the referencing document. If an <tref>array</tref>
+        is at the top-level of the referencing document and its items are
+        <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
+        subtree is added to all <tref>array</tref> items. All extra information located outside
+        of the <code>@context</code> subtree in the referenced document MUST be
+        discarded. Effectively this means that the <tref>active context</tref> is
+        initialized with the referenced external <tref>context</tref>.</p>
+
+      <p>The following example demonstrates the use of an external context with an
+        ordinary JSON document:</p>
+
+      <pre class="example" data-transform="updateExample"
+           title="Referencing a JSON-LD context from a JSON document via an HTTP Link Header">
+      <!--
+      GET /ordinary-json-document.json HTTP/1.1
+      Host: example.com
+      Accept: application/ld+json,application/json,*/*;q=0.1
+
+      ====================================
+
+      HTTP/1.0 200 OK
+      ...
+      Content-Type: ****application/json****
+      ****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
+
+      {
+        "name": "Markus Lanthaler",
+        "homepage": "http://www.markus-lanthaler.com/",
+        "image": "http://twitter.com/account/profile_image/markuslanthaler"
+      }
+      -->
+      </pre>
+
+      <p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
+        served with the <code>application/ld+json</code>
+        media type MUST have all context information, including references to external
+        contexts, within the body of the document. Contexts linked via a
+        <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
+        ignored for such documents.</p>
+    </section>
 </section>
 
-<section>
-<h1>Advanced Concepts</h1>
-
-<em>This section is normative.</em>
-
-<p>JSON-LD has a number of features that provide functionality above and beyond
-the core functionality described above. The following section describes this
-advanced functionality in more detail.
-</p>
 
 <section>
-  <h2>Compact IRIs</h2>
-  <p>A document on the Web that defines one or more IRIs for use as
-    <tref title="property">properties</tref> in Linked Data is called a vocabulary.
-    <tref title="term">Terms</tref> in <tref>Linked Data</tref> documents may draw from
-    a number of different vocabularies. At times, declaring every single <tref>term</tref>
-    that a document uses can require the developer to declare tens, if not hundreds of potential
-    vocabulary <tref title="term">terms</tref> that are used across an
-    application. This is a concern for at least two reasons: the
-    first is the cognitive load on the developer of remembering all of the
-    <tref title="term">terms</tref>, and the second is the serialized size of the
-    <tref>context</tref> if it is specified inline. In order to address these issues,
-    the concept of a <tref>compact IRI</tref> is introduced.</p>
-  <p>
-    A <tdef>compact IRI</tdef> is a way of expressing an <tref>IRI</tref>
-    using a <em>prefix</em> and <em>suffix</em> separated by a colon (<code>:</code>) which is
-    similar to the <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">CURIE Syntax</a></cite>
-    in [[RDFA-CORE]]. The <tdef>prefix</tdef> is a <tref>term</tref> taken from the
-    <tref>active context</tref> and is a short string identifying a
-    particular <tref>IRI</tref> in a JSON-LD document.
-    For example, the prefix <code>foaf</code> may be used as a short
-    hand for the Friend-of-a-Friend vocabulary, which is identified using
-    the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append
-    any of the FOAF vocabulary terms to the end of the prefix to specify a short-hand
-    version of the <tref>absolute IRI</tref> for the vocabulary term. For example,
-    <code>foaf:name</code> would be expanded out to the IRI
-    <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember and
-    type out the entire IRI, the developer can instead use the prefix in their JSON-LD markup.
-  </p>
-  <p>Terms are interpreted as <tref title="compact_iri">compact IRIs</tref> if they contain at least one
-    colon and the first colon is not followed by two slashes (<code>//</code>, as in
-    <code>http://example.com</code>). To generate the full <tref>IRI</tref>,
-    the value is first split into a <em>prefix</em> and <em>suffix</em> at the first
-    occurrence of a colon (<code>:</code>). If the <tref>active context</tref>
-    contains a term mapping for <em>prefix</em>, an IRI is generated by
-    prepending the mapped <em>prefix</em> to the (possibly empty) <em>suffix</em>
-    using textual concatenation.  If no prefix mapping is defined, the value is interpreted
-    as an <tref>absolute IRI</tref>. If the prefix is an underscore
-    (<code>_</code>), the IRI remains unchanged.
-  </p>
-  <p>Consider the following example:</p>
+<h2>Overriding @vocab</h2>
+  <p>If <code>@vocab</code> is used but certain keys in an
+    <tref title="JSON object">object</tref> should not be expanded using
+    the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
+    to <tref>null</tref> in the <tref>context</tref>. For instance, in the
+    example below the <code>databaseId</code> member would be ignored by a
+    JSON-LD processor.</p></p>
+
   <pre class="example" data-transform="updateExample"
-     title="Compact IRIs">
-<!--
-{
-  "@context":
+       title="Using the null keyword to ignore data">
+  <!--
   {
-    ****"dc": "http://purl.org/dc/elements/1.1/",****
-    ****"ex": "http://example.org/vocab#"****
-  },
-  "@id": "http://example.org/library",
-  "@type": ****"ex:Library"****,
-  ****"ex:contains"****:
-  {
-    "@id": "http://example.org/library/the-republic",
-    "@type": ****"ex:Book"****,
-    ****"dc:creator"****: "Plato",
-    ****"dc:title"****: "The Republic",
-    ****"ex:contains"****:
+    "@context":
     {
-      "@id": "http://example.org/library/the-republic#introduction",
-      "@type": ****"ex:Chapter"****,
-      ****"dc:description"****: "An introductory chapter on The Republic.",
-      ****"dc:title"****: "The Introduction"
-    }
-  }
-}
--->
-  </pre>
-
-  <p>In this example, two different vocabularies are referred to using prefixes.
-    Those prefixes are then used as type and property values using the compact
-    IRI <code>prefix:suffix</code> notation.</p>
-
-  <p>It's also possible to use compact IRIs within the context as shown in the
-    following example:</p>
-
-  <pre class="example" data-transform="updateExample"
-     title="Using vocabularies">
-<!--
-{
-  "@context":
-  {
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "foaf": "http://xmlns.com/foaf/0.1/",
-    ****"foaf:homepage"****: { "@type": "@id" },
-    "picture": { "@id": ****"foaf:depiction"****, "@type": "@id" }
-  },
-  "@id": "http://me.markus-lanthaler.com/",
-  "@type": "foaf:Person",
-  "foaf:name": "Markus Lanthaler",
-  "foaf:homepage": "http://www.markus-lanthaler.com/",
-  "picture": "http://twitter.com/account/profile_image/markuslanthaler"
-}
--->
-  </pre>
-</section>
-
-<section>
-<h2>Typed Values</h2>
-
-<p>
-  A value with an associated type, also known as a
-  <tref>typed value</tref>, is indicated by associating a value with
-  an <tref>IRI</tref> which indicates the value's type. Typed values may be
-  expressed in JSON-LD in three ways:
-</p>
-
-<ol>
-  <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
-    a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing an <tref>expanded typed value</tref>.</li>
-  <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
-</ol>
-
-<p>The first example uses the <code>@type</code> keyword to associate a
-type with a particular <tref>term</tref> in the <code>@context</code>:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded term definition with type coercion">
-<!--
-{
-  ****"@context":
-  {
-    "modified":
-    {
-      "@id": "http://purl.org/dc/terms/modified",
-      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-    }
-  },****
-...
-  "modified": "2010-05-29T14:17:39+02:00",
-...
-}
--->
-</pre>
-
-<p>The <em>modified</em> key's value above is automatically type coerced to a
-dateTime value because of the information specified in the
-<code>@context</code>.</p>
-
-<p>The second example uses the expanded form of setting the type information
-in the body of a JSON-LD document:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded value with type">
-<!--
-{
-  "@context":
-  {
-    "modified":
-    {
-      "@id": "http://purl.org/dc/terms/modified"
-    }
-  },
-...
-  "modified":
-  ****{
-    "@value": "2010-05-29T14:17:39+02:00",
-    "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-  }****
-...
-}
--->
-</pre>
-
-<p>Both examples above would generate the value
-  <code>2010-05-29T14:17:39+02:00</code> with the type
-  <code>http://www.w3.org/2001/XMLSchema#dateTime</code>. Note that it is
-  also possible to use a <tref>term</tref> or a <tref>compact IRI</tref> to
-  express the value of a type.</p>
-
-<p>The <code>@type</code> <tref>keyword</tref> is also used to associate a type
-  with a <tref>node</tref>. The concept of a <tdef>node type</tdef> and
-  a <tdef>value type</tdef> are different. This is similar to object-oriented
-  programming languages where both scalar and structured types use the same
-  class inheritance mechanism, even though scalar types and structured types are
-  inherently different.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Example demonstrating the context-sensitivity for @type">
-<!--
-{
-...
-  "@id": "http://example.org/posts#TripToWestVirginia",
-  ****"@type": "http://schema.org/BlogPosting"****,
-  "modified":
-  {
-    "@value": "2010-05-29T14:17:39+02:00",
-    ****"@type": "http://www.w3.org/2001/XMLSchema#dateTime"****
-  }
-...
-}
--->
-</pre>
-
-<p>The first use of <code>@type</code> associates a <tref>node type</tref>
-  (<code>http://schema.org/BlogPosting</code>) with the <tref>node</tref>,
-  which is expressed using the <code>@id</code> <tref>keyword</tref>.
-  The second use of <code>@type</code> associates a <tref>value type</tref>
-  (<code>http://www.w3.org/2001/XMLSchema#dateTime</code>) with the
-  value expressed using the <code>@value</code> <tref>keyword</tref>. As a
-  general rule, when <code>@value</code> and <code>@type</code> are used in
-  the same <tref>JSON object</tref>, the <code>@type</code>
-  <tref>keyword</tref> is expressing a <tref>value type</tref>.
-  Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
-  <tref>node type</tref>.</p>
-
-</section>
-
-<section>
-<h2>Type Coercion</h2>
-
-<p>JSON-LD supports the coercion of values to particular data types.
-Type <tdef>coercion</tdef> allows someone deploying JSON-LD to coerce the incoming or
-outgoing values to the proper data type based on a mapping of data type <tref title="IRI">IRIs</tref> to
-<tref title="term">terms</tref>. Using type coercion, value representation is preserved without requiring
-the data type to be specified with each piece of data.</p>
-
-<p>Type coercion is specified within an <tref>expanded term definition</tref>
-  using the <code>@type</code> key. The value of this key expands to an <tref>IRI</tref>.
-  Alternatively, the <tref>keyword</tref> <code>@id</code> may be used as value to indicate
-  that within the body of a JSON-LD document, a string value of a <tref>term</tref> coerced to
-  <code>@id</code> is to be interpreted as an <tref>IRI</tref>.</p>
-
-<p><tref title="term">Terms</tref> or <tref title="compact_iri">compact IRIs</tref> used as the value of a
-  <code>@type</code> key may be defined within the same context. This means that one may specify a
-  <tref>term</tref> like <code>xsd</code> and then use <code>xsd:integer</code> within the same
-  context definition.</p>
-
-<p>The example below demonstrates how a JSON-LD author can coerce values to
-<tref title="typed value">typed values</tref>, IRIs and lists.</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded term definition with types">
-<!--
-{
-  "@context":
-  {
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "age":
-    ****{
-      "@id": "http://xmlns.com/foaf/0.1/age",
-      "@type": "xsd:integer"
-    }****,
-    "homepage":
-    ****{
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id",
-      "@container": "@list"
-    }****
-  },
-  "@id": "http://example.com/people#john",
-  "name": "John Smith",
-  "age": ****"41"****,
-  "homepage":
-  ****[
-    "http://personal.example.org/",
-    "http://work.example.com/jsmith/"
-  ]****
-}
--->
-</pre>
-
-<p>The markup shown above would generate the following data. The data has no inherent order
-  except for the values of the <code>http://xmlns.com/foaf/0.1/homepage</code> property
-  which represent an ordered list.</p>
-
-<table class="example">
-<thead>
-  <th>Subject</th>
-  <th>Property</th>
-  <th>Object</th>
-  <th>Datatype</th>
-</thead>
-<tbody>
-<tr>
-  <td>http://example.com/people#john</td>
-  <td>http://xmlns.com/foaf/0.1/name</td>
-  <td>John Smith</td>
-  <td>&nbsp;</td>
-</tr>
-<tr>
-  <td>http://example.com/people#john</td>
-  <td>http://xmlns.com/foaf/0.1/age</td>
-  <td>41</td>
-  <td>http://www.w3.org/2001/XMLSchema#integer</td>
-</tr>
-<tr>
-  <td rowspan="2">http://example.com/people#john</td>
-  <td rowspan="2">http://xmlns.com/foaf/0.1/homepage</td>
-  <td>http://personal.example.org/</td>
-  <td>&nbsp;</td>
-</tr>
-<tr>
-  <td>http://work.example.com/jsmith/</td>
-  <td>&nbsp;</td>
-</tr>
-</tbody>
-</table>
-
-<p>Terms may also be defined using <tref title="absolute_iri">absolute IRIs</tref> or <tref title="compact_iri">compact IRIs</tref>.
-  This allows coercion rules to be applied to keys which are not represented as a simple <tref>term</tref>.
-  For example:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Term definitions using compact and absolute IRIs">
-<!--
-{
-  "@context":
-  {
-    "foaf": "http://xmlns.com/foaf/0.1/",
-    "****foaf:age****":
-    {
-      ****"@id": "http://xmlns.com/foaf/0.1/age"****,
-      "@type": "xsd:integer"
+       "@vocab": "http://schema.org/",
+       ****"databaseId": null****
     },
-    "****http://xmlns.com/foaf/0.1/homepage****":
-    {
-      "@type": "@id"
-    }
-  },
-  "foaf:name": "John Smith",
-  "****foaf:age****": "41",
-  "****http://xmlns.com/foaf/0.1/homepage****":
-  [
-    "http://personal.example.org/",
-    "http://work.example.com/jsmith/"
-  ]
-}
--->
-</pre>
-
-<p>In this case the <code>@id</code> definition in the term definition is optional, but if it does exist, the <tref>compact IRI</tref>
-  or <tref>IRI</tref> is treated as a <tref>term</tref> (not a <code>prefix:suffix</code> construct)
-  so that the actual definition of a <tref>prefix</tref> becomes unnecessary. Type coercion is performed using
-  the unexpanded value of the key, which has to match exactly an entry in the <tref>active context</tref>.</p>
-
-<p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
-  expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
-  For example, one could specify that <code>dog</code> and <code>cat</code> both expanded to <code>http://example.com/vocab#animal</code>.
-  Doing this could be useful for establishing different type coercion or language specification rules. It also allows a <tref>compact IRI</tref> (or even an
-  absolute <tref>IRI</tref>) to be defined as something else entirely. For example, one could specify that
-  the <tref>term</tref> <code>http://example.org/zoo</code> should expand to
-  <code>http://example.org/river</code>, but this usage is discouraged because it would lead to a
-  great deal of confusion among developers attempting to understand the JSON-LD document.</p>
-
-
+    "name": "Manu Sporny",
+    ****"databaseId": "23987520"****
+  }
+  -->
+  </pre>
 </section>
-
 
 <section>
 <h2>Property Generators</h2>
@@ -1645,15 +1636,15 @@ the document above is equivalent to the following:</p>
   "@context":
   {
     ****"xsd": "http://www.w3.org/2001/XMLSchema#"****,
-    "name": "http://xmlns.com/foaf/0.1/name",
+    "name": "http://schema.org/name",
     "age":
     {
-      "@id": "http://xmlns.com/foaf/0.1/age",
+      "@id": "http://schema.org/age",
       "@type": ****"xsd:integer"****
     },
     "homepage":
     {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@id": "http://schema.org/homepage",
       "@type": "@id"
     }
   },
@@ -1674,7 +1665,7 @@ the document above is equivalent to the following:</p>
 {
   "@context":
   {
-    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
+    ****"foaf": "http://schema.org/"****,
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": ****"foaf:name"****,
     "age":
@@ -1703,7 +1694,7 @@ the document above is equivalent to the following:</p>
 {
   "@context":
   {
-    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
+    ****"foaf": "http://schema.org/"****,
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "foaf:name",
     "****foaf:age****":
@@ -1743,7 +1734,7 @@ specified. The full <tref>IRI</tref> for
 {
   "@context":
   {
-    "foaf": "http://xmlns.com/foaf/0.1/",
+    "foaf": "http://schema.org/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "foaf:name",
     "foaf:age":
@@ -1751,7 +1742,7 @@ specified. The full <tref>IRI</tref> for
       "@id": "foaf:age",
       "@type": "xsd:integer"
     },
-    "****http://xmlns.com/foaf/0.1/homepage****":
+    "****http://schema.org/homepage****":
     {
       "@type": "@id"
     }
@@ -1765,7 +1756,7 @@ specified. The full <tref>IRI</tref> for
 In order for the <tref>absolute IRI</tref> to match above, the <tref>absolute IRI</tref> needs to be used in the <tref>JSON-LD document</tref>. Also note that <code>foaf:homepage</code>
 will not use the <code>{ "@type": "@id" }</code> declaration because
 <code>foaf:homepage</code> is not the same as
-<code>http://xmlns.com/foaf/0.1/homepage</code>. That is, <tref title="term">terms</tref>
+<code>http://schema.org/homepage</code>. That is, <tref title="term">terms</tref>
 are looked up in a <tref>context</tref> using direct string comparison before the
 <tref>prefix</tref> lookup mechanism is applied.
 </p>
@@ -1825,17 +1816,17 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 <tbody>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>http://schema.org/nick</td>
   <td>joe</td>
 </tr>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>http://schema.org/nick</td>
   <td>bob</td>
 </tr>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>http://schema.org/nick</td>
   <td>jaybee</td>
 </tr>
 </tbody>
@@ -1919,7 +1910,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     ...
     "nick":
     {
-      "@id": "http://xmlns.com/foaf/0.1/nick",
+      "@id": "http://schema.org/nick",
       "@container": "@list"
     }
   }****,
@@ -1998,9 +1989,9 @@ are looked up in a <tref>context</tref> using direct string comparison before th
   {
     "@context": {
       "generatedAt": "http://www.w3.org/ns/prov#generatedAtTime",
-      "Person": "http://xmlns.com/foaf/0.1/Person",
-      "name": "http://xmlns.com/foaf/0.1/name",
-      "knows": "http://xmlns.com/foaf/0.1/knows",
+      "Person": "http://schema.org/Person",
+      "name": "http://schema.org/name",
+      "knows": "http://schema.org/knows",
       "xsd": "http://www.w3.org/2001/XMLSchema#"
     },
     ****"@id": "http://example.org/graphs/73",
@@ -2052,20 +2043,20 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
     <td>http://www.w3.org/2001/XMLSchema#type</td>
-    <td>http://xmlns.com/foaf/0.1/Person</td>
+    <td>http://schema.org/Person</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
-    <td>http://xmlns.com/foaf/0.1/name</td>
+    <td>http://schema.org/name</td>
     <td>Manu Sporny</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
-    <td>http://xmlns.com/foaf/0.1/knows</td>
+    <td>http://schema.org/knows</td>
     <td>http://greggkellogg.net/foaf#me</td>
     <td></td>
   </tr>
@@ -2073,20 +2064,20 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
     <td>http://www.w3.org/2001/XMLSchema#type</td>
-    <td>http://xmlns.com/foaf/0.1/Person</td>
+    <td>http://schema.org/Person</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
-    <td>http://xmlns.com/foaf/0.1/name</td>
+    <td>http://schema.org/name</td>
     <td>Gregg Kellogg</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
-    <td>http://xmlns.com/foaf/0.1/knows</td>
+    <td>http://schema.org/knows</td>
     <td>http://manu.sporny.org/i/public</td>
     <td></td>
   </tr>
@@ -2374,9 +2365,9 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 {
    "@context":
    {
-      "name": "http://xmlns.com/foaf/0.1/name",
+      "name": "http://schema.org/name",
       "homepage": {
-        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@id": "http://schema.org/homepage",
         "@type": "@id"
       }
    },
@@ -2394,10 +2385,10 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 <!--
 [
   {
-    "http://xmlns.com/foaf/0.1/name": [
+    "http://schema.org/name": [
       { "@value": "Manu Sporny" }
     ],
-    "http://xmlns.com/foaf/0.1/homepage": [
+    "http://schema.org/homepage": [
       { "@id": "http://manu.sporny.org/" }
     ]
   }
@@ -2430,8 +2421,8 @@ have to be written to operate on
 <!--
 [
   {
-    "http://xmlns.com/foaf/0.1/name": [ "Manu Sporny" ],
-    "http://xmlns.com/foaf/0.1/homepage": [
+    "http://schema.org/name": [ "Manu Sporny" ],
+    "http://schema.org/homepage": [
       {
        "@id": "http://manu.sporny.org/"
       }
@@ -2448,9 +2439,9 @@ have to be written to operate on
 <!--
 {
   "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
+    "name": "http://schema.org/name",
     "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@id": "http://schema.org/homepage",
       "@type": "@id"
     }
   }
@@ -2467,9 +2458,9 @@ have to be written to operate on
 <!--
 {
   "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
+    "name": "http://schema.org/name",
     "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@id": "http://schema.org/homepage",
       "@type": "@id"
     }
   },
@@ -2481,7 +2472,7 @@ have to be written to operate on
 
 <p>The compaction algorithm enables a developer to map any document into an
   application-specific compacted form by first <a href="#expanded-document-form"></a>.
-  While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
+  While the context provided above mapped <code>http://schema.org/name</code>
   to <strong>name</strong>, it could have also mapped it to any arbitrary string
   provided by the developer. This powerful mechanism allows the developer to
   re-shape the incoming JSON data into a format that is optimized for
@@ -2940,7 +2931,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="A set of statements serialized in Turtle">
 <!--
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix foaf: <http://schema.org/> .
 
 <http://manu.sporny.org/i/public> a foaf:Person;
   foaf:name "Manu Sporny";
@@ -2954,7 +2945,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://xmlns.com/foaf/0.1/"
+    "foaf": "http://schema.org/"
   },
   "@id": "http://manu.sporny.org/i/public",
   "@type": "foaf:Person",
@@ -2977,7 +2968,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="Embedding in Turtle">
 <!--
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix foaf: <http://schema.org/> .
 
 <http://manu.sporny.org/i/public>
   a foaf:Person;
@@ -2992,7 +2983,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://xmlns.com/foaf/0.1/"
+    "foaf": "http://schema.org/"
   },
   "@id": "http://manu.sporny.org/i/public",
   "@type": "foaf:Person",
@@ -3012,7 +3003,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="A list of values in Turtle">
 <!--
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix foaf: <http://schema.org/> .
 
 <http://example.org/people#joebob> a foaf:Person;
   foaf:name "Joe Bob";
@@ -3026,7 +3017,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://xmlns.com/foaf/0.1/"
+    "foaf": "http://schema.org/"
   },
   "@id": "http://example.org/people#joebob",
   "@type": "foaf:Person",
@@ -3051,7 +3042,7 @@ homepages in [[RDFA-CORE]].</p>
 <pre class="example" data-transform="updateExample"
      title="RDFa fragment that describes three people">
 <!--
-<div ****prefix="foaf: http://xmlns.com/foaf/0.1/"****>
+<div ****prefix="foaf: http://schema.org/"****>
    <ul>
       <li ****typeof="foaf:Person"****>
         <a ****rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name"****>Bob</a>
@@ -3076,7 +3067,7 @@ described below.</p>
 {
   "@context":
   {
-    "foaf": "http://xmlns.com/foaf/0.1/"
+    "foaf": "http://schema.org/"
   },
   "@graph":
   [
