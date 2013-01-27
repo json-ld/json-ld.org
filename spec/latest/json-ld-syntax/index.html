@@ -775,7 +775,7 @@
 {
 ...
   "@id": "http://example.org/places#BrewEats",
-  "****@type****": ****[ "http://schema.org/Restaurant", "http://schema.org/Brewery" ]****
+  "****@type****": ****[ "http://schema.org/Restaurant", "http://schema.org/Brewery" ],****
 ...
 }
 -->
@@ -814,9 +814,10 @@ advanced functionality in more detail.
 <section>
   <h2>Compact IRIs</h2>
   <p>A document on the Web that defines one or more IRIs for use as
-    <tref title="property">properties</tref> in Linked Data is called a vocabulary.
+    <tref title="property">properties</tref> in Linked Data is called a 
+    <tdef>vocabulary</tdef>.
     <tref title="term">Terms</tref> in <tref>Linked Data</tref> documents may draw from
-    a number of different vocabularies. At times, declaring every single <tref>term</tref>
+    a number of different <tref title="vocabulary">vocabularies</tref>s. At times, declaring every single <tref>term</tref>
     that a document uses can require the developer to declare tens, if not hundreds of potential
     vocabulary <tref title="term">terms</tref> that are used across an
     application. This is a concern for at least two reasons: the
@@ -833,11 +834,11 @@ advanced functionality in more detail.
     particular <tref>IRI</tref> in a JSON-LD document.
     For example, the prefix <code>foaf</code> may be used as a short
     hand for the Friend-of-a-Friend vocabulary, which is identified using
-    the IRI <code>http://schema.org/</code>. A developer may append
+    the IRI <code>http://xmlns.com/foaf/0.1/</code>. A developer may append
     any of the FOAF vocabulary terms to the end of the prefix to specify a short-hand
     version of the <tref>absolute IRI</tref> for the vocabulary term. For example,
     <code>foaf:name</code> would be expanded out to the IRI
-    <code>http://schema.org/name</code>. Instead of having to remember and
+    <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember and
     type out the entire IRI, the developer can instead use the prefix in their JSON-LD markup.
   </p>
   
@@ -852,17 +853,17 @@ advanced functionality in more detail.
   {
     "****@context****":
     {
-      "****schema****": "****http://schema.org/****"
+      "****foaf****": "****http://xmlns.com/foaf/0.1/****"
   ...
     },
-    "****schema:name****": "Manu Sporny",
+    "****foaf:name****": "Dave Longley",
   ...
   }
   -->
   </pre>
 
-  <p><code>schema:name</code> above will automatically expand out to the IRI
-    <code>http://schema.org/name</code>.</p>
+  <p><code>foaf:name</code> above will automatically expand out to the IRI
+    <code>http://xmlns.com/foaf/0.1/name</code>.</p>
 
   <p>Terms are interpreted as <tref title="compact_iri">compact IRIs</tref> if they contain at least one
     colon and the first colon is not followed by two slashes (<code>//</code>, as in
@@ -919,7 +920,7 @@ advanced functionality in more detail.
   "@context":
   {
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "foaf": "http://schema.org/",
+    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
     ****"foaf:homepage"****: { "@type": "@id" },
     "picture": { "@id": ****"foaf:depiction"****, "@type": "@id" }
   },
@@ -966,6 +967,7 @@ type with a particular <tref>term</tref> in the <code>@context</code>:</p>
     }
   },****
 ...
+  "@id": "http://example.com/docs/1",
   "modified": "2010-05-29T14:17:39+02:00",
 ...
 }
@@ -974,7 +976,25 @@ type with a particular <tref>term</tref> in the <code>@context</code>:</p>
 
 <p>The <em>modified</em> key's value above is automatically type coerced to a
 dateTime value because of the information specified in the
-<code>@context</code>.</p>
+<code>@context</code>. A JSON-LD processor will interpret the markup above
+like so:</p>
+
+<table class="example">
+<thead>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Value</th>
+  <th>Type</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.com/docs/1</td>
+  <td>http://purl.org/dc/terms/modified</td>
+  <td>2010-05-29T14:17:39+02:00</td>
+  <td>http://www.w3.org/2001/XMLSchema#dateTime</td>
+</tr>
+</tbody>
+</table>
 
 <p>The second example uses the expanded form of setting the type information
 in the body of a JSON-LD document:</p>
@@ -1008,11 +1028,14 @@ in the body of a JSON-LD document:</p>
   express the value of a type.</p>
 
 <p>The <code>@type</code> <tref>keyword</tref> is also used to associate a type
-  with a <tref>node</tref>. The concept of a <tdef>node type</tdef> and
-  a <tdef>value type</tdef> are different. This is similar to object-oriented
-  programming languages where both scalar and structured types use the same
-  class inheritance mechanism, even though scalar types and structured types are
-  inherently different.</p>
+  with a <tref>node</tref>. The concept of a <tref>node type</tref> and
+  a <tref>value type</tref> are different.</p>
+  
+<p>Generally speaking, a 
+  <tdef>node type</tdef> specifies the type of thing that is being described, 
+  like a person, place, event, or web page. A <tdef>value type</tdef> specifies 
+  the unit of measurement for a particular value, such as a date, meter, 
+  or light year.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Example demonstrating the context-sensitivity for @type">
@@ -1020,11 +1043,11 @@ in the body of a JSON-LD document:</p>
 {
 ...
   "@id": "http://example.org/posts#TripToWestVirginia",
-  ****"@type": "http://schema.org/BlogPosting"****,
+  ****"@type": "http://schema.org/BlogPosting"****,   <--- This is a node type
   "modified":
   {
     "@value": "2010-05-29T14:17:39+02:00",
-    ****"@type": "http://www.w3.org/2001/XMLSchema#dateTime"****
+    ****"@type": "http://www.w3.org/2001/XMLSchema#dateTime"**** <--- This is a value type
   }
 ...
 }
@@ -1041,7 +1064,30 @@ in the body of a JSON-LD document:</p>
   the same <tref>JSON object</tref>, the <code>@type</code>
   <tref>keyword</tref> is expressing a <tref>value type</tref>.
   Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
-  <tref>node type</tref>.</p>
+  <tref>node type</tref>. The markup above expresses the following data:</p>
+
+<table class="example">
+<thead>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Value</th>
+  <th>Type</th>
+</thead>
+<tbody>
+<tr>
+  <td>http://example.org/posts#TripToWestVirginia</td>
+  <td>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</td>
+  <td>http://schema.org/BlogPosting</td>
+  <td style="text-align:center;">-</td>
+</tr>
+<tr>
+  <td>http://example.org/posts#TripToWestVirginia</td>
+  <td>http://purl.org/dc/terms/modified</td>
+  <td>2010-05-29T14:17:39+02:00</td>
+  <td>http://www.w3.org/2001/XMLSchema#dateTime</td>
+</tr>
+</tbody>
+</table>
 
 </section>
 
@@ -1075,15 +1121,15 @@ the data type to be specified with each piece of data.</p>
   "@context":
   {
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "name": "http://schema.org/name",
+    "name": "http://xmlns.com/foaf/0.1/name",
     "age":
     ****{
-      "@id": "http://schema.org/age",
+      "@id": "http://xmlns.com/foaf/0.1/age",
       "@type": "xsd:integer"
     }****,
     "homepage":
     ****{
-      "@id": "http://schema.org/homepage",
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
       "@type": "@id",
       "@container": "@list"
     }****
@@ -1114,19 +1160,19 @@ the data type to be specified with each piece of data.</p>
 <tbody>
 <tr>
   <td>http://example.com/people#john</td>
-  <td>http://schema.org/name</td>
+  <td>http://xmlns.com/foaf/0.1/name</td>
   <td>John Smith</td>
   <td>&nbsp;</td>
 </tr>
 <tr>
   <td>http://example.com/people#john</td>
-  <td>http://schema.org/age</td>
+  <td>http://xmlns.com/foaf/0.1/age</td>
   <td>41</td>
   <td>http://www.w3.org/2001/XMLSchema#integer</td>
 </tr>
 <tr>
   <td rowspan="2">http://example.com/people#john</td>
-  <td rowspan="2">http://schema.org/homepage</td>
+  <td rowspan="2">http://xmlns.com/foaf/0.1/homepage</td>
   <td>http://personal.example.org/</td>
   <td>&nbsp;</td>
 </tr>
@@ -1147,20 +1193,20 @@ the data type to be specified with each piece of data.</p>
 {
   "@context":
   {
-    "foaf": "http://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
     "****foaf:age****":
     {
-      ****"@id": "http://schema.org/age"****,
+      ****"@id": "http://xmlns.com/foaf/0.1/age"****,
       "@type": "xsd:integer"
     },
-    "****http://schema.org/homepage****":
+    "****http://xmlns.com/foaf/0.1/homepage****":
     {
       "@type": "@id"
     }
   },
   "foaf:name": "John Smith",
   "****foaf:age****": "41",
-  "****http://schema.org/homepage****":
+  "****http://xmlns.com/foaf/0.1/homepage****":
   [
     "http://personal.example.org/",
     "http://work.example.com/jsmith/"
@@ -1434,7 +1480,7 @@ the data type to be specified with each piece of data.</p>
       ****"@context": [
         "http://json-ld.org/contexts/person.jsonld",
         {
-          "pic": "http://schema.org/depiction"
+          "pic": "http://xmlns.com/foaf/0.1/depiction"
         }
       ],****
       "name": "Manu Sporny",
