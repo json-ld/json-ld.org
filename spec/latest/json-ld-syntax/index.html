@@ -984,7 +984,7 @@ like so:</p>
   <th>Subject</th>
   <th>Property</th>
   <th>Value</th>
-  <th>Type</th>
+  <th>Value Type</th>
 </thead>
 <tbody>
 <tr>
@@ -1071,7 +1071,7 @@ in the body of a JSON-LD document:</p>
   <th>Subject</th>
   <th>Property</th>
   <th>Value</th>
-  <th>Type</th>
+  <th>Value Type</th>
 </thead>
 <tbody>
 <tr>
@@ -1112,7 +1112,7 @@ the data type to be specified with each piece of data.</p>
   context definition.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
-<tref title="typed value">typed values</tref>, IRIs and lists.</p>
+<tref title="typed value">typed values</tref>, IRIs, and lists.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Expanded term definition with types">
@@ -1154,8 +1154,8 @@ the data type to be specified with each piece of data.</p>
 <thead>
   <th>Subject</th>
   <th>Property</th>
-  <th>Object</th>
-  <th>Datatype</th>
+  <th>Value</th>
+  <th>Value Type</th>
 </thead>
 <tbody>
 <tr>
@@ -1218,7 +1218,7 @@ the data type to be specified with each piece of data.</p>
 <p>In this case the <code>@id</code> definition in the term definition is optional, but if it does exist, the <tref>compact IRI</tref>
   or <tref>IRI</tref> is treated as a <tref>term</tref> (not a <code>prefix:suffix</code> construct)
   so that the actual definition of a <tref>prefix</tref> becomes unnecessary. Type coercion is performed using
-  the unexpanded value of the key, which has to match exactly an entry in the <tref>active context</tref>.</p>
+  the unexpanded value of the key if there is an exact match for the key in the <tref>active context</tref>.</p>
 
 <p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
   expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
@@ -1233,177 +1233,18 @@ the data type to be specified with each piece of data.</p>
 </section>
 
 <section>
-  <h2>String Internationalization</h2>
-
-  <p>At times, it is important to annotate a <tref>string</tref>
-    with its language. In JSON-LD this is possible in a variety of ways.
-    First, it is possible to define a default language for a JSON-LD document
-    by setting the <code>@language</code> key in the <tref>context</tref>:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Setting the default language of a JSON-LD document">
-  <!--
-  {
-    ****"@context":
-    {
-      ...
-      "@language": "ja"
-    }****,
-    "name": ****"花澄"****,
-    "occupation": ****"科学者"****
-  }
-  -->
-  </pre>
-
-  <p>The example above would associate the <code>ja</code> language
-    code with the two <tref title="string">strings</tref> <em>花澄</em> and <em>科学者</em>.
-    Languages codes are defined in [[!BCP47]].</p>
-
-  <p>To clear the default language for a subtree, <code>@language</code> can
-    be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Clearing default language">
-  <!--
-  {
-    "@context": {
-      ...
-      "@language": "ja"
-    },
-    "name": "花澄",
-    "details": {
-  ****    "@context": {
-        "@language": null
-      }****,
-      "occupation": "Ninja"
-    }
-  }
-  -->
-  </pre>
-
-  <p>Second, it is possible to associate a language with a specific <tref>term</tref>
-    using an <tref>expanded term definition</tref>:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Expanded term definition with language">
-  <!--
-  {
-    "@context": {
-      ...
-      "ex": "http://example.com/vocab/",
-      "@language": "ja",
-      "name": { "@id": "ex:name", ****"@language": null**** },
-      "occupation": { "@id": "ex:occupation" },
-      "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
-      "occupation_cs": { "@id": "ex:occupation", ****"@language": "cs"**** }
-    },
-    ****"name": "Yagyū Muneyoshi",
-    "occupation": "忍者",
-    "occupation_en": "Ninja",
-    "occupation_cs": "Nindža",****
-    ...
-  }
-  -->
-  </pre>
-
-  <p>The example above would associate <em>忍者</em> with the specified default
-    language code <code>ja</code>, <em>Ninja</em> with the language code
-    <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
-    The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
-    associated with any language code since <code>@language</code> was reset to
-    <tref>null</tref> in the <tref>expanded term definition</tref>.</p>
-
-  <p>Please note that language associations can only be applied to plain
-    literal <tref title="string">strings</tref>. That is,
-    <tref title="typed value">typed values</tref> or values that are subject
-    to <a href="#type-coercion"></a> cannot be language tagged.</p>
-
-  <p>Just as in the example above, systems often need to express the value of a
-    property in multiple languages. Typically, such systems also try to ensure that
-    developers have a programmatically easy way to navigate the data structures for
-    the language-specific data. In this case, <tref title="language map">language maps</tref>
-    may be utilized.</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Language map expressing a property in three languages">
-  <!--
-  {
-    "@context":
-    {
-      ...
-      "occupation": { "@id": "ex:occupation", ****"@container": "@language"**** }
-    },
-    "name": "Yagyū Muneyoshi",
-    "occupation":
-    ****{
-      "ja": "忍者",
-      "en": "Ninja",
-      "cs": "Nindža"
-    }****
-    ...
-  }
-  -->
-  </pre>
-
-  <p>The example above expresses exactly the same information as the previous
-    example but consolidates all values in a single property. To access the
-    value in a specific language in a programming language supporting dot-notation
-    accessors for object properties, a developer may use the
-    <code>property.language</code> pattern. For example, to access the occupation
-    in English, a developer would use the following code snippet:
-    <code>obj.occupation.en</code>.</p>
-
-  <p>Third, it is possible to override the default language by using an
-    <tref>expanded value</tref>:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Overriding default language using an expanded value">
-  <!--
-  {
-    "@context": {
-      ...
-      "@language": "ja"
-    },
-    "name": "花澄",
-    "occupation": ****{
-      "@value": "Scientist",
-      "@language": "en"
-    }****
-  }
-  -->
-  </pre>
-
-  <p>This makes it possible to specify a plain string by omitting the
-    <code>@language</code> tag or setting it to <code>null</code> when expressing
-    it using an <tref>expanded value</tref>:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Removing language information using an expanded value">
-  <!--
-  {
-    "@context": {
-      ...
-      "@language": "ja"
-    },
-    "name": ****{
-      "@value": "Frank"
-    }****,
-    "occupation": {
-      "@value": "Ninja",
-      "@language": "en"
-    },
-    "speciality": "手裏剣"
-  }
-  -->
-  </pre>
-
-</section>
-
-<section>
     <h2>Advanced Context Usage</h2>
-    <p>Contexts may be used at any time a <tref>JSON object</tref> is defined
-      (except inside a context definition). In particular, a
-      <tref>JSON-LD document</tref> may use more than one context:</p>
+    
+    <p>Section <a href="#the-context"></a> introduced the basics of what makes
+    JSON-LD work. This section expands on the basic principles of the 
+    <tref>context</tref> and demonstrates how more advanced use cases can
+    be achieved using JSON-LD. </p>
+    
+    <p>In general, contexts may be used at any time a 
+      <tref>JSON object</tref> is defined. The only time that one cannot
+      express a context is inside a context definition itself. For example, a
+      <tref>JSON-LD document</tref> may use more than one context at different
+      points in a document:</p>
 
     <pre class="example" data-transform="updateExample"
          title="Using multiple contexts">
@@ -1507,12 +1348,12 @@ the data type to be specified with each piece of data.</p>
       programming languages are able to handle empty property names.</p>
 
     <section>
-      <h2>Referencing Contexts</h2>
+      <h2>Context via HTTP Link Header</h2>
 
       <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
         <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
         be unambiguously machine-readable without requiring developers to drastically
-        change their workflow and provides an upgrade path for existing infrastructure
+        change their markup and provides an upgrade path for existing infrastructure
         without breaking existing clients that rely on the <code>application/json</code>
         media type.</p>
 
@@ -1563,6 +1404,172 @@ the data type to be specified with each piece of data.</p>
     </section>
 </section>
 
+<section>
+  <h2>String Internationalization</h2>
+
+  <p>At times, it is important to annotate a <tref>string</tref>
+    with its language. In JSON-LD this is possible in a variety of ways.
+    First, it is possible to define a default language for a JSON-LD document
+    by setting the <code>@language</code> key in the <tref>context</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Setting the default language of a JSON-LD document">
+  <!--
+  {
+    ****"@context":
+    {
+      ...
+      "@language": "ja"
+    }****,
+    "name": ****"花澄"****,
+    "occupation": ****"科学者"****
+  }
+  -->
+  </pre>
+
+  <p>The example above would associate the <code>ja</code> language
+    code with the two <tref title="string">strings</tref> <em>花澄</em> and <em>科学者</em>.
+    Languages codes are defined in [[!BCP47]].</p>
+
+  <p>To clear the default language for a subtree, <code>@language</code> can
+    be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Clearing default language">
+  <!--
+  {
+    "@context": {
+      ...
+      "@language": "ja"
+    },
+    "name": "花澄",
+    "details": {
+  ****    "@context": {
+        "@language": null
+      }****,
+      "occupation": "Ninja"
+    }
+  }
+  -->
+  </pre>
+
+  <p>Second, it is possible to associate a language with a specific <tref>term</tref>
+    using an <tref>expanded term definition</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Expanded term definition with language">
+  <!--
+  {
+    "@context": {
+      ...
+      "ex": "http://example.com/vocab/",
+      "@language": "ja",
+      "name": { "@id": "ex:name", ****"@language": null**** },
+      "occupation": { "@id": "ex:occupation" },
+      "occupation_en": { "@id": "ex:occupation", ****"@language": "en"**** },
+      "occupation_cs": { "@id": "ex:occupation", ****"@language": "cs"**** }
+    },
+    ****"name": "Yagyū Muneyoshi",
+    "occupation": "忍者",
+    "occupation_en": "Ninja",
+    "occupation_cs": "Nindža",****
+    ...
+  }
+  -->
+  </pre>
+
+  <p>The example above would associate <em>忍者</em> with the specified default
+    language code <code>ja</code>, <em>Ninja</em> with the language code
+    <code>en</code>, and <em>Nindža</em> with the language code <code>cs</code>.
+    The value of <code>name</code>, <em>Yagyū Muneyoshi</em> wouldn't be
+    associated with any language code since <code>@language</code> was reset to
+    <tref>null</tref> in the <tref>expanded term definition</tref>.</p>
+
+  <p class="note">Language associations can only be applied to plain
+    literal <tref title="string">strings</tref>. 
+    <tref title="typed value">Typed values</tref> or values that are subject
+    to <a href="#type-coercion"></a> cannot be language tagged.</p>
+
+  <p>Just as in the example above, systems often need to express the value of a
+    property in multiple languages. Typically, such systems also try to ensure that
+    developers have a programmatically easy way to navigate the data structures for
+    the language-specific data. In this case, <tref title="language map">language maps</tref>
+    may be utilized.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Language map expressing a property in three languages">
+  <!--
+  {
+    "@context":
+    {
+      ...
+      "occupation": { "@id": "ex:occupation", ****"@container": "@language"**** }
+    },
+    "name": "Yagyū Muneyoshi",
+    "occupation":
+    ****{
+      "ja": "忍者",
+      "en": "Ninja",
+      "cs": "Nindža"
+    }****
+    ...
+  }
+  -->
+  </pre>
+
+  <p>The example above expresses exactly the same information as the previous
+    example but consolidates all values in a single property. To access the
+    value in a specific language in a programming language supporting dot-notation
+    accessors for object properties, a developer may use the
+    <code>property.language</code> pattern. For example, to access the occupation
+    in English, a developer would use the following code snippet:
+    <code>obj.occupation.en</code>.</p>
+
+  <p>Third, it is possible to override the default language by using an
+    <tref>expanded value</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Overriding default language using an expanded value">
+  <!--
+  {
+    "@context": {
+      ...
+      "@language": "ja"
+    },
+    "name": "花澄",
+    "occupation": ****{
+      "@value": "Scientist",
+      "@language": "en"
+    }****
+  }
+  -->
+  </pre>
+
+  <p>This makes it possible to specify a plain string by omitting the
+    <code>@language</code> tag or setting it to <code>null</code> when expressing
+    it using an <tref>expanded value</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Removing language information using an expanded value">
+  <!--
+  {
+    "@context": {
+      ...
+      "@language": "ja"
+    },
+    "name": ****{
+      "@value": "Frank"
+    }****,
+    "occupation": {
+      "@value": "Ninja",
+      "@language": "en"
+    },
+    "speciality": "手裏剣"
+  }
+  -->
+  </pre>
+
+</section>
 
 <section>
 <h2>Overriding @vocab</h2>
@@ -1582,7 +1589,7 @@ the data type to be specified with each piece of data.</p>
        "@vocab": "http://schema.org/",
        ****"databaseId": null****
     },
-    "name": "Manu Sporny",
+    "name": "Gregg Kellogg",
     ****"databaseId": "23987520"****
   }
   -->
@@ -1638,13 +1645,13 @@ This method can be accomplished by using the following markup pattern:</p>
 </pre>
 
 <p>While the term above is only used once outside of the <code>@context</code>,
-the document above is equivalent to the following:</p>
+the document above will be interpreted like so:</p>
 
 <table class="example">
 <thead>
   <th>Subject</th>
   <th>Property</th>
-  <th>Object</th>
+  <th>Value</th>
 </thead>
 <tbody>
 <tr>
@@ -1682,15 +1689,15 @@ the document above is equivalent to the following:</p>
   "@context":
   {
     ****"xsd": "http://www.w3.org/2001/XMLSchema#"****,
-    "name": "http://schema.org/name",
+    "name": "http://xmlns.com/foaf/0.1/name",
     "age":
     {
-      "@id": "http://schema.org/age",
+      "@id": "http://xmlns.com/foaf/0.1/age",
       "@type": ****"xsd:integer"****
     },
     "homepage":
     {
-      "@id": "http://schema.org/homepage",
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
       "@type": "@id"
     }
   },
@@ -1711,7 +1718,7 @@ the document above is equivalent to the following:</p>
 {
   "@context":
   {
-    ****"foaf": "http://schema.org/"****,
+    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": ****"foaf:name"****,
     "age":
@@ -1740,7 +1747,7 @@ the document above is equivalent to the following:</p>
 {
   "@context":
   {
-    ****"foaf": "http://schema.org/"****,
+    ****"foaf": "http://xmlns.com/foaf/0.1/"****,
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "foaf:name",
     "****foaf:age****":
@@ -1780,7 +1787,7 @@ specified. The full <tref>IRI</tref> for
 {
   "@context":
   {
-    "foaf": "http://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "name": "foaf:name",
     "foaf:age":
@@ -1788,7 +1795,7 @@ specified. The full <tref>IRI</tref> for
       "@id": "foaf:age",
       "@type": "xsd:integer"
     },
-    "****http://schema.org/homepage****":
+    "****http://xmlns.com/foaf/0.1/homepage****":
     {
       "@type": "@id"
     }
@@ -1802,16 +1809,16 @@ specified. The full <tref>IRI</tref> for
 In order for the <tref>absolute IRI</tref> to match above, the <tref>absolute IRI</tref> needs to be used in the <tref>JSON-LD document</tref>. Also note that <code>foaf:homepage</code>
 will not use the <code>{ "@type": "@id" }</code> declaration because
 <code>foaf:homepage</code> is not the same as
-<code>http://schema.org/homepage</code>. That is, <tref title="term">terms</tref>
+<code>http://xmlns.com/foaf/0.1/homepage</code>. That is, <tref title="term">terms</tref>
 are looked up in a <tref>context</tref> using direct string comparison before the
 <tref>prefix</tref> lookup mechanism is applied.
 </p>
 
 <p>The only exception for using terms in the <tref>context</tref> is that
   circular definitions are not allowed. That is,
-  a definition of <em>term-1</em> cannot depend on the
-  definition of <em>term-2</em> if <em>term-2</em> also depends on
-  <em>term-1</em>. For example, the following <tref>context</tref> definition
+  a definition of <em>term1</em> cannot depend on the
+  definition of <em>term2</em> if <em>term2</em> also depends on
+  <em>term1</em>. For example, the following <tref>context</tref> definition
   is illegal:</p>
 <pre class="example" data-transform="updateExample"
      title="Illegal circular definition of terms within a context">
@@ -1844,7 +1851,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 {
 ...
   "@id": "http://example.org/people#joebob",
-  "nick": ****[ "joe", "bob", "jaybee" ]****,
+  "nick": ****[ "joe", "bob", "JB" ]****,
 ...
 }
 -->
@@ -1857,23 +1864,23 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 <thead>
   <th>Subject</th>
   <th>Property</th>
-  <th>Object</th>
+  <th>Value</th>
 </thead>
 <tbody>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://schema.org/nick</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
   <td>joe</td>
 </tr>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://schema.org/nick</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
   <td>bob</td>
 </tr>
 <tr>
   <td>http://example.org/people#joebob</td>
-  <td>http://schema.org/nick</td>
-  <td>jaybee</td>
+  <td>http://xmlns.com/foaf/0.1/nick</td>
+  <td>JB</td>
 </tr>
 </tbody>
 </table>
@@ -1906,7 +1913,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 <thead>
   <th>Subject</th>
   <th>Property</th>
-  <th>Object</th>
+  <th>Value</th>
   <th>Language</th>
 </thead>
 <tbody>
@@ -1956,7 +1963,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     ...
     "nick":
     {
-      "@id": "http://schema.org/nick",
+      "@id": "http://xmlns.com/foaf/0.1/nick",
       "@container": "@list"
     }
   }****,
@@ -1972,19 +1979,23 @@ are looked up in a <tref>context</tref> using direct string comparison before th
   This decision was made due to the extreme amount of added complexity when
   processing lists of lists.</p>
 
-<p>Similarly to <code>@list</code>, there exists the <tref>keyword</tref> <code>@set</code> to
-  describe unordered sets. While its use in the body of a JSON-LD document
-  represents just syntactic sugar optimized away when processing
-  the document, it is very helpful when used within the context of a document.
+<p>While <code>@list</code> is used to describe <em>ordered sets</em>, 
+  the <code>@set</code> keyword is used to describe <em>unordered sets</em>. 
+  The use of <code>@set</code> in the body of a JSON-LD document
+  is optimized away when processing the document, as it is just syntactic
+  sugar. However, <code>@set</code> is helpful when used within the context 
+  of a document.
   Values of terms associated with a <code>@set</code> or <code>@list</code> container
-  are always represented in the form of an <tref>array</tref> - even if there is just a
-  single value that would otherwise be optimized to a non-array form in a
-  <a href="#compact-document-form"></a>. This makes post-processing of
-  the data easier as the data is always in array form, even if the array only
-  contains a single value.</p>
+  are always represented in the form of an <tref>array</tref>,
+  even if there is just a single value that would otherwise be optimized to 
+  a non-array form in compact form (see 
+  <a href="#compact-document-form"></a>). This makes post-processing of
+  JSON-LD documents easier as the data is always in array form, even if the
+  array only contains a single value.</p>
 
 <p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document has no meaning and is not allowed by the JSON-LD grammar (see <a href="#json-ld-grammar"></a>).</p>
+  document has no meaning and is not allowed by the JSON-LD grammar 
+  (see <a href="#json-ld-grammar"></a>).</p>
 
 </section>
 
@@ -2035,9 +2046,9 @@ are looked up in a <tref>context</tref> using direct string comparison before th
   {
     "@context": {
       "generatedAt": "http://www.w3.org/ns/prov#generatedAtTime",
-      "Person": "http://schema.org/Person",
-      "name": "http://schema.org/name",
-      "knows": "http://schema.org/knows",
+      "Person": "http://xmlns.com/foaf/0.1/Person",
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows",
       "xsd": "http://www.w3.org/2001/XMLSchema#"
     },
     ****"@id": "http://example.org/graphs/73",
@@ -2074,8 +2085,8 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <th>Graph</th>
     <th>Subject</th>
     <th>Property</th>
-    <th>Object</th>
-    <th>Datatype</th>
+    <th>Value</th>
+    <th>Value Type</th>
   </thead>
   <tbody>
   <tr>
@@ -2089,20 +2100,20 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
     <td>http://www.w3.org/2001/XMLSchema#type</td>
-    <td>http://schema.org/Person</td>
+    <td>http://xmlns.com/foaf/0.1/Person</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
-    <td>http://schema.org/name</td>
+    <td>http://xmlns.com/foaf/0.1/name</td>
     <td>Manu Sporny</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://manu.sporny.org/i/public</td>
-    <td>http://schema.org/knows</td>
+    <td>http://xmlns.com/foaf/0.1/knows</td>
     <td>http://greggkellogg.net/foaf#me</td>
     <td></td>
   </tr>
@@ -2110,20 +2121,20 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
     <td>http://www.w3.org/2001/XMLSchema#type</td>
-    <td>http://schema.org/Person</td>
+    <td>http://xmlns.com/foaf/0.1/Person</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
-    <td>http://schema.org/name</td>
+    <td>http://xmlns.com/foaf/0.1/name</td>
     <td>Gregg Kellogg</td>
     <td></td>
   </tr>
   <tr>
     <td>http://example.org/graphs/73</td>
     <td>http://greggkellogg.net/foaf#me</td>
-    <td>http://schema.org/knows</td>
+    <td>http://xmlns.com/foaf/0.1/knows</td>
     <td>http://manu.sporny.org/i/public</td>
     <td></td>
   </tr>
@@ -2134,7 +2145,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     has no other <tref title="property">properties</tref> that are mapped
     to an <tref>IRI</tref> or a <tref>keyword</tref> it is considered to
     express the otherwise implicit default graph. This mechanism can be useful
-    when a number of <tref title="node">nodes</tref> thay may not directly
+    when a number of <tref title="node">nodes</tref> do not directly
     relate to one another through a property or where <tref>embedding</tref>
     is not desirable to the application. For example:</p>
 
@@ -2244,10 +2255,10 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     {
        ****"url": "@id"****,
        ****"a": "@type"****,
-       "name": "http://schema.org/name"
+       "name": "http://xmlns.com/foaf/0.1/name"
     },
     "****url****": "http://example.com/about#gregg",
-    "****a****": "http://schema.org/Person",
+    "****a****": "http://xmlns.com/foaf/0.1/Person",
     "name": "Gregg Kellogg"
   }
   -->
@@ -2348,7 +2359,7 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <thead>
       <th>Subject</th>
       <th>Property</th>
-      <th>Object</th>
+      <th>Value</th>
     </thead>
     <tbody>
       <tr>
@@ -2411,9 +2422,9 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 {
    "@context":
    {
-      "name": "http://schema.org/name",
+      "name": "http://xmlns.com/foaf/0.1/name",
       "homepage": {
-        "@id": "http://schema.org/homepage",
+        "@id": "http://xmlns.com/foaf/0.1/homepage",
         "@type": "@id"
       }
    },
@@ -2431,10 +2442,10 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 <!--
 [
   {
-    "http://schema.org/name": [
+    "http://xmlns.com/foaf/0.1/name": [
       { "@value": "Manu Sporny" }
     ],
-    "http://schema.org/homepage": [
+    "http://xmlns.com/foaf/0.1/homepage": [
       { "@id": "http://manu.sporny.org/" }
     ]
   }
@@ -2467,8 +2478,8 @@ have to be written to operate on
 <!--
 [
   {
-    "http://schema.org/name": [ "Manu Sporny" ],
-    "http://schema.org/homepage": [
+    "http://xmlns.com/foaf/0.1/name": [ "Manu Sporny" ],
+    "http://xmlns.com/foaf/0.1/homepage": [
       {
        "@id": "http://manu.sporny.org/"
       }
@@ -2485,9 +2496,9 @@ have to be written to operate on
 <!--
 {
   "@context": {
-    "name": "http://schema.org/name",
+    "name": "http://xmlns.com/foaf/0.1/name",
     "homepage": {
-      "@id": "http://schema.org/homepage",
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
       "@type": "@id"
     }
   }
@@ -2504,9 +2515,9 @@ have to be written to operate on
 <!--
 {
   "@context": {
-    "name": "http://schema.org/name",
+    "name": "http://xmlns.com/foaf/0.1/name",
     "homepage": {
-      "@id": "http://schema.org/homepage",
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
       "@type": "@id"
     }
   },
@@ -2518,7 +2529,7 @@ have to be written to operate on
 
 <p>The compaction algorithm enables a developer to map any document into an
   application-specific compacted form by first <a href="#expanded-document-form"></a>.
-  While the context provided above mapped <code>http://schema.org/name</code>
+  While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
   to <strong>name</strong>, it could have also mapped it to any arbitrary string
   provided by the developer. This powerful mechanism allows the developer to
   re-shape the incoming JSON data into a format that is optimized for
@@ -2977,7 +2988,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="A set of statements serialized in Turtle">
 <!--
-@prefix foaf: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
 <http://manu.sporny.org/i/public> a foaf:Person;
   foaf:name "Manu Sporny";
@@ -2991,7 +3002,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://schema.org/"
+    "foaf": "http://xmlns.com/foaf/0.1/"
   },
   "@id": "http://manu.sporny.org/i/public",
   "@type": "foaf:Person",
@@ -3014,7 +3025,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="Embedding in Turtle">
 <!--
-@prefix foaf: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
 <http://manu.sporny.org/i/public>
   a foaf:Person;
@@ -3029,7 +3040,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://schema.org/"
+    "foaf": "http://xmlns.com/foaf/0.1/"
   },
   "@id": "http://manu.sporny.org/i/public",
   "@type": "foaf:Person",
@@ -3049,7 +3060,7 @@ topic.</p>
 <pre class="example" data-transform="updateExample"
      title="A list of values in Turtle">
 <!--
-@prefix foaf: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
 <http://example.org/people#joebob> a foaf:Person;
   foaf:name "Joe Bob";
@@ -3063,7 +3074,7 @@ topic.</p>
 {
   "@context":
   {
-    "foaf": "http://schema.org/"
+    "foaf": "http://xmlns.com/foaf/0.1/"
   },
   "@id": "http://example.org/people#joebob",
   "@type": "foaf:Person",
@@ -3088,7 +3099,7 @@ homepages in [[RDFA-CORE]].</p>
 <pre class="example" data-transform="updateExample"
      title="RDFa fragment that describes three people">
 <!--
-<div ****prefix="foaf: http://schema.org/"****>
+<div ****prefix="foaf: http://xmlns.com/foaf/0.1/"****>
    <ul>
       <li ****typeof="foaf:Person"****>
         <a ****rel="foaf:homepage" href="http://example.com/bob/" property="foaf:name"****>Bob</a>
@@ -3113,7 +3124,7 @@ described below.</p>
 {
   "@context":
   {
-    "foaf": "http://schema.org/"
+    "foaf": "http://xmlns.com/foaf/0.1/"
   },
   "@graph":
   [
