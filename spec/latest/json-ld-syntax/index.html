@@ -2209,10 +2209,11 @@ are looked up in a <tref>context</tref> using direct string comparison before th
   <h2>Identifying Blank Nodes</h2>
 
   <p>At times, it becomes necessary to be able to express information without
-    being able to specify the node. This type of node is called a <tref>blank node</tref>
+    being able to uniquely identify the <tref>node</tref>. 
+    This type of node is called a <tref>blank node</tref>
     (see <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes">Section 3.4: Blank Nodes</a></cite>
     of [[!RDF-CONCEPTS]]). In JSON-LD, <tref title="blank node identifier">blank node identifiers</tref> are
-    automatically created if a node is not specified using the <code>@id</code> <tref>keyword</tref>.
+    automatically created if an <tref>IRI</tref> is not specified using the <code>@id</code> <tref>keyword</tref>.
     However, authors may provide identifiers for <tref title="blank node">blank nodes</tref>
     by using the special <code>_</code> (underscore) <tref>prefix</tref>. This allows one
     to reference the node locally within the document, but makes it impossible to reference
@@ -2269,10 +2270,10 @@ are looked up in a <tref>context</tref> using direct string comparison before th
     <strong>url</strong> and <strong>a</strong>, respectively.</p>
 
   <p>Since keywords cannot be redefined, they can also not be aliased to
-    other keywords. In fact, every statement in the context having a keyword
-    as the member name (as in
+    other keywords. Every statement in the context having a keyword
+    as the key (as in
     <code style="white-space: nowrap">{ "@type": ... }</code>) will be
-    completely ignored when being processed.</p>
+    ignored when being processed.</p>
 </section>
 
 <section>
@@ -2280,8 +2281,8 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 
   <p>Sometimes it is desirable to include comments or annotations in the data
     that is not meant to express Linked Data but should nevertheless survive
-    processing and transformation. In JSON-LD such data can be included by
-    using the <code>@annotation</code> <tref>keyword</tref> as shown in the
+    JSON-LD processing and transformation. In JSON-LD such data can be included 
+    by using the <code>@annotation</code> <tref>keyword</tref> as shown in the
     following example:</p>
 
   <pre class="example" data-transform="updateExample"
@@ -2302,11 +2303,13 @@ are looked up in a <tref>context</tref> using direct string comparison before th
   -->
   </pre>
 
-  <p>Annotations can also be used to structure data in forms that are more
-    efficient to work with - a feature commonly used with JSON. The annotation
-    feature allows to structure the data in the form of maps which allows to
-    access specific members directly instead of having to filter an array to
-    access a specific member. The following example illustrates this use case:</p>
+  <p>Annotations can also be used to structure data into a form that is
+    more efficient to access, but fundamentally does not convey any additional
+    semantic meaning. The annotation feature allows an author to 
+    structure data using a simpley key-value map where the keys do not map
+    to <tref title="IRI">IRIs</tref>. This enables direct access to data 
+    instead of having to scan an array in search of a specific item. The 
+    following example illustrates this use case:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Annotation maps">
@@ -2344,16 +2347,17 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 
   <p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
     been marked as an <tref>annotation map</tref>. The <strong>en</strong>,
-    <strong>de</strong>, and <strong>ja</strong> keys will effectively be ignored
-    semantically, but preserved syntactically, by the JSON-LD Processor as
-    <em>annotations</em>. This allows, for example, to access the German version
-    of the <strong>blogPost</strong>, using the following code snippet:
+    <strong>de</strong>, and <strong>ja</strong> keys will be ignored
+    semantically, but preserved syntactically, by the JSON-LD Processor. 
+    This allows a developer to access the German version
+    of the <strong>blogPost</strong> using the following code snippet:
     <code>obj.blogPost.de</code>.</p>
 
   <p>The interpretation of the data above is expressed in
     the table below. Note how the annotations do not appear in the Linked Data
-    below, but would continue to exist if the document were compacted or expanded
-    using a JSON-LD processor:</p>
+    below, but would continue to exist if the document were compacted or 
+    expanded (see <a href="#compact-document-form"></a> and 
+    <a href="#expanded-document-form"></a>) using a JSON-LD processor:</p>
 
   <table class="example">
     <thead>
@@ -2408,8 +2412,8 @@ are looked up in a <tref>context</tref> using direct string comparison before th
 
 <section>
 <h3>Expanded Document Form</h3>
-<p>The JSON-LD API [[JSON-LD-API]] defines a method for <em>expanding</em> a
-  JSON-LD document.
+<p>The JSON-LD Algorithms and API specification [[JSON-LD-API]] 
+  defines a method for <em>expanding</em> a JSON-LD document.
   Expansion is the process of taking a JSON-LD document and applying a
   <code>@context</code> such that all IRIs, types, and values
   are expanded so that the <code>@context</code> is no longer necessary.</p>
@@ -2463,13 +2467,13 @@ have to be written to operate on
 
 <section>
 <h3>Compact Document Form</h3>
-<p>The JSON-LD API [[JSON-LD-API]] defines a method for <em>compacting</em> a JSON-LD document.
+<p>The JSON-LD Algorithms and API specification [[JSON-LD-API]] 
+  defines a method for <em>compacting</em> a JSON-LD document.
   Compaction is the process of taking a JSON-LD document and applying a
-  context such that the most compact form of the document is generated. JSON
-  is typically expressed in a very compact, key-value format. That is, full
-  IRIs are rarely used as keys. At times, a JSON-LD document may be received
-  that is not in its most compact form. JSON-LD, via the API, provides a way
-  to compact a JSON-LD document.</p>
+  context such that a very compact form of the document is generated.
+  At times, a JSON-LD document may be received that is not in its most 
+  compact form. The JSON-LD Algorithms, via an API, provides a way to compact a 
+  JSON-LD document.</p>
 
 <p>For example, assume the following JSON-LD input document:</p>
 
@@ -2528,12 +2532,14 @@ have to be written to operate on
 </pre>
 
 <p>The compaction algorithm enables a developer to map any document into an
-  application-specific compacted form by first <a href="#expanded-document-form"></a>.
+  application-specific compacted form. The process consists of
+  expanding the document (see <a href="#expanded-document-form"></a>) and then
+  using a developer-supplied context to compact the expanded document.
   While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
-  to <strong>name</strong>, it could have also mapped it to any arbitrary string
-  provided by the developer. This powerful mechanism allows the developer to
-  re-shape the incoming JSON data into a format that is optimized for
-  their application.</p>
+  to <strong>name</strong>, it could have also mapped it to any arbitrary 
+  <tref>term</tref> provided by the developer. This powerful mechanism allows 
+  the developer to re-shape the incoming JSON data into a format that is 
+  optimized for their application.</p>
 </section>
 
 </section>
