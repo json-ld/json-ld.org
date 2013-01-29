@@ -1233,169 +1233,169 @@ the data type to be specified with each piece of data.</p>
 </section>
 
 <section>
-    <h2>Advanced Context Usage</h2>
+  <h2>Advanced Context Usage</h2>
 
-    <p>Section <a href="#the-context"></a> introduced the basics of what makes
-    JSON-LD work. This section expands on the basic principles of the
-    <tref>context</tref> and demonstrates how more advanced use cases can
-    be achieved using JSON-LD. </p>
+  <p>Section <a href="#the-context"></a> introduced the basics of what makes
+  JSON-LD work. This section expands on the basic principles of the
+  <tref>context</tref> and demonstrates how more advanced use cases can
+  be achieved using JSON-LD. </p>
 
-    <p>In general, contexts may be used at any time a
-      <tref>JSON object</tref> is defined. The only time that one cannot
-      express a context is inside a context definition itself. For example, a
-      <tref>JSON-LD document</tref> may use more than one context at different
-      points in a document:</p>
+  <p>In general, contexts may be used at any time a
+    <tref>JSON object</tref> is defined. The only time that one cannot
+    express a context is inside a context definition itself. For example, a
+    <tref>JSON-LD document</tref> may use more than one context at different
+    points in a document:</p>
 
-    <pre class="example" data-transform="updateExample"
-         title="Using multiple contexts">
-    <!--
-    [
-      {
-        ****"@context": "http://example.org/contexts/person.jsonld",****
-        "name": "Manu Sporny",
-        "homepage": "http://manu.sporny.org/",
-        "depiction": "http://twitter.com/account/profile_image/manusporny"
-      },
-      {
-        ****"@context": "http://example.org/contexts/place.jsonld",****
-        "name": "The Empire State Building",
-        "description": "The Empire State Building is a 102-story landmark in New York City.",
-        "geo": {
-          "latitude": "40.75",
-          "longitude": "73.98"
-        }
-      }
-    ]
-    -->
-    </pre>
-
-    <p>Duplicate context <tref title="term">terms</tref> are overridden using a
-      last-defined-wins mechanism.</p>
-
-    <pre class="example" data-transform="updateExample"
-         title="Scoped contexts within node objects">
-    <!--
+  <pre class="example" data-transform="updateExample"
+       title="Using multiple contexts">
+  <!--
+  [
     {
-      ****"@context":
-      {
-        "name": "http://example.com/person#name",
-        "details": "http://example.com/person#details"
-      },****
-      "****name****": "Markus Lanthaler",
-      ...
-      "details":
-      {
-        ****"@context": {
-          "name": "http://example.com/organization#name"
-        },****
-        "****name****": "Graz University of Technology"
-      }
-    }
-    -->
-    </pre>
-
-    <p>In the example above, the <code>name</code> <tref>term</tref> is overridden
-      in the more deeply nested <code>details</code> structure. Note that this is
-      rarely a good authoring practice and is typically used when working with
-      legacy applications that depend on a specific structure of the
-      <tref>JSON object</tref>. If a <tref>term</tref> is redefined within a
-      context, all previous rules associated with the previous definition are
-      removed. If a <tref>term</tref> is redefined to <code>null</code>,
-      the <tref>term</tref> is effectively removed from the list of
-      <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
-
-    <p>Multiple contexts may be combined using an <tref>array</tref>, which is processed
-      in order. The set of contexts defined within a specific <tref>JSON object</tref> are
-      referred to as <tdef title="local context">local contexts</tdef>. The
-      <tdef>active context</tdef> refers to the accumulation of
-      <tref title="local context">local contexts</tref> that are in scope at a
-      specific point within the document. Setting a <tref>local context</tref>
-      to <code>null</code> effectively resets the <tref>active context</tref>
-      to an empty context. The following example specifies an external context
-      and then layers an embedded context on top of the external context:</p>
-
-    <pre class="example" data-transform="updateExample"
-         title="Combining external and local contexts">
-    <!--
-    {
-      ****"@context": [
-        "http://json-ld.org/contexts/person.jsonld",
-        {
-          "pic": "http://xmlns.com/foaf/0.1/depiction"
-        }
-      ],****
+      ****"@context": "http://example.org/contexts/person.jsonld",****
       "name": "Manu Sporny",
       "homepage": "http://manu.sporny.org/",
-      ****"pic": "http://twitter.com/account/profile_image/manusporny"****
-    }
-    -->
-    </pre>
-
-    <p class="note">It is a best practice to put the <tref>context</tref> definition
-      at the top of the JSON-LD document.</p>
-
-    <p class="note">To avoid forward-compatibility issues,
-      <tref title="term">terms</tref> starting with an&nbsp;<code>@</code> character are
-      to be avoided as they might be used as <tref title="keyword">keywords</tref>
-      in future versions of JSON-LD. Furthermore, the use of empty
-      <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
-      programming languages are able to handle empty property names.</p>
-
-    <section>
-      <h2>Context via HTTP Link Header</h2>
-
-      <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
-        <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
-        be unambiguously machine-readable without requiring developers to drastically
-        change their markup and provides an upgrade path for existing infrastructure
-        without breaking existing clients that rely on the <code>application/json</code>
-        media type.</p>
-
-      <p>In order to use an external context with an ordinary JSON document, an author
-        MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in
-        an HTTP Link Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
-        link relation. The referenced document MUST have a top-level <tref>JSON object</tref>.
-        The <code>@context</code> subtree within that object is added to the top-level
-        <tref>JSON object</tref> of the referencing document. If an <tref>array</tref>
-        is at the top-level of the referencing document and its items are
-        <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
-        subtree is added to all <tref>array</tref> items. All extra information located outside
-        of the <code>@context</code> subtree in the referenced document MUST be
-        discarded. Effectively this means that the <tref>active context</tref> is
-        initialized with the referenced external <tref>context</tref>.</p>
-
-      <p>The following example demonstrates the use of an external context with an
-        ordinary JSON document:</p>
-
-      <pre class="example" data-transform="updateExample"
-           title="Referencing a JSON-LD context from a JSON document via an HTTP Link Header">
-      <!--
-      GET /ordinary-json-document.json HTTP/1.1
-      Host: example.com
-      Accept: application/ld+json,application/json,*/*;q=0.1
-
-      ====================================
-
-      HTTP/1.0 200 OK
-      ...
-      Content-Type: ****application/json****
-      ****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
-
-      {
-        "name": "Markus Lanthaler",
-        "homepage": "http://www.markus-lanthaler.com/",
-        "image": "http://twitter.com/account/profile_image/markuslanthaler"
+      "depiction": "http://twitter.com/account/profile_image/manusporny"
+    },
+    {
+      ****"@context": "http://example.org/contexts/place.jsonld",****
+      "name": "The Empire State Building",
+      "description": "The Empire State Building is a 102-story landmark in New York City.",
+      "geo": {
+        "latitude": "40.75",
+        "longitude": "73.98"
       }
-      -->
-      </pre>
+    }
+  ]
+  -->
+  </pre>
 
-      <p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
-        served with the <code>application/ld+json</code>
-        media type MUST have all context information, including references to external
-        contexts, within the body of the document. Contexts linked via a
-        <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
-        ignored for such documents.</p>
-    </section>
+  <p>Duplicate context <tref title="term">terms</tref> are overridden using a
+    last-defined-wins mechanism.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Scoped contexts within node objects">
+  <!--
+  {
+    ****"@context":
+    {
+      "name": "http://example.com/person#name",
+      "details": "http://example.com/person#details"
+    },****
+    "****name****": "Markus Lanthaler",
+    ...
+    "details":
+    {
+      ****"@context": {
+        "name": "http://example.com/organization#name"
+      },****
+      "****name****": "Graz University of Technology"
+    }
+  }
+  -->
+  </pre>
+
+  <p>In the example above, the <code>name</code> <tref>term</tref> is overridden
+    in the more deeply nested <code>details</code> structure. Note that this is
+    rarely a good authoring practice and is typically used when working with
+    legacy applications that depend on a specific structure of the
+    <tref>JSON object</tref>. If a <tref>term</tref> is redefined within a
+    context, all previous rules associated with the previous definition are
+    removed. If a <tref>term</tref> is redefined to <code>null</code>,
+    the <tref>term</tref> is effectively removed from the list of
+    <tref title="term">terms</tref> defined in the <tref>active context</tref>.</p>
+
+  <p>Multiple contexts may be combined using an <tref>array</tref>, which is processed
+    in order. The set of contexts defined within a specific <tref>JSON object</tref> are
+    referred to as <tdef title="local context">local contexts</tdef>. The
+    <tdef>active context</tdef> refers to the accumulation of
+    <tref title="local context">local contexts</tref> that are in scope at a
+    specific point within the document. Setting a <tref>local context</tref>
+    to <code>null</code> effectively resets the <tref>active context</tref>
+    to an empty context. The following example specifies an external context
+    and then layers an embedded context on top of the external context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Combining external and local contexts">
+  <!--
+  {
+    ****"@context": [
+      "http://json-ld.org/contexts/person.jsonld",
+      {
+        "pic": "http://xmlns.com/foaf/0.1/depiction"
+      }
+    ],****
+    "name": "Manu Sporny",
+    "homepage": "http://manu.sporny.org/",
+    ****"pic": "http://twitter.com/account/profile_image/manusporny"****
+  }
+  -->
+  </pre>
+
+  <p class="note">It is a best practice to put the <tref>context</tref> definition
+    at the top of the JSON-LD document.</p>
+
+  <p class="note">To avoid forward-compatibility issues,
+    <tref title="term">terms</tref> starting with an&nbsp;<code>@</code> character are
+    to be avoided as they might be used as <tref title="keyword">keywords</tref>
+    in future versions of JSON-LD. Furthermore, the use of empty
+    <tref title="term">terms</tref> (<code>""</code>) is discouraged as not all
+    programming languages are able to handle empty property names.</p>
+</section>
+
+<section>
+  <h2>Interpreting JSON as JSON-LD</h2>
+
+  <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
+    <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
+    be unambiguously machine-readable without requiring developers to drastically
+    change their markup and provides an upgrade path for existing infrastructure
+    without breaking existing clients that rely on the <code>application/json</code>
+    media type.</p>
+
+  <p>In order to use an external context with an ordinary JSON document, an author
+    MUST specify an <tref>IRI</tref> to a valid <tref>JSON-LD document</tref> in
+    an HTTP Link Header [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
+    link relation. The referenced document MUST have a top-level <tref>JSON object</tref>.
+    The <code>@context</code> subtree within that object is added to the top-level
+    <tref>JSON object</tref> of the referencing document. If an <tref>array</tref>
+    is at the top-level of the referencing document and its items are
+    <tref title="JSON object">JSON objects</tref>, the <code>@context</code>
+    subtree is added to all <tref>array</tref> items. All extra information located outside
+    of the <code>@context</code> subtree in the referenced document MUST be
+    discarded. Effectively this means that the <tref>active context</tref> is
+    initialized with the referenced external <tref>context</tref>.</p>
+
+  <p>The following example demonstrates the use of an external context with an
+    ordinary JSON document:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Referencing a JSON-LD context from a JSON document via an HTTP Link Header">
+  <!--
+  GET /ordinary-json-document.json HTTP/1.1
+  Host: example.com
+  Accept: application/ld+json,application/json,*/*;q=0.1
+
+  ====================================
+
+  HTTP/1.0 200 OK
+  ...
+  Content-Type: ****application/json****
+  ****Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"****
+
+  {
+    "name": "Markus Lanthaler",
+    "homepage": "http://www.markus-lanthaler.com/",
+    "image": "http://twitter.com/account/profile_image/markuslanthaler"
+  }
+  -->
+  </pre>
+
+  <p>Please note that <tref title="JSON-LD document">JSON-LD documents</tref>
+    served with the <code>application/ld+json</code>
+    media type MUST have all context information, including references to external
+    contexts, within the body of the document. Contexts linked via a
+    <code>http://www.w3.org/ns/json-ld#context</code> HTTP Link Header MUST be
+    ignored for such documents.</p>
 </section>
 
 <section>
