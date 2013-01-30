@@ -350,7 +350,7 @@
     <dd>Used to express an unordered set of data and to ensure that values are always
        represented as arrays. This keyword is described in the section titled
       <a href="#sets-and-lists"></a>.</dd>
-    <dt><code>@annotation</code></dt>
+    <dt><code>@index</code></dt>
     <dd>Used to specify that a container is used to index information and
       that processing should continue deeper into a JSON data structure.
       This keyword is described in the section titled
@@ -488,7 +488,7 @@
       term.
       The example above specifies that the values of <code>image</code> and
       <code>homepage</code> terms are <tref title="IRI">IRIs</tref>.
-      They also allow terms to be used for <a href="#data-annotations">annotation maps</a>
+      They also allow terms to be used for <a href="#data-annotations">index maps</a>
       and to specify whether <tref title="array">array</tref> values are to be
       interpreted as <a href="#sets-and-lists">sets or lists</a>.
       <tref title="expanded term definition">Expanded term definitions</tref> may
@@ -2277,40 +2277,19 @@ specified. The full <tref>IRI</tref> for
 <section>
   <h2>Data Annotations</h2>
 
-  <p>Sometimes it is desirable to include comments or annotations in the data
-    that is not meant to express Linked Data but should nevertheless survive
-    JSON-LD processing and transformation. In JSON-LD such data can be included
-    by using the <code>@annotation</code> <tref>keyword</tref> as shown in the
-    following example:</p>
+  <p class="issue" data-number="216">The prose of this section needs to be
+    updated.</p>
+
+  <p>Indexes can be used to structure data into a form that is more efficient
+    to access, but fundamentally does not convey any additional semantic meaning.
+    The index feature allows an author to structure data using a simple
+    key-value map where the keys do not map to <tref title="IRI">IRIs</tref>.
+    This enables direct access to data instead of having to scan an array in
+    search of a specific item. The following example illustrates this use
+    case:</p>
 
   <pre class="example" data-transform="updateExample"
-       title="Data annotations">
-  <!--
-  {
-    "@context":
-    {
-       "schema": "http://schema.org/",
-       "articleBody": "schema:articleBody",
-       "wordCount": "schema:wordCount"
-    },
-    "@id": "http://example.com/posts/1/en",
-    "articleBody": "World commodities were up today with heavy trading of crude oil...",
-    "wordCount": 1539,
-    ****"@annotation": "Generated in 0.00128 sec"****
-  }
-  -->
-  </pre>
-
-  <p>Annotations can also be used to structure data into a form that is
-    more efficient to access, but fundamentally does not convey any additional
-    semantic meaning. The annotation feature allows an author to
-    structure data using a simpley key-value map where the keys do not map
-    to <tref title="IRI">IRIs</tref>. This enables direct access to data
-    instead of having to scan an array in search of a specific item. The
-    following example illustrates this use case:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Annotation maps">
+       title="Index maps">
   <!--
   {
     "@context":
@@ -2321,7 +2300,7 @@ specified. The full <tref>IRI</tref> for
        "words": "schema:wordCount",
        "post": {
          "@id": "schema:blogPost",
-         ****"@container": "@annotation"****
+         ****"@container": "@index"****
        }
     },
     "@id": "http://example.com/",
@@ -2344,7 +2323,7 @@ specified. The full <tref>IRI</tref> for
   </pre>
 
   <p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
-    been marked as an <tref>annotation map</tref>. The <strong>en</strong>,
+    been marked as an <tref>index map</tref>. The <strong>en</strong>,
     <strong>de</strong>, and <strong>ja</strong> keys will be ignored
     semantically, but preserved syntactically, by the JSON-LD Processor.
     This allows a developer to access the German version
@@ -2352,7 +2331,7 @@ specified. The full <tref>IRI</tref> for
     <code>obj.blogPost.de</code>.</p>
 
   <p>The interpretation of the data above is expressed in
-    the table below. Note how the annotations do not appear in the Linked Data
+    the table below. Note how the indexes do not appear in the Linked Data
     below, but would continue to exist if the document were compacted or
     expanded (see <a href="#compact-document-form"></a> and
     <a href="#expanded-document-form"></a>) using a JSON-LD processor:</p>
@@ -2669,7 +2648,7 @@ have to be written to operate on
   <li><code>@graph</code>,</li>
   <li><code>@id</code>,</li>
   <li><code>@type</code>, or</li>
-  <li><code>@annotation</code></li>
+  <li><code>@index</code></li>
 </ul>
 
 <p>If the <tref>node object</tref> contains the <code>@context</code>
@@ -2714,9 +2693,9 @@ have to be written to operate on
   <tref>context</tref> to be defined which is shared by all of the constituent
   <tref title="node object">node objects</tref>.</p>
 
-<p>If the <tref>node object</tref> contains the <code>@annotation</code> key,
+<p>If the <tref>node object</tref> contains the <code>@index</code> key,
   its value MUST be a <tref>string</tref>. See section
-  <a href="#data-annotations"></a> for further discussion on <code>@annotation</code>
+  <a href="#data-annotations"></a> for further discussion on <code>@index</code>
   values.</p>
 
 
@@ -2736,7 +2715,7 @@ have to be written to operate on
   <li><tref>list</tref> or <tref>set</tref>,</li>
   <li>an <tref>array</tref> of zero or more of the possibilities above,</li>
   <li>a <tref>language map</tref>, or </li>
-  <li>an <tref>annotation map</tref></li>
+  <li>an <tref>index map</tref></li>
 </ul>
 
 </section>
@@ -2775,14 +2754,14 @@ have to be written to operate on
 <p>See <a href="#language-tagged-strings"></a> for further discussion on language maps.</p>
 </section>
 
-<section id="grammar-annotation-map">
-<h2>Annotation Map</h2>
-<p>An <tdef>annotation map</tdef> allows keys that have no semantic meaning,
+<section id="grammar-index-map">
+<h2>Index Map</h2>
+<p>An <tdef>index map</tdef> allows keys that have no semantic meaning,
   but should be preserved regardless, to be used in JSON-LD documents.
-  An <tref>annotation map</tref> may
+  An <tref>index map</tref> may
   be used as a <tref>term</tref> value within a <tref>node object</tref> if the
-  term is defined with <code>@container</code> set to <code>@annotation</code>.
-  The values of the members of an <tref>annotation map</tref> MUST be any
+  term is defined with <code>@container</code> set to <code>@index</code>.
+  The values of the members of an <tref>index map</tref> MUST be any
   of the following types:</p>
 <ul>
   <li><tref>string</tref>,</li>
@@ -2807,11 +2786,11 @@ topic.</p>
 
 <p>An <tref>expanded value</tref> MUST be a <tref>JSON object</tref> containing the
   <code>@value</code> key. It MAY also contain a <code>@type</code>,
-  a <code>@language</code>, or an <code>@annotation</code> key but MUST NOT contain
+  a <code>@language</code>, or an <code>@index</code> key but MUST NOT contain
   both a <code>@type</code> and a <code>@language</code> key at the same time.
   An <tref>expanded value</tref> MUST NOT contain keys other than
   <code>@value</code>, <code>@type</code>, <code>@language</code>, and
-  <code>@annotation</code>. An <tref>expanded value</tref> that contains a
+  <code>@index</code>. An <tref>expanded value</tref> that contains a
   <code>@type</code> key is called an <tdef>expanded typed value</tdef>.
   An <tref>expanded value</tref> that contains a <code>@language</code> key
   is called an <tdef>expanded language-tagged string</tdef>.</p>
@@ -2827,7 +2806,7 @@ topic.</p>
 <p>The value associated with the <code>@language</code> key MUST have the
   lexical form described in [[!BCP47]], or be <tref>null</tref>.</p>
 
-<p>The value associated with the <code>@annotation</code> key MUST be a
+<p>The value associated with the <code>@index</code> key MUST be a
   <tref>string</tref>.</p>
 
 <p>See <a href="#typed-values"></a> and <a href="#language-tagged-strings"></a>
@@ -2851,11 +2830,11 @@ topic.</p>
   This simplifies post-processing of the data as the data is always in array form.</p>
 
 <p>A <tref>list</tref> MUST be a <tref>JSON object</tref> that contains no other
-  keys than <code>@list</code>, <code>@context</code>, and <code>@annotation</code>.</p>
+  keys than <code>@list</code>, <code>@context</code>, and <code>@index</code>.</p>
 
 <p>A <tref>set</tref> MUST be a <tref>JSON object</tref> that that contains no other
-  keys than <code>@set</code>, <code>@context</code>, and <code>@annotation</code>.
-  Please note that the <code>@annotation</code> key will be ignored, and thus be dropped,
+  keys than <code>@set</code>, <code>@context</code>, and <code>@index</code>.
+  Please note that the <code>@index</code> key will be ignored, and thus be dropped,
   when being processed.</p>
 
 <p>In both cases, the value associated with the keys <code>@list</code> and <code>@set</code>
@@ -2913,12 +2892,12 @@ topic.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
   its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 <p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>,
-  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, <code>@annotation</code>, or be <tref>null</tref>.
+  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, <code>@index</code>, or be <tref>null</tref>.
   If the value is <code>@language</code>, when the <tref>term</tref> is used outside of the <code>@context</code>, the
   associated value MUST be a <tref>language map</tref>. If the value is
-  <code>@annotation</code>, when the <tref>term</tref> is used outside of
+  <code>@index</code>, when the <tref>term</tref> is used outside of
   the <code>@context</code>, the associated value MUST be an
-  <tref>annotation map</tref>.</p>
+  <tref>index map</tref>.</p>
 
 <p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is, the definition of a term cannot depend on the definition of another term if that other term also depends on the first term.</p>
 
