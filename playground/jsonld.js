@@ -259,16 +259,6 @@ jsonld.expand = function(input) {
       else if(expanded === null) {
         expanded = [];
       }
-      else if(_isArray(expanded)) {
-        // remove nulls (they represent free-floating nodes)
-        var output = [];
-        for(var i = 0; i < expanded.length; ++i) {
-          if(expanded[i] !== null) {
-            output.push(expanded[i]);
-          }
-        }
-        expanded = output;
-      }
 
       // normalize to an array
       if(!_isArray(expanded)) {
@@ -1248,7 +1238,7 @@ var _rdfParsers = {};
  *
  * @param contentType the content-type for the parser.
  * @param parser(input) the parser function (takes a string as a parameter
- *           and returns an array of RDF statements).
+ *          and returns an array of RDF statements).
  */
 jsonld.registerRDFParser = function(contentType, parser) {
   _rdfParsers[contentType] = parser;
@@ -1353,27 +1343,30 @@ var Processor = function() {};
  * must be in expanded form before this method is called.
  *
  * @param activeCtx the active context to use.
- * @param property the compact property that points to the element, null for
- *          none.
+ * @param activeProperty the compacted property assoicated with the element
+ *          to compact, null for none.
  * @param element the element to compact.
  * @param options the compaction options.
  *
  * @return the compacted value.
  */
-Processor.prototype.compact = function(activeCtx, property, element, options) {
+Processor.prototype.compact = function(
+  activeCtx, activeProperty, element, options) {
   // recursively compact array
   if(_isArray(element)) {
     var rval = [];
     for(var i in element) {
       // compact, dropping any null values
-      var compacted = this.compact(activeCtx, property, element[i], options);
+      var compacted = this.compact(
+        activeCtx, activeProperty, element[i], options);
       if(compacted !== null) {
         rval.push(compacted);
       }
     }
     if(rval.length === 1) {
       // use single element if no container is specified
-      var container = jsonld.getContextValue(activeCtx, property, '@container');
+      var container = jsonld.getContextValue(
+        activeCtx, activeProperty, '@container');
       if(container === null) {
         rval = rval[0];
       }
@@ -1385,18 +1378,18 @@ Processor.prototype.compact = function(activeCtx, property, element, options) {
   if(_isObject(element)) {
     // do value compaction on @values and subject references
     if(_isValue(element) || _isSubjectReference(element)) {
-      return _compactValue(activeCtx, property, element);
+      return _compactValue(activeCtx, activeProperty, element);
     }
 
     // shallow copy element and arrays so keys and values can be removed
     // during property generator compaction
     var shallow = {};
-    for(var key in element) {
-      if(_isArray(element[key])) {
-        shallow[key] = element[key].slice();
+    for(var expandedProperty in element) {
+      if(_isArray(element[expandedProperty])) {
+        shallow[expandedProperty] = element[expandedProperty].slice();
       }
       else {
-        shallow[key] = element[key];
+        shallow[expandedProperty] = element[expandedProperty];
       }
     }
     element = shallow;
@@ -1404,112 +1397,117 @@ Processor.prototype.compact = function(activeCtx, property, element, options) {
     // process element keys in order
     var keys = Object.keys(element).sort();
     var rval = {};
-    while(keys.length > 0) {
-      var key = keys.shift();
+    for(var ki = 0; ki < keys.length; ++ki) {
+      var expandedProperty = keys[ki];
 
       // skip key if removed during property generator duplicate handling
-      if(!(key in element)) {
+      if(!(expandedProperty in element)) {
         continue;
       }
 
-      var value = element[key];
+      var expandedValue = element[expandedProperty];
 
       // compact @id and @type(s)
-      if(key === '@id' || key === '@type') {
+      if(expandedProperty === '@id' || expandedProperty === '@type') {
+        var compactedValue;
+
         // compact single @id
-        if(_isString(value)) {
-          value = _compactIri(
-            activeCtx, value, null, {base: true, vocab: (key === '@type')});
+        if(_isString(expandedValue)) {
+          compactedValue = _compactIri(
+            activeCtx, expandedValue, null,
+            {base: true, vocab: (expandedProperty === '@type')});
         }
-        // value must be a @type array
+        // expanded value must be a @type array
         else {
-          var types = [];
-          for(var i in value) {
-            types.push(_compactIri(
-              activeCtx, value[i], null, {base: true, vocab: true}));
+          compactedValue = [];
+          for(var vi = 0; vi < expandedValue.length; ++vi) {
+            compactedValue.push(_compactIri(
+              activeCtx, expandedValue[vi], null, {base: true, vocab: true}));
           }
-          value = types;
         }
 
         // use keyword alias and add value
-        var alias = _compactIri(activeCtx, key);
-        var isArray = (_isArray(value) && value.length === 0);
-        jsonld.addValue(rval, alias, value, {propertyIsArray: isArray});
+        var alias = _compactIri(activeCtx, expandedProperty);
+        var isArray = (_isArray(compactedValue) && expandedValue.length === 0);
+        jsonld.addValue(
+          rval, alias, compactedValue, {propertyIsArray: isArray});
         continue;
       }
 
       // handle @annotation property
-      if(key === '@annotation') {
+      if(expandedProperty === '@annotation') {
         // drop @annotation if inside an @annotation container
         var container = jsonld.getContextValue(
-          activeCtx, property, '@container');
+          activeCtx, activeProperty, '@container');
         if(container === '@annotation') {
           continue;
         }
 
         // use keyword alias and add value
-        var alias = _compactIri(activeCtx, key);
-        jsonld.addValue(rval, alias, value);
+        var alias = _compactIri(activeCtx, expandedProperty);
+        jsonld.addValue(rval, alias, expandedValue);
         continue;
       }
 
-      // Note: value must be an array due to expansion algorithm.
+      // Note: expanded value must be an array due to expansion algorithm.
 
       // preserve empty arrays
-      if(value.length === 0) {
-        var term = _compactIri(activeCtx, key, null, {vocab: true}, element);
-        jsonld.addValue(rval, term, [], {propertyIsArray: true});
+      if(expandedValue.length === 0) {
+        var activeProperty = _compactIri(
+          activeCtx, expandedProperty, null, {vocab: true}, element);
+        jsonld.addValue(rval, activeProperty, [], {propertyIsArray: true});
       }
 
       // recusively process array values
-      while(value.length > 0) {
-        var expanded = value.shift();
+      for(var vi = 0; vi < expandedValue.length; ++vi) {
+        var expandedItem = expandedValue[vi];
 
         // compact property and get container type
-        var term = _compactIri(
-          activeCtx, key, expanded, {vocab: true}, element);
-        var container = jsonld.getContextValue(activeCtx, term, '@container');
+        var activeProperty = _compactIri(
+          activeCtx, expandedProperty, expandedItem, {vocab: true}, element);
+        var container = jsonld.getContextValue(
+          activeCtx, activeProperty, '@container');
 
         // remove any duplicates that were (presumably) generated by a
         // property generator
-        var mapping = activeCtx.mappings[term];
+        var mapping = activeCtx.mappings[activeProperty];
         if(mapping && mapping.propertyGenerator) {
           _findAndRemovePropertyGeneratorDuplicates(
-            activeCtx, element, key, expanded, term);
+            activeCtx, element, expandedProperty, expandedItem, activeProperty);
         }
 
         // get @list value if appropriate
-        var isList = _isList(expanded);
+        var isList = _isList(expandedItem);
         var list = null;
         if(isList) {
-          list = expanded['@list'];
+          list = expandedItem['@list'];
         }
 
-        // recursively compact value
-        var compacted = this.compact(
-          activeCtx, term, isList ? list : expanded, options);
+        // recursively compact expanded item
+        var compactedItem = this.compact(
+          activeCtx, activeProperty, isList ? list : expandedItem, options);
 
         // handle @list
         if(isList) {
           // ensure @list value is an array
-          if(!_isArray(compacted)) {
-            compacted = [compacted];
+          if(!_isArray(compactedItem)) {
+            compactedItem = [compactedItem];
           }
 
           if(container !== '@list') {
             // wrap using @list alias
             var wrapper = {};
-            wrapper[_compactIri(activeCtx, '@list')] = compacted;
-            compacted = wrapper;
+            wrapper[_compactIri(activeCtx, '@list')] = compactedItem;
+            compactedItem = wrapper;
 
             // include @annotation from expanded @list, if any
-            if('@annotation' in expanded) {
-              compacted[_compactIri(activeCtx, '@annotation')] =
-                expanded['@annotation'];
+            if('@annotation' in expandedItem) {
+              compactedItem[_compactIri(activeCtx, '@annotation')] =
+                expandedItem['@annotation'];
             }
           }
           // can't use @list container for more than 1 list
-          else if(term in rval) {
+          else if(activeProperty in rval) {
             throw new JsonLdError(
               'JSON-LD compact error; property has a "@list" @container ' +
               'rule but there is more than a single @list that matches ' +
@@ -1523,32 +1521,33 @@ Processor.prototype.compact = function(activeCtx, property, element, options) {
         if(container === '@language' || container === '@annotation') {
           // get or create the map object
           var mapObject;
-          if(term in rval) {
-            mapObject = rval[term];
+          if(activeProperty in rval) {
+            mapObject = rval[activeProperty];
           }
           else {
-            rval[term] = mapObject = {};
+            rval[activeProperty] = mapObject = {};
           }
 
           // if container is a language map, simplify compacted value to
           // a simple string
-          if(container === '@language' && _isValue(compacted)) {
-            compacted = compacted['@value'];
+          if(container === '@language' && _isValue(compactedItem)) {
+            compactedItem = compactedItem['@value'];
           }
 
           // add compact value to map object using key from expanded value
           // based on the container type
-          jsonld.addValue(mapObject, expanded[container], compacted);
+          jsonld.addValue(mapObject, expandedItem[container], compactedItem);
         }
         else {
           // use an array if: @container is @set or @list , value is an empty
           // array, or key is @graph
           var isArray = (container === '@set' || container === '@list' ||
-            (_isArray(compacted) && compacted.length === 0) ||
-            key === '@graph');
+            (_isArray(compactedItem) && compactedItem.length === 0) ||
+            expandedProperty === '@graph');
 
           // add compact value
-          jsonld.addValue(rval, term, compacted, {propertyIsArray: isArray});
+          jsonld.addValue(
+            rval, activeProperty, compactedItem, {propertyIsArray: isArray});
         }
       }
     }
@@ -1566,15 +1565,15 @@ Processor.prototype.compact = function(activeCtx, property, element, options) {
  * before calling this method.
  *
  * @param activeCtx the context to use.
- * @param property the property for the element, null for none.
+ * @param activeProperty the property for the element, null for none.
  * @param element the element to expand.
  * @param options the expansion options.
- * @param propertyIsList true if the property is a list, false if not.
+ * @param insideList true if the element is a list, false if not.
  *
  * @return the expanded value.
  */
 Processor.prototype.expand = function(
-  activeCtx, property, element, options, propertyIsList) {
+  activeCtx, activeProperty, element, options, insideList) {
   var self = this;
 
   if(typeof element === 'undefined') {
@@ -1583,14 +1582,19 @@ Processor.prototype.expand = function(
       'jsonld.SyntaxError');
   }
 
+  // nothing to expand
+  if(element === null) {
+    return null;
+  }
+
   // recursively expand array
   if(_isArray(element)) {
     var rval = [];
     for(var i in element) {
       // expand element
       var e = self.expand(
-        activeCtx, property, element[i], options, propertyIsList);
-      if(_isArray(e) && propertyIsList) {
+        activeCtx, activeProperty, element[i], options, insideList);
+      if(insideList && (_isArray(e) || _isList(e))) {
         // lists of lists are illegal
         throw new JsonLdError(
           'Invalid JSON-LD syntax; lists of lists are not permitted.',
@@ -1598,7 +1602,12 @@ Processor.prototype.expand = function(
       }
       // drop null values
       else if(e !== null) {
-        rval.push(e);
+        if(_isArray(e)) {
+          rval = rval.concat(e);
+        }
+        else {
+          rval.push(e);
+        }
       }
     }
     return rval;
@@ -1612,12 +1621,16 @@ Processor.prototype.expand = function(
       delete element['@context'];
     }
 
+    // expand the active property
+    var expandedActiveProperty = _expandIri(activeCtx, activeProperty);
+
     var rval = {};
     var keys = Object.keys(element).sort();
     for(var ki = 0; ki < keys.length; ++ki) {
       var key = keys[ki];
       var value = element[key];
       var expandedProperty;
+      var expandedValue;
 
       // expand key using property generator
       var mapping = activeCtx.mappings[key];
@@ -1631,14 +1644,9 @@ Processor.prototype.expand = function(
 
       // drop non-absolute IRI keys that aren't keywords
       if(expandedProperty === null ||
-        (!_isArray(expandedProperty) &&
-        !_isAbsoluteIri(expandedProperty) &&
-        !_isKeyword(expandedProperty, activeCtx))) {
-        continue;
-      }
-
-      // if value is null and property is not @value, continue
-      if(value === null && expandedProperty !== '@value') {
+        !(_isArray(expandedProperty) ||
+        _isAbsoluteIri(expandedProperty) ||
+        _isKeyword(expandedProperty, activeCtx))) {
         continue;
       }
 
@@ -1680,7 +1688,7 @@ Processor.prototype.expand = function(
             'jsonld.SyntaxError', {value: value});
         }
         // ensure language value is lowercase
-        value = value.toLowerCase();
+        expandedValue = value.toLowerCase();
       }
 
       // preserve @annotation
@@ -1696,11 +1704,11 @@ Processor.prototype.expand = function(
 
       // handle language map container (skip if value is not an object)
       if(container === '@language' && _isObject(value)) {
-        value = _expandLanguageMap(value);
+        expandedValue = _expandLanguageMap(value);
       }
       // handle annotation container (skip if value is not an object)
       else if(container === '@annotation' && _isObject(value)) {
-        value = (function _expandAnnotation(property) {
+        expandedValue = (function _expandAnnotation(activeProperty) {
           var rval = [];
           var keys = Object.keys(value).sort();
           for(var ki = 0; ki < keys.length; ++ki) {
@@ -1709,7 +1717,7 @@ Processor.prototype.expand = function(
             if(!_isArray(val)) {
               val = [val];
             }
-            val = self.expand(activeCtx, property, val, options, false);
+            val = self.expand(activeCtx, activeProperty, val, options, false);
             for(var vi = 0; vi < val.length; ++vi) {
               var item = val[vi];
               if(!('@annotation' in item)) {
@@ -1725,18 +1733,13 @@ Processor.prototype.expand = function(
         // recurse into @list or @set
         var isList = (expandedProperty === '@list');
         if(isList || expandedProperty === '@set') {
-          var activeProperty;
-          if(isList && (property === null || property === '@graph')) {
-            // use '@list' as the active property for top-level lists
-            activeProperty = '@list';
+          var nextActiveProperty = activeProperty;
+          if(isList && expandedActiveProperty === '@graph') {
+            nextActiveProperty = null;
           }
-          else {
-            // keep the current active property
-            activeProperty = property;
-          }
-          value = self.expand(
-            activeCtx, activeProperty, value, options, isList);
-          if(isList && _isList(value)) {
+          expandedValue = self.expand(
+            activeCtx, nextActiveProperty, value, options, isList);
+          if(isList && _isList(expandedValue)) {
             throw new JsonLdError(
               'Invalid JSON-LD syntax; lists of lists are not permitted.',
               'jsonld.SyntaxError');
@@ -1744,50 +1747,30 @@ Processor.prototype.expand = function(
         }
         else {
           // recursively expand value with key as new active property
-          value = self.expand(activeCtx, key, value, options, false);
+          expandedValue = self.expand(activeCtx, key, value, options, false);
         }
       }
 
       // drop null values if property is not @value
-      if(value === null && expandedProperty !== '@value') {
+      if(expandedValue === null && expandedProperty !== '@value') {
         continue;
       }
 
-      // convert value to @list if container specifies it
-      if(expandedProperty !== '@list' && !_isList(value)) {
-        if(container === '@list') {
-          // ensure value is an array
-          value = _isArray(value) ? value : [value];
-          value = {'@list': value};
-        }
-      }
-
-      // optimize away @id for @type
-      if(expandedProperty === '@type') {
-        if(_isSubjectReference(value)) {
-          value = value['@id'];
-        }
-        else if(_isArray(value)) {
-          var val = [];
-          for(var vi = 0; vi < value.length; ++vi) {
-            var v = value[vi];
-            if(_isSubjectReference(v)) {
-              val.push(v['@id']);
-            }
-            else {
-              val.push(v);
-            }
-          }
-          value = val;
-        }
+      // convert expanded value to @list if container specifies it
+      if(expandedProperty !== '@list' && !_isList(expandedValue) &&
+        container === '@list') {
+        // ensure expanded value is an array
+        expandedValue = (_isArray(expandedValue) ?
+          expandedValue : [expandedValue]);
+        expandedValue = {'@list': expandedValue};
       }
 
       // add copy of value for each property from property generator
       if(_isArray(expandedProperty)) {
-        value = _labelBlankNodes(activeCtx.namer, value);
+        expandedValue = _labelBlankNodes(activeCtx.namer, expandedValue);
         for(var i = 0; i < expandedProperty.length; ++i) {
           jsonld.addValue(
-            rval, expandedProperty[i], _clone(value),
+            rval, expandedProperty[i], _clone(expandedValue),
             {propertyIsArray: true});
         }
       }
@@ -1798,7 +1781,7 @@ Processor.prototype.expand = function(
           ['@annotation', '@id', '@type', '@value', '@language'].indexOf(
             expandedProperty) === -1;
         jsonld.addValue(
-          rval, expandedProperty, value, {propertyIsArray: useArray});
+          rval, expandedProperty, expandedValue, {propertyIsArray: useArray});
       }
     }
 
@@ -1807,28 +1790,32 @@ Processor.prototype.expand = function(
     var count = keys.length;
 
     if('@value' in rval) {
-      // do not count @annotation
-      if('@annotation' in rval) {
-        count -= 1;
-      }
       // @value must only have @language or @type
-      if((count === 2 && !('@type' in rval) && !('@language' in rval)) ||
-        count > 2) {
+      if('@type' in rval && '@language' in rval) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; an element containing "@value" may not ' +
+          'contain both "@type" and "@language".',
+          'jsonld.SyntaxError', {element: rval});
+      }
+      var validCount = count - 1;
+      if('@type' in rval) {
+        validCount -= 1;
+      }
+      if('@annotation' in rval) {
+        validCount -= 1;
+      }
+      if('@language' in rval) {
+        validCount -= 1;
+      }
+      if(validCount !== 0) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; an element containing "@value" may only ' +
           'have an "@annotation" property and at most one other property ' +
           'which can be "@type" or "@language".',
           'jsonld.SyntaxError', {element: rval});
       }
-      // value @type must be a string
-      if('@type' in rval && !_isString(rval['@type'])) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; the "@type" value of an element ' +
-          'containing "@value" must be a string.',
-          'jsonld.SyntaxError', {element: rval});
-      }
       // drop null @values
-      else if(rval['@value'] === null) {
+      if(rval['@value'] === null) {
         rval = null;
       }
       // drop @language if @value isn't a string
@@ -1861,31 +1848,40 @@ Processor.prototype.expand = function(
       rval = null;
     }
 
-    // drop certain top-level objects
-    if(!options.keepFreeFloatingNodes &&
-      (property === null || property === '@graph')) {
-      // drop empty object or @value not in a list
-      if(count === 0 || ('@value' in rval && !propertyIsList)) {
+    // drop certain top-level objects that do not occur in lists
+    if(!options.keepFreeFloatingNodes && !insideList &&
+      (activeProperty === null || expandedActiveProperty === '@graph')) {
+      // drop empty object or top-level @value
+      if(count === 0 || ('@value' in rval)) {
         rval = null;
       }
-      // drop subjects that generate no triples that are not in a list
-      else if(count === 1 && _isKeyword(keys[0]) &&
-        !('@graph' in rval || '@type' in rval || '@list' in rval ||
-        propertyIsList)) {
-        rval = null;
+      else {
+        // drop subjects that generate no triples
+        var hasTriples = false;
+        for(var ki = 0; !hasTriples && ki < keys.length; ++ki) {
+          if(!_isKeyword(keys[ki]) ||
+            ['@graph', '@type', '@list'].indexOf(keys[ki]) !== -1) {
+            hasTriples = true;
+          }
+        }
+        if(!hasTriples) {
+          rval = null;
+        }
       }
     }
 
     return rval;
   }
 
-  // drop top-level scalars
-  if(property === null || property === '@graph') {
+  // drop top-level scalars that are not in lists
+  if(!insideList &&
+    (activeProperty === null ||
+    _expandIri(activeCtx, activeProperty) === '@graph')) {
     return null;
   }
 
   // expand element according to value expansion rules
-  return _expandValue(activeCtx, property, element, options.base);
+  return _expandValue(activeCtx, activeProperty, element);
 };
 
 /**
@@ -2430,14 +2426,14 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
           'jsonld.SyntaxError', {context: ctx});
       }
       else {
-        rval['@language'] = value;
+        rval['@language'] = value.toLowerCase();
       }
       defined['@language'] = true;
     }
 
     // process all other keys
     for(var key in ctx) {
-      _defineContextMapping(rval, ctx, key, '@vocab', defined);
+      _createTermDefinition(rval, ctx, key, defined);
     }
   }
 
@@ -2485,32 +2481,32 @@ function _expandLanguageMap(languageMap) {
  * Labels the blank nodes in the given value using the given UniqueNamer.
  *
  * @param namer the UniqueNamer to use.
- * @param value the value with blank nodes to rename.
+ * @param element the element with blank nodes to rename.
  *
  * @return a copy of value with renamed blank nodes.
  */
-function _labelBlankNodes(namer, value) {
-  if(value && typeof value === 'object') {
-    if(_isArray(value)) {
+function _labelBlankNodes(namer, element) {
+  if(element && typeof element === 'object') {
+    if(_isArray(element)) {
       var rval = [];
-      for(var i = 0; i < value.length; ++i) {
-        rval[i] = _labelBlankNodes(namer, value[i]);
+      for(var i = 0; i < element.length; ++i) {
+        rval[i] = _labelBlankNodes(namer, element[i]);
       }
       return rval;
     }
 
     // recursively apply to @list
     var rval = {};
-    if('@list' in value) {
-      rval['@list'] = _labelBlankNodes(namer, value['@list']);
+    if('@list' in element) {
+      rval['@list'] = _labelBlankNodes(namer, element['@list']);
       return rval;
     }
 
     // recursively apply to all keys
-    var keys = Object.keys(value).sort();
+    var keys = Object.keys(element).sort();
     for(var i in keys) {
       var key = keys[i];
-      rval[key] = _labelBlankNodes(namer, value[key]);
+      rval[key] = _labelBlankNodes(namer, element[key]);
     }
     // rename blank node
     if(_isBlankNode(rval)) {
@@ -2518,69 +2514,66 @@ function _labelBlankNodes(namer, value) {
     }
     return rval;
   }
-  return value;
+  return element;
 }
 
 /**
  * Expands the given value by using the coercion and keyword rules in the
  * given context.
  *
- * @param ctx the active context to use.
- * @param property the property the value is associated with.
+ * @param activeCtx the active context to use.
+ * @param activeProperty the active property the value is associated with.
  * @param value the value to expand.
- * @param relativeTo options for how to resolve relative IRIs:
- *          base: true to resolve against the base IRI, false not to.
- *          vocab: true to concatenate after @vocab, false not to.
  *
  * @return the expanded value.
  */
-function _expandValue(activeCtx, property, value, relativeTo) {
+function _expandValue(activeCtx, activeProperty, value) {
   // nothing to expand
   if(value === null) {
     return null;
   }
 
-  // default to simple string return value
-  var rval = value;
-
   // special-case expand @id and @type (skips '@id' expansion)
-  var prop = _expandIri(activeCtx, property, {vocab: true});
-  if(prop === '@id') {
-    rval = _expandIri(activeCtx, value, {base: true});
+  var expandedProperty = _expandIri(activeCtx, activeProperty, {vocab: true});
+  if(expandedProperty === '@id') {
+    return _expandIri(activeCtx, value, {base: true});
   }
-  else if(prop === '@type') {
-    rval = _expandIri(activeCtx, value, {vocab: true, base: true});
+  else if(expandedProperty === '@type') {
+    return _expandIri(activeCtx, value, {vocab: true, base: true});
   }
-  else {
-    // get type definition from context
-    var type = jsonld.getContextValue(activeCtx, property, '@type');
 
-    // do @id expansion (automatic for @graph)
-    if(type === '@id' || prop === '@graph') {
-      rval = {'@id': _expandIri(activeCtx, value, {base: true})};
+  // get type definition from context
+  var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
+
+  // do @id expansion (automatic for @graph)
+  if(type === '@id' || expandedProperty === '@graph') {
+    return {'@id': _expandIri(activeCtx, value, {base: true})};
+  }
+
+  // do not expand keyword values
+  if(_isKeyword(expandedProperty)) {
+    return value;
+  }
+
+  rval = {};
+
+  // other type
+  if(type !== null) {
+    // rename blank node if requested
+    if(activeCtx.namer && type.indexOf('_:') === 0) {
+      type = activeCtx.namer.getName(type);
     }
-    // do not expand @value, @language, etc. values, but @list is special
-    // and must be processed
-    else if(prop === '@list' || !_isKeyword(prop)) {
-      rval = {};
-      // other type
-      if(type !== null) {
-        // rename blank node if requested
-        if(activeCtx.namer && type.indexOf('_:') === 0) {
-          type = activeCtx.namer.getName(type);
-        }
-        rval['@type'] = type;
-      }
-      // check for language tagging
-      else {
-        var language = jsonld.getContextValue(activeCtx, property, '@language');
-        if(language !== null && _isString(value)) {
-          rval['@language'] = language;
-        }
-      }
-      rval['@value'] = value;
+    rval['@type'] = type;
+  }
+  // check for language tagging for strings
+  else if(_isString(value)) {
+    var language = jsonld.getContextValue(
+      activeCtx, activeProperty, '@language');
+    if(language !== null) {
+      rval['@language'] = language;
     }
   }
+  rval['@value'] = value;
 
   return rval;
 }
@@ -3918,18 +3911,20 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
  * property.
  *
  * @param activeCtx the active context.
- * @param property the compact property that points to the element.
+ * @param activeProperty the active property that points to the element.
  * @param element the element to compact.
  *
  * @return the compaction result.
  */
-function _compactValue(activeCtx, property, element) {
+function _compactValue(activeCtx, activeProperty, element) {
   // element is a @value
   if(_isValue(element)) {
     // get context rules
-    var type = jsonld.getContextValue(activeCtx, property, '@type');
-    var language = jsonld.getContextValue(activeCtx, property, '@language');
-    var container = jsonld.getContextValue(activeCtx, property, '@container');
+    var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
+    var language = jsonld.getContextValue(
+      activeCtx, activeProperty, '@language');
+    var container = jsonld.getContextValue(
+      activeCtx, activeProperty, '@container');
 
     // whether or not the element has an @annotation that must be preserved
     var preserveAnnotation = (('@annotation' in element) &&
@@ -3950,14 +3945,14 @@ function _compactValue(activeCtx, property, element) {
     // return just the value of @value if all are true:
     // 1. @value is the only key or @annotation isn't being preserved
     // 2. there is no default language or @value is not a string or
-    //   the property has a mapping with a null @language
+    //   the key has a mapping with a null @language
     var keyCount = Object.keys(element).length;
     var isValueOnlyKey = (keyCount === 1 ||
       (keyCount === 2 && ('@annotation' in element) && !preserveAnnotation));
     var hasDefaultLanguage = ('@language' in activeCtx);
     var isValueString = _isString(element['@value']);
-    var hasNullMapping = (activeCtx.mappings[property] &&
-      activeCtx.mappings[property]['@language'] === null);
+    var hasNullMapping = (activeCtx.mappings[activeProperty] &&
+      activeCtx.mappings[activeProperty]['@language'] === null);
     if(isValueOnlyKey &&
       (!hasDefaultLanguage || !isValueString || hasNullMapping)) {
       return element['@value'];
@@ -3987,8 +3982,8 @@ function _compactValue(activeCtx, property, element) {
   }
 
   // element is a subject reference
-  var expandedProperty = _expandIri(activeCtx, property);
-  var type = jsonld.getContextValue(activeCtx, property, '@type');
+  var expandedProperty = _expandIri(activeCtx, activeProperty);
+  var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
   var term = _compactIri(activeCtx, element['@id'], null, {base: true});
 
   // compact to scalar
@@ -4007,20 +4002,20 @@ function _compactValue(activeCtx, property, element) {
  *
  * @param activeCtx the active context.
  * @param element the element to remove duplicates from.
- * @param key the key that is being mapped to a property generator.
+ * @param expandedProperty the property to map to a property generator.
  * @param value the value to compare against when duplicate checking.
- * @param term the property generator term.
+ * @param activeProperty the property generator term.
  */
 function _findAndRemovePropertyGeneratorDuplicates(
-  activeCtx, element, key, value, term) {
+  activeCtx, element, expandedProperty, value, activeProperty) {
   // get property generator IRIs
-  var iris = activeCtx.mappings[term]['@id'];
+  var iris = activeCtx.mappings[activeProperty]['@id'];
 
-  // for each IRI that isn't 'key', remove a single duplicate from element,
-  // if found
+  // for each IRI that isn't 'expandedProperty', remove a single duplicate
+  // from element, if found
   for(var i = 0; i < iris.length; ++i) {
     var iri = iris[i];
-    if(iri === key) {
+    if(iri === expandedProperty) {
       continue;
     }
     var prospects = element[iri];
@@ -4039,47 +4034,44 @@ function _findAndRemovePropertyGeneratorDuplicates(
 }
 
 /**
- * Defines a context mapping during context processing.
+ * Creates a term definition during context processing.
  *
  * @param activeCtx the current active context.
  * @param localCtx the local context being processed.
- * @param key the key in the local context to define the mapping for.
- * @param relativeTo options for how to resolve relative IRIs:
- *          base: true to resolve against the base IRI, false not to.
- *          vocab: true to concatenate after @vocab, false not to.
+ * @param term the term in the local context to define the mapping for.
  * @param defined a map of defining/defined keys to detect cycles and prevent
  *          double definitions.
  */
-function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
-  if(key in defined) {
-    // key already defined
-    if(defined[key]) {
+function _createTermDefinition(activeCtx, localCtx, term, defined) {
+  if(term in defined) {
+    // term already defined
+    if(defined[term]) {
       return;
     }
     // cycle detected
     throw new JsonLdError(
       'Cyclical context definition detected.',
-      'jsonld.CyclicalContext', {context: localCtx, key: key});
+      'jsonld.CyclicalContext', {context: localCtx, term: term});
   }
 
-  // now defining key
-  defined[key] = false;
+  // now defining term
+  defined[term] = false;
 
-  // if key has a prefix, define it first
-  var colon = key.indexOf(':');
+  // if term has a prefix, define it first
+  var colon = term.indexOf(':');
   var prefix = null;
   if(colon !== -1) {
-    prefix = key.substr(0, colon);
+    prefix = term.substr(0, colon);
     if(prefix in localCtx) {
       // define parent prefix
-      _defineContextMapping(activeCtx, localCtx, prefix, {base: true}, defined);
+      _createTermDefinition(activeCtx, localCtx, prefix, defined);
     }
   }
 
-  // get context key value
-  var value = localCtx[key];
+  // get context term value
+  var value = localCtx[term];
 
-  if(_isKeyword(key)) {
+  if(_isKeyword(term)) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; keywords cannot be overridden.',
       'jsonld.SyntaxError', {context: localCtx});
@@ -4087,16 +4079,16 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
 
   // clear context entry
   if(value === null || (_isObject(value) && value['@id'] === null)) {
-    if(activeCtx.mappings[key]) {
-      // if key is a keyword alias, remove it
-      var kw = activeCtx.mappings[key]['@id'];
+    if(activeCtx.mappings[term]) {
+      // if term is a keyword alias, remove it
+      var kw = activeCtx.mappings[term]['@id'];
       if(_isKeyword(kw)) {
         var aliases = activeCtx.keywords[kw];
-        aliases.splice(aliases.indexOf(key), 1);
+        aliases.splice(aliases.indexOf(term), 1);
       }
     }
-    activeCtx.mappings[key] = null;
-    defined[key] = true;
+    activeCtx.mappings[term] = null;
+    defined[term] = true;
     return;
   }
 
@@ -4109,10 +4101,10 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
           'jsonld.SyntaxError');
       }
 
-      // uniquely add key as a keyword alias and resort
+      // uniquely add term as a keyword alias and resort
       var aliases = activeCtx.keywords[value];
-      if(aliases.indexOf(key) === -1) {
-        aliases.push(key);
+      if(aliases.indexOf(term) === -1) {
+        aliases.push(term);
         aliases.sort(_compareShortestLeast);
       }
     }
@@ -4121,9 +4113,9 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
       value = _expandIri(activeCtx, value, {base: true}, localCtx, defined);
     }
 
-    // define/redefine key to expanded IRI/keyword
-    activeCtx.mappings[key] = {'@id': value};
-    defined[key] = true;
+    // define/redefine term to expanded IRI/keyword
+    activeCtx.mappings[term] = {'@id': value};
+    defined[term] = true;
     return;
   }
 
@@ -4137,6 +4129,12 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
   // create new mapping
   var mapping = {};
   mapping.propertyGenerator = false;
+
+  // merge onto parent mapping if one exists for a prefix
+  if(prefix !== null && activeCtx.mappings[prefix]) {
+    // FIXME: check to see if additional clone is necessary here
+    mapping = _clone(activeCtx.mappings[prefix]);
+  }
 
   if('@id' in value) {
     var id = value['@id'];
@@ -4190,19 +4188,19 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
       if(!('@vocab' in activeCtx)) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; @context terms must define an @id.',
-          'jsonld.SyntaxError', {context: localCtx, key: key});
+          'jsonld.SyntaxError', {context: localCtx, term: term});
       }
       // prepend vocab to term
-      mapping['@id'] = activeCtx['@vocab'] + key;
+      mapping['@id'] = activeCtx['@vocab'] + term;
     }
     // set @id based on prefix parent
     else if(prefix in activeCtx.mappings) {
-      var suffix = key.substr(colon + 1);
+      var suffix = term.substr(colon + 1);
       mapping['@id'] = activeCtx.mappings[prefix]['@id'] + suffix;
     }
-    // key is an absolute IRI
+    // term is an absolute IRI
     else {
-      mapping['@id'] = key;
+      mapping['@id'] = term;
     }
   }
 
@@ -4248,6 +4246,9 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
     }
 
     // add @language to mapping
+    if(language !== null) {
+      language = language.toLowerCase();
+    }
     mapping['@language'] = language;
   }
 
@@ -4261,9 +4262,9 @@ function _defineContextMapping(activeCtx, localCtx, key, relativeTo, defined) {
     }
   }
 
-  // define key mapping
-  activeCtx.mappings[key] = mapping;
-  defined[key] = true;
+  // define term mapping
+  activeCtx.mappings[term] = mapping;
+  defined[term] = true;
 }
 
 /**
@@ -4291,10 +4292,15 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
 
   // define term dependency if not defined
   if(localCtx && value in localCtx && defined[value] !== true) {
-    _defineContextMapping(activeCtx, localCtx, value, {vocab: true}, defined);
+    _createTermDefinition(activeCtx, localCtx, value, defined);
   }
 
   var mapping = activeCtx.mappings[value];
+
+  // value is explicitly ignored with a null mapping
+  if(mapping === null) {
+    return null;
+  }
 
   // term dependency cannot be a property generator
   if(localCtx && mapping && mapping.propertyGenerator) {
@@ -4304,44 +4310,41 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
       'jsonld.SyntaxError', {context: localCtx, value: value});
   }
 
-  // value is explicitly ignored with a null mapping
-  if(mapping === null) {
-    return null;
-  }
-
   var isAbsolute = false;
+  var rval = value;
 
   // value is a term
   if(mapping && !mapping.propertyGenerator) {
     isAbsolute = true;
-    value = mapping['@id'];
+    rval = mapping['@id'];
   }
 
   // keywords need no expanding (aliasing already handled by now)
-  if(_isKeyword(value)) {
-    return value;
+  if(_isKeyword(rval)) {
+    return rval;
   }
 
-  // split value into prefix:suffix
-  var colon = value.indexOf(':');
-  if(colon !== -1) {
-    isAbsolute = true;
-    var prefix = value.substr(0, colon);
-    var suffix = value.substr(colon + 1);
+  if(!isAbsolute) {
+    // split value into prefix:suffix
+    var colon = rval.indexOf(':');
+    if(colon !== -1) {
+      isAbsolute = true;
+      var prefix = rval.substr(0, colon);
+      var suffix = rval.substr(colon + 1);
 
-    // do not expand blank nodes (prefix of '_') or already-absolute
-    // IRIs (suffix of '//')
-    if(prefix !== '_' && suffix.indexOf('//') !== 0) {
-      // prefix dependency not defined, define it
-      if(localCtx && prefix in localCtx && defined[prefix] !== true) {
-        _defineContextMapping(
-          activeCtx, localCtx, prefix, {base: true}, defined);
-      }
+      // do not expand blank nodes (prefix of '_') or already-absolute
+      // IRIs (suffix of '//')
+      if(prefix !== '_' && suffix.indexOf('//') !== 0) {
+        // prefix dependency not defined, define it
+        if(localCtx && prefix in localCtx && defined[prefix] !== true) {
+          _createTermDefinition(activeCtx, localCtx, prefix, defined);
+        }
 
-      // use mapping if prefix is defined and not a property generator
-      mapping = activeCtx.mappings[prefix];
-      if(mapping && !mapping.propertyGenerator) {
-        value = activeCtx.mappings[prefix]['@id'] + suffix;
+        // use mapping if prefix is defined and not a property generator
+        mapping = activeCtx.mappings[prefix];
+        if(mapping && !mapping.propertyGenerator) {
+          rval = activeCtx.mappings[prefix]['@id'] + suffix;
+        }
       }
     }
   }
@@ -4349,22 +4352,22 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
   relativeTo = relativeTo || {};
   if(isAbsolute) {
     // rename blank node if requested
-    if(!localCtx && value.indexOf('_:') === 0 && activeCtx.namer) {
-      value = activeCtx.namer.getName(value);
+    if(!localCtx && rval.indexOf('_:') === 0 && activeCtx.namer) {
+      rval = activeCtx.namer.getName(rval);
     }
   }
   // prepend vocab
   else if(relativeTo.vocab && '@vocab' in activeCtx) {
-    value = activeCtx['@vocab'] + value;
+    rval = activeCtx['@vocab'] + rval;
   }
   // prepend base
   else if(relativeTo.base) {
-    value = _prependBase(activeCtx['@base'], value);
+    rval = _prependBase(activeCtx['@base'], rval);
   }
 
   if(localCtx) {
     // value must now be an absolute IRI
-    if(!_isAbsoluteIri(value)) {
+    if(!_isAbsoluteIri(rval)) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; a @context value does not expand to ' +
         'an absolute IRI.',
@@ -4372,7 +4375,7 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
     }
   }
 
-  return value;
+  return rval;
 }
 
 /**
