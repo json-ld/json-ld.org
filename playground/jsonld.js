@@ -4,7 +4,7 @@
  * @author Dave Longley
  *
  * BSD 3-Clause License
- * Copyright (c) 2011-2012 Digital Bazaar, Inc.
+ * Copyright (c) 2011-2013 Digital Bazaar, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -4635,7 +4635,7 @@ function _getInitialContext(options) {
     rval.namer = this.namer.clone();
     rval.clone = this.clone;
     rval.share = this.share;
-    rval.inverse = rval.inverse;
+    rval.inverse = this.inverse;
     rval.getInverse = this.getInverse;
     return rval;
   }
