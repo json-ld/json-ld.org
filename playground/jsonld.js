@@ -248,8 +248,15 @@ jsonld.expand = function(input) {
     }
     try {
       // do expansion
-      var ctx = _getInitialContext(options);
-      var expanded = new Processor().expand(ctx, null, input, options, false);
+      var activeCtx = _getInitialContext(options);
+      var expanded = new Processor().expand(
+        activeCtx, null, input, options, false);
+
+      // blank nodes must all be renamed if any were renamed
+      // during expansion ... otherwise there may be conflicts
+      /*if(activeCtx.namer && activeCtx.namer.counter > 0) {
+        _labelBlankNodes(activeCtx.namer, expanded);
+      }*/
 
       // optimize away @graph with no other properties
       if(_isObject(expanded) && ('@graph' in expanded) &&
@@ -817,7 +824,8 @@ jsonld.ActiveContextCache.prototype.get = function(activeCtx, localCtx) {
   var key2 = JSON.stringify(localCtx);
   var level1 = this.cache[key1];
   if(level1 && key2 in level1) {
-    return level1[key2];
+    // get shareable copy of cached active context
+    return level1[key2].share();
   }
   return null;
 };
@@ -947,8 +955,7 @@ jsonld.processContext = function(activeCtx, localCtx) {
 
   // return initial context early for null context
   if(localCtx === null) {
-    var ctx = _getInitialContext(options);
-    return callback(null, ctx);
+    return callback(null, _getInitialContext(options));
   }
 
   // resolve URLs in localCtx
@@ -1767,7 +1774,7 @@ Processor.prototype.expand = function(
 
       // add copy of value for each property from property generator
       if(_isArray(expandedProperty)) {
-        expandedValue = _labelBlankNodes(activeCtx.namer, expandedValue);
+        _labelBlankNodes(activeCtx.namer, expandedValue);
         for(var i = 0; i < expandedProperty.length; ++i) {
           jsonld.addValue(
             rval, expandedProperty[i], _clone(expandedValue),
@@ -2368,9 +2375,10 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
   for(var i in ctxs) {
     var ctx = ctxs[i];
 
-    // reset to initial context
+    // reset to initial context, keeping namer
     if(ctx === null) {
       rval = _getInitialContext(options);
+      rval.namer = activeCtx.namer;
       continue;
     }
 
@@ -2482,38 +2490,39 @@ function _expandLanguageMap(languageMap) {
  *
  * @param namer the UniqueNamer to use.
  * @param element the element with blank nodes to rename.
+ * @param isId true if the given element is an @id (or @type).
  *
- * @return a copy of value with renamed blank nodes.
+ * @return the element.
  */
-function _labelBlankNodes(namer, element) {
-  if(element && typeof element === 'object') {
-    if(_isArray(element)) {
-      var rval = [];
-      for(var i = 0; i < element.length; ++i) {
-        rval[i] = _labelBlankNodes(namer, element[i]);
-      }
-      return rval;
+function _labelBlankNodes(namer, element, isId) {
+  if(_isArray(element)) {
+    for(var i = 0; i < element.length; ++i) {
+      element[i] = _labelBlankNodes(namer, element[i], isId);
     }
-
-    // recursively apply to @list
-    var rval = {};
-    if('@list' in element) {
-      rval['@list'] = _labelBlankNodes(namer, element['@list']);
-      return rval;
+  }
+  else if(_isList(element)) {
+    element['@list'] = _labelBlankNodes(namer, element['@list'], isId);
+  }
+  else if(_isObject(element)) {
+    // rename blank node
+    if(_isBlankNode(element)) {
+      element['@id'] = namer.getName(element['@id']);
     }
 
     // recursively apply to all keys
     var keys = Object.keys(element).sort();
-    for(var i in keys) {
-      var key = keys[i];
-      rval[key] = _labelBlankNodes(namer, element[key]);
+    for(var ki = 0; ki < keys.length; ++ki) {
+      var key = keys[ki];
+      if(key !== '@id') {
+        element[key] = _labelBlankNodes(namer, element[key], key === '@type');
+      }
     }
-    // rename blank node
-    if(_isBlankNode(rval)) {
-      rval['@id'] = namer.getName(rval['@id']);
-    }
-    return rval;
   }
+  // rename blank node identifier
+  else if(_isString(element) && isId && element.indexOf('_:') === 0) {
+    element = namer.getName(element);
+  }
+
   return element;
 }
 
@@ -2590,126 +2599,8 @@ function _expandValue(activeCtx, activeProperty, value) {
  *          last statement as null.
  */
 function _toRDF(element, namer, subject, property, graph, callback) {
-  if(_isObject(element)) {
-    // convert @value to object
-    if(_isValue(element)) {
-      var value = element['@value'];
-      var datatype = element['@type'] || null;
-      if(_isBoolean(value) || _isNumber(value)) {
-        // convert to XSD datatype
-        if(_isBoolean(value)) {
-          value = value.toString();
-          datatype = datatype || XSD_BOOLEAN;
-        }
-        else if(_isDouble(value)) {
-          // canonical double representation
-          value = value.toExponential(15).replace(/(\d)0*e\+?/, '$1E');
-          datatype = datatype || XSD_DOUBLE;
-        }
-        else {
-          value = value.toFixed(0);
-          datatype = datatype || XSD_INTEGER;
-        }
-      }
-
-      // default to xsd:string datatype
-      datatype = datatype || XSD_STRING;
-
-      var object = {
-        nominalValue: value,
-        interfaceName: 'LiteralNode',
-        datatype: {
-          nominalValue: datatype,
-          interfaceName: 'IRI'
-        }
-      };
-      if('@language' in element && datatype === XSD_STRING) {
-        object.language = element['@language'];
-      }
-
-      // emit literal
-      var statement = {
-        subject: _clone(subject),
-        property: _clone(property),
-        object: object
-      };
-      if(graph !== null) {
-        statement.name = graph;
-      }
-      return callback(null, statement);
-    }
-
-    // convert @list
-    if(_isList(element)) {
-      var list = _makeLinkedList(element);
-      return _toRDF(list, namer, subject, property, graph, callback);
-    }
-
-    // Note: element must be a subject
-
-    // get subject @id (generate one if it is a bnode)
-    var isBnode = _isBlankNode(element);
-    var id = isBnode ? namer.getName(element['@id']) : element['@id'];
-
-    // create object
-    var object = {
-      nominalValue: id,
-      interfaceName: isBnode ? 'BlankNode' : 'IRI'
-    };
-
-    // emit statement if subject isn't null
-    if(subject !== null) {
-      var statement = {
-        subject: _clone(subject),
-        property: _clone(property),
-        object: _clone(object)
-      };
-      if(graph !== null) {
-        statement.name = graph;
-      }
-      callback(null, statement);
-    }
-
-    // set new active subject to object
-    subject = object;
-
-    // recurse over subject properties in order
-    var props = Object.keys(element).sort();
-    for(var pi in props) {
-      var prop = props[pi];
-      var e = element[prop];
-
-      // convert @type to rdf:type
-      if(prop === '@type') {
-        prop = RDF_TYPE;
-      }
-
-      // recurse into @graph
-      if(prop === '@graph') {
-        _toRDF(e, namer, null, null, subject, callback);
-        continue;
-      }
-
-      // skip keywords
-      if(_isKeyword(prop)) {
-        continue;
-      }
-
-      // create new active property
-      property = {
-        nominalValue: prop,
-        interfaceName: 'IRI'
-      };
-
-      // recurse into value
-      _toRDF(e, namer, subject, property, graph, callback);
-    }
-
-    return;
-  }
-
+  // recurse into arrays
   if(_isArray(element)) {
-    // recurse into arrays
     for(var i in element) {
       _toRDF(element[i], namer, subject, property, graph, callback);
     }
@@ -2731,6 +2622,119 @@ function _toRDF(element, namer, subject, property, graph, callback) {
       statement.name = graph;
     }
     return callback(null, statement);
+  }
+
+  // convert @list
+  if(_isList(element)) {
+    var list = _makeLinkedList(element);
+    return _toRDF(list, namer, subject, property, graph, callback);
+  }
+
+  // convert @value to object
+  if(_isValue(element)) {
+    var value = element['@value'];
+    var datatype = element['@type'] || null;
+
+    // convert to XSD datatypes as appropriate
+    if(_isBoolean(value)) {
+      value = value.toString();
+      datatype = datatype || XSD_BOOLEAN;
+    }
+    else if(_isDouble(value)) {
+      // canonical double representation
+      value = value.toExponential(15).replace(/(\d)0*e\+?/, '$1E');
+      datatype = datatype || XSD_DOUBLE;
+    }
+    else if(_isNumber(value)) {
+      value = value.toFixed(0);
+      datatype = datatype || XSD_INTEGER;
+    }
+
+    // default to xsd:string datatype
+    datatype = datatype || XSD_STRING;
+
+    var object = {
+      nominalValue: value,
+      interfaceName: 'LiteralNode',
+      datatype: {
+        nominalValue: datatype,
+        interfaceName: 'IRI'
+      }
+    };
+    if('@language' in element && datatype === XSD_STRING) {
+      object.language = element['@language'];
+    }
+
+    // emit literal
+    var statement = {
+      subject: _clone(subject),
+      property: _clone(property),
+      object: object
+    };
+    if(graph !== null) {
+      statement.name = graph;
+    }
+    return callback(null, statement);
+  }
+
+  // Note: element must be a subject
+
+  // get subject @id (generate one if it is a bnode)
+  var isBnode = _isBlankNode(element);
+  var id = isBnode ? namer.getName(element['@id']) : element['@id'];
+
+  // create object
+  var object = {
+    nominalValue: id,
+    interfaceName: isBnode ? 'BlankNode' : 'IRI'
+  };
+
+  // emit statement if subject isn't null
+  if(subject !== null) {
+    var statement = {
+      subject: _clone(subject),
+      property: _clone(property),
+      object: _clone(object)
+    };
+    if(graph !== null) {
+      statement.name = graph;
+    }
+    callback(null, statement);
+  }
+
+  // set new active subject to object
+  subject = object;
+
+  // recurse over subject properties in order
+  var props = Object.keys(element).sort();
+  for(var pi in props) {
+    var prop = props[pi];
+    var e = element[prop];
+
+    // convert @type to rdf:type
+    if(prop === '@type') {
+      prop = RDF_TYPE;
+    }
+
+    // recurse into @graph
+    if(prop === '@graph') {
+      _toRDF(e, namer, null, null, subject, callback);
+      continue;
+    }
+
+    // skip keywords
+    if(_isKeyword(prop)) {
+      continue;
+    }
+
+    // create new active property
+    property = {
+      nominalValue: prop,
+      interfaceName: 'IRI'
+    };
+
+    // recurse into value
+    _toRDF(e, namer, subject, property, graph, callback);
   }
 }
 
@@ -3651,17 +3655,17 @@ function _compareShortestLeast(a, b) {
  * Picks the preferred compaction term from the given inverse context entry.
  *
  * @param activeCtx the active context.
+ * @param iri the IRI to pick the term for.
  * @param value the value to pick the term for.
  * @param parent the parent of the value (required for property generators).
- * @param entry the inverse context entry.
  * @param containers the preferred containers.
  * @param typeOrLanguage either '@type' or '@language'.
  * @param typeOrLanguageValue the preferred value for '@type' or '@language'.
  *
  * @return the preferred term.
  */
-function _pickPreferredTerm(
-  activeCtx, value, parent, entry, containers,
+function _selectTerm(
+  activeCtx, iri, value, parent, containers,
   typeOrLanguage, typeOrLanguageValue) {
   containers.push('@none');
   if(typeOrLanguageValue === null) {
@@ -3670,32 +3674,28 @@ function _pickPreferredTerm(
   // options for the value of @type or @language
   var options = [typeOrLanguageValue, '@none'];
   var term = null;
+  var containerMap = activeCtx.inverse[iri];
   for(var ci = 0; term === null && ci < containers.length; ++ci) {
-    // if container not available in entry, continue
+    // if container not available in the map, continue
     var container = containers[ci];
-    if(!(container in entry)) {
+    if(!(container in containerMap)) {
       continue;
     }
 
-    // if type/language entry not available, continue
-    var typeOrLanguageEntry = entry[container][typeOrLanguage];
-    if(!typeOrLanguageEntry) {
-      continue;
-    }
-
+    var typeOrLanguageValueMap = containerMap[container][typeOrLanguage];
     for(var oi = 0; term === null && oi < options.length; ++oi) {
-      // if type/language option not available in entry, continue
+      // if type/language option not available in the map, continue
       var option = options[oi];
-      if(!(option in typeOrLanguageEntry)) {
+      if(!(option in typeOrLanguageValueMap)) {
         continue;
       }
 
-      var e = typeOrLanguageEntry[option];
+      var termInfo = typeOrLanguageValueMap[option];
 
       // see if a property generator matches
-      if(_isSubject(parent) && e.propertyGenerators) {
-        for(var pi = 0; pi < e.propertyGenerators.length; ++pi) {
-          var propertyGenerator = e.propertyGenerators[pi];
+      if(_isObject(parent) && termInfo.propertyGenerators) {
+        for(var pi = 0; pi < termInfo.propertyGenerators.length; ++pi) {
+          var propertyGenerator = termInfo.propertyGenerators[pi];
           var iris = activeCtx.mappings[propertyGenerator]['@id'];
           var match = true;
           for(var ii = 0; match && ii < iris.length; ++ii) {
@@ -3710,7 +3710,7 @@ function _pickPreferredTerm(
 
       // no matching property generator, use a simple term instead
       if(term === null) {
-        term = e.term;
+        term = termInfo.term;
       }
     }
   }
@@ -3758,9 +3758,6 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
   var defaultLanguage = activeCtx['@language'] || '@none';
 
   if(iri in inverseCtx) {
-    var term = null;
-    var entry = inverseCtx[iri];
-
     // prefer @index if available in value
     var containers = [];
     if(_isObject(value) && '@index' in value) {
@@ -3778,16 +3775,15 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
         containers.push('@list');
       }
       var list = value['@list'];
-      var listLanguage = (list.length === 0) ? defaultLanguage : null;
-      var listType = null;
+      var commonLanguage = (list.length === 0) ? defaultLanguage : null;
+      var commonType = null;
       for(var i = 0; i < list.length; ++i) {
         var item = list[i];
         var itemLanguage = '@none';
         var itemType = '@none';
         if(_isValue(item)) {
           if('@language' in item) {
-            itemLanguage = ('@language' in item) ?
-              (item['@language'] || '@null') : defaultLanguage;
+            itemLanguage = item['@language'];
           }
           else if('@type' in item) {
             itemType = item['@type'];
@@ -3797,32 +3793,32 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
             itemLanguage = '@null';
           }
         }
-        if(listLanguage === null) {
-          listLanguage = itemLanguage;
+        if(commonLanguage === null) {
+          commonLanguage = itemLanguage;
         }
-        else if(itemLanguage !== listLanguage && _isValue(item)) {
-          listLanguage = '@none';
+        else if(itemLanguage !== commonLanguage && _isValue(item)) {
+          commonLanguage = '@none';
         }
-        if(listType === null) {
-          listType = itemType;
+        if(commonType === null) {
+          commonType = itemType;
         }
-        else if(itemType !== listType) {
-          listType = '@none';
+        else if(itemType !== commonType) {
+          commonType = '@none';
         }
         // there are different languages and types in the list, so choose
         // the most generic term, no need to keep iterating the list
-        if(listLanguage === '@none' && listType === '@none') {
+        if(commonLanguage === '@none' && commonType === '@none') {
           break;
         }
       }
-      listLanguage = listLanguage || '@none';
-      listType = listType || '@none';
-      if(listType !== '@none') {
+      commonLanguage = commonLanguage || '@none';
+      commonType = commonType || '@none';
+      if(commonType !== '@none') {
         typeOrLanguage = '@type';
-        typeOrLanguageValue = listType;
+        typeOrLanguageValue = commonType;
       }
       else {
-        typeOrLanguageValue = listLanguage;
+        typeOrLanguageValue = commonLanguage;
       }
     }
     else {
@@ -3844,9 +3840,9 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
     }
 
     // do term selection
-    term = _pickPreferredTerm(
-      activeCtx, value, parent, entry, containers,
-      typeOrLanguage, typeOrLanguageValue);
+    var term = _selectTerm(
+      activeCtx, iri, value, parent,
+      containers, typeOrLanguage, typeOrLanguageValue);
     if(term !== null) {
       return term;
     }
@@ -3859,11 +3855,10 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
     if(term.indexOf(':') !== -1) {
       continue;
     }
-    // FIXME: handle property generators
     // skip entries with @ids that are not partial matches
-    var entry = activeCtx.mappings[term];
-    if(!entry || entry.propertyGenerator ||
-      entry['@id'] === iri || iri.indexOf(entry['@id']) !== 0) {
+    var definition = activeCtx.mappings[term];
+    if(!definition || definition.propertyGenerator ||
+      definition['@id'] === iri || iri.indexOf(definition['@id']) !== 0) {
       continue;
     }
 
@@ -3871,7 +3866,7 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
     // 1. it has no mapping, OR
     // 2. value is null, which means we're not compacting an @value, AND
     //   the mapping matches the IRI)
-    var curie = term + ':' + iri.substr(entry['@id'].length);
+    var curie = term + ':' + iri.substr(definition['@id'].length);
     var isUsableCurie = (!(curie in activeCtx.mappings) ||
       (value === null && activeCtx.mappings[curie] &&
       activeCtx.mappings[curie]['@id'] === iri));
@@ -3893,7 +3888,7 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
   if(relativeTo.vocab && '@vocab' in activeCtx) {
     // determine if vocab is a prefix of the iri
     var vocab = activeCtx['@vocab'];
-    if(iri.indexOf(vocab) === 0) {
+    if(iri.indexOf(vocab) === 0 && iri !== vocab) {
       // use suffix as relative iri if it is not a term in the active context
       var suffix = iri.substr(vocab.length);
       if(!(suffix in activeCtx.mappings)) {
@@ -3912,13 +3907,13 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
  *
  * @param activeCtx the active context.
  * @param activeProperty the active property that points to the element.
- * @param element the element to compact.
+ * @param value the value to compact.
  *
  * @return the compaction result.
  */
-function _compactValue(activeCtx, activeProperty, element) {
-  // element is a @value
-  if(_isValue(element)) {
+function _compactValue(activeCtx, activeProperty, value) {
+  // value is a @value
+  if(_isValue(value)) {
     // get context rules
     var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
     var language = jsonld.getContextValue(
@@ -3926,65 +3921,61 @@ function _compactValue(activeCtx, activeProperty, element) {
     var container = jsonld.getContextValue(
       activeCtx, activeProperty, '@container');
 
-    // whether or not the element has an @index that must be preserved
-    var preserveIndex = (('@index' in element) &&
+    // whether or not the value has an @index that must be preserved
+    var preserveIndex = (('@index' in value) &&
       container !== '@index');
 
-    // matching @type specified in context and there's no @index
-    // to preserve, compact element
-    if(type !== null && element['@type'] === type && !preserveIndex) {
-      return element['@value'];
-    }
-    // matching @language specified in context and there's no @index
-    // to preserve, compact element
-    else if(language !== null && element['@language'] === language &&
-      !preserveIndex) {
-      return element['@value'];
+    // if there's no @index to preserve ...
+    if(!preserveIndex) {
+      // matching @type or @language specified in context, compact value
+      if(value['@type'] === type || value['@language'] === language) {
+        return value['@value'];
+      }
     }
 
     // return just the value of @value if all are true:
     // 1. @value is the only key or @index isn't being preserved
     // 2. there is no default language or @value is not a string or
     //   the key has a mapping with a null @language
-    var keyCount = Object.keys(element).length;
+    var keyCount = Object.keys(value).length;
     var isValueOnlyKey = (keyCount === 1 ||
-      (keyCount === 2 && ('@index' in element) && !preserveIndex));
+      (keyCount === 2 && ('@index' in value) && !preserveIndex));
     var hasDefaultLanguage = ('@language' in activeCtx);
-    var isValueString = _isString(element['@value']);
+    var isValueString = _isString(value['@value']);
     var hasNullMapping = (activeCtx.mappings[activeProperty] &&
       activeCtx.mappings[activeProperty]['@language'] === null);
     if(isValueOnlyKey &&
       (!hasDefaultLanguage || !isValueString || hasNullMapping)) {
-      return element['@value'];
+      return value['@value'];
     }
 
     var rval = {};
 
     // preserve @index
     if(preserveIndex) {
-      rval[_compactIri(activeCtx, '@index')] = element['@index'];
+      rval[_compactIri(activeCtx, '@index')] = value['@index'];
     }
 
     // compact @type IRI
-    if('@type' in element) {
+    if('@type' in value) {
       rval[_compactIri(activeCtx, '@type')] = _compactIri(
-        activeCtx, element['@type'], null, {base: true, vocab: true});
+        activeCtx, value['@type'], null, {base: true, vocab: true});
     }
     // alias @language
-    else if('@language' in element) {
-      rval[_compactIri(activeCtx, '@language')] = element['@language'];
+    else if('@language' in value) {
+      rval[_compactIri(activeCtx, '@language')] = value['@language'];
     }
 
     // alias @value
-    rval[_compactIri(activeCtx, '@value')] = element['@value'];
+    rval[_compactIri(activeCtx, '@value')] = value['@value'];
 
     return rval;
   }
 
-  // element is a subject reference
+  // value is a subject reference
   var expandedProperty = _expandIri(activeCtx, activeProperty);
   var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
-  var term = _compactIri(activeCtx, element['@id'], null, {base: true});
+  var term = _compactIri(activeCtx, value['@id'], null, {base: true});
 
   // compact to scalar
   if(type === '@id' || expandedProperty === '@graph') {
@@ -4068,23 +4059,23 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     }
   }
 
-  // get context term value
-  var value = localCtx[term];
-
   if(_isKeyword(term)) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; keywords cannot be overridden.',
       'jsonld.SyntaxError', {context: localCtx});
   }
 
-  // if term is a keyword alias, remove it
   if(activeCtx.mappings[term]) {
+    // if term is a keyword alias, remove it
     var kw = activeCtx.mappings[term]['@id'];
     if(_isKeyword(kw)) {
       var aliases = activeCtx.keywords[kw];
       aliases.splice(aliases.indexOf(term), 1);
     }
   }
+
+  // get context term value
+  var value = localCtx[term];
 
   // clear context entry
   if(value === null || (_isObject(value) && value['@id'] === null)) {
@@ -4498,7 +4489,8 @@ function _getInitialContext(options) {
     namer: namer,
     inverse: null,
     getInverse: _createInverseContext,
-    clone: _cloneActiveContext
+    clone: _cloneActiveContext,
+    share: _shareActiveContext
   };
 
   /**
@@ -4553,33 +4545,26 @@ function _getInitialContext(options) {
         // add new entry
         if(!entry[container]) {
           entry[container] = {
-            '@language': {
-              '@none': {
-                term: null
-              }
-            },
-            '@type': {
-              '@none': {
-                term: null
-              }
-            }
+            '@language': {},
+            '@type': {}
           };
-          entry[container]['@language'][defaultLanguage] = {term: null};
+          entry[container]['@language'][defaultLanguage] = {
+            term: null, propertyGenerators: []
+          };
         }
         entry = entry[container];
 
         // consider updating @language entry if @type is not specified
         if(!('@type' in mapping)) {
-          // if a @language is specified or a default language is set, update
-          // the specific @language entry
-          if(('@language' in mapping) || defaultLanguage !== '@none') {
-            var language = ('@language' in mapping) ?
-              (mapping['@language'] || '@null') : defaultLanguage;
+          // if a @language is specified, update its specific entry
+          if('@language' in mapping) {
+            var language = mapping['@language'] || '@null';
             _addPreferredTerm(mapping, term, entry['@language'], language);
           }
-
-          // update @none entry if no @language is specified
-          if(!('@language' in mapping)) {
+          // add an entry for the default language and for no @language
+          else {
+            _addPreferredTerm(
+              mapping, term, entry['@language'], defaultLanguage);
             _addPreferredTerm(mapping, term, entry['@language'], '@none');
           }
         }
@@ -4605,27 +4590,15 @@ function _getInitialContext(options) {
    */
   function _addPreferredTerm(mapping, term, entry, typeOrLanguageValue) {
     if(!(typeOrLanguageValue in entry)) {
-      if(mapping.propertyGenerator) {
-        entry[typeOrLanguageValue] = {term: null, propertyGenerators: [term]};
-      }
-      else {
-        entry[typeOrLanguageValue] = {term: term};
-      }
+      entry[typeOrLanguageValue] = {term: null, propertyGenerators: []};
     }
-    else {
-      var e = entry[typeOrLanguageValue];
-      if(mapping.propertyGenerator) {
-        if(!('propertyGenerators' in e)) {
-          e.propertyGenerators = [term];
-          return;
-        }
-        else {
-          e.propertyGenerators.push(term);
-        }
-      }
-      else if(e.term === null) {
-        e.term = term;
-      }
+
+    var e = entry[typeOrLanguageValue];
+    if(mapping.propertyGenerator) {
+      e.propertyGenerators.push(term);
+    }
+    else if(e.term === null) {
+      e.term = term;
     }
   }
 
@@ -4634,16 +4607,37 @@ function _getInitialContext(options) {
    *
    * @return a clone (child) of the active context.
    */
-  function _cloneActiveContext() {
+  function _cloneActiveContext(shallow) {
     var child = {};
     child['@base'] = this['@base'];
     child.keywords = _clone(this.keywords);
     child.mappings = _clone(this.mappings);
     child.namer = this.namer;
     child.clone = this.clone;
+    child.share = this.share;
     child.inverse = null;
     child.getInverse = this.getInverse;
     return child;
+  }
+
+  /**
+   * Returns a copy of this active context that can be shared between
+   * different processing algorithms. This method only copies the parts
+   * of the active context that can't be shared.
+   *
+   * @return a shareable copy of this active context.
+   */
+  function _shareActiveContext() {
+    var rval = {};
+    rval['@base'] = this['@base'];
+    rval.keywords = this.keywords;
+    rval.mappings = this.mappings;
+    rval.namer = this.namer.clone();
+    rval.clone = this.clone;
+    rval.share = this.share;
+    rval.inverse = rval.inverse;
+    rval.getInverse = this.getInverse;
+    return rval;
   }
 }
 
