@@ -111,16 +111,13 @@ environments like those that use JavaScript, Python, and Ruby.
 </section>
 
 <section id="sotd">
-
-<p>
-This document has been under development for over 18 months in the
+<p>This document has been under development for over 18 months in the
 JSON for Linking Data Community Group. The document has recently been
 transferred to the RDF Working Group for review, improvement, and publication
 along the Recommendation track. The specification has undergone significant
 development, review, and changes during the course of the last 18 months.
 </p>
-<p>
-There are several independent
+<p>There are several independent
 <a href="http://json-ld.org/#impl">interoperable implementations</a> of
 this specification. There is
 a <a href="https://github.com/json-ld/json-ld.org/tree/master/test-suite">fairly complete test suite</a>
@@ -142,10 +139,8 @@ does not require that all Working Group members agree on the content of the
 document.
 </p>
 
-<p>
-There are a number of ways that you may participate in the development of
-this specification:
-</p>
+<p>There are a number of ways that one may participate in the development of
+  this specification:</p>
 
 <ul>
   <li>If you want to make sure that your feedback is formally addressed by
@@ -200,416 +195,363 @@ algorithms in this document. To understand the API and how it is
 intended to operate in a programming environment, it is useful to have working
 knowledge of the JavaScript programming language [[ECMA-262]] and
 WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
-familiar with the basic RDF concepts [[!RDF-CONCEPTS]].
-</p>
+familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 </section>
 
 <section class="informative">
 <h1>Features</h1>
 
-<p>
-The JSON-LD Syntax specification [[!JSON-LD]] outlines a syntax that may be
-used to express Linked Data in JSON. Because there is more than one way to
-express Linked Data using this syntax, it is often useful to be able to
-transform JSON-LD documents so that they may be more easily consumed by
-specific applications.
-</p>
+<p>The JSON-LD Syntax specification [[!JSON-LD]] outlines a syntax that may be
+  used to express Linked Data in JSON. Because there is more than one way to
+  express Linked Data using this syntax, it is often useful to be able to
+  transform JSON-LD documents so that they may be more easily consumed by
+  specific applications.</p>
 
-<p>
-There are four major types of transformation that are discussed in this
-document: expansion, compaction, flattening, and RDF conversion.
-</p>
+<p>There are four major types of transformation that are discussed in this document:
+  expansion, compaction, flattening, and RDF conversion.</p>
 
 <section class="informative">
-<h2>Expansion</h2>
+  <h2>Expansion</h2>
 
-<p>
-JSON-LD allows <tref>context</tref> to be applied to JSON data. Applying
-<tref>context</tref> to JSON data allows it to be expressed in a way that
-is specifically tailored to a particular person or application. A common
-use case occurs when an application or person wants to use data that was
-created using a different <tref>context</tref> than they would prefer.
-Therefore, a JSON-LD processor must be able to transform the data from
-one <tref>context</tref> to another. Instead of requiring JSON-LD processors
-to write specific code for every imaginable <tref>context</tref> switching
-scenario, it is much easier to specify a single algorithm that can remove
-any <tref>context</tref> (and another that can subsequently apply any
-<tref>context</tref>). The algorithm that removes <tref>context</tref> is
-called <tdef>expansion</tdef>.
-</p>
+  <p>JSON-LD allows <tref>context</tref> to be applied to JSON data. Applying
+    <tref>context</tref> to JSON data allows it to be expressed in a way that
+    is specifically tailored to a particular person or application. A common
+    use case occurs when an application or person wants to use data that was
+    created using a different <tref>context</tref> than they would prefer.
+    Therefore, a JSON-LD processor must be able to transform the data from
+    one <tref>context</tref> to another. Instead of requiring JSON-LD processors
+    to write specific code for every imaginable <tref>context</tref> switching
+    scenario, it is much easier to specify a single algorithm that can remove
+    any <tref>context</tref> (and another that can subsequently apply any
+    <tref>context</tref>). The algorithm that removes <tref>context</tref> is
+    called <tdef>expansion</tdef>.</p>
 
-<p>
-To get an idea of how context and data structuring affects the same data,
-here is an example of JSON-LD that uses only <tref title="term">terms</tref>
-and is fairly compact:
-</p>
+  <p>To get an idea of how context and data structuring affects the same data,
+    here is an example of JSON-LD that uses only <tref title="term">terms</tref>
+    and is fairly compact:</p>
 
-<pre class="example" data-transform="updateExample"
-  title="Sample JSON-LD document">
-<!--
-{
-  "@context": {
-    "name": "http://schema.org/name",
-    "homepage": {
-      "@id": "http://schema.org/url",
-      "@type": "@id"
-    }
-  },
-  "@id": "http://me.markus-lanthaler.com/",
-  "name": "Markus Lanthaler",
-  "homepage": "http://www.markus-lanthaler.com/"
-}
--->
-</pre>
-
-<p>
-The next input example uses one <tref>IRI</tref> to express a property
-and <tref title="array">array</tref> to encapsulate another, but
-leaves the rest of the information untouched.
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="Sample JSON-LD document using a IRI instead of a term to express a property">
-<!--
-{
-  "@context": {
-    "homepage": {
-      "@id": "http://schema.org/url",
-      "@type": "@id"
-    }
-  },
-  "@id": "http://me.markus-lanthaler.com/",
-  "****http://schema.org/name****": "Markus Lanthaler",
-  "homepage": ****[****"http://www.markus-lanthaler.com/"****]****
-}
--->
-</pre>
-
-<p>
-Note that both inputs are valid JSON-LD and both represent the same
-information. The difference is in their <tref>context</tref> information
-and in the data structures used. A JSON-LD processor can remove
-<tref>context</tref> and ensure that the data is more regular by employing
-<tref>expansion</tref>.
-</p>
-
-<p>
-<tref>Expansion</tref> has two important goals: ensuring all values
-are represented in a regular form, and removing any contextual information
-from the document. These goals are accomplished by expanding all properties
-to <tref title="absolute IRI">absolute IRIs</tref> and by expressing all
-values in <tref title="array">arrays</tref> in
-<tref>expanded form</tref>. <tref>Expanded form</tref> is the most verbose
-and regular way of expressing of values in JSON-LD; all contextual
-information from the document is instead stored locally with each value.
-Running the <a href="#expansion-algorithm">Expansion algorithm</a> against
-the examples provided above results in the following output:
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="Expanded sample document">
-<!--
-[
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document">
+  <!--
   {
+    "@context": {
+      "name": "http://schema.org/name",
+      "homepage": {
+        "@id": "http://schema.org/url",
+        "@type": "@id"
+      }
+    },
     "@id": "http://me.markus-lanthaler.com/",
-    "http://schema.org/name": [
-      { "@value": "Markus Lanthaler" }
-    ],
-    "http://schema.org/url": [
-      { "@id": "http://www.markus-lanthaler.com/" }
-    ]
+    "name": "Markus Lanthaler",
+    "homepage": "http://www.markus-lanthaler.com/"
   }
-]
--->
-</pre>
+  -->
+  </pre>
 
-<p>
-Note that in the output above all <tref>context</tref> definitions have
-been removed, all <tref title="term">terms</tref> and
-<tref title="compact IRI">compact IRIs</tref> have been expanded to absolute
-<tref title="IRI">IRIs</tref>, and all
-<tref title="JSON-LD value">JSON-LD values</tref> are expressed in
-<tref title="array">arrays</tref> in <tref>expanded form</tref>. While the
-output is more verbose and difficult for a human to read, it establishes a
-baseline that makes JSON-LD processing easier because of its very regular
-structure.
-</p>
+  <p>The next input example uses one <tref>IRI</tref> to express a property
+    and <tref title="array">array</tref> to encapsulate another, but
+    leaves the rest of the information untouched.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document using a IRI instead of a term to express a property">
+  <!--
+  {
+    "@context": {
+      "homepage": {
+        "@id": "http://schema.org/url",
+        "@type": "@id"
+      }
+    },
+    "@id": "http://me.markus-lanthaler.com/",
+    "****http://schema.org/name****": "Markus Lanthaler",
+    "homepage": ****[****"http://www.markus-lanthaler.com/"****]****
+  }
+  -->
+  </pre>
+
+  <p>Note that both inputs are valid JSON-LD and both represent the same
+    information. The difference is in their <tref>context</tref> information
+    and in the data structures used. A JSON-LD processor can remove
+    <tref>context</tref> and ensure that the data is more regular by employing
+    <tref>expansion</tref>.</p>
+
+  <p><tref>Expansion</tref> has two important goals: ensuring all values
+    are represented in a regular form, and removing any contextual information
+    from the document. These goals are accomplished by expanding all properties
+    to <tref title="absolute IRI">absolute IRIs</tref> and by expressing all
+    values in <tref title="array">arrays</tref> in
+    <tref>expanded form</tref>. <tref>Expanded form</tref> is the most verbose
+    and regular way of expressing of values in JSON-LD; all contextual
+    information from the document is instead stored locally with each value.
+    Running the <a href="#expansion-algorithm">Expansion algorithm</a> against
+    the examples provided above results in the following output:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Expanded sample document">
+  <!--
+  [
+    {
+      "@id": "http://me.markus-lanthaler.com/",
+      "http://schema.org/name": [
+        { "@value": "Markus Lanthaler" }
+      ],
+      "http://schema.org/url": [
+        { "@id": "http://www.markus-lanthaler.com/" }
+      ]
+    }
+  ]
+  -->
+  </pre>
+
+  <p>Note that in the output above all <tref>context</tref> definitions have
+    been removed, all <tref title="term">terms</tref> and <tref title="compact IRI">compact IRIs</tref>
+    have been expanded to absolute <tref title="IRI">IRIs</tref>, and all
+    <tref title="JSON-LD value">JSON-LD values</tref> are expressed in <tref title="array">arrays</tref> in <tref>expanded form</tref>.
+    While the output is more verbose and difficult for a human to read, it establishes a
+    baseline that makes JSON-LD processing easier because of its very regular
+    structure.</p>
 
 </section>
 
 <section class="informative">
-<h2>Compaction</h2>
+  <h2>Compaction</h2>
 
-<p>
-While <tref>expansion</tref> removes <tref>context</tref> from a given
-input, <tref title="compaction">compaction's</tref> primary function is to
-perform the opposite operation: to express a given input according to
-a particular <tref>context</tref>. <tdef>Compaction</tdef> applies a
-<tref>context</tref> that specifically tailors the way information is
-expressed for a particular person or application. This simplifies applications
-that consume JSON or JSON-LD by expressing the data in application-specific
-terms, and it makes the data easier to read by humans.
+  <p>While <tref>expansion</tref> removes <tref>context</tref> from a given
+    input, <tref title="compaction">compaction's</tref> primary function is to
+    perform the opposite operation: to express a given input according to
+    a particular <tref>context</tref>. <tdef>Compaction</tdef> applies a
+    <tref>context</tref> that specifically tailors the way information is
+    expressed for a particular person or application. This simplifies applications
+    that consume JSON or JSON-LD by expressing the data in application-specific
+    terms, and it makes the data easier to read by humans.
 
-<tref>Compaction</tref> uses a developer-supplied <tref>context</tref> to
-shorten <tref title="IRI">IRIs</tref> to <tref title="term">terms</tref> or
-<tref title="compact IRI">compact IRIs</tref> and
-<tref title="JSON-LD value">JSON-LD values</tref>
-expressed in <tref>expanded form</tref> to simple values such as
-<tref title="string">strings</tref> or
-<tref title="number">numbers</tref>.
-</p>
+  <p><tref>Compaction</tref> uses a developer-supplied <tref>context</tref> to shorten
+    <tref title="IRI">IRIs</tref> to <tref title="term">terms</tref> or
+    <tref title="compact IRI">compact IRIs</tref> and <tref title="JSON-LD value">JSON-LD values</tref>
+    expressed in <tref>expanded form</tref> to simple values such as
+    <tref title="string">strings</tref> or <tref title="number">numbers</tref>.</p>
 
-<p>
-For example, assume the following expanded JSON-LD input document:
-</p>
+  <p>For example, assume the following expanded JSON-LD input document:</p>
 
-<pre class="example" data-transform="updateExample"
-  title="Expanded sample document">
-<!--
-[
+  <pre class="example" data-transform="updateExample"
+       title="Expanded sample document">
+  <!--
+  [
+    {
+      "@id": "http://me.markus-lanthaler.com/",
+      "http://schema.org/name": [
+        { "@value": "Markus Lanthaler" }
+      ],
+      "http://schema.org/url": [
+        { "@id": "http://www.markus-lanthaler.com/" }
+      ]
+    }
+  ]
+  -->
+  </pre>
+
+  <p>Additionally, assume the following developer-supplied JSON-LD <tref>context</tref>:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="JSON-LD context">
+  <!--
   {
+    "@context": {
+      "name": "http://schema.org/name",
+      "homepage": {
+        "@id": "http://schema.org/url",
+        "@type": "@id"
+      }
+    }
+  }
+  -->
+  </pre>
+
+  <p>Running the <a href="#compaction-algorithm">Compaction Algorithm</a> given the context
+    supplied above against the JSON-LD input document provided above would result in the
+    following output:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Compacted sample document">
+  <!--
+  {
+    "@context": {
+      "name": "http://schema.org/name",
+      "homepage": {
+        "@id": "http://schema.org/url",
+        "@type": "@id"
+      }
+    },
     "@id": "http://me.markus-lanthaler.com/",
-    "http://schema.org/name": [
-      { "@value": "Markus Lanthaler" }
-    ],
-    "http://schema.org/url": [
-      { "@id": "http://www.markus-lanthaler.com/" }
-    ]
+    "name": "Markus Lanthaler",
+    "homepage": "http://www.markus-lanthaler.com/"
   }
-]
--->
-</pre>
+  -->
+  </pre>
 
-<p>
-Additionally, assume the following developer-supplied JSON-LD <tref>context</tref>:
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="JSON-LD context">
-<!--
-{
-  "@context": {
-    "name": "http://schema.org/name",
-    "homepage": {
-      "@id": "http://schema.org/url",
-      "@type": "@id"
-    }
-  }
-}
--->
-</pre>
-
-<p>
-Running the <a href="#compaction-algorithm">Compaction Algorithm</a> given
-the context supplied above against the JSON-LD input document provided above
-would result in the following output:
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="Compacted sample document">
-<!--
-{
-  "@context": {
-    "name": "http://schema.org/name",
-    "homepage": {
-      "@id": "http://schema.org/url",
-      "@type": "@id"
-    }
-  },
-  "@id": "http://me.markus-lanthaler.com/",
-  "name": "Markus Lanthaler",
-  "homepage": "http://www.markus-lanthaler.com/"
-}
--->
-</pre>
-
-<p>
-Note that all <tref title="IRI">IRIs</tref> have been compacted to
-<tref title="term">terms</tref> as specified in the <tref>context</tref>,
-which has been injected into the output. While compacted output is
-useful to humans, it is also used to generate structures that are easy to
-program against. Compaction enables developers to map any expanded document
-into an application-specific compacted document. While the context provided
-above mapped <code>http://schema.org/name</code> to <code>name</code>, it
-could also have been mapped to any other term provided by the developer.
-</p>
+  <p>Note that all <tref title="IRI">IRIs</tref> have been compacted to
+    <tref title="term">terms</tref> as specified in the <tref>context</tref>,
+    which has been injected into the output. While compacted output is
+    useful to humans, it is also used to generate
+    structures that are easy to program against. Compaction enables developers to
+    map any expanded document into an application-specific compacted document.
+    While the context provided above mapped <code>http://schema.org/name</code>
+    to <code>name</code>, it could also have been mapped to any other term
+    provided by the developer.</p>
 
 </section>
 
 <section class="informative">
-<h2>Flattening</h2>
+  <h2>Flattening</h2>
 
-<p>
-While expansion ensures that a document is in a uniform structure,
-flattening goes a step further to ensure that the shape of the data
-is deterministic. In expanded documents, the properties of a single
-properties of a single <tref>node</tref> may be spread across a number of
-different <tref title="JSON object">JSON objects</tref>. By flattening a
-document, all properties of a <tref>node</tref> are collected in a single
-<tref>JSON object</tref>. This may drastically simplify the code required
-to process JSON-LD data in certain applications.
-</p>
+  <p>While expansion ensures that a document is in a uniform structure, flattening
+    goes a step further to ensure that the shape of the data is deterministic.
+    In expanded documents, the properties of a single properties <tref>node</tref>
+    may be spread across a number of different <tref title="JSON object">JSON objects</tref>.
+    By flattening a document, all properties of a <tref>node</tref> are collected in a
+    single <tref>JSON object</tref>. This may drastically simplify the code required
+    to process JSON-LD data in certain applications.</p>
 
-<p>
-For example, assume the following JSON-LD input document:
-</p>
+  <p>For example, assume the following JSON-LD input document:</p>
 
-<pre class="example" data-transform="updateExample"
-  title="Sample JSON-LD document">
-<!--
-{
-  "@context": {
-    "name": "http://schema.org/name",
-    "knows": "http://schema.org/knows"
-  },
-  "@id": "http://digitalbazaar.com/people/dlongley",
-  ****"knows"****: {
-    "@id": "http://digitalbazaar.com/people/msporny",
-    "name": "Manu Sporny",
-    "knows": {
-      "@id": "http://digitalbazaar.com/people/dlongley",
-      ****"name"****: "Dave Longley"
-    }
-  }
-}
--->
-</pre>
-
-<p>
-Running the <a href="#flattening-algorithm">Flattening Algorithm</a>
-with a context set to <tref>null</tref> to prevent compaction returns
-the following document:
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="Flattened sample document in expanded form">
-<!--
-[
-  ****{****
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document">
+  <!--
+  {
+    "@context": {
+      "name": "http://schema.org/name",
+      "knows": "http://schema.org/knows"
+    },
     "@id": "http://digitalbazaar.com/people/dlongley",
-    ****"http://schema.org/name"****: [
-      { "@value": "Dave Longley" }
-    ],
-    ****"http://schema.org/knows"****: [
-      { "@id": "http://digitalbazaar.com/people/msporny" }
-    ]
-  ****}****,
-  {
-    "@id": "http://digitalbazaar.com/people/msporny",
-    "http://schema.org/name": [
-      { "@value": "Manu Sporny" }
-    ],
-    "http://schema.org/knows": [
-      { "@id": "http://digitalbazaar.com/people/dlongley" }
-    ]
+    ****"knows"****: {
+      "@id": "http://digitalbazaar.com/people/msporny",
+      "name": "Manu Sporny",
+      "knows": {
+        "@id": "http://digitalbazaar.com/people/dlongley",
+        ****"name"****: "Dave Longley"
+      }
+    }
   }
-]
--->
-</pre>
+  -->
+  </pre>
 
-<p>
-Note how in the output above all properties of a <tref>node</tref> are
-collected in a single <tref>JSON object</tref>.
-</p>
+  <p>Running the <a href="#flattening-algorithm">Flattening Algorithm</a>
+    with a context set to <tref>null</tref> to prevent compaction returns
+    the following document:</p>
 
-<p>
-To make it easier for humans to read or for certain applications to
-process it, a flattened document can be compacted by passing a context. Using
-the same context as the input document, the flattened and compacted document
-looks as follows:
-</p>
-
-<pre class="example" data-transform="updateExample"
-  title="Flattened and compacted sample document">
-<!--
-{
-  "@context": {
-    "name": "http://schema.org/name",
-    "knows": "http://schema.org/knows"
-  },
-  "@graph": [
+  <pre class="example" data-transform="updateExample"
+       title="Flattened sample document in expanded form">
+  <!--
+  [
     ****{****
       "@id": "http://digitalbazaar.com/people/dlongley",
-      ****"name"****: "Dave Longley",
-      ****"knows"****: [
+      ****"http://schema.org/name"****: [
+        { "@value": "Dave Longley" }
+      ],
+      ****"http://schema.org/knows"****: [
         { "@id": "http://digitalbazaar.com/people/msporny" }
       ]
     ****}****,
     {
       "@id": "http://digitalbazaar.com/people/msporny",
-      "name": "Manu Sporny",
-      "knows": {
-        "@id": "http://digitalbazaar.com/people/dlongley"
-      }
+      "http://schema.org/name": [
+        { "@value": "Manu Sporny" }
+      ],
+      "http://schema.org/knows": [
+        { "@id": "http://digitalbazaar.com/people/dlongley" }
+      ]
     }
   ]
-}
--->
-</pre>
+  -->
+  </pre>
 
-<p>
-Please note that the flattened and compacted result will explicitly
-designate the default graph by the <code>@graph</code> member in the
-top-level <tref>JSON object</tref>, except if its value contains just
-one item.
-</p>
+  <p>Note how in the output above all properties of a <tref>node</tref> are collected in a
+    single <tref>JSON object</tref>.</p>
+
+  <p>To make it easier for humans to read or for certain applications to
+    process it, a flattened document can be compacted by passing a context. Using
+    the same context as the input document, the flattened and compacted document
+    looks as follows:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Flattened and compacted sample document">
+  <!--
+  {
+    "@context": {
+      "name": "http://schema.org/name",
+      "knows": "http://schema.org/knows"
+    },
+    "@graph": [
+      ****{****
+        "@id": "http://digitalbazaar.com/people/dlongley",
+        ****"name"****: "Dave Longley",
+        ****"knows"****: [
+          { "@id": "http://digitalbazaar.com/people/msporny" }
+        ]
+      ****}****,
+      {
+        "@id": "http://digitalbazaar.com/people/msporny",
+        "name": "Manu Sporny",
+        "knows": {
+          "@id": "http://digitalbazaar.com/people/dlongley"
+        }
+      }
+    ]
+  }
+  -->
+  </pre>
+
+  <p>Please note that the flattened and compacted result will explicitly
+    designate the default graph by the <code>@graph</code> member in the top-level
+    <tref>JSON object</tref>, except if its value contains just one item.</p>
 
 </section>
 
 <section class="informative">
-<h2>RDF Conversion</h2>
+  <h2>RDF Conversion</h2>
 
-<p>
-JSON-LD can be used to serialize data expressed in RDF as described in
-[[RDF-CONCEPTS]]. This ensures that data can be round-tripped to and from
-any RDF syntax without any loss in fidelity.
-</p>
+  <p>JSON-LD can be used to serialize data expressed in RDF as described in
+    [[RDF-CONCEPTS]]. This ensures that data can be round-tripped to and from
+    any RDF syntax without any loss in fidelity.</p>
 
-<p>
-For example, assume the following RDF input serialized in Turtle [[TURTLE-TR]]:
-</p>
+  <p>For example, assume the following RDF input serialized in Turtle [[TURTLE-TR]]:</p>
 
-<pre class="example" data-transform="updateExample"
-  title="Sample Turtle document">
-<!--
-<http://me.markus-lanthaler.com/> <http://schema.org/name> "Markus Lanthaler" .
-<http://me.markus-lanthaler.com/> <http://schema.org/url> <http://www.markus-lanthaler.com/> .
--->
-</pre>
+  <pre class="example" data-transform="updateExample"
+       title="Sample Turtle document">
+  <!--
+  <http://me.markus-lanthaler.com/> <http://schema.org/name> "Markus Lanthaler" .
+  <http://me.markus-lanthaler.com/> <http://schema.org/url> <http://www.markus-lanthaler.com/> .
+  -->
+  </pre>
 
-<p>
-Using the <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a>
-a developer could transform this document into expanded JSON-LD:
-</p>
+  <p>Using the <a href="#convert-from-rdf-algorithm">Convert from RDF Algorithm</a> a
+    developer could transform this document into expanded JSON-LD:</p>
 
-<pre class="example" data-transform="updateExample"
-  title="Sample Turtle document converted to JSON-LD">
-<!--
-[
-  {
-    "@id": "http://me.markus-lanthaler.com/",
-    "http://schema.org/name": [
-      {
-        "@value": "Markus Lanthaler"
-      }
-    ],
-    "http://schema.org/url": [
-      {
-        "@id": "http://www.markus-lanthaler.com/"
-      }
-    ]
-  }
-]
--->
-</pre>
+  <pre class="example" data-transform="updateExample"
+       title="Sample Turtle document converted to JSON-LD">
+  <!--
+  [
+    {
+      "@id": "http://me.markus-lanthaler.com/",
+      "http://schema.org/name": [
+        {
+          "@value": "Markus Lanthaler"
+        }
+      ],
+      "http://schema.org/url": [
+        {
+          "@id": "http://www.markus-lanthaler.com/"
+        }
+      ]
+    }
+  ]
+  -->
+  </pre>
 
-<p>
-Note that the output above could easily be compacted using the technique
-outlined in the previous section. It is also possible to transform the
-JSON-LD document back to RDF using the
-<a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.
-</p>
+  <p>Note that the output above could easily be compacted using the technique outlined
+    in the previous section. It is also possible to transform the JSON-LD document back
+    to RDF using the <a href="#convert-to-rdf-algorithm">Convert to RDF Algorithm</a>.</p>
 
 </section>
 
@@ -617,243 +559,222 @@ JSON-LD document back to RDF using the
 </section>
 
 <section>
-<h1>Conformance</h1>
+  <h1>Conformance</h1>
 
-<p>
-All examples and notes as well as sections marked as non-normative in this
-specification are non-normative. Everything else in this specification is
-normative.
-</p>
+  <p>All examples and notes as well as sections marked as non-normative in this
+    specification are non-normative. Everything else in this specification is
+    normative.</p>
 
-<p>
-The keywords MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED,
-MAY, and OPTIONAL in this specification are to be interpreted as described
-in [[!RFC2119]].
-</p>
+  <p>The keywords MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED,
+    MAY, and OPTIONAL in this specification are to be interpreted as described
+    in [[!RFC2119]].</p>
 
-<p>
-There are two classes of products that can claim conformance to this
-specification: <tref title="JSON-LD Implementation">JSON-LD Implementations</tref>
-and <tref title="JSON-LD Processor">JSON-LD Processors</tref>.
-</p>
+  <p>There are two classes of products that can claim conformance to this
+    specification: <tref title="JSON-LD Implementation">JSON-LD Implementations</tref>
+    and <tref title="JSON-LD Processor">JSON-LD Processors</tref>.</p>
 
-<p>
-A conforming <tdef>JSON-LD Implementation</tdef> is a system capable of
-transforming JSON-LD documents according the algorithms defined in this
-specification.
-</p>
+  <p>A conforming <tdef>JSON-LD Implementation</tdef> is a system capable of transforming
+    JSON-LD documents according the algorithms defined in this specification.</p>
 
-<p>
-A conforming <tdef>JSON-LD Processor</tdef> is a conforming
-<tref>JSON-LD Implementation</tref> that exposes the Application Programming
-Interface (API) defined in this specification.</p>
+  <p>A conforming <tdef>JSON-LD Processor</tdef> is a conforming <tref>JSON-LD Implementation</tref>
+    that exposes the Application Programming Interface (API) defined in this specification.</p>
 
-<p>
-The algorithms in this specification are generally written with more concern
-for clarity than efficiency. Thus, JSON-LD Implementations and Processors
-may implement the algorithms given in this specification in any way desired,
-so long as the end result is indistinguishable from the result that would be
-obtained by the specification's algorithms.
-</p>
+  <p>The algorithms in this specification are generally written with more concern for clarity than
+    efficiency. Thus, JSON-LD Implementations and Processors may implement the algorithms
+    given in this specification in any way desired, so long as the end result is indistinguishable
+    from the result that would be obtained by the specification's algorithms.</p>
 
-<p>
-This specification does not define how JSON-LD Implementations or Processors
-handle non-conforming input documents. This implies that JSON-LD Implementations
-or Processors MUST NOT attempt to correct malformed <tref title="IRI">IRIs</tref>
-or language tags; however, they MAY issue validation warnings. IRIs are not
-modified other than converted between <tref title="relative IRI">relative</tref>
-and <tref title="absolute IRI">absolute IRIs</tref>.
-</p>
+  <p>This specification does not define how JSON-LD Implementations or Processors handle
+    non-conforming input documents. This implies that JSON-LD Implementations or Processors
+    MUST NOT attempt to correct malformed <tref title="IRI">IRIs</tref> or language tags;
+    however, they MAY issue validation warnings. IRIs are not modified other than converted
+    between <tref title="relative IRI">relative</tref> and
+    <tref title="absolute IRI">absolute IRIs</tref>.</p>
 
-<p class="note">
-Implementers can partially check their level of conformance to this
-specification by successfully passing the test cases of the JSON-LD test
-suite [[JSON-LD-TESTS]]. Note, however, that passing all the tests in the test
-suite does not imply complete conformance to this specification. It only
-implies that the implementation conforms to aspects tested by the test suite.
-</p>
+  <p class="note">Implementers can partially check their level of conformance to
+    this specification by successfully passing the test cases of the JSON-LD test
+    suite [[JSON-LD-TESTS]]. Note, however, that passing all the tests in the test
+    suite does not imply complete conformance to this specification. It only implies
+    that the implementation conforms to aspects tested by the test suite.</p>
 
 </section>
 
 <section>
-<h1>General Terminology</h1>
+  <h1>General Terminology</h1>
 
-<p>
-This document uses the following terms as defined in JSON [[!RFC4627]]. Refer
-to the <em>JSON Grammar</em> section in [[!RFC4627]] for formal definitions.</p>
+  <p>This document uses the following terms as defined in JSON [[!RFC4627]]. Refer
+    to the <em>JSON Grammar</em> section in [[!RFC4627]] for formal definitions.</p>
 
-<dl>
-  <dt><tdef>JSON object</tdef></dt>
-  <dd>An object structure is represented as a pair of curly brackets
-    surrounding zero or more key-value pairs. A key is a
-    <tref>string</tref>. A single colon comes after each key, separating the
-    key from the value. A single comma separates a value from a following
-    key.</dd>
-  <dt><tdef>array</tdef></dt>
-  <dd>An array structure is represented as square brackets surrounding zero
-    or more values (or elements). Elements are separated by commas.
-    In JSON, an array is an <em>ordered</em> sequence of zero or more values.
-    While JSON-LD uses the same array representation as JSON,
-    the collection is <em>unordered</em> by default. While order is
-    preserved in regular JSON arrays, it is not in regular JSON-LD arrays
-    unless specific markup is provided (see <a href="#sets-and-lists"></a>).</dd>
-  <dt><tdef>string</tdef></dt>
-  <dd>A string is a sequence of zero or more Unicode characters,
-    wrapped in double quotes, using backslash escapes (if necessary). A
-    character is represented as a single character string.</dd>
-  <dt><tdef>number</tdef></dt>
-  <dd>A number is similar to that used in most programming languages, except
-    that the octal and hexadecimal formats are not used and that leading
-    zeros are not allowed.</dd>
-  <dt><tdef>true</tdef> and <tdef>false</tdef></dt>
-  <dd>Values that are used to express one of two possible boolean states.</dd>
-  <dt><tdef>null</tdef></dt>
-  <dd>The <tref>null</tref> value. A key-value pair in the
-    <code>@context</code> where the value, or the <code>@id</code> of the
-    value, is <tref>null</tref> explicitly decouples a term's association
-    with an IRI. A key-value pair in the body of a JSON-LD document whose
-    value is <tref>null</tref> has the same meaning as if the key-value pair
-    was not defined. If <code>@value</code>, <code>@list</code>, or
-    <code>@set</code> is set to <tref>null</tref> in expanded form, then
-    the entire <tref>JSON object</tref> is ignored.</dd>
-</dl>
+  <dl>
+    <dt><tdef>JSON object</tdef></dt>
+    <dd>An object structure is represented as a pair of curly brackets
+      surrounding zero or more key-value pairs. A key is a
+      <tref>string</tref>. A single colon comes after each key, separating the
+      key from the value. A single comma separates a value from a following
+      key.</dd>
+    <dt><tdef>array</tdef></dt>
+    <dd>An array structure is represented as square brackets surrounding zero
+      or more values (or elements). Elements are separated by commas.
+      In JSON, an array is an <em>ordered</em> sequence of zero or more values.
+      While JSON-LD uses the same array representation as JSON,
+      the collection is <em>unordered</em> by default. While order is
+      preserved in regular JSON arrays, it is not in regular JSON-LD arrays
+      unless specific markup is provided (see <a href="#sets-and-lists"></a>).</dd>
+    <dt><tdef>string</tdef></dt>
+    <dd>A string is a sequence of zero or more Unicode characters,
+      wrapped in double quotes, using backslash escapes (if necessary). A
+      character is represented as a single character string.</dd>
+    <dt><tdef>number</tdef></dt>
+    <dd>A number is similar to that used in most programming languages, except
+      that the octal and hexadecimal formats are not used and that leading
+      zeros are not allowed.</dd>
+    <dt><tdef>true</tdef> and <tdef>false</tdef></dt>
+    <dd>Values that are used to express one of two possible boolean states.</dd>
+    <dt><tdef>null</tdef></dt>
+    <dd>The <tref>null</tref> value. A key-value pair in the
+      <code>@context</code> where the value, or the <code>@id</code> of the
+      value, is <tref>null</tref> explicitly decouples a term's association
+      with an IRI. A key-value pair in the body of a JSON-LD document whose
+      value is <tref>null</tref> has the same meaning as if the key-value pair
+      was not defined. If <code>@value</code>, <code>@list</code>, or
+      <code>@set</code> is set to <tref>null</tref> in expanded form, then
+      the entire <tref>JSON object</tref> is ignored.</dd>
+  </dl>
 
-<p>Furthermore, the following terminology is used throughout this document:</p>
+  <p>Furthermore, the following terminology is used throughout this document:</p>
 
-<dl>
-  <dt><tdef>keyword</tdef></dt>
-  <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
-    in the section titled <cite><a href="../json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
-  <dt><tdef>context</tdef></dt>
-  <dd>A a set of rules for interpreting a JSON-LD document as specified in
-    <cite><a href="../json-ld-syntax/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
-  <dt><tdef>JSON-LD document</tdef></dt>
-  <dd>A <tref>JSON-LD document</tref> is a serialization of a collection of
-    <tref title="JSON-LD graph">JSON-LD graphs</tref> and comprises exactly one
-    <tref>default graph</tref> and zero or more <tref title="named graph">named graphs</tref>.</dd>
-  <dt><tdef>named graph</tdef></dt>
-  <dd>A named graph is a pair consisting of an <tref>IRI</tref> or <tref>blank node</tref>
-    (the <tdef>graph name</tdef>) and a <tref>JSON-LD graph</tref>.</dd>
-  <dt><tdef>default graph</tdef></dt>
-  <dd>The default graph is the only graph in a JSON-LD document which has no <tref>graph name</tref>.</dd>
-  <dt><tdef>JSON-LD graph</tdef></dt>
-  <dd>A labeled directed graph, i.e., a set of <tref title="node">nodes</tref> connected by <tref title="edge">edges</tref>,
-    as specified in the <cite><a href="../json-ld-syntax/#data-model">Data Model</a></cite> section of the JSON-LD syntax
-    specification [[!JSON-LD]].</dd>
-  <dt><tdef>edge</tdef></dt>
-  <dd>Every <tref>edge</tref> has a direction associated with it and is labeled with
-    an <tref>IRI</tref> or a <tref>blank node identifier</tref>. Within the JSON-LD syntax
-    these edge labels are called <tdef title="property">properties</tdef>. Whenever possible, an
-    <tref>edge</tref> SHOULD be labeled with an <tref>IRI</tref>.</dd>
-  <dt><tdef>node</tdef></dt>
-  <dd>Every <tref>node</tref> is an <tref>IRI</tref>, a <tref>blank node</tref>,
-    a <tref>JSON-LD value</tref>, or a <tref>list</tref>.</dd>
-  <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
-  <dd>An <tref>IRI</tref> (Internationalized Resource Identifier) is a string that conforms to the syntax
-    defined in [[RFC3987]].</dd>
-  <dt><tdef>absolute IRI</tdef></dt>
-  <dd>An absolute IRI is defined in [[!RFC3987]] containing a <em>scheme</em> along with a <em>path</em> and
-    optional <em>query</em> and fragment segments.</dd>
-  <dt><tdef>relative IRI</tdef></dt>
-  <dd>A relative IRI is an IRI that is relative some other <tref>absolute IRI</tref>;
-    in the case of JSON-LD this is the base location of the document.</dd>
-  <dt><tdef>blank node</tdef></dt>
-  <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
-    identifier because it is either ephemeral in nature or does not contain information that needs to be
-    linked to from outside of the JSON-LD graph.</dd>
-  <dt><tdef>blank node identifier</tdef></dt>
-  <dd>A blank node identifier is a string that can be used as an identifier for a <tref>blank node</tref> within
-    the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.</dd>
-  <dt><tdef>JSON-LD value</tdef></dt>
-  <dd>A <tref>JSON-LD value</tref> is a <tref>string</tref>, a <tref>number</tref>,
-    <tref>true</tref> or <tref>false</tref>, a <tref>typed value</tref>, or a
-    <tref>language-tagged string</tref>.</dd>
-  <dt><tdef>typed value</tdef></dt>
-  <dd>A <tref>typed value</tref> consists of a value, which is a string, and a type, which is an <tref>IRI</tref>.</dd>
-  <dt><tdef>language-tagged string</tdef></dt>
-  <dd>A <tref>language-tagged string</tref> consists of a string and a non-empty language
-    tag as defined by [[BCP47]]. The language tag must be well-formed according to section
-    <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9</a> of [[BCP47]], and MUST
-    be normalized to lowercase.</dd>
-  <dt><tdef>list</tdef></dt>
-  <dd>A <tref>list</tref> is an ordered sequence of <tref title="IRI">IRIs</tref>,
-    <tref title="blank node">blank nodes</tref>, and
-    <tref title="JSON-LD value">JSON-LD values</tref>.</dd>
-</dl>
+  <dl>
+    <dt><tdef>keyword</tdef></dt>
+    <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
+      in the section titled <cite><a href="../json-ld-syntax/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
+    <dt><tdef>context</tdef></dt>
+    <dd>A a set of rules for interpreting a JSON-LD document as specified in
+      <cite><a href="../json-ld-syntax/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
+    <dt><tdef>JSON-LD document</tdef></dt>
+    <dd>A <tref>JSON-LD document</tref> is a serialization of a collection of
+      <tref title="JSON-LD graph">JSON-LD graphs</tref> and comprises exactly one
+      <tref>default graph</tref> and zero or more <tref title="named graph">named graphs</tref>.</dd>
+    <dt><tdef>named graph</tdef></dt>
+    <dd>A named graph is a pair consisting of an <tref>IRI</tref> or <tref>blank node</tref>
+      (the <tdef>graph name</tdef>) and a <tref>JSON-LD graph</tref>.</dd>
+    <dt><tdef>default graph</tdef></dt>
+    <dd>The default graph is the only graph in a JSON-LD document which has no <tref>graph name</tref>.</dd>
+    <dt><tdef>JSON-LD graph</tdef></dt>
+    <dd>A labeled directed graph, i.e., a set of <tref title="node">nodes</tref> connected by <tref title="edge">edges</tref>,
+      as specified in the <cite><a href="../json-ld-syntax/#data-model">Data Model</a></cite> section of the JSON-LD syntax
+      specification [[!JSON-LD]].</dd>
+    <dt><tdef>edge</tdef></dt>
+    <dd>Every <tref>edge</tref> has a direction associated with it and is labeled with
+      an <tref>IRI</tref> or a <tref>blank node identifier</tref>. Within the JSON-LD syntax
+      these edge labels are called <tdef title="property">properties</tdef>. Whenever possible, an
+      <tref>edge</tref> SHOULD be labeled with an <tref>IRI</tref>.</dd>
+    <dt><tdef>node</tdef></dt>
+    <dd>Every <tref>node</tref> is an <tref>IRI</tref>, a <tref>blank node</tref>,
+      a <tref>JSON-LD value</tref>, or a <tref>list</tref>.</dd>
+    <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
+    <dd>An <tref>IRI</tref> (Internationalized Resource Identifier) is a string that conforms to the syntax
+      defined in [[RFC3987]].</dd>
+    <dt><tdef>absolute IRI</tdef></dt>
+    <dd>An absolute IRI is defined in [[!RFC3987]] containing a <em>scheme</em> along with a <em>path</em> and
+      optional <em>query</em> and fragment segments.</dd>
+    <dt><tdef>relative IRI</tdef></dt>
+    <dd>A relative IRI is an IRI that is relative some other <tref>absolute IRI</tref>;
+      in the case of JSON-LD this is the base location of the document.</dd>
+    <dt><tdef>blank node</tdef></dt>
+    <dd>A <tref>node</tref> in a <tref>JSON-LD graph</tref> that does not contain a de-referenceable
+      identifier because it is either ephemeral in nature or does not contain information that needs to be
+      linked to from outside of the JSON-LD graph.</dd>
+    <dt><tdef>blank node identifier</tdef></dt>
+    <dd>A blank node identifier is a string that can be used as an identifier for a <tref>blank node</tref> within
+      the scope of a JSON-LD document. Blank node identifiers begin with <code>_:</code>.</dd>
+    <dt><tdef>JSON-LD value</tdef></dt>
+    <dd>A <tref>JSON-LD value</tref> is a <tref>string</tref>, a <tref>number</tref>,
+      <tref>true</tref> or <tref>false</tref>, a <tref>typed value</tref>, or a
+      <tref>language-tagged string</tref>.</dd>
+    <dt><tdef>typed value</tdef></dt>
+    <dd>A <tref>typed value</tref> consists of a value, which is a string, and a type, which is an <tref>IRI</tref>.</dd>
+    <dt><tdef>language-tagged string</tdef></dt>
+    <dd>A <tref>language-tagged string</tref> consists of a string and a non-empty language
+      tag as defined by [[BCP47]]. The language tag must be well-formed according to section
+      <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9</a> of [[BCP47]], and MUST
+      be normalized to lowercase.</dd>
+    <dt><tdef>list</tdef></dt>
+    <dd>A <tref>list</tref> is an ordered sequence of <tref title="IRI">IRIs</tref>,
+      <tref title="blank node">blank nodes</tref>, and
+      <tref title="JSON-LD value">JSON-LD values</tref>.</dd>
+  </dl>
 
 </section>
 
 <section>
 <h1>Algorithms</h1>
 
-<p>
-All algorithms described in this section are intended to operate on
-language-native data structures. That is, the serialization to a text-based
-JSON document isn't required as input or output to any of these algorithms and
-language-native data structures MUST be used where applicable.
-</p>
+<p>All algorithms described in this section are intended to operate on
+  language-native data structures. That is, the serialization to a text-based
+  JSON document isn't required as input or output to any of these algorithms and
+  language-native data structures MUST be used where applicable.</p>
 
 <section>
-<h2>Algorithm Terms</h2>
+  <h2>Algorithm Terms</h2>
 
-<dl>
-  <dt><tdef>active graph</tdef></dt>
-  <dd>The name of the currently active graph that the processor should use when
-    processing.</dd>
-  <dt><tdef>active subject</tdef></dt>
-  <dd>The currently active subject that the processor should use when
-    processing.</dd>
-  <dt><tdef>active property</tdef></dt>
-  <dd>The currently active property that the processor should use when
-    processing. The active property is represented in the original lexical form, which
-    is used for finding type mappings in the <tref>active context</tref>.</dd>
-  <dt><tdef>active object</tdef></dt>
-  <dd>The currently active object that the processor should use when
-    processing.</dd>
-  <dt><tdef>active context</tdef></dt>
-  <dd>A context that is used to resolve <tref title="term">terms</tref> while
-    the processing algorithm is running.</dd>
-  <dt><tdef>local context</tdef></dt>
-  <dd>A context that is specified within a <tref>JSON object</tref>,
-    specified via the <code>@context</code> <tref>keyword</tref>.</dd>
-  <dt><tdef>JSON-LD input</tdef></dt>
-  <dd>The JSON-LD data structure that is provided as input to the algorithm.</dd>
-  <dt><tdef>JSON-LD output</tdef></dt>
-  <dd>The JSON-LD data structure that is produced as output by the algorithm.</dd>
-  <dt><tdef>term</tdef></dt>
-  <dd>A <tref>term</tref> is a short word defined in a context that MAY be expanded to an <tref>IRI</tref></dd>
-  <dt><tdef>compact IRI</tdef></dt>
-  <dd>A compact IRI is has the form of <tdef>prefix</tdef>:<em>suffix</em> and is used as a way
-    of expressing an IRI without needing to define separate <tref>term</tref> definitions for
-    each IRI contained within a common vocabulary identified by <tref>prefix</tref>.</dd>
-  <dt><tdef>node object</tdef></dt>
-  <dd>A <tref>node object</tref> represents zero or more properties of a
-    <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
-    JSON-LD document. A <tref>JSON object</tref> is a <tref>node object</tref>
-    if it exists outside of the JSON-LD <tref>context</tref> and:
-    <ul>
-      <li>it does not contain the <code>@value</code>, <code>@list</code>,
-        or <code>@set</code> keywords, or</li>
-      <li>it is not the top-level <tref>JSON object</tref> in the JSON-LD document containing
-        the <code>@graph</code> keyword.</li>
-    </ul>
-  </dd>
-  <dt><tdef>list object</tdef></dt>
-  <dd>A <tref>list object</tref> is a <tref>JSON object</tref> that has an <code>@list</code>
-    member.</dd>
-  <dt><tdef>scalar</tdef></dt>
-  <dd>A scalar is either a JSON <tref>string</tref>, <tref>number</tref>, <tref>true</tref>,
-    or <tref>false</tref>.</dd>
-  <dt><tdef>quad</tdef></dt>
-  <dd>An <em>RDF triple</em> as specified by [[RDF-CONCEPTS]] augmented with
-    a fourth component, a <tref>graph name</tref>.</dd>
-  <dt><tdef>RDF subject</tdef></dt>
-  <dd>A <em>subject</em> as specified by [[RDF-CONCEPTS]].</dd>
-  <dt><tdef>RDF predicate</tdef></dt>
-  <dd>A <em>predicate</em> as specified by [[RDF-CONCEPTS]].</dd>
-  <dt><tdef>RDF object</tdef></dt>
-  <dd>An <em>object</em> as specified by [[RDF-CONCEPTS]].</dd>
-</dl>
+  <dl>
+    <dt><tdef>active graph</tdef></dt>
+    <dd>The name of the currently active graph that the processor should use when
+      processing.</dd>
+    <dt><tdef>active subject</tdef></dt>
+    <dd>The currently active subject that the processor should use when
+      processing.</dd>
+    <dt><tdef>active property</tdef></dt>
+    <dd>The currently active property that the processor should use when
+      processing. The active property is represented in the original lexical form, which
+      is used for finding type mappings in the <tref>active context</tref>.</dd>
+    <dt><tdef>active object</tdef></dt>
+    <dd>The currently active object that the processor should use when
+      processing.</dd>
+    <dt><tdef>active context</tdef></dt>
+    <dd>A context that is used to resolve <tref title="term">terms</tref> while
+      the processing algorithm is running.</dd>
+    <dt><tdef>local context</tdef></dt>
+    <dd>A context that is specified within a <tref>JSON object</tref>,
+      specified via the <code>@context</code> <tref>keyword</tref>.</dd>
+    <dt><tdef>JSON-LD input</tdef></dt>
+    <dd>The JSON-LD data structure that is provided as input to the algorithm.</dd>
+    <dt><tdef>JSON-LD output</tdef></dt>
+    <dd>The JSON-LD data structure that is produced as output by the algorithm.</dd>
+    <dt><tdef>term</tdef></dt>
+    <dd>A <tref>term</tref> is a short word defined in a context that MAY be expanded to an <tref>IRI</tref></dd>
+    <dt><tdef>compact IRI</tdef></dt>
+    <dd>A compact IRI is has the form of <tdef>prefix</tdef>:<em>suffix</em> and is used as a way
+      of expressing an IRI without needing to define separate <tref>term</tref> definitions for
+      each IRI contained within a common vocabulary identified by <tref>prefix</tref>.</dd>
+    <dt><tdef>node object</tdef></dt>
+    <dd>A <tref>node object</tref> represents zero or more properties of a
+      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+      JSON-LD document. A <tref>JSON object</tref> is a <tref>node object</tref>
+      if it exists outside of the JSON-LD <tref>context</tref> and:
+      <ul>
+        <li>it does not contain the <code>@value</code>, <code>@list</code>,
+          or <code>@set</code> keywords, or</li>
+        <li>it is not the top-level <tref>JSON object</tref> in the JSON-LD document containing
+          the <code>@graph</code> keyword.</li>
+      </ul>
+    </dd>
+    <dt><tdef>list object</tdef></dt>
+    <dd>A <tref>list object</tref> is a <tref>JSON object</tref> that has an <code>@list</code>
+      member.</dd>
+    <dt><tdef>scalar</tdef></dt>
+    <dd>A scalar is either a JSON <tref>string</tref>, <tref>number</tref>, <tref>true</tref>,
+      or <tref>false</tref>.</dd>
+    <dt><tdef>quad</tdef></dt>
+    <dd>An <em>RDF triple</em> as specified by [[RDF-CONCEPTS]] augmented with
+      a fourth component, a <tref>graph name</tref>.</dd>
+    <dt><tdef>RDF subject</tdef></dt>
+    <dd>A <em>subject</em> as specified by [[RDF-CONCEPTS]].</dd>
+    <dt><tdef>RDF predicate</tdef></dt>
+    <dd>A <em>predicate</em> as specified by [[RDF-CONCEPTS]].</dd>
+    <dt><tdef>RDF object</tdef></dt>
+    <dd>An <em>object</em> as specified by [[RDF-CONCEPTS]].</dd>
+  </dl>
 
 </section>
 
@@ -920,40 +841,32 @@ results from our map.
 </section>
 
 <section>
-<h2 id="context-processing">Context Processing</h2>
+  <h2 id="context-processing">Context Processing</h2>
 
-<p>
-When processing a JSON-LD data structure, each processing rule is applied
-using information provided by the <tref>active context</tref>. This
-section describes how to produce an <tref>active context</tref>.
-</p>
+  <p>When processing a JSON-LD data structure, each processing rule is applied
+    using information provided by the <tref>active context</tref>. This
+    section describes how to produce an <tref>active context</tref>.</p>
 
-<p>
-The <tref>active context</tref> contains the active
-<tdef title="term definition">term definitions</tdef> which specify how
-properties and values have to be interpreted as well as the current
-<tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each
-<tref>term definition</tref> consists of an <tdef>IRI mapping</tdef> and
-optionally a <tdef>type mapping</tdef> from terms to datatypes or
-<tdef>language mapping</tdef> from terms to language codes, and a
-<tdef>container mapping</tdef>. If an <tref>IRI mapping</tref> maps a term
-to multiple <tref="IRI">IRIs</tref> it is said to be a
-<tdef>property generator</tdef>. The <tref>active context</tref> also
-keeps track of <tref>keyword</tref> aliases.
-</p>
+  <p>The <tref>active context</tref> contains the active <tdef title="term definition">term definitions</tdef>
+    which specify how properties and values have to be interpreted as well as the current
+    <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each <tref>term definition</tref> consists
+    of an <tdef>IRI mapping</tdef> and optionally a <tdef>type mapping</tdef> from terms to datatypes or
+    <tdef>language mapping</tdef> from terms to language codes, and a <tdef>container mapping</tdef>. If an
+    <tref>IRI mapping</tref> maps a term to multiple <tref="IRI">IRIs</tref> it is said to be a
+    <tdef>property generator</tdef>. The <tref>active context</tref> also
+    keeps track of <tref>keyword</tref> aliases.</p>
 
-<p>
-When processing, the <tref>active context</tref> is initialized
-without any <tref title="term definition">term definitions</tref>,
-<tref>vocabulary mapping</tref>, or <tref>default language</tref>.
-If a <tref>local context</tref> is encountered during processing, a new
-<tref>active context</tref> is created by cloning the existing
-<tref>active context</tref>. Then the information from the
-<tref>local context</tref> is merged into the new <tref>active context</tref>.
-A <tref>local context</tref> is identified within a <tref>JSON object</tref>
-by the value of the <code>@context</code> key, which MUST be a
-<tref>string</tref>, an <tref>array</tref>, or a <tref>JSON object</tref>.
-</p>
+  <p>When processing, the <tref>active context</tref> is initialized
+    without any <tref title="term definition">term definitions</tref>,
+    <tref>vocabulary mapping</tref>, or <tref>default language</tref>.
+    If a <tref>local context</tref> is encountered during processing, a new
+    <tref>active context</tref> is created by cloning the existing
+    <tref>active context</tref>. Then the information from the
+    <tref>local context</tref>
+
+    is merged into the new <tref>active context</tref>. A <tref>local context</tref> is identified within
+    a <tref>JSON object</tref> by the value of the <code>@context</code> key, which MUST be a <tref>string</tref>, an
+    <tref>array</tref>, or a <tref>JSON object</tref>.</p>
 
 <section>
 <h3>Problem</h3>
@@ -1848,10 +1761,9 @@ the result is not an <tref>array</tref>, then set the result to an
 <h2>IRI Expansion</h2>
 
 <p>
-In JSON-LD documents, some keys and values may represent
-<tref title="IRI">IRIs</tref>. This section defines an algorithm for
-transforming a <tref>string</tref> that represents an <tref>IRI</tref> into
-an <tref>absolute IRI</tref>. It also covers transforming <tref>keyword</tref>
+In JSON-LD documents, some keys and values may represent <tref title="IRI">IRIs</tref>.
+This section defines an algorithm for transforming a <tref>string</tref> that represents an <tref>IRI</tref> into an
+<tref>absolute IRI</tref>. It also covers transforming <tref>keyword</tref>
 aliases into <tref title="keyword">keywords</tref>.
 </p>
 
@@ -4124,470 +4036,453 @@ The algorithm takes five required inputs: an <tref>active context</tref>,
 </section>
 
 <!-- FIXME -->
-<section>
-<h2>RDF Conversion Algorithms</h2>
+  <section>
+    <h2>RDF Conversion Algorithms</h2>
 
-<p>
-This section describes algorithms to transform JSON-LD documents to an array
-of RDF <tref title="quad">quads</tref> and vice-versa. Note that many uses of
-JSON-LD may not require generation of RDF.
-</p>
+    <p>This section describes algorithms to transform JSON-LD documents to an array of
+      RDF <tref title="quad">quads</tref> and vice-versa. Note that many uses of JSON-LD
+      may not require generation of RDF.</p>
 
-<p>
-The processing algorithms described in this section are provided in order to
-demonstrate how one might implement a JSON-LD to RDF processor. Conformant
-implementations are only required to produce the same type and number of
-<tref title="quad">quads</tref> but are not required to implement the
-algorithm exactly as described.
-</p>
+    <p>The processing algorithms described in this section are provided in order to demonstrate
+      how one might implement a JSON-LD to RDF processor. Conformant implementations are only
+      required to produce the same type and number of <tref title="quad">quads</tref> but are
+      not required to implement the algorithm exactly as described.</p>
 
-<section>
-<h3>Convert to RDF Algorithm</h3>
+    <section>
+      <h3>Convert to RDF Algorithm</h3>
 
-<p>
-The algorithm below is designed for in-memory implementations with random
-access to <tref>JSON object</tref> elements.
-</p>
+      <p>
+        The algorithm below is designed for in-memory implementations with random access to <tref>JSON object</tref> elements.
+      </p>
 
-<p>
-A conforming JSON-LD processor implementing RDF conversion MUST implement a
-processing algorithm that results in the same set of RDF
-<tref title="quad">quads</tref> that the following algorithm generates.
-</p>
+      <p>
+        A conforming JSON-LD processor implementing RDF conversion MUST implement a
+        processing algorithm that results in the same set of RDF <tref title="quad">quads</tref> that the following
+        algorithm generates.
+      </p>
 
-<p>
-The algorithm takes five input variables: an <em>element</em> to be converted,
-an <tref>active subject</tref>, an <tref>active property</tref>, a
-<tref>graph name</tref>, and an <tref>array</tref> <em>quads</em> of
-<tref title="quad">Quads</tref>. To begin, the <tref>active subject</tref>,
-<tref>active property</tref>, and <tref>graph name</tref>
-are set to <tref>null</tref>, <em>quads</em> is set to an empty
-<tref>array</tref>, and <em>element</em> is set to the result of
-performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
-<tref>JSON-LD input</tref> which is expected to be a a well-formed JSON-LD
-document as defined in [[!JSON-LD]].
-</p>
+      <p>The algorithm takes five input variables: an <em>element</em> to be converted, an
+        <tref>active subject</tref>, an <tref>active property</tref>, a <tref>graph name</tref>,
+        and an <tref>array</tref> <em>quads</em> of <tref title="quad">Quads</tref>.
+        To begin, the <tref>active subject</tref>, <tref>active property</tref>, and <tref>graph name</tref>
+        are set to <tref>null</tref>, <em>quads</em> is set to an empty <tref>array</tref>, and <em>element</em> is
+        set to the result of performing the <a href="#expansion-algorithm">Expansion Algorithm</a> on
+        the <tref>JSON-LD input</tref> which is expected to be a a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
 
-<p class="issue">This algorithm hasn't been updated to use [[!RDF-CONCEPTS]]
-yet.</p>
-<p class="issue">This algorithm needs some clarification on its details.</p>
+      <p class="issue">This algorithm hasn't been updated to use [[!RDF-CONCEPTS]]
+      yet.</p>
+      <p class="issue">This algorithm needs some clarification on its details.</p>
 
-<ol class="algorithm">
-  <li>
-    If <em>element</em> is an <tref>array</tref>, then for each <em>item</em>
-    in <em>element</em> invoke this algorithm recursively, passing
-    <em>item</em> for <em>element</em>, <tref>active subject</tref>,
-    <tref>active property</tref>, <tref>graph name</tref>, and <em>quads</em>.
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>string</tref>, then
-    generate a <tref>quad</tref> using <tref>active subject</tref>,
-    <tref>active property</tref>, an <tref>IRI</tref> with the value
-    of <em>element</em> for <tref>RDF object</tref>, and
-    <tref>graph name</tref>. Append the <tref>quad</tref> to
-    <em>quads</em>.
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>list object</tref>:
-    <ol class="algorithm">
-      <li>
-        Initialize <em>list</em> to the result of the
-        <a href="#list-conversion">List Conversion</a> algorithm, passing
-        the value associated with the <code>@list</code> key.
-      </li>
-      <li>
-        Invoke this algorithm recursively, passing <em>list</em> for
-        <em>element</em>, <tref>active subject</tref>,
-        <tref>active property</tref>, <tref>graph name</tref>, and
-        <em>quads</em>.
-      </li>
-    </ol>
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>JSON object</tref> that
-    contains the key <code>@value</code>:
-    <ol class="algorithm">
-      <li>
-        Initialize <em>value</em> to the value associated with the
-        <code>@value</code> key in <em>element</em>. Initialize
-        <em>datatype</em> to the value associated with the <code>@type</code>
-        key in <em>element</em>, or <tref>null</tref> if <em>element</em>
-        does not contain that key.
-      </li>
-      <li>
-        Otherwise, if <em>value</em> equals <tref>true</tref> or
-        <tref>false</tref>, then set <em>value</em> its
-        <tref>canonical lexical form</tref> as defined
-        in the section <a href="#data-round-tripping">Data Round Tripping</a>.
-        If <em>datatype</em> is <tref>null</tref>, set it to
-        <code>xsd:boolean</code>.
-      </li>
-      <li>
-        Otherwise, if <em>value</em> is a <tref>number</tref>, then set
-        <em>value</em> to its <tref>canonical lexical form</tref> as defined
-        in the section <a href="#data-round-tripping">Data Round Tripping</a>.
-        If <em>datatype</em> is <tref>null</tref>, set it to either
-        <code>xsd:integer</code> or <code>xsd:double</code>, depending
-        on if the value contains a fractional and/or an exponential
-        component.
-      </li>
-      <li>
-        Otherwise, if <em>datatype</em> is <tref>null</tref>, set it to
-        <code>xsd:string</code>.
-      </li>
-      <li>
-        Initialize <tref>active object</tref> using <em>value</em> and
-        <em>datatype</em>. If <em>element</em> has the key
-        <code>@language</code> and <em>datatype</em> equals
-        <code>xsd:string</code>, then add the value associated with the
-        <code>@language</code> key as the language of the
-        <tref>active object</tref>.
-      </li>
-      <li>
-        Generate a <tref>quad</tref> using <tref>active subject</tref>,
-        <tref>active property</tref>, <tref>active object</tref>, and
-        <tref>graph name</tref>. Append the <tref>quad</tref> to
-        <em>quads</em>.
-      </li>
-    </ol>
-  </li>
-  <li>
-    Otherwise, <em>element</em> must represent the next
-    <tref>RDF subject</tref> to be processed:
-    <ol class="algorithm">
-      <li>
-        If <em>element</em> contains the key <code>@id</code>, then
-        initialize <em>id</em> to its associated value, otherwise initialize
-        it to <tref>null</tref>. If <em>element</em> is a
-        <tref>blank node</tref>, then set <em>id</em> to the result of
-        using the
-        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-        algorithm, passing <em>id</em> for <em>identifier</em>.
-      </li>
-      <li>
-        Initialize <tref>active object</tref> to an <tref>IRI</tref> or
-        <tref>blank node</tref>, as appropriate, with the value of
-        <em>element</em>.
-      </li>
-      <li>
-        If <tref>active subject</tref> is not <tref>null</tref>, then
-        generate a <tref>quad</tref> using <tref>active subject</tref>,
-        <tref>active property</tref>, <tref>active object</tref>, and
-        <tref>graph name</tref>. Append the <tref>quad</tref> to
-        <em>quads</em>.
-      </li>
-      <li>
-        Set <tref>active subject</tref> to <tref>active object</tref>.
-      </li>
-      <li>
-        For each <em>key</em>-<em>value</em> pair in <em>element</em>,
-        sorted lexicographically by <em>key</em>:
-        <ol class="algorithm">
-          <li>
-            Set <tref>active property</tref> to <em>value</em>.
-          </li>
-          <li>
-            If <tref>active property</tref> equals <code>@graph</code>, then
-            use this algorithm recursively, passing <em>value</em> for
-            <em>element</em>, <tref>null</tref> for
-            <tref>active subject</tref> and <tref>active property</tref>,
-            <tref>active subject</tref> for <tref>graph name</tref>,
-            and <em>quads</em>. Then continue to the next <em>key</em>.
-          </li>
-          <li>
-            If <em>key</em> equals <code>@type</code>, then set
-            <tref>active property</tref> to <code>rdf:type</code>.
-          </li>
-          <li>
-            If <tref>active property</tref> is a <tref>keyword</tref>,
-            then continue to the next <em>key</em>.
-          </li>
-          <li>
-            Use this algorithm recursively, passing <em>value</em> for
-            <em>element</em>, <tref>active subject</tref>,
-            <tref>active property</tref>, <tref>graph name</tref>,
-            and <em>quads</em>.
-          </li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
-
-</section>
-
-<section id="list-conversion">
-<h3>List Conversion</h3>
-
-<p>
-List Conversion is the process of taking an <tref>array</tref> of values and
-converting it to a JSON-LD linked list of
-<tref title="JSON object">JSON objects</tref>. Each element of the list is
-linked by using <code>rdf:first</code> and <code>rdf:rest</code>, terminating
-the list with <code>rdf:nil</code>.
-</p>
-
-<p>
-The algorithm takes a single input: an <tref>array</tref> <em>list</em>.
-</p>
-
-<div class="note">This algorithm does not support lists containing lists.</div>
-
-<ol class="algorithm">
-  <li>
-    Initialize <em>length</em> to the length of <em>list</em>.
-  </li>
-  <li>
-    Initialize <em>tail</em> to a <tref>JSON object</tref> containing
-    one key-value pair, (<code>@id</code>-<code>rdf:nil</code>).
-  </li>
-  <li>
-    Starting <em>itr</em> at <em>length</em> minus <code>1</code>, loop
-    until <em>itr</em> is <code>0</code> (inclusive):
-    <ol class="algorithm">
-      <li>
-        Initialize <em>element</em> to an empty <tref>JSON object</tref>.
-      </li>
-      <li>
-        Add a key-value pair to <em>element</em> where the key is
-        <code>rdf:first</code> and the value is an <tref>array</tref>
-        containing the value associated with the index <em>itr</em>
-        in <em>list</em>.
-      </li>
-      <li>
-        Add a key-value pair to <em>element</em> where the key is
-        <code>rdf:rest</code> and the value is an <tref>array</tref>
-        containing <em>tail</em>.
-      </li>
-      <li>
-        Set <em>tail</em> to <em>element</em>.
-      </li>
-      <li>
-        Decrement <em>itr</em> by <code>1</code>.
-      </li>
-    </ol>
-  </li>
-  <li>
-    Return <em>tail</em>.
-  </li>
-</ol>
-
-</section>
-
-<!-- FIXME -->
-<section>
-  <h2>Convert from RDF Algorithm</h2>
-  <p>In some cases, data exists natively in the form of triples or or <tref title="quad">quads</tref>;
-    for example, if the data was originally represented in an RDF graph or triple/quad store. This
-    algorithm is designed to simply translate an array of <tref title="quad">quads</tref> into a
-    JSON-LD document.</p>
-  <p>When expanding <tref title="typed value">typed values</tref> having a datatype of <code>xsd:string</code>,
-    the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
-    MUST have only an <code>@value</code> property.</p>
-
-  <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
-    array of <tref>Quad</tref> representations.</p>
-
-  <p class="issue">This algorithm hasn't been updated to use [[!RDF-CONCEPTS]] yet.</p>
-
-  <ol class="algorithm">
-    <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
-      containing <em>nodes</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
-    <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
-      identified by
-      an empty <tref>string</tref>.</li>
-    <li>For each <tref>quad</tref> in <em>input</em>:
       <ol class="algorithm">
-        <li>Set <em>graph</em> to the entry in <em>graphs</em> identified
-          by <em>name</em>, initializing it to a new entry using the mechanism
-          described in <a href="#new_graph">Step 1</a>.</li>
-        <li>If <em>property</em> is <code>rdf:first</code>,
-          use the entry in <em>graph.listMap</em> indexed by <em>subject</em>,
-          initializing it to a new <tref>JSON object</tref> if nesessary. Represent
-          <em>object</em> in <tref>expanded form</tref>, as described in
-          <a href="#value-expansion">Value Expansion</a>. Add the
-          resulting <em>object representation</em> to the entry indexed by
-          <em>first</em>, and skip to the next <tref>quad</tref>.</li>
-        <li>If <em>property</em> is <code>rdf:rest</code>:
+        <li>
+          If <em>element</em> is an <tref>array</tref>, then for each <em>item</em>
+          in <em>element</em> invoke this algorithm recursively, passing
+          <em>item</em> for <em>element</em>, <tref>active subject</tref>,
+          <tref>active property</tref>, <tref>graph name</tref>, and <em>quads</em>.
+        </li>
+        <li>
+          Otherwise, if <em>element</em> is a <tref>string</tref>, then
+          generate a <tref>quad</tref> using <tref>active subject</tref>,
+          <tref>active property</tref>, an <tref>IRI</tref> with the value
+          of <em>element</em> for <tref>RDF object</tref>, and
+          <tref>graph name</tref>. Append the <tref>quad</tref> to
+          <em>quads</em>.
+        </li>
+        <li>
+          Otherwise, if <em>element</em> is a <tref>list object</tref>:
           <ol class="algorithm">
-            <li>If <em>object</em> is a <tref>blank node</tref>, use the entry in
-              <em>graph.listMap</em> indexed by <em>subject</em>, initializing it
-              to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
-              <em>object</em> to the entry indexed by <em>rest</em>.
+            <li>
+              Initialize <em>list</em> to the result of the
+              <a href="#list-conversion">List Conversion</a> algorithm, passing
+              the value associated with the <code>@list</code> key.
             </li>
-            <li>Skip to the next <tref>quad</tref>.</li>
-          </ol>
-        </li>
-        <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.nodes</em>
-          does not contain an entry for <em>name</em>,
-          create a new entry for <em>name</em> from a new
-          <tref>JSON object</tref> with key/value pair of <code>@id</code> and
-          <em>name</em> represented in <tref>expanded IRI form</tref>.</li>
-        <li>Set <em>value</em> as the entry from <em>graph.nodes</em> for
-          <em>subject</em>, initializing it to a new
-          <tref>JSON object</tref> with key/value pair of <code>@id</code> and
-          <em>subject</em> represented in <tref>expanded IRI form</tref> if necessary.</li>
-        <li>If <em>property</em> is <code>rdf:type</code>, <em>object</em> is not a <tref>JSON-LD value</tref>, and the
-          <code class="idlMemberName"><a href="#widl-JsonLdOptions-useRdfType">useRdfType</a></code>
-          option is not present or <tref>false</tref>:
-          <ol class="algorithm">
-            <li>Append <em>object</em> represented in <tref>expanded IRI form</tref> to the array value for the
-              key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
-          </ol>
-        </li>
-
-        <li>Otherwise, if <em>object</em> is a <tref>typed value</tref> and the
-          <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
-          option is set to <tref>true</tref>:
-          <ol class="algorithm">
-            <li>Generate a <em>converted value</em>:
-              <ol class="algorithm">
-                <li>If the literal's type is <code>xsd:boolean</code>, the
-                  <em>converted value</em> is <tref>true</tref> if the literal
-                  matches the value <code>true</code> or <code>false</code> if
-                  the literal matches the value <code>false</code>.</li>
-                <li>If the literal's type is <code>xsd:integer</code> or
-                  <code>xsd:double</code>, try to convert the literal to a
-                  JSON <tref>number</tref>. If the conversion is successful,
-                  store the result in <em>converted value</em>, otherwise
-                  set <em>converted value</em> to <em>value</em>.</li>
-                <li>Otherwise, do not perform a conversion. Set
-                  the <em>converted value</em> to the <em>value</em>.</li>
-              </ol>
+            <li>
+              Invoke this algorithm recursively, passing <em>list</em> for
+              <em>element</em>, <tref>active subject</tref>,
+              <tref>active property</tref>, <tref>graph name</tref>, and
+              <em>quads</em>.
             </li>
-            <li>Append the <em>converted value</em> to the array value for the
-              key, creating an entry in <em>value</em> if necessary.</li>
           </ol>
         </li>
-
-        <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
+        <li>
+          Otherwise, if <em>element</em> is a <tref>JSON object</tref> that
+          contains the key <code>@value</code>:
           <ol class="algorithm">
-            <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref>.</li>
-            <li>Append an empty <code>@list</code> representation to the array value for
-              <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
+            <li>
+              Initialize <em>value</em> to the value associated with the
+              <code>@value</code> key in <em>element</em>. Initialize
+              <em>datatype</em> to the value associated with the <code>@type</code>
+              key in <em>element</em>, or <tref>null</tref> if <em>element</em>
+              does not contain that key.
+            </li>
+            <li>
+              Otherwise, if <em>value</em> equals <tref>true</tref> or
+              <tref>false</tref>, then set <em>value</em> its
+              <tref>canonical lexical form</tref> as defined
+              in the section <a href="#data-round-tripping">Data Round Tripping</a>.
+              If <em>datatype</em> is <tref>null</tref>, set it to
+              <code>xsd:boolean</code>.
+            </li>
+            <li>
+              Otherwise, if <em>value</em> is a <tref>number</tref>, then set
+              <em>value</em> to its <tref>canonical lexical form</tref> as defined
+              in the section <a href="#data-round-tripping">Data Round Tripping</a>.
+              If <em>datatype</em> is <tref>null</tref>, set it to either
+              <code>xsd:integer</code> or <code>xsd:double</code>, depending
+              on if the value contains a fractional and/or an exponential
+              component.
+            </li>
+            <li>
+              Otherwise, if <em>datatype</em> is <tref>null</tref>, set it to
+              <code>xsd:string</code>.
+            </li>
+            <li>
+              Initialize <tref>active object</tref> using <em>value</em> and
+              <em>datatype</em>. If <em>element</em> has the key
+              <code>@language</code> and <em>datatype</em> equals
+              <code>xsd:string</code>, then add the value associated with the
+              <code>@language</code> key as the language of the
+              <tref>active object</tref>.
+            </li>
+            <li>
+              Generate a <tref>quad</tref> using <tref>active subject</tref>,
+              <tref>active property</tref>, <tref>active object</tref>, and
+              <tref>graph name</tref>. Append the <tref>quad</tref> to
+              <em>quads</em>.
+            </li>
           </ol>
         </li>
-        <li>Otherwise,
+        <li>
+          Otherwise, <em>element</em> must represent the next
+          <tref>RDF subject</tref> to be processed:
           <ol class="algorithm">
-            <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref> and let
-              <em>object representation</em>
-              be <em>object</em> represented in <tref>expanded form</tref> as described in
-              <a href="#value-expansion">Value Expansion</a>.</li>
-            <li>If <em>object</em> is a <tref>blank node</tref>,
-              use the entry in <em>graph.listMap</em> indexed by <em>object</em>,
-              initializing it to a new <tref>JSON object</tref> if nesessary.
-              Add an entry for <em>head</em> with <em>object representation</em>.</li>
-            <li>Append <em>object representation</em> to the array value for
-              <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
-          </ol>
-        </li>
-      </ol>
-    </li>
-    <li>For each <em>name</em> and <em>graph</em> in <em>graphs</em>:
-      <ol class="algorithm">
-        <li>For each <em>subject</em> and <em>entry</em> in <em>graph</em>
-          where <em>entry</em> has both <em>head</em> and <em>first</em> keys:
-          <ol class="algorithm">
-            <li>Set <em>value</em> to the value of <em>head</em> in <em>entry</em>.</li>
-            <li>Remove the entry for <code>@id</code> in <em>value</em>.</li>
-            <li>Add an entry to <em>value</em> for <code>@list</code> initialized to a new array
-              containing the value of <em>first</em> from <em>entry</em>.</li>
-            <li>While <em>entry</em> has a key for <em>rest</em>:
+            <li>
+              If <em>element</em> contains the key <code>@id</code>, then
+              initialize <em>id</em> to its associated value, otherwise initialize
+              it to <tref>null</tref>. If <em>element</em> is a
+              <tref>blank node</tref>, then set <em>id</em> to the result of
+              using the
+              <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+              algorithm, passing <em>id</em> for <em>identifier</em>.
+            </li>
+            <li>
+              Initialize <tref>active object</tref> to an <tref>IRI</tref> or
+              <tref>blank node</tref>, as appropriate, with the value of
+              <em>element</em>.
+            </li>
+            <li>
+              If <tref>active subject</tref> is not <tref>null</tref>, then
+              generate a <tref>quad</tref> using <tref>active subject</tref>,
+              <tref>active property</tref>, <tref>active object</tref>, and
+              <tref>graph name</tref>. Append the <tref>quad</tref> to
+              <em>quads</em>.
+            </li>
+            <li>
+              Set <tref>active subject</tref> to <tref>active object</tref>.
+            </li>
+            <li>
+              For each <em>key</em>-<em>value</em> pair in <em>element</em>,
+              sorted lexicographically by <em>key</em>:
               <ol class="algorithm">
-                <li>Set <em>entry</em> to the value of <em>graph.listMap</em> for <em>entry.rest</em>.</li>
-                <li>Add the value for <em>entry.first</em> to the list array.</li>
+                <li>
+                  Set <tref>active property</tref> to <em>value</em>.
+                </li>
+                <li>
+                  If <tref>active property</tref> equals <code>@graph</code>, then
+                  use this algorithm recursively, passing <em>value</em> for
+                  <em>element</em>, <tref>null</tref> for
+                  <tref>active subject</tref> and <tref>active property</tref>,
+                  <tref>active subject</tref> for <tref>graph name</tref>,
+                  and <em>quads</em>. Then continue to the next <em>key</em>.
+                </li>
+                <li>
+                  If <em>key</em> equals <code>@type</code>, then set
+                  <tref>active property</tref> to <code>rdf:type</code>.
+                </li>
+                <li>
+                  If <tref>active property</tref> is a <tref>keyword</tref>,
+                  then continue to the next <em>key</em>.
+                </li>
+                <li>
+                  Use this algorithm recursively, passing <em>value</em> for
+                  <em>element</em>, <tref>active subject</tref>,
+                  <tref>active property</tref>, <tref>graph name</tref>,
+                  and <em>quads</em>.
+                </li>
               </ol>
             </li>
           </ol>
         </li>
       </ol>
-    </li>
-    <li>Create <em>array</em> as an empty <tref>array</tref>.</li>
-    <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.nodes</em>
-      ordered by <em>subject</em>:
+    </section>
+
+    <section id="list-conversion">
+      <h3>List Conversion</h3>
+
+      <p>List Conversion is the process of taking an <tref>array</tref> of values and
+        converting it to a JSON-LD linked list of
+        <tref title="JSON object">JSON objects</tref>. Each element of the list is
+        linked by using <code>rdf:first</code> and <code>rdf:rest</code>, terminating
+        the list with <code>rdf:nil</code>.</p>
+
+      <p>The algorithm takes a single input: an <tref>array</tref> <em>list</em>.</p>
+
+      <div class="note">This algorithm does not support lists containing lists.</div>
+
       <ol class="algorithm">
-        <li>Add <em>entry</em> to <em>array</em>.</li>
-        <li>If <em>graphs</em> has an entry for <em>subject</em>, add a property
-          <code>@graph</code> in <em>entry</em> containing the ordered entries
-          from <em>graphs[subject].nodes</em>.</li>
+        <li>
+          Initialize <em>length</em> to the length of <em>list</em>.
+        </li>
+        <li>
+          Initialize <em>tail</em> to a <tref>JSON object</tref> containing
+          one key-value pair, (<code>@id</code>-<code>rdf:nil</code>).
+        </li>
+        <li>
+          Starting <em>itr</em> at <em>length</em> minus <code>1</code>, loop
+          until <em>itr</em> is <code>0</code> (inclusive):
+          <ol class="algorithm">
+            <li>
+              Initialize <em>element</em> to an empty <tref>JSON object</tref>.
+            </li>
+            <li>
+              Add a key-value pair to <em>element</em> where the key is
+              <code>rdf:first</code> and the value is an <tref>array</tref>
+              containing the value associated with the index <em>itr</em>
+              in <em>list</em>.
+            </li>
+            <li>
+              Add a key-value pair to <em>element</em> where the key is
+              <code>rdf:rest</code> and the value is an <tref>array</tref>
+              containing <em>tail</em>.
+            </li>
+            <li>
+              Set <em>tail</em> to <em>element</em>.
+            </li>
+            <li>
+              Decrement <em>itr</em> by <code>1</code>.
+            </li>
+          </ol>
+        </li>
+        <li>
+          Return <em>tail</em>.
+        </li>
       </ol>
-    </li>
-    <li>Return <em>array</em> as the result.</li>
-  </ol>
-</section>
+    </section>
 
 <!-- FIXME -->
-<section>
-  <h3>Data Round Tripping</h3>
+    <section>
+      <h2>Convert from RDF Algorithm</h2>
+      <p>In some cases, data exists natively in the form of triples or or <tref title="quad">quads</tref>;
+        for example, if the data was originally represented in an RDF graph or triple/quad store. This
+        algorithm is designed to simply translate an array of <tref title="quad">quads</tref> into a
+        JSON-LD document.</p>
+      <p>When expanding <tref title="typed value">typed values</tref> having a datatype of <code>xsd:string</code>,
+        the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
+        MUST have only an <code>@value</code> property.</p>
 
-  <p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
-    <em>numbers</em> and <em>booleans</em> are automatically coerced to <strong>xsd:integer</strong>,
-    <strong>xsd:double</strong>, or <strong>xsd:boolean</strong>. Implementers MUST ensure that the
-    result is in <tref>canonical lexical form</tref>. A
-    <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
-    a datatype such that there is a one-to-one mapping between the <tref>canonical lexical form</tref> and a value
-    in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every value MUST be converted
-    to a deterministic <tref>string</tref> representation.</p>
+      <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
+        array of <tref>Quad</tref> representations.</p>
 
-  <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
-    or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
-    digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
-    To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+      <p class="issue">This algorithm hasn't been updated to use [[!RDF-CONCEPTS]] yet.</p>
 
-  <pre class="example" data-transform="updateExample"
-        title="Sample integer serialization implementation in JavaScript">
-  <!--
-  (value).toFixed(0).toString()
-  -->
-  </pre>
+      <ol class="algorithm">
+        <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
+          containing <em>nodes</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
+        <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
+          identified by
+          an empty <tref>string</tref>.</li>
+        <li>For each <tref>quad</tref> in <em>input</em>:
+          <ol class="algorithm">
+            <li>Set <em>graph</em> to the entry in <em>graphs</em> identified
+              by <em>name</em>, initializing it to a new entry using the mechanism
+              described in <a href="#new_graph">Step 1</a>.</li>
+            <li>If <em>property</em> is <code>rdf:first</code>,
+              use the entry in <em>graph.listMap</em> indexed by <em>subject</em>,
+              initializing it to a new <tref>JSON object</tref> if nesessary. Represent
+              <em>object</em> in <tref>expanded form</tref>, as described in
+              <a href="#value-expansion">Value Expansion</a>. Add the
+              resulting <em>object representation</em> to the entry indexed by
+              <em>first</em>, and skip to the next <tref>quad</tref>.</li>
+            <li>If <em>property</em> is <code>rdf:rest</code>:
+              <ol class="algorithm">
+                <li>If <em>object</em> is a <tref>blank node</tref>, use the entry in
+                  <em>graph.listMap</em> indexed by <em>subject</em>, initializing it
+                  to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
+                  <em>object</em> to the entry indexed by <em>rest</em>.
+                </li>
+                <li>Skip to the next <tref>quad</tref>.</li>
+              </ol>
+            </li>
+            <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.nodes</em>
+              does not contain an entry for <em>name</em>,
+              create a new entry for <em>name</em> from a new
+              <tref>JSON object</tref> with key/value pair of <code>@id</code> and
+              <em>name</em> represented in <tref>expanded IRI form</tref>.</li>
+            <li>Set <em>value</em> as the entry from <em>graph.nodes</em> for
+              <em>subject</em>, initializing it to a new
+              <tref>JSON object</tref> with key/value pair of <code>@id</code> and
+              <em>subject</em> represented in <tref>expanded IRI form</tref> if necessary.</li>
+            <li>If <em>property</em> is <code>rdf:type</code>, <em>object</em> is not a <tref>JSON-LD value</tref>, and the
+              <code class="idlMemberName"><a href="#widl-JsonLdOptions-useRdfType">useRdfType</a></code>
+              option is not present or <tref>false</tref>:
+              <ol class="algorithm">
+                <li>Append <em>object</em> represented in <tref>expanded IRI form</tref> to the array value for the
+                  key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
+              </ol>
+            </li>
 
-  <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
-    or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
-    character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
-    MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
-    in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
-    For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
-    required. Leading and trailing zeroes are prohibited subject to the following: number
-    representations must be normalized such that there is a single digit which is non-zero to the
-    left of the decimal point and at least a single digit to the right of the decimal point unless
-    the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
-    <strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
-    floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
-    decimal point.</p>
+            <li>Otherwise, if <em>object</em> is a <tref>typed value</tref> and the
+              <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
+              option is set to <tref>true</tref>:
+              <ol class="algorithm">
+                <li>Generate a <em>converted value</em>:
+                  <ol class="algorithm">
+                    <li>If the literal's type is <code>xsd:boolean</code>, the
+                      <em>converted value</em> is <tref>true</tref> if the literal
+                      matches the value <code>true</code> or <code>false</code> if
+                      the literal matches the value <code>false</code>.</li>
+                    <li>If the literal's type is <code>xsd:integer</code> or
+                      <code>xsd:double</code>, try to convert the literal to a
+                      JSON <tref>number</tref>. If the conversion is successful,
+                      store the result in <em>converted value</em>, otherwise
+                      set <em>converted value</em> to <em>value</em>.</li>
+                    <li>Otherwise, do not perform a conversion. Set
+                      the <em>converted value</em> to the <em>value</em>.</li>
+                  </ol>
+                </li>
+                <li>Append the <em>converted value</em> to the array value for the
+                  key, creating an entry in <em>value</em> if necessary.</li>
+              </ol>
+            </li>
 
-  <p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+            <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
+              <ol class="algorithm">
+                <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref>.</li>
+                <li>Append an empty <code>@list</code> representation to the array value for
+                  <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
+              </ol>
+            </li>
+            <li>Otherwise,
+              <ol class="algorithm">
+                <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref> and let
+                  <em>object representation</em>
+                  be <em>object</em> represented in <tref>expanded form</tref> as described in
+                  <a href="#value-expansion">Value Expansion</a>.</li>
+                <li>If <em>object</em> is a <tref>blank node</tref>,
+                  use the entry in <em>graph.listMap</em> indexed by <em>object</em>,
+                  initializing it to a new <tref>JSON object</tref> if nesessary.
+                  Add an entry for <em>head</em> with <em>object representation</em>.</li>
+                <li>Append <em>object representation</em> to the array value for
+                  <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>For each <em>name</em> and <em>graph</em> in <em>graphs</em>:
+          <ol class="algorithm">
+            <li>For each <em>subject</em> and <em>entry</em> in <em>graph</em>
+              where <em>entry</em> has both <em>head</em> and <em>first</em> keys:
+              <ol class="algorithm">
+                <li>Set <em>value</em> to the value of <em>head</em> in <em>entry</em>.</li>
+                <li>Remove the entry for <code>@id</code> in <em>value</em>.</li>
+                <li>Add an entry to <em>value</em> for <code>@list</code> initialized to a new array
+                  containing the value of <em>first</em> from <em>entry</em>.</li>
+                <li>While <em>entry</em> has a key for <em>rest</em>:
+                  <ol class="algorithm">
+                    <li>Set <em>entry</em> to the value of <em>graph.listMap</em> for <em>entry.rest</em>.</li>
+                    <li>Add the value for <em>entry.first</em> to the list array.</li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>Create <em>array</em> as an empty <tref>array</tref>.</li>
+        <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.nodes</em>
+          ordered by <em>subject</em>:
+          <ol class="algorithm">
+            <li>Add <em>entry</em> to <em>array</em>.</li>
+            <li>If <em>graphs</em> has an entry for <em>subject</em>, add a property
+              <code>@graph</code> in <em>entry</em> containing the ordered entries
+              from <em>graphs[subject].nodes</em>.</li>
+          </ol>
+        </li>
+        <li>Return <em>array</em> as the result.</li>
+      </ol>
+    </section>
 
-  <pre class="example" data-transform="updateExample"
-        title="Sample floating point number serialization implementation in JavaScript">
-  <!--
-  (value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
-  -->
-  </pre>
+<!-- FIXME -->
+    <section>
+      <h3>Data Round Tripping</h3>
 
-  <p class="note">When data such as decimals need to be normalized, JSON-LD authors should
-    not use values that are going to undergo automatic conversion. This is due to the lossy nature
-    of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
-    set the canonical lexical form directly.</p>
+      <p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
+        <em>numbers</em> and <em>booleans</em> are automatically coerced to <strong>xsd:integer</strong>,
+        <strong>xsd:double</strong>, or <strong>xsd:boolean</strong>. Implementers MUST ensure that the
+        result is in <tref>canonical lexical form</tref>. A
+        <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
+        a datatype such that there is a one-to-one mapping between the <tref>canonical lexical form</tref> and a value
+        in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every value MUST be converted
+        to a deterministic <tref>string</tref> representation.</p>
 
-  <p>The canonical lexical form of the <em>boolean</em> values <code>true</code> and <code>false</code>
-    are the strings <strong>true</strong> and <strong>false</strong>.</p>
+      <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
+        or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
+        digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
+        To convert the number in JavaScript, implementers can use the following snippet of code:</p>
 
-  <p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
-    be guaranted as rounding errors might occur. Additionally, only literals typed as
-    <strong>xsd:integer</strong>, <strong>xsd:double</strong>, and  <strong>xsd:boolean</strong> are
-    automatically converted back to their JSON-native counterparts in when
-    <a href="#rdf-conversion">converting from RDF</a>.</p>
+      <pre class="example" data-transform="updateExample"
+           title="Sample integer serialization implementation in JavaScript">
+      <!--
+      (value).toFixed(0).toString()
+      -->
+      </pre>
 
-  <p>Some JSON serializers, such as PHP's native implementation in some versions,
-    backslash-escape the forward slash character. For example, the value
-    <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
-    This is problematic as other JSON parsers might not understand those escaping characters.
-    There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
-    between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
-</section>
+      <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
+        or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
+        character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
+        MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
+        in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
+        For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
+        required. Leading and trailing zeroes are prohibited subject to the following: number
+        representations must be normalized such that there is a single digit which is non-zero to the
+        left of the decimal point and at least a single digit to the right of the decimal point unless
+        the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
+        <strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
+        floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
+        decimal point.</p>
 
-<!-- end of RDF algorithms -->
-</section>
+      <p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+
+      <pre class="example" data-transform="updateExample"
+           title="Sample floating point number serialization implementation in JavaScript">
+      <!--
+      (value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
+      -->
+      </pre>
+
+      <p class="note">When data such as decimals need to be normalized, JSON-LD authors should
+        not use values that are going to undergo automatic conversion. This is due to the lossy nature
+        of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
+        set the canonical lexical form directly.</p>
+
+      <p>The canonical lexical form of the <em>boolean</em> values <code>true</code> and <code>false</code>
+        are the strings <strong>true</strong> and <strong>false</strong>.</p>
+
+      <p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
+        be guaranted as rounding errors might occur. Additionally, only literals typed as
+        <strong>xsd:integer</strong>, <strong>xsd:double</strong>, and  <strong>xsd:boolean</strong> are
+        automatically converted back to their JSON-native counterparts in when
+        <a href="#rdf-conversion">converting from RDF</a>.</p>
+
+      <p>Some JSON serializers, such as PHP's native implementation in some versions,
+        backslash-escape the forward slash character. For example, the value
+        <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
+        This is problematic as other JSON parsers might not understand those escaping characters.
+        There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
+        between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
+    </section>
+
+  <!-- end of RDF algorithms -->
+  </section>
 
 <!-- end of Algorithms -->
 </section>
