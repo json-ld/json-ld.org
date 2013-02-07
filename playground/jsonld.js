@@ -285,13 +285,13 @@ jsonld.expand = function(input) {
  * Performs JSON-LD flattening.
  *
  * @param input the JSON-LD to flatten.
- * @param context the context to use to compact the flattened output, or null.
+ * @param ctx the context to use to compact the flattened output, or null.
  * @param [options] the options to use:
  *          [base] the base IRI to use.
  *          [resolver(url, callback(err, jsonCtx))] the URL resolver to use.
  * @param callback(err, flattened) called once the operation completes.
  */
-jsonld.flatten = function(input, context, options, callback) {
+jsonld.flatten = function(input, ctx, options, callback) {
   // get arguments
   if(typeof options === 'function') {
     callback = options;
@@ -322,23 +322,19 @@ jsonld.flatten = function(input, context, options, callback) {
       return callback(ex);
     }
 
-    if(context === null) {
+    if(ctx === null) {
       return callback(null, flattened);
     }
 
     // compact result (force @graph option to true, skip expansion)
     options.graph = true;
     options.skipExpansion = true;
-    jsonld.compact(flattened, ctx, options, function(err, compacted, ctx) {
+    jsonld.compact(flattened, ctx, options, function(err, compacted) {
       if(err) {
         return callback(new JsonLdError(
           'Could not compact flattened output.',
           'jsonld.FlattenError', {cause: err}));
       }
-      // get graph alias
-      var graph = _compactIri(ctx, '@graph');
-      // remove @preserve from results
-      compacted[graph] = _removePreserve(ctx, compacted[graph]);
       callback(null, compacted);
     });
   });
@@ -1874,9 +1870,9 @@ Processor.prototype.expand = function(
       else {
         // drop subjects that generate no triples
         var hasTriples = false;
+        var ignore = ['@graph', '@type', '@list'];
         for(var ki = 0; !hasTriples && ki < keys.length; ++ki) {
-          if(!_isKeyword(keys[ki]) ||
-            ['@graph', '@type', '@list'].indexOf(keys[ki]) !== -1) {
+          if(!_isKeyword(keys[ki]) || ignore.indexOf(keys[ki]) !== -1) {
             hasTriples = true;
           }
         }
