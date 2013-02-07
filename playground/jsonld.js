@@ -1359,7 +1359,7 @@ var Processor = function() {};
  * must be in expanded form before this method is called.
  *
  * @param activeCtx the active context to use.
- * @param activeProperty the compacted property assoicated with the element
+ * @param activeProperty the compacted property associated with the element
  *          to compact, null for none.
  * @param element the element to compact.
  * @param options the compaction options.
@@ -1662,7 +1662,7 @@ Processor.prototype.expand = function(
       if(expandedProperty === null ||
         !(_isArray(expandedProperty) ||
         _isAbsoluteIri(expandedProperty) ||
-        _isKeyword(expandedProperty, activeCtx))) {
+        _isKeyword(expandedProperty))) {
         continue;
       }
 
@@ -1704,7 +1704,7 @@ Processor.prototype.expand = function(
             'jsonld.SyntaxError', {value: value});
         }
         // ensure language value is lowercase
-        expandedValue = value.toLowerCase();
+        value = value.toLowerCase();
       }
 
       // preserve @index
@@ -4480,7 +4480,6 @@ function _getInitialContext(options) {
     '@base': base,
     mappings: {},
     keywords: {
-      '@index': [],
       '@context': [],
       '@container': [],
       '@default': [],
@@ -4488,6 +4487,7 @@ function _getInitialContext(options) {
       '@explicit': [],
       '@graph': [],
       '@id': [],
+      '@index': [],
       '@language': [],
       '@list': [],
       '@omitDefault': [],
@@ -4508,14 +4508,11 @@ function _getInitialContext(options) {
    * Generates an inverse context for use in the compaction algorithm, if
    * not already generated for the given active context.
    *
-   * @param activeCtx the active context to create the inverse context from.
-   *
    * @return the inverse context.
    */
-  function _createInverseContext(activeCtx) {
-    if(!activeCtx) {
-      activeCtx = this;
-    }
+  function _createInverseContext() {
+    var activeCtx = this;
+
     // lazily create inverse
     if(activeCtx.inverse) {
       return activeCtx.inverse;
@@ -4618,7 +4615,7 @@ function _getInitialContext(options) {
    *
    * @return a clone (child) of the active context.
    */
-  function _cloneActiveContext(shallow) {
+  function _cloneActiveContext() {
     var child = {};
     child['@base'] = this['@base'];
     child.keywords = _clone(this.keywords);
@@ -4643,7 +4640,10 @@ function _getInitialContext(options) {
     rval['@base'] = this['@base'];
     rval.keywords = this.keywords;
     rval.mappings = this.mappings;
-    rval.namer = this.namer.clone();
+    rval.namer = null;
+    if(this.namer) {
+      rval.namer = this.namer.clone();
+    }
     rval.clone = this.clone;
     rval.share = this.share;
     rval.inverse = this.inverse;
@@ -4653,48 +4653,34 @@ function _getInitialContext(options) {
 }
 
 /**
- * Returns whether or not the given value is a keyword (or a keyword alias).
+ * Returns whether or not the given value is a keyword.
  *
  * @param v the value to check.
- * @param [ctx] the active context to check against.
  *
  * @return true if the value is a keyword, false if not.
  */
-function _isKeyword(v, ctx) {
+function _isKeyword(v) {
   if(!_isString(v)) {
     return false;
   }
-  if(ctx) {
-    if(v in ctx.keywords) {
-      return true;
-    }
-    for(var key in ctx.keywords) {
-      var aliases = ctx.keywords[key];
-      if(aliases.indexOf(v) !== -1) {
-        return true;
-      }
-    }
-  }
-  else {
-    switch(v) {
-    case '@index':
-    case '@context':
-    case '@container':
-    case '@default':
-    case '@embed':
-    case '@explicit':
-    case '@graph':
-    case '@id':
-    case '@language':
-    case '@list':
-    case '@omitDefault':
-    case '@preserve':
-    case '@set':
-    case '@type':
-    case '@value':
-    case '@vocab':
-      return true;
-    }
+  switch(v) {
+  case '@context':
+  case '@container':
+  case '@default':
+  case '@embed':
+  case '@explicit':
+  case '@graph':
+  case '@id':
+  case '@index':
+  case '@language':
+  case '@list':
+  case '@omitDefault':
+  case '@preserve':
+  case '@set':
+  case '@type':
+  case '@value':
+  case '@vocab':
+    return true;
   }
   return false;
 }
