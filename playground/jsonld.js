@@ -137,10 +137,15 @@ jsonld.compact = function(input, ctx) {
       return callback(err);
     }
 
-    // if compacted is an array with 1 entry, remove array unless
-    // graph option is set
-    if(!options.graph && _isArray(compacted) && compacted.length === 1) {
-      compacted = compacted[0];
+    if(!options.graph && _isArray(compacted)) {
+      // simplify to a single item
+      if(compacted.length === 1) {
+        compacted = compacted[0];
+      }
+      // simplify to an empty object
+      else if(compacted.length === 0) {
+        compacted = {};
+      }
     }
     // always use array if graph option is on
     else if(options.graph && _isObject(compacted)) {
@@ -1861,7 +1866,8 @@ Processor.prototype.expand = function(
     }
 
     // drop certain top-level objects that do not occur in lists
-    if(!options.keepFreeFloatingNodes && !insideList &&
+    if(_isObject(rval) &&
+      !options.keepFreeFloatingNodes && !insideList &&
       (activeProperty === null || expandedActiveProperty === '@graph')) {
       // drop empty object or top-level @value
       if(count === 0 || ('@value' in rval)) {
@@ -4399,7 +4405,7 @@ function _prependBase(base, iri) {
     authority = path.substr(0, path.lastIndexOf('/'));
     path = path.substr(authority.length);
   }
-  // IRI represents an absolue path
+  // IRI represents an absolute path
   else if(rel.pathname.indexOf('/') === 0) {
     path = rel.pathname;
   }
