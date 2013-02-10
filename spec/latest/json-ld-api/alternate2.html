@@ -2697,6 +2697,7 @@ the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
                 the <a href="#iri-compaction-algorithm">IRI Compaction</a>
                 algorithm, passing <tref>active context</tref>,
                 <em>expanded property</em> for <em>iri</em>,
+                <em>expanded value</em> for <em>value</em>,
                 <tref>true</tref> for <em>vocabRelative</em>, and
                 <em>shallow</em> for <em>parent</em>.
               </li>
@@ -2734,11 +2735,12 @@ the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
                 If there is a <tref>term definition</tref> for
                 <em>activeProperty</em> in <tref>active context</tref> that
                 is a <tref>property generator</tref>, then invoke the
-                <a href="#find-and-remove-property-generator-duplicates">Find and Remove Property Generator Duplicates</a>
+                <a href="#find-property-generator-duplicates">Find Property Generator Duplicates</a>
                 algorithm, passing <tref>active context</tref>,
                 <em>shallow</em> for <em>element</em>,
                 <em>expanded property</em>, <em>expanded item</em> for
-                <em>value</em>, and <em>activeProperty</em>.
+                <em>value</em>, <em>activeProperty</em>, and
+                <tref>true</tref> for <em>remove</em>.
               </li>
               <li>
                 Initialize <em>compacted item</em> to the result of using
@@ -3664,22 +3666,13 @@ or <tref>language mapping</tref>, and a <tref>string</tref>
             <em>selected term</em> is <tref>null</tref>:
             <ol class="algorithm">
               <li>
-                Initialize <em>iris</em> to the value of the
-                <tref>IRI mapping</tref> for <em>propertyGeneratorTerm</em>
-                in the <tref>active context</tref>.
-              </li>
-              <li>
-                Initialize <em>match</em> to <tref>true</tref>.
-              </li>
-              <li>
-                For each item <em>propertyGeneratorIri</em> in <em>iris</em>
-                while <em>match</em> equals <tref>true</tref>:
-                <ol class="algorithm">
-                  <li>
-                    If <em>propertyGeneratorIri</em> is not a key in
-                    <em>parent</em>, set <em>match</em> to <tref>false</tref>.
-                  </li>
-                </ol>
+                Initialize <em>match</em> to the result of using the
+                <a href="#find-property-generator-duplicates">Find Property Generator Duplicates</a>
+                algorithm, passing <tref>active context</tref>,
+                <em>parent</em> for <em>element</em>, <em>iri</em> for
+                <em>expanded property</em>, <em>value</em>,
+                <em>propertyGeneratorTerm</em> for <em>activeProperty</em>,
+                and <tref>false</tref> for <em>remove</em>.
               </li>
               <li>
                 If <em>match</em> equals <tref>true</tref>, then set
@@ -3893,18 +3886,23 @@ an <tref>active property</tref>, and a <em>value</em> to be compacted.
 </section>
 
 <section>
-<h2>Find and Remove Property Generator Duplicates Subalgorithm</h2>
+<h2>Find Property Generator Duplicates Subalgorithm</h2>
 
 <p>
 This algorithm checks if a specific value exists for all
 <tref title="IRI">IRIs</tref> associated with a
-<tref>property generator</tref> and, if so, it removes them.
-The algorithm takes five required inputs: an <tref>active context</tref>,
-<em>element</em>, <em>expanded property</em>, <em>value</em>, and
-<tref>active property</tref>.
+<tref>property generator</tref> and, if specified, it removes them.
+The algorithm takes six required inputs: an <tref>active context</tref>,
+<em>element</em>, <em>expanded property</em>, <em>value</em>,
+<tref>active property</tref>, and a flag <em>remove</em>, that indicates
+whether or not to remove the duplicate values. It returns <tref>true</tref>
+if the required duplicate values were found and <tref>false</tref> if not.
 </p>
 
 <ol class="algorithm">
+  <li>
+    Initialize <em>result</em> to <tref>true</tref>.
+  </li>
   <li>
     Initialize <em>iris</em> to the <tref>array</tref> associated with the
     <tref>IRI mapping</tref> for <tref>active property</tref> in
@@ -3919,61 +3917,97 @@ The algorithm takes five required inputs: an <tref>active context</tref>,
         <em>iri</em>.
       </li>
       <li>
-        Initialize <em>prospects</em> to the value associated with the
-        key that equals <em>iri</em> in <em>element</em>. This
-        <tref>array</tref> will be checked for a value that matches
-        the <tref>property generator</tref> <em>value</em>.
+        Set <em>result</em> to <tref>false</tref>.
       </li>
       <li>
-        For each item <em>prospect</em> in <em>prospects</em>, until
-        a <tref>property generator</tref> duplicate is found for
-        <em>value</em>:
+        If <em>element</em> contains a key that equals <em>iri</em>:
         <ol class="algorithm">
           <li>
-            Check to see if <em>prospect</em> and <em>value</em> are
-            <tref>property generator</tref> duplicates:
+            Initialize <em>prospects</em> to the value associated with the
+            key that equals <em>iri</em> in <em>element</em>. This
+            <tref>array</tref> will be checked for a value that matches
+            the <tref>property generator</tref> <em>value</em>.
+          </li>
+          <li>
+            If both <em>prospects</em> and <em>value</em> are empty
+            <tref title="array">arrays</tref>:
             <ol class="algorithm">
               <li>
-                If their types and values are equal, then they are duplicates.
+                Set <em>result</em> to <tref>true</tref>.
               </li>
               <li>
-                Otherwise, if they are both
-                <tref title="JSON object">JSON objects</tref> that contain
-                the key <code>@value</code> and they both have the same
-                key-value pairs for the keys <code>@value</code>,
-                <code>@type</code>, <code>@language</code>, and
-                <code>@index</code>, then they are duplicates.
+                If <em>remove</em> is <tref>true</tref>, remove <em>iri</em>
+                from <em>element</em>.
               </li>
               <li>
-                Otherwise, if they are both
-                <tref title="list object">list objects</tref> with the same
-                key-value pairs for the key <code>@index</code>, and the
-                <tref title="array">arrays</tref> associated with their
-                <code>@list</code> keys have the same length and their
-                corresponding items, by index, are duplicates, then they
-                are duplicates.
-              </li>
-              <li>
-                Otherwise, if they are both
-                <tref title="JSON object">JSON objects</tref> that contain
-                the key <code>@id</code> and the values associated with
-                those keys are equal, then they are duplicates.
-              </li>
-              <li>
-                Otherwise, they are not duplicates.
+                Continue to the next <em>iri</em>.
               </li>
             </ol>
           </li>
           <li>
-            If <em>prospect</em> and <em>value</em> are
-            <tref>property generator</tref> duplicates, then remove
-            <em>prospect</em> from <em>prospects</em> and, if
-            <em>prospects</em> is now empty, remove <em>iri</em>
-            from <em>element</em>.
+            For each item <em>prospect</em> in <em>prospects</em>, until
+            a <tref>property generator</tref> duplicate is found for
+            <em>value</em>:
+            <ol class="algorithm">
+              <li>
+                Check to see if <em>prospect</em> and <em>value</em> are
+                <tref>property generator</tref> duplicates:
+                <ol class="algorithm">
+                  <li>
+                    If their types and values are equal, then they are
+                    duplicates.
+                  </li>
+                  <li>
+                    Otherwise, if they are both
+                    <tref title="JSON object">JSON objects</tref> that contain
+                    the key <code>@value</code> and they both have the same
+                    key-value pairs for the keys <code>@value</code>,
+                    <code>@type</code>, <code>@language</code>, and
+                    <code>@index</code>, then they are duplicates.
+                  </li>
+                  <li>
+                    Otherwise, if they are both
+                    <tref title="list object">list objects</tref> with the same
+                    key-value pairs for the key <code>@index</code>, and the
+                    <tref title="array">arrays</tref> associated with their
+                    <code>@list</code> keys have the same length and their
+                    corresponding items, by index, are duplicates, then they
+                    are duplicates.
+                  </li>
+                  <li>
+                    Otherwise, if they are both
+                    <tref title="JSON object">JSON objects</tref> that contain
+                    the key <code>@id</code> and the values associated with
+                    those keys are equal, then they are duplicates.
+                  </li>
+                  <li>
+                    Otherwise, they are not duplicates.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                If <em>prospect</em> and <em>value</em> are
+                <tref>property generator</tref> duplicates:
+                <ol class="algorithm">
+                  <li>
+                    Set <em>result</em> to <tref>true</tref>.
+                  </li>
+                  <li>
+                    If <em>remove</em> is <tref>true</tref>, then remove
+                    <em>prospect</em> from <em>prospects</em> and, if
+                    <em>prospects</em> is now empty, remove <em>iri</em>
+                    from <em>element</em>.
+                  </li>
+                </ol>
+              </li>
+            </ol>
           </li>
         </ol>
       </li>
     </ol>
+  </li>
+  <li>
+    Return <em>result</em>.
   </li>
 </ol>
 
