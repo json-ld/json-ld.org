@@ -3827,6 +3827,9 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
             itemLanguage = '@null';
           }
         }
+        else {
+          itemType = '@id';
+        }
         if(commonLanguage === null) {
           commonLanguage = itemLanguage;
         }
@@ -3866,7 +3869,7 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
           typeOrLanguageValue = value['@type'];
         }
       }
-      else if(_isObject(value)) {
+      else {
         typeOrLanguage = '@type';
         typeOrLanguageValue = '@id';
       }
