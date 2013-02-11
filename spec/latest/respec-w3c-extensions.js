@@ -7,7 +7,8 @@ var localBibliography = {
     "RFC5988": "M. Nottingham, Editor. <cite><a href=\"http://tools.ietf.org/rfc/rfc5988\">Web Linking</a>.</cite> October 2010. Internet RFC 5988. URL: <a href=\"http://tools.ietf.org/rfc/rfc5988.txt\">http://tools.ietf.org/rfc/rfc5988.txt</a>",
     "RDF-CONCEPTS": "Richard Cyganiak, David Wood, Editors. <cite><a href=\"http://www.w3.org/TR/2013/WD-rdf11-concepts-20130115/\">RDF 1.1 Concepts and Abstract Syntax.</a></cite> 15 January 2013. W3C Working Draft (work in progress). URL: <a href=\"http://www.w3.org/TR/2013/WD-rdf11-concepts-20130115/\">http://www.w3.org/TR/2013/WD-rdf11-concepts-20130115/</a>",
     "TURTLE-TR": "Eric Prud'hommeaux, Gavin Carothers, Editors. <cite><a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">Turtle: Terse RDF Triple Language.</a></cite> 09 August 2011. W3C Working Draft (work in progress). URL: <a href=\"http://www.w3.org/TR/2011/WD-turtle-20110809/\">http://www.w3.org/TR/2011/WD-turtle-20110809/</a>",
-    "MICRODATA": "Ian Hickson, Editor. <cite><a href=\"http://www.w3.org/TR/2012/WD-microdata-20120329/\">HTML Microdata</a>.</cite> 29 March 2012. W3C Working Draft (work in progress). URL: <a href=\"http://www.w3.org/TR/2012/WD-microdata-20120329/\">http://www.w3.org/TR/2012/WD-microdata-20120329/</a>"
+    "MICRODATA": "Ian Hickson, Editor. <cite><a href=\"http://www.w3.org/TR/2012/WD-microdata-20120329/\">HTML Microdata</a>.</cite> 29 March 2012. W3C Working Draft (work in progress). URL: <a href=\"http://www.w3.org/TR/2012/WD-microdata-20120329/\">http://www.w3.org/TR/2012/WD-microdata-20120329/</a>",
+    "PROFILE-LINK": "Erik Wilde. <cite><a href=\"http://tools.ietf.org/html/draft-wilde-profile-link\">The 'profile' Link Relation Type</a>.</cite> 17 October 2012. IETF Internet Draft (work in progress). URL: <a href=\"http://tools.ietf.org/html/draft-wilde-profile-link\">http://tools.ietf.org/html/draft-wilde-profile-link</a>"
 };
 
 var preProc = {
