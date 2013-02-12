@@ -1095,13 +1095,6 @@ a <em>term</em>, and a map <em>defined</em>.
     is now being created but is not yet complete.
   </li>
   <li>
-    If <em>term</em> is a <tref>compact IRI</tref> with a <tref>prefix</tref>
-    that is a key in <tref>local context</tref> then a dependency has been
-    found. Use this algorithm recursively passing <tref>active context</tref>,
-    <tref>local context</tref>, the <tref>prefix</tref> as <em>term</em>,
-    and <em>defined</em>.
-  </li>
-  <li>
     Since <tref title="keyword">keywords</tref> cannot be overridden,
     <em>term</em> MUST NOT be a <tref>keyword</tref>. Otherwise, an
     invalid value has been detected, which is an error.
@@ -1127,13 +1120,12 @@ a <em>term</em>, and a map <em>defined</em>.
     <ol class="algorithm">
       <li>
         If <em>value</em> is a <tref>keyword</tref>, then <em>value</em>
-        MUST NOT be equal to <code>@context</code> or <code>@preserve</code>.
-        Otherwise an invalid keyword alias has been detected, which is an
-        error. Add <em>term</em> to <tref>active context</tref> as a
-        <tref>keyword</tref> alias for <em>value</em>. If there is more
-        than one <tref>keyword</tref> alias for <em>value</em>, then
-        store its aliases as an <tref>array</tref>, sorted by length,
-        breaking ties lexicographically.
+        MUST NOT be equal to <code>@context</code>. Otherwise an invalid
+        keyword alias has been detected, which is an error. Add <em>term</em>
+        to <tref>active context</tref> as a <tref>keyword</tref> alias for
+        <em>value</em>. If there is more than one <tref>keyword</tref> alias
+        for <em>value</em>, then store its aliases as an <tref>array</tref>,
+        sorted by length, breaking ties lexicographically.
       </li>
       <li>
         Otherwise, expand <em>value</em> by setting it to the result of
@@ -1156,11 +1148,6 @@ a <em>term</em>, and a map <em>defined</em>.
   </li>
   <li>
     Create a new <tref>JSON object</tref>, <em>definition</em>.
-  </li>
-  <li>
-   If <em>term</em> is a <tref>compact IRI</tref> and its
-   <tref>prefix</tref> has a <tref>term definition</tref> in
-   <tref>active context</tref>, set <em>definition</em> to a copy of it.
   </li>
   <li>
     If <em>value</em> contains the key <code>@id</code>:
@@ -1215,23 +1202,34 @@ a <em>term</em>, and a map <em>defined</em>.
     </ol>
   </li>
   <li>
-    Otherwise, if <em>term</em> is not a <tref>compact IRI</tref>,
-    then <tref>active context</tref> MUST have a
+    Otherwise if the <em>term</em> contains a colon (<code>:</code>):
+    <ol class="algorithm">
+      <li>
+        If <em>term</em> is a <tref>compact IRI</tref> with a
+        <tref>prefix</tref> that is a key in <tref>local context</tref> then
+        a dependency has been found. Use this algorithm recursively passing
+        <tref>active context</tref>, <tref>local context</tref>, the
+        <tref>prefix</tref> as <em>term</em>, and <em>defined</em>.
+      </li>
+      <li>
+        If <em>term</em>'s <tref>prefix</tref> has a
+        <tref>term definition</tref> in <tref>active context</tref>, set
+        the <tref>IRI mapping</tref> for <em>definition</em> to the result of
+        concatenating the value associated with the <tref>prefix</tref>'s
+        <tref>IRI mapping</tref> and the <em>term</em>'s <em>suffix</em>.
+      </li>
+      <li>
+        Otherwise, <em>term</em> is an <tref>absolute IRI</tref>. Set the
+        <tref>IRI mapping</tref> for <em>definition</em> to <em>term</em>.
+      </li>
+    </ol>
+  </li>
+  <li>
+    Otherwise, <tref>active context</tref> MUST have a
     <tref>vocabulary mapping</tref>, otherwise an invalid value has
     been detected, which is an error. Set the <tref>IRI mapping</tref>
     for <em>definition</em> to the result of concatenating the value
     associated with the <tref>vocabulary mapping</tref> and <em>term</em>.
-  </li>
-  <li>
-    Otherwise, if <em>term</em>'s <tref>prefix</tref> has a
-    <tref>term definition</tref> in <tref>active context</tref>, set
-    the <tref>IRI mapping</tref> for <em>definition</em> to the result of
-    concatenating the value associated with the <tref>prefix</tref>'s
-    <tref>IRI mapping</tref> and the <em>term</em>'s <em>suffix</em>.
-  </li>
-  <li>
-    Otherwise, <em>term</em> is an <tref>absolute IRI</tref>. Set the
-    <tref>IRI mapping</tref> for <em>definition</em> to <em>term</em>.
   </li>
   <li>
     If <em>value</em> contains the key <code>@type</code>:
