@@ -1850,63 +1850,32 @@ any information associated with <em>value</em> will be ready.
 </p>
 
 <p>
-Now we initialize our <em>result</em> to <em>value</em> and then we
-look in the <tref>active context</tref> for <em>value</em>:
-
-<ol>
-  <li>
-    If it indicates that <em>value</em> is explicitly mapped to
-    <tref>null</tref>, then we return <tref>null</tref> which has the effect
-    of dropping the <em>value</em> from our expanded output.
-  </li>
-  <li>
-    If it indicates that <em>value</em> is a <tref>keyword</tref> alias,
-    then we return the associated <tref>keyword</tref>.
-  </li>
-  <li>
-    If it has a <tref>term definition</tref> that is a
-    <tref>property generator</tref> when the <tref>local context</tref> is
-    not <tref>null</tref>, then we trigger an error because a
-    <tref>term definition</tref> cannot have a
-    <tref>property generator</tref> as a dependency.
-  </li>
-  <li>
-    Otherwise, if it has <tref>term definition</tref> that is not a
-    <tref>property generator</tref> we update <em>result</em> by setting
-    it to the associated <tref>IRI mapping</tref>. If this is the case
-    then we also know that <em>result</em> is now an
-    <tref>absolute IRI</tref> (or a <tref>blank node identifier</tref>).
-  </li>
-</ol>
-
+Now, if <em>value</em> is relative to the <tref>vocabulary mapping</tref>
+in <tref>active context</tref>, then we try to interpret it as a
+<tref>term</tref>, expanding if it has an <tref>IRI mapping</tref>
+in the <tref>active context</tref>.
 </p>
 
 <p>
-At this point, if we know that <em>result</em> is not an
-<tref>absolute IRI</tref> or <tref>blank node identifier</tref>, then it
-may be a <tref>compact IRI</tref>. If it has a colon (<code>:</code>) in it
-then we parse it into <tref>prefix</tref>:<em>suffix</em>. If the resulting
-<tref>prefix</tref> is <code>_</code> or the <em>suffix</em>
-is <code>//</code>, then <em>result</em> is already an
-<tref>absolute IRI</tref>. Otherwise, if the <tref>prefix</tref> is a key in
-the <tref>local context</tref>, and we need to create a
-<tref>term definition</tref>, then we do so. If the
-<tref>term definition</tref> for the <tref>prefix</tref> in the
-<tref>active context</tref> is not a <tref>property generator</tref>, then
-we replace <em>result</em> with the concatenation of the associated
-<tref>IRI mapping</tref> and <em>suffix</em>.
+Otherwise, if <em>value</em> has a colon (<code>:</code>) it may be
+a <tref>compact IRI</tref> having the form
+<tref>prefix</tref>:<em>suffix</em>. If so, we first create a
+<tref>term definition</tref> for its <tref>prefix</tref> if it appears in
+the <tref>local context</tref>, and then we expand <em>value</em> using the
+associated <tref>IRI mapping</tref> and concatenating <em>suffix</em>.
 </p>
 
 <p>
-Finally, if <em>result</em> is now a <tref>blank node identifier</tref>,
-we relabel it by setting it to the result of the
+At this point, if our expanded <em>value</em> is a <tref>keyword</tref>,
+we return it. If it is a <tref>blank node identifier</tref> we relabel it by
+setting it to the result of the
 <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
 algorithm. Otherwise, if it is not an <tref>absolute IRI</tref>, we resolve
 it against either the <tref title="active context">active context's</tref>
 <tref>vocabulary mapping</tref> or the document base, given the
 <em>vocabRelative</em> and <em>documentRelative</em> flag values and
 the existence of a <tref>vocabulary mapping</tref>. Then we return
-<em>result</em>.
+the expanded <em>value</em>.
 </p>
 
 </section>
@@ -1947,37 +1916,36 @@ two flags are set to <code>false</code> and <tref>local context</tref> and
     <a href="#context-processing">Context Processing</a>.
   </li>
   <li>
-    If <tref>local context</tref> is not <tref>null</tref> then
-    <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
-    for <em>value</em> that is a <tref>property generator</tref>.
-    Otherwise, an invalid error has been detected, which is an error.
+    Initialize <em>result</em> to <tref>null</tref>.
   </li>
   <li>
-    If <em>value</em> has a <tref>null</tref> mapping in
-    <tref>active context</tref>, then explicitly ignore <em>value</em>
-    by returning <tref>null</tref>.
-  </li>
-  <li>
-    If <tref>active context</tref> indicates that <em>value</em> is a
-    <tref>keyword</tref> alias then return the associated
-    <tref>keyword</tref>.
-  </li>
-  <li>
-    Initialize <em>result</em> to <em>value</em> and <em>isAbsoluteIri</em>
-    to <tref>false</tref>.
-  </li>
-  <li>
-    If <tref>active context</tref> has a <tref>term definition</tref> for
-    <em>value</em>, then set <em>result</em> to the associated
-    <tref>IRI mapping</tref> and <em>isAbsoluteIri</em> to <tref>true</tref>.
-  </li>
-  <li>
-    If <em>isAbsoluteIri</em> equals <tref>false</tref> and <em>result</em>
-    contains a colon (<code>:</code>), then it is either an
-    <tref>absolute IRI</tref> or a <tref>compact IRI</tref>:
+    If <em>vocabRelative</em> is <tref>true</tref>:
     <ol class="algorithm">
       <li>
-        Split <em>result</em> into a <tref>prefix</tref> and <em>suffix</em>
+        If <tref>local context</tref> is not <tref>null</tref> then
+        <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
+        for <em>value</em> that is a <tref>property generator</tref>.
+        Otherwise, an invalid error has been detected, which is an error.
+      </li>
+      <li>
+        If <em>value</em> has a <tref>null</tref> mapping in
+        <tref>active context</tref>, then return <tref>null</tref> which
+        has the effect of explicitly dropping <em>value</em>.
+      </li>
+      <li>
+        If <tref>active context</tref> has a <tref>term definition</tref> for
+        <em>value</em>, then set <em>result</em> to the associated
+        <tref>IRI mapping</tref>.
+      </li>
+    </ol>
+  </li>
+  <li>
+    If <em>result</em> is <tref>null</tref> and <em>value</em> contains a
+    colon (<code>:</code>), then it is either an <tref>absolute IRI</tref> or
+    a <tref>compact IRI</tref>:
+    <ol class="algorithm">
+      <li>
+        Split <em>value</em> into a <tref>prefix</tref> and <em>suffix</em>
         at the first occurence of a colon (<code>:</code>).
       </li>
       <li>
@@ -1986,10 +1954,8 @@ two flags are set to <code>false</code> and <tref>local context</tref> and
         (<code>//</code>), then it may be a <tref>compact IRI</tref>:
         <ol class="algorithm">
           <li>
-            If <tref>local context</tref> is not <tref>null</tref>, it
-            contains a key that equals <tref>prefix</tref>, and the value
-            associated with the key that equals <tref>prefix</tref> in
-            <em>defined</em> is not <tref>true</tref>, then invoke the
+            If <tref>local context</tref> is not <tref>null</tref> and it
+            contains a key that equals <tref>prefix</tref>, then invoke the
             <a href="#create-term-definition">Create Term Definition</a>
             subalgorithm, passing <tref>active context</tref>,
             <tref>local context</tref>, <em>prefix</em> as <em>term</em>,
@@ -2008,13 +1974,18 @@ two flags are set to <code>false</code> and <tref>local context</tref> and
           </li>
         </ol>
       </li>
-      <li>
-        Set <em>isAbsoluteIri</em> to <tref>true</tref>.
-      </li>
     </ol>
   </li>
   <li>
-    If <em>isAbsoluteIri</em> equals <tref>true</tref>:
+    If <em>result</em> is <tref>null</tref>, set it to <em>value</em>.
+  </li>
+  <li>
+    If <tref>active context</tref> indicates that <em>value</em> is a
+    <tref>keyword</tref> alias then return the associated
+    <tref>keyword</tref>.
+  </li>
+  <li>
+    If <em>result</em> contains a colon (<code>:</code>):
     <ol class="algorithm">
       <li>
         If <tref>local context</tref> equals <tref>null</tref> and
