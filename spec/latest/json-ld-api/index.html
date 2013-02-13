@@ -4653,9 +4653,9 @@ The algorithm takes a single input: an <tref>array</tref> <em>list</em>.
   <section>
     <h3>Callbacks</h3>
 
-    <p>JSON-LD processors utilize callbacks in order to return information in an
-      asynchronous manner to calling applications. This section details the
-      parameters sent to those callbacks.</p>
+    <p>JSON-LD processors utilize callbacks in order to exchange information in
+      an asynchronous manner with applications. This section details the
+      parameters of those callbacks.</p>
 
     <section>
       <h3>JsonLdCallback</h3>
@@ -4670,6 +4670,41 @@ The algorithm takes a single input: an <tref>array</tref> <em>list</em>.
           the details are contained within the <em>error</em> object.</dd>
         <dt>object or object[] document</dt>
         <dd>The processed JSON-LD document.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>HttpClientCallback</h3>
+      <p>The <a>HttpClientCallback</a> defines the callback that custom HTTP
+        clients have to implement to be used to retrieve remote contexts.</p>
+
+      <dl title="callback HttpClientCallback = void" class="idl">
+        <dt>DOMString url</dt>
+        <dd>The URL of the remote context to retrieve.</dd>
+        <dt>ContextRetrievalCallback callback</dt>
+        <dd>The callback that is called when the remote context has been
+          successfully retrieved or an error preventing it's retrieval has been
+          detected.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>ContextRetrievalCallback</h3>
+      <p>The <a>ContextRetrievalCallback</a> is called in response to a call
+        of the <a>HttpClientCallback</a>.</p>
+
+      <dl title="callback ContextRetrievalCallback = void" class="idl">
+        <dt>JsonLdError error</dt>
+        <dd>If the value is <tref>null</tref>, then no issue was detected
+          during processing. Otherwise, a processing issue was detected and
+          the details are contained within the <em>error</em> object. All
+          errors MUST have a <a>JsonLdErrorCode</a> of
+          <code class="error">loading remote context failed</code>.</dd>
+        <dt>DOMString url</dt>
+        <dd>The final URL of the retrieved JSON-LD context. This is important
+          to handle HTTP redirects properly.</dd>
+        <dt>DOMString context</dt>
+        <dd>The unparsed content of the retrieved JSON-LD context.</dd>
       </dl>
     </section>
   </section>
@@ -4692,6 +4727,15 @@ The algorithm takes a single input: an <tref>array</tref> <em>list</em>.
             during compaction. To avoid that data is being lost, developers thus have to store the
             base IRI along with the compacted document. This might be problematic in practice and
             thus the default behavior might be changed in future.</p>
+        </dd>
+        <dt>HttpClientCallback httpClient</dt>
+        <dd>The callback of the HTTP client to be used to retrieve remote contexts.
+          If specified, it MUST be used to retrieve remote contexts; otherwise, if not specified,
+          the processor's built-in HTTP client MUST be used.</dd>
+        <dt>boolean compactArrays = true</dt>
+        <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
+          one element with that element during compaction. If set to <code>false</code>,
+          all arrays will remain arrays even if they have just one element.
         </dd>
         <dt>object or DOMString expandContext = null</dt>
         <dd>A context that is used to initialize the active context when expanding a document.</dd>
