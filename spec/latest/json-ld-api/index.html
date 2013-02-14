@@ -3447,7 +3447,7 @@ the <tref>inverse context</tref> is being created for.
 </section>
 
 <section>
-<h2>Term Selection Subalgorithm</h2>
+<h2 id="term-selection">Term Selection Subalgorithm</h2>
 
 <p>
 This subalgorithm, invoked via the
@@ -3533,11 +3533,34 @@ or <tref>language mapping</tref>, and a <tref>string</tref>
     are stored in the <tref>inverse context</tref> <em>entry</em>.
   </li>
   <li>
-    Initialize <em>preferred values</em> to an <tref>array</tref> containing
-    <em>typeOrLangageValue</em> and <code>@none</code>, in that order. This
-    <tref>array</tref> indicates, in order, the preferred values for
+    Initialize <em>preferred values</em> to an empty <tref>array</tref>.
+    This <tref>array</tref> will indicate, in order, the preferred values for
     a <tref title="term">term's</tref> <tref>type mapping</tref> or
     <tref>language mapping</tref>.
+  </li>
+  <li>
+    If <em>typeOrLangageValue</em> equals <code>@id</code> and
+    <em>value</em> is a <tref>JSON object</tref> containing the key
+    <code>@id</code>:
+    <ol class="algorithm">
+      <li>
+        If <em>value</em> compacts to a <tref>term</tref> using the
+        <a href="#iri-compaction-algorithm">IRI compaction</a>
+        algorithm, passing <tref>active context</tref>, <em>value</em> for
+        <em>iri</em>, <tref>true</tref> for <em>vocabRelative</em>, and
+        <tref>true</tref> for <em>documentRelative</em> then append
+        <code>@vocab</code>, <code>@id</code>, and <code>@none</code>,
+        in that order, to <em>preferred values</em>.
+      </li>
+      <li>
+        Otherwise, append <code>@id</code>, <code>@vocab</code>, and
+        <code>@none</code>, in that order, to <em>preferred values</em>.
+      </li>
+    </ol>
+  </li>
+  <li>
+    Otherwise, append <em>typeOrLangageValue</em> and <code>@none</code>, in
+    that order, to <em>preferred values</em>.
   </li>
   <li>
     Initialize <em>selected term</em> to <tref>null</tref>.
@@ -3780,8 +3803,8 @@ an <tref>active property</tref>, and a <em>value</em> to be compacted.
   <li>
     If <tref>active property</tref> has a <tref>type mapping</tref> in
     the <tref>active context</tref> that is equal to <code>@id</code> or
-    <em>expanded property</em> equals <code>@graph</code>, then return
-    <em>term</em>.
+    <code>@vocab</code> or if <em>expanded property</em> equals
+    <code>@graph</code>, then return <em>term</em>.
   </li>
   <li>
     Initialize <em>result</em> to an empty <tref>JSON object</tref>. Add
