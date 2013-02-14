@@ -1654,7 +1654,6 @@ Processor.prototype.expand = function(
     // if element has a context, process it
     if('@context' in element) {
       activeCtx = self.processContext(activeCtx, element['@context'], options);
-      delete element['@context'];
     }
 
     // expand the active property
@@ -1667,6 +1666,11 @@ Processor.prototype.expand = function(
       var value = element[key];
       var expandedProperty;
       var expandedValue;
+
+      // skip @context
+      if(key === '@context') {
+        continue;
+      }
 
       // expand key using property generator
       var mapping = activeCtx.mappings[key];
@@ -2581,8 +2585,12 @@ function _expandValue(activeCtx, activeProperty, value) {
   var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
 
   // do @id expansion (automatic for @graph)
-  if(type === '@id' || expandedProperty === '@graph') {
+  if(type === '@id' || (expandedProperty === '@graph' && _isString(value))) {
     return {'@id': _expandIri(activeCtx, value, {base: true})};
+  }
+  // do @id expansion w/vocab
+  if(type === '@vocab') {
+    return {'@id': _expandIri(activeCtx, value, {vocab: true, base: true})};
   }
 
   // do not expand keyword values
@@ -3697,8 +3705,28 @@ function _selectTerm(
   if(typeOrLanguageValue === null) {
     typeOrLanguageValue = '@null';
   }
+
   // options for the value of @type or @language
-  var options = [typeOrLanguageValue, '@none'];
+  var options;
+
+  // determine options for @id based on whether or not it compacts to a term
+  if(typeOrLanguageValue === '@id' && _isSubjectReference(value)) {
+    // try to compact value to a term
+    var term = _compactIri(
+      activeCtx, value['@id'], null, {vocab: true, base: true});
+    if(term in activeCtx.mappings) {
+      // prefer @vocab
+      options = ['@vocab', '@id', '@none'];
+    }
+    else {
+      // prefer @id
+      options = ['@id', '@vocab', '@none'];
+    }
+  }
+  else {
+    options = [typeOrLanguageValue, '@none'];
+  }
+
   var term = null;
   var containerMap = activeCtx.inverse[iri];
   for(var ci = 0; term === null && ci < containers.length; ++ci) {
@@ -4005,7 +4033,7 @@ function _compactValue(activeCtx, activeProperty, value) {
   var term = _compactIri(activeCtx, value['@id'], null, {base: true});
 
   // compact to scalar
-  if(type === '@id' || expandedProperty === '@graph') {
+  if(type === '@id' || type === '@vocab' || expandedProperty === '@graph') {
     return term;
   }
 
@@ -4325,53 +4353,47 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
     _createTermDefinition(activeCtx, localCtx, value, defined);
   }
 
-  var mapping = activeCtx.mappings[value];
+  relativeTo = relativeTo || {};
+  var rval = null;
 
-  // value is explicitly ignored with a null mapping
-  if(mapping === null) {
-    return null;
+  if(relativeTo.vocab) {
+    // term dependency cannot be a property generator
+    var mapping = activeCtx.mappings[value];
+    if(localCtx && mapping && mapping.propertyGenerator) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; a term definition cannot have a property ' +
+        'generator as a dependency.',
+        'jsonld.SyntaxError', {context: localCtx, value: value});
+    }
+
+    // value is explicitly ignored with a null mapping
+    if(mapping === null) {
+      return null;
+    }
+
+    // value is a term
+    if(mapping && !mapping.propertyGenerator) {
+      rval = mapping['@id'];
+    }
   }
 
-  // term dependency cannot be a property generator
-  if(localCtx && mapping && mapping.propertyGenerator) {
-    throw new JsonLdError(
-      'Invalid JSON-LD syntax; a term definition cannot have a property ' +
-      'generator as a dependency.',
-      'jsonld.SyntaxError', {context: localCtx, value: value});
-  }
-
-  var isAbsolute = false;
-  var rval = value;
-
-  // value is a term
-  if(mapping && !mapping.propertyGenerator) {
-    isAbsolute = true;
-    rval = mapping['@id'];
-  }
-
-  // keywords need no expanding (aliasing already handled by now)
-  if(_isKeyword(rval)) {
-    return rval;
-  }
-
-  if(!isAbsolute) {
+  if(rval === null) {
     // split value into prefix:suffix
-    var colon = rval.indexOf(':');
+    var colon = value.indexOf(':');
     if(colon !== -1) {
-      isAbsolute = true;
-      var prefix = rval.substr(0, colon);
-      var suffix = rval.substr(colon + 1);
+      var prefix = value.substr(0, colon);
+      var suffix = value.substr(colon + 1);
 
       // do not expand blank nodes (prefix of '_') or already-absolute
       // IRIs (suffix of '//')
       if(prefix !== '_' && suffix.indexOf('//') !== 0) {
         // prefix dependency not defined, define it
-        if(localCtx && prefix in localCtx && defined[prefix] !== true) {
+        if(localCtx && prefix in localCtx) {
           _createTermDefinition(activeCtx, localCtx, prefix, defined);
         }
 
         // use mapping if prefix is defined and not a property generator
-        mapping = activeCtx.mappings[prefix];
+        var mapping = activeCtx.mappings[prefix];
         if(mapping && !mapping.propertyGenerator) {
           rval = activeCtx.mappings[prefix]['@id'] + suffix;
         }
@@ -4379,8 +4401,16 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
     }
   }
 
-  relativeTo = relativeTo || {};
-  if(isAbsolute) {
+  if(rval === null) {
+    rval = value;
+  }
+
+  // keywords need no expanding (aliasing already handled by now)
+  if(_isKeyword(rval)) {
+    return rval;
+  }
+
+  if(_isAbsoluteIri(rval)) {
     // rename blank node if requested
     if(!localCtx && rval.indexOf('_:') === 0 && activeCtx.namer) {
       rval = activeCtx.namer.getName(rval);
