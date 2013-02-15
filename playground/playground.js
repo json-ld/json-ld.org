@@ -460,8 +460,8 @@
 
   // event handlers
   $(document).ready(function() {
-    // use jquery URL resolver
-    jsonld.useUrlResolver('jquery', $);
+    // use jquery URL client
+    jsonld.useUrlClient('jquery', $);
 
     // set up buttons to load examples
     $('.button').each(function(idx) {
