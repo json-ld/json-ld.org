@@ -762,6 +762,15 @@ jsonld.toRDF = function(input) {
 };
 
 /**
+ * Relabels all blank nodes in the given JSON-LD input.
+ *
+ * @param input the JSON-LD input.
+ */
+jsonld.relabelBlankNodes = function(input) {
+  _labelBlankNodes(new UniqueNamer('_:b', input));
+};
+
+/**
  * The default URL resolver for external @context URLs.
  *
  * @param resolver(url, callback(err, ctx)) the resolver to use.
@@ -1657,7 +1666,8 @@ Processor.prototype.expand = function(
     }
 
     // expand the active property
-    var expandedActiveProperty = _expandIri(activeCtx, activeProperty);
+    var expandedActiveProperty = _expandIri(
+      activeCtx, activeProperty, {vocab: true});
 
     var rval = {};
     var keys = Object.keys(element).sort();
@@ -1807,7 +1817,7 @@ Processor.prototype.expand = function(
 
       // add copy of value for each property from property generator
       if(_isArray(expandedProperty)) {
-        _labelBlankNodes(activeCtx.namer, expandedValue);
+        expandedValue = _labelBlankNodes(activeCtx.namer, expandedValue);
         for(var i = 0; i < expandedProperty.length; ++i) {
           jsonld.addValue(
             rval, expandedProperty[i], _clone(expandedValue),
@@ -1897,9 +1907,9 @@ Processor.prototype.expand = function(
         rval = null;
       }
       else {
-        // drop subjects that generate no triples
+        // drop nodes that generate no triples
         var hasTriples = false;
-        var ignore = ['@graph', '@type', '@list'];
+        var ignore = ['@graph', '@type'];
         for(var ki = 0; !hasTriples && ki < keys.length; ++ki) {
           if(!_isKeyword(keys[ki]) || ignore.indexOf(keys[ki]) !== -1) {
             hasTriples = true;
@@ -1917,7 +1927,7 @@ Processor.prototype.expand = function(
   // drop top-level scalars that are not in lists
   if(!insideList &&
     (activeProperty === null ||
-    _expandIri(activeCtx, activeProperty) === '@graph')) {
+    _expandIri(activeCtx, activeProperty, {vocab: true}) === '@graph')) {
     return null;
   }
 
@@ -1940,10 +1950,13 @@ Processor.prototype.flatten = function(input) {
 
   // add all non-default graphs to default graph
   var defaultGraph = graphs['@default'];
-  for(var graphName in graphs) {
+  var graphNames = Object.keys(graphs).sort();
+  for(var i = 0; i < graphNames.length; ++i) {
+    var graphName = graphNames[i];
     if(graphName === '@default') {
       continue;
     }
+    var nodeMap = graphs[graphName];
     var subject = defaultGraph[graphName];
     if(!subject) {
       defaultGraph[graphName] = subject = {
@@ -1955,7 +1968,6 @@ Processor.prototype.flatten = function(input) {
       subject['@graph'] = [];
     }
     var graph = subject['@graph'];
-    var nodeMap = graphs[graphName];
     var ids = Object.keys(nodeMap).sort();
     for(var ii = 0; ii < ids.length; ++ii) {
       var id = ids[ii];
@@ -2032,11 +2044,11 @@ Processor.prototype.normalize = function(input, options, callback) {
       }
     }
     statements.push(statement);
-    var nodes = ['subject', 'object'];
+    var nodes = ['subject', 'object', 'name'];
     for(var n in nodes) {
       var node = nodes[n];
-      var id = statement[node].nominalValue;
-      if(statement[node].interfaceName === 'BlankNode') {
+      if(statement[node] && statement[node].interfaceName === 'BlankNode') {
+        var id = statement[node].nominalValue;
         if(id in bnodes) {
           bnodes[id].statements.push(statement);
         }
@@ -2169,10 +2181,10 @@ Processor.prototype.normalize = function(input, options, callback) {
     // update bnode names in each statement and serialize
     for(var i in statements) {
       var statement = statements[i];
-      var nodes = ['subject', 'object'];
+      var nodes = ['subject', 'object', 'name'];
       for(var n in nodes) {
         var node = nodes[n];
-        if(statement[node].interfaceName === 'BlankNode') {
+        if(statement[node] && statement[node].interfaceName === 'BlankNode') {
           statement[node].nominalValue = namer.getName(
             statement[node].nominalValue);
         }
@@ -3222,7 +3234,8 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
 
         // add reference and recurse
         jsonld.addValue(
-          subject, property, {'@id': id}, {propertyIsArray: true});
+          subject, property, {'@id': id},
+          {propertyIsArray: true, allowDuplicate: false});
         _createNodeMap(o, graphs, graph, namer, id);
       }
       // handle @list
@@ -3230,12 +3243,15 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
         var _list = [];
         _createNodeMap(o['@list'], graphs, graph, namer, name, _list);
         o = {'@list': _list};
-        jsonld.addValue(subject, property, o, {propertyIsArray: true});
+        jsonld.addValue(
+          subject, property, o,
+          {propertyIsArray: true, allowDuplicate: false});
       }
       // handle @value
       else {
         _createNodeMap(o, graphs, graph, namer, name);
-        jsonld.addValue(subject, property, o, {propertyIsArray: true});
+        jsonld.addValue(
+          subject, property, o, {propertyIsArray: true, allowDuplicate: false});
       }
     }
   }
@@ -3779,6 +3795,7 @@ function _selectTerm(
  * @param iri the IRI to compact.
  * @param value the value to check or null.
  * @param relativeTo options for how to compact IRIs:
+ *          base: true to resolve against the base IRI, false not to.
  *          vocab: true to split after @vocab, false not to.
  * @param parent the parent element for the value.
  *
@@ -3940,20 +3957,26 @@ function _compactIri(activeCtx, iri, value, relativeTo, parent) {
   }
 
   // no matching terms or curies, use @vocab if available
-  if(relativeTo.vocab && '@vocab' in activeCtx) {
-    // determine if vocab is a prefix of the iri
-    var vocab = activeCtx['@vocab'];
-    if(iri.indexOf(vocab) === 0 && iri !== vocab) {
-      // use suffix as relative iri if it is not a term in the active context
-      var suffix = iri.substr(vocab.length);
-      if(!(suffix in activeCtx.mappings)) {
-        return suffix;
+  if(relativeTo.vocab) {
+    if('@vocab' in activeCtx) {
+      // determine if vocab is a prefix of the iri
+      var vocab = activeCtx['@vocab'];
+      if(iri.indexOf(vocab) === 0 && iri !== vocab) {
+        // use suffix as relative iri if it is not a term in the active context
+        var suffix = iri.substr(vocab.length);
+        if(!(suffix in activeCtx.mappings)) {
+          return suffix;
+        }
       }
     }
   }
-
   // compact IRI relative to base
-  return _removeBase(activeCtx['@base'], iri);
+  else {
+    return _removeBase(activeCtx['@base'], iri);
+  }
+
+  // return IRI as is
+  return iri;
 }
 
 /**
@@ -4028,7 +4051,7 @@ function _compactValue(activeCtx, activeProperty, value) {
   }
 
   // value is a subject reference
-  var expandedProperty = _expandIri(activeCtx, activeProperty);
+  var expandedProperty = _expandIri(activeCtx, activeProperty, {vocab: true});
   var type = jsonld.getContextValue(activeCtx, activeProperty, '@type');
   var compacted = _compactIri(
     activeCtx, value['@id'], null, {vocab: type === '@vocab'});
