@@ -1298,30 +1298,24 @@ definitions have been removed, all <tref title="term">terms</tref> and
 <section>
 <h3>General Solution</h3>
 
-<p>
-Starting with its root <em>element</em>, we can process the
-JSON-LD document recursively, until we have a fully
-<tref title="expansion">expanded</tref> <em>result</em>. When
-<tref title="expansion">expanding</tref> an <em>element</em>, we can treat
-each one differently according to its type, in order to break down the
-problem:
-</p>
+<p>Starting with its root <em>element</em>, we can process the
+  JSON-LD document recursively, until we have a fully
+  <tref title="expansion">expanded</tref> <em>result</em>. When
+  <tref title="expansion">expanding</tref> an <em>element</em>, we can treat
+  each one differently according to its type, in order to break down the
+  problem:</p>
 
 <ol>
-  <li>
-    If the <em>element</em> is <tref>null</tref>, there is nothing
-    to expand.
-  </li>
-  <li>
-    If the <em>element</em> is an <tref>array</tref>, then we expand
+  <li>If the <em>element</em> is <tref>null</tref>, there is nothing
+    to expand.</li>
+  <li>Otherwise, if <em>element</em> is a <tref>scalar</tref>, we expand it
+    according to the <a href="#value-expansion">Value Expansion</a> subalgorithm.</li>
+  <li>Otherwise, if the <em>element</em> is an <tref>array</tref>, then we expand
     each of its items recursively and return them in a new
-    <tref>array</tref>.
-  </li>
-  <li>
-    If the <em>element</em> is a <tref>JSON object</tref>,
-    then we expand each of its keys, adding them to our <em>result</em>,
-    and then we expand each value for each key recursively. Some of the keys
-    will be
+    <tref>array</tref>.</li>
+  <li>Otherwise, <em>element</em> is a <tref>JSON object</tref>. We expand
+    each of its keys, adding them to our <em>result</em>, and then we expand
+    each value for each key recursively. Some of the keys will be
     <tref title="term">terms</tref> or
     <tref title="compact IRI">compact IRIs</tref> and others will be
     <tref title="keyword">keywords</tref> or simply ignored because
@@ -1329,43 +1323,43 @@ problem:
     <tref title="IRI">IRIs</tref> will be expanded using the
     <a href="#iri-expansion">IRI Expansion</a> algorithm.
   </li>
-  <li>
-    Otherwise, the <em>element</em> is a <tref>scalar</tref>, which
-    we expand according to the <a href="#value-expansion">Value Expansion</a>
-    subalgorithm.
-  </li>
 </ol>
 
-<p>
-Finally, after ensuring <em>result</em> is in an <tref>array</tref>,
-we return <em>result</em>.
-</p>
+<p>Finally, after ensuring <em>result</em> is in an <tref>array</tref>,
+  we return <em>result</em>.</p>
 
 </section>
 
 <section>
 <h3>Algorithm</h3>
 
-<p>
-The algorithm takes four input variables: an <tref>active context</tref>,
-an <tref>active property</tref>, an <em>element</em> to be expanded, and
-an <em>insideList</em> flag. To begin, the <tref>active context</tref> is set
-to the result of performing, <a
-href="#context-processing">Context Processing</a> on the passed
-<code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>,
-or empty if <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-is <tref>null</tref>, <tref>active property</tref> is set to <tref>null</tref>,
-<em>element</em> is set to the <tref>JSON-LD input</tref>, and <em>insideList</em>
-is set to <tref>false</tref>. This algorithm expects the
-<tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined in
-[[!JSON-LD]].
-
-The algorithm outputs the result of expanding <em>element</em>.
-</p>
+<p>The algorithm takes four input variables: an <tref>active context</tref>,
+  an <tref>active property</tref>, an <em>element</em> to be expanded, and
+  an <em>insideList</em> flag. To begin, the <tref>active context</tref> is set
+  to the result of performing, <a
+  href="#context-processing">Context Processing</a> on the passed
+  <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>,
+  or empty if <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+  is <tref>null</tref>, <tref>active property</tref> is set to <tref>null</tref>,
+  <em>element</em> is set to the <tref>JSON-LD input</tref>, and <em>insideList</em>
+  is set to <tref>false</tref>. This algorithm expects the
+  <tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined in [[!JSON-LD]].</p>
 
 <ol class="algorithm">
-  <li>
-    If <em>element</em> is <tref>null</tref>, return <tref>null</tref>.
+  <li>If <em>element</em> is <tref>null</tref>, return <tref>null</tref>.</li>
+  <li>If <em>element</em> is a <tref>scalar</tref>,
+    <ol class="algorithm">
+      <li>If <em>insideList</em> equals <tref>false</tref> and
+        either <tref>active property</tref> equals <tref>null</tref> or
+        the result of expanding <tref>active property</tref> using the
+        <a href="#iri-expansion">IRI Expansion</a> algorithm is
+        <code>@graph</code>, then drop the top-level
+        <tref>scalar</tref> by returning <tref>null</tref>.</li>
+      <li>Return the result of the
+        <a href="#value-expansion">Value Expansion</a> algorithm, passing the
+        <tref>active context</tref>, <tref>active property</tref>, and
+        <em>element</em> as <em>value</em>.</li>
+    </ol>
   </li>
   <li>If <em>element</em> is an <tref>array</tref>,
     <ol class="algorithm">
@@ -1398,338 +1392,314 @@ The algorithm outputs the result of expanding <em>element</em>.
       </li>
     </ol>
   </li>
-  <li>If <em>element</em> is a <tref>JSON object</tref>,
+  <li>Otherwise <em>element</em> is a <tref>JSON object</tref>.</li>
+  <li>
+    If <em>element</em> contains the key <code>@context</code>, set
+    <tref>active context</tref> equal to the result of the
+    <a href="#context-processing">Context Processing</a> algorithm,
+    passing <tref>active context</tref> and the value of the
+    <code>@context</code> key as <tref>local context</tref>.
+  </li>
+  <li>
+    Initialize <em>expanded active property</em> to the result of the
+    <a href="#iri-expansion">IRI Expansion</a> algorithm, passing
+    <tref>active context</tref>, <tref>active property</tref> for
+    <em>value</em>, and <tref>true</tref> for <em>vocabRelative</em>.
+  <li>
+    Initialize an empty <tref>JSON object</tref>, <em>result</em>.
+  </li>
+  <li>
+    For each <em>key</em> and <em>value</em> in <em>element</em>,
+    ordered lexicographically by <em>key</em>:
     <ol class="algorithm">
       <li>
-        If <em>element</em> contains the key <code>@context</code>, set
-        <tref>active context</tref> equal to the result of the
-        <a href="#context-processing">Context Processing</a> algorithm,
-        passing <tref>active context</tref> and the value of the
-        <code>@context</code> key as <tref>local context</tref>.
+        If <em>key</em> equals <code>@context</code>, continue to
+        the next <em>key</em>.
       </li>
       <li>
-        Initialize <em>expanded active property</em> to the result of the
-        <a href="#iri-expansion">IRI Expansion</a> algorithm, passing
-        <tref>active context</tref>, <tref>active property</tref> for
+        If <em>key</em> is mapped to a <tref>property generator</tref>
+        in <tref>active context</tref>, set <em>expanded property</em>
+        to an array containing its <tref title="IRI">IRIs</tref>.
+        Otherwise, set <em>expanded property</em> to the result of
+        using the <a href="#iri-expansion">IRI Expansion</a> algorithm,
+        passing <tref>active context</tref>, <em>key</em> for
         <em>value</em>, and <tref>true</tref> for <em>vocabRelative</em>.
-      <li>
-        Initialize an empty <tref>JSON object</tref>, <em>result</em>.
       </li>
       <li>
-        For each <em>key</em> and <em>value</em> in <em>element</em>,
-        ordered lexicographically by <em>key</em>:
+        If <em>expanded property</em> is either <tref>null</tref> or
+        is: not an <tref>array</tref>, an <tref>absolute IRI</tref> or
+        a <tref>keyword</tref>, then drop <em>key</em> by
+        continuing to the next <em>key</em>.
+      </li>
+      <li>
+        Validate <em>expanded property</em> against <em>value</em>
+        as follows:
         <ol class="algorithm">
           <li>
-            If <em>key</em> equals <code>@context</code>, continue to
-            the next <em>key</em>.
+            If <em>expanded property</em> is <code>@id</code> then
+            <em>value</em> MUST be a <tref>string</tref>, otherwise
+            an invalid value has been detected, which is an error.
           </li>
           <li>
-            If <em>key</em> is mapped to a <tref>property generator</tref>
-            in <tref>active context</tref>, set <em>expanded property</em>
-            to an array containing its <tref title="IRI">IRIs</tref>.
-            Otherwise, set <em>expanded property</em> to the result of
-            using the <a href="#iri-expansion">IRI Expansion</a> algorithm,
-            passing <tref>active context</tref>, <em>key</em> for
-            <em>value</em>, and <tref>true</tref> for <em>vocabRelative</em>.
+            If <em>expanded property</em> is <code>@type</code> then
+            <em>value</em> MUST be a <tref>string</tref> or an <tref>array</tref>
+            of strings, otherwise an invalid value has been detected, which
+            is an error.
           </li>
           <li>
-            If <em>expanded property</em> is either <tref>null</tref> or
-            is: not an <tref>array</tref>, an <tref>absolute IRI</tref> or
-            a <tref>keyword</tref>, then drop <em>key</em> by
-            continuing to the next <em>key</em>.
-          </li>
-          <li>
-            Validate <em>expanded property</em> against <em>value</em>
-            as follows:
-            <ol class="algorithm">
-              <li>
-                If <em>expanded property</em> is <code>@id</code> then
-                <em>value</em> MUST be a <tref>string</tref>, otherwise
-                an invalid value has been detected, which is an error.
-              </li>
-              <li>
-                If <em>expanded property</em> is <code>@type</code> then
-                <em>value</em> MUST be a <tref>string</tref> or an <tref>array</tref>
-                of strings, otherwise an invalid value has been detected, which
-                is an error.
-              </li>
-              <li>
-                If <em>expanded property</em> is <code>@graph</code> then
-                <em>value</em> MUST be a <tref>JSON object</tref> or an
-                <tref>array</tref>, otherwise an invalid value has been
-                detected, which is an error.
-              </li>
-              <li>
-                If <em>expanded property</em> is <code>@value</code> then
-                <em>value</em> MUST NOT be a <tref>JSON object</tref> or
-                an <tref>array</tref>, otherwise an invalid value has been
-                detected, which is an error.
-              </li>
-              <li>
-                If <em>expanded property</em> is <code>@language</code> then
-                <em>value</em> MUST be a <tref>string</tref>, otherwise an
-                invalid value has been detected, which is an error. Set
-                <em>expanded value</em> to lowercased <em>value</em>.
-              </li>
-              <li>
-                If <em>expanded property</em> is <code>@index</code>
-                then <em>value</em> MUST be a <tref>string</tref>, otherwise an
-                invalid value has been detected, which is an error.
-              </li>
-            </ol>
-          </li>
-          <li>
-            If <em>key</em>'s <tref>container mapping</tref> in
-            <tref>active context</tref> is <code>@language</code> and
-            <em>value</em> is a <tref>JSON object</tref> then <em>value</em>
-            is expanded from a <tref>language map</tref> as follows:
-            <ol class="algorithm">
-              <li>
-                Initialize <em>expanded value</em> to an empty
-                <tref>array</tref>.
-              </li>
-              <li>
-                For each key <em>language</em> and value <em>language value</em>
-                in <em>value</em>, ordered lexicographically by
-                <em>language</em>:
-                <ol class="algorithm">
-                  <li>
-                    If <em>language value</em> is not an <tref>array</tref>
-                    set it to an <tref>array</tref> containing only
-                    <em>language value</em>.
-                  </li>
-                  <li>
-                    For each <em>item</em> in <em>language value</em>:
-                    <ol class="algorithm">
-                      <li>
-                        <em>item</em> MUST be a <tref>string</tref>,
-                        otherwise an invalid value has been detected,
-                        which is an error.
-                      </li>
-                      <li>
-                        Append a <tref>JSON object</tref> to
-                        <em>expanded value</em> that consists of two
-                        key-value pairs: (<code>@value</code>-<em>item</em>)
-                        and (<code>@language</code>-lowercased
-                        <em>language</em>).
-                      </li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-          <li>
-            If <em>key</em>'s <tref>container mapping</tref> in
-            <tref>active context</tref> is <code>@index</code> and
-            <em>value</em> is a <tref>JSON object</tref> then <em>value</em>
-            is expanded from an index map as follows:
-            <ol class="algorithm">
-              <li>
-                Initialize <em>expanded value</em> to an empty
-                <tref>array</tref>.
-              </li>
-              <li>
-                For each key <em>index</em> and value
-                <em>index value</em> in <em>value</em>, ordered
-                lexicographically by <em>index</em>:
-                <ol class="algorithm">
-                  <li>
-                    If <em>index value</em> is not an <tref>array</tref>
-                    set it to an <tref>array</tref> containing only
-                    <em>index value</em>.
-                  </li>
-                  <li>
-                    Initialize <em>index value</em> to the result of
-                    using this algorithm recursively, passing
-                    <tref>active context</tref>, <tref>active property</tref>,
-                    <em>index value</em> as <em>element</em>, and
-                    <tref>false</tref> for <em>insideList</em>.
-                  <li>
-                    For each <em>item</em> in <em>index value</em>:
-                    <ol class="algorithm">
-                      <li>
-                        If <em>item</em> does not have the key
-                        <code>@index</code>, add the key-value pair
-                        (<code>@index</code>-<em>index</em>) to
-                        <em>item</em>.
-                      </li>
-                      <li>
-                        Append <em>item</em> to <em>expanded value</em>.
-                      </li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-          <li>
-            Otherwise, if <em>expanded property</em> equals <code>@list</code>
-            or <code>@set</code>, initialize <em>expanded value</em> to the
-            result of using this algorithm recursively passing
-            <tref>active context</tref>, <tref>null</tref> for
-            <tref>active property</tref> if <em>expanded property</em> equals
-            <code>@list</code> and <em>expanded active property</em> equals
-            <code>@graph</code> otherwise <tref>active property</tref>,
-            <em>value</em> for <em>element</em>, and <tref>true</tref>
-            for <em>insideList</em> if <em>expanded property</em> equals
-            <code>@list</code> otherwise <tref>false</tref>.
-            If <em>expanded property</em> equals <code>@list</code>
-            then <em>expanded value</em> MUST NOT be a
-            <tref>list object</tref>, otherwise a list of lists has been
+            If <em>expanded property</em> is <code>@graph</code> then
+            <em>value</em> MUST be a <tref>JSON object</tref> or an
+            <tref>array</tref>, otherwise an invalid value has been
             detected, which is an error.
           </li>
           <li>
-            Otherwise, initialize <em>expanded value</em> to the result of
-            using this algorithm recursively, passing
-            <tref>active context</tref>, <em>key</em> for
-            <tref>active property</tref>, <em>value</em>
-            for <em>element</em>, and <tref>false</tref> for
-            <em>insideList</em>.
+            If <em>expanded property</em> is <code>@value</code> then
+            <em>value</em> MUST NOT be a <tref>JSON object</tref> or
+            an <tref>array</tref>, otherwise an invalid value has been
+            detected, which is an error.
           </li>
           <li>
-            If <em>expanded value</em> equals <tref>null</tref> and
-            <em>expanded property</em> is not <code>@value</code> then
-            drop <em>key</em> by continuing to the next key.
+            If <em>expanded property</em> is <code>@language</code> then
+            <em>value</em> MUST be a <tref>string</tref>, otherwise an
+            invalid value has been detected, which is an error. Set
+            <em>expanded value</em> to lowercased <em>value</em>.
           </li>
           <li>
-            If <em>expanded property</em> is not <code>@list</code> and
-            <em>expanded value</em> is not a <tref>list object</tref> and
-            <em>key</em>'s <tref>container mapping</tref> in
-            <tref>active context</tref> is <code>@list</code> then convert
-            <em>expanded value</em> to a <tref>list object</tref> by first
-            setting it to an <tref>array</tref> containing only
-            <em>expanded value</em> if it is not already an
-            <tref>array</tref>, and then by setting it to a
-            <tref>JSON object</tref> containing the key-value pair
-            (<code>@list</code>-<em>expanded value</em>).
+            If <em>expanded property</em> is <code>@index</code>
+            then <em>value</em> MUST be a <tref>string</tref>, otherwise an
+            invalid value has been detected, which is an error.
+          </li>
+        </ol>
+      </li>
+      <li>
+        If <em>key</em>'s <tref>container mapping</tref> in
+        <tref>active context</tref> is <code>@language</code> and
+        <em>value</em> is a <tref>JSON object</tref> then <em>value</em>
+        is expanded from a <tref>language map</tref> as follows:
+        <ol class="algorithm">
+          <li>
+            Initialize <em>expanded value</em> to an empty
+            <tref>array</tref>.
           </li>
           <li>
-            If <em>expanded property</em> is an <tref>array</tref>:
+            For each key <em>language</em> and value <em>language value</em>
+            in <em>value</em>, ordered lexicographically by
+            <em>language</em>:
             <ol class="algorithm">
               <li>
-                Set <em>expanded value</em> to the result of the
-                <a href="#label-blank-nodes-subalgorithm">Label Blank Nodes</a>
-                subalgorithm, passing <tref>active context</tref> and
-                <em>expanded value</em> as <em>element</em>.
+                If <em>language value</em> is not an <tref>array</tref>
+                set it to an <tref>array</tref> containing only
+                <em>language value</em>.
               </li>
               <li>
-                For each item <em>iri</em> in <em>expanded property</em>:
+                For each <em>item</em> in <em>language value</em>:
                 <ol class="algorithm">
                   <li>
-                    If <em>result</em> does not have the key <em>iri</em>,
-                    set this key's value in <em>result</em> to an empty
-                    <tref>array</tref>. Append a copy of
-                    <em>expanded value</em> to the <tref>array</tref> value
-                    associated with <em>result</em>'s <em>iri</em> key.
+                    <em>item</em> MUST be a <tref>string</tref>,
+                    otherwise an invalid value has been detected,
+                    which is an error.
+                  </li>
+                  <li>
+                    Append a <tref>JSON object</tref> to
+                    <em>expanded value</em> that consists of two
+                    key-value pairs: (<code>@value</code>-<em>item</em>)
+                    and (<code>@language</code>-lowercased
+                    <em>language</em>).
                   </li>
                 </ol>
               </li>
             </ol>
           </li>
-          <li>
-            Otherwise, if <em>expanded property</em> is
-            <code>@index</code>, <code>@id</code>, <code>@type</code>,
-            <code>@value</code>, or <code>@language</code>, then
-            set key <em>expanded property</em>'s value to
-            <em>expanded value</em> in <em>result</em>.
-          </li>
-          <li>
-            Otherwise, if <em>result</em> does not have the key
-            <em>expanded property</em>, set this key's value in <em>result</em>
-            to an empty <tref>array</tref>. Append <em>expanded value</em>
-            to the <tref>array</tref> value associated with <em>result</em>'s
-            <em>expanded property</em> key.
-          </li>
         </ol>
       </li>
       <li>
-        If <em>result</em> contains the key <code>@value</code>:
+        If <em>key</em>'s <tref>container mapping</tref> in
+        <tref>active context</tref> is <code>@index</code> and
+        <em>value</em> is a <tref>JSON object</tref> then <em>value</em>
+        is expanded from an index map as follows:
         <ol class="algorithm">
           <li>
-            The <em>result</em> MUST NOT contain any keys other than
-            <code>@value</code>, <code>@language</code>, <code>@type</code>,
-            and <code>@index</code>. It MUST NOT contain both the
-            <code>@language</code> key and the <code>@type</code> key.
-            Otherwise, an invalid value has been detected, which is an error.
+            Initialize <em>expanded value</em> to an empty
+            <tref>array</tref>.
           </li>
           <li>
-            If the value of <em>result</em>'s <code>@value</code> key is
-            <tref>null</tref>, then set <em>result</em> to <tref>null</tref>.
-          </li>
-          <li>
-            Otherwise, if <em>result</em> contains the key
-            <code>@language</code> and the value of <em>result</em>'s
-            <code>@value</code> key is not a <tref>string</tref>, then remove
-            the <code>@language</code> key from <em>result</em>.
+            For each key <em>index</em> and value
+            <em>index value</em> in <em>value</em>, ordered
+            lexicographically by <em>index</em>:
+            <ol class="algorithm">
+              <li>
+                If <em>index value</em> is not an <tref>array</tref>
+                set it to an <tref>array</tref> containing only
+                <em>index value</em>.
+              </li>
+              <li>
+                Initialize <em>index value</em> to the result of
+                using this algorithm recursively, passing
+                <tref>active context</tref>, <tref>active property</tref>,
+                <em>index value</em> as <em>element</em>, and
+                <tref>false</tref> for <em>insideList</em>.
+              <li>
+                For each <em>item</em> in <em>index value</em>:
+                <ol class="algorithm">
+                  <li>
+                    If <em>item</em> does not have the key
+                    <code>@index</code>, add the key-value pair
+                    (<code>@index</code>-<em>index</em>) to
+                    <em>item</em>.
+                  </li>
+                  <li>
+                    Append <em>item</em> to <em>expanded value</em>.
+                  </li>
+                </ol>
+              </li>
+            </ol>
           </li>
         </ol>
       </li>
       <li>
-        Otherwise, if <em>result</em> contains the key <code>@type</code>
-        and its associated value is not an <tref>array</tref>, set it to
-        an <tref>array</tref> containing only the associated value.
+        Otherwise, if <em>expanded property</em> equals <code>@list</code>
+        or <code>@set</code>, initialize <em>expanded value</em> to the
+        result of using this algorithm recursively passing
+        <tref>active context</tref>, <tref>null</tref> for
+        <tref>active property</tref> if <em>expanded property</em> equals
+        <code>@list</code> and <em>expanded active property</em> equals
+        <code>@graph</code> otherwise <tref>active property</tref>,
+        <em>value</em> for <em>element</em>, and <tref>true</tref>
+        for <em>insideList</em> if <em>expanded property</em> equals
+        <code>@list</code> otherwise <tref>false</tref>.
+        If <em>expanded property</em> equals <code>@list</code>
+        then <em>expanded value</em> MUST NOT be a
+        <tref>list object</tref>, otherwise a list of lists has been
+        detected, which is an error.
       </li>
       <li>
-        Otherwise, if <em>result</em> contains the key <code>@set</code>
-        or <code>@list</code>:
+        Otherwise, initialize <em>expanded value</em> to the result of
+        using this algorithm recursively, passing
+        <tref>active context</tref>, <em>key</em> for
+        <tref>active property</tref>, <em>value</em>
+        for <em>element</em>, and <tref>false</tref> for
+        <em>insideList</em>.
+      </li>
+      <li>
+        If <em>expanded value</em> equals <tref>null</tref> and
+        <em>expanded property</em> is not <code>@value</code> then
+        drop <em>key</em> by continuing to the next key.
+      </li>
+      <li>
+        If <em>expanded property</em> is not <code>@list</code> and
+        <em>expanded value</em> is not a <tref>list object</tref> and
+        <em>key</em>'s <tref>container mapping</tref> in
+        <tref>active context</tref> is <code>@list</code> then convert
+        <em>expanded value</em> to a <tref>list object</tref> by first
+        setting it to an <tref>array</tref> containing only
+        <em>expanded value</em> if it is not already an
+        <tref>array</tref>, and then by setting it to a
+        <tref>JSON object</tref> containing the key-value pair
+        (<code>@list</code>-<em>expanded value</em>).
+      </li>
+      <li>
+        If <em>expanded property</em> is an <tref>array</tref>:
         <ol class="algorithm">
           <li>
-            The <em>result</em> MUST contain at most one other key and that
-            key MUST be <code>@index</code>. Otherwise, an invalid
-            value has been detected, which is an error.
+            Set <em>expanded value</em> to the result of the
+            <a href="#label-blank-nodes-subalgorithm">Label Blank Nodes</a>
+            subalgorithm, passing <tref>active context</tref> and
+            <em>expanded value</em> as <em>element</em>.
           </li>
           <li>
-            If <em>result</em> contains the key <code>@set</code>, then
-            set <em>result</em> to the key's associated value.
-          </li>
-        </ol>
-      </li>
-      <li>
-        Otherwise, if <em>result</em> contains only the key
-        <code>@language</code>, set <em>result</em> to <tref>null</tref>.
-      </li>
-      <li>
-        If <em>insideList</em> equals false and either
-        <tref>active property</tref> equals <tref>null</tref> or
-        <em>expanded active property</em> equals <code>@graph</code>, then
-        drop free-floating values as follows:
-        <ol class="algorithm">
-          <li>
-            If <em>result</em> contains no keys or contains the key
-            <code>@value</code>, setting <em>result</em> to
-            <tref>null</tref>.
-          <li>
-            Otherwise, if <em>result</em>'s keys are only keywords and none
-            of the keys are <code>@graph</code> or <code>@type</code> then
-            set <em>result</em> to <tref>null</tref>.
+            For each item <em>iri</em> in <em>expanded property</em>:
+            <ol class="algorithm">
+              <li>
+                If <em>result</em> does not have the key <em>iri</em>,
+                set this key's value in <em>result</em> to an empty
+                <tref>array</tref>. Append a copy of
+                <em>expanded value</em> to the <tref>array</tref> value
+                associated with <em>result</em>'s <em>iri</em> key.
+              </li>
+            </ol>
           </li>
         </ol>
       </li>
       <li>
-        Return <em>result</em>.
+        Otherwise, if <em>expanded property</em> is
+        <code>@index</code>, <code>@id</code>, <code>@type</code>,
+        <code>@value</code>, or <code>@language</code>, then
+        set key <em>expanded property</em>'s value to
+        <em>expanded value</em> in <em>result</em>.
+      </li>
+      <li>
+        Otherwise, if <em>result</em> does not have the key
+        <em>expanded property</em>, set this key's value in <em>result</em>
+        to an empty <tref>array</tref>. Append <em>expanded value</em>
+        to the <tref>array</tref> value associated with <em>result</em>'s
+        <em>expanded property</em> key.
       </li>
     </ol>
   </li>
   <li>
-    Otherwise, <em>element</em> must be a <tref>scalar</tref>,
+    If <em>result</em> contains the key <code>@value</code>:
     <ol class="algorithm">
       <li>
-        If <em>insideList</em> equals <tref>false</tref> and
-        either <tref>active property</tref> equals <tref>null</tref> or
-        the result of expanding <tref>active property</tref> using the
-        <a href="#iri-expansion">IRI Expansion</a> algorithm is
-        <code>@graph</code>, then drop the top-level
-        <tref>scalar</tref> by returning <tref>null</tref>.
+        The <em>result</em> MUST NOT contain any keys other than
+        <code>@value</code>, <code>@language</code>, <code>@type</code>,
+        and <code>@index</code>. It MUST NOT contain both the
+        <code>@language</code> key and the <code>@type</code> key.
+        Otherwise, an invalid value has been detected, which is an error.
       </li>
       <li>
-        Return the result of the
-        <a href="#value-expansion">Value Expansion</a> algorithm, passing the
-        <tref>active context</tref>, <tref>active property</tref>, and
-        <em>element</em> as <em>value</em>.
+        If the value of <em>result</em>'s <code>@value</code> key is
+        <tref>null</tref>, then set <em>result</em> to <tref>null</tref>.
+      </li>
+      <li>
+        Otherwise, if <em>result</em> contains the key
+        <code>@language</code> and the value of <em>result</em>'s
+        <code>@value</code> key is not a <tref>string</tref>, then remove
+        the <code>@language</code> key from <em>result</em>.
       </li>
     </ol>
   </li>
+  <li>
+    Otherwise, if <em>result</em> contains the key <code>@type</code>
+    and its associated value is not an <tref>array</tref>, set it to
+    an <tref>array</tref> containing only the associated value.
+  </li>
+  <li>
+    Otherwise, if <em>result</em> contains the key <code>@set</code>
+    or <code>@list</code>:
+    <ol class="algorithm">
+      <li>
+        The <em>result</em> MUST contain at most one other key and that
+        key MUST be <code>@index</code>. Otherwise, an invalid
+        value has been detected, which is an error.
+      </li>
+      <li>
+        If <em>result</em> contains the key <code>@set</code>, then
+        set <em>result</em> to the key's associated value.
+      </li>
+    </ol>
+  </li>
+  <li>
+    Otherwise, if <em>result</em> contains only the key
+    <code>@language</code>, set <em>result</em> to <tref>null</tref>.
+  </li>
+  <li>
+    If <em>insideList</em> equals false and either
+    <tref>active property</tref> equals <tref>null</tref> or
+    <em>expanded active property</em> equals <code>@graph</code>, then
+    drop free-floating values as follows:
+    <ol class="algorithm">
+      <li>
+        If <em>result</em> contains no keys or contains the key
+        <code>@value</code>, setting <em>result</em> to
+        <tref>null</tref>.
+      <li>
+        Otherwise, if <em>result</em>'s keys are only keywords and none
+        of the keys are <code>@graph</code> or <code>@type</code> then
+        set <em>result</em> to <tref>null</tref>.
+      </li>
+    </ol>
+  </li>
+  <li>Return <em>result</em>.</li>
 </ol>
 
 <p>
@@ -2201,41 +2171,36 @@ an <tref>active property</tref>, and a <em>value</em> to expand.
 <section>
 <h3>Purpose</h3>
 
-<p>
-A JSON-LD document needs to be compacted, such that the given
-<tref>context</tref> is applied. This must result in shortening
-any applicable <tref title="IRI">IRIs</tref> to
-<tref title="term">terms</tref> or
-<tref title="compact IRI">compact IRIs</tref> and
-any applicable <tref title="JSON-LD value">JSON-LD values</tref>
-expressed in <tref>expanded form</tref> to simple values such as
-<tref title="string">strings</tref> or
-<tref title="number">numbers</tref>.
-</p>
+<p>A JSON-LD document needs to be compacted, such that the given
+  <tref>context</tref> is applied. This must result in shortening
+  any applicable <tref title="IRI">IRIs</tref> to
+  <tref title="term">terms</tref> or
+  <tref title="compact IRI">compact IRIs</tref> and
+  any applicable <tref title="JSON-LD value">JSON-LD values</tref>
+  expressed in <tref>expanded form</tref> to simple values such as
+  <tref title="string">strings</tref> or
+  <tref title="number">numbers</tref>.</p>
 
 </section>
 
 <section>
 <h3>General Solution</h3>
 
-<p>
-Starting with its root <em>element</em>, we can process the
-JSON-LD document recursively, until we have a fully
-<tref title="compaction">compacted</tref> <em>result</em>. When
-<tref title="compaction">compacting</tref> an <em>element</em>, we can treat
-each one differently according to its type, in order to break down the
-problem:
-</p>
+<p>Starting with its root <em>element</em>, we can process the
+  JSON-LD document recursively, until we have a fully
+  <tref title="compaction">compacted</tref> <em>result</em>. When
+  <tref title="compaction">compacting</tref> an <em>element</em>, we can treat
+  each one differently according to its type, in order to break down the
+  problem:</p>
 
 <ol>
-  <li>
-    If the <em>element</em> is an <tref>array</tref>, then we compact
+  <li>If the <em>element</em> is a <tref>scalar</tref>, it is
+    already in <tref>compacted form</tref>, so we simply return it.</li>
+  <li>If the <em>element</em> is an <tref>array</tref>, we compact
     each of its items recursively and return them in a new
-    <tref>array</tref>.
-  </li>
-  <li>
-    If the <em>element</em> is a <tref>JSON object</tref>,
-    then we start by creating a shallow copy of it and each of its
+    <tref>array</tref>.</li>
+  <li>Otherwise <em>element</em> is a <tref>JSON object</tref>.
+    We start by creating a shallow copy of it and each of its
     key's <tref>array</tref> values. This is done so that if any key
     is compacted to a <tref>property generator</tref> <tref>term</tref>,
     we can remove duplicate values without modifying the original
@@ -2253,43 +2218,36 @@ problem:
     will be reshaped based on
     <tref title="container mapping">container mappings</tref> specified
     in the context such as <code>@index</code> or <code>@language</code>
-    maps.
-  </li>
-  <li>
-    Otherwise, the <em>element</em> is a <tref>scalar</tref>, it is
-    already in <tref>compacted form</tref>, so we simply return.
-  </li>
+    maps.</li>
 </ol>
 
-<p>
-The final output is a <tref>JSON object</tref> with a <code>@context</code>
-key, if a <tref>context</tref> was given, where the <tref>JSON object</tref>
-is either <em>result</em> or a wrapper for it where <em>result</em> appears
-as the value of an aliased <code>@graph</code> key because <em>result</em>
-contained two or more items in an <tref>array</tref>. If no
-<tref>context</tref> was given, the <em>result</em> is only simplified
-from an <tref>array</tref> to a <tref>JSON object</tref> if it has one or
-fewer items.
-</p>
+<p>The final output is a <tref>JSON object</tref> with a <code>@context</code>
+  key, if a <tref>context</tref> was given, where the <tref>JSON object</tref>
+  is either <em>result</em> or a wrapper for it where <em>result</em> appears
+  as the value of an aliased <code>@graph</code> key because <em>result</em>
+  contained two or more items in an <tref>array</tref>. If no
+  <tref>context</tref> was given, the <em>result</em> is only simplified
+  from an <tref>array</tref> to a <tref>JSON object</tref> if it has one or
+  fewer items.</p>
 
 </section>
 
 <section>
 <h3>Algorithm</h3>
 
-<p>
-The algorithm takes four required input variables: an
-<tref>active context</tref>, an <tref>active property</tref>, and an
-<em>element</em> to be compacted. To begin, the <tref>active context</tref>
-is set to the result of performing
-<a href="#context-processing">Context Processing</a> on the passed
-<em>context</em>, the <tref>active property</tref> is set to
-<tref>null</tref>, and <em>element</em> is set to the result of performing
-the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
-<tref>JSON-LD input</tref>.
-</p>
+<p>The algorithm takes four required input variables: an
+  <tref>active context</tref>, an <tref>active property</tref>, and an
+  <em>element</em> to be compacted. To begin, the <tref>active context</tref>
+  is set to the result of performing
+  <a href="#context-processing">Context Processing</a> on the passed
+  <em>context</em>, the <tref>active property</tref> is set to
+  <tref>null</tref>, and <em>element</em> is set to the result of performing
+  the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
+  <tref>JSON-LD input</tref>.</p>
 
 <ol class="algorithm">
+  <li>If <em>element</em> is a <tref>scalar</tref>, it is already in its most
+    compact form, so simply return <em>element</em>.</li>
   <li>
     If <em>element</em> is an <tref>array</tref>:
     <ol class="algorithm">
@@ -2322,329 +2280,319 @@ the <a href="#expansion-algorithm">Expansion Algorithm</a> on the
       </li>
     </ol>
   </li>
+  <li>Otherwise <em>element</em> is a <tref>JSON object</tref>.</li>
   <li>
-    If <em>element</em> is an <tref>JSON object</tref>:
+    If <em>element</em> contains the key <code>@value</code> or
+    if it contains only one key and that key is <code>@id</code>,
+    then return the result of using the
+    <a href="#value-compaction">Value Compaction</a> algorithm,
+    passing <tref>active context</tref>, <tref>active property</tref>,
+    and <em>element</em> as <em>value</em>.
+  </li>
+  <li>
+    Create a shallow copy of <em>element</em> and each <tref>array</tref>
+    associated with its keys so that duplicate values can be removed
+    during <tref>property generator</tref> <tref>compaction</tref>:
     <ol class="algorithm">
       <li>
-        If <em>element</em> contains the key <code>@value</code> or
-        if it contains only one key and that key is <code>@id</code>,
-        then return the result of using the
-        <a href="#value-compaction">Value Compaction</a> algorithm,
-        passing <tref>active context</tref>, <tref>active property</tref>,
-        and <em>element</em> as <em>value</em>.
+        Initialize <em>shallow</em> to an empty <tref>JSON object</tref>.
       </li>
       <li>
-        Create a shallow copy of <em>element</em> and each <tref>array</tref>
-        associated with its keys so that duplicate values can be removed
-        during <tref>property generator</tref> <tref>compaction</tref>:
+        For each <em>key</em>-<em>value</em> pair in <em>element</em>:
         <ol class="algorithm">
           <li>
-            Initialize <em>shallow</em> to an empty <tref>JSON object</tref>.
+            If <em>value</em> is an <tref>array</tref>, then add
+            a key-value pair to <em>shallow</em> where the key
+            is <em>key</em> and the value is a shallow copy of
+            <em>value</em>.
           </li>
           <li>
-            For each <em>key</em>-<em>value</em> pair in <em>element</em>:
-            <ol class="algorithm">
-              <li>
-                If <em>value</em> is an <tref>array</tref>, then add
-                a key-value pair to <em>shallow</em> where the key
-                is <em>key</em> and the value is a shallow copy of
-                <em>value</em>.
-              </li>
-              <li>
-                Otherwise, add the key-value pair, <em>key</em>-<em>value</em>
-                to <em>shallow</em>.
-              </li>
-            </ol>
+            Otherwise, add the key-value pair, <em>key</em>-<em>value</em>
+            to <em>shallow</em>.
           </li>
         </ol>
-      </li>
-      <li>
-        Initialize <em>result</em> to an empty <tref>JSON object</tref>.
-      </li>
-      <li>
-        Initialize <em>keys</em> to an <tref>array</tref> containing
-        all of the keys in <em>shallow</em>, ordered lexicographically.
-      </li>
-      <li>
-        For each key <em>expanded property</em> in <em>keys</em>:
-        <ol class="algorithm">
-          <li>
-            If <em>shallow</em> does not contain a key that equals
-            <em>expanded property</em>, then continue to the next
-            <em>expanded property</em>.
-          </li>
-          <li>
-            Initialize <em>expanded value</em> to the value associated
-            with the key that equals <em>expanded property</em> in
-            <em>shallow</em>.
-          </li>
-          <li>
-            If <em>expanded property</em> equals <code>@id</code> or
-            <code>@type</code>:
-              <ol class="algorithm">
-                <li>
-                  If <em>expanded value</em> is a <tref>string</tref>,
-                  then initialize <em>compacted value</em> to the result
-                  of using the
-                  <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                  algorithm, passing <tref>active context</tref>,
-                  <em>expanded value</em> for <em>iri</em>,
-                  and <tref>true</tref> for <em>vocabRelative</em> if
-                  <em>expanded property</em> equals <code>@type</code>,
-                  <tref>false</tref> otherwise.
-                </li>
-                <li>
-                  Otherwise, <em>expanded value</em> must be a
-                  <code>@type</code> <tref>array</tref>:
-                  <ol class="algorithm">
-                    <li>
-                      Initialize <em>compacted value</em> to an empty
-                      <tref>array</tref>.
-                    </li>
-                    <li>
-                      For each item <em>expanded type</em> in
-                      <em>expanded value</em>, append the result of
-                      of using the
-                      <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                      algorithm, passing <tref>active context</tref>,
-                      <em>expanded type</em> for <em>iri</em>, and
-                      <tref>true</tref> for <em>vocabRelative</em>,
-                      to <em>compacted value</em>.
-                    </li>
-                    <li>
-                      If <em>compacted value</em> contains only one
-                      item (it has a length of <code>1</code>), then
-                      set <em>compacted value</em> to its only item.
-                    </li>
-                  </ol>
-                </li>
-                <li>
-                  Initialize <em>alias</em> to the result of using the
-                  <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                  algorithm, passing <tref>active context</tref> and
-                  <em>expanded property</em> for <em>iri</em>.
-                </li>
-                <li>
-                  Add the key-value pair,
-                  (<em>alias</em>-<em>compacted value</em>) to
-                  <em>result</em> and continue to the next
-                  <em>expanded property</em>.
-                </li>
-              </ol>
-            </li>
-          <li>
-            If <em>expanded property</em> equals <code>@index</code>:
-            <ol class="algorithm">
-              <li>
-                If <tref>active property</tref> has a
-                <tref>container mapping</tref> in <tref>active context</tref>
-                that equals <code>@index</code>, then the compacted
-                result will be inside of an <code>@index</code>
-                container, so simply drop the <code>@index</code>
-                property by continuing to the next
-                <em>expanded property</em>.
-              </li>
-              <li>
-                Otherwise, initialize <em>alias</em> to the result of using
-                the <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                algorithm, passing <tref>active context</tref> and
-                <em>expanded property</em> for <em>iri</em>.
-              </li>
-              <li>
-                Add the key-value pair,
-                (<em>alias</em>-<em>expanded value</em>) to
-                <em>result</em> and continue to the next
-                <em>expanded property</em>.
-              </li>
-            </ol>
-          </li>
-          <li>
-            If <em>expanded value</em> is an empty <tref>array</tref>:
-            <ol class="algorithm">
-              <li>
-                Initialize <em>item active property</em> to the result of
-                using the
-                <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                algorithm, passing <tref>active context</tref>,
-                <em>expanded property</em> for <em>iri</em>,
-                <em>expanded value</em> for <em>value</em>,
-                <tref>true</tref> for <em>vocabRelative</em>, and
-                <em>shallow</em> for <em>parent</em>.
-              </li>
-              <li>
-                If <em>result</em> does not have the key that equals
-                <em>item active property</em>, set this key's value in
-                <em>result</em> to an empty <tref>array</tref>. Otherwise, if
-                the key's value is not an <tref>array</tref>, then set it
-                equal to one containing only the value.
-              </li>
-            </ol>
-          </li>
-          <li>
-            At this point, <em>expanded value</em> must be an
-            <tref>array</tref> due to the
-            <a href="#expansion-algorithm">Expansion algorithm</a>.
-            For each item <em>expanded item</em> in <em>expanded value</em>:
-            <ol class="algorithm">
-              <li>
-                Initialize <em>item active property</em> to the result of using
-                the <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                algorithm, passing <tref>active context</tref>,
-                <em>expanded property</em> for <em>iri</em>,
-                <em>expanded item</em> for <em>value</em>,
-                <tref>true</tref> for <em>vocabRelative</em>, and
-                <em>shallow</em> for <em>parent</em>.
-              </li>
-              <li>
-                Initialize <em>container</em> to <tref>null</tref>. If there
-                is a <tref>container mapping</tref> for
-                <em>item active property</em> in <tref>active context</tref>,
-                set <em>container</em> to its value.
-              </li>
-              <li>
-                If there is a <tref>term definition</tref> for
-                <em>item active property</em> in <tref>active context</tref>
-                that is a <tref>property generator</tref>, then invoke the
-                <a href="#find-property-generator-duplicates-subalgorithm">Find Property Generator Duplicates</a>
-                algorithm, passing <tref>active context</tref>,
-                <em>shallow</em> for <em>element</em>,
-                <em>expanded property</em>, <em>expanded item</em> for
-                <em>value</em>, <em>item active property</em> for
-                <tref>active property</tref>, and
-                <tref>true</tref> for <em>remove</em>.
-              </li>
-              <li>
-                Initialize <em>compacted item</em> to the result of using
-                this algorithm recursively, passing
-                <tref>active context</tref>, <em>item active property</em>
-                for </tref>active property</tref>,
-                <em>expanded item</em> for <em>element</em> if it does
-                not contain the key <code>@list</code>, otherwise pass
-                the key's associated value for <em>element</em>.
-              </li>
-              <li>
-                If <em>expanded item</em> is a <tref>list object</tref>:
-                <ol class="algorithm">
-                  <li>
-                    If <em>compacted item</em> is not an <tref>array</tref>,
-                    then set it to an <tref>array</tref> containing only
-                    <em>compacted item</em>.
-                  </li>
-                  <li>
-                    If <em>container</em> does not equal <code>@list</code>:
-                    <ol class="algorithm">
-                      <li>
-                        Convert <em>compacted item</em> to a
-                        <tref>list object</tref> by setting it to a
-                        <tref>JSON object</tref> containing key-value pair
-                        where the key is the result of the
-                        <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                        algorithm, passing <tref>active context</tref> and
-                        <code>@list</code> for <em>iri</em>, and the
-                        value is <em>compacted item</em>.
-                      </li>
-                      <li>
-                        If <em>expanded item</em> contains the key
-                        <code>@index</code>, then add a key-value pair
-                        to <em>compacted item</em> where the key is the
-                        result of the
-                        <a href="#iri-compaction-algorithm">IRI Compaction</a>
-                        algorithm, passing <tref>active context</tref> and
-                        <code>@index</code> for <em>iri</em>, and the
-                        value is the value associated with the
-                        <code>@index</code> key in
-                        <em>expanded item</em>.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, <em>item active property</em> MUST NOT be a key
-                    in <em>result</em> because there cannot be two
-                    <tref title="list object">list objects</tref> associated
-                    with an <tref>active property</tref> that has a
-                    <tref>container mapping</tref>; this is an error.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                If <em>container</em> equals <code>@language</code> or
-                <code>@index</code>:
-                <ol class="algorithm">
-                  <li>
-                    If <em>item active property</em> is a key in
-                    <em>result</em>, then initialize <em>map object</em> to
-                    its associated value, otherwise initialize it to an empty
-                    <tref>JSON object</tref>.
-                  </li>
-                  <li>
-                    If <em>container</em> is <code>@language</code> and
-                    <em>compacted item</em> contains the key
-                    <code>@value</code>, then set <em>compacted item</em>
-                    to the value associated with its <code>@value</code> key.
-                  </li>
-                  <li>
-                    Initialize <em>map key</em> to the value associated with
-                    with the key that equals <em>container</em> in
-                    <em>expanded item</em>.
-                  </li>
-                  <li>
-                    If <em>map key</em> is not a key in <em>map object</em>,
-                    then set this key's value in <em>map object</em>
-                    to <em>compacted item</em>. Otherwise, if the value
-                    is not an <tref>array</tref>, then set it equal to one
-                    containing only the value and then append
-                    <em>compacted item</em> to it.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                Otherwise,
-                <ol class="algorithm">
-                  <li>
-                    Initialize <em>useArray</em> to <tref>false</tref>. If
-                    <em>container</em> equals <code>@set</code> or
-                    <code>@list</code>, or <em>compacted item</em> is
-                    an empty <tref>array</tref>, or
-                    <em>expanded property</em> equals <code>@list</code> or
-                    <code>@graph</code>, then set <em>useArray</em>
-                    to <tref>true</tref>.
-                  </li>
-                  <li>
-                    If <em>useArray</em> is <tref>true</tref> and
-                    <em>compacted item</em> is not an <tref>array</tref>,
-                    then set it equal to a new <tref>array</tref>
-                    containing only <em>compacted item</em>.
-                  </li>
-                  <li>
-                    If <em>item active property</em> is not a key in
-                    <em>result</em> then add the key-value pair,
-                    (<em>item active property</em>-<em>compacted item</em>),
-                    to <em>result</em>.
-                  </li>
-                  <li>
-                    Otherwise, if the value associated with the key that
-                    equals <em>item active property</em> in <em>result</em>
-                    is not an <tref>array</tref>, set it equal to a new
-                    <tref>array</tref> containing only the value. Then
-                    append <em>compacted item</em> to the value if
-                    <em>compacted item</em> is not an <tref>array</tref>,
-                    otherwise, concatenate it.
-                  </li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>
-        Return <em>result</em>.
       </li>
     </ol>
   </li>
   <li>
-    At this point, <em>element</em> must a be <tref>scalar</tref>, which
-    is already compact, so simply return <em>element</em>.
+    Initialize <em>result</em> to an empty <tref>JSON object</tref>.
   </li>
+  <li>
+    Initialize <em>keys</em> to an <tref>array</tref> containing
+    all of the keys in <em>shallow</em>, ordered lexicographically.
+  </li>
+  <li>
+    For each key <em>expanded property</em> in <em>keys</em>:
+    <ol class="algorithm">
+      <li>
+        If <em>shallow</em> does not contain a key that equals
+        <em>expanded property</em>, then continue to the next
+        <em>expanded property</em>.
+      </li>
+      <li>
+        Initialize <em>expanded value</em> to the value associated
+        with the key that equals <em>expanded property</em> in
+        <em>shallow</em>.
+      </li>
+      <li>
+        If <em>expanded property</em> equals <code>@id</code> or
+        <code>@type</code>:
+          <ol class="algorithm">
+            <li>
+              If <em>expanded value</em> is a <tref>string</tref>,
+              then initialize <em>compacted value</em> to the result
+              of using the
+              <a href="#iri-compaction-algorithm">IRI Compaction</a>
+              algorithm, passing <tref>active context</tref>,
+              <em>expanded value</em> for <em>iri</em>,
+              and <tref>true</tref> for <em>vocabRelative</em> if
+              <em>expanded property</em> equals <code>@type</code>,
+              <tref>false</tref> otherwise.
+            </li>
+            <li>
+              Otherwise, <em>expanded value</em> must be a
+              <code>@type</code> <tref>array</tref>:
+              <ol class="algorithm">
+                <li>
+                  Initialize <em>compacted value</em> to an empty
+                  <tref>array</tref>.
+                </li>
+                <li>
+                  For each item <em>expanded type</em> in
+                  <em>expanded value</em>, append the result of
+                  of using the
+                  <a href="#iri-compaction-algorithm">IRI Compaction</a>
+                  algorithm, passing <tref>active context</tref>,
+                  <em>expanded type</em> for <em>iri</em>, and
+                  <tref>true</tref> for <em>vocabRelative</em>,
+                  to <em>compacted value</em>.
+                </li>
+                <li>
+                  If <em>compacted value</em> contains only one
+                  item (it has a length of <code>1</code>), then
+                  set <em>compacted value</em> to its only item.
+                </li>
+              </ol>
+            </li>
+            <li>
+              Initialize <em>alias</em> to the result of using the
+              <a href="#iri-compaction-algorithm">IRI Compaction</a>
+              algorithm, passing <tref>active context</tref> and
+              <em>expanded property</em> for <em>iri</em>.
+            </li>
+            <li>
+              Add the key-value pair,
+              (<em>alias</em>-<em>compacted value</em>) to
+              <em>result</em> and continue to the next
+              <em>expanded property</em>.
+            </li>
+          </ol>
+        </li>
+      <li>
+        If <em>expanded property</em> equals <code>@index</code>:
+        <ol class="algorithm">
+          <li>
+            If <tref>active property</tref> has a
+            <tref>container mapping</tref> in <tref>active context</tref>
+            that equals <code>@index</code>, then the compacted
+            result will be inside of an <code>@index</code>
+            container, so simply drop the <code>@index</code>
+            property by continuing to the next
+            <em>expanded property</em>.
+          </li>
+          <li>
+            Otherwise, initialize <em>alias</em> to the result of using
+            the <a href="#iri-compaction-algorithm">IRI Compaction</a>
+            algorithm, passing <tref>active context</tref> and
+            <em>expanded property</em> for <em>iri</em>.
+          </li>
+          <li>
+            Add the key-value pair,
+            (<em>alias</em>-<em>expanded value</em>) to
+            <em>result</em> and continue to the next
+            <em>expanded property</em>.
+          </li>
+        </ol>
+      </li>
+      <li>
+        If <em>expanded value</em> is an empty <tref>array</tref>:
+        <ol class="algorithm">
+          <li>
+            Initialize <em>item active property</em> to the result of
+            using the
+            <a href="#iri-compaction-algorithm">IRI Compaction</a>
+            algorithm, passing <tref>active context</tref>,
+            <em>expanded property</em> for <em>iri</em>,
+            <em>expanded value</em> for <em>value</em>,
+            <tref>true</tref> for <em>vocabRelative</em>, and
+            <em>shallow</em> for <em>parent</em>.
+          </li>
+          <li>
+            If <em>result</em> does not have the key that equals
+            <em>item active property</em>, set this key's value in
+            <em>result</em> to an empty <tref>array</tref>. Otherwise, if
+            the key's value is not an <tref>array</tref>, then set it
+            equal to one containing only the value.
+          </li>
+        </ol>
+      </li>
+      <li>
+        At this point, <em>expanded value</em> must be an
+        <tref>array</tref> due to the
+        <a href="#expansion-algorithm">Expansion algorithm</a>.
+        For each item <em>expanded item</em> in <em>expanded value</em>:
+        <ol class="algorithm">
+          <li>
+            Initialize <em>item active property</em> to the result of using
+            the <a href="#iri-compaction-algorithm">IRI Compaction</a>
+            algorithm, passing <tref>active context</tref>,
+            <em>expanded property</em> for <em>iri</em>,
+            <em>expanded item</em> for <em>value</em>,
+            <tref>true</tref> for <em>vocabRelative</em>, and
+            <em>shallow</em> for <em>parent</em>.
+          </li>
+          <li>
+            Initialize <em>container</em> to <tref>null</tref>. If there
+            is a <tref>container mapping</tref> for
+            <em>item active property</em> in <tref>active context</tref>,
+            set <em>container</em> to its value.
+          </li>
+          <li>
+            If there is a <tref>term definition</tref> for
+            <em>item active property</em> in <tref>active context</tref>
+            that is a <tref>property generator</tref>, then invoke the
+            <a href="#find-property-generator-duplicates-subalgorithm">Find Property Generator Duplicates</a>
+            algorithm, passing <tref>active context</tref>,
+            <em>shallow</em> for <em>element</em>,
+            <em>expanded property</em>, <em>expanded item</em> for
+            <em>value</em>, <em>item active property</em> for
+            <tref>active property</tref>, and
+            <tref>true</tref> for <em>remove</em>.
+          </li>
+          <li>
+            Initialize <em>compacted item</em> to the result of using
+            this algorithm recursively, passing
+            <tref>active context</tref>, <em>item active property</em>
+            for </tref>active property</tref>,
+            <em>expanded item</em> for <em>element</em> if it does
+            not contain the key <code>@list</code>, otherwise pass
+            the key's associated value for <em>element</em>.
+          </li>
+          <li>
+            If <em>expanded item</em> is a <tref>list object</tref>:
+            <ol class="algorithm">
+              <li>
+                If <em>compacted item</em> is not an <tref>array</tref>,
+                then set it to an <tref>array</tref> containing only
+                <em>compacted item</em>.
+              </li>
+              <li>
+                If <em>container</em> does not equal <code>@list</code>:
+                <ol class="algorithm">
+                  <li>
+                    Convert <em>compacted item</em> to a
+                    <tref>list object</tref> by setting it to a
+                    <tref>JSON object</tref> containing key-value pair
+                    where the key is the result of the
+                    <a href="#iri-compaction-algorithm">IRI Compaction</a>
+                    algorithm, passing <tref>active context</tref> and
+                    <code>@list</code> for <em>iri</em>, and the
+                    value is <em>compacted item</em>.
+                  </li>
+                  <li>
+                    If <em>expanded item</em> contains the key
+                    <code>@index</code>, then add a key-value pair
+                    to <em>compacted item</em> where the key is the
+                    result of the
+                    <a href="#iri-compaction-algorithm">IRI Compaction</a>
+                    algorithm, passing <tref>active context</tref> and
+                    <code>@index</code> for <em>iri</em>, and the
+                    value is the value associated with the
+                    <code>@index</code> key in
+                    <em>expanded item</em>.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                Otherwise, <em>item active property</em> MUST NOT be a key
+                in <em>result</em> because there cannot be two
+                <tref title="list object">list objects</tref> associated
+                with an <tref>active property</tref> that has a
+                <tref>container mapping</tref>; this is an error.
+              </li>
+            </ol>
+          </li>
+          <li>
+            If <em>container</em> equals <code>@language</code> or
+            <code>@index</code>:
+            <ol class="algorithm">
+              <li>
+                If <em>item active property</em> is a key in
+                <em>result</em>, then initialize <em>map object</em> to
+                its associated value, otherwise initialize it to an empty
+                <tref>JSON object</tref>.
+              </li>
+              <li>
+                If <em>container</em> is <code>@language</code> and
+                <em>compacted item</em> contains the key
+                <code>@value</code>, then set <em>compacted item</em>
+                to the value associated with its <code>@value</code> key.
+              </li>
+              <li>
+                Initialize <em>map key</em> to the value associated with
+                with the key that equals <em>container</em> in
+                <em>expanded item</em>.
+              </li>
+              <li>
+                If <em>map key</em> is not a key in <em>map object</em>,
+                then set this key's value in <em>map object</em>
+                to <em>compacted item</em>. Otherwise, if the value
+                is not an <tref>array</tref>, then set it equal to one
+                containing only the value and then append
+                <em>compacted item</em> to it.
+              </li>
+            </ol>
+          </li>
+          <li>
+            Otherwise,
+            <ol class="algorithm">
+              <li>
+                Initialize <em>useArray</em> to <tref>false</tref>. If
+                <em>container</em> equals <code>@set</code> or
+                <code>@list</code>, or <em>compacted item</em> is
+                an empty <tref>array</tref>, or
+                <em>expanded property</em> equals <code>@list</code> or
+                <code>@graph</code>, then set <em>useArray</em>
+                to <tref>true</tref>.
+              </li>
+              <li>
+                If <em>useArray</em> is <tref>true</tref> and
+                <em>compacted item</em> is not an <tref>array</tref>,
+                then set it equal to a new <tref>array</tref>
+                containing only <em>compacted item</em>.
+              </li>
+              <li>
+                If <em>item active property</em> is not a key in
+                <em>result</em> then add the key-value pair,
+                (<em>item active property</em>-<em>compacted item</em>),
+                to <em>result</em>.
+              </li>
+              <li>
+                Otherwise, if the value associated with the key that
+                equals <em>item active property</em> in <em>result</em>
+                is not an <tref>array</tref>, set it equal to a new
+                <tref>array</tref> containing only the value. Then
+                append <em>compacted item</em> to the value if
+                <em>compacted item</em> is not an <tref>array</tref>,
+                otherwise, concatenate it.
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>Return <em>result</em>.</li>
 </ol>
 
 <p>
