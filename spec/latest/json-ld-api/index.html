@@ -1743,264 +1743,201 @@ the result is not an <tref>array</tref>, then set the result to an
 
 </section>
 
-<!-- end of Expansion Algorithm -->
-</section>
+</section> <!-- end of Expansion Algorithm -->
 
 <section>
-<h2 id="iri-expansion">IRI Expansion</h2>
+  <h2 id="iri-expansion">IRI Expansion</h2>
 
-<p>
-In JSON-LD documents, some keys and values may represent
-<tref title="IRI">IRIs</tref>. This section defines an algorithm for
-transforming a <tref>string</tref> that represents an <tref>IRI</tref> into
-an <tref>absolute IRI</tref>. It also covers transforming <tref>keyword</tref>
-aliases into <tref title="keyword">keywords</tref>.
-</p>
+  <p>In JSON-LD documents, some keys and values may represent
+    <tref title="IRI">IRIs</tref>. This section defines an algorithm for
+    transforming a <tref>string</tref> that represents an <tref>IRI</tref> into
+    an <tref>absolute IRI</tref>. It also covers transforming <tref>keyword</tref>
+    aliases into <tref title="keyword">keywords</tref>.</p>
 
-<p>
-<tref>IRI</tref> expansion may occur during context processing or during
-any of the other JSON-LD algorithms. If IRI expansion occurs during context
-processing, then the <tref>local context</tref> and its related
-<em>defined</em> map from the
-<a href="#context-processing">Context Processing</a> algorithm are passed
-to this algorithm. This allows for <tref>term definition</tref> dependencies
-to be processed via the context processing subalgorithm,
-<a href="#create-term-definition">Create Term Definition</a>.
-</p>
+  <p><tref>IRI</tref> expansion may occur during context processing or during
+    any of the other JSON-LD algorithms. If IRI expansion occurs during context
+    processing, then the <tref>local context</tref> and its related
+    <em>defined</em> map from the
+    <a href="#context-processing">Context Processing</a> algorithm are passed
+    to this algorithm. This allows for <tref>term definition</tref> dependencies
+    to be processed via the context processing subalgorithm,
+    <a href="#create-term-definition">Create Term Definition</a>.</p>
 
-<p>
-After application of this algorithm, values processed by this algorithm are
-said to be in <tdef>expanded IRI form</tdef> (Advanced note: this form
-may also include
-<tref title="blank node identifier">blank node identifiers</tref> and
-JSON-LD <tref title="keyword">keywords</tref>).
-</p>
+  <p>After application of this algorithm, values processed by this algorithm are
+    said to be in <tdef>expanded IRI form</tdef> (Advanced note: this form
+    may also include
+    <tref title="blank node identifier">blank node identifiers</tref> and
+    JSON-LD <tref title="keyword">keywords</tref>).</p>
 
-<section>
-<h3>Purpose</h3>
+  <section>
+    <h3>Purpose</h3>
 
-<p>We have a value that needs to be expanded to an <tref>absolute IRI</tref>
-  or a <tref>keyword</tref>. The given value may be <tref>null</tref>, a
-  <tref>term</tref>, a <tref>keyword</tref> alias, a <tref>compact IRI</tref>,
-  a <tref>relative IRI</tref>, or an <tref>absolute IRI</tref>.</p>
+    <p>We have a value that needs to be expanded to an <tref>absolute IRI</tref>
+      or a <tref>keyword</tref>. The given value may be <tref>null</tref>, a
+      <tref>term</tref>, a <tref>keyword</tref> alias, a <tref>compact IRI</tref>,
+      a <tref>relative IRI</tref>, or an <tref>absolute IRI</tref>.</p>
+  </section>
 
-</section>
+  <section>
+    <h3>General Solution</h3>
 
-<section>
-<h3>General Solution</h3>
+    <p>In order to expand <em>value</em> to an <tref>absolute IRI</tref>, we must
+      first determine if it is <tref>null</tref>, a <tref>term</tref>, a
+      <tref>keyword</tref>, or some form of <tref>IRI</tref>. While inspecting
+      <em>value</em> we may also find that we need to create
+      <tref>term definition</tref> dependencies because we're running this
+      algorithm during <a href="#context-processing">Context Processing</a>. We can
+      tell whether or not we're running during
+      <a href="#context-processing">Context Processing</a> by checking
+      <tref>local context</tref> against <tref>null</tref>.
+      We know we need to create a <tref>term definition</tref> in the
+      <tref>active context</tref> when <em>value</em> is
+      a key in the <tref>local context</tref> and the <em>defined</em> map
+      does not have a key for <em>value</em> with an associated value of
+      <tref>true</tref>. The <em>defined</em> map is used during
+      <a href="#context-processing">Context Processing</a> to keep track of
+      which <tref title="term">terms</tref> have already been defined or are
+      in the process of being defined. We create a
+      <tref>term definition</tref> by using the
+      <a href="#create-term-definition">Create Term Definition</a> subalgorithm.</p>
 
-<p>
-In order to expand <em>value</em> to an <tref>absolute IRI</tref>, we must
-first determine if it is <tref>null</tref>, a <tref>term</tref>, a
-<tref>keyword</tref>, or some form of <tref>IRI</tref>. While inspecting
-<em>value</em> we may also find that we need to create
-<tref>term definition</tref> dependencies because we're running this
-algorithm during <a href="#context-processing">Context Processing</a>. We can
-tell whether or not we're running during
-<a href="#context-processing">Context Processing</a> by checking
-<tref>local context</tref> against <tref>null</tref>.
-We know we need to create a <tref>term definition</tref> in the
-<tref>active context</tref> when <em>value</em> is
-a key in the <tref>local context</tref> and the <em>defined</em> map
-does not have a key for <em>value</em> with an associated value of
-<tref>true</tref>. The <em>defined</em> map is used during
-<a href="#context-processing">Context Processing</a> to keep track of
-which <tref title="term">terms</tref> have already been defined or are
-in the process of being defined. We create a
-<tref>term definition</tref> by using the
-<a href="#create-term-definition">Create Term Definition</a> subalgorithm.
-</p>
+    <p>To begin, we handle the simplest case, where <em>value</em> is
+      <tref>null</tref> or a <tref>keyword</tref>. Here all we do is return
+      <em>value</em> as is as there is nothing to expand.</p>
 
-<p>
-To begin, we handle the simplest case, where <em>value</em> is
-<tref>null</tref>. Here all we do is return <tref>null</tref> as there is
-nothing to expand.
-</p>
+    <p>Next, we create a <tref>term definition</tref> for <em>value</em> if
+      we need to. This ensures that when we look in the <tref>active context</tref>,
+      any information associated with <em>value</em> will be ready.</p>
 
-<p>
-Next, we create a <tref>term definition</tref> for <em>value</em> if
-we need to. This ensures that when we look in the <tref>active context</tref>,
-any information associated with <em>value</em> will be ready.
-</p>
+    <p>Now, if <em>value</em> is relative to the <tref>vocabulary mapping</tref>
+      in <tref>active context</tref>, then we try to interpret it as a
+      <tref>term</tref>, expanding if it has an <tref>IRI mapping</tref>
+      in the <tref>active context</tref>.</p>
 
-<p>
-Now, if <em>value</em> is relative to the <tref>vocabulary mapping</tref>
-in <tref>active context</tref>, then we try to interpret it as a
-<tref>term</tref>, expanding if it has an <tref>IRI mapping</tref>
-in the <tref>active context</tref>.
-</p>
+    <p>Otherwise, if <em>value</em> has a colon (<code>:</code>) it may be
+      a <tref>compact IRI</tref> having the form
+      <tref>prefix</tref>:<em>suffix</em>. If so, we first create a
+      <tref>term definition</tref> for its <tref>prefix</tref> if it appears in
+      the <tref>local context</tref>, and then we expand <em>value</em> using the
+      associated <tref>IRI mapping</tref> and concatenating <em>suffix</em>.</p>
 
-<p>
-Otherwise, if <em>value</em> has a colon (<code>:</code>) it may be
-a <tref>compact IRI</tref> having the form
-<tref>prefix</tref>:<em>suffix</em>. If so, we first create a
-<tref>term definition</tref> for its <tref>prefix</tref> if it appears in
-the <tref>local context</tref>, and then we expand <em>value</em> using the
-associated <tref>IRI mapping</tref> and concatenating <em>suffix</em>.
-</p>
+    <p>At this point, if our expanded <em>value</em> is a
+      <tref>blank node identifier</tref> we relabel it by setting it to the result of the
+      <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+      algorithm. Otherwise, if it is not an <tref>absolute IRI</tref>, we resolve
+      it against either the <tref title="active context">active context's</tref>
+      <tref>vocabulary mapping</tref> or the document base, given the
+      <em>vocabRelative</em> and <em>documentRelative</em> flag values and
+      the existence of a <tref>vocabulary mapping</tref>. Then we return
+      the expanded <em>value</em>.</p>
+  </section>
 
-<p>
-At this point, if our expanded <em>value</em> is a <tref>keyword</tref>,
-we return it. If it is a <tref>blank node identifier</tref> we relabel it by
-setting it to the result of the
-<a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-algorithm. Otherwise, if it is not an <tref>absolute IRI</tref>, we resolve
-it against either the <tref title="active context">active context's</tref>
-<tref>vocabulary mapping</tref> or the document base, given the
-<em>vocabRelative</em> and <em>documentRelative</em> flag values and
-the existence of a <tref>vocabulary mapping</tref>. Then we return
-the expanded <em>value</em>.
-</p>
+  <section>
+    <h3>Algorithm</h3>
 
-</section>
+    <p>The algorithm takes two required and four optional input variables. The
+      required inputs are an <tref>active context</tref> and a <em>value</em>
+      to be expanded. The optional inputs are two flags,
+      <em>documentRelative</em> and <em>vocabRelative</em>, that specifying
+      whether <em>value</em> can be interpreted as a <tref>relative IRI</tref>
+      against the document's base <tref>IRI</tref> or the
+      <tref title="active context">active context's</tref>
+      <tref>vocabulary mapping</tref>, respectively, and
+      a <tref>local context</tref> and a map <em>defined</em> to be used when
+      this algorithm is used during
+      <a href="#context-processing">Context Processing</a>. If not passed, the
+      two flags are set to <code>false</code> and <tref>local context</tref> and
+      <em>defined</em> are initialized to <tref>null</tref>.</p>
 
-<section>
-<h3>Algorithm</h3>
-
-<p>
-The algorithm takes two required and four optional input variables. The
-required inputs are an <tref>active context</tref> and a <em>value</em>
-to be expanded. The optional inputs are two flags,
-<em>documentRelative</em> and <em>vocabRelative</em>, that specifying
-whether <em>value</em> can be interpreted as a <tref>relative IRI</tref>
-against the document's base <tref>IRI</tref> or the
-<tref title="active context">active context's</tref>
-<tref>vocabulary mapping</tref>, respectively, and
-a <tref>local context</tref> and map <em>defined</em> to be used when
-this algorithm is used during
-<a href="#context-processing">Context Processing</a>. If not passed, the
-two flags are set to <code>false</code> and <tref>local context</tref> and
-<em>defined</em> are initialized to <tref>null</tref>.
-</p>
-
-<ol class="algorithm">
-  <li>
-    If <em>value</em> equals <tref>null</tref>, then return <tref>null</tref>.
-  </li>
-  <li>
-    If <tref>local context</tref> is not <tref>null</tref>, it contains
-    a key that equals <em>value</em>, and the value associated with the key
-    that equals <em>value</em> in <em>defined</em> is not <tref>true</tref>,
-    then invoke the
-    <a href="#create-term-definition">Create Term Definition</a>
-    subalgorithm, passing <tref>active context</tref>,
-    <tref>local context</tref>, <em>value</em> as <em>term</em>, and
-    <em>defined</em>. This will ensure that a <tref>term definition</tref>
-    is created for <em>value</em> in <tref>active context</tref> during
-    <a href="#context-processing">Context Processing</a>.
-  </li>
-  <li>
-    Initialize <em>result</em> to <tref>null</tref>.
-  </li>
-  <li>
-    If <em>vocabRelative</em> is <tref>true</tref>:
     <ol class="algorithm">
-      <li>
-        If <tref>local context</tref> is not <tref>null</tref> then
-        <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
-        for <em>value</em> that is a <tref>property generator</tref>.
-        Otherwise, an invalid error has been detected, which is an error.
+      <li>If <em>value</em> equals <tref>null</tref>, then return <tref>null</tref>.</li>
+      <li>If <tref>active context</tref> indicates that <em>value</em> is a
+        <tref>keyword</tref> alias then return the associated <tref>keyword</tref>.</li>
+      <li>If <tref>local context</tref> is not <tref>null</tref>, it contains
+        a key that equals <em>value</em>, and the value associated with the key
+        that equals <em>value</em> in <em>defined</em> is not <tref>true</tref>,
+        then invoke the <a href="#create-term-definition">Create Term Definition</a>
+        subalgorithm, passing <tref>active context</tref>, <tref>local context</tref>,
+        <em>value</em> as <em>term</em>, and <em>defined</em>. This will ensure that
+        a <tref>term definition</tref> is created for <em>value</em> in
+        <tref>active context</tref> during <a href="#context-processing">Context Processing</a>.
       </li>
-      <li>
-        If <em>value</em> has a <tref>null</tref> mapping in
-        <tref>active context</tref>, then return <tref>null</tref> which
-        has the effect of explicitly dropping <em>value</em>.
-      </li>
-      <li>
-        If <tref>active context</tref> has a <tref>term definition</tref> for
-        <em>value</em>, then set <em>result</em> to the associated
-        <tref>IRI mapping</tref>.
-      </li>
-    </ol>
-  </li>
-  <li>
-    If <em>result</em> is <tref>null</tref> and <em>value</em> contains a
-    colon (<code>:</code>), then it is either an <tref>absolute IRI</tref> or
-    a <tref>compact IRI</tref>:
-    <ol class="algorithm">
-      <li>
-        Split <em>value</em> into a <tref>prefix</tref> and <em>suffix</em>
-        at the first occurence of a colon (<code>:</code>).
-      </li>
-      <li>
-        If <tref>prefix</tref> does not equal underscore (<code>_</code>)
-        and <em>suffix</em> does not begin with double-forward-slash
-        (<code>//</code>), then it may be a <tref>compact IRI</tref>:
+      <li>Initialize <em>result</em> to <tref>null</tref>.</li>
+      <li>If <em>vocabRelative</em> is <tref>true</tref>:
         <ol class="algorithm">
-          <li>
-            If <tref>local context</tref> is not <tref>null</tref> and it
-            contains a key that equals <tref>prefix</tref>, then invoke the
-            <a href="#create-term-definition">Create Term Definition</a>
-            subalgorithm, passing <tref>active context</tref>,
-            <tref>local context</tref>, <em>prefix</em> as <em>term</em>,
-            and <em>defined</em>. This will ensure that a
-            <tref>term definition</tref> is created for <tref>prefix</tref>
-            in <tref>active context</tref> during
-            <a href="#context-processing">Context Processing</a>.
-          </li>
-          <li>
-            If <tref>active context</tref> contains a
-            <tref>term definition</tref> for <tref>prefix</tref> that is
-            not a <tref>property generator</tref> then set <em>result</em>
-            to the result of concatenating the value associated with the
-            <tref>prefix</tref>'s <tref>IRI mapping</tref> and
-            <em>suffix</em>.
+          <li>If <tref>local context</tref> is not <tref>null</tref> then
+            <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
+            for <em>value</em> that is a <tref>property generator</tref>.
+            Otherwise, an invalid error has been detected, which is an error.</li>
+          <li>If <em>value</em> has a <tref>null</tref> mapping in
+            <tref>active context</tref>, then return <tref>null</tref> which
+            has the effect of explicitly dropping <em>value</em>.</li>
+          <li>If <tref>active context</tref> has a <tref>term definition</tref> for
+            <em>value</em>, then set <em>result</em> to the associated
+            <tref>IRI mapping</tref>.</li>
+        </ol>
+      </li>
+      <li>If <em>result</em> is <tref>null</tref> and <em>value</em> contains a
+        colon (<code>:</code>), then it is either an <tref>absolute IRI</tref> or
+        a <tref>compact IRI</tref>:
+        <ol class="algorithm">
+          <li>Split <em>value</em> into a <tref>prefix</tref> and <em>suffix</em>
+            at the first occurence of a colon (<code>:</code>).</li>
+          <li>If <tref>prefix</tref> does not equal underscore (<code>_</code>)
+            and <em>suffix</em> does not begin with double-forward-slash
+            (<code>//</code>), then it may be a <tref>compact IRI</tref>:
+            <ol class="algorithm">
+              <li>If <tref>local context</tref> is not <tref>null</tref> and it
+                contains a key that equals <tref>prefix</tref>, then invoke the
+                <a href="#create-term-definition">Create Term Definition</a>
+                subalgorithm, passing <tref>active context</tref>,
+                <tref>local context</tref>, <em>prefix</em> as <em>term</em>,
+                and <em>defined</em>. This will ensure that a
+                <tref>term definition</tref> is created for <tref>prefix</tref>
+                in <tref>active context</tref> during
+                <a href="#context-processing">Context Processing</a>.</li>
+              <li>If <tref>active context</tref> contains a
+                <tref>term definition</tref> for <tref>prefix</tref> that is
+                not a <tref>property generator</tref> then set <em>result</em>
+                to the result of concatenating the value associated with the
+                <tref>prefix</tref>'s <tref>IRI mapping</tref> and
+                <em>suffix</em>.</li>
+            </ol>
           </li>
         </ol>
       </li>
-    </ol>
-  </li>
-  <li>
-    If <em>result</em> is <tref>null</tref>, set it to <em>value</em>.
-  </li>
-  <li>
-    If <tref>active context</tref> indicates that <em>value</em> is a
-    <tref>keyword</tref> alias then return the associated
-    <tref>keyword</tref>.
-  </li>
-  <li>
-    If <em>result</em> contains a colon (<code>:</code>):
-    <ol class="algorithm">
-      <li>
-        If <tref>local context</tref> equals <tref>null</tref> and
-        <em>result</em> begins with and underscore and colon
-        (<code>_:</code>) then <em>result</em> is a
-        <tref>blank node identifier</tref>. Set <em>result</em> to the
-        result of the
-        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-        algorithm, passing <tref>active context</tref> and <em>result</em>
-        for <em>identifier</em>.
+      <li>If <em>result</em> is <tref>null</tref>, set it to <em>value</em>.</li>
+      <li>If <em>result</em> contains a colon (<code>:</code>):
+        <ol class="algorithm">
+          <li>If <tref>local context</tref> equals <tref>null</tref> and
+            <em>result</em> begins with an underscore and colon
+            (<code>_:</code>) then <em>result</em> is a
+            <tref>blank node identifier</tref>. Set <em>result</em> to the
+            result of the
+            <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+            algorithm, passing <tref>active context</tref> and <em>result</em>
+            for <em>identifier</em>.</li>
+        </ol>
       </li>
-    </ol>
-  </li>
-  <li>
-    Otherwise, if <em>vocabRelative</em> equals <tref>true</tref> and
-    <tref>active context</tref> has a <tref>vocabulary mapping</tref>,
-    then set <em>result</em> to the result of concatenating the
-    <tref>vocabulary mapping</tref> with <em>result</em>.
-  </li>
-  <li>
-    Otherwise, if <em>documentRelative</em> equals <tref>true</tref>,
-    set <em>result</em> to the result of resolving <em>result</em> against
-    the document base as per [RFC3986]. Only the basic algorithm in
-    section 5.2 of [RFC3986] is used; neither Syntax-Based Normalization
-    nor Scheme-Based Normalization (as described in sections 6.2.2 and
-    6.2.3 of [RFC3986]) are performed. Characters additionally allowed in
-    IRI references are treated in the same way that unreserved characters
-    are treated in URI references, per section 6.5 of [RFC3987].
-  </li>
-  <li>
-    If <tref>local context</tref> is not <tref>null</tref> then
-    <em>result</em> MUST be an <tref>absolute IRI</tref>. Otherwise,
-    an invalid context value has been detected, which is an error. Return
-    <em>result</em>.
-  </li>
-</li>
-
-</section>
-
-<!-- end of IRI Expansion -->
-</section>
+      <li>Otherwise, if <em>vocabRelative</em> equals <tref>true</tref> and
+        <tref>active context</tref> has a <tref>vocabulary mapping</tref>,
+        then set <em>result</em> to the result of concatenating the
+        <tref>vocabulary mapping</tref> with <em>result</em>.</li>
+      <li>Otherwise, if <em>documentRelative</em> equals <tref>true</tref>,
+        set <em>result</em> to the result of resolving <em>result</em> against
+        the document base as per [RFC3986]. Only the basic algorithm in
+        section 5.2 of [RFC3986] is used; neither Syntax-Based Normalization
+        nor Scheme-Based Normalization (as described in sections 6.2.2 and
+        6.2.3 of [RFC3986]) are performed. Characters additionally allowed in
+        IRI references are treated in the same way that unreserved characters
+        are treated in URI references, per section 6.5 of [RFC3987].</li>
+      <li>If <tref>local context</tref> is not <tref>null</tref> then
+        <em>result</em> MUST be an <tref>absolute IRI</tref>. Otherwise,
+        an invalid context value has been detected, which is an error. Return
+        <em>result</em>.</li>
+    </li>
+  </section>
+</section> <!-- end of IRI Expansion -->
 
 <section>
 <h2 id="value-expansion">Value Expansion</h2>
