@@ -2114,83 +2114,56 @@ an <tref>active property</tref>, and a <em>value</em> to expand.
 </section>
 
 <section>
-<h2>Label Blank Nodes Subalgorithm</h2>
+  <h2>Label Blank Nodes Subalgorithm</h2>
 
-<p>
-During <tref>expansion</tref>, it is sometimes necessary to ensure
-all <tref title="blank node">blank nodes</tref> have been labeled. This
-occurs when a <tref>property generator</tref> is used to copy a single
-property's values across multiple properties. This step is necessary to
-ensure that these duplicated values can be later
-<tref title="compaction">recompacted</tref>. Because new labels will
-be assigned to <tref title="blank node">blank nodes</tref>, it is
-important to relabel any existing <tref title="blank node">blank nodes</tref>
-to avoid conflicting names.
-</p>
+  <p>During <tref>expansion</tref>, it is sometimes necessary to ensure
+    all <tref title="blank node">blank nodes</tref> have been labeled. This
+    occurs when a <tref>property generator</tref> is used to copy a single
+    property's values across multiple properties. This step is necessary to
+    ensure that these duplicated values can be later
+    <tref title="compaction">recompacted</tref>. Because new labels will
+    be assigned to <tref title="blank node">blank nodes</tref>, it is
+    important to relabel any existing <tref title="blank node">blank nodes</tref>
+    to avoid conflicting names.</p>
 
-<p>
-The algorithm takes two required inputs: an <tref>active context</tref>,
-and an <em>element</em> to be labeled with
-<tref title="blank node identifier">blank node identifiers</tref>.
-</p>
+  <p>The algorithm takes two required inputs: an <tref>active context</tref>,
+    and an <em>element</em> to be labeled with
+    <tref title="blank node identifier">blank node identifiers</tref>.</p>
 
-<ol class="algorithm">
-  <li>
-    If <em>element</em> is an <tref>array</tref>, then for each
-    <em>item</em> in <em>element</em>:
-    <ol class="algorithm">
-      <li>
-        Replace <em>item</em> with the result of using this algorithm
-        recursively, passing <tref>active context</tref> and <em>item</em>
-        for <em>element</em>.
-      </li>
-    </ol>
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>list object</tref>, then
-    replace the value of the <code>@list</code> key in <em>element</em>
-    with the result of using this algorithm recursively, passing
-    <tref>active context</tref> and the value of the <code>@list</code> key
-    for <em>element</em>.
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>JSON object</tref>:
-    <ol class="algorithm">
-      <li>
-        If <em>element</em> is a <em>blank node</em>, then set the value
-        of its <code>@id</code> key to the result of using the
-        <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-        algorithm, passing the value for <em>identifier</em>, using
-        <tref>null</tref> instead if <em>element</em> has no key
-        <code>@id</code>.
-      </li>
-      <li>
-        For each <em>key</em>-<em>value</em> pair ordered lexicographically
-        by <em>key</em>:
-        <ol class="algorithm">
-          <li>
-            If <em>key</em> does not equal <code>@id</code>, then replace
-            <em>value</em> in <em>element</em> with the result of using
-            this algorithm recursively, passing <tref>active context</tref>
-            and <em>value</em> for <em>element</em>.
-          </li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-  <li>
-    Otherwise, if <em>element</em> is a <tref>string</tref> and <em>isId</em>
-    equals <tref>true</tref>, and <em>element</em> is a
-    <tref>blank node identifier</tref>, then set <em>element</em> to
-    the result of using the
-    <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-    algorithm, passing <em>element</em> for <em>identifier</em>.
-  </li>
-  <li>
-    Return <em>element</em>.
-  </li>
-</ol>
-
+  <ol class="algorithm">
+    <li>If <em>element</em> is an <tref>array</tref>, then for each
+      <em>item</em> in <em>element</em>:
+      <ol class="algorithm">
+        <li>Replace <em>item</em> with the result of using this algorithm
+          recursively, passing <tref>active context</tref> and <em>item</em>
+          for <em>element</em>.</li>
+      </ol>
+    </li>
+    <li>Otherwise, if <em>element</em> is a <tref>list object</tref>, then
+      replace the value of the <code>@list</code> key in <em>element</em>
+      with the result of using this algorithm recursively, passing
+      <tref>active context</tref> and the value of the <code>@list</code> key
+      for <em>element</em>.</li>
+    <li>Otherwise, if <em>element</em> is a <tref>node object</tref>:
+      <ol class="algorithm">
+        <li>If <em>element</em> has no <code>@id</code> member, i.e., it
+          represents an unlabeled <em>blank node</em>, add an <code>@id</code>
+          member to element and set its value to the result of using the
+          <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
+          algorithm.</li>
+        <li>For each <em>key</em>-<em>value</em> pair ordered lexicographically
+          by <em>key</em>:
+          <ol class="algorithm">
+            <li>If <em>key</em> does not equal <code>@id</code>, then replace
+              <em>value</em> in <em>element</em> with the result of using
+              this algorithm recursively, passing <tref>active context</tref>
+              and <em>value</em> for <em>element</em>.</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>Return <em>element</em>.</li>
+  </ol>
 </section>
 
 <section>
