@@ -94,7 +94,7 @@ var preProc = {
                 ref = item.textContent ;
             }
             if (ref) {
-                ref = ref.replace(/\s+/g, '_').toLowerCase() ;
+                ref = ref.replace(/\s+/g, '-').toLowerCase() ;
             }
 
             if ( tdefs[ref]) {
@@ -102,9 +102,10 @@ var preProc = {
             }
 
             var sp = document.createElement( 'dfn' ) ;
-            tdefs[ref] = sp ;
             sp.title = ref ;
             sp.innerHTML = con ;
+            sp.id = 'T-'+ref;
+            tdefs[ref] = '#' + sp.id ;
             p.replaceChild(sp, item) ;
         }
         // now term references
@@ -119,9 +120,12 @@ var preProc = {
                 ref = item.textContent ;
             }
             if (ref) {
-                ref = ref.replace(/\s+/g, '_').toLowerCase() ;
+                ref = ref.replace(/\s+/g, '-').toLowerCase() ;
             }
-
+            var href = item.getAttribute('href');
+            if (href) {
+              tdefs[ref] = href;
+            }
             if ( !tdefs[ref]) {
               throw "Reference to undefined term '" + ref + "'" ;
             }
@@ -130,6 +134,7 @@ var preProc = {
             sp.className = 'tref' ;
             sp.title = ref ;
             sp.innerHTML = con ;
+            sp.href= tdefs[ref] ;
             p.replaceChild(sp, item) ;
         }
     }
