@@ -104,7 +104,7 @@ var preProc = {
             var sp = document.createElement( 'dfn' ) ;
             sp.title = ref ;
             sp.innerHTML = con ;
-            sp.id = 'T-'+ref;
+            sp.id = 'dfn-'+ref;
             tdefs[ref] = '#' + sp.id ;
             p.replaceChild(sp, item) ;
         }
@@ -123,15 +123,17 @@ var preProc = {
                 ref = ref.replace(/\s+/g, '-').toLowerCase() ;
             }
             var href = item.getAttribute('href');
+            var className = 'tref internalDFN';
             if (href) {
               tdefs[ref] = href;
+              className = 'tref externalDFN';
             }
             if ( !tdefs[ref]) {
               throw "Reference to undefined term '" + ref + "'" ;
             }
             var sp = document.createElement( 'a' ) ;
             var id = item.textContent ;
-            sp.className = 'tref' ;
+            sp.className = className ;
             sp.title = ref ;
             sp.innerHTML = con ;
             sp.href= tdefs[ref] ;
