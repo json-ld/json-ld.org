@@ -3956,7 +3956,8 @@ implementations are only required to produce the same <tref>RDF dataset</tref> b
 <section class="informative">
   <h3>Purpose</h3>
   <p>A JSON-LD document needs to be converted to an <tref>RDF dataset</tref>.</p>
-<p class="issue" data-number="217">RDF does not currently allow a </section>
+<p class="issue" data-number="217">RDF does not currently allow a <tref>blank node identifier</tref> to be used as a <tref>graph name</tref>.</p>
+</section>
 
 <section class="informative">
   <h4>General Solution</h4>
@@ -3977,7 +3978,6 @@ implementations are only required to produce the same <tref>RDF dataset</tref> b
 The algorithm takes a JSON-LD document <em>element</em> and creates an <tref>RDF dataset</tref>.
 </p>
 
-<tref>blank node identifier</tref> to be used as a graph name.</p>
 <ol class="algorithm">
   <li>Expand <em>element</em> according the
     <a href="#expansion-algorithm">Expansion algorithm</a>.</li>
@@ -4197,215 +4197,264 @@ The algorithm takes a JSON-LD document <em>element</em> and creates an <tref>RDF
 </section>
 </section> <!-- List to RDF Subalgorithm -->
 
-<!-- FIXME -->
-    <section>
-      <h2>Convert from RDF Algorithm</h2>
-      <p>In some cases, data exists natively in the form of triples or or <tref title="triple">triples</tref>;
-        for example, if the data was originally represented in an <tref>RDF dataset</tref>. This
-        algorithm is designed to simply translate an array of <tref title="triple">triples</tref> into a
-        JSON-LD document.</p>
-      <p>When expanding <tref title="typed value">typed values</tref> having a datatype of <code>xsd:string</code>,
-        the <code>@type</code> MUST NOT be set to <code>xsd:string</code> and the resulting value
-        MUST have only an <code>@value</code> property.</p>
+<section>
+  <h2>Convert from RDF Algorithm</h2>
+<p>
+This section describes algorithms to transform an <tref>RDF dataset</tref> into a JSON-LD document.
+</p>
 
-      <p>The conversion algorithm takes a single parameter <em>input</em> in the form of an
-        array of an <tref>RDF dataset</tref>.</p>
+<p>
+A conforming JSON-LD processor implementing RDF conversion MUST implement a
+processing algorithm that results in the same JSON-LD document that the following algorithm generates. Conformant
+implementations are only required to produce the same JSON-LD document but are not required to implement the algorithm exactly as described.
+</p>
 
-      <ol class="algorithm">
-        <li id="new_graph">Construct <em>defaultGraph</em> as a <tref>JSON object</tref>
-          containing <em>nodes</em> and <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
-        <li>Construct <em>graphs</em> as a <tref>JSON object</tref> containing <em>defaultGraph</em>
-          identified by
-          an empty <tref>string</tref>.</li>
-        <li>For each <tref>triple</tref> in <em>input</em>:
-          <ol class="algorithm">
-            <li>Set <em>graph</em> to the entry in <em>graphs</em> identified
-              by <em>name</em>, initializing it to a new entry using the mechanism
-              described in <a href="#new_graph">Step 1</a>.</li>
-            <li>If <em>property</em> is <code>rdf:first</code>,
-              use the entry in <em>graph.listMap</em> indexed by <em>subject</em>,
-              initializing it to a new <tref>JSON object</tref> if nesessary. Represent
-              <em>object</em> in <tref>expanded form</tref>, as described in
-              <a href="#value-expansion">Value Expansion</a>. Add the
-              resulting <em>object representation</em> to the entry indexed by
-              <em>first</em>, and skip to the next <tref>triple</tref>.</li>
-            <li>If <em>property</em> is <code>rdf:rest</code>:
-              <ol class="algorithm">
-                <li>If <em>object</em> is a <tref>blank node</tref>, use the entry in
-                  <em>graph.listMap</em> indexed by <em>subject</em>, initializing it
-                  to a new <tref>JSON object</tref> if necessary. Add the <em>nominalValue</em> of
-                  <em>object</em> to the entry indexed by <em>rest</em>.
-                </li>
-                <li>Skip to the next <tref>triple</tref>.</li>
-              </ol>
-            </li>
-            <li>If <em>name</em> is not <tref>null</tref>, and <em>defaultGraph.nodes</em>
-              does not contain an entry for <em>name</em>,
-              create a new entry for <em>name</em> from a new
-              <tref>JSON object</tref> with key/value pair of <code>@id</code> and
-              <em>name</em> represented in <tref>expanded IRI form</tref>.</li>
-            <li>Set <em>value</em> as the entry from <em>graph.nodes</em> for
-              <em>subject</em>, initializing it to a new
-              <tref>JSON object</tref> with key/value pair of <code>@id</code> and
-              <em>subject</em> represented in <tref>expanded IRI form</tref> if necessary.</li>
-            <li>If <em>property</em> is <code>rdf:type</code>, <em>object</em> is not a <tref>JSON-LD value</tref>, and the
-              <code class="idlMemberName"><a href="#widl-JsonLdOptions-useRdfType">useRdfType</a></code>
-              option is not present or <tref>false</tref>:
-              <ol class="algorithm">
-                <li>Append <em>object</em> represented in <tref>expanded IRI form</tref> to the array value for the
-                  key <code>@type</code>, creating an entry in <em>value</em> if necessary.</li>
-              </ol>
-            </li>
+<section class="informative">
+  <h3>Purpose</h3>
+  <p>An <tref>RDF dataset</tref> including a <tref>default graph</tref> and zero or more <tref title="named graph">named graphs</tref> needs to be converted to JSON-LD document.</p>
 
-            <li>Otherwise, if <em>object</em> is a <tref>typed value</tref> and the
-              <code class="idlMemberName"><a href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
-              option is set to <tref>true</tref>:
-              <ol class="algorithm">
-                <li>Generate a <em>converted value</em>:
-                  <ol class="algorithm">
-                    <li>If the literal's type is <code>xsd:boolean</code>, the
-                      <em>converted value</em> is <tref>true</tref> if the literal
-                      matches the value <code>true</code> or <code>false</code> if
-                      the literal matches the value <code>false</code>.</li>
-                    <li>If the literal's type is <code>xsd:integer</code> or
-                      <code>xsd:double</code>, try to convert the literal to a
-                      JSON <tref>number</tref>. If the conversion is successful,
-                      store the result in <em>converted value</em>, otherwise
-                      set <em>converted value</em> to <em>value</em>.</li>
-                    <li>Otherwise, do not perform a conversion. Set
-                      the <em>converted value</em> to the <em>value</em>.</li>
-                  </ol>
-                </li>
-                <li>Append the <em>converted value</em> to the array value for the
-                  key, creating an entry in <em>value</em> if necessary.</li>
-              </ol>
-            </li>
+  <p>In some cases, data exists natively in the form of triples or or
+    <tref title="triple">triples</tref>; for example, if the data was
+    originally represented in an <tref>RDF dataset</tref>. This algorithm is
+    designed to simply translate an array of <tref
+    title="triple">triples</tref> into a JSON-LD document.</p> <p>When
+    expanding <tref title="typed value">typed values</tref> having a datatype
+    of <code>xsd:string</code>, the <code>@type</code> MUST NOT be set to
+    <code>xsd:string</code> and the resulting value MUST have only an
+    <code>@value</code> property.</p>
+</section>
 
-            <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
-              <ol class="algorithm">
-                <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref>.</li>
-                <li>Append an empty <code>@list</code> representation to the array value for
-                  <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
-              </ol>
-            </li>
-            <li>Otherwise,
-              <ol class="algorithm">
-                <li>Let <em>key</em> be <em>property</em> expressed in <tref>expanded IRI form</tref> and let
-                  <em>object representation</em>
-                  be <em>object</em> represented in <tref>expanded form</tref> as described in
-                  <a href="#value-expansion">Value Expansion</a>.</li>
-                <li>If <em>object</em> is a <tref>blank node</tref>,
-                  use the entry in <em>graph.listMap</em> indexed by <em>object</em>,
-                  initializing it to a new <tref>JSON object</tref> if nesessary.
-                  Add an entry for <em>head</em> with <em>object representation</em>.</li>
-                <li>Append <em>object representation</em> to the array value for
-                  <em>key</em>, creating an entry in <em>value</em> if necessary.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-        <li>For each <em>name</em> and <em>graph</em> in <em>graphs</em>:
-          <ol class="algorithm">
-            <li>For each <em>subject</em> and <em>entry</em> in <em>graph</em>
-              where <em>entry</em> has both <em>head</em> and <em>first</em> keys:
-              <ol class="algorithm">
-                <li>Set <em>value</em> to the value of <em>head</em> in <em>entry</em>.</li>
-                <li>Remove the entry for <code>@id</code> in <em>value</em>.</li>
-                <li>Add an entry to <em>value</em> for <code>@list</code> initialized to a new array
-                  containing the value of <em>first</em> from <em>entry</em>.</li>
-                <li>While <em>entry</em> has a key for <em>rest</em>:
-                  <ol class="algorithm">
-                    <li>Set <em>entry</em> to the value of <em>graph.listMap</em> for <em>entry.rest</em>.</li>
-                    <li>Add the value for <em>entry.first</em> to the list array.</li>
-                  </ol>
-                </li>
-              </ol>
-            </li>
-          </ol>
-        </li>
-        <li>Create <em>array</em> as an empty <tref>array</tref>.</li>
-        <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.nodes</em>
-          ordered by <em>subject</em>:
-          <ol class="algorithm">
-            <li>Add <em>entry</em> to <em>array</em>.</li>
-            <li>If <em>graphs</em> has an entry for <em>subject</em>, add a property
-              <code>@graph</code> in <em>entry</em> containing the ordered entries
-              from <em>graphs[subject].nodes</em>.</li>
-          </ol>
-        </li>
-        <li>Return <em>array</em> as the result.</li>
-      </ol>
-    </section>
+<section class="informative">
+  <h4>General Solution</h4>
+  
+  <p>Iterate through each graph in the dataset, converting <tref title="rdf collection">RDF Collections</tref> into a <tref>list</tref> and generating an JSON-LD document in expanded form for all <tref title="RDF literal">RDF literals</tref>, <tref title="IRI">IRIs</tref> and <tref title="blank node identifier">blank node identifiers</tref>.</p>
+</section>
 
-<!-- FIXME -->
-    <section>
-      <h3>Data Round Tripping</h3>
+<section>
+<h2>Algorithm</h2>
 
-      <p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
-        <em>numbers</em> and <em>booleans</em> are automatically coerced to <strong>xsd:integer</strong>,
-        <strong>xsd:double</strong>, or <strong>xsd:boolean</strong>. Implementers MUST ensure that the
-        result is in <tref>canonical lexical form</tref>. A
-        <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
-        a datatype such that there is a one-to-one mapping between the <tref>canonical lexical form</tref> and a value
-        in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every value MUST be converted
-        to a deterministic <tref>string</tref> representation.</p>
+<p>The algorithm takes a single parameter <em>dataSet</em> in the form of an
+  array of an <tref>RDF dataset</tref>.</p>
 
-      <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
-        or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
-        digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
-        To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+<ol class="algorithm">
+  <li id="new_graph">Construct <em>defaultGraph</em> as a
+    <tref>JSON object</tref> containing <em>nodes</em> and <em>listMap</em>,
+    each an empty <tref>JSON object</tref>.</li>
+  <li>Construct <em>graphs</em> as a <tref>JSON object</tref>
+    containing <em>defaultGraph</em> identified by <code>@default</code>.</li>
+  <li>For each <em>graph</em> in <em>dataSet</em>:
+    <ol class="algorithm">
+      <li>If <em>graph</em> is the <tref>default graph</tref>,
+        set <em>name</em> to <code>@default</code>, otherwise to the
+        <tref>graph name</tref> associated with <em>graph</em>.</li>
+      <li>Set <em>graph object</em> to the entry in <em>graphs</em>
+        identified by <em>name</em>, initializing it to a new entry as an empty
+        <tref>JSON object</tref> containing <em>nodes</em> and
+        <em>listMap</em>, each an empty <tref>JSON object</tref>.</li>
+      <li>For each <tref>RDF triple</tref> <em>triple</em> in <em>graph</em>
+        having <em>subject</em>, <em>predicate</em> and <em>object</em>:
+        <ol class="algorithm">
+          <li>If <em>predicate</em> is <code>rdf:first</code>,
+            use the entry in <em>graph.listMap</em> identified by
+            <em>subject</em>, initializing it to a new <tref>JSON object</tref>
+            if nesessary. Represent <em>object</em> in <tref>expanded
+            form</tref>, as described in <a href="#value-expansion">Value
+            Expansion</a>. Add the resulting <em>object representation</em> to
+            the entry indexed by <em>first</em>, and skip to the next
+            <tref>triple</tref>.</li>
+          <li>If <em>predicate</em> is <code>rdf:rest</code>:
+            <ol class="algorithm">
+              <li>If <em>object</em> is a <tref>blank node</tref>,
+                use the entry in <em>graph.listMap</em> identified by
+                <em>subject</em>, initializing it to a new <tref>JSON
+                object</tref> if necessary. Add the <em>nominalValue</em> of
+                <em>object</em> to the entry indexed by <em>rest</em>.
+                <span class="issue">What is <em>nominalValue</em>? Presumably
+                  this references the object in <em>graph.listMap</em>
+                  identified by <em>object</em>.</span></li>
+              <li>Skip to the next <tref>triple</tref>.</li>
+            </ol>
+          </li>
+          <li>If <em>name</em> is not <code>@default</code>,
+            and <em>defaultGraph.nodes</em> does not contain an entry for
+            <em>name</em>, create a new entry for <em>name</em> from a new
+            <tref>JSON object</tref> with key/value pair of <code>@id</code>
+            and <em>name</em> represented in <tref>expanded IRI
+            form</tref>.</li>
+          <li>Set <em>value</em> as the entry from <em>graph.nodes</em> for
+            <em>subject</em>, initializing it to a new <tref>JSON object</tref>
+            with key/value pair of <code>@id</code> and <em>subject</em>
+            represented in <tref>expanded IRI form</tref> if necessary.</li>
+          <li>If <em>predicate</em> is <code>rdf:type</code>, <em>object</em>
+            is not a <tref>JSON-LD value</tref>, and the <code
+            class="idlMemberName"><a
+            href="#widl-JsonLdOptions-useRdfType">useRdfType</a></code> option
+            is not present or <tref>false</tref>:
+            <ol class="algorithm">
+              <li>Append <em>object</em> represented in
+                <tref>expanded IRI form</tref> to the array value for the key
+                <code>@type</code>, creating an entry in <em>value</em> if
+                necessary.</li>
+            </ol>
+          </li>
 
-      <pre class="example" data-transform="updateExample"
-           title="Sample integer serialization implementation in JavaScript">
-      <!--
-      (value).toFixed(0).toString()
-      -->
-      </pre>
+          <li>Otherwise, if <em>object</em> is a <tref>typed value</tref>
+            and the <code class="idlMemberName"><a
+            href="#widl-JsonLdOptions-useNativeTypes">useNativeTypes</a></code>
+            option is set to <tref>true</tref>:
+            <ol class="algorithm">
+              <li>Generate a <em>converted value</em>:
+                <ol class="algorithm">
+                  <li>If the literal's type is <code>xsd:boolean</code>, the
+                    <em>converted value</em> is <tref>true</tref> if the literal
+                    matches the value <code>true</code> or <code>false</code> if
+                    the literal matches the value <code>false</code>.</li>
+                  <li>If the literal's type is <code>xsd:integer</code> or
+                    <code>xsd:double</code>, try to convert the literal to a
+                    JSON <tref>number</tref>. If the conversion is successful,
+                    store the result in <em>converted value</em>, otherwise
+                    set <em>converted value</em> to <em>value</em>.</li>
+                  <li>Otherwise, do not perform a conversion. Set
+                    the <em>converted value</em> to the <em>value</em>.</li>
+                </ol>
+              </li>
+              <li>Append the <em>converted value</em> to the array value for the
+                key, creating an entry in <em>value</em> if necessary.</li>
+            </ol>
+          </li>
 
-      <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
-        or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
-        character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
-        MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
-        in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
-        For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
-        required. Leading and trailing zeroes are prohibited subject to the following: number
-        representations must be normalized such that there is a single digit which is non-zero to the
-        left of the decimal point and at least a single digit to the right of the decimal point unless
-        the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
-        <strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
-        floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
-        decimal point.</p>
+          <li>Otherwise, if <em>object</em> is <code>rdf:nil</code>:
+            <ol class="algorithm">
+              <li>Let <em>key</em> be <em>predicate</em>
+                expressed in <tref>expanded IRI form</tref>.</li>
+              <li>Append an empty <code>@list</code> representation
+                to the array value for <em>key</em>, creating an entry in
+                <em>value</em> if necessary.</li>
+            </ol>
+          </li>
+          <li>Otherwise,
+            <ol class="algorithm">
+              <li>Let <em>key</em> be <em>predicate</em>
+                expressed in <tref>expanded IRI form</tref> and let <em>object
+                representation</em> be <em>object</em> represented in
+                <tref>expanded form</tref> as described in <a
+                href="#value-expansion">Value Expansion</a>.</li>
+              <li>If <em>object</em> is a <tref>blank node</tref>,
+                use the entry in <em>graph.listMap</em> indexed by
+                <em>object</em>, initializing it to a new <tref>JSON
+                object</tref> if nesessary. Add an entry for <em>head</em> with
+                <em>object representation</em>.</li>
+              <li>Append <em>object representation</em> to the array value for
+                <em>key</em>, creating an entry in <em>value</em> if
+                necessary.</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>For each <em>name</em> and <em>graph object</em> in <em>graphs</em>:
+    <ol class="algorithm">
+      <li>For each <em>subject</em> and <em>entry</em> in <em>graph object</em>
+        where <em>entry</em> has both <em>head</em> and <em>first</em> keys:
+        <ol class="algorithm">
+          <li>Set <em>value</em> to the value of <em>head</em> in <em>entry</em>.</li>
+          <li>Remove the entry for <code>@id</code> in <em>value</em>.</li>
+          <li>Add an entry to <em>value</em> for <code>@list</code> initialized to a new array
+            containing the value of <em>first</em> from <em>entry</em>.</li>
+          <li>While <em>entry</em> has a key for <em>rest</em>:
+            <ol class="algorithm">
+              <li>Set <em>entry</em> to the value of <em>graph.listMap</em> for <em>entry.rest</em>.</li>
+              <li>Add the value for <em>entry.first</em> to the list array.</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>Create <em>array</em> as an empty <tref>array</tref>.</li>
+  <li>For each <em>subject</em> and <em>entry</em> in <em>defaultGraph.nodes</em>
+    ordered by <em>subject</em>:
+    <ol class="algorithm">
+      <li>Add <em>entry</em> to <em>array</em>.</li>
+      <li>If <em>graphs</em> has an entry for <em>subject</em>, add a property
+        <code>@graph</code> in <em>entry</em> containing the ordered entries
+        from <em>graphs[subject].nodes</em>.</li>
+    </ol>
+  </li>
+  <li>Return <em>array</em> as the result.</li>
+</ol>
+</section>
+</section> <!-- Convert from RDF algorithm -->
 
-      <p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+<section>
+  <h3>Data Round Tripping</h3>
 
-      <pre class="example" data-transform="updateExample"
-           title="Sample floating point number serialization implementation in JavaScript">
-      <!--
-      (value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
-      -->
-      </pre>
+  <p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
+    <em>numbers</em> and <em>booleans</em> are automatically coerced to <strong>xsd:integer</strong>,
+    <strong>xsd:double</strong>, or <strong>xsd:boolean</strong>. Implementers MUST ensure that the
+    result is in <tref>canonical lexical form</tref>. A
+    <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
+    a datatype such that there is a one-to-one mapping between the <tref>canonical lexical form</tref> and a value
+    in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every value MUST be converted
+    to a deterministic <tref>string</tref> representation.</p>
 
-      <p class="note">When data such as decimals need to be normalized, JSON-LD authors should
-        not use values that are going to undergo automatic conversion. This is due to the lossy nature
-        of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
-        set the canonical lexical form directly.</p>
+  <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
+    or a number coerced to <strong>xsd:integer</strong>, is a finite-length sequence of decimal
+    digits (<code>0-9</code>) with an optional leading minus sign; leading zeroes are prohibited.
+    To convert the number in JavaScript, implementers can use the following snippet of code:</p>
 
-      <p>The canonical lexical form of the <em>boolean</em> values <code>true</code> and <code>false</code>
-        are the strings <strong>true</strong> and <strong>false</strong>.</p>
+  <pre class="example" data-transform="updateExample"
+       title="Sample integer serialization implementation in JavaScript">
+  <!--
+  (value).toFixed(0).toString()
+  -->
+  </pre>
 
-      <p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
-        be guaranted as rounding errors might occur. Additionally, only literals typed as
-        <strong>xsd:integer</strong>, <strong>xsd:double</strong>, and  <strong>xsd:boolean</strong> are
-        automatically converted back to their JSON-native counterparts in when
-        <a href="#rdf-conversion">converting from RDF</a>.</p>
+  <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
+    or a number coerced to <strong>xsd:double</strong>, consists of a mantissa followed by the
+    character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
+    MUST be an integer. Leading zeroes and a preceding plus sign (<code>+</code>) are prohibited
+    in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
+    For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
+    required. Leading and trailing zeroes are prohibited subject to the following: number
+    representations must be normalized such that there is a single digit which is non-zero to the
+    left of the decimal point and at least a single digit to the right of the decimal point unless
+    the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
+    <strong>xsd:double</strong>'s value space is defined by the IEEE double-precision 64-bit
+    floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
+    decimal point.</p>
 
-      <p>Some JSON serializers, such as PHP's native implementation in some versions,
-        backslash-escape the forward slash character. For example, the value
-        <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
-        This is problematic as other JSON parsers might not understand those escaping characters.
-        There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
-        between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
-    </section>
+  <p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample floating point number serialization implementation in JavaScript">
+  <!--
+  (value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
+  -->
+  </pre>
+
+  <p class="note">When data such as decimals need to be normalized, JSON-LD authors should
+    not use values that are going to undergo automatic conversion. This is due to the lossy nature
+    of <strong>xsd:double</strong> values. Authors should instead use the expanded object form to
+    set the canonical lexical form directly.</p>
+
+  <p>The canonical lexical form of the <em>boolean</em> values <code>true</code> and <code>false</code>
+    are the strings <strong>true</strong> and <strong>false</strong>.</p>
+
+  <p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
+    be guaranted as rounding errors might occur. Additionally, only literals typed as
+    <strong>xsd:integer</strong>, <strong>xsd:double</strong>, and  <strong>xsd:boolean</strong> are
+    automatically converted back to their JSON-native counterparts in when
+    <a href="#rdf-conversion">converting from RDF</a>.</p>
+
+  <p>Some JSON serializers, such as PHP's native implementation in some versions,
+    backslash-escape the forward slash character. For example, the value
+    <code>http://example.com/</code> would be serialized as <code>http:\/\/example.com\/</code>.
+    This is problematic as other JSON parsers might not understand those escaping characters.
+    There is no need to backslash-escape forward slashes in JSON-LD. To aid interoperability
+    between JSON-LD processors, a JSON-LD serializer MUST NOT backslash-escape forward slashes.</p>
+</section>
 
 <!-- end of Algorithms -->
 </section>
