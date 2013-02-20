@@ -4,7 +4,7 @@
  * @author Manu Sporny <msporny@digitalbazaar.com>
  * @author Dave Longley <dlongley@digitalbazaar.com>
  *
- * Copyright (c) 2011-2012 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2011-2013 Digital Bazaar, Inc. All rights reserved.
  */
 (function() {
 
@@ -61,7 +61,7 @@ function iriToTurtle(iri) {
  * @return the string representation of the object.
  */
 function objectToString(obj) {
-  var rval;
+  var rval = '';
 
   if(obj instanceof Array) {
     // if the object is an array, convert each object in the list

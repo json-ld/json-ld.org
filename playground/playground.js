@@ -242,7 +242,6 @@
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/nquads';
-      options.collate = true;
       jsonld.toRDF(input, options, function(err, nquads) {
         if(err) {
           return callback(err);
