@@ -2173,6 +2173,11 @@ Processor.prototype.normalize = function(dataset, options, callback) {
   function createArray() {
     var normalized = [];
 
+    /* Note: At this point all bnodes in the set of RDF quads have been
+     assigned canonical names, which have been stored in the 'namer' object.
+     Here each quad is updated by assigning each of its bnodes its new name
+     via the 'namer' object. */
+
     // update bnode names in each quad and serialize
     for(var i = 0; i < quads.length; ++i) {
       var quad = quads[i];
@@ -2345,7 +2350,7 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
   var output = [];
   var subjects = defaultGraph.subjects;
   var ids = Object.keys(subjects).sort();
-  for(var i in ids) {
+  for(var i = 0; i < ids.length; ++i) {
     var id = ids[i];
 
     // add subject to default graph
@@ -2355,10 +2360,10 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
     // output named graph in subject @id order
     if(id in graphs) {
       var graph = subject['@graph'] = [];
-      var _subjects = graphs[id].subjects;
-      var _ids = Object.keys(_subjects).sort();
-      for(var _i in _ids) {
-        graph.push(_subjects[_ids[_i]]);
+      var subjects_ = graphs[id].subjects;
+      var ids_ = Object.keys(subjects_).sort();
+      for(var i_ = 0; i_ < ids_.length; ++i_) {
+        graph.push(subjects_[ids_[i_]]);
       }
     }
   }
@@ -2645,11 +2650,14 @@ function _graphToRDF(graph, namer) {
   for(var id in graph) {
     var node = graph[id];
     for(var property in node) {
-      if(property !== '@type' && _isKeyword(property)) {
+      var items = node[property];
+      if(property === '@type') {
+        property = RDF_TYPE;
+      }
+      else if(_isKeyword(property)) {
         continue;
       }
 
-      var items = node[property];
       for(var i = 0; i < items.length; ++i) {
         var item = items[i];
 
@@ -2666,7 +2674,7 @@ function _graphToRDF(graph, namer) {
 
         // RDF predicate
         var predicate = {type: 'IRI'};
-        predicate.value = (property === '@type') ? RDF_TYPE : property;
+        predicate.value = property;
 
         // convert @list to triples
         if(_isList(item)) {
@@ -2699,15 +2707,15 @@ function _listToRDF(list, namer, subject, predicate, triples) {
   var rest = {type: 'IRI', value: RDF_REST};
   var nil = {type: 'IRI', value: RDF_NIL};
 
-  for(var vi = 0; vi < list.length; ++vi) {
-    var value = list[vi];
+  for(var i = 0; i < list.length; ++i) {
+    var item = list[i];
 
     var blankNode = {type: 'blank node', value: namer.getName()};
     triples.push({subject: subject, predicate: predicate, object: blankNode});
 
     subject = blankNode;
     predicate = first;
-    var object = _objectToRDF(value, namer);
+    var object = _objectToRDF(item, namer);
     triples.push({subject: subject, predicate: predicate, object: object});
 
     predicate = rest;
@@ -2761,9 +2769,7 @@ function _objectToRDF(item, namer) {
   // convert string/node object to RDF
   else {
     var id = _isObject(item) ? item['@id'] : item;
-
-    var isBnode = (id.indexOf('_:') === 0);
-    if(isBnode) {
+    if(id.indexOf('_:') === 0) {
       object.type = 'blank node';
       object.value = namer.getName(id);
     }
@@ -2790,7 +2796,7 @@ function _RDFToObject(o, useNativeTypes) {
     return {'@list': []};
   }
 
-  // convert IRI/BlankNode object to JSON-LD
+  // convert IRI/blank node object to JSON-LD
   if(o.type === 'IRI' || o.type === 'blank node') {
     return {'@id': o.value};
   }
@@ -2805,8 +2811,8 @@ function _RDFToObject(o, useNativeTypes) {
   // add datatype
   else {
     var type = o.datatype;
+    // use native types for certain xsd types
     if(useNativeTypes) {
-      // use native types for certain xsd types
       if(type === XSD_BOOLEAN) {
         if(rval['@value'] === 'true') {
           rval['@value'] = true;
@@ -4729,6 +4735,12 @@ function _getInitialContext(options) {
     child.share = this.share;
     child.inverse = null;
     child.getInverse = this.getInverse;
+    if('@language' in this) {
+      child['@language'] = this['@language'];
+    }
+    if('@vocab' in this) {
+      child['@vocab'] = this['@vocab'];
+    }
     return child;
   }
 
@@ -4752,6 +4764,12 @@ function _getInitialContext(options) {
     rval.share = this.share;
     rval.inverse = this.inverse;
     rval.getInverse = this.getInverse;
+    if('@language' in this) {
+      rval['@language'] = this['@language'];
+    }
+    if('@vocab' in this) {
+      rval['@vocab'] = this['@vocab'];
+    }
     return rval;
   }
 }
@@ -5353,18 +5371,13 @@ function _parseNQuads(input) {
       triple.object.value = unescaped;
     }
 
-    // get graph name
-    var name = null;
+    // get graph name ('@default' is used for the default graph)
+    var name = '@default';
     if(!_isUndefined(match[9])) {
       name = match[9];
     }
     else if(!_isUndefined(match[10])) {
       name = match[10];
-    }
-
-    // use '@default' key for default graph in dataset
-    if(name === null) {
-      name = '@default';
     }
 
     // initialize graph in dataset
@@ -5447,7 +5460,7 @@ function _toNQuad(triple, graphName, bnode) {
     quad += s.value;
   }
 
-  // property is always an IRI
+  // predicate is always an IRI
   quad += ' <' + p.value + '> ';
 
   // object is IRI, bnode, or literal
