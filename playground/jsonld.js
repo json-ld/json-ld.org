@@ -52,22 +52,20 @@ var wrapper = function(jsonld) {
  * @param [options] options to use:
  *          [base] the base IRI to use.
  *          [strict] use strict mode (default: true).
- *          [optimize] true to optimize the compaction (default: false).
+ *          [compactArrays] true to compact arrays to single values when
+ *            appropriate, false not to (default: true).
  *          [graph] true to always output a top-level graph (default: false).
  *          [skipExpansion] true to assume the input is expanded and skip
  *            expansion, false not to, defaults to false.
  *          [loadContext(url, callback(err, url, result))] the context loader.
  * @param callback(err, compacted, ctx) called once the operation completes.
  */
-jsonld.compact = function(input, ctx) {
+jsonld.compact = function(input, ctx, options, callback) {
   // get arguments
-  var options = {};
-  var callbackArg = 2;
-  if(arguments.length > 3) {
-    options = arguments[2] || {};
-    callbackArg += 1;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
   }
-  var callback = arguments[callbackArg];
 
   // nothing to compact
   if(input === null) {
@@ -81,8 +79,8 @@ jsonld.compact = function(input, ctx) {
   if(!('strict' in options)) {
     options.strict = true;
   }
-  if(!('optimize' in options)) {
-    options.optimize = false;
+  if(!('compactArrays' in options)) {
+    options.compactArrays = true;
   }
   if(!('graph' in options)) {
     options.graph = false;
@@ -119,11 +117,6 @@ jsonld.compact = function(input, ctx) {
       }
 
       try {
-        // create optimize context
-        if(options.optimize) {
-          options.optimizeCtx = {};
-        }
-
         // do compaction
         var compacted = new Processor().compact(
           activeCtx, null, expanded, options);
@@ -141,7 +134,7 @@ jsonld.compact = function(input, ctx) {
       return callback(err);
     }
 
-    if(!options.graph && _isArray(compacted)) {
+    if(options.compactArrays && !options.graph && _isArray(compacted)) {
       // simplify to a single item
       if(compacted.length === 1) {
         compacted = compacted[0];
@@ -165,10 +158,6 @@ jsonld.compact = function(input, ctx) {
     ctx = _clone(ctx);
     if(!_isArray(ctx)) {
       ctx = [ctx];
-    }
-    // add optimize context
-    if(options.optimizeCtx) {
-      ctx.push(options.optimizeCtx);
     }
     // remove empty contexts
     var tmp = ctx;
@@ -351,7 +340,6 @@ jsonld.flatten = function(input, ctx, options, callback) {
  *          [embed] default @embed flag (default: true).
  *          [explicit] default @explicit flag (default: false).
  *          [omitDefault] default @omitDefault flag (default: false).
- *          [optimize] optimize when compacting (default: false).
  *          [loadContext(url, callback(err, url, result))] the context loader.
  * @param callback(err, framed) called once the operation completes.
  */
@@ -377,7 +365,6 @@ jsonld.frame = function(input, frame) {
   }
   options.explicit = options.explicit || false;
   options.omitDefault = options.omitDefault || false;
-  options.optimize = options.optimize || false;
 
   // preserve frame context
   var ctx = frame['@context'] || {};
@@ -420,7 +407,7 @@ jsonld.frame = function(input, frame) {
         // get graph alias
         var graph = _compactIri(ctx, '@graph');
         // remove @preserve from results
-        compacted[graph] = _removePreserve(ctx, compacted[graph]);
+        compacted[graph] = _removePreserve(ctx, compacted[graph], opts);
         callback(null, compacted);
       });
     });
@@ -483,7 +470,7 @@ jsonld.objectify = function(input, ctx) {
       // get graph alias
       var graph = _compactIri(ctx, '@graph');
       // remove @preserve from results (named graphs?)
-      compacted[graph] = _removePreserve(ctx, compacted[graph]);
+      compacted[graph] = _removePreserve(ctx, compacted[graph], options);
 
       var top = compacted[graph][0];
 
@@ -1398,7 +1385,7 @@ Processor.prototype.compact = function(
         rval.push(compacted);
       }
     }
-    if(rval.length === 1) {
+    if(options.compactArrays && rval.length === 1) {
       // use single element if no container is specified
       var container = jsonld.getContextValue(
         activeCtx, activeProperty, '@container');
@@ -1576,9 +1563,11 @@ Processor.prototype.compact = function(
           jsonld.addValue(mapObject, expandedItem[container], compactedItem);
         }
         else {
-          // use an array if: @container is @set or @list , value is an empty
+          // use an array if: compactArrays flag is false,
+          // @container is @set or @list , value is an empty
           // array, or key is @graph
-          var isArray = (container === '@set' || container === '@list' ||
+          var isArray = (!options.compactArrays || container === '@set' ||
+            container === '@list' ||
             (_isArray(compactedItem) && compactedItem.length === 0) ||
             expandedProperty === '@list' || expandedProperty === '@graph');
 
@@ -3594,15 +3583,16 @@ function _addFrameOutput(state, parent, property, output) {
  *
  * @param ctx the active context used to compact the input.
  * @param input the framed, compacted output.
+ * @param options the compaction options used.
  *
  * @return the resulting output.
  */
-function _removePreserve(ctx, input) {
+function _removePreserve(ctx, input, options) {
   // recurse through arrays
   if(_isArray(input)) {
     var output = [];
     for(var i in input) {
-      var result = _removePreserve(ctx, input[i]);
+      var result = _removePreserve(ctx, input[i], options);
       // drop nulls from arrays
       if(result !== null) {
         output.push(result);
@@ -3626,15 +3616,16 @@ function _removePreserve(ctx, input) {
 
     // recurse through @lists
     if(_isList(input)) {
-      input['@list'] = _removePreserve(ctx, input['@list']);
+      input['@list'] = _removePreserve(ctx, input['@list'], options);
       return input;
     }
 
     // recurse through properties
     for(var prop in input) {
-      var result = _removePreserve(ctx, input[prop]);
+      var result = _removePreserve(ctx, input[prop], options);
       var container = jsonld.getContextValue(ctx, prop, '@container');
-      if(_isArray(result) && result.length === 1 && container === null) {
+      if(options.compactArrays && _isArray(result) && result.length === 1 &&
+        container === null) {
         result = result[0];
       }
       input[prop] = result;
