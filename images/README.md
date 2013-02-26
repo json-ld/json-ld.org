@@ -28,3 +28,11 @@ To create multi-size ../favicon.ico:
     # go to File > Open as Layers...
     # select the 32 and 16 files
     # export to favicon.ico
+
+Editing
+-------
+
+If you use Inkscape to edit the SVGs, you may want to check if your
+saved files have Inkscape cruft in them. You can clean things up with:
+
+    $ inkscape --export-plain-svg=output.svg input.svg
