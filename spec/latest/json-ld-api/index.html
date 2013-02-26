@@ -1792,9 +1792,13 @@ the result is not an <tref>array</tref>, then set the result to an
 
     <p>In order to expand <em>value</em> to an <tref>absolute IRI</tref>, we must
       first determine if it is <tref>null</tref>, a <tref>term</tref>, a
-      <tref>keyword</tref>, or some form of <tref>IRI</tref>. While inspecting
-      <em>value</em> we may also find that we need to create
-      <tref>term definition</tref> dependencies because we're running this
+      <tref>keyword</tref> alias, or some form of <tref>IRI</tref>. Based on what
+      we find, we handle the specific kind of expansion; for example, we expand
+      a <tref>keyword</tref> alias to a <tref>keyword</tref> and a <tref>term</tref>
+      to an <tref>absolute IRI</tref> according to its <tref>IRI mapping</tref>
+      in the <tref>active context</tref>. While inspecting <em>value</em> we
+      may also find that we need to create <tref>term definition</tref>
+      dependencies because we're running this
       algorithm during <a href="#context-processing">Context Processing</a>. We can
       tell whether or not we're running during
       <a href="#context-processing">Context Processing</a> by checking
@@ -1809,37 +1813,6 @@ the result is not an <tref>array</tref>, then set the result to an
       in the process of being defined. We create a
       <tref>term definition</tref> by using the
       <a href="#create-term-definition-subalgorithm">Create Term Definition</a> subalgorithm.</p>
-
-    <p>To begin, we handle the simplest case, where <em>value</em> is
-      <tref>null</tref> or a <tref>keyword</tref>. Here all we do is return
-      <em>value</em> as is as there is nothing to expand.</p>
-
-    <p>Next, we create a <tref>term definition</tref> for <em>value</em> if
-      we need to. This ensures that when we look in the <tref>active context</tref>,
-      any information associated with <em>value</em> will be ready.</p>
-
-    <p>Now, if <em>value</em> is relative to the <tref>vocabulary mapping</tref>
-      in <tref>active context</tref>, then we try to interpret it as a
-      <tref>term</tref>, expanding if it has an <tref>IRI mapping</tref>
-      in the <tref>active context</tref>.</p>
-
-    <p>Otherwise, if <em>value</em> has a colon (<code>:</code>) it may be
-      a <tref>compact IRI</tref> having the form
-      <tref>prefix</tref>:<em>suffix</em>. If so, we first create a
-      <tref>term definition</tref> for its <tref>prefix</tref> if it appears in
-      the <tref>local context</tref>, and then we expand <em>value</em> using the
-      associated <tref>IRI mapping</tref> and concatenating <em>suffix</em>.</p>
-
-    <p>At this point, if our expanded <em>value</em> is a <tref>keyword</tref>,
-      we return it. If it is a <tref>blank node identifier</tref> we relabel it by
-      setting it to the result of the
-      <a href="#generate-blank-node-identifier">Generate Blank Node Identifier</a>
-      algorithm. Otherwise, if it is not an <tref>absolute IRI</tref>, we resolve
-      it against either the <tref title="active context">active context's</tref>
-      <tref>vocabulary mapping</tref> or the document base, given the
-      <em>vocabRelative</em> and <em>documentRelative</em> flag values and
-      the existence of a <tref>vocabulary mapping</tref>. Then we return
-      the expanded <em>value</em>.</p>
   </section>
 
   <section>
