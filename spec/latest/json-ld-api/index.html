@@ -831,7 +831,8 @@
     Each time we dereference a remote <tref>context</tref>, we store its result
     in our map and then recursively search it for more remote
     <tref title="IRI">contexts</tref> as above, checking to ensure there is no
-    cyclical reference, which is an error.</p>
+    cyclical reference, which is a
+    <code class="error">recursive context inclusion</code> error.</p>
 
   <p>Once all of the remote <tref title="IRI">contexts</tref> have been
     dereferenced, we replace all of their associated <tref>context</tref>
@@ -957,8 +958,9 @@ an <tref>active context</tref> and a <tref>local context</tref>.</p>
       <li>
         At this point, <em>context</em> MUST be a <tref>JSON object</tref>
         because all remote <tref title="context">contexts</tref> have already
-        been dereferenced. Otherwise, an invalid value has been detected,
-        which is an error.
+        been dereferenced. Otherwise, an
+        <code class="error">invalid local context</code> error has been
+        detected.
       </li>
       <li>
         Create a <tref>JSON object</tref> <em>defined</em> to use to keep
@@ -977,10 +979,10 @@ an <tref>active context</tref> and a <tref>local context</tref>.</p>
             any <tref>vocabulary mapping</tref> from <em>result</em>.
           </li>
           <li>
-            Otherwise, <em>value</em> MUST be an <tref>absolute IRI</tref>.
-            Otherwise, an invalid value has been detected, which is an error.
-            Set <em>result</em>'s <tref>vocabulary mapping</tref> to
-            <em>value</em>.
+            Otherwise, <em>value</em> MUST be an <tref>absolute IRI</tref>,
+            if not, an <code class="error">invalid vocab mapping</code>
+            error has been detected. Set <em>result</em>'s
+            <tref>vocabulary mapping</tref> to <em>value</em>.
           </li>
           <li>
             Set <em>defined</em>'s <code>@vocab</code> key to
@@ -1000,10 +1002,10 @@ an <tref>active context</tref> and a <tref>local context</tref>.</p>
             any <tref>default language</tref> from <em>result</em>.
           </li>
           <li>
-            Otherwise, <em>value</em> MUST be a <tref>string</tref>.
-            Otherwise, an invalid value has been detected, which is an error.
-            Set <em>result</em>'s <tref>default language</tref> to
-            lowercased <em>value</em>.
+            Otherwise, <em>value</em> MUST be a <tref>string</tref>, if not,
+            an <code class="error">invalid default language</code> error
+            has been detected. Set <em>result</em>'s
+            <tref>default language</tref> to lowercased <em>value</em>.
           </li>
           <li>
             Set <em>defined</em>'s <code>@language</code> key to
@@ -1093,8 +1095,8 @@ a <em>term</em>, and a map <em>defined</em>.
     If <em>defined</em> contains the key <em>term</em>, then the associated
     value MUST be <tref>true</tref>, indicating that the
     <tref>term definition</tref> has already been created, so return.
-    Otherwise, a cyclical <tref>term definition</tref> has been detected,
-    which is an error.
+    Otherwise, a <code class="error">cyclic IRI mapping</code> error has been
+    detected.
   </li>
   <li>
     Set the value associated with <em>defined</em>'s <em>term</em> key to
@@ -1103,8 +1105,8 @@ a <em>term</em>, and a map <em>defined</em>.
   </li>
   <li>
     Since <tref title="keyword">keywords</tref> cannot be overridden,
-    <em>term</em> MUST NOT be a <tref>keyword</tref>. Otherwise, an
-    invalid value has been detected, which is an error.
+    <em>term</em> MUST NOT be a <tref>keyword</tref>. Otherwise, a
+    <code class="error">keyword redefinition</code> error has been detected.
   </li>
   <li>
     Remove any existing <tref>term definition</tref> for <em>term</em> in
@@ -1135,12 +1137,13 @@ a <em>term</em>, and a map <em>defined</em>.
       </li>
       <li>
         If <em>value</em> is a <tref>keyword</tref>, then <em>value</em>
-        MUST NOT be <code>@context</code>. Otherwise an invalid
-        keyword alias has been detected, which is an error. Add <em>term</em>
-        to <tref>active context</tref> as a <tref>keyword</tref> alias for
-        <em>value</em>. If there is more than one <tref>keyword</tref> alias
-        for <em>value</em>, then store its aliases as an <tref>array</tref>,
-        sorted by length, breaking ties lexicographically.
+        MUST NOT be <code>@context</code>, if it is, an
+        <code class="error">invalid keyword alias</code> error has been
+        detected. Add <em>term</em> to <tref>active context</tref> as a
+        <tref>keyword</tref> alias for <em>value</em>. If there is more than
+        one <tref>keyword</tref> alias for <em>value</em>, then store its
+        aliases as an <tref>array</tref>, sorted by length, breaking ties
+        lexicographically.
       </li>
       <li>
         Set the <tref>IRI mapping</tref> for the <tref>term definition</tref>
@@ -1151,8 +1154,8 @@ a <em>term</em>, and a map <em>defined</em>.
     </ol>
   </li>
   <li>
-    Otherwise, <em>value</em> MUST be a <tref>JSON object</tref>, otherwise
-    an invalid value has been detected, which is an error.
+    Otherwise, <em>value</em> MUST be a <tref>JSON object</tref>, if not,
+    an <code>invalid term definition</code> error has been detected.
   </li>
   <li>
     Create a new <tref>JSON object</tref>, <em>definition</em>.
@@ -1183,8 +1186,9 @@ a <em>term</em>, and a map <em>defined</em>.
               </li>
               <li>
                 <em>iri</em> MUST be a <tref>string</tref> and MUST not be
-                a <tref>keyword</tref>, otherwise an invalid value has
-                been detected, which is an error.
+                a <tref>keyword</tref>, otherwise an
+                <code class="error">invalid property generator</code>
+                error has been detected.
               </li>
               <li>
                 Append <em>iri</em> to <em>property generator</em>.
@@ -1199,9 +1203,9 @@ a <em>term</em>, and a map <em>defined</em>.
         </ol>
       </li>
       <li>
-        Otherwise <em>id</em> MUST be a <tref>string</tref>, otherwise
-        an invalid value has been detected, which is an error. Set the
-        <tref>IRI mapping</tref> for <em>definition</em>
+        Otherwise <em>id</em> MUST be a <tref>string</tref>, if not,
+        an <code class="error">invalid IRI mapping</code> error has been
+        detected. Set the <tref>IRI mapping</tref> for <em>definition</em>
         to the result of using the
         <a href="#iri-expansion">IRI Expansion</a> algorithm, passing
         <tref>active context</tref>, <em>id</em> for <em>value</em>,
@@ -1236,8 +1240,9 @@ a <em>term</em>, and a map <em>defined</em>.
   </li>
   <li>
     Otherwise, <tref>active context</tref> MUST have a
-    <tref>vocabulary mapping</tref>, otherwise an invalid value has
-    been detected, which is an error. Set the <tref>IRI mapping</tref>
+    <tref>vocabulary mapping</tref>, if not, an
+    <code class="error">invalid IRI mapping</code> error
+    been detected. Set the <tref>IRI mapping</tref>
     for <em>definition</em> to the result of concatenating the value
     associated with the <tref>vocabulary mapping</tref> and <em>term</em>.
   </li>
@@ -1247,7 +1252,8 @@ a <em>term</em>, and a map <em>defined</em>.
       <li>
         Initialize <em>type</em> to the value associated with the
         <code>@type</code> key, which MUST be a <tref>string</tref>.
-        Otherwise, an invalid value has been detected, which is an error.
+        Otherwise, an <code class="error">invalid type mapping</code> error
+        has been detected.
       </li>
       <li>
         If <em>type</em> is not <code>@id</code> then set it to
@@ -1268,8 +1274,9 @@ a <em>term</em>, and a map <em>defined</em>.
         Initialize <em>container</em> to the value associated with the
         <code>@container</code> key, which MUST be either:
         <code>@list</code>, <code>@set</code>, <code>@index</code>,
-        or <code>@language</code>. Otherwise, an invalid value has been
-        detected, which is an error.
+        or <code>@language</code>. Otherwise, an
+        <code class="error">invalid container mapping</code> error
+        has been detected.
       </li>
       <li>
         Set the <tref>container mapping</tref> for <em>definition</em> to
@@ -1284,8 +1291,9 @@ a <em>term</em>, and a map <em>defined</em>.
       <li>
         Initialize <em>language</em> to the value associated with the
         <code>@language</code> key, which MUST be either <tref>null</tref>
-        or a <tref>string</tref>. Otherwise, an invalid value has been
-        detected, which is an error.
+        or a <tref>string</tref>. Otherwise, an
+        <code class="error">invalid language mapping</code> error has been
+        detected.
       </li>
       <li>
         If <em>language</em> is a <tref>string</tref> set it to
@@ -1406,8 +1414,8 @@ definitions have been removed, all <tref title="term">terms</tref> and
           <li>
             If <em>insideList</em> is <tref>true</tref> then
             <em>expanded item</em> MUST NOT be an <tref>array</tref> or a
-            <tref>list object</tref>, otherwise a list of lists has been
-            detected, which is an error.
+            <tref>list object</tref>, otherwise a
+            <code class="error">list of lists</code> error has been detected.
           </li>
           <li>
             If <em>expanded item</em> is an <tref>array</tref>, append each
@@ -1467,36 +1475,42 @@ definitions have been removed, all <tref title="term">terms</tref> and
           <li>
             If <em>expanded property</em> is <code>@id</code> then
             <em>value</em> MUST be a <tref>string</tref>, otherwise
-            an invalid value has been detected, which is an error.
+            an <code class="error">invalid @id value</code> error has been
+            detected.
           </li>
           <li>
             If <em>expanded property</em> is <code>@type</code> then
             <em>value</em> MUST be a <tref>string</tref> or an <tref>array</tref>
-            of strings, otherwise an invalid value has been detected, which
-            is an error.
+            of strings, otherwise an
+            <code class="error">invalid type value</code> error has been
+            detected.
           </li>
           <li>
             If <em>expanded property</em> is <code>@graph</code> then
             <em>value</em> MUST be a <tref>JSON object</tref> or an
-            <tref>array</tref>, otherwise an invalid value has been
-            detected, which is an error.
+            <tref>array</tref>, otherwise an
+            <code class="error">invalid @graph value</code> error has been
+            detected.
           </li>
           <li>
             If <em>expanded property</em> is <code>@value</code> then
             <em>value</em> MUST NOT be a <tref>JSON object</tref> or
-            an <tref>array</tref>, otherwise an invalid value has been
-            detected, which is an error.
+            an <tref>array</tref>, otherwise an
+            <code class="error">invalid value object value</code> error
+            has been detected.
           </li>
           <li>
             If <em>expanded property</em> is <code>@language</code> then
             <em>value</em> MUST be a <tref>string</tref>, otherwise an
-            invalid value has been detected, which is an error. Set
-            <em>expanded value</em> to lowercased <em>value</em>.
+            <code class="error">invalid language tagged string</code> error
+            has been detected. Set <em>expanded value</em> to lowercased
+            <em>value</em>.
           </li>
           <li>
             If <em>expanded property</em> is <code>@index</code>
             then <em>value</em> MUST be a <tref>string</tref>, otherwise an
-            invalid value has been detected, which is an error.
+            <code class="error">invalid @index value</code> error has been
+            detected.
           </li>
         </ol>
       </li>
@@ -1525,8 +1539,9 @@ definitions have been removed, all <tref title="term">terms</tref> and
                 <ol class="algorithm">
                   <li>
                     <em>item</em> MUST be a <tref>string</tref>,
-                    otherwise an invalid value has been detected,
-                    which is an error.
+                    otherwise an
+                    <code class="error">invalid language map value</code>
+                    error has been detected.
                   </li>
                   <li>
                     Append a <tref>JSON object</tref> to
@@ -1598,8 +1613,8 @@ definitions have been removed, all <tref title="term">terms</tref> and
         <code>@list</code> otherwise <tref>false</tref>.
         If <em>expanded property</em> is <code>@list</code>
         then <em>expanded value</em> MUST NOT be a
-        <tref>list object</tref>, otherwise a list of lists has been
-        detected, which is an error.
+        <tref>list object</tref>, otherwise a
+        <code class="error">list of lists</code> error has been detected.
       </li>
       <li>
         Otherwise, initialize <em>expanded value</em> to the result of
@@ -1673,7 +1688,8 @@ definitions have been removed, all <tref title="term">terms</tref> and
         <code>@value</code>, <code>@language</code>, <code>@type</code>,
         and <code>@index</code>. It MUST NOT contain both the
         <code>@language</code> key and the <code>@type</code> key.
-        Otherwise, an invalid value has been detected, which is an error.
+        Otherwise, an <code class="error">invalid value object</code> error
+        has been detected.
       </li>
       <li>
         If the value of <em>result</em>'s <code>@value</code> key is
@@ -1698,8 +1714,9 @@ definitions have been removed, all <tref title="term">terms</tref> and
     <ol class="algorithm">
       <li>
         The <em>result</em> MUST contain at most one other key and that
-        key MUST be <code>@index</code>. Otherwise, an invalid
-        value has been detected, which is an error.
+        key MUST be <code>@index</code>. Otherwise, an
+        <code class="error">invalid set or list object</code> error
+        has been detected.
       </li>
       <li>
         If <em>result</em> contains the key <code>@set</code>, then
@@ -1867,7 +1884,9 @@ the result is not an <tref>array</tref>, then set the result to an
           <li>If <tref>local context</tref> is not <tref>null</tref> then
             <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
             for <em>value</em> that is a <tref>property generator</tref>.
-            Otherwise, an invalid error has been detected, which is an error.</li>
+            Otherwise, a
+            <code class="error">property generator in term definition</code>
+            error has been detected.</li>
           <li>If <em>value</em> has a <tref>null</tref> mapping in
             <tref>active context</tref>, then return <tref>null</tref> which
             has the effect of explicitly dropping <em>value</em>.</li>
@@ -1929,9 +1948,10 @@ the result is not an <tref>array</tref>, then set the result to an
         IRI references are treated in the same way that unreserved characters
         are treated in URI references, per section 6.5 of [[RFC3987]].</li>
       <li>If <tref>local context</tref> is not <tref>null</tref> then
-        <em>result</em> MUST be an <tref>absolute IRI</tref>. Otherwise,
-        an invalid context value has been detected, which is an error. Return
-        <em>result</em>.</li>
+        <em>result</em> MUST be an <tref>absolute IRI</tref>, if not,
+        an <code class="error">invalid IRI mapping</code> error has been
+        detected.</li>
+      <li>Return <em>result</em>.</li>
     </ol>
   </section>
 </section> <!-- end of IRI Expansion -->
@@ -2549,7 +2569,9 @@ an <tref>active property</tref>, and a <em>value</em> to expand.
                 in <em>result</em> because there cannot be two
                 <tref title="list object">list objects</tref> associated
                 with an <tref>active property</tref> that has a
-                <tref>container mapping</tref>; this is an error.
+                <tref>container mapping</tref>; a
+                <code class="error">compaction to list of lists</code> error
+                has been detecetd.
               </li>
             </ol>
           </li>
@@ -3910,9 +3932,9 @@ if the required duplicate values were found and <tref>false</tref> if not.
           of <tref>active subject</tref> in <em>activeGraph</em>. Then remove the <code>@type</code> member
           from <em>element</em>.</li>
         <li>If <em>element</em> has an <code>@index</code> member, set the <code>@index</code>
-          of <tref>active subject</tref> in <em>activeGraph</em> to its value. If such a member already
-          exists in <tref>active subject</tref> and has a different value, raise a
-          <code class="error">conflicting indexes</code> error. Otherwise continue and remove the
+          of <tref>active subject</tref> in <em>activeGraph</em> to its value. There MUST be no
+          existing member already in <tref>active subject</tref> with a different value, if there
+          is, then a <code class="error">conflicting indexes</code> error has been detected. Continue and remove the
           <code>@index</code> from <em>element</em>.</li>
         <li>If <em>element</em> has an <code>@graph</code> member, recursively invoke this algorithm passing
           the value of the <code>@graph</code> member as new <em>element</em> and <em>id</em> as new
@@ -4714,11 +4736,15 @@ implementations are only required to produce the same JSON-LD document but are n
         <dd>A <tref>keyword</tref> redefinition has been detected.</dd>
         <dt>invalid term definition</dt>
         <dd>An invalid <tref>term definition</tref> has been detected.</dd>
-        <dt>invalid term IRI mapping</dt>
-        <dd>A <tref>local context</tref> contains a <tref>term</tref> that
-          has not been mapped to an <tref>absolute IRI</tref>.</dd>
+        <dt>invalid IRI mapping</dt>
+        <dd>A <tref>local context</tref> contains a <tref>term</tref> or
+          <tref>property generator</tref> that has been mapped to a
+          non-<tref>absolute IRI</tref>.</dd>
         <dt>cyclic IRI mapping</dt>
         <dd>A cycle in <tref title="IRI mapping">IRI mappings</tref> has been detected.</dd>
+        <dt>invalid keyword alias</dt>
+        <dd>An invalid <tref>keyword</tref> alias definition has been
+          encountered.</dd>
         <dt>invalid type mapping</dt>
         <dd>An <code>@type</code> member in a <tref>term definition</tref>
           was encountered whose value could not be expanded to an
@@ -4735,14 +4761,14 @@ implementations are only required to produce the same JSON-LD document but are n
         <dd>A non-<tref>string</tref> value has been detected in a
           <tref title="property generator">property generator's</tref>
           <tref>IRI mapping</tref>.</dd>
-        <dt>invalid property generator IRI mapping</dt>
-        <dd>Expanding all values of a
-          <tref title="property generator">property generator's</tref>
-          <tref>IRI mapping</tref> to <tref>absolute IRI</tref> failed.</dd>
         <dt>property generator in term definition</dt>
         <dd>A <tref>property generator</tref> was used in the
           <tref>IRI mapping</tref> of another <tref>term</tref> or
           <tref>property generator</tref>.</dd>
+        <dt>invalid @graph value</dt>
+        <dd>An invalid value for an <code>@graph</code> member has been detected,
+          i.e., the value was neither a <tref>JSON object</tref> nor an
+          <tref>array</tref>.</dd>
         <dt>invalid type value</dt>
         <dd>An invalid value for an <code>@type</code> member has been detected,
           i.e., the value was neither a <tref>string</tref> nor an <tref>array</tref>
@@ -4755,18 +4781,12 @@ implementations are only required to produce the same JSON-LD document but are n
           <tref>value object</tref> has been detected, i.e., it is neither
           a <tref>scalar</tref> nor <tref>null</tref>.</dd>
         <dt>invalid language tagged string</dt>
-        <dd>A <tref>language-tagged string</tref> with disallowed members has
-          been detected.</dd>
-        <dt>invalid language value</dt>
         <dd>A <tref>language-tagged string</tref> with an invalid language
           value was detected.</dd>
-        <dt>invalid typed value</dt>
-        <dd>A <tref>typed value</tref> with disallowed members has been
-          detected.</dd>
         <dt>invalid set or list object</dt>
         <dd>A <tdef>set object</tdef> or <tref>list object</tref> with
           disallowed members has been detected.</dd>
-        <dt>language map invalid value</dt>
+        <dt>invalid language map value</dt>
         <dd>An invalid value in a <tdef>language map</tdef> was detected. It has
           to be a <tref>string</tref> or an <tref>array</tref> of
           <tref title="string">strings</tref>.</dd>
