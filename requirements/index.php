@@ -14,7 +14,7 @@ print <<< htmlcode
       <meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
       <title>JSON-LD - Requirements</title> 
       <link href="../site.css" rel="stylesheet" type="text/css" /> 
-      <link rel="shortcut icon" href="favicon.ico" /> 
+      <link rel="shortcut icon" href="../favicon.ico" /> 
    </head> 
  
    <body> 
