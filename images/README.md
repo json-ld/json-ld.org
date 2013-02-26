@@ -1,6 +1,18 @@
 JSON-LD Icons
 =============
 
+Files
+-----
+
+* index.html: images information
+* json-ld-logo.{xcf,1,2,3}: website header images
+* json-ld-logo.{svg,-#.png}: rectangular logo
+* json-ld-button.{svg,-#.png}: web button
+* json-ld-data.{svg,-#.png}: data image
+
+Building
+--------
+
 To create the icons from SVG:
 
     $ make
