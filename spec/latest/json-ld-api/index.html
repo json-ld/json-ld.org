@@ -784,8 +784,8 @@
 
     <p>The <tref>active context</tref> contains the active
       <tdef title="term definition">term definitions</tdef> which specify how
-      properties and values have to be interpreted as well as the current
-      <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each
+      properties and values have to be interpreted as well as the current <tdef>base IRI</tdef>,
+      the <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each
       <tref>term definition</tref> consists of an <tdef>IRI mapping</tdef> and
       optionally a <tdef>type mapping</tdef> from terms to datatypes or
       <tdef>language mapping</tdef> from terms to language codes, and a
@@ -833,8 +833,9 @@
         this algorithm ensuring that there is no cyclical reference.</p>
 
       <p>If <tref>context</tref> is a <tref>JSON object</tref>, we first update the
-        <tref>vocabulary mapping</tref> and <tref>default language</tref> by
-        processing two specific keywords: <code>@vocab</code> and <code>@language</code>.
+        <tref>base IRI</tref>, the <tref>vocabulary mapping</tref>, and the
+        <tref>default language</tref> by processing three specific keywords:
+        <code>@base</code>, <code>@vocab</code>, and <code>@language</code>.
         These are handled before any other keys in the <tref>local context</tref> because
         they affect how the other keys are processed.</p>
 
@@ -886,27 +887,41 @@
                   otherwise, add <em>context</em> to <em>remote contexts</em>.</li>
                 <li>Dereference <em>context</em>. If the dereferenced document has no
                   top-level <tref>JSON object</tref> with an <code>@context</code> member,
-                  an <code class="error">ínvalid remote context</code> has been detected; otherwise,
+                  an <code class="error">invalid remote context</code> has been detected; otherwise,
                   set <em>context</em> to the value of that member.</li>
                 <li>Set <em>context</em> to the result of recursively calling this algorithm,
                   passing <tref>active context</tref>, <em>context</em> as <tref>local context</tref>,
                   and <em>remote contexts</em>.</li>
               </ol>
-            <li>
-              If <em>context</em> has an <code>@vocab</code> key:
+            <li>If <em>context</em> has an <code>@base</code> key:
+              <p class="issue atrisk">This feature is at risk as the fact that a document may
+                have multiple base IRIs is potentially confusing for developers.</p>
+              <ol class="algorithm">
+                <li>Initialize <em>value</em> to the value associated with the
+                  <code>@base</code> key.</li>
+                <li>If <em>value</em> is <tref>null</tref>, then set the
+                  <tref>base IRI</tref> of <em>result</em> to the document's base IRI according section
+                  <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a Base URI</a></cite>
+                  of [[!RFC3986]].</li>
+                <li>Otherwise, <em>value</em> must be an <tref>absolute IRI</tref>,
+                  if not, an <code class="error">invalid base IRI</code>
+                  error has been detected. Set <em>result</em>'s <tref>base IRI</tref>
+                  to <em>value</em>.</li>
+              </ol>
+            </li>
+            <li>If <em>context</em> has an <code>@vocab</code> key:
               <ol class="algorithm">
                 <li>Initialize <em>value</em> to the value associated with the
                   <code>@vocab</code> key.</li>
                 <li>If <em>value</em> is <tref>null</tref>, then remove
                   any <tref>vocabulary mapping</tref> from <em>result</em>.</li>
-                <li>Otherwise, <em>value</em> MUST be an <tref>absolute IRI</tref>,
+                <li>Otherwise, <em>value</em> must be an <tref>absolute IRI</tref>,
                   if not, an <code class="error">invalid vocab mapping</code>
                   error has been detected. Set <em>result</em>'s
                   <tref>vocabulary mapping</tref> to <em>value</em>.</li>
               </ol>
             </li>
-            <li>
-              If <em>context</em> has an <code>@language</code> key:
+            <li>If <em>context</em> has an <code>@language</code> key:
               <ol class="algorithm">
                 <li>Initialize <em>value</em> to the value associated with the
                   <code>@language</code> key.</li>
@@ -1291,12 +1306,12 @@
           <tref>vocabulary mapping</tref> with <em>result</em>.</li>
         <li>Otherwise, if <em>documentRelative</em> is <tref>true</tref>,
           set <em>result</em> to the result of resolving <em>result</em> against
-          the document base as per [[RFC3986]]. Only the basic algorithm in
-          section 5.2 of [[RFC3986]] is used; neither Syntax-Based Normalization
+          the <tref>base IRI</tref>. Only the basic algorithm in
+          section 5.2 of [[!RFC3986]] is used; neither Syntax-Based Normalization
           nor Scheme-Based Normalization (as described in sections 6.2.2 and
           6.2.3 of [[RFC3986]]) are performed. Characters additionally allowed in
           IRI references are treated in the same way that unreserved characters
-          are treated in URI references, per section 6.5 of [[RFC3987]].</li>
+          are treated in URI references, per section 6.5 of [[!RFC3987]].</li>
         <li>If <tref>local context</tref> is not <tref>null</tref> then
           <em>result</em> MUST be an <tref>absolute IRI</tref>, if not,
           an <code class="error">invalid IRI mapping</code> error has been
@@ -4001,12 +4016,15 @@
          remote context.</dd>
         <dt>recursive context inclusion</dt>
         <dd>A cycle in remote context inclusions has been detected.</dd>
-        <dt>invalid default language</dt>
-        <dd>The value of the <tref>default language</tref> is not a <tref>string</tref>
-          or <tref>null</tref> and thus invalid.</dd>
+        <dt>invalid base IRI</dt>
+        <dd>An invalid <tref>base IRI</tref> has been detected, i.e., it is
+          neither an <tref>absolute IRI</tref> nor <tref>null</tref>.</dd>
         <dt>invalid vocab mapping</dt>
         <dd>An invalid <tref>vocabulary mapping</tref> has been detected, i.e.,
           it is neither an <tref>absolute IRI</tref> nor <tref>null</tref>.</dd>
+        <dt>invalid default language</dt>
+        <dd>The value of the <tref>default language</tref> is not a <tref>string</tref>
+          or <tref>null</tref> and thus invalid.</dd>
         <dt>keyword redefinition</dt>
         <dd>A <tref>keyword</tref> redefinition has been detected.</dd>
         <dt>invalid term definition</dt>
