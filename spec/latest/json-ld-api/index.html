@@ -1930,15 +1930,15 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>The algorithm takes four required input variables: an
-        <tref>active context</tref>, an <tref>active property</tref>, and an
+      <p>The algorithm takes four required input variables: an <tref>active context</tref>,
+        an <tref>inverse context</tref> an <tref>active property</tref>, and an
         <em>element</em> to be compacted. To begin, the <tref>active context</tref>
-        is set to the result of performing
-        <a href="#context-processing-algorithm">Context Processing</a> on the passed
-        <em>context</em>, the <tref>active property</tref> is set to
-        <tref>null</tref>, and <em>element</em> is set to the result of performing
-        the <a href="#expansion-algorithm">Expansion algorithm</a> on the
-        <tref>JSON-LD input</tref>.</p>
+        is set to the result of performing <a href="#context-processing-algorithm">Context Processing</a>
+        on the passed <em>context</em>, the <tref>inverse context</tref> is set to the result
+        of performing the <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
+        on <tref>active context</tref>, the <tref>active property</tref> is set to <tref>null</tref>,
+        and <em>element</em> is set to the result of performing the
+        <a href="#expansion-algorithm">Expansion algorithm</a> on the <tref>JSON-LD input</tref>.</p>
 
       <ol class="algorithm">
         <li>If <em>element</em> is a <tref>scalar</tref>, it is already in its most
@@ -1950,8 +1950,8 @@
               <ol class="algorithm">
                 <li>Initialize <em>compacted item</em> to the result of using this
                   algorithm recursively, passing <tref>active context</tref>,
-                  <tref>active property</tref>, and <em>item</em> for
-                  <em>element</em>.</li>
+                  <tref>inverse context</tref>, <tref>active property</tref>, and
+                  em>item</em> for <em>element</em>.</li>
                 <li>If <em>compacted item</em> is not <tref>null</tref>, then append
                   it to <em>result</em>.</li>
               </ol>
@@ -1968,8 +1968,8 @@
           if it contains only one key and that key is <code>@id</code>,
           then return the result of using the
           <a href="#value-compaction">Value Compaction algorithm</a>,
-          passing <tref>active context</tref>, <tref>active property</tref>,
-          and <em>element</em> as <em>value</em>.</li>
+          passing <tref>active context</tref>, <tref>inverse context</tref>,
+          <tref>active property</tref>,and <em>element</em> as <em>value</em>.</li>
         <li>Create a shallow copy of <em>element</em> and each <tref>array</tref>
           associated with its keys so that duplicate values can be removed
           during <tref>property generator</tref> <tref>compaction</tref>:
@@ -2004,7 +2004,7 @@
                   <li>If <em>expanded value</em> is a <tref>string</tref>,
                     then initialize <em>compacted value</em> to the result
                     of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                    passing <tref>active context</tref>,
+                    passing <tref>active context</tref>, <tref>inverse context</tref>,
                     <em>expanded value</em> for <em>iri</em>,
                     and <tref>true</tref> for <em>vocabRelative</em> if
                     <em>expanded property</em> is <code>@type</code>,
@@ -2017,7 +2017,7 @@
                       <li>For each item <em>expanded type</em> in
                         <em>expanded value</em>, append the result of
                         of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                        passing <tref>active context</tref>,
+                        passing <tref>active context</tref>, <tref>inverse context</tref>,
                         <em>expanded type</em> for <em>iri</em>, and
                         <tref>true</tref> for <em>vocabRelative</em>,
                         to <em>compacted value</em>.</li>
@@ -2028,7 +2028,7 @@
                   </li>
                   <li>Initialize <em>alias</em> to the result of using the
                     <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                    passing <tref>active context</tref> and
+                    passing <tref>active context</tref>, <tref>inverse context</tref>, and
                     <em>expanded property</em> for <em>iri</em>.</li>
                   <li>Add the key-value pair,
                     (<em>alias</em>-<em>compacted value</em>) to
@@ -2048,7 +2048,7 @@
                   <em>expanded property</em>.</li>
                 <li>Otherwise, initialize <em>alias</em> to the result of using
                   the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                  passing <tref>active context</tref> and
+                  passing <tref>active context</tref>, <tref>inverse context</tref>, and
                   <em>expanded property</em> for <em>iri</em>.</li>
                 <li>Add the key-value pair,
                   (<em>alias</em>-<em>expanded value</em>) to
@@ -2060,7 +2060,7 @@
               <ol class="algorithm">
                 <li>Initialize <em>item active property</em> to the result of
                   using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                  passing <tref>active context</tref>,
+                  passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
                   <em>expanded value</em> for <em>value</em>,
                   <tref>true</tref> for <em>vocabRelative</em>, and
@@ -2080,7 +2080,7 @@
               <ol class="algorithm">
                 <li>Initialize <em>item active property</em> to the result of using
                   the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                  passing <tref>active context</tref>,
+                  passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
                   <em>expanded item</em> for <em>value</em>,
                   <tref>true</tref> for <em>vocabRelative</em>, and
@@ -2101,8 +2101,8 @@
                   <tref>true</tref> for <em>remove</em>.</li>
                 <li>Initialize <em>compacted item</em> to the result of using
                   this algorithm recursively, passing
-                  <tref>active context</tref>, <em>item active property</em>
-                  for <tref>active property</tref>,
+                  <tref>active context</tref>, <tref>inverse context</tref>,
+                  <em>item active property</em> for <tref>active property</tref>,
                   <em>expanded item</em> for <em>element</em> if it does
                   not contain the key <code>@list</code>, otherwise pass
                   the key's associated value for <em>element</em>.</li>
@@ -2119,18 +2119,16 @@
                           <tref>JSON object</tref> containing key-value pair
                           where the key is the result of the
                           <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                          passing <tref>active context</tref> and
-                          <code>@list</code> for <em>iri</em>, and the
-                          value is <em>compacted item</em>.</li>
+                          passing <tref>active context</tref>, <tref>inverse context</tref>,
+                          <code>@list</code> for <em>iri</em>, and <em>compacted item</em>
+                          for <em>value</em>.</li>
                         <li>If <em>expanded item</em> contains the key
                           <code>@index</code>, then add a key-value pair
                           to <em>compacted item</em> where the key is the
                           result of the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                          passing <tref>active context</tref> and
-                          <code>@index</code> for <em>iri</em>, and the
-                          value is the value associated with the
-                          <code>@index</code> key in
-                          <em>expanded item</em>.</li>
+                          passing <tref>active context</tref>, <tref>inverse context</tref>,
+                          <code>@index</code> as <em>iri</em>, and the associated with the
+                          <code>@index</code> key in <em>expanded item</em> as <em>value</em>.</li>
                       </ol>
                     </li>
                     <li>Otherwise, <em>item active property</em> MUST NOT be a key
@@ -2204,8 +2202,8 @@
         been passed, replace it with a new <tref>JSON object</tref> with a single
         key-value pair where the key is the result of using the
         <a href="#iri-compaction">IRI Compaction algorithm</a>, passing
-        <tref>active context</tref> and <code>@graph</code> for <em>iri</em>, and
-        the value is <em>result</em>. Otherwise, if <em>result</em> is an
+        <tref>active context</tref>, <tref>inverse context</tref>, <code>@graph</code>
+        as <em>iri</em>, and <em>result</em> as <em>value</em>. Otherwise, if <em>result</em> is an
         <tref>array</tref> with only one item, set <em>result</em> to that item.
         Otherwise, if <em>result</em> is an <tref>array</tref> with zero items,
         replace it with an empty <tref>JSON object</tref>. Finally, if a
@@ -2490,9 +2488,9 @@
       <h3>Algorithm</h3>
 
       <p>This algorithm takes three required inputs and three optional inputs.
-        The required inputs an <tref>active context</tref> and the <em>iri</em> to
-        be compacted. The optional inputs are: a <em>value</em> associated with
-        the <em>iri</em>, a <em>vocabRelative</em> flag which specifies whether the
+        The required inputs an <tref>active context</tref>, an <tref>inverse context</tref>,
+        and the <em>iri</em> to be compacted. The optional inputs are: a <em>value</em> associated
+        with the <em>iri</em>, a <em>vocabRelative</em> flag which specifies whether the
         passed <em>iri</em> should be compacted using the
         <tref title="active context">active context's</tref>
         <tref>vocabulary mapping</tref>, and the <em>parent</em> element for
@@ -2506,14 +2504,8 @@
           <tref>keyword</tref> alias, return <em>iri</em>, otherwise return
           its first associated <tref>keyword</tref> alias from
           <tref>active context</tref>.</li>
-        <li>If <em>vocabRelative</em> is <tref>true</tref> and
-          <tref>active context</tref> has no associated
-          <tref>inverse context</tref>, then generate it using the
-          <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>.
-          Set <em>inverse context</em> to the <tref>inverse context</tref>
-          associated with <tref>active context</tref>.</li>
         <li>If <em>vocabRelative</em> is <tref>true</tref> and <em>iri</em> is a
-          key in <em>inverse context</em>:
+          key in <tref>inverse context</tref>:
           <ol class="algorithm">
             <li>Initialize <em>defaultLanguage</em> to
               <tref title="active context">active context's</tref>
@@ -2615,7 +2607,7 @@
             </li>
             <li>Initialize <em>term</em> to the result of the
               <a href="#term-selection">Term Selection algorithm</a>, passing
-              <tref>active context</tref>, <em>inverse context</em>, <em>iri</em>,
+              <tref>active context</tref>, <tref>inverse context</tref>, <em>iri</em>,
               <em>value</em>, <em>parent</em>, <em>containers</em>,
               <em>typeOrLanguage</em>, and <em>typeOrLanguageValue</em>.</li>
             <li>If <em>term</em> is not <tref>null</tref>, return <em>term</em>.</li>
@@ -2758,8 +2750,8 @@
           <ol class="algorithm">
             <li>If the result of using the
               <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, the value associated with the
-              <code>@id</code> key in <em>value</em> for
+              passing <tref>active context</tref>, <tref>inverse context</tref>,
+              the value associated with the <code>@id</code> key in <em>value</em> for
               <em>iri</em>, <tref>true</tref> for <em>vocabRelative</em>, and
               <tref>true</tref> for <em>documentRelative</em> has a
               <tref>term definition</tref> in the <tref>active context</tref>
@@ -2875,8 +2867,9 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm has three required inputs: an <tref>active context</tref>, an
-        an <tref>active property</tref>, and a <em>value</em> to be compacted.</p>
+      <p>This algorithm has four required inputs: an <tref>active context</tref>, an
+        <tref>inverse context</tref>,  an <tref>active property</tref>, and a <em>value</em>
+        to be compacted.</p>
 
       <ol class="algorithm">
         <li>If <em>value</em> contains the key <code>@value</code>:
@@ -2909,30 +2902,28 @@
             <li>If <em>preserveIndex</em> is <tref>true</tref>, then add
               a key-value pair to <em>result</em> where the key is the result
               using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref> and
-              <code>@index</code> for <em>iri</em>, and the value is
-              the value associated with the <code>@index</code> key in
-              <em>value</em>.</li>
+              passing <tref>active context</tref>, <tref>inverse context</tref>,
+              <code>@index</code> for <em>iri</em>, and the value associated wit
+              the <code>@index</code> key in <em>value</em> as <em>value</em>.</li>
             <li>If <em>value</em> contains the key <code>@type</code>, then add
               a key-value pair to <em>result</em> where the key is the result
               using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref> and
-              <code>@type</code> for <em>iri</em>, and the value is the result
+              passing <tref>active context</tref>, <tref>inverse context</tref>,
+              <code>@type</code> for <em>iri</em>, and the <em>value</em> is the result
               of using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, the value associated
-              with the <code>@type</code> key in <em>value</em> for <em>iri</em>,
+              passing <tref>active context</tref>, <tref>inverse context</tref>, the value
+              associated with the <code>@type</code> key in <em>value</em> for <em>iri</em>,
               and <tref>true</tref> for <em>vocabRelative</em>.</li>
             <li>Otherwise, if <em>value</em> contains the key <code>@language</code>,
               then add a key-value pair to <em>result</em> where the key is the
               result using the
               <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref> and
-              <code>@language</code> for <em>iri</em>, and the value is the
-              value associated with the <code>@language</code> key in
-              <em>value</em>.</li>
+              passing <tref>active context</tref>, <tref>inverse context</tref>,
+              <code>@language</code> for <em>iri</em>, and the value associated
+              with the <code>@language</code> key in <em>value</em> as <em>value</em>.</li>
             <li>Add a key-value pair to <em>result</em> where the key is the result
               using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref> and
+              passing <tref>active context</tref>, <tref>inverse context</tref>,
               <code>@value</code> for <em>iri</em>, and the value is the value
               associated with the <code>@value</code> key in <em>value</em>.</li>
             <li>Return <em>result</em>.</li>
@@ -2945,8 +2936,8 @@
           <tref>true</tref> for <em>vocabRelative</em>.</li>
         <li>Initialize <em>term</em> to the result of using the
           <a href="#iri-compaction">IRI compaction algorithm</a>,
-          passing <tref>active context</tref>, the value associated with
-          the key <code>@id</code> in <em>value</em> for <em>iri</em>, and
+          passing <tref>active context</tref>, <tref>inverse context</tref>, the value
+          associated with the key <code>@id</code> in <em>value</em> for <em>iri</em>, and
           <tref>true</tref> for <em>vocabRelative</em> if
           <tref>active property</tref> has a <tref>type mapping</tref> in the
           <tref>active context</tref> that is <code>@vocab</code>.</li>
@@ -2957,8 +2948,8 @@
         <li>Initialize <em>result</em> to an empty <tref>JSON object</tref>. Add
           a key-value pair to <em>result</em> where the key is the result of
           using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-          passing <tref>active context</tref>, and <code>@id</code> for
-          <em>iri</em>, and the value is <em>term</em>.</li>
+          passing <tref>active context</tref>, <tref>inverse context</tref>,
+          <code>@id</code> for <em>iri</em>, and <em>term</em> for <em>value</em>.</li>
         <li>Return <em>result</em>.</li>
       </ol>
     </section>
