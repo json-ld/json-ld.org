@@ -610,25 +610,6 @@
     a mapping in the <tref>context</tref> are still considered valid expressions
     in JSON-LD documents—the keys just don't expand to unambiguous identifiers.</p>
 
-  <p>At times, all properties and types may come from the same vocabulary. JSON-LD's
-    <code>@vocab</code> keyword allows an author to set a common prefix to be used
-    for all properties and types that do not match a <tref>term</tref> or are neither
-    a <tref>compact IRI</tref> nor an <tref>absolute IRI</tref> (i.e., they do
-    not contain a colon).</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Using a common vocabulary prefix">
-  <!--
-  {
-    ****"@context": {
-      "@vocab": "http://schema.org/"
-    },****
-    "@type": ****"Person"****,
-    ****"name"****: "Manu Sporny",
-  }
-  -->
-  </pre>
-
   <p>An <tref>IRI</tref> is generated when a <tref>JSON object</tref> is used in
     the value position and contains an <code>@id</code> keyword:</p>
 
@@ -687,9 +668,6 @@
     <li><tref>JSON object</tref> keys that have a <tref>term</tref> mapping in
       the <tref>active context</tref> expand to an <tref>IRI</tref>
       (only applies outside of the <tref>context definition</tref>).</li>
-    <li>If there is a <code>@vocab</code> mapping in the active context,
-      <tref>JSON object</tref> keys without an explicit mapping
-      in the <tref>active context</tref> are expanded to an <tref>IRI</tref>.</li>
     <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value specified using
       <code>@id</code> or <code>@type</code>.</li>
     <li>An <tref>IRI</tref> is generated for the <tref>string</tref> value of any key for which there
@@ -787,7 +765,7 @@
     ****"Brewery": "http://schema.org/Brewery"****
   }
   "@id": "http://example.org/places#BrewEats",
-  ****"@type": ["Restaurant", "Brewery"]****,
+  ****"@type": [ "Restaurant", "Brewery" ]****,
   ...
 }
 -->
@@ -802,9 +780,104 @@
 <em>This section is normative.</em>
 
 <p>JSON-LD has a number of features that provide functionality above and beyond
-the core functionality described above. The following section describes this
-advanced functionality in more detail.
-</p>
+  the core functionality described above. The following section describes this
+  advanced functionality in more detail.</p>
+
+<section>
+  <h2>Base IRI</h2>
+
+  <p class="issue atrisk">This feature is at risk as the fact that a document may
+    have multiple base IRIs is potentially confusing for developers.</p>
+
+  <p>JSON-LD allows <tref>IRI</tref>s to be specified in a relative form which is
+    resolved against the document base according
+    <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a Base URI</a></cite>
+    of [[RFC3986]]. The base IRI may be explicitly set with a <tref>context</tref>
+    using the <code>@base</code> keyword.</p>
+
+  <p>For example, if a JSON-LD document was retrieved from <code>http://example.com/document.jsonld</code>,
+    relative IRIs would resolve against that IRI:</p>
+
+  <pre class="example" data-transform="updateExample">
+    <!--
+    {
+      "@context": {
+        "label": "http://www.w3.org/2000/01/rdf-schema#label"
+      },
+      ****"@id": ""****,
+      "label": "Just a simple document"
+    }
+    -->
+  </pre>
+
+  <p>This document uses an empty <code>@id</code>, which resolves to the document base.
+    However, if the document is moved to a different location, the <tref>IRI</tref> would change.
+    To prevent this without having to use an <tref>absolute IRI</tref>, a <tref>context</tref>
+    may define a <code>@base</code> mapping, to overwrite the base IRI for the document.
+    It MUST have a value of a simple <tref>string</tref> with the lexical form of an
+    <tref>absolute IRI</tref>.</p>
+
+  <pre class="example" data-transform="updateExample">
+  <!--
+  {
+    "@context": {
+      ****"@base": "http://example.com/document.jsonld"****
+    },
+    "@id": "",
+    "label": "Just a simple document"
+  }
+  -->
+  </pre>
+</section>
+
+<section>
+  <h2>Default Vocabulary</h2>
+
+  <p>At times, all properties and types may come from the same vocabulary. JSON-LD's
+    <code>@vocab</code> keyword allows an author to set a common prefix to be used
+    for all properties and types that do not match a <tref>term</tref> or are neither
+    a <tref>compact IRI</tref> nor an <tref>absolute IRI</tref> (i.e., they do
+    not contain a colon).</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Using a common vocabulary prefix">
+  <!--
+    {
+      "@context": {
+        ****"@vocab": "http://schema.org/"****
+      }
+      "@id": "http://example.org/places#BrewEats",
+      "@type": ****"Restaurant"****,
+      ****"name"****: "Brew Eats"
+      ...
+    }
+  -->
+  </pre>
+
+  <p>If <code>@vocab</code> is used but certain keys in an
+    <tref title="JSON object">object</tref> should not be expanded using
+    the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
+    to <tref>null</tref> in the <tref>context</tref>. For instance, in the
+    example below the <code>databaseId</code> member would be ignored by a
+    JSON-LD processor.</p></p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Using the null keyword to ignore data">
+  <!--
+    {
+      "@context":
+      {
+         "@vocab": "http://schema.org/",
+         ****"databaseId": null****
+      },
+        "@id": "http://example.org/places#BrewEats",
+        "@type": "Restaurant",
+        "name": "Brew Eats",
+        ****"databaseId"****: "23987520"
+    }
+  -->
+  </pre>
+</section>
 
 <section>
   <h2>Compact IRIs</h2>
@@ -1567,31 +1640,6 @@ the data type to be specified with each piece of data.</p>
   -->
   </pre>
 
-</section>
-
-<section>
-<h2>Overriding @vocab</h2>
-  <p>If <code>@vocab</code> is used but certain keys in an
-    <tref title="JSON object">object</tref> should not be expanded using
-    the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
-    to <tref>null</tref> in the <tref>context</tref>. For instance, in the
-    example below the <code>databaseId</code> member would be ignored by a
-    JSON-LD processor.</p></p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Using the null keyword to ignore data">
-  <!--
-  {
-    "@context":
-    {
-       "@vocab": "http://schema.org/",
-       ****"databaseId": null****
-    },
-    "name": "Gregg Kellogg",
-    ****"databaseId": "23987520"****
-  }
-  -->
-  </pre>
 </section>
 
 <section>
