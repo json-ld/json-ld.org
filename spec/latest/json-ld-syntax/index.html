@@ -350,9 +350,12 @@
       that processing should continue deeper into a JSON data structure.
       This keyword is described in the section titled
       <a href="#data-indexing"></a>.</dd>
+    <dt><code>@base</code></dt>
+    <dd>Used to set the base IRI against which <tref title="relative IRI">relative IRIs</tref>
+      are resoled. This keyword is described in section <a href="#base-iri"></a>.</dd>
     <dt><code>@vocab</code></dt>
     <dd>Used to expand properties and values in <code>@type</code> with a common prefix
-      <tref>IRI</tref>. This keyword is described in section <a href="#iris"></a>.</dd>
+      <tref>IRI</tref>. This keyword is described in section <a href="#default-vocabulary"></a>.</dd>
     <dt><code>@graph</code></dt><dd>Used to explicitly label a <tref>JSON-LD graph</tref>.
       This keyword is described in <a href="#named-graphs"></a>.</dd>
     <dt><code>:</code></dt>
@@ -2912,57 +2915,74 @@ topic.</p>
 </section>
 
 <section id="grammar-context">
-<h2>Context Definition</h2>
-<p>A <tdef>context definition</tdef> defines a <tref>local context</tref> in a <tref>node object</tref>.</p>
+  <h2>Context Definition</h2>
 
-<p>A <tref>context definition</tref> MUST be a <tref>JSON object</tref>
-  containing one or more key-value pairs. Keys MUST either be
-  <tref title="term">terms</tref> or <code>@language</code> or <code>@vocab</code> <tref title="keyword">keywords</tref>.
+  <p>A <tdef>context definition</tdef> defines a <tref>local context</tref> in a
+    <tref>node object</tref>.</p>
 
-<p>If the <tref>context definition</tref> has a <code>@language</code> key,
-  its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
-<p>If the <tref>context definition</tref> has a <code>@vocab</code> key,
-  its value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
+  <p>A <tref>context definition</tref> MUST be a <tref>JSON object</tref>
+    containing one or more key-value pairs. Keys MUST either be
+    <tref title="term">terms</tref> or <code>@language</code> or <code>@vocab</code>
+    <tref title="keyword">keywords</tref>.
 
-<p><tref>Term</tref> values MUST be either a
-  <tref>string</tref>, <tref>null</tref>, or an <tref>expanded term definition</tref>.</p>
+  <p>If the <tref>context definition</tref> has a <code>@language</code> key,
+    its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 
-<p>An <tref>expanded term definition</tref> is used to describe the mapping
-  between a <tref>term</tref> and its expanded identifier, as well as other
-  properties of the value associated with the <tref>term</tref> when it is
-  used as key in a <tref>node object</tref>.</p>
+  <p>If the <tref>context definition</tref> has a <code>@base</code> key,
+    its value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
 
-<p>An <tref>expanded term definition</tref> SHOULD be a <tref>JSON object</tref>
-  composed of zero or more keys from <code>@id</code>,
-  <code>@type</code>, <code>@language</code> or <code>@container</code>. An
-  <tref>expanded term definition</tref> SHOULD NOT contain any other keys.
-<p>If the <tref>term</tref> definition is not <tref>null</tref>, a <tref>compact IRI</tref>,
-  or an <tref>absolute IRI</tref> and the <tref>active context</tref> does not have an
-  <code>@vocab</code> mapping, the <tref>expanded term definition</tref> MUST
-  include the <code>@id</code> key.</p>
+  <p>If the <tref>context definition</tref> has a <code>@vocab</code> key,
+    its value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
 
-<p>If the <tref>expanded term definition</tref> contains the <code>@id</code> <tref>keyword</tref>,
-  its value MUST be <tref>null</tref>, an <tref>absolute IRI</tref>, a <tref>blank node identifier</tref>,
-  a <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining <tref>context definition</tref>
-  or the <tref>active context</tref>, or an <tref>array</tref> composed of any of the previous allowed values except
-  <tref>null</tref>.</p>
-<p>If the <tref>expanded term definition</tref> contains the <code>@type</code> <tref>keyword</tref>,
-  its value MUST be an <tref>absolute IRI</tref>, a <tref>compact IRI</tref>, a <tref>term</tref> defined in the
-  defining <tref>context definition</tref> or the <tref>active context</tref>, <tref>null</tref>, or the one of the
-  <tref title="keyword">keywords</tref> <code>@id</code> or <code>@vocab</code>.</p>
-<p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
-  its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
-<p>If the <tref>expanded term definition</tref> contains the <code>@container</code> <tref>keyword</tref>,
-  its value MUST be either <code>@list</code>, <code>@set</code>, <code>@language</code>, <code>@index</code>, or be <tref>null</tref>.
-  If the value is <code>@language</code>, when the <tref>term</tref> is used outside of the <code>@context</code>, the
-  associated value MUST be a <tref>language map</tref>. If the value is
-  <code>@index</code>, when the <tref>term</tref> is used outside of
-  the <code>@context</code>, the associated value MUST be an
-  <tref>index map</tref>.</p>
+  <p><tref>Term</tref> values MUST be either a <tref>string</tref>, <tref>null</tref>, or
+    an <tref>expanded term definition</tref>.</p>
 
-<p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is, the definition of a term cannot depend on the definition of another term if that other term also depends on the first term.</p>
+  <p>An <tref>expanded term definition</tref> is used to describe the mapping
+    between a <tref>term</tref> and its expanded identifier, as well as other
+    properties of the value associated with the <tref>term</tref> when it is
+    used as key in a <tref>node object</tref>.</p>
 
-<p>See <a href="#the-context"></a> for further discussion on contexts.</p>
+  <p>An <tref>expanded term definition</tref> SHOULD be a <tref>JSON object</tref>
+    composed of zero or more keys from <code>@id</code>,
+    <code>@type</code>, <code>@language</code> or <code>@container</code>. An
+    <tref>expanded term definition</tref> SHOULD NOT contain any other keys.
+
+  <p>If the <tref>term</tref> definition is not <tref>null</tref>, a <tref>compact IRI</tref>,
+    or an <tref>absolute IRI</tref> and the <tref>active context</tref> does not have an
+    <code>@vocab</code> mapping, the <tref>expanded term definition</tref> MUST
+    include the <code>@id</code> key.</p>
+
+  <p>If the <tref>expanded term definition</tref> contains the <code>@id</code>
+    <tref>keyword</tref>, its value MUST be <tref>null</tref>, an <tref>absolute IRI</tref>,
+    a <tref>blank node identifier</tref>, a <tref>compact IRI</tref>, a <tref>term</tref>
+    defined in the defining <tref>context definition</tref> or the <tref>active context</tref>,
+    or an <tref>array</tref> composed of any of the previous allowed values except
+    <tref>null</tref>.</p>
+
+  <p>If the <tref>expanded term definition</tref> contains the <code>@type</code>
+    <tref>keyword</tref>, its value MUST be an <tref>absolute IRI</tref>, a
+    <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining
+    <tref>context definition</tref> or the <tref>active context</tref>, <tref>null</tref>,
+    or the one of the <tref title="keyword">keywords</tref> <code>@id</code> or
+    <code>@vocab</code>.</p>
+
+  <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
+    its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
+
+  <p>If the <tref>expanded term definition</tref> contains the <code>@container</code>
+    <tref>keyword</tref>, its value MUST be either <code>@list</code>, <code>@set</code>,
+    <code>@language</code>, <code>@index</code>, or be <tref>null</tref>. If the value
+    is <code>@language</code>, when the <tref>term</tref> is used outside of the
+    <code>@context</code>, the associated value MUST be a <tref>language map</tref>.
+    If the value is <code>@index</code>, when the <tref>term</tref> is used outside of
+    the <code>@context</code>, the associated value MUST be an
+    <tref>index map</tref>.</p>
+
+  <p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is,
+    the definition of a term cannotdepend on the definition of another term if that other
+    term also depends on the first term.</p>
+
+  <p>See <a href="#the-context"></a> for further discussion on contexts.</p>
 </section>
 
 </section>
