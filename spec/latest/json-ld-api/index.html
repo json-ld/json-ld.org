@@ -770,55 +770,6 @@
   <h1>Context Processing Algorithms</h1>
 
   <section>
-    <h2>Remote Context Resolution</h2>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A JSON-LD document may contain remote <tref title="context">contexts</tref>.
-        These <tref title="context">contexts</tref> must be dereferenced before they
-        can be processed.</p>
-    </section>
-
-    <section class="informative">
-      <h3>General Solution</h3>
-
-      <p>Dereferencing remote <tref title="context">contexts</tref> can be performed
-        either inline with the other JSON-LD algorithms or as a separate, prior step.
-        This solution opts to dereference them first, in a prior step, to both
-        separate concerns and to better enable <tref>active context</tref> caching.
-        By separating concerns, the other JSON-LD algorithms can be described more
-        simply. Implementations may also be either simplified or made more efficient
-        because there is no need to block or respond to events when remote
-        <tref title="context">contexts</tref> are dereferenced over the network. This
-        is particularly important for simplifying implementations in asynchronous
-        programming environments. Of course, choosing this approach is not a
-        requirement.</p>
-
-      <p>The JSON-LD document is searched for remote <tref title="context">contexts</tref>
-        recursively, starting with its root <em>element</em>. If the <em>element</em>
-        contains an <code>@context</code> key, its value is searched for
-        <tref title="string">strings</tref>. The result represents a remote
-        <tref>context</tref>, which we add to a map that will ensure we don't
-        dereference an already dereferenced remote <tref>context</tref> for a given
-        <tref>IRI</tref>.</p>
-
-      <p>When we have finished searching, we dereference each remote
-        <tref>context</tref> (or get its already-dereferenced value from our map).
-        Each time we dereference a remote <tref>context</tref>, we store its result
-        in our map and then recursively search it for more remote
-        <tref title="IRI">contexts</tref> as above, checking to ensure there is no
-        cyclical reference, which is a
-        <code class="error">recursive context inclusion</code> error.</p>
-
-      <p>Once all of the remote <tref title="IRI">contexts</tref> have been
-        dereferenced, we replace all of their associated <tref>context</tref>
-        <tref title="IRI">IRIs</tref> in the JSON-LD document with the
-        results from our map.</p>
-    </section>
-  </section> <!-- end of Remote Context Resolution -->
-
-  <section>
     <h2>Context Processing Algorithm</h2>
 
     <p>When processing a JSON-LD data structure, each processing rule is applied
@@ -844,40 +795,49 @@
       <tref>active context</tref> is created by cloning the existing
       <tref>active context</tref>. Then the information from the
       <tref>local context</tref> is merged into the new <tref>active context</tref>.
-      A <tref>local context</tref> is identified within a <tref>JSON object</tref>
-      by the value of the <code>@context</code> key, which MUST be a
-      <tref>string</tref>, an <tref>array</tref>, or a <tref>JSON object</tref>.</p>
+      Given that <tref title="local context">local contexts</tref> may contain
+      references to remote contexts, this includes their retrieval.</p>
 
     <section class="informative">
       <h3>Purpose</h3>
 
-      <p>A <tref>local context</tref> needs to be transformed into an
+      <p>A <tref>local context</tref> needs to be merged into an
         <tref>active context</tref> so that the <tref>active context</tref> can be
         used when executing other JSON-LD algorithms such as the
         <a href="#expansion-algorithm">Expansion algorithm</a> or
-        <a href="#compaction-algorithm">Compaction algorithm</a>. Any remote
-        <tref title="context">contexts</tref> in the <tref>local context</tref>
-        have already been dereferenced.</p>
+        <a href="#compaction-algorithm">Compaction algorithm</a>.</p>
     </section>
 
     <section class="informative">
       <h3>General Solution</h3>
 
       <p>First we prepare a new <tref>active context</tref> <em>result</em> by cloning
-        the current <tref>active context</tref>. Next we update the
+        the current <tref>active context</tref>. Then we normalize the form the passed
+        <tref>local context</tref> to an <tref>array</tref>.
+        <tref title="local context">Local contexts</tref> may be in the form of a
+        <tref>JSON object</tref>, a <tref>string</tref>, or an <tref>array</tref> containing
+        a combination of the two. Finally we process each <tref>context</tref> contained
+        in the <tref>local context</tref> <tref>array</tref> as follows.</p>
+
+      <p>If <tref>context</tref> is a <tref>string</tref>, it represents a reference to
+        a remote context. We dereference the remote context and replace <tref>context</tref>
+        with the value of the <code>@context</code> key of the top-level object in the
+        retrieved JSON-LD document. If there's no such key, an invalid remote context has
+        been detected. Otherwise, we process <tref>context</tref> by recursively using
+        this algorithm ensuring that there is no cyclical reference.</p>
+
+      <p>If <tref>context</tref> is a <tref>JSON object</tref>, we first update the
         <tref>vocabulary mapping</tref> and <tref>default language</tref> by
         processing two specific keywords: <code>@vocab</code> and <code>@language</code>.
         These are handled before any other keys in the <tref>local context</tref> because
         they affect how the other keys are processed.</p>
 
       <p>Then, for every other key in <tref>local context</tref>, we update
-        the <tref>term definition</tref> in <em>result</em>.</p>
-
-      <p>Since <tref title="context">context</tref> values in a
-        <tref>local context</tref> may themselves contain
-        <tref title="compact IRI">compact IRIs</tref>, we may need to recurse to
-        define a <tref>prefix</tref>. When doing so, we must ensure that there is
-        no cyclical dependency, which is an error. After we have processed any
+        the <tref>term definition</tref> in <em>result</em>. Since
+        <tref title="context">context</tref> values in a <tref>local context</tref>
+        may themselves contain <tref title="compact IRI">compact IRIs</tref>, we may
+        need to recurse to define a <tref>prefix</tref>. When doing so, we must ensure
+        that there is no cyclical dependency, which is an error. After we have processed any
         <tref title="term definition">term definition</tref> dependencies, we update
         the current <tref title="term definition">term definition</tref>, which may be
         a keyword alias or consist of <code>@id</code>, <code>@language</code>,
@@ -890,8 +850,11 @@
       <h3>Algorithm</h3>
 
       <p>This algorithm specifies how a new <tref>active context</tref> is updated
-        with a <tref>local context</tref>. The algorithm takes two input variables:
-        an <tref>active context</tref> and a <tref>local context</tref>.</p>
+        with a <tref>local context</tref>. The algorithm takes three input variables:
+        an <tref>active context</tref>, a <tref>local context</tref>, and an  <tref>array</tref>
+        <em>remote contexts</em> which is used to detect cyclical context inclusions.
+        If <em>remote contexts</em> is not passed, it is initialized to an empty
+        <tref>array</tref>.</p>
 
       <ol class="algorithm">
         <li>Initialize <em>result</em> to the result of cloning
@@ -905,11 +868,24 @@
             <li>If <em>context</em> is <tref>null</tref>, then set <em>result</em>
               to a newly-initialized <tref>active context</tref> and continue to the
               next <em>context</em>.</li>
-            <li>At this point, <em>context</em> MUST be a <tref>JSON object</tref>
-              because all remote <tref title="context">contexts</tref> have already
-              been dereferenced. Otherwise, an
-              <code class="error">invalid local context</code> error has been
-              detected.</li>
+            <li>If <em>context</em> is a <tref>string</tref>,
+              <ol class="algorithm">
+                <li>Set <em>context</em> to the result of calling the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>
+                  passing <tref>active context</tref>, <em>context</em> for <em>value</em>,
+                  <tref>false</tref> for <em>vocabRelative</em> and <tref>true</tref> for
+                  <em>documentRelative</em>.</li>
+                <li>If <em>context</em> is in the <em>remote contexts</em> array, a
+                  <code class="error">recursive context inclusion</code> error has been detected;
+                  otherwise, add <em>context</em> to <em>remote contexts</em>.</li>
+                <li>Dereference <em>context</em>. If the dereferenced document has no
+                  top-level <tref>JSON object</tref> with an <code>@context</code> member,
+                  an <code class="error">ínvalid remote context</code> has been detected; otherwise,
+                  set <em>context</em> to the value of that member.</li>
+                <li>Set <em>context</em> to the result of recursively calling this algorithm,
+                  passing <tref>active context</tref>, <em>context</em> as <tref>local context</tref>,
+                  and <em>remote contexts</em>.</li>
+              </ol>
             <li>
               If <em>context</em> has an <code>@vocab</code> key:
               <ol class="algorithm">
