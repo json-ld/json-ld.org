@@ -2436,6 +2436,34 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
     // define context mappings for keys in local context
     var defined = {};
 
+    // handle @base
+    if('@base' in ctx) {
+      var base = ctx['@base'];
+
+      // reset base
+      if(base === null) {
+        base = options.base;
+      }
+      else if(!_isString(base)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; the value of "@base" in a ' +
+          '@context must be a string or null.',
+          'jsonld.SyntaxError', {context: ctx});
+      }
+      else if(!_isAbsoluteIri(base)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; the value of "@base" in a ' +
+          '@context must be an absolute IRI.',
+          'jsonld.SyntaxError', {context: ctx});
+      }
+      else {
+        base = jsonld.url.parse(base || '');
+        base.pathname = base.pathname || '';
+        rval['@base'] = base;
+      }
+      defined['@base'] = true;
+    }
+
     // handle @vocab
     if('@vocab' in ctx) {
       var value = ctx['@vocab'];
@@ -4321,9 +4349,9 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
  * @return the expanded value.
  */
 function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
-  // nothing to expand
-  if(value === null) {
-    return null;
+  // already expanded
+  if(value === null || _isKeyword(value)) {
+    return value;
   }
 
   // define term dependency if not defined
@@ -4537,9 +4565,12 @@ function _removeBase(base, iri) {
     return iri;
   }
 
+  // remove root from IRI and parse remainder
+  var rel = jsonld.url.parse(iri.substr(root.length));
+
   // remove path segments that match
   var baseSegments = base.pathname.split('/');
-  var iriSegments = iri.substr(root.length).split('/');
+  var iriSegments = rel.pathname.split('/');
   while(baseSegments.length > 0 && iriSegments.length > 0) {
     if(baseSegments[0] !== iriSegments[0]) {
       break;
@@ -4562,6 +4593,18 @@ function _removeBase(base, iri) {
 
   // prepend remaining segments
   rval += iriSegments.join('/');
+
+  // add query and hash
+  if(rel.query) {
+    rval += '?' + rel.query;
+  }
+  if(rel.hash) {
+    rval += rel.hash;
+  }
+
+  if(rval === '') {
+    rval = './';
+  }
 
   return rval;
 }
