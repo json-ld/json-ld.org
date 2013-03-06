@@ -1644,92 +1644,14 @@ the data type to be specified with each piece of data.</p>
 </section>
 
 <section>
-  <h2>Property Generators</h2>
-
-  <p class="issue atrisk">This feature is at risk as it introduces a lot of
-    algorithmic complexity for an unclear benefit.</p>
-
-  <p>At times, an author may find that they need to express the same value for
-    multiple properties. The simplest approach to accomplish this goal would be
-    to do the following:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Verbose expression of multiple properties with the same value">
-  <!--
-  {
-    "@context":
-    {
-      ****"title1": "http://purl.org/dc/terms/title"****,
-      ****"title2": "http://schema.org/name"****,
-      ****"title3": "http://www.w3.org/2000/01/rdf-schema#label"****
-    },
-    "@id": "http://example.com/book",
-    ****"title1": "The Count of Monte Cristo"****,
-    ****"title2": "The Count of Monte Cristo"****,
-    ****"title3": "The Count of Monte Cristo"****
-  }
-  -->
-  </pre>
-
-  <p>Unfortunately, the approach above produces redundant data and would become a
-    publishing burden for large data sets. In these situations, the author may use
-    a <tdef>property generator</tdef> to express a <tref>term</tref> that maps to
-    multiple <tref title="property">properties</tref> in the <tref>JSON-LD graph</tref>.
-    This method can be accomplished by using the following markup pattern:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Generating multiple properties using a single term">
-  <!--
-  {
-    "@context":
-    {
-      ****"title": { "@id": [ "http://purl.org/dc/terms/title",
-                          "http://schema.org/name",
-                          "http://www.w3.org/2000/01/rdf-schema#label" ] }****
-    },
-    "@id": "http://example.com/book",
-    ****"title": "The Count of Monte Cristo"****
-  }
-  -->
-  </pre>
-
-  <p>While the term above is only used once outside of the <code>@context</code>,
-    the document above will be interpreted like so:</p>
-
-  <table class="example">
-    <thead>
-      <th>Subject</th>
-      <th>Property</th>
-      <th>Value</th>
-    </thead>
-    <tbody>
-    <tr>
-      <td>http://example.com/book</td>
-      <td>http://purl.org/dc/terms/title</td>
-      <td>The Count of Monte Cristo</td>
-    </tr>
-    <tr>
-      <td>http://example.com/book</td>
-      <td>http://schema.org/name</td>
-      <td>The Count of Monte Cristo</td>
-    </tr>
-    <tr>
-      <td>http://example.com/book</td>
-      <td>http://www.w3.org/2000/01/rdf-schema#label</td>
-      <td>The Count of Monte Cristo</td>
-    </tr>
-    </tbody>
-  </table>
-</section>
-
-<section>
-  <h2>IRI Expansion Within a Context</h2>
+  <h2>IRI Expansion within a Context</h2>
   <p>In general, normal IRI expansion rules apply
     anywhere an IRI is expected (see <a href="#iris"></a>). Within
     a <tref>context</tref> definition, this can mean that terms defined
     within the context may also be used within that context as long as
     there are no circular dependencies. For example, it is common to use
     the <code>xsd</code> namespace when defining <tref>typed value</tref>s:</p>
+
 <pre class="example" data-transform="updateExample"
      title="IRI expansion within a context">
 <!--
@@ -1753,6 +1675,7 @@ the data type to be specified with each piece of data.</p>
 }
 -->
 </pre>
+
 <p>In this example, the <code>xsd</code> <tref>term</tref> is defined
   and used as a <tref>prefix</tref> for the <code>@type</code> coercion
   of the <code>age</code> property.</p>
@@ -2953,10 +2876,8 @@ topic.</p>
 
   <p>If the <tref>expanded term definition</tref> contains the <code>@id</code>
     <tref>keyword</tref>, its value MUST be <tref>null</tref>, an <tref>absolute IRI</tref>,
-    a <tref>blank node identifier</tref>, a <tref>compact IRI</tref>, a <tref>term</tref>
-    defined in the defining <tref>context definition</tref> or the <tref>active context</tref>,
-    or an <tref>array</tref> composed of any of the previous allowed values except
-    <tref>null</tref>.</p>
+    a <tref>blank node identifier</tref>, a <tref>compact IRI</tref>, or a <tref>term</tref>
+    defined in the defining <tref>context definition</tref> or the <tref>active context</tref>.</p>
 
   <p>If the <tref>expanded term definition</tref> contains the <code>@type</code>
     <tref>keyword</tref>, its value MUST be an <tref>absolute IRI</tref>, a
@@ -3327,111 +3248,110 @@ topic.</p>
 </section>
 </section>
 
-<section class="appendix informative">
-<h1>IANA Considerations</h1>
+<section class="appendix normative">
+  <h2>IANA Considerations</h2>
+  <em>This section is normative</em>
 
-<p>This section is included merely for standards community review and will be
-  submitted to the Internet Engineering Steering Group if this specification
-  becomes a W3C Recommendation.</p>
+  <p>This section is included for community review and will be submitted to the
+    Internet Engineering Steering Group (IESG) as part of the Last Call announcement
+    for this specification.</p>
 
-<h3>application/ld+json</h3>
-<dl>
-  <dt>Type name:</dt>
-  <dd>application</dd>
-  <dt>Subtype name:</dt>
-  <dd>ld+json</dd>
-  <dt>Required parameters:</dt>
-  <dd>None</dd>
-  <dt>Optional parameters:</dt>
-  <dd>
-    <dl>
-      <dt><code>profile</code></dt>
-      <dd>
-        <p>A whitespace-separated list of IRIs identifying specific constraints
-          or conventions that apply to a JSON-LD document. A profile MUST NOT change
-          the semantics of the resource representation when processed without profile
-          knowledge, so that clients both with and without knowledge of a profiled
-          resource can safely use the same representation. The <code>profile</code>
-          parameter MAY also be used by clients to express their preferences in the
-          content negotiation process. It is RECOMMENDED that profile IRIs are
-          dereferenceable and provide useful documentation at that IRI. For more
-          information and background please refer to [[PROFILE-LINK]].</p>
-        <p>This specification defines four values for the <code>profile</code> parameter.
-          To request or specify Expanded JSON-LD document form, the IRI
-          <code>http://www.w3.org/ns/json-ld#expanded</code> SHOULD be used.
-          To request or specify Expanded, Flattened JSON-LD document form, the IRI
-          <code>http://www.w3.org/ns/json-ld#expanded-flattened</code> SHOULD
-          be used. To request or specify Compacted JSON-LD document form, the IRI
-          <code>http://www.w3.org/ns/json-ld#compacted</code> SHOULD be used.
-          To request or specify Compacted, Flattened JSON-LD document form, the IRI
-          <code>http://www.w3.org/ns/json-ld#compacted-flattened</code> SHOULD be used.
-          Please note that, according [[HTTP11]], the value of the <code>profile</code>
-          parameter has to be enclosed in quotes (<code>"</code>) because it contains
-          special characters and, in some cases, whitespace.</p>
-      </dd>
-    </dl>
-  </dd>
-  <dt>Encoding considerations:</dt>
-  <dd>See RFC&nbsp;6839, section 3.1.</dd>
-  <dt>Security considerations:</dt>
-  <dd>Since JSON-LD is intended to be a pure data exchange format for
-    directed graphs, the serialization SHOULD NOT be passed through a
-    code execution mechanism such as JavaScript's <code>eval()</code>
-    function to be parsed.<br/>
-    JSON-LD contexts that are loaded from the Web over non-secure connections,
-    such as HTTP, run the risk of modifying the JSON-LD
-    <tref>active context</tref> in a way that could compromise security. It
-    is advised that any application that depends on a remote context for mission
-    critical purposes vet and cache the remote context before allowing the
-    system to use it.<br />
-    JSON-LD allows the substitution of long IRIs with short terms and the
-    compression of multiple properties into a single property generator. Therefore,
-    JSON-LD documents may expand enormously when processed and, in the worst case,
-    the resulting data might consume all of the recipient's resources. Applications
-    should treat any data with due skepticism.
-  </dd>
-  <dt>Interoperability considerations:</dt>
-  <dd>Not Applicable</dd>
-  <dt>Published specification:</dt>
-  <dd>The <a href="http://json-ld.org/spec/latest/">JSON-LD</a> specification.</dd>
-  <dt>Applications that use this media type:</dt>
-  <dd>Any programming environment that requires the exchange of
-    directed graphs. Implementations of JSON-LD have been created for
-    JavaScript, Python, Ruby, PHP, and C++.
-  </dd>
-  <dt>Additional information:</dt>
-  <dd>
-    <dl>
-      <dt>Magic number(s):</dt>
-      <dd>Not Applicable</dd>
-      <dt>File extension(s):</dt>
-      <dd>.jsonld</dd>
-      <dt>Macintosh file type code(s):</dt>
-      <dd>TEXT</dd>
-    </dl>
-  </dd>
-  <dt>Person &amp; email address to contact for further information:</dt>
-  <dd>Manu Sporny &lt;msporny@digitalbazaar.com&gt;</dd>
-  <dt>Intended usage:</dt>
-  <dd>Common</dd>
-  <dt>Restrictions on usage:</dt>
-  <dd>None</dd>
-  <dt>Author(s):</dt>
-  <dd>Manu Sporny, Dave Longley, Gregg Kellogg, Markus Lanthaler, Niklas Lindström</dd>
-  <dt>Change controller:</dt>
-  <dd>W3C</dd>
-</dl>
+  <h3>application/ld+json</h3>
+  <dl>
+    <dt>Type name:</dt>
+    <dd>application</dd>
+    <dt>Subtype name:</dt>
+    <dd>ld+json</dd>
+    <dt>Required parameters:</dt>
+    <dd>None</dd>
+    <dt>Optional parameters:</dt>
+    <dd>
+      <dl>
+        <dt><code>profile</code></dt>
+        <dd>
+          <p>A whitespace-separated list of IRIs identifying specific constraints
+            or conventions that apply to a JSON-LD document. A profile MUST NOT change
+            the semantics of the resource representation when processed without profile
+            knowledge, so that clients both with and without knowledge of a profiled
+            resource can safely use the same representation. The <code>profile</code>
+            parameter MAY also be used by clients to express their preferences in the
+            content negotiation process. It is RECOMMENDED that profile IRIs are
+            dereferenceable and provide useful documentation at that IRI. For more
+            information and background please refer to [[PROFILE-LINK]].</p>
+          <p>This specification defines four values for the <code>profile</code> parameter.
+            To request or specify Expanded JSON-LD document form, the IRI
+            <code>http://www.w3.org/ns/json-ld#expanded</code> SHOULD be used.
+            To request or specify Expanded, Flattened JSON-LD document form, the IRI
+            <code>http://www.w3.org/ns/json-ld#expanded-flattened</code> SHOULD
+            be used. To request or specify Compacted JSON-LD document form, the IRI
+            <code>http://www.w3.org/ns/json-ld#compacted</code> SHOULD be used.
+            To request or specify Compacted, Flattened JSON-LD document form, the IRI
+            <code>http://www.w3.org/ns/json-ld#compacted-flattened</code> SHOULD be used.
+            Please note that, according [[HTTP11]], the value of the <code>profile</code>
+            parameter has to be enclosed in quotes (<code>"</code>) because it contains
+            special characters and, in some cases, whitespace.</p>
+        </dd>
+      </dl>
+    </dd>
+    <dt>Encoding considerations:</dt>
+    <dd>See RFC&nbsp;6839, section 3.1.</dd>
+    <dt>Security considerations:</dt>
+    <dd>Since JSON-LD is intended to be a pure data exchange format for
+      directed graphs, the serialization SHOULD NOT be passed through a
+      code execution mechanism such as JavaScript's <code>eval()</code>
+      function to be parsed.<br/>
+      JSON-LD contexts that are loaded from the Web over non-secure connections,
+      such as HTTP, run the risk of modifying the JSON-LD
+      <tref>active context</tref> in a way that could compromise security. It
+      is advised that any application that depends on a remote context for mission
+      critical purposes vet and cache the remote context before allowing the
+      system to use it.<br />
+      Given that JSON-LD allows the substitution of long IRIs with short terms,
+      JSON-LD documents may expand considerably when processed and, in the worst case,
+      the resulting data might consume all of the recipient's resources. Applications
+      should treat any data with due skepticism.
+    </dd>
+    <dt>Interoperability considerations:</dt>
+    <dd>Not Applicable</dd>
+    <dt>Published specification:</dt>
+    <dd>The <a href="http://json-ld.org/spec/latest/">JSON-LD</a> specification.</dd>
+    <dt>Applications that use this media type:</dt>
+    <dd>Any programming environment that requires the exchange of
+      directed graphs. Implementations of JSON-LD have been created for
+      JavaScript, Python, Ruby, PHP, and C++.
+    </dd>
+    <dt>Additional information:</dt>
+    <dd>
+      <dl>
+        <dt>Magic number(s):</dt>
+        <dd>Not Applicable</dd>
+        <dt>File extension(s):</dt>
+        <dd>.jsonld</dd>
+        <dt>Macintosh file type code(s):</dt>
+        <dd>TEXT</dd>
+      </dl>
+    </dd>
+    <dt>Person &amp; email address to contact for further information:</dt>
+    <dd>Manu Sporny &lt;msporny@digitalbazaar.com&gt;</dd>
+    <dt>Intended usage:</dt>
+    <dd>Common</dd>
+    <dt>Restrictions on usage:</dt>
+    <dd>None</dd>
+    <dt>Author(s):</dt>
+    <dd>Manu Sporny, Dave Longley, Gregg Kellogg, Markus Lanthaler, Niklas Lindström</dd>
+    <dt>Change controller:</dt>
+    <dd>W3C</dd>
+  </dl>
 
-<p>Fragment identifiers used with <a href="#application-ld-json">application/ld+json</a>
-  resources MAY identify a node in a <tref>JSON-LD graph</tref> expressed in
-  the resource. This idiom, which is also used in RDF [[RDF-CONCEPTS]], gives a
-  simple way to "mint" new, document-local IRIs to label nodes and therefore contributes
-  considerably to the expressive power of JSON-LD.</p>
-
+  <p>Fragment identifiers used with <a href="#application-ld-json">application/ld+json</a>
+    resources MAY identify a node in a <tref>JSON-LD graph</tref> expressed in
+    the resource. This idiom, which is also used in RDF [[RDF-CONCEPTS]], gives a
+    simple way to "mint" new, document-local IRIs to label nodes and therefore contributes
+    considerably to the expressive power of JSON-LD.</p>
 </section>
 
 <section class="appendix informative">
-  <h1>Acknowledgements</h1>
+  <h2>Acknowledgements</h2>
 
   <p>The authors would like to extend a deep appreciation and the most sincere
     thanks to Mark Birbeck, who contributed foundational concepts
