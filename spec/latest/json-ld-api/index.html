@@ -1070,40 +1070,13 @@
         <li>Create a new <tref>JSON object</tref>, <em>definition</em>.</li>
         <li>If <em>value</em> contains the key <code>@id</code>:
           <ol class="algorithm">
-            <li>Initialize <em>id</em> to the value associated with the
-              <code>@id</code> key.</li>
-            <li>If <em>id</em> is an <tref>array</tref>, then the
-              <tref>term definition</tref> is for a <tref>property generator</tref>:
-              <ol class="algorithm">
-                <li>Create an empty <tref>array</tref> <em>property generator</em>.</li>
-                <li>For each item <em>iri</em> in <em>id</em>:
-                  <ol class="algorithm">
-                    <li>If <em>iri</em> is a <tref>string</tref>, then
-                      set <em>iri</em> to the result of using the
-                      <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-                      <tref>active context</tref>, <em>iri</em> for <em>value</em>,
-                      <tref>true</tref> for <em>vocabRelative</em>,
-                      <tref>true</tref> for <em>documentRelative</em>,
-                      <tref>local context</tref>, and <em>defined</em>.</li>
-                    <li><em>iri</em> MUST be a <tref>string</tref> and MUST not be
-                      a <tref>keyword</tref>, otherwise an
-                      <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-property-generator">invalid property generator</a></code>
-                      error has been detected.</li>
-                    <li>Append <em>iri</em> to <em>property generator</em>.</li>
-                  </ol>
-                </li>
-                <li>Set the <tref>property generator</tref> <tref>IRI mapping</tref>
-                  for <em>definition</em> to the result of sorting
-                  <em>property generator</em> lexicographically.</li>
-              </ol>
-            </li>
-            <li>Otherwise <em>id</em> MUST be a <tref>string</tref>, if not, an
+            <li>If the value associated with the <code>@id</code> key is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-              error has been detected. Set the <tref>IRI mapping</tref> for
-              <em>definition</em> to the result of using the
-              <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-              <tref>active context</tref>, <em>id</em> for <em>value</em>,
-              <tref>true</tref> for <em>vocabRelative</em>,
+              error has been detected.</li>
+            <li>Otherwise, set the <tref>IRI mapping</tref> for <em>definition</em> to the
+              result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
+              <tref>active context</tref>, the value associated with the <code>@id</code> key for
+              <em>value</em>, <tref>true</tref> for <em>vocabRelative</em>,
               <tref>true</tref> for <em>documentRelative</em>,
               <tref>local context</tref>, and <em>defined</em>.</li>
           </ol>
@@ -1270,15 +1243,8 @@
         <li>Initialize <em>result</em> to <tref>null</tref>.</li>
         <li>If <em>vocabRelative</em> is <tref>true</tref>:
           <ol class="algorithm">
-            <li>If <tref>local context</tref> is not <tref>null</tref> then
-              <tref>active context</tref> MUST NOT have a <tref>term definition</tref>
-              for <em>value</em> that is a <tref>property generator</tref>.
-              Otherwise, a
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.property-generator-in-term-definition">property generator in term definition</a></code>
-              error has been detected.</li>
             <li>If <em>value</em> has a <tref>null</tref> mapping in
-              <tref>active context</tref>, then return <tref>null</tref> which
-              has the effect of explicitly dropping <em>value</em>.</li>
+              <tref>active context</tref>, then return <tref>null</tref>.</li>
             <li>If <tref>active context</tref> has a <tref>term definition</tref> for
               <em>value</em>, then set <em>result</em> to the associated
               <tref>IRI mapping</tref>.</li>
@@ -1303,9 +1269,8 @@
                   <tref>term definition</tref> is created for <tref>prefix</tref>
                   in <tref>active context</tref> during
                   <a href="#context-processing-algorithm">Context Processing</a>.</li>
-                <li>If <tref>active context</tref> contains a
-                  <tref>term definition</tref> for <tref>prefix</tref> that is
-                  not a <tref>property generator</tref> then set <em>result</em>
+                <li>If <tref>active context</tref> contains a <tref>term definition</tref>
+                  for <tref>prefix</tref> then set <em>result</em>
                   to the result of concatenating the value associated with the
                   <tref>prefix</tref>'s <tref>IRI mapping</tref> and
                   <em>suffix</em>.</li>
@@ -1495,17 +1460,13 @@
           <ol class="algorithm">
             <li>If <em>key</em> is <code>@context</code>, continue to
               the next <em>key</em>.</li>
-            <li>If <em>key</em> is mapped to a <tref>property generator</tref>
-              in <tref>active context</tref>, set <em>expanded property</em>
-              to an array containing its <tref title="IRI">IRIs</tref>.
-              Otherwise, set <em>expanded property</em> to the result of
+            <li>Set <em>expanded property</em> to the result of
               using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
               passing <tref>active context</tref>, <em>key</em> for
               <em>value</em>, and <tref>true</tref> for <em>vocabRelative</em>.</li>
             <li>If <em>expanded property</em> is either <tref>null</tref> or
-              is: not an <tref>array</tref>, an <tref>absolute IRI</tref> or
-              a <tref>keyword</tref>, then drop <em>key</em> by
-              continuing to the next <em>key</em>.</li>
+              neither an <tref>absolute IRI</tref> nor a <tref>keyword</tref>,
+              drop <em>key</em> by continuing to the next <em>key</em>.</li>
             <li>Validate <em>expanded property</em> against <em>value</em>
               as follows:
               <ol class="algorithm">
@@ -1641,23 +1602,6 @@
               <tref>array</tref>, and then by setting it to a
               <tref>JSON object</tref> containing the key-value pair
               (<code>@list</code>-<em>expanded value</em>).</li>
-            <li>If <em>expanded property</em> is an <tref>array</tref>:
-              <ol class="algorithm">
-                <li>Set <em>expanded value</em> to the result of the
-                  <a href="#label-blank-nodes">Label Blank Nodes algorithm</a>,
-                  passing <tref>active context</tref> and
-                  <em>expanded value</em> as <em>element</em>.</li>
-                <li>For each item <em>iri</em> in <em>expanded property</em>:
-                  <ol class="algorithm">
-                    <li>If <em>result</em> does not have the key <em>iri</em>,
-                      set this key's value in <em>result</em> to an empty
-                      <tref>array</tref>. Append a copy of
-                      <em>expanded value</em> to the <tref>array</tref> value
-                      associated with <em>result</em>'s <em>iri</em> key.</li>
-                  </ol>
-                </li>
-              </ol>
-            </li>
             <li>Otherwise, if <em>expanded property</em> is
               <code>@index</code>, <code>@id</code>, <code>@type</code>,
               <code>@value</code>, or <code>@language</code>, then
@@ -1858,58 +1802,6 @@
     </section>
   </section> <!-- end of Value Expansion -->
 
-  <section>
-    <h2>Label Blank Nodes</h2>
-
-    <p>During <tref>expansion</tref>, it is sometimes necessary to ensure
-      all <tref title="blank node">blank nodes</tref> have been labeled. This
-      occurs when a <tref>property generator</tref> is used to copy a single
-      property's values across multiple properties. This step is necessary to
-      ensure that these duplicated values can be later
-      <tref title="compaction">recompacted</tref>. Because new labels will
-      be assigned to <tref title="blank node">blank nodes</tref>, it is
-      important to relabel any existing <tref title="blank node">blank nodes</tref>
-      to avoid conflicting names.</p>
-
-    <p>The algorithm takes two required inputs: an <tref>active context</tref>,
-      and an <em>element</em> to be labeled with
-      <tref title="blank node identifier">blank node identifiers</tref>.</p>
-
-    <ol class="algorithm">
-      <li>If <em>element</em> is an <tref>array</tref>, then for each
-        <em>item</em> in <em>element</em>:
-        <ol class="algorithm">
-          <li>Replace <em>item</em> with the result of using this algorithm
-            recursively, passing <tref>active context</tref> and <em>item</em>
-            for <em>element</em>.</li>
-        </ol>
-      </li>
-      <li>Otherwise, if <em>element</em> is a <tref>list object</tref>, then
-        replace the value of the <code>@list</code> key in <em>element</em>
-        with the result of using this algorithm recursively, passing
-        <tref>active context</tref> and the value of the <code>@list</code> key
-        for <em>element</em>.</li>
-      <li>Otherwise, if <em>element</em> is a <tref>node object</tref>:
-        <ol class="algorithm">
-          <li>If <em>element</em> has no <code>@id</code> member, i.e., it
-            represents an unlabeled <em>blank node</em>, add an <code>@id</code>
-            member to element and set its value to the result of using the
-            <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>.</li>
-          <li>For each <em>key</em>-<em>value</em> pair ordered lexicographically
-            by <em>key</em>:
-            <ol class="algorithm">
-              <li>If <em>key</em> is not <code>@id</code>, then replace
-                <em>value</em> in <em>element</em> with the result of using
-                this algorithm recursively, passing <tref>active context</tref>
-                and <em>value</em> for <em>element</em>.</li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>Return <em>element</em>.</li>
-    </ol>
-  </section> <!-- end of Label Blank Nodes -->
-
 </section> <!-- end of Expansion section -->
 
 
@@ -1949,13 +1841,8 @@
         <li>If the <em>element</em> is an <tref>array</tref>, we compact
           each of its items recursively and return them in a new
           <tref>array</tref>.</li>
-        <li>Otherwise <em>element</em> is a <tref>JSON object</tref>.
-          We start by creating a shallow copy of it and each of its
-          key's <tref>array</tref> values. This is done so that if any key
-          is compacted to a <tref>property generator</tref> <tref>term</tref>,
-          we can remove duplicate values without modifying the original
-          <em>element</em>. Then, we compact each value in the shallow copy
-          for each key recursively. Some of the keys will be
+        <li>Otherwise <em>element</em> is a <tref>JSON object</tref>. The value
+          of each key in element is compacted recursively. Some of the keys will be
           compacted, using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
           to <tref title="term">terms</tref> or <tref title="compact IRI">compact IRIs</tref>
           and others will be compacted from <tref title="keyword">keywords</tref> to
@@ -2023,34 +1910,10 @@
           <a href="#value-compaction">Value Compaction algorithm</a>,
           passing <tref>active context</tref>, <tref>inverse context</tref>,
           <tref>active property</tref>,and <em>element</em> as <em>value</em>.</li>
-        <li>Create a shallow copy of <em>element</em> and each <tref>array</tref>
-          associated with its keys so that duplicate values can be removed
-          during <tref>property generator</tref> <tref>compaction</tref>:
-          <ol class="algorithm">
-            <li>Initialize <em>shallow</em> to an empty <tref>JSON object</tref>.</li>
-            <li>For each <em>key</em>-<em>value</em> pair in <em>element</em>:
-              <ol class="algorithm">
-                <li>If <em>value</em> is an <tref>array</tref>, then add
-                  a key-value pair to <em>shallow</em> where the key
-                  is <em>key</em> and the value is a shallow copy of
-                  <em>value</em>.</li>
-                <li>Otherwise, add the key-value pair, <em>key</em>-<em>value</em>
-                  to <em>shallow</em>.</li>
-              </ol>
-            </li>
-          </ol>
-        </li>
         <li>Initialize <em>result</em> to an empty <tref>JSON object</tref>.</li>
-        <li>Initialize <em>keys</em> to an <tref>array</tref> containing
-          all of the keys in <em>shallow</em>, ordered lexicographically.</li>
-        <li>For each key <em>expanded property</em> in <em>keys</em>:
+        <li>For each key <em>expanded property</em> and value <em>expanded value</em>
+          in <em>element</em>,  ordered lexicographically by <em>expanded property</em>:
           <ol class="algorithm">
-            <li>If <em>shallow</em> does not contain a key that equals
-              <em>expanded property</em>, then continue to the next
-              <em>expanded property</em>.</li>
-            <li>Initialize <em>expanded value</em> to the value associated
-              with the key that equals <em>expanded property</em> in
-              <em>shallow</em>.</li>
             <li>If <em>expanded property</em> is <code>@id</code> or
               <code>@type</code>:
                 <ol class="algorithm">
@@ -2115,9 +1978,8 @@
                   using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
                   passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
-                  <em>expanded value</em> for <em>value</em>,
-                  <tref>true</tref> for <em>vocabRelative</em>, and
-                  <em>shallow</em> for <em>parent</em>.</li>
+                  <em>expanded value</em> for <em>value</em>, and
+                  <tref>true</tref> for <em>vocabRelative</em>.</li>
                 <li>If <em>result</em> does not have the key that equals
                   <em>item active property</em>, set this key's value in
                   <em>result</em> to an empty <tref>array</tref>. Otherwise, if
@@ -2135,23 +1997,12 @@
                   the <a href="#iri-compaction">IRI Compaction algorithm</a>,
                   passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
-                  <em>expanded item</em> for <em>value</em>,
-                  <tref>true</tref> for <em>vocabRelative</em>, and
-                  <em>shallow</em> for <em>parent</em>.</li>
+                  <em>expanded item</em> for <em>value</em>, and
+                  <tref>true</tref> for <em>vocabRelative</em>.</li>
                 <li>Initialize <em>container</em> to <tref>null</tref>. If there
                   is a <tref>container mapping</tref> for
                   <em>item active property</em> in <tref>active context</tref>,
                   set <em>container</em> to its value.</li>
-                <li>If there is a <tref>term definition</tref> for
-                  <em>item active property</em> in <tref>active context</tref>
-                  that is a <tref>property generator</tref>, then invoke the
-                  <a href="#find-property-generator-duplicates">Find Property Generator Duplicates algorithm</a>,
-                  passing <tref>active context</tref>,
-                  <em>shallow</em> for <em>element</em>,
-                  <em>expanded property</em>, <em>expanded item</em> for
-                  <em>value</em>, <em>item active property</em> for
-                  <tref>active property</tref>, and
-                  <tref>true</tref> for <em>remove</em>.</li>
                 <li>Initialize <em>compacted item</em> to the result of using
                   this algorithm recursively, passing
                   <tref>active context</tref>, <tref>inverse context</tref>,
@@ -2283,11 +2134,9 @@
       <tref title="container mapping">container mappings</tref>,
       <tref title="type mapping">type mappings</tref>, and
       <tref title="language mapping">language mappings</tref> to a simple
-      <tref>term</tref> and, if applicable, an <tref>array</tref> of potential
-      <tref>property generator</tref> <tref title="term">terms</tref> for
-      a given <tref>active context</tref>. A <tref>inverse context</tref> only
-      needs to be generated for an <tref>active context</tref> if it is being
-      used for <tref>compaction</tref>.</p>
+      <tref>term</tref> for a given <tref>active context</tref>. A
+      <tref>inverse context</tref> only needs to be generated for an
+      <tref>active context</tref> if it is being used for <tref>compaction</tref>.</p>
 
     <p>To make use of an <tref>inverse context</tref>, a list of preferred
       <tref title="container mapping">container mappings</tref> and the
@@ -2337,34 +2186,34 @@
       <ol class="algorithm">
         <li>Initialize <em>result</em> to an empty <tref>JSON object</tref>.</li>
         <li>Initialize <em>defaultLanguage</em> to <code>@none</code>. If the
-          <tref>active context</tref> has a <tref>default language</tref>, then
+          <tref>active context</tref> has a <tref>default language</tref>,
           set <em>defaultLanguage</em> to it.</li>
         <li>For each key <tref>term</tref> and value <tref>term definition</tref> in
           the <tref>active context</tref>, ordered by shortest <tref>term</tref>
           first (breaking ties by choosing the lexicographically least
           <tref>term</tref>):
           <ol class="algorithm">
-            <li>If the <tref>term definition</tref> is <tref>null</tref>, then
+            <li>If the <tref>term definition</tref> is <tref>null</tref>,
               <tref>term</tref> cannot be selected during <tref>compaction</tref>,
               so continue to the next <tref>term</tref>.</li>
             <li>Initialize <em>container</em> to <code>@none</code>. If there
               is a <tref>container mapping</tref> in
-              <tref>term definition</tref>, then set <em>container</em> to
+              <tref>term definition</tref>, set <em>container</em> to
               its associated value.</li>
             <li>Initialize <em>iris</em> to the value of the <tref>IRI mapping</tref>
               for the <tref>term definition</tref>. If <em>iris</em> is not an
-              <tref>array</tref>, then set it to an <tref>array</tref> containing
+              <tref>array</tref>, set it to an <tref>array</tref> containing
               only <em>iris</em>.</li>
             <li>
               For each item <em>iri</em> in <em>iris</em>:
               <ol class="algorithm">
-                <li>If <em>iri</em> is not a key in <em>result</em>, then add
+                <li>If <em>iri</em> is not a key in <em>result</em>, add
                   a key-value pair where the key is <em>iri</em> and the value
                   is an empty <tref>JSON object</tref> to <em>result</em>.</li>
                 <li>Initialize <em>container map</em> to the value associated with
                   the <em>iri</em> key in <em>result</em>.</li>
                 <li>If <em>container</em> is not a key in <em>container map</em>,
-                  then initialize <em>typeOrLanguage map</em> to a new
+                  initialize <em>typeOrLanguage map</em> to a new
                   <tref>JSON object</tref>. Add two key-value pairs to
                   <em>typeOrLanguage map</em>, where the first's key is
                   <code>@language</code> and its value is a new
@@ -2387,66 +2236,24 @@
                           to <code>@null</code>, otherwise initialize it to the
                           value.</li>
                         <li>If <em>language</em> is not a key in
-                          <em>language map</em>, then add a key-value
+                          <em>language map</em>, add a key-value
                           pair to <em>language map</em> where the key is
-                          <em>language</em> and the value is a new
-                          <tref>JSON object</tref> with two key-value
-                          pairs, where the first's key is <code>term</code>
-                          and its value is <tref>null</tref>, and the second's
-                          key is <code>propertyGenerators</code> and the
-                          value is an empty <tref>array</tref>.</li>
-                        <li>Initialize <em>entry</em> to the value associated with
-                          the key <em>language</em> in <em>language map</em>.</li>
-                        <li>If <tref>term definition</tref> is a
-                          <tref>property generator</tref>, append the
-                          <tref>term</tref> to the <tref>array</tref> associated
-                          with the <code>propertyGenerators</code> key in
-                          <em>entry</em>.</li>
-                        <li>Otherwise, if the value associated with the key
-                          <code>term</code> in <em>entry</em> is <tref>null</tref>,
-                          set it to the <tref>term</tref>.</li>
+                          <em>language</em> and the value is the <tref>term</tref>
+                          being processed.</li>
                       </ol>
                     </li>
                     <li>Otherwise:
                       <ol class="algorithm">
                         <li>If <em>defaultLanguage</em> is not a key in
-                          <em>language map</em>, then add a key-value
+                          <em>language map</em>, add a key-value
                           pair to <em>language map</em> where the key is
-                          <em>defaultLanguage</em> and the value is a new
-                          <tref>JSON object</tref> with two key-value
-                          pairs, where the first's key is <code>term</code>
-                          and its value is <tref>null</tref>, and the second's
-                          key is <code>propertyGenerators</code> and the
-                          value is an empty <tref>array</tref>.</li>
-                        <li>Initialize <em>entry</em> to the value associated with
-                          the key <em>defaultLanguage</em> in <em>language map</em>.</li>
-                        <li>If <tref>term definition</tref> is a
-                          <tref>property generator</tref>, append the
-                          <tref>term</tref> to the <tref>array</tref> associated
-                          with the <code>propertyGenerators</code> key in
-                          <em>entry</em>.</li>
-                        <li>Otherwise, if the value associated with the key
-                          <code>term</code> in <em>entry</em> is <tref>null</tref>,
-                          set it to the <tref>term</tref>.</li>
+                          <em>defaultLanguage</em> and the value is the
+                          <tref>term</tref> being processed.</li>
                         <li>If <code>@none</code> is not a key in
-                          <em>language map</em>, then add a key-value
+                          <em>language map</em>, add a key-value
                           pair to <em>language map</em> where the key is
-                          <code>@none</code> and the value is a new
-                          <tref>JSON object</tref> with two key-value
-                          pairs, where the first's key is <code>term</code>
-                          and its value is <tref>null</tref>, and the second's
-                          key is <code>propertyGenerators</code> and the
-                          value is an empty <tref>array</tref>.</li>
-                        <li>Set <em>entry</em> to the value associated with
-                          the key <code>@none</code> in <em>language map</em>.</li>
-                        <li>If <tref>term definition</tref> is a
-                          <tref>property generator</tref>, append the
-                          <tref>term</tref> to the <tref>array</tref> associated
-                          with the <code>propertyGenerators</code> key in
-                          <em>entry</em>.</li>
-                        <li>Otherwise, if the value associated with the key
-                          <code>term</code> in <em>entry</em> is <tref>null</tref>,
-                          set it to the <tref>term</tref>.</li>
+                          <code>@none</code> and the value is the
+                          <tref>term</tref> being processed.</li>
                       </ol>
                     </li>
                   </ol>
@@ -2458,26 +2265,13 @@
                       with the key <code>@type</code> in
                       <em>typeOrLanguage map</em>.</li>
                     <li>If there is a <tref>type mapping</tref> in the
-                      <tref>term definition</tref> then initialize <em>type</em>
+                      <tref>term definition</tref> initialize <em>type</em>
                       to its value, otherwise initialize it to
                       to <code>@none</code>.</li>
-                    <li>If <em>type</em> is not a key in <em>type map</em>, then
+                    <li>If <em>type</em> is not a key in <em>type map</em>,
                       add a key-value pair to <em>type map</em> where the key is
-                      <em>type</em> and the value is a new <tref>JSON object</tref>
-                      with two key-value pairs, where the first's key is
-                      <code>term</code> and its value is <tref>null</tref>, and the
-                      second's key is <code>propertyGenerators</code> and the
-                      value is an empty <tref>array</tref>.</li>
-                    <li>Initialize <em>entry</em> to the value associated with
-                      the key <em>type</em> in <em>type map</em>.</li>
-                    <li>If <tref>term definition</tref> is a
-                      <tref>property generator</tref>, append the
-                      <tref>term</tref> to the <tref>array</tref> associated
-                      with the <code>propertyGenerators</code> key in
-                      <em>entry</em>.</li>
-                    <li>Otherwise, if the value associated with the key
-                      <code>term</code> in <em>entry</em> is <tref>null</tref>,
-                      set it to the <tref>term</tref>.</li>
+                      <em>type</em> and the value is the <tref>term</tref>
+                      being processed.</li>
                   </ol>
                 </li>
               </ol>
@@ -2542,16 +2336,14 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm takes three required inputs and three optional inputs.
+      <p>This algorithm takes three required inputs and two optional inputs.
         The required inputs an <tref>active context</tref>, an <tref>inverse context</tref>,
-        and the <em>iri</em> to be compacted. The optional inputs are: a <em>value</em> associated
-        with the <em>iri</em>, a <em>vocabRelative</em> flag which specifies whether the
+        and the <em>iri</em> to be compacted. The optional inputs are a <em>value</em> associated
+        with the <em>iri</em> and a <em>vocabRelative</em> flag which specifies whether the
         passed <em>iri</em> should be compacted using the
         <tref title="active context">active context's</tref>
-        <tref>vocabulary mapping</tref>, and the <em>parent</em> element for
-        the <em>value</em>. If not passed, <em>value</em> is set to
-        <tref>null</tref>, <em>vocabRelative</em> is set to <code>false</code>, and
-        <em>parent</em> is set to <tref>null</tref>.</p>
+        <tref>vocabulary mapping</tref>. If not passed, <em>value</em> is set to
+        <tref>null</tref> and <em>vocabRelative</em> is set to <code>false</code>.</p>
 
       <ol class="algorithm">
         <li>If <em>iri</em> is <tref>null</tref>, return <tref>null</tref>.</li>
@@ -2663,16 +2455,16 @@
             <li>Initialize <em>term</em> to the result of the
               <a href="#term-selection">Term Selection algorithm</a>, passing
               <tref>active context</tref>, <tref>inverse context</tref>, <em>iri</em>,
-              <em>value</em>, <em>parent</em>, <em>containers</em>,
-              <em>typeOrLanguage</em>, and <em>typeOrLanguageValue</em>.</li>
+              <em>value</em>, <em>containers</em>, <em>typeOrLanguage</em>, and
+              <em>typeOrLanguageValue</em>.</li>
             <li>If <em>term</em> is not <tref>null</tref>, return <em>term</em>.</li>
           </ol>
         </li>
         <li>At this point, there is no simple <tref>term</tref> that <em>iri</em>
-          can be compacted to. Instead, try to choose a <tref>compact IRI</tref>,
-          starting by initializing <em>choice</em> to <tref>null</tref>. This
-          variable will be used to store the chosen <tref>compact IRI</tref> to
-          use, if any.</li>
+          can be compacted to. Instead, try to create a <tref>compact IRI</tref>,
+          starting by initializing <em>compact IRI</em> to <tref>null</tref>. This
+          variable will be used to store the created <tref>compact IRI</tref>, if
+          any.</li>
         <li>For each key <tref>term</tref> and value <tref>term definition</tref> in
           the <tref>active context</tref>:
           <ol class="algorithm">
@@ -2680,28 +2472,27 @@
               then continue to the next <tref>term</tref> because
               <tref title="term">terms</tref> with colons can't be
               used as <tref title="prefix">prefixes</tref>.</li>
-            <li>If the <tref>term definition</tref> is <tref>null</tref>
-              or for a <tref>property generator</tref> or its
-              <tref>IRI mapping</tref> equals <em>iri</em> or is not
-              a substring at the beginning of <em>iri</em>, then the
-              <tref>term</tref> cannot be used as a <tref>prefix</tref>
-              because it is not a partial match with <em>iri</em>. So
-              continue to the next <tref>term</tref>.</li>
-            <li>Initialize <em>curie</em> by concatenating <tref>term</tref>,
+            <li>If the <tref>term definition</tref> is <tref>null</tref>,
+              its <tref>IRI mapping</tref> equals <em>iri</em>, or its
+              <tref>IRI mapping</tref> is not a substring at the beginning of
+              <em>iri</em>, the <tref>term</tref> cannot be used as a <tref>prefix</tref>
+              because it is not a partial match with <em>iri</em>.
+              Continue with the next <tref>term</tref>.</li>
+            <li>Initialize <em>candidate</em> by concatenating <tref>term</tref>,
               a colon (<code>:</code>), and the substring of <em>iri</em>
               that follows after the value of the
               <tref title="term definition">term definition's</tref>
               <tref>IRI mapping</tref>.</li>
-            <li>If either <em>choice</em> is <tref>null</tref> or <em>curie</em> is
+            <li>If either <em>compact IRI</em> is <tref>null</tref> or <em>candidate</em> is
               shorter or the same length but lexicographically less than
-              <em>choice</em> and <em>curie</em> does not have a
+              <em>compact IRI</em> and <em>candidate</em> does not have a
               <tref>term definition</tref> in <tref>active context</tref> or if the
               <tref>term definition</tref> has an <tref>IRI mapping</tref>
               that equals <em>iri</em> and <em>value</em> is <tref>null</tref>,
-              set <em>choice</em> to <em>curie</em>.</li>
+              set <em>compact IRI</em> to <em>candidate</em>.</li>
           </ol>
         </li>
-        <li>If <em>choice</em> is not <tref>null</tref>, return <em>choice</em>.</li>
+        <li>If <em>compact IRI</em> is not <tref>null</tref>, return <em>compact IRI</em>.</li>
         <li>At this point, there is no <tref>compact IRI</tref> that <em>iri</em>
           can be compacted to, so if <em>vocabRelative</em> is
           <tref>true</tref> and <tref>active context</tref> has a
@@ -2771,12 +2562,10 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm has eight required inputs. They are:
+      <p>This algorithm has seven required inputs. They are:
         an <tref>active context</tref>, an <tref>inverse context</tref>, an
         <tref>IRI</tref> <em>iri</em>, a <em>value</em> associated with the
-        <tref>IRI</tref>, the expanded <em>parent</em> element for <em>value</em>
-        (which may be a <tref>JSON object</tref>, an <tref>array</tref>, or
-        <tref>null</tref>), an <tref>array</tref> <em>containers</em> that
+        <tref>IRI</tref>, an <tref>array</tref> <em>containers</em> that
         represents ordered list of preferred
         <tref title="container mapping">container mappings</tref>, a
         <tref>string</tref> <em>typeOrLanguage</em> that indicates whether
@@ -2839,29 +2628,8 @@
                   then there is no <tref>term</tref> with a matching
                   <tref>type mapping</tref> or <tref>language mapping</tref>,
                   so continue to the next <em>item</em>.</li>
-                <li>Initialize <em>termInfo</em> to the value associated with
+                <li>Set <em>selected term</em> to the value associated with
                   <em>item</em> in <em>typeOrLanguageValue map</em>.</li>
-                <li>If <em>parent</em> is a <tref>JSON object</tref>,
-                  then for each <tref>property generator</tref> <tref>term</tref>
-                  <em>propertyGeneratorTerm</em> in <em>termInfo</em> while
-                  <em>selected term</em> is <tref>null</tref>:
-                  <ol class="algorithm">
-                    <li>Initialize <em>match</em> to the result of using the
-                      <a href="#find-property-generator-duplicates">Find Property Generator Duplicates algorithm</a>,
-                      passing <tref>active context</tref>,
-                      <em>parent</em> for <em>element</em>, <em>iri</em> for
-                      <em>expanded property</em>, <em>value</em>,
-                      <em>propertyGeneratorTerm</em> for <em>activeProperty</em>,
-                      and <tref>false</tref> for <em>remove</em>.</li>
-                    <li>If <em>match</em> is <tref>true</tref>, then set
-                      <em>selected term</em> to <em>propertyGeneratorTerm</em>.</li>
-                  </ol>
-                </li>
-                <li>If <em>selected term</em> is <tref>null</tref>, then no
-                  <tref>property generator</tref> match was found, so set
-                  <em>selected term</em> to the non-<tref>property generator</tref>
-                  <tref>term</tref> in <em>termInfo</em>, which may be
-                  <tref>null</tref>.</li>
               </ol>
             </li>
           </ol>
@@ -3009,92 +2777,6 @@
       </ol>
     </section>
   </section> <!-- end of Value Compaction algorithm -->
-
-  <section>
-    <h2>Find Property Generator Duplicates</h2>
-
-    <p>This algorithm checks if a specific value exists for all
-      <tref title="IRI">IRIs</tref> associated with a
-      <tref>property generator</tref> and, if specified, it removes them.
-      The algorithm takes six required inputs: an <tref>active context</tref>,
-      <em>element</em>, <em>expanded property</em>, <em>value</em>,
-      <tref>active property</tref>, and a flag <em>remove</em>, that indicates
-      whether or not to remove the duplicate values. It returns <tref>true</tref>
-      if the required duplicate values were found and <tref>false</tref> if not.</p>
-
-    <ol class="algorithm">
-      <li>Initialize <em>result</em> to <tref>true</tref>.</li>
-      <li>Initialize <em>iris</em> to the <tref>array</tref> associated with the
-        <tref>IRI mapping</tref> for <tref>active property</tref> in
-        <tref>active context</tref>.</li>
-      <li>For each <em>iri</em> in <em>iris</em>:
-        <ol class="algorithm">
-          <li>If <em>iri</em> equals <em>expanded property</em>, then this
-            is the <em>iri</em> that is to be preserved, so continue to the next
-            <em>iri</em>.</li>
-          <li>Set <em>result</em> to <tref>false</tref>.</li>
-          <li>If <em>element</em> contains a key that equals <em>iri</em>:
-            <ol class="algorithm">
-              <li>Initialize <em>prospects</em> to the value associated with the
-                key that equals <em>iri</em> in <em>element</em>. This
-                <tref>array</tref> will be checked for a value that matches
-                the <tref>property generator</tref> <em>value</em>.</li>
-              <li>If <em>value</em> is an empty <tref>array</tref>:
-                <ol class="algorithm">
-                  <li>Set <em>result</em> to <tref>true</tref>.</li>
-                  <li>If <em>remove</em> is <tref>true</tref>, remove <em>iri</em>
-                    from <em>element</em>.</li>
-                  <li>Continue to the next <em>iri</em>.</li>
-                </ol>
-              </li>
-              <li>For each item <em>prospect</em> in <em>prospects</em>, until
-                a <tref>property generator</tref> duplicate is found for
-                <em>value</em>:
-                <ol class="algorithm">
-                  <li>Check to see if <em>prospect</em> and <em>value</em> are
-                    <tref>property generator</tref> duplicates:
-                    <ol class="algorithm">
-                      <li>If their types and values are equal, then they are
-                        duplicates.</li>
-                      <li>Otherwise, if they are both
-                        <tref title="JSON object">JSON objects</tref> that contain
-                        the key <code>@value</code> and they both have the same
-                        key-value pairs for the keys <code>@value</code>,
-                        <code>@type</code>, <code>@language</code>, and
-                        <code>@index</code>, then they are duplicates.</li>
-                      <li>Otherwise, if they are both
-                        <tref title="list object">list objects</tref> with the same
-                        key-value pairs for the key <code>@index</code>, and the
-                        <tref title="array">arrays</tref> associated with their
-                        <code>@list</code> keys have the same length and their
-                        corresponding items, by index, are duplicates, then they
-                        are duplicates.</li>
-                      <li>Otherwise, if they are both
-                        <tref title="JSON object">JSON objects</tref> that contain
-                        the key <code>@id</code> and the values associated with
-                        those keys are equal, then they are duplicates.</li>
-                      <li>Otherwise, they are not duplicates.</li>
-                    </ol>
-                  </li>
-                  <li>If <em>prospect</em> and <em>value</em> are
-                    <tref>property generator</tref> duplicates:
-                    <ol class="algorithm">
-                      <li>Set <em>result</em> to <tref>true</tref>.</li>
-                      <li>If <em>remove</em> is <tref>true</tref>, then remove
-                        <em>prospect</em> from <em>prospects</em> and, if
-                        <em>prospects</em> is now empty, remove <em>iri</em>
-                        from <em>element</em>.</li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>Return <em>result</em>.</li>
-    </ol>
-  </section> <!-- end of Find Property Generator Duplicates -->
 </section> <!-- end of Compaction section -->
 
 
@@ -4068,9 +3750,8 @@
         <dt>invalid term definition</dt>
         <dd>An invalid <tref>term definition</tref> has been detected.</dd>
         <dt>invalid IRI mapping</dt>
-        <dd>A <tref>local context</tref> contains a <tref>term</tref> or
-          <tref>property generator</tref> that has been mapped to a
-          non-<tref>absolute IRI</tref>.</dd>
+        <dd>A <tref>local context</tref> contains a <tref>term</tref> that has
+          an invalid or missing <tref>IRI mapping</tref>.</dd>
         <dt>cyclic IRI mapping</dt>
         <dd>A cycle in <tref title="IRI mapping">IRI mappings</tref> has been detected.</dd>
         <dt>invalid keyword alias</dt>
@@ -4088,14 +3769,6 @@
         <dd>An <code>@container</code> member was encountered whose value was
           not one of the following <tref title="string">strings</tref>:
           <code>@list</code>, <code>@set</code>, or <code>@index</code>.</dd>
-        <dt>invalid property generator</dt>
-        <dd>A non-<tref>string</tref> value has been detected in a
-          <tref title="property generator">property generator's</tref>
-          <tref>IRI mapping</tref>.</dd>
-        <dt>property generator in term definition</dt>
-        <dd>A <tref>property generator</tref> was used in the
-          <tref>IRI mapping</tref> of another <tref>term</tref> or
-          <tref>property generator</tref>.</dd>
         <dt>invalid @graph value</dt>
         <dd>An invalid value for an <code>@graph</code> member has been detected,
           i.e., the value was neither a <tref>JSON object</tref> nor an
