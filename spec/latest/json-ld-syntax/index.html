@@ -96,9 +96,9 @@
 <body>
 <section id="abstract">
   <p>JSON has proven to be a highly useful object serialization and messaging format.
-    In an attempt to harmonize the representation of <tref>Linked Data</tref>
-    in JSON, this specification outlines a common JSON representation format for
-    expressing directed graphs; mixing both Linked Data and non-Linked Data in
+    In an attempt to standardize the representation of <tref>Linked Data</tref>
+    in JSON, this specification defines JSON representation format for
+    expressing directed graphs, mixing both Linked Data and non-Linked Data in
     a single document.</p>
 </section>
 
@@ -159,7 +159,7 @@
     Linked Data has four properties: 1)&nbsp;it uses <tref title="IRI">IRIs</tref>
     to name things; 2)&nbsp;it uses HTTP <tref title="IRI">IRIs</tref>
     for those names; 3)&nbsp;the name <tref title="IRI">IRIs</tref>, when dereferenced,
-    provide more information about the name; and 4)&nbsp;the data expresses links
+    provide more information about the thing; and 4)&nbsp;the data expresses links
     to data on other Web sites. These properties allow data published on the Web
     to work much like Web pages do today. One can start at one piece of Linked Data,
     and follow the links to other pieces of data that are hosted on different
@@ -169,8 +169,8 @@
     JSON [[!RFC4627]]. It is primarily intended to be a way to use Linked Data in
     Web-based programming environments. It is also useful when building interoperable
     Web services and when storing Linked Data in JSON-based storage engines. Since
-    JSON-LD is 100% compatible with JSON the large number of JSON parsers and libraries
-    available today can be reused. Additionally to all the features JSON provides,
+    JSON-LD is 100% compatible with JSON, the large number of JSON parsers and libraries
+    available today can be reused. In addition to all the features JSON provides,
     JSON-LD introduces:</p>
 
   <ul>
@@ -180,9 +180,8 @@
       by mapping them to <tref title="IRI">IRIs</tref> via a <tref>context</tref>,</li>
     <li>a mechanism in which a value in a <tref>JSON object</tref> may refer
       to a <tref>JSON object</tref> on a different site on the Web,</li>
-    <li>the ability to express the language associated with a <tref>string</tref></li>
-    <li>a way to associate datatypes with values such as dates, times, weights,
-      and distances,</li>
+    <li>the ability to annotate <tref title="string">strings</tref> with their language,</li>
+    <li>a way to associate datatypes with values such as dates and times,</li>
     <li>and a facility to express one or more directed graphs, such as a social
       network, in a single document.</li>
   </ul>
@@ -200,18 +199,19 @@
       Data in JSON. The document is primarily intended for the following audiences:</p>
 
     <ul>
-      <li>Software developers that want to encode Linked Data in a variety of
+      <li>Software developers who want to encode Linked Data in a variety of
       programming languages that can use JSON.</li>
-      <li>Software developers that want to understand the design decisions and
+      <li>Software developers who want to understand the design decisions and
       language syntax for JSON-LD.</li>
-      <li>Software developers that want to implement processors and APIs for
+      <li>Software developers who want to implement processors and APIs for
       JSON-LD.</li>
     </ul>
 
-    <p>This specification does not describe the programming interfaces for the
-      JSON-LD Syntax. The specification that describes the programming interfaces
-      for JSON-LD documents is the JSON-LD Application Programming Interface
-      [[JSON-LD-API]].</p>
+    <p>A companion document, the JSON-LD Processing Algorithms and API specification
+      [[JSON-LD-API]], specifies how to work with JSON-LD at a higher level by
+      providing a standard library interface for common JSON-LD operations. Although that
+      document is not required for understanding and working with JSON-LD, for some
+      readers it will be a better starting point.</p>
 
     <p>To understand the basics in this specification you must first be familiar with
       JSON, which is detailed in [[!RFC4627]].</p>
@@ -221,8 +221,7 @@
 <section class="informative">
   <h1>Design Goals and Rationale</h1>
 
-  <p>A number of design goals were established before the creation of this
-    markup language:</p>
+  <p>JSON-LD satisfies the following design goals:</p>
 
   <dl>
    <dt>Simplicity</dt>
@@ -232,7 +231,7 @@
      <tref title="keyword">keywords</tref> (<code>@context</code>
      and <code>@id</code>) to use the basic functionality in JSON-LD.</dd>
    <dt>Compatibility</dt>
-   <dd>The JSON-LD markup must be 100% compatible with JSON. This ensures that
+   <dd>A JSON-LD document must be 100% compatible with JSON. This ensures that
     all of the standard JSON libraries work seamlessly with JSON-LD documents.</dd>
    <dt>Expressiveness</dt>
    <dd>The syntax must be able to express directed graphs, which have been proven
@@ -257,7 +256,7 @@
 </section>
 
 <section class="normative">
-<h1>Terminology</h1>
+  <h1>Terminology</h1>
 
   <section>
     <h2>General Terminology</h2>
@@ -274,23 +273,20 @@
         key.
       </dd>
       <dt><tdef>array</tdef></dt>
-      <dd>
-        An array structure is represented as square brackets surrounding zero
+      <dd>An array structure is represented as square brackets surrounding zero
         or more values. Values are separated by commas.
         In JSON, an array is an <em>ordered</em> sequence of zero or more values.
         While JSON-LD uses the same array representation as JSON,
         the collection is <em>unordered</em> by default. While order is
         preserved in regular JSON arrays, it is not in regular JSON-LD arrays
-        unless specific markup is provided (see <a href="#sets-and-lists"></a>).</dd>
+        specifically defined (see <a href="#sets-and-lists"></a>).</dd>
       <dt><tdef>string</tdef></dt><dd>
         A string is a sequence of zero or more Unicode characters,
-        wrapped in double quotes, using backslash escapes (if necessary). A
-        character is represented as a single character string.</dd>
+        wrapped in double quotes, using backslash escapes (if necessary).</dd>
       <dt><tdef>number</tdef></dt>
-      <dd>
-        A number is similar to that used in most programming languages, except
-        that the octal and hexadecimal formats are not used and that leading
-        zeros are not allowed.</dd>
+      <dd>A number is similar to that used in most programming languages, except
+        that the octal and hexadecimal formats are not used and leading zeros
+        are not allowed.</dd>
       <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
         Values that are used to express one of two possible boolean states.</dd>
       <dt><tdef>null</tdef></dt>
@@ -328,7 +324,7 @@
       <a href="#string-internationalization"></a> and
       <a href="#typed-values"></a>.</dd>
     <dt><code>@language</code></dt>
-    <dd>Used to specify the native language for a particular value or the default
+    <dd>Used to specify the natural (human) language for a particular value or the default
       language of a JSON-LD document. This keyword is described in the section titled
       <a href="#string-internationalization"></a>.</dd>
     <dt><code>@type</code></dt>
@@ -363,8 +359,7 @@
       <tref title="compact iri">compact IRIs</tref>.</dd>
     </dl>
 
-    <p>For the avoidance of doubt, all keys, <tref title="keyword">keywords</tref>,
-      and values in JSON-LD are case-sensitive.</p>
+    <p>All keys, <tref title="keyword">keywords</tref>, and values in JSON-LD are case-sensitive.</p>
   </section>
 </section>
 
@@ -410,7 +405,7 @@
     A machine doesn't have such an intuitive understanding and sometimes,
     even for humans, it is difficult to resolve ambiguities in such representations. This problem
     can be solved by using unambiguous identifiers to denote the different concepts instead of
-    <tref title="term">terms</tref> such as "name", "homepage", etc.</p>
+    tokens such as "name", "homepage", etc.</p>
 
   <p><tref>Linked Data</tref>, and the Web in general, uses <tref title="IRI">IRIs</tref>
     (Internationalized Resource Identifiers as described in [[!RFC3987]]) for unambiguous
@@ -445,8 +440,7 @@
   <section>
     <h2>The Context</h2>
 
-    <p>Simply speaking, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>,
-      i.e., <tref title="property">properties</tref> with associated values, to
+    <p>Simply speaking, a <tdef>context</tdef> is used to map <tref title="term">terms</tref>, to
       <tref title="IRI">IRIs</tref>. <tref title="term">Terms</tref> are case sensitive
       and any valid <tref>string</tref> that is not a reserved JSON-LD <tref>keyword</tref>
       can be used as a <tref>term</tref>.</p>
@@ -479,11 +473,7 @@
       or a <tref>JSON object</tref>.</p>
 
     <p>When a <tref>JSON object</tref> is
-      associated with a term, it is called an <tref>expanded term definition</tref>.
-      <tdef title="expanded term definition">Expanded term definitions</tdef> may
-      be used to associate <a href="#type-coercion">type</a> or
-      <a href="#string-internationalization">language information</a> with a
-      term.
+      associated with a term, it is called an <tdef>expanded term definition</tdef>.
       The example above specifies that the values of <code>image</code> and
       <code>homepage</code> terms are <tref title="IRI">IRIs</tref>.
       They also allow terms to be used for <a href="#data-indexing">index maps</a>
@@ -517,10 +507,9 @@
       <tref title="IRI">IRIs</tref> in the Schema.org vocabulary but also specifies that
       the values of the <code>homepage</code> and <code>image</code> property
       can be interpreted as an <tref>IRI</tref> (<code>"@type": "@id"</code>,
-      see section <a href="#iris"></a> for more details). This information gives the
-      data global context and allows developers to re-use each other's data
-      without having to agree to how their data will interoperate on a
-      site-by-site basis. External JSON-LD context documents may contain extra
+      see section <a href="#iris"></a> for more details). This information allows developers
+      to re-use each other's data without having to agree to how their data will interoperate
+      on a site-by-site basis. External JSON-LD context documents may contain extra
       information located outside of the <code>@context</code> key, such as
       documentation about the <tref title="term">terms</tref> declared in the
       document. Information contained outside of the <code>@context</code> value
@@ -613,8 +602,8 @@
     a mapping in the <tref>context</tref> are still considered valid expressions
     in JSON-LD documents—the keys just don't expand to unambiguous identifiers.</p>
 
-  <p>An <tref>IRI</tref> is generated when a <tref>JSON object</tref> is used in
-    the value position and contains an <code>@id</code> keyword:</p>
+  <p>A <tref>string</tref> is interpreted as an <tref>IRI</tref> when it is the
+    value of an <code>@id</code> member:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Expanded IRI definition">
@@ -627,15 +616,8 @@
   -->
   </pre>
 
-  <p>Specifying a <tref>JSON object</tref> with an
-    <code>@id</code> key is used to identify that <tref>node</tref> using an
-    <tref>IRI</tref>. This facility may also be used to link to another
-    <tref>node object</tref> using a mechanism called
-    <tref>embedding</tref>, which is covered in the section titled
-    <a href="#embedding"></a>.</p>
-
   <p>If type <tref>coercion</tref> rules are specified in the <code>@context</code> for
-  a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
+    a particular <tref>term</tref> or property IRI, an IRI is generated:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Type coercion">
@@ -707,21 +689,17 @@
     "@context":
     {
       ...
-      "homepage":
-      {
-        "@id": "http://schema.org/homepage",
-        "@type": "@id"
-      }
+      "name": "http://schema.org/name"
     },
-    "****@id****": "****http://example.org/people#joebob****",
-    "homepage": "http://joebob.example.com/",
+    ****"@id": "http://me.markus-lanthaler.com/"****,
+    "name": "Markus Lanthaler",
     ...
   }
   -->
   </pre>
 
   <p>The example above contains a <tref>node object</tref> identified by the IRI
-    <code>http://example.org/people#joebob</code>.</p>
+    <code>http://me.markus-lanthaler.com/</code>.</p>
 </section>
 
 <section>
@@ -773,7 +751,6 @@
 }
 -->
 </pre>
-
 </section>
 </section>
 
@@ -801,7 +778,8 @@
   <p>For example, if a JSON-LD document was retrieved from <code>http://example.com/document.jsonld</code>,
     relative IRIs would resolve against that IRI:</p>
 
-  <pre class="example" data-transform="updateExample">
+  <pre class="example" data-transform="updateExample"
+       title="Use a relative IRI as node identifier">
     <!--
     {
       "@context": {
@@ -818,7 +796,8 @@
     To prevent this without having to use an <tref>absolute IRI</tref>, a <tref>context</tref>
     may define a <code>@base</code> mapping, to overwrite the base IRI for the document.</p>
 
-  <pre class="example" data-transform="updateExample">
+  <pre class="example" data-transform="updateExample"
+       title="Setting the document base in a document">
   <!--
   {
     "@context": {
@@ -859,8 +838,8 @@
     <tref title="JSON object">object</tref> should not be expanded using
     the vocabulary <tref>IRI</tref>, a <tref>term</tref> can be explicitly set
     to <tref>null</tref> in the <tref>context</tref>. For instance, in the
-    example below the <code>databaseId</code> member would be ignored by a
-    JSON-LD processor.</p></p>
+    example below the <code>databaseId</code> member would not expand to an
+    <tref>IRI</tref>.</p></p>
 
   <pre class="example" data-transform="updateExample"
        title="Using the null keyword to ignore data">
@@ -882,20 +861,8 @@
 
 <section>
   <h2>Compact IRIs</h2>
-  <p>A document on the Web that defines one or more IRIs for use as
-    <tref title="property">properties</tref> in Linked Data is called a
-    <tdef>vocabulary</tdef>.
-    <tref title="term">Terms</tref> in <tref>Linked Data</tref> documents may draw from
-    a number of different <tref title="vocabulary">vocabularies</tref>s. At times, declaring every single <tref>term</tref>
-    that a document uses can require the developer to declare tens, if not hundreds of potential
-    vocabulary <tref title="term">terms</tref> that are used across an
-    application. This is a concern for at least two reasons: the
-    first is the cognitive load on the developer of remembering all of the
-    <tref title="term">terms</tref>, and the second is the serialized size of the
-    <tref>context</tref> if it is specified inline. In order to address these issues,
-    the concept of a <tref>compact IRI</tref> is introduced.</p>
-  <p>
-    A <tdef>compact IRI</tdef> is a way of expressing an <tref>IRI</tref>
+
+  <p>A <tdef>compact IRI</tdef> is a way of expressing an <tref>IRI</tref>
     using a <em>prefix</em> and <em>suffix</em> separated by a colon (<code>:</code>) which is
     similar to the <cite><a href="http://www.w3.org/TR/rdfa-core/#s_curies">CURIE Syntax</a></cite>
     in [[RDFA-CORE]]. The <tdef>prefix</tdef> is a <tref>term</tref> taken from the
@@ -907,9 +874,7 @@
     any of the FOAF vocabulary terms to the end of the prefix to specify a short-hand
     version of the <tref>absolute IRI</tref> for the vocabulary term. For example,
     <code>foaf:name</code> would be expanded out to the IRI
-    <code>http://xmlns.com/foaf/0.1/name</code>. Instead of having to remember and
-    type out the entire IRI, the developer can instead use the prefix in their JSON-LD markup.
-  </p>
+    <code>http://xmlns.com/foaf/0.1/name</code>.</p>
 
   <p><tref title="prefix">Prefixes</tref> are expanded when the form of the value
     is a <tref>compact IRI</tref> represented as a <code>prefix:suffix</code>
@@ -1044,9 +1009,9 @@ type with a particular <tref>term</tref> in the <code>@context</code>:</p>
 </pre>
 
 <p>The <em>modified</em> key's value above is automatically type coerced to a
-dateTime value because of the information specified in the
-<code>@context</code>. A JSON-LD processor will interpret the markup above
-like so:</p>
+  <em>dateTime</em> value because of the information specified in the
+  <code>@context</code>. A JSON-LD processor will interpret the example above
+  as follows:</p>
 
 <table class="example">
 <thead>
@@ -1133,7 +1098,7 @@ in the body of a JSON-LD document:</p>
   the same <tref>JSON object</tref>, the <code>@type</code>
   <tref>keyword</tref> is expressing a <tref>value type</tref>.
   Otherwise, the <code>@type</code> <tref>keyword</tref> is expressing a
-  <tref>node type</tref>. The markup above expresses the following data:</p>
+  <tref>node type</tref>. The example above expresses the following data:</p>
 
 <table class="example">
 <thead>
@@ -1224,7 +1189,7 @@ the data type to be specified with each piece of data.</p>
 -->
 </pre>
 
-<p>The markup shown above would generate the following data. The data has no inherent order
+<p>The example shown above would generate the following data. The data has no inherent order
   except for the values of the <code>http://schema.org/homepage</code> property
   which represent an ordered list.</p>
 
@@ -1293,10 +1258,15 @@ the data type to be specified with each piece of data.</p>
 -->
 </pre>
 
-<p>In this case the <code>@id</code> definition in the term definition is optional, but if it does exist, the <tref>compact IRI</tref>
-  or <tref>IRI</tref> is treated as a <tref>term</tref> (not a <code>prefix:suffix</code> construct)
-  so that the actual definition of a <tref>prefix</tref> becomes unnecessary. Type coercion is performed using
-  the unexpanded value of the key if there is an exact match for the key in the <tref>active context</tref>.</p>
+<p>In this case the <code>@id</code> definition in the term definition is optional.
+  If it does exist, the <tref>compact IRI</tref> or <tref>IRI</tref> representing
+  the term will always be expanded to <tref>IRI</tref> defined by the <code>@id</code>
+  key&mdash;regardless of whether a prefix is defined or not.</p>
+
+<p>Type coercion is always performed using the unexpanded value of the key. In the
+  example above, that means that type coercion is done looking for <code>foaf:age</code>
+  in the <tref>active context</tref> and not for the corresponding, expanded
+  <tref>IRI</tref> <code>http://xmlns.com/foaf/0.1/age</code>.</p>
 
 <p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
   expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
@@ -1356,16 +1326,17 @@ the data type to be specified with each piece of data.</p>
   {
     ****"@context":
     {
-      "name": "http://example.com/person#name",
+      "name": "http://example.com/person#name,
       "details": "http://example.com/person#details"
-    },****
+    }"****,
     "****name****": "Markus Lanthaler",
     ...
     "details":
     {
-      ****"@context": {
+      ****"@context":
+      {
         "name": "http://example.com/organization#name"
-      },****
+      }****,
       "****name****": "Graz University of Technology"
     }
   }
@@ -1426,7 +1397,7 @@ the data type to be specified with each piece of data.</p>
   <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
     <tref>context</tref> document in an HTTP Link Header. Doing so allows JSON to
     be unambiguously machine-readable without requiring developers to drastically
-    change their markup and provides an upgrade path for existing infrastructure
+    change their documents and provides an upgrade path for existing infrastructure
     without breaking existing clients that rely on the <code>application/json</code>
     media type.</p>
 
@@ -1832,7 +1803,7 @@ specified. The full <tref>IRI</tref> for
 -->
 </pre>
 
-<p>The markup shown above would result in the following data being generated,
+<p>The example shown above would result in the following data being generated,
   each relating the node to an individual value, with no inherent order:</p>
 
 <table class="example">
@@ -1881,7 +1852,7 @@ specified. The full <tref>IRI</tref> for
 }-->
 </pre>
 
-<p>The markup shown above would generate the following data, again with
+<p>The example shown above would generate the following data, again with
   no inherent order:</p>
 
 <table class="example">
@@ -1967,10 +1938,6 @@ specified. The full <tref>IRI</tref> for
   <a href="#compact-document-form"></a>). This makes post-processing of
   JSON-LD documents easier as the data is always in array form, even if the
   array only contains a single value.</p>
-
-<p class="note">The use of <code>@container</code> in the body of a JSON-LD
-  document has no meaning and is not allowed by the JSON-LD grammar
-  (see <a href="#json-ld-grammar"></a>).</p>
 
 </section>
 
@@ -2065,7 +2032,7 @@ specified. The full <tref>IRI</tref> for
   </thead>
   <tbody>
   <tr>
-    <td>http://example.org/graphs/73</td>
+    <td>&nbsp;</td>
     <td>http://example.org/graphs/73</td>
     <td>http://www.w3.org/ns/prov#generatedAtTime</td>
     <td>2012-04-09</td>
@@ -2246,13 +2213,10 @@ specified. The full <tref>IRI</tref> for
     <strong>url</strong> and <strong>a</strong>, respectively.</p>
 
   <p>Since keywords cannot be redefined, they can also not be aliased to
-    other keywords. Every statement in the context having a keyword
-    as the key (as in
-    <code style="white-space: nowrap">{ "@type": ... }</code>) will be
-    ignored when being processed.</p>
+    other keywords.</p>
 </section>
 
-<section>
+<section class="informative">
 <h3>Expanded Document Form</h3>
 <p>The JSON-LD Algorithms and API specification [[JSON-LD-API]]
   defines a method for <em>expanding</em> a JSON-LD document.
@@ -2307,7 +2271,7 @@ have to be written to operate on
 
 </section>
 
-<section>
+<section class="informative">
 <h3>Compact Document Form</h3>
 <p>The JSON-LD Algorithms and API specification [[JSON-LD-API]]
   defines a method for <em>compacting</em> a JSON-LD document.
@@ -2955,7 +2919,7 @@ topic.</p>
 <section class="appendix informative">
 <h2>Relationship to Other Linked Data Formats</h2>
 
-<p>The JSON-LD markup examples below demonstrate how JSON-LD can be used to
+<p>The JSON-LD examples below demonstrate how JSON-LD can be used to
   express semantic data marked up in other linked data formats such as Turtle,
   RDFa, Microformats, and Microdata. These sections are merely provided as
   evidence that JSON-LD is very flexible in what it can express across different
@@ -3314,7 +3278,7 @@ topic.</p>
     <dt>Interoperability considerations:</dt>
     <dd>Not Applicable</dd>
     <dt>Published specification:</dt>
-    <dd>The <a href="http://json-ld.org/spec/latest/">JSON-LD</a> specification.</dd>
+    <dd>http://www.w3.org/TR/json-ld</dd>
     <dt>Applications that use this media type:</dt>
     <dd>Any programming environment that requires the exchange of
       directed graphs. Implementations of JSON-LD have been created for
@@ -3344,10 +3308,10 @@ topic.</p>
   </dl>
 
   <p>Fragment identifiers used with <a href="#application-ld-json">application/ld+json</a>
-    resources MAY identify a node in a <tref>JSON-LD graph</tref> expressed in
-    the resource. This idiom, which is also used in RDF [[RDF-CONCEPTS]], gives a
-    simple way to "mint" new, document-local IRIs to label nodes and therefore contributes
-    considerably to the expressive power of JSON-LD.</p>
+    are treated as in RDF syntaxes, as per
+    <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-fragID">RDF 1.1 Concepts and Abstract Syntax</a></cite>
+    [[RDF-CONCEPTS]].
+</p>
 </section>
 
 <section class="appendix informative">
