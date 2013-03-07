@@ -2217,128 +2217,122 @@ specified. The full <tref>IRI</tref> for
 </section>
 
 <section class="informative">
-<h3>Expanded Document Form</h3>
-<p>The JSON-LD Algorithms and API specification [[JSON-LD-API]]
-  defines a method for <em>expanding</em> a JSON-LD document.
-  Expansion is the process of taking a JSON-LD document and applying a
-  <code>@context</code> such that all IRIs, types, and values
-  are expanded so that the <code>@context</code> is no longer necessary.</p>
+  <h3>Expanded Document Form</h3>
 
-<p>For example, assume the following JSON-LD input document:</p>
+  <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]]
+    defines a method for <em>expanding</em> a JSON-LD document.
+    Expansion is the process of taking a JSON-LD document and applying a
+    <code>@context</code> such that all IRIs, types, and values
+    are expanded so that the <code>@context</code> is no longer necessary.</p>
 
-<pre class="example" data-transform="updateExample"
-     title="Sample JSON-LD document">
-<!--
-{
-   "@context":
-   {
+  <p>For example, assume the following JSON-LD input document:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document">
+  <!--
+  {
+     "@context":
+     {
+        "name": "http://xmlns.com/foaf/0.1/name",
+        "homepage": {
+          "@id": "http://xmlns.com/foaf/0.1/homepage",
+          "@type": "@id"
+        }
+     },
+     "name": "Manu Sporny",
+     "homepage": "http://manu.sporny.org/"
+  }
+  -->
+  </pre>
+
+  <p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
+    provided above would result in the following output:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Expanded form for the previous example">
+  <!--
+  [
+    {
+      "http://xmlns.com/foaf/0.1/name": [
+        { "@value": "Manu Sporny" }
+      ],
+      "http://xmlns.com/foaf/0.1/homepage": [
+        { "@id": "http://manu.sporny.org/" }
+      ]
+    }
+  ]
+  -->
+  </pre>
+</section>
+
+<section class="informative">
+  <h3>Compact Document Form</h3>
+
+  <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]] defines
+    a method for <em>compacting</em> a JSON-LD document. Compaction is the process
+    of applying a developer-supplied context to shorten <tref title="IRI">IRIs</tref>
+    to <tref title="term">terms</tref> or <tref title="compact IRI">compact IRIs</tref>
+    and JSON-LD values expressed in <tref>expanded form</tref> to simple values such
+    as <tref title="string">strings</tref> or <tref title="number">numbers</tref>.
+    Often this makes it simpler to work with document as the data is expressed in
+    application-specific terms. Compacted documents are also typically easier to read
+    or humans.</p>
+
+  <p>For example, assume the following JSON-LD input document:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample expanded JSON-LD document">
+  <!--
+  [
+    {
+      "http://xmlns.com/foaf/0.1/name": [ "Manu Sporny" ],
+      "http://xmlns.com/foaf/0.1/homepage": [
+        {
+         "@id": "http://manu.sporny.org/"
+        }
+      ]
+    }
+  ]
+  -->
+  </pre>
+
+  <p>Additionally, assume the following developer-supplied JSON-LD context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample context">
+  <!--
+  {
+    "@context": {
       "name": "http://xmlns.com/foaf/0.1/name",
       "homepage": {
         "@id": "http://xmlns.com/foaf/0.1/homepage",
         "@type": "@id"
       }
-   },
-   "name": "Manu Sporny",
-   "homepage": "http://manu.sporny.org/"
-}
--->
-</pre>
-
-<p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
-  provided above would result in the following output:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Expanded form for the previous example">
-<!--
-[
-  {
-    "http://xmlns.com/foaf/0.1/name": [
-      { "@value": "Manu Sporny" }
-    ],
-    "http://xmlns.com/foaf/0.1/homepage": [
-      { "@id": "http://manu.sporny.org/" }
-    ]
+    }
   }
-]
--->
-</pre>
-</section>
+  -->
+  </pre>
 
-<section class="informative">
-<h3>Compact Document Form</h3>
-<p>The JSON-LD Algorithms and API specification [[JSON-LD-API]]
-  defines a method for <em>compacting</em> a JSON-LD document.
-  Compaction is the process of taking a JSON-LD document and applying a
-  context such that a very compact form of the document is generated.
-  At times, a JSON-LD document may be received that is not in its most
-  compact form. The JSON-LD Algorithms, via an API, provides a way to compact a
-  JSON-LD document.</p>
+  <p>Running the JSON-LD Compaction algorithm given the context supplied above
+    against the JSON-LD input document provided above would result in the following
+    output:</p>
 
-<p>For example, assume the following JSON-LD input document:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Sample expanded JSON-LD document">
-<!--
-[
+  <pre class="example" data-transform="updateExample"
+       title="Compact form of the sample document once sample context has been applied">
+  <!--
   {
-    "http://xmlns.com/foaf/0.1/name": [ "Manu Sporny" ],
-    "http://xmlns.com/foaf/0.1/homepage": [
-      {
-       "@id": "http://manu.sporny.org/"
+    "@context": {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "homepage": {
+        "@id": "http://xmlns.com/foaf/0.1/homepage",
+        "@type": "@id"
       }
-    ]
+    },
+    "name": "Manu Sporny",
+    "homepage": "http://manu.sporny.org/"
   }
-]
--->
-</pre>
-
-<p>Additionally, assume the following developer-supplied JSON-LD context:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Sample context">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    }
-  }
-}
--->
-</pre>
-
-<p>Running the JSON-LD Compaction algorithm given the context supplied above
-  against the JSON-LD input document provided above would result in the following
-  output:</p>
-
-<pre class="example" data-transform="updateExample"
-     title="Compact form of the sample document once sample context has been applied">
-<!--
-{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    }
-  },
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
-}
--->
-</pre>
-
-<p>The compaction algorithm enables a developer to map any document into an
-  application-specific compacted form. The process consists of
-  expanding the document (see <a href="#expanded-document-form"></a>) and then
-  using a developer-supplied context to compact the expanded document.
-  While the context provided above mapped <code>http://xmlns.com/foaf/0.1/name</code>
-  to <strong>name</strong>, it could have also mapped it to any arbitrary
-  <tref>term</tref> provided by the developer. This powerful mechanism allows
-  the developer to re-shape the incoming JSON data into a format that is
-  optimized for their application.</p>
+  -->
+  </pre>
 </section>
 
 <section>
@@ -2887,8 +2881,8 @@ topic.</p>
       (<tref title="language-tagged string">language-tagged strings</tref>) whereas
       JSON-LD also supports JSON's native data types, i.e., <tref title="number">number</tref>,
       <tref title="string">strings</tref>, and the boolean values <tref>true</tref>
-      and <tref>false</tref>. The JSON-LD Algorithms and API specification [[JSON-LD-API]] defines
-      the conversion rules between JSON's native data types and RDF's counterparts to
+      and <tref>false</tref>. The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]]
+      defines the conversion rules between JSON's native data types and RDF's counterparts to
       allow full round-tripping.</li>
 
   </ul>
@@ -2896,7 +2890,7 @@ topic.</p>
   <p>Summarized these differences mean that JSON-LD is capable of serializing any RDF
     graph or dataset and most, but not all, JSON-LD documents can be transformed to RDF.
     A complete description of the algorithms to convert from RDF to JSON-LD and from
-    JSON-LD to RDF is included in the JSON-LD Algorithms and API specification
+    JSON-LD to RDF is included in the JSON-LD Processing Algorithms and API specification
     [[JSON-LD-API]].</p>
 
   <p>Even though JSON-LD serializes RDF datasets, it can also be used as a RDF graph source.
