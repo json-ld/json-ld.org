@@ -2216,6 +2216,124 @@ specified. The full <tref>IRI</tref> for
     other keywords.</p>
 </section>
 
+<section>
+  <h2>Data Indexing</h2>
+
+  <p>Databases are typically used to make access to
+    data more efficient. Developers often extend this sort of functionality into
+    their application data to deliver similar performance gains. Often this
+    data does not have any meaning from a Linked Data standpoint, but is
+    still useful for an application.</p>
+
+  <p>JSON-LD introduces the notion of <tref title="index map">index maps</tref>
+    that can be used to structure data into a form that is
+    more efficient to access. The data indexing feature allows an author to
+    structure data using a simpley key-value map where the keys do not map
+    to <tref title="IRI">IRIs</tref>. This enables direct access to data
+    instead of having to scan an array in search of a specific item.
+    In JSON-LD such data can be specified by associating the
+    <code>@index</code> <tref>keyword</tref> with a
+    <code>@container</code> declaration in the context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing data in JSON-LD">
+  <!--
+  {
+    "@context":
+    {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "body": "schema:articleBody",
+       "words": "schema:wordCount",
+       "post": {
+         "@id": "schema:blogPost",
+         ****"@container": "@index"****
+       }
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    ****"post": {
+       "en": {
+         "@id": "http://example.com/posts/1/en",
+         "body": "World commodities were up today with heavy trading of crude oil...",
+         "words": 1539
+       },
+       "de": {
+         "@id": "http://example.com/posts/1/de",
+         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+         "words": 1204
+       }****
+    }
+  }
+  -->
+  </pre>
+
+  <p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
+    been marked as an <tref>index map</tref>. The <strong>en</strong>,
+    <strong>de</strong>, and <strong>ja</strong> keys will be ignored
+    semantically, but preserved syntactically, by the JSON-LD Processor.
+    This allows a developer to access the German version
+    of the <strong>blogPost</strong> using the following code snippet:
+    <code>obj.blogPost.de</code>.</p>
+
+  <p>The interpretation of the data above is expressed in
+    the table below. Note how the index keys do not appear in the Linked Data
+    below, but would continue to exist if the document were compacted or
+    expanded (see <a href="#compact-document-form"></a> and
+    <a href="#expanded-document-form"></a>) using a JSON-LD processor:</p>
+
+  <table class="example">
+    <thead>
+      <th>Subject</th>
+      <th>Property</th>
+      <th>Value</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td>http://example.com/</td>
+        <td>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</td>
+        <td>http://schema.org/Blog</td>
+      </tr>
+      <tr>
+        <td>http://example.com/</td>
+        <td>http://schema.org/name</td>
+        <td>World Financial News</td>
+      </tr>
+      <tr>
+        <td>http://example.com/</td>
+        <td>http://schema.org/blogPost</td>
+        <td>http://example.com/posts/1/en</td>
+      </tr>
+      <tr>
+        <td>http://example.com/</td>
+        <td>http://schema.org/blogPost</td>
+        <td>http://example.com/posts/1/de</td>
+      </tr>
+      <tr>
+        <td>http://example.com/posts/1/en</td>
+        <td>http://schema.org/articleBody</td>
+        <td>World commodities were up today with heavy trading of crude oil...</td>
+      </tr>
+      <tr>
+        <td>http://example.com/posts/1/en</td>
+        <td>http://schema.org/wordCount</td>
+        <td>1539</td>
+      </tr>
+      <tr>
+        <td>http://example.com/posts/1/de</td>
+        <td>http://schema.org/articleBody</td>
+        <td>Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...</td>
+      </tr>
+      <tr>
+        <td>http://example.com/posts/1/de</td>
+        <td>http://schema.org/wordCount</td>
+        <td>1204</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 <section class="informative">
   <h3>Expanded Document Form</h3>
 
@@ -2333,124 +2451,6 @@ specified. The full <tref>IRI</tref> for
   }
   -->
   </pre>
-</section>
-
-<section>
-  <h2>Data Indexing</h2>
-
-  <p>Databases are typically used to make access to
-    data more efficient. Developers often extend this sort of functionality into
-    their application data to deliver similar performance gains. Often this
-    data does not have any meaning from a Linked Data standpoint, but is
-    still useful for an application.</p>
-
-  <p>JSON-LD introduces the notion of <tref title="index map">index maps</tref>
-    that can be used to structure data into a form that is
-    more efficient to access. The data indexing feature allows an author to
-    structure data using a simpley key-value map where the keys do not map
-    to <tref title="IRI">IRIs</tref>. This enables direct access to data
-    instead of having to scan an array in search of a specific item.
-    In JSON-LD such data can be specified by associating the
-    <code>@index</code> <tref>keyword</tref> with a
-    <code>@container</code> declaration in the context:</p>
-
-  <pre class="example" data-transform="updateExample"
-       title="Indexing data in JSON-LD">
-  <!--
-  {
-    "@context":
-    {
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "body": "schema:articleBody",
-       "words": "schema:wordCount",
-       "post": {
-         "@id": "schema:blogPost",
-         ****"@container": "@index"****
-       }
-    },
-    "@id": "http://example.com/",
-    "@type": "schema:Blog",
-    "name": "World Financial News",
-    ****"post": {
-       "en": {
-         "@id": "http://example.com/posts/1/en",
-         "body": "World commodities were up today with heavy trading of crude oil...",
-         "words": 1539
-       },
-       "de": {
-         "@id": "http://example.com/posts/1/de",
-         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
-         "words": 1204
-       }****
-    }
-  }
-  -->
-  </pre>
-
-  <p>In the example above, the <strong>blogPost</strong> <tref>term</tref> has
-    been marked as an <tref>index map</tref>. The <strong>en</strong>,
-    <strong>de</strong>, and <strong>ja</strong> keys will be ignored
-    semantically, but preserved syntactically, by the JSON-LD Processor.
-    This allows a developer to access the German version
-    of the <strong>blogPost</strong> using the following code snippet:
-    <code>obj.blogPost.de</code>.</p>
-
-  <p>The interpretation of the data above is expressed in
-    the table below. Note how the index keys do not appear in the Linked Data
-    below, but would continue to exist if the document were compacted or
-    expanded (see <a href="#compact-document-form"></a> and
-    <a href="#expanded-document-form"></a>) using a JSON-LD processor:</p>
-
-  <table class="example">
-    <thead>
-      <th>Subject</th>
-      <th>Property</th>
-      <th>Value</th>
-    </thead>
-    <tbody>
-      <tr>
-        <td>http://example.com/</td>
-        <td>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</td>
-        <td>http://schema.org/Blog</td>
-      </tr>
-      <tr>
-        <td>http://example.com/</td>
-        <td>http://schema.org/name</td>
-        <td>World Financial News</td>
-      </tr>
-      <tr>
-        <td>http://example.com/</td>
-        <td>http://schema.org/blogPost</td>
-        <td>http://example.com/posts/1/en</td>
-      </tr>
-      <tr>
-        <td>http://example.com/</td>
-        <td>http://schema.org/blogPost</td>
-        <td>http://example.com/posts/1/de</td>
-      </tr>
-      <tr>
-        <td>http://example.com/posts/1/en</td>
-        <td>http://schema.org/articleBody</td>
-        <td>World commodities were up today with heavy trading of crude oil...</td>
-      </tr>
-      <tr>
-        <td>http://example.com/posts/1/en</td>
-        <td>http://schema.org/wordCount</td>
-        <td>1539</td>
-      </tr>
-      <tr>
-        <td>http://example.com/posts/1/de</td>
-        <td>http://schema.org/articleBody</td>
-        <td>Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...</td>
-      </tr>
-      <tr>
-        <td>http://example.com/posts/1/de</td>
-        <td>http://schema.org/wordCount</td>
-        <td>1204</td>
-      </tr>
-    </tbody>
-  </table>
 </section>
 
 </section>
