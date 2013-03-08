@@ -55,7 +55,7 @@ PR.registerLangHandler(
     ],
     [
       // common "keywords"
-      ["lang-jsonld-keyword", /^"(@context|@id|@value|@language|@type|@container|@list|@set|@base|@vocab|@graph|@index)"\s*:/],
+      ["lang-jsonld-keyword", /^"(@context|@id|@value|@language|@type|@container|@list|@set|@reverse|@index|@base|@vocab|@graph)"\s*:/],
       // empty string
       //[PR.PR_LITERAL, /^""/],
       ["lang-jsonld-string", /^""/],
