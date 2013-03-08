@@ -2152,33 +2152,42 @@ specified. The full <tref>IRI</tref> for
   <h2>Identifying Blank Nodes</h2>
 
   <p>At times, it becomes necessary to be able to express information without
-    being able to uniquely identify the <tref>node</tref>.
-    This type of node is called a <tref>blank node</tref>
-    (see <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes">Section 3.4: Blank Nodes</a></cite>
-    of [[RDF-CONCEPTS]]). In JSON-LD, <tref title="blank node identifier">blank node identifiers</tref> are
-    automatically created if an <tref>IRI</tref> is not specified using the <code>@id</code> <tref>keyword</tref>.
-    However, authors may provide identifiers for <tref title="blank node">blank nodes</tref>
-    by using the special <code>_</code> (underscore) <tref>prefix</tref>. This allows one
-    to reference the node locally within the document, but makes it impossible to reference
-    the node from an external document. The <tref>blank node identifier</tref> is scoped
-    to the document in which it is used.</p>
+    being able to uniquely identify the <tref>node</tref> with an <tref>IRI</tref>.
+    This type of node is called a <tref>blank node</tref>. JSON-LD does not require
+    all nodes to be identified using <code>@id</code>. However, some graph topologies
+    may require identifiers to be serializable. Graphs containing loops, e.g., cannot
+    be serialized using embedding alone, <code>@id</code> must be used to connect the nodes.
+    In these situations, one can use <tref title="blank node identifier">blank node identifiers</tref>,
+    which look like <tref title="IRI">IRIs</tref> using an underscore (<code>_</code>)
+    as scheme. This allows one to reference the node locally within the document, but
+    makes it impossible to reference the node from an external document. The
+    <tref>blank node identifier</tref> is scoped  to the document in which it is used.</p>
 
   <pre class="example" data-transform="updateExample"
        title="Specifying a local blank node identifier">
   <!--
   {
-  ...
-    "@id": "****_:foo****",
-  ...
+     ...
+     "@id": "****_:n1****",
+     "name": "Secret Agent 1",
+     "knows":
+       {
+         "name": "Secret Agent 2",
+         "knows": { "@id": "****_:n1****" }
+       }
   }
-   -->
+  -->
   </pre>
 
-  <p>The example above would set the node to <code>_:foo</code>, which can
-    then be used elsewhere in the JSON-LD document to refer back to the
-    <tref>blank node</tref>. If a developer finds that they refer to the <tref>blank node</tref>
-    more than once, they should consider naming the node using a dereferenceable
-    <tref>IRI</tref> so that it can also be referenced from other documents.</p>
+  <p>The example above contains information about to secrete agents that cannot be identified
+    with an <tref>IRI</tref>. While expressing that <em>agent&nbsp;1</em> knows <em>agent&nbsp;2</em> is possible
+    without using <tref title="blank node identifier">blank node identifiers</tref>, it is
+    necessary assign <em>agent&nbsp;1</em> an identifier so that it can be referenced from
+    <em>agent&nbsp;2</em>.</p>
+  <p>It is worth nothing that blank node identifiers may be relabeled during processing.
+    If a developer finds that they refer to the <tref>blank node</tref> more than once,
+    they should consider naming the node using a dereferenceable <tref>IRI</tref> so that
+    it can also be referenced from other documents.</p>
 </section>
 
 <section>
