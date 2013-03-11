@@ -804,13 +804,10 @@
       <tdef title="term definition">term definitions</tdef> which specify how
       properties and values have to be interpreted as well as the current <tdef>base IRI</tdef>,
       the <tdef>vocabulary mapping</tdef> and the <tdef>default language</tdef>. Each
-      <tref>term definition</tref> consists of an <tdef>IRI mapping</tdef> and
-      optionally a <tdef>type mapping</tdef> from terms to datatypes or
-      <tdef>language mapping</tdef> from terms to language codes, and a
-      <tdef>container mapping</tdef>. If an <tref>IRI mapping</tref> maps a term
-      to multiple <tref title="IRI">IRIs</tref> it is said to be a
-      <tdef>property generator</tdef>. The <tref>active context</tref> also
-      keeps track of <tref>keyword</tref> aliases.</p>
+      <tref>term definition</tref> consists of an <tdef>IRI mapping</tdef>, a boolean
+      flag <tdef>reverse property</tdef>, an optional <tdef>type mapping</tdef>
+      or <tdef>language mapping</tdef>, and an optional  <tdef>container mapping</tdef>.
+      The <tref>active context</tref> also keeps track of <tref>keyword</tref> aliases.</p>
 
     <p>When processing, the <tref>active context</tref> is initialized
       without any <tref title="term definition">term definitions</tref>,
@@ -1067,7 +1064,45 @@
         <li>Otherwise, <em>value</em> MUST be a <tref>JSON object</tref>, if not, an
           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-term-definition">invalid term definition</a></code>
           error has been detected.</li>
-        <li>Create a new <tref>JSON object</tref>, <em>definition</em>.</li>
+        <li>Create a new <tref>term definition</tref>, <em>definition</em>.</li>
+        <li>If <em>value</em> contains the key <code>@reverse</code>:
+          <ol class="algorithm">
+            <li>If <em>value</em> contains an <code>@id</code>, an
+              <code>@type</code>, or an <code>@language</code>, member, an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
+              error has been detected.</li>
+            <li>If the value associated with the <code>@reverse</code> key
+              is not a <tref>string</tref>, an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              error has been detected.</li>
+            <li>Otherwise, set the <tref>IRI mapping</tref> for<em>definition</em> to the
+              result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
+              passing <tref>active context</tref>, the value associated with
+              the <code>@reverse</code> key for <em>value</em>, <tref>true</tref>
+              for <em>vocabRelative</em>, <tref>true</tref> for <em>documentRelative</em>,
+              <tref>local context</tref>, and <em>defined</em>. If the result
+              is not an <tref>absolute IRI</tref>, i.e., it contains no
+              colon (<code>:</code>), an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              error has been detected.</li>
+            <li>Set the <tref>type mapping</tref> for <em>definition</em> to
+              <code>@id</code>.</li>
+            <li>If <em>value</em> contains an <code>@container</code> member,
+              set the <tref>container mapping</tref> for <em>definition</em>
+              to <code>@index</code> if that is the value of the
+              <code>@container</code> member; otherwise an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
+              error has been detected (reverse properties only support index-containers).</li>
+            <li>Set the <tref>reverse property</tref> flag for <em>definition</em>
+              to <tref>true</tref>.</li>
+            <li>Set the <tref>term definition</tref> for <em>term</em> in
+              <tref>active context</tref> to <em>definition</em> and the
+              value associated with <em>defined</em>'s key <em>term</em> to
+              <tref>true</tref>; then return.</li>
+          </ol>
+        </li>
+        <li>Set the <tref>reverse property</tref> flag for <em>definition</em>
+          to <tref>false</tref>.</li>
         <li>If <em>value</em> contains the key <code>@id</code>:
           <ol class="algorithm">
             <li>If the value associated with the <code>@id</code> key is not a <tref>string</tref>, an
@@ -1470,6 +1505,10 @@
             <li>Validate <em>expanded property</em> against <em>value</em>
               as follows:
               <ol class="algorithm">
+                <li>If <em>expanded property</em> is a <tref>keyword</tref>
+                  and <tref>active property</tref> equals <code>@reverse</code>,
+                  an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property-map">invalid reverse property map</a></code>
+                  error has been detected.</li>
                 <li>If <em>expanded property</em> is <code>@id</code> then
                   <em>value</em> MUST be a <tref>string</tref>, otherwise an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--id-value">invalid @id value</a></code>
@@ -1498,6 +1537,53 @@
                   then <em>value</em> MUST be a <tref>string</tref>, otherwise an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--index-value">invalid @index value</a></code>
                   error has been detected.</li>
+                <li>If <em>expanded property</em> is <code>@reverse</code> then
+                  <em>value</em> MUST be a <tref>JSON object</tref>, otherwise an
+                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid @reverse value</a></code>
+                  error has been detected.</li>
+              </ol>
+            </li>
+            <li>If <em>expanded property</em> is <code>@reverse</code>:
+              <ol class="algorithm">
+                <li>Initialize <em>expanded value</em> to the result of using this
+                  algorithm recursively, passing <tref>active context</tref>,
+                  <code>@reverse</code> as <tref>active property</tref>, <em>value</em>
+                  as <em>element</em>, and <em>insideList</em>.</li>
+                <li>If <em>expanded value</em> contains an <code>@reverse</code> member,
+                  i.e., properties that are reversed twice, execute for each of its
+                  <em>property</em> and <em>item</em> the following steps:
+                  <ol class="algorithm">
+                    <li>If <em>result</em> does not have an <em>property</em> member, create
+                      one and set its value to an empty <tref>JSON object</tref>.</li>
+                    <li>Append <em>item</em> to the value of the <em>property</em> member
+                      of <em>result</em>.</li>
+                  </ol>
+                </li>
+                <li>If <em>expanded value</em> contains members other than <code>@reverse</code>:
+                  <ol class="algorithm">
+                    <li>If <em>result</em> does not have an <code>@reverse</code> member, create
+                      one and set its value to an empty <tref>JSON object</tref>.</li>
+                    <li>Reference the value of the <code>@reverse</code> member in <em>result</em>
+                      using the variable <em>reverse map</em>.</li>
+                    <li>For each <em>property</em> and <em>items</em> in <em>expanded value</em>
+                      other than <code>@reverse</code>:
+                      <ol class="algorithm">
+                        <li>For each <em>item</em> in <em>items</em>:
+                          <ol class="algorithm">
+                            <li>If <em>item</em> is a <tref>value object</tref> or <tref>list object</tref>, an
+                              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
+                              has been detected.</li>
+                            <li>If <em>reverse map</em> has no <em>property</em> member, create one
+                              and initialize its value to an empty <tref>array</tref>.</li>
+                            <li>Append <em>item</em> to the value of the <em>property</em>
+                              member in <em>reverse map</em>.</li>
+                          </ol>
+                        </li>
+                      </ol>
+                    </li>
+                  </ol>
+                </li>
+                <li>Continue with the next <em>key</em> from <em>element</em>.</li>
               </ol>
             </li>
             <li>If <em>key</em>'s <tref>container mapping</tref> in
@@ -1607,6 +1693,28 @@
               <code>@value</code>, or <code>@language</code>, then
               set key <em>expanded property</em>'s value to
               <em>expanded value</em> in <em>result</em>.</li>
+            <li>Otherwise, if key's <tref>term definition</tref> indicates that
+              it is a <tref>reverse property</tref>
+              <ol class="algorithm">
+                <li>If <em>result</em> has no <code>@reverse</code> member, create
+                  one and initialize its value to an empty <tref>JSON object</tref>.</li>
+                <li>Reference the value of the <code>@reverse</code> member in <em>result</em>
+                  using the variable <em>reverse map</em>.
+                <li>If <em>expanded value</em> is not an <tref>array</tref>, set
+                  it to an <tref>array</tref> containing <em>expanded value</em>.</li>
+                <li>For each <em>item</em> in <em>expanded value</em>
+                  <ol class="algorithm">
+                    <li>If <em>item</em> is a <tref>value object</tref> or <tref>list object</tref>, an
+                      <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
+                      has been detected.</li>
+                    <li>If <em>reverse map</em> has no <em>expanded property</em> member,
+                      create one and initialize its value to an empty <tref>array</tref>.</li>
+                    <li>Append <em>item</em> to the value of the <em>expanded property</em>
+                      member of <em>reverse map</em>.</li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
             <li>Otherwise, if <em>result</em> does not have the key
               <em>expanded property</em>, set this key's value in <em>result</em>
               to an empty <tref>array</tref>. Append <em>expanded value</em>
@@ -1746,12 +1854,13 @@
           <tref>active context</tref>, <em>value</em>, <tref>true</tref> for
           <em>vocabRelative</em>, and <tref>true</tref> for
           <em>documentRelative</em>.</li>
-        <li>If <tref>active property</tref> has a <tref>type mapping</tref> in
-          <tref>active context</tref> that is <code>@id</code> or if
-          <em>expanded property</em> is <code>@graph</code> and <em>value</em>
-          is a <tref>string</tref>, then return a new <tref>JSON object</tref>
-          containing a single key-value pair where the key is <code>@id</code> and
-          the value is the result of using the
+        <li>If the <tref>active context</tref> indicates that <tref>active property</tref>
+          is a <tref>reverse property</tref>, <tref>active property</tref> has
+          a <tref>type mapping</tref> in <tref>active context</tref> that is
+          <code>@id</code>, or if <em>expanded property</em> is <code>@graph</code>
+          and <em>value</em> is a <tref>string</tref>, then return a new
+          <tref>JSON object</tref> containing a single key-value pair where the
+          key is <code>@id</code> and the value is the result of using the
           <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
           <tref>active context</tref>, <em>value</em>, and <tref>true</tref> for
           <em>documentRelative</em>.</li>
@@ -1910,6 +2019,9 @@
           <a href="#value-compaction">Value Compaction algorithm</a>,
           passing <tref>active context</tref>, <tref>inverse context</tref>,
           <tref>active property</tref>,and <em>element</em> as <em>value</em>.</li>
+        <li>Initialize <em>inside reverse</em> to <tref>true</tref> if
+          <tref>active property</tref> equals <code>@reverse</code>,
+          otherwise to <tref>false</tref>.</li>
         <li>Initialize <em>result</em> to an empty <tref>JSON object</tref>.</li>
         <li>For each key <em>expanded property</em> and value <em>expanded value</em>
           in <em>element</em>,  ordered lexicographically by <em>expanded property</em>:
@@ -1952,8 +2064,50 @@
                     <em>expanded property</em>.</li>
                 </ol>
               </li>
-            <li>
-              If <em>expanded property</em> is <code>@index</code>:
+            <li>If <em>expanded property</em> is <code>@reverse</code>:
+              <ol class="algorithm">
+                <li>Initialize <em>compacted value</em> to the result of using this
+                  algorithm recursively, passing <tref>active context</tref>,
+                  <tref>inverse context</tref>, <code>@reverse</code> for
+                  <tref>active property</tref>, and <em>expanded value</em>
+                  for <em>element</em>.</li>
+                <li>For each <em>property</em> and <em>value</em> in <em>compacted value</em>:
+                  <ol class="algorithm">
+                    <li>If the <tref>term definition</tref> for <em>property</em> in the
+                      <tref>active context</tref> indicates that <em>property</em> is
+                      a <tref>reverse property</tref>
+                      <ol class="algorithm">
+                        <li>If array compaction has not been requested and <em>value</em>
+                          is not an <tref>array</tref>, set <em>value</em> a new
+                          <tref>array</tref> containing only <em>value</em>.</li>
+                        <li>If <em>property</em> is not a member of
+                          <em>result</em>, add one and set its value to <em>value</em>.</li>
+                        <li>Otherwise, if the value of the <em>property</em> member of
+                          <em>result</em> is not an <tref>array</tref>, set it to a new
+                          <tref>array</tref> containing only the value. Then
+                          append <em>value</em> to its value if <em>value</em>
+                          is not an <tref>array</tref>, otherwise append each
+                          of its items.</li>
+                        <li>Remove the <em>property</em> member from
+                          <em>compacted value</em>.</li>
+                      </ol>
+                    </li>
+                  </ol>
+                </li>
+                <li>If <em>compacted value</em> has some remaining members, i.e.,
+                  it is not an empty <tref>JSON object</tref>:
+                  <ol class="algorithm">
+                    <li>Initialize <em>alias</em> to the result of using the
+                      <a href="#iri-compaction">IRI Compaction algorithm</a>,
+                      passing <tref>active context</tref>, <tref>inverse context</tref>, and
+                      <code>@reverse</code> for <em>iri</em>.</li>
+                    <li>Set the value of the <em>alias</em> member of <em>result</em> to
+                      <em>compacted value</em> and continue with the next
+                      <em>expanded property</em> from <em>element</em>.</li>
+                  </ol>
+              </ol>
+            </li>
+            <li>If <em>expanded property</em> is <code>@index</code>:
               <ol class="algorithm">
                 <li>If <tref>active property</tref> has a
                   <tref>container mapping</tref> in <tref>active context</tref>
@@ -1978,8 +2132,9 @@
                   using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
                   passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
-                  <em>expanded value</em> for <em>value</em>, and
-                  <tref>true</tref> for <em>vocabRelative</em>.</li>
+                  <em>expanded value</em> for <em>value</em>,
+                  <tref>true</tref> for <em>vocabRelative</em>, and
+                  <em>inside reverse</em>.</li>
                 <li>If <em>result</em> does not have the key that equals
                   <em>item active property</em>, set this key's value in
                   <em>result</em> to an empty <tref>array</tref>. Otherwise, if
@@ -1997,8 +2152,9 @@
                   the <a href="#iri-compaction">IRI Compaction algorithm</a>,
                   passing <tref>active context</tref>, <tref>inverse context</tref>,
                   <em>expanded property</em> for <em>iri</em>,
-                  <em>expanded item</em> for <em>value</em>, and
-                  <tref>true</tref> for <em>vocabRelative</em>.</li>
+                  <em>expanded item</em> for <em>value</em>,
+                  <tref>true</tref> for <em>vocabRelative</em>, and
+                  <em>inside reverse</em>.</li>
                 <li>Initialize <em>container</em> to <tref>null</tref>. If there
                   is a <tref>container mapping</tref> for
                   <em>item active property</em> in <tref>active context</tref>,
@@ -2200,80 +2356,84 @@
               is a <tref>container mapping</tref> in
               <tref>term definition</tref>, set <em>container</em> to
               its associated value.</li>
-            <li>Initialize <em>iris</em> to the value of the <tref>IRI mapping</tref>
-              for the <tref>term definition</tref>. If <em>iris</em> is not an
-              <tref>array</tref>, set it to an <tref>array</tref> containing
-              only <em>iris</em>.</li>
-            <li>
-              For each item <em>iri</em> in <em>iris</em>:
+            <li>Initialize <em>iri</em> to the value of the <tref>IRI mapping</tref>
+              for the <tref>term definition</tref>.</li>
+            <li>If <em>iri</em> is not a key in <em>result</em>, add
+              a key-value pair where the key is <em>iri</em> and the value
+              is an empty <tref>JSON object</tref> to <em>result</em>.</li>
+            <li>Reference the value associated with the <em>iri</em> member in
+              <em>result</em> using the variable <em>container map</em>.</li>
+            <li>If <em>container</em> is not a key in <em>container map</em>,
+              initialize <em>typeOrLanguage map</em> to a new
+              <tref>JSON object</tref>. Add two key-value pairs to
+              <em>typeOrLanguage map</em>, where the first's key is
+              <code>@language</code> and its value is a new
+              <tref>JSON object</tref> and where the second's key is
+              <code>@type</code> and its value is a new
+              <tref>JSON object</tref>.</li>
+            <li>Reference the value associated with the <em>container</em> member
+              in <em>container map</em> using the variable <em>typeOrLanguage map</em>.</li>
+            <li>If the <tref>term definition</tref> indicates that the <tref>term</tref>
+              represents a <tref>reverse property</tref>:
               <ol class="algorithm">
-                <li>If <em>iri</em> is not a key in <em>result</em>, add
-                  a key-value pair where the key is <em>iri</em> and the value
-                  is an empty <tref>JSON object</tref> to <em>result</em>.</li>
-                <li>Initialize <em>container map</em> to the value associated with
-                  the <em>iri</em> key in <em>result</em>.</li>
-                <li>If <em>container</em> is not a key in <em>container map</em>,
-                  initialize <em>typeOrLanguage map</em> to a new
-                  <tref>JSON object</tref>. Add two key-value pairs to
-                  <em>typeOrLanguage map</em>, where the first's key is
-                  <code>@language</code> and its value is a new
-                  <tref>JSON object</tref> and where the second's key is
-                  <code>@type</code> and its value is a new
-                  <tref>JSON object</tref>.</li>
-                <li>Set <em>typeOrLanguage map</em> to the value associated with
-                  the key <em>container</em> in <em>container map</em>.</li>
-                <li>If there is no <tref>type mapping</tref> in the
+                <li>Reference the value associated with the <code>@type</code>
+                  member in <em>typeOrLanguage map</em> using the variable
+                  <em>type map</em>.</li>
+                <li>If <em>type map</em> does not have a <code>@reverse</code>
+                  member, create one and set its value to the <tref>term</tref>
+                  being processed.</li>
+              </ol>
+            </li>
+            <li>Otherwise, if there is no <tref>type mapping</tref> in the
+              <tref>term definition</tref>:
+              <ol class="algorithm">
+                <li>Reference the value associated with the <code>@language</code>
+                  member in <em>typeOrLanguage map</em> using the variable
+                  <em>language map</em>.</li>
+                <li>If there is a <tref>language mapping</tref> in the
                   <tref>term definition</tref>:
                   <ol class="algorithm">
-                    <li>Initialize <em>language map</em> to the value associated
-                      with the key <code>@language</code> in
-                      <em>typeOrLanguage map</em>.</li>
-                    <li>If there is a <tref>language mapping</tref> in the
-                      <tref>term definition</tref>:
-                      <ol class="algorithm">
-                        <li>If the value of the <tref>language mapping</tref>
-                          is <tref>null</tref> initialize <em>language</em>
-                          to <code>@null</code>, otherwise initialize it to the
-                          value.</li>
-                        <li>If <em>language</em> is not a key in
-                          <em>language map</em>, add a key-value
-                          pair to <em>language map</em> where the key is
-                          <em>language</em> and the value is the <tref>term</tref>
-                          being processed.</li>
-                      </ol>
-                    </li>
-                    <li>Otherwise:
-                      <ol class="algorithm">
-                        <li>If <em>defaultLanguage</em> is not a key in
-                          <em>language map</em>, add a key-value
-                          pair to <em>language map</em> where the key is
-                          <em>defaultLanguage</em> and the value is the
-                          <tref>term</tref> being processed.</li>
-                        <li>If <code>@none</code> is not a key in
-                          <em>language map</em>, add a key-value
-                          pair to <em>language map</em> where the key is
-                          <code>@none</code> and the value is the
-                          <tref>term</tref> being processed.</li>
-                      </ol>
-                    </li>
-                  </ol>
-                </li>
-                <li>If there is no <tref>language mapping</tref> in the
-                  <tref>term definition</tref>:
-                  <ol class="algorithm">
-                    <li>Initialize <em>type map</em> to the value associated
-                      with the key <code>@type</code> in
-                      <em>typeOrLanguage map</em>.</li>
-                    <li>If there is a <tref>type mapping</tref> in the
-                      <tref>term definition</tref> initialize <em>type</em>
-                      to its value, otherwise initialize it to
-                      to <code>@none</code>.</li>
-                    <li>If <em>type</em> is not a key in <em>type map</em>,
-                      add a key-value pair to <em>type map</em> where the key is
-                      <em>type</em> and the value is the <tref>term</tref>
+                    <li>If the value of the <tref>language mapping</tref>
+                      is <tref>null</tref> initialize <em>language</em>
+                      to <code>@null</code>, otherwise initialize it to the
+                      value.</li>
+                    <li>If <em>language</em> is not a key in
+                      <em>language map</em>, add a key-value
+                      pair to <em>language map</em> where the key is
+                      <em>language</em> and the value is the <tref>term</tref>
                       being processed.</li>
                   </ol>
                 </li>
+                <li>Otherwise:
+                  <ol class="algorithm">
+                    <li>If <em>defaultLanguage</em> is not a key in
+                      <em>language map</em>, add a key-value
+                      pair to <em>language map</em> where the key is
+                      <em>defaultLanguage</em> and the value is the
+                      <tref>term</tref> being processed.</li>
+                    <li>If <code>@none</code> is not a key in
+                      <em>language map</em>, add a key-value
+                      pair to <em>language map</em> where the key is
+                      <code>@none</code> and the value is the
+                      <tref>term</tref> being processed.</li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
+            <li>Otherwise, if there is no <tref>language mapping</tref> in the
+              <tref>term definition</tref>:
+              <ol class="algorithm">
+                <li>Reference the value associated with the <code>@type</code>
+                  member in <em>typeOrLanguage map</em> using the variable
+                  <em>type map</em>.</li>
+                <li>If there is a <tref>type mapping</tref> in the
+                  <tref>term definition</tref> initialize <em>type</em>
+                  to its value, otherwise initialize it to
+                  to <code>@none</code>.</li>
+                <li>If <em>type</em> is not a key in <em>type map</em>,
+                  add a key-value pair to <em>type map</em> where the key is
+                  <em>type</em> and the value is the <tref>term</tref>
+                  being processed.</li>
               </ol>
             </li>
           </ol>
@@ -2336,14 +2496,16 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm takes three required inputs and two optional inputs.
+      <p>This algorithm takes three required inputs and three optional inputs.
         The required inputs an <tref>active context</tref>, an <tref>inverse context</tref>,
         and the <em>iri</em> to be compacted. The optional inputs are a <em>value</em> associated
-        with the <em>iri</em> and a <em>vocabRelative</em> flag which specifies whether the
+        with the <em>iri</em>, a <em>vocabRelative</em> flag which specifies whether the
         passed <em>iri</em> should be compacted using the
         <tref title="active context">active context's</tref>
-        <tref>vocabulary mapping</tref>. If not passed, <em>value</em> is set to
-        <tref>null</tref> and <em>vocabRelative</em> is set to <code>false</code>.</p>
+        <tref>vocabulary mapping</tref>, and a <em>reverse</em> flag which specifies whether
+        a <tref>reverse property</tref> is being compacted. If not passed, <em>value</em> is set to
+        <tref>null</tref> and <em>vocabRelative</em> and <em>reverse</em> are both set to
+        <code>false</code>.</p>
 
       <ol class="algorithm">
         <li>If <em>iri</em> is <tref>null</tref>, return <tref>null</tref>.</li>
@@ -2431,8 +2593,7 @@
                   <em>commonLanguage</em>.</li>
               </ol>
             </li>
-            <li>
-              Otherwise:
+            <li>Otherwise:
               <ol class="algorithm">
                 <li>If <em>value</em> contains the key <code>@value</code>:
                   <ol class="algorithm">
@@ -2452,6 +2613,13 @@
                 <li>Append <code>@set</code> to <em>containers</em>.</li>
               </ol>
             </li>
+            <li>If <em>reverse</em> is <tref>true</tref>, set <em>typeOrLanguage</em>
+              to <code>@type</code> and  <em>typeOrLanguageValue</em> to
+              <code>@reverse</code>.</li>
+            <li>Append <code>@none</code> to <em>containers</em>. This represents
+              the non-existence of a <tref>container mapping</tref>, and it will
+              be the last <tref>container mapping</tref> value to be checked as it
+              is the most generic.</li>
             <li>Initialize <em>term</em> to the result of the
               <a href="#term-selection">Term Selection algorithm</a>, passing
               <tref>active context</tref>, <tref>inverse context</tref>, <em>iri</em>,
@@ -2575,10 +2743,6 @@
         <tref>type mapping</tref> or <tref>language mapping</tref> to look for.</p>
 
       <ol class="algorithm">
-        <li>Append <code>@none</code> to <em>containers</em>. This represents
-          the non-existence of a <tref>container mapping</tref>, and it will
-          be the last <tref>container mapping</tref> value to be checked as it
-          is the most generic.</li>
         <li>Initialize <em>container map</em> to the value associated with
           <em>iri</em> in the <tref>inverse context</tref>.</li>
         <li>If <em>typeOrLanguageValue</em> is <tref>null</tref>, set it to
@@ -2588,8 +2752,11 @@
           This <tref>array</tref> will indicate, in order, the preferred values for
           a <tref title="term">term's</tref> <tref>type mapping</tref> or
           <tref>language mapping</tref>.</li>
-        <li>If <em>typeOrLanguageValue</em> is <code>@id</code> and
-          <em>value</em> is a <tref>JSON object</tref> containing the key
+        <li>If <em>typeOrLanguageValue</em> is <code>@reverse</code>, append
+          <code>@reverse</code> to <em>preferred values</em>.</li>
+<!-- FIXME: This is better done in IRI compaction, this way we don't need to pass around the active context etc. -->
+        <li>If <em>typeOrLanguageValue</em> is <code>@id</code> or <code>@reverse</code>
+          and <em>value</em> is a <tref>JSON object</tref> containing the key
           <code>@id</code>:
           <ol class="algorithm">
             <li>If the result of using the
@@ -2910,6 +3077,28 @@
             <code class="error"><a href="#idl-def-JsonLdErrorCode.conflicting-indexes">conflicting indexes</a></code>
             error has been detected. Continue and remove the
             <code>@index</code> from <em>element</em>.</li>
+          <li>If <em>element</em> has an <code>@reverse</code> member:
+            <ol class="algorithm">
+              <li>Create a <tref>JSON object</tref> <em>referenced node</em> with a single member <code>@id</code> whose
+                value is <em>id</em>.</li>
+              <li>Set <em>reverse map</em> to the value of the <code>@reverse</code> member of
+                <em>element</em>.</li>
+              <li>For each <em>property</em>-<em>values</em> pair in <em>reverse map</em>:
+                <ol class="algorithm">
+                  <li>For each <em>item</em> of <em>values</em>:
+                    <ol class="algorithm">
+                      <li>If <em>item</em> has a <em>property</em> member, append <em>referenced node</em>
+                        to its value; otherwise create a <em>property</em> member whose value is an
+                        <tref>array</tref> containing a <em>referenced node</em>.</li>
+                      <li>Recursively invoke this algorithm passing <em>nodeMap</em>, </em><em>item</em> as new
+                        <em>element</em>, and <tref>active graph</tref>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>Remove the <code>@reverse</code> member from <em>element</em>.</li>
+            </ol>
+          </li>
           <li>If <em>element</em> has an <code>@graph</code> member, recursively invoke this algorithm passing
             the value of the <code>@graph</code> member as new <em>element</em> and <em>id</em> as new
             <tref>active subject</tref>. Then remove the <code>@graph</code> member from <em>element</em>.</li>
@@ -3749,6 +3938,8 @@
         <dd>A <tref>keyword</tref> redefinition has been detected.</dd>
         <dt>invalid term definition</dt>
         <dd>An invalid <tref>term definition</tref> has been detected.</dd>
+        <dt>invalid reverse property</dt>
+        <dd>An invalid reverse property definition has been detected.</dd>
         <dt>invalid IRI mapping</dt>
         <dd>A <tref>local context</tref> contains a <tref>term</tref> that has
           an invalid or missing <tref>IRI mapping</tref>.</dd>
@@ -3797,6 +3988,16 @@
         <dt>compaction to list of lists</dt>
         <dd>The compacted document contains a list of lists as multiple
           lists have been compacted to the same term.</dd>
+        <dt>invalid reverse property map</dt>
+        <dd>An invalid reverse property map has been detected. No
+          <tref title="keyword">keywords</tref> apart from <code>@context</code>
+          are allowed in reverse property maps.</dd>
+        <dt>invalid @reverse value</dt>
+        <dd>An invalid value for an <code>@reverse</code> member has been detected,
+          i.e., the value was not a <tref>JSON object</tref>.</dd>
+        <dt>invalid reverse property value</dt>
+        <dd>An invalid value for a reverse property has been detected. The value of an inverse
+          property must be an <tref>node object</tref>.</dd>
       </dl>
     </section>
   </section> <!-- end of Data Structures -->
