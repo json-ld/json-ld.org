@@ -1450,9 +1450,11 @@ Processor.prototype.compact = function(
         for(var compactedProperty in compactedValue) {
           if(activeCtx.mappings[compactedProperty] &&
             activeCtx.mappings[compactedProperty].reverse) {
+            if(!(compactedProperty in rval) && !options.compactArrays) {
+              rval[compactedProperty] = [];
+            }
             jsonld.addValue(
-              rval, compactedProperty, compactedValue,
-              {propertyIsArray: options.compactArrays});
+              rval, compactedProperty, compactedValue[compactedProperty]);
             delete compactedValue[compactedProperty];
           }
         }
@@ -1486,7 +1488,8 @@ Processor.prototype.compact = function(
       // preserve empty arrays
       if(expandedValue.length === 0) {
         var itemActiveProperty = _compactIri(
-          activeCtx, expandedProperty, expandedValue, {vocab: true});
+          activeCtx, expandedProperty, expandedValue, {vocab: true},
+          insideReverse);
         jsonld.addValue(
           rval, itemActiveProperty, expandedValue, {propertyIsArray: true});
       }
@@ -1497,7 +1500,8 @@ Processor.prototype.compact = function(
 
         // compact property and get container type
         var itemActiveProperty = _compactIri(
-          activeCtx, expandedProperty, expandedItem, {vocab: true});
+          activeCtx, expandedProperty, expandedItem, {vocab: true},
+          insideReverse);
         var container = jsonld.getContextValue(
           activeCtx, itemActiveProperty, '@container');
 
@@ -3852,13 +3856,6 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
     return iri;
   }
 
-  // term is a keyword
-  if(_isKeyword(iri)) {
-    // return alias if available
-    var aliases = activeCtx.keywords[iri];
-    return (aliases.length > 0) ? aliases[0] : iri;
-  }
-
   // default value and parent to null
   if(_isUndefined(value)) {
     value = null;
@@ -3868,6 +3865,11 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
     reverse = false;
   }
   relativeTo = relativeTo || {};
+
+  // if term is a keyword, default vocab to true
+  if(_isKeyword(iri)) {
+    relativeTo.vocab = true;
+  }
 
   // use inverse context to pick a term if iri is relative to vocab
   if(relativeTo.vocab && iri in activeCtx.getInverse()) {
@@ -3884,7 +3886,7 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
     var typeOrLanguageValue = '@null';
 
     if(reverse) {
-      typeOrLanguage = '@reverse';
+      typeOrLanguage = '@type';
       typeOrLanguageValue = '@reverse';
       containers.push('@set');
     }
@@ -4147,13 +4149,9 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
       'jsonld.SyntaxError', {context: localCtx});
   }
 
+  // remove old mapping
   if(activeCtx.mappings[term]) {
-    // if term is a keyword alias, remove it
-    var kw = activeCtx.mappings[term]['@id'];
-    if(_isKeyword(kw)) {
-      var aliases = activeCtx.keywords[kw];
-      aliases.splice(aliases.indexOf(term), 1);
-    }
+    delete activeCtx.mappings[term];
   }
 
   // get context term value
@@ -4178,16 +4176,9 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
           'Invalid JSON-LD syntax; @context and @preserve cannot be aliased.',
           'jsonld.SyntaxError');
       }
-
-      // uniquely add term as a keyword alias and resort
-      var aliases = activeCtx.keywords[id];
-      if(aliases.indexOf(term) === -1) {
-        aliases.push(term);
-        aliases.sort(_compareShortestLeast);
-      }
     }
 
-    // define/redefine term to expanded IRI/keyword
+    // define term to expanded IRI/keyword
     activeCtx.mappings[term] = {'@id': id};
     defined[term] = true;
     return;
@@ -4594,24 +4585,6 @@ function _getInitialContext(options) {
   return {
     '@base': base,
     mappings: {},
-    keywords: {
-      '@context': [],
-      '@container': [],
-      '@default': [],
-      '@embed': [],
-      '@explicit': [],
-      '@graph': [],
-      '@id': [],
-      '@index': [],
-      '@language': [],
-      '@list': [],
-      '@omitDefault': [],
-      '@preserve': [],
-      '@set': [],
-      '@type': [],
-      '@value': [],
-      '@vocab': []
-    },
     namer: namer,
     inverse: null,
     getInverse: _createInverseContext,
@@ -4677,26 +4650,27 @@ function _getInitialContext(options) {
         if(mapping.reverse) {
           _addPreferredTerm(mapping, term, entry['@type'], '@reverse');
         }
-
-        // consider updating @language entry if @type is not specified
-        if(!('@type' in mapping)) {
-          // if a @language is specified, update its specific entry
-          if('@language' in mapping) {
-            var language = mapping['@language'] || '@null';
-            _addPreferredTerm(mapping, term, entry['@language'], language);
+        else {
+          // consider updating @language entry if @type is not specified
+          if(!('@type' in mapping)) {
+            // if a @language is specified, update its specific entry
+            if('@language' in mapping) {
+              var language = mapping['@language'] || '@null';
+              _addPreferredTerm(mapping, term, entry['@language'], language);
+            }
+            // add an entry for the default language and for no @language
+            else {
+              _addPreferredTerm(
+                mapping, term, entry['@language'], defaultLanguage);
+              _addPreferredTerm(mapping, term, entry['@language'], '@none');
+            }
           }
-          // add an entry for the default language and for no @language
-          else {
-            _addPreferredTerm(
-              mapping, term, entry['@language'], defaultLanguage);
-            _addPreferredTerm(mapping, term, entry['@language'], '@none');
-          }
-        }
 
-        // consider updating @type entry if @language is not specified
-        if(!('@language' in mapping)) {
-          var type = mapping['@type'] || '@none';
-          _addPreferredTerm(mapping, term, entry['@type'], type);
+          // consider updating @type entry if @language is not specified
+          if(!('@language' in mapping)) {
+            var type = mapping['@type'] || '@none';
+            _addPreferredTerm(mapping, term, entry['@type'], type);
+          }
         }
       }
     }
@@ -4726,7 +4700,6 @@ function _getInitialContext(options) {
   function _cloneActiveContext() {
     var child = {};
     child['@base'] = this['@base'];
-    child.keywords = _clone(this.keywords);
     child.mappings = _clone(this.mappings);
     child.namer = this.namer;
     child.clone = this.clone;
@@ -4752,7 +4725,6 @@ function _getInitialContext(options) {
   function _shareActiveContext() {
     var rval = {};
     rval['@base'] = this['@base'];
-    rval.keywords = this.keywords;
     rval.mappings = this.mappings;
     rval.namer = null;
     if(this.namer) {
