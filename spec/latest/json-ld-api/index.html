@@ -2363,14 +2363,12 @@
               is an empty <tref>JSON object</tref> to <em>result</em>.</li>
             <li>Reference the value associated with the <em>iri</em> member in
               <em>result</em> using the variable <em>container map</em>.</li>
-            <li>If <em>container</em> is not a key in <em>container map</em>,
-              initialize <em>typeOrLanguage map</em> to a new
-              <tref>JSON object</tref>. Add two key-value pairs to
-              <em>typeOrLanguage map</em>, where the first's key is
-              <code>@language</code> and its value is a new
-              <tref>JSON object</tref> and where the second's key is
-              <code>@type</code> and its value is a new
-              <tref>JSON object</tref>.</li>
+            <li>If <em>container</em> has no <em>container map</em> member,
+              create one and set its value to a new
+              <tref>JSON object</tref> with two members. The first member is
+              <code>@language</code> and its value is a new empty
+              <tref>JSON object</tref>, the second member is <code>@type</code>
+              and its value is a new empty <tref>JSON object</tref>.</li>
             <li>Reference the value associated with the <em>container</em> member
               in <em>container map</em> using the variable <em>typeOrLanguage map</em>.</li>
             <li>If the <tref>term definition</tref> indicates that the <tref>term</tref>
@@ -2384,55 +2382,42 @@
                   being processed.</li>
               </ol>
             </li>
-            <li>Otherwise, if there is no <tref>type mapping</tref> in the
-              <tref>term definition</tref>:
-              <ol class="algorithm">
-                <li>Reference the value associated with the <code>@language</code>
-                  member in <em>typeOrLanguage map</em> using the variable
-                  <em>language map</em>.</li>
-                <li>If there is a <tref>language mapping</tref> in the
-                  <tref>term definition</tref>:
-                  <ol class="algorithm">
-                    <li>If the value of the <tref>language mapping</tref>
-                      is <tref>null</tref> initialize <em>language</em>
-                      to <code>@null</code>, otherwise initialize it to the
-                      value.</li>
-                    <li>If <em>language</em> is not a key in
-                      <em>language map</em>, add a key-value
-                      pair to <em>language map</em> where the key is
-                      <em>language</em> and the value is the <tref>term</tref>
-                      being processed.</li>
-                  </ol>
-                </li>
-                <li>Otherwise:
-                  <ol class="algorithm">
-                    <li>If <em>defaultLanguage</em> is not a key in
-                      <em>language map</em>, add a key-value
-                      pair to <em>language map</em> where the key is
-                      <em>defaultLanguage</em> and the value is the
-                      <tref>term</tref> being processed.</li>
-                    <li>If <code>@none</code> is not a key in
-                      <em>language map</em>, add a key-value
-                      pair to <em>language map</em> where the key is
-                      <code>@none</code> and the value is the
-                      <tref>term</tref> being processed.</li>
-                  </ol>
-                </li>
-              </ol>
-            </li>
-            <li>Otherwise, if there is no <tref>language mapping</tref> in the
-              <tref>term definition</tref>:
+            <li>Otherwise, if <tref>term definition</tref> has a
+              <tref>type mapping</tref>:
               <ol class="algorithm">
                 <li>Reference the value associated with the <code>@type</code>
                   member in <em>typeOrLanguage map</em> using the variable
                   <em>type map</em>.</li>
-                <li>If there is a <tref>type mapping</tref> in the
-                  <tref>term definition</tref> initialize <em>type</em>
-                  to its value, otherwise initialize it to
-                  to <code>@none</code>.</li>
-                <li>If <em>type</em> is not a key in <em>type map</em>,
-                  add a key-value pair to <em>type map</em> where the key is
-                  <em>type</em> and the value is the <tref>term</tref>
+                <li>If <em>type map</em> does not have a member corresponding
+                  to the <tref>type mapping</tref> in <tref>term definition</tref>,
+                  create one and set its value to the <tref>term</tref>
+                  being processed.</li>
+              </ol>
+            </li>
+            <li>Otherwise, if <tref>term definition</tref> has a
+              <tref>language mapping</tref> (might be <tref>null</tref>):
+              <ol class="algorithm">
+                <li>Reference the value associated with the <code>@language</code>
+                  member in <em>typeOrLanguage map</em> using the variable
+                  <em>language map</em>.</li>
+                <li>If the <tref>language mapping</tref> equals <tref>null</tref>,
+                  set <em>language</em> to <code>@null</code>; otherwise set it
+                  to the language code in <tref>language mapping</tref>.</li>
+                <li>If <em>language map</em> does not have a <em>language</em> member,
+                  create one and set its value to the <tref>term</tref>
+                  being processed.</li>
+              </ol>
+            </li>
+            <li>Otherwise:
+              <ol class="algorithm">
+                <li>Reference the value associated with the <code>@language</code>
+                  member in <em>typeOrLanguage map</em> using the variable
+                  <em>language map</em>.</li>
+                <li>If <em>language map</em> does not have a <em>defaultLanguage</em>
+                  member, create one and set its value to the <tref>term</tref>
+                  being processed.</li>
+                <li>If <em>language map</em> does not have a <code>@none</code>
+                  member, create one and set its value to the <tref>term</tref>
                   being processed.</li>
               </ol>
             </li>
