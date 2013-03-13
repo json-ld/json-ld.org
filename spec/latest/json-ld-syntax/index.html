@@ -962,7 +962,7 @@
 <ol>
   <li>By utilizing the <code>@type</code> <tref>keyword</tref> when defining
     a <tref>term</tref> within a <code>@context</code> section.</li>
-  <li>By utilizing an <tref>expanded typed value</tref>.</li>
+  <li>By utilizing a <tref>value object</tref>.</li>
   <li>By using a native JSON type such as <tref>number</tref>, <tref>true</tref>, or <tref>false</tref>.</li>
 </ol>
 
@@ -1584,8 +1584,8 @@ the data type to be specified with each piece of data.</p>
     in English, a developer would use the following code snippet:
     <code>obj.occupation.en</code>.</p>
 
-  <p>Third, it is possible to override the default language by using an
-    <tref>expanded value</tref>:</p>
+  <p>Third, it is possible to override the default language by using a
+    <tref>value object</tref>:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Overriding default language using an expanded value">
@@ -1606,7 +1606,7 @@ the data type to be specified with each piece of data.</p>
 
   <p>This makes it possible to specify a plain string by omitting the
     <code>@language</code> tag or setting it to <code>null</code> when expressing
-    it using an <tref>expanded value</tref>:</p>
+    it using a <tref>value object</tref>:</p>
 
   <pre class="example" data-transform="updateExample"
        title="Removing language information using an expanded value">
@@ -2611,298 +2611,302 @@ specified. The full <tref>IRI</tref> for
 </section>
 
 <section class="appendix normative">
-<h2>JSON-LD Grammar</h2>
-<em>This section is normative</em>
+  <h1>JSON-LD Grammar</h1>
+  <em>This section is normative</em>
 
+  <p>This appendix restates the syntactic conventions described in the
+    previous sections more formally.</p>
 
-<p>This appendix restates the syntactic conventions described in the
-  previous sections more formally.</p>
+  <p>A <tref>JSON-LD document</tref> MUST be a valid JSON document as described
+    in [[!RFC4627]].</p>
 
-<p class="note">JSON-LD allows <tref title="keyword">keywords</tref> to be aliased
-  (see <a href="#aliasing-keywords"></a> for details). Whenever a <tref>keyword</tref> is
-  discussed in this grammar, the statements also apply to an alias for
-  that <tref>keyword</tref>. For example, if the <tref>active context</tref>
-  defines the <tref>term</tref> <code>id</code> as an alias for <code>@id</code>,
-  that alias may be legitimately used as a substitution for <code>@id</code>.
-  Note that <tref>keyword</tref> aliases are not expanded during context
-  processing.</p>
+  <p>A <tref>JSON-LD document</tref> MUST be a single <tref>node object</tref>
+    or a JSON <tref>array</tref> containing a set of one or more
+    <tref title="node object">node objects</tref>.</p>
 
-<p>A <tref>JSON-LD document</tref> MUST be a valid JSON document as described
-  in [[!RFC4627]].</p>
+  <p class="note">JSON-LD allows <tref title="keyword">keywords</tref> to be aliased
+    (see <a href="#aliasing-keywords"></a> for details). Whenever a <tref>keyword</tref> is
+    discussed in this grammar, the statements also apply to an alias for
+    that <tref>keyword</tref>. For example, if the <tref>active context</tref>
+    defines the <tref>term</tref> <code>id</code> as an alias for <code>@id</code>,
+    that alias may be legitimately used as a substitution for <code>@id</code>.
+    Note that <tref>keyword</tref> aliases are not expanded during context
+    processing.</p>
 
-<p>A <tref>JSON-LD document</tref> MUST be a single <tref>node object</tref>
-  or a JSON <tref>array</tref> containing a set of one or more
-  <tref title="node object">node objects</tref>.</p>
+  <section>
+    <h2>Terms</h2>
 
-<section id="grammar-node-object">
-<h3>Node Object</h3>
+    <p>A <tdef>term</tdef> is a short-hand <tref>string</tref> that expands
+      to an <tref>IRI</tref> or a <tref>blank node identifier</tref>.</p>
 
-<p>A <tdef>node object</tdef> represents zero or more properties of a
-  <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
-  <tref>JSON-LD document</tref>. A <tref>JSON object</tref> is a
-  <tref>node object</tref> if it exists outside of a JSON-LD
-  <tref>context</tref> and:</p>
+    <p>A <tref>term</tref> MUST NOT equal any of the JSON-LD
+      <tref title="keyword">keywords</tref>.</p>
 
-<ul>
-  <li>it does not contain the <code>@value</code>, <code>@list</code>,
-    or <code>@set</code> keywords, and</li>
-  <li>it is not the top-most <tref>JSON object</tref> in the JSON-LD document
-    consisting of no other members than <code>@graph</code> and
-    <code>@context</code>.
-</ul>
+    <p>To avoid forward-compatibility issues, a <tref>term</tref> SHOULD NOT start
+      with an <code>@</code> character as future versions of JSON-LD may introduce
+      additional <tref title="keyword">keywords</tref>. Furthermore, the term MUST NOT
+      be an empty <tref>string</tref> (<code>""</code>) as not all programming languages
+      are able to handle empty property names.</p>
 
-<p>The <tref title="property">properties</tref> of a <tref>node</tref> in
-  a <tref>JSON-LD graph</tref> may be spread among different
-  <tref title="node object">node objects</tref> within a document. When
-  that happens, the keys of the different
-  <tref title="node object">node objects</tref> are merged to create the
-  properties of the resulting <tref>node</tref>.</p>
+    <p>See section <a href="#the-context"></a> and <a href="#iris"></a> for further discussion
+      on mapping <tref title="term">terms</tref> to <tref title="IRI">IRIs</tref>.</p>
+  </section>
 
-<p>A <tref>node object</tref> MUST be a <tref>JSON object</tref>. All keys
-  which are not <tref title="IRI">IRIs</tref>,
-  <tref title="compact iri">compact IRIs</tref>, <tref title="term">terms</tref>
-  valid in the <tref>active context</tref>, or one of the following
-  <tref title="keyword">keywords</tref> MUST be ignored when processed:</p>
+  <section>
+    <h2>Node Objects</h2>
 
-<ul>
-  <li><code>@context</code>,</li>
-  <li><code>@graph</code>,</li>
-  <li><code>@id</code>,</li>
-  <li><code>@type</code>,</li>
-  <li><code>@reverse</code>, or</li>
-  <li><code>@index</code></li>
-</ul>
+    <p>A <tdef>node object</tdef> represents zero or more properties of a
+      <tref>node</tref> in the <tref>JSON-LD graph</tref> serialized by the
+      <tref>JSON-LD document</tref>. A <tref>JSON object</tref> is a
+      <tref>node object</tref> if it exists outside of a JSON-LD
+      <tref>context</tref> and:</p>
 
-<p>If the <tref>node object</tref> contains the <code>@context</code>
-  key, its value MUST be one of the following:</p>
-<ul>
-  <li><tref>null</tref>,</li>
-  <li>an <tref>IRI</tref>,</li>
-  <li>a <tref>context definition</tref>, or</li>
-  <li>an <tref>array</tref> composed of any number of the previous two expressions.</li>
-</ul>
+    <ul>
+      <li>it does not contain the <code>@value</code>, <code>@list</code>,
+        or <code>@set</code> keywords, and</li>
+      <li>it is not the top-most <tref>JSON object</tref> in the JSON-LD document
+        consisting of no other members than <code>@graph</code> and
+        <code>@context</code>.
+    </ul>
 
-<p>If the <tref>node object</tref> contains the <code>@id</code> key,
-  its value MUST be an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>,
-  or a <tref>compact IRI</tref> (including
-  <tref title="blank node identifier">blank node identifiers</tref>).
-  See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
-  and <a href="#identifying-blank-nodes"></a> for further discussion on
-  <code>@id</code> values.</p>
+    <p>The <tref title="property">properties</tref> of a <tref>node</tref> in
+      a <tref>JSON-LD graph</tref> may be spread among different
+      <tref title="node object">node objects</tref> within a document. When
+      that happens, the keys of the different
+      <tref title="node object">node objects</tref> are merged to create the
+      properties of the resulting <tref>node</tref>.</p>
 
-<p>If the <tref>node object</tref> contains the <code>@type</code>
-  key, its value MUST be either an <tref>absolute IRI</tref>, a
-  <tref>relative IRI</tref>, a <tref>compact IRI</tref>
-  (including <tref title="blank node identifier">blank node identifiers</tref>),
-  a <tref>term</tref> defined in the <tref>active context</tref> expanding into an <tref>absolute IRI</tref>, or
-  an <tref>array</tref> of any of these.
-  See <a href="#specifying-the-type"></a> for further discussion on
-  <code>@type</code> values.</p>
+    <p>A <tref>node object</tref> MUST be a <tref>JSON object</tref>. All keys
+      which are not <tref title="IRI">IRIs</tref>,
+      <tref title="compact iri">compact IRIs</tref>, <tref title="term">terms</tref>
+      valid in the <tref>active context</tref>, or one of the following
+      <tref title="keyword">keywords</tref> MUST be ignored when processed:</p>
 
-<p>If the <tref>node object</tref> contains the <code>@graph</code>
-  key, its value MUST be
-  a <tref>node object</tref> or
-  an <tref>array</tref> of zero or more <tref title="node object">node objects</tref>.
-  If the <tref>node object</tref> contains an <code>@id</code> keyword,
-  its value is used as the label of a named graph.
-  See <a href="#named-graphs"></a> for further discussion on
-  <code>@graph</code> values. As a special case, if a <tref>JSON object</tref>
-  contains no keys other than <code>@graph</code> and <code>@context</code>, and the
-  <tref>JSON object</tref> is the root of the JSON-LD document, the
-  <tref>JSON object</tref> is not treated as a <tref>node object</tref>; this
-  is used as a way of defining <tref title="node object">node
-  definitions</tref> that may not form a connected graph. This allows a
-  <tref>context</tref> to be defined which is shared by all of the constituent
-  <tref title="node object">node objects</tref>.</p>
+    <ul>
+      <li><code>@context</code>,</li>
+      <li><code>@id</code>,</li>
+      <li><code>@graph</code>,</li>
+      <li><code>@type</code>,</li>
+      <li><code>@reverse</code>, or</li>
+      <li><code>@index</code></li>
+    </ul>
 
-<p>If the <tref>node object</tref> contains the <code>@reverse</code> key,
-  its value MUST be a <tref>JSON object</tref> containing members representing reverse
-  properties. Each value of such a reverse property MUST be an <tref>absolute IRI</tref>,
-  a <tref>relative IRI</tref>, a <tref>compact IRI</tref>, a <tref>blank node identifier</tref>,
-  a <tref>node object</tref> or an <tref>array</tref> containing a combination of these.</p>
+    <p>If the <tref>node object</tref> contains the <code>@context</code>
+      key, its value MUST be <tref>null</tref>, an <tref>absolute IRI</tref>,
+      a <tref>relative IRI</tref>, a <tref>context definition</tref>, or
+      an <tref>array</tref> composed of any of these.</p>
 
-<p>If the <tref>node object</tref> contains the <code>@index</code> key,
-  its value MUST be a <tref>string</tref>. See section
-  <a href="#data-indexing"></a> for further discussion on <code>@index</code>
-  values.</p>
+    <p>If the <tref>node object</tref> contains the <code>@id</code> key,
+      its value MUST be an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>,
+      or a <tref>compact IRI</tref> (including
+      <tref title="blank node identifier">blank node identifiers</tref>).
+      See <a href="#node-identifiers"></a>, <a href="#compact-iris"></a>,
+      and <a href="#identifying-blank-nodes"></a> for further discussion on
+      <code>@id</code> values.</p>
 
+    <p>If the <tref>node object</tref> contains the <code>@graph</code>
+      key, its value MUST be
+      a <tref>node object</tref> or
+      an <tref>array</tref> of zero or more <tref title="node object">node objects</tref>.
+      If the <tref>node object</tref> contains an <code>@id</code> keyword,
+      its value is used as the label of a named graph.
+      See <a href="#named-graphs"></a> for further discussion on
+      <code>@graph</code> values. As a special case, if a <tref>JSON object</tref>
+      contains no keys other than <code>@graph</code> and <code>@context</code>, and the
+      <tref>JSON object</tref> is the root of the JSON-LD document, the
+      <tref>JSON object</tref> is not treated as a <tref>node object</tref>; this
+      is used as a way of defining <tref title="node object">node
+      definitions</tref> that may not form a connected graph. This allows a
+      <tref>context</tref> to be defined which is shared by all of the constituent
+      <tref title="node object">node objects</tref>.</p>
 
-<p>Keys in a <tref>node object</tref> that are not
-  <tref title="keyword">keywords</tref> MUST expand to an <tref>absolute IRI</tref>
-  using the <tref>active context</tref>. The values associated with these keys
-  MUST be one of the following:</p>
+    <p>If the <tref>node object</tref> contains the <code>@type</code>
+      key, its value MUST be either an <tref>absolute IRI</tref>, a
+      <tref>relative IRI</tref>, a <tref>compact IRI</tref>
+      (including <tref title="blank node identifier">blank node identifiers</tref>),
+      a <tref>term</tref> defined in the <tref>active context</tref> expanding into an <tref>absolute IRI</tref>, or
+      an <tref>array</tref> of any of these.
+      See <a href="#specifying-the-type"></a> for further discussion on
+      <code>@type</code> values.</p>
 
-<ul>
-  <li><tref>string</tref>,</li>
-  <li><tref>number</tref>,</li>
-  <li><tref>true</tref>,</li>
-  <li><tref>false</tref>,</li>
-  <li><tref>null</tref>,</li>
-  <li><tref>node object</tref>,</li>
-  <li><tref>expanded value</tref>,</li>
-  <li><tref>list</tref> or <tref>set</tref>,</li>
-  <li>an <tref>array</tref> of zero or more of the possibilities above,</li>
-  <li>a <tref>language map</tref>, or </li>
-  <li>an <tref>index map</tref></li>
-</ul>
+    <p>If the <tref>node object</tref> contains the <code>@reverse</code> key,
+      its value MUST be a <tref>JSON object</tref> containing members representing reverse
+      properties. Each value of such a reverse property MUST be an <tref>absolute IRI</tref>,
+      a <tref>relative IRI</tref>, a <tref>compact IRI</tref>, a <tref>blank node identifier</tref>,
+      a <tref>node object</tref> or an <tref>array</tref> containing a combination of these.</p>
 
-</section>
+    <p>If the <tref>node object</tref> contains the <code>@index</code> key,
+      its value MUST be a <tref>string</tref>. See section
+      <a href="#data-indexing"></a> for further discussion on <code>@index</code>
+      values.</p>
 
-<section id="grammar-term-reference">
-  <h2>Term</h2>
-  <p>A <tdef>term</tdef> is a short-hand <tref>string</tref> that expands
-    to an <tref>IRI</tref> or a <tref>blank node identifier</tref>.</p>
+    <p>Keys in a <tref>node object</tref> that are not
+      <tref title="keyword">keywords</tref> MAY expand to an <tref>absolute IRI</tref>
+      using the <tref>active context</tref>. The values associated with keys that expand
+      to an <tref>absolute IRI</tref> MUST be one of the following:</p>
 
-  <p>A <tref>term</tref> MUST NOT equal any of the JSON-LD
-    <tref title="keyword">keywords</tref>.</p>
+    <ul>
+      <li><tref>string</tref>,</li>
+      <li><tref>number</tref>,</li>
+      <li><tref>true</tref>,</li>
+      <li><tref>false</tref>,</li>
+      <li><tref>null</tref>,</li>
+      <li><tref>node object</tref>,</li>
+      <li><tref>value object</tref>,</li>
+      <li><tref>list object</tref>,</li>
+      <li><tref>set object</tref>,</li>
+      <li>an <tref>array</tref> of zero or more of the possibilities above,</li>
+      <li>a <tref>language map</tref>, or </li>
+      <li>an <tref>index map</tref></li>
+    </ul>
+  </section>
 
-  <p>To avoid forward-compatibility issues, a <tref>term</tref> SHOULD NOT start
-    with an <code>@</code> character as future versions of JSON-LD may introduce
-    additional <tref title="keyword">keywords</tref>. Furthermore, the term MUST NOT
-    be an empty <tref>string</tref> (<code>""</code>) as not all programming languages
-    are able to handle empty property names.</p>
+  <section>
+    <h2>Value Objects</h2>
 
-  <p>See <a href="#the-context"></a> and <a href="#iris"></a> for further discussion
-    on mapping <tref title="term">terms</tref> to <tref title="IRI">IRIs</tref>.</p>
-</section>
+    <p>A <tdef>value object</tdef> is used to explicitly associate a type or a
+      language with a value to create a <tref>typed value</tref> or a <tref>language-tagged
+      string</tref>.</p>
 
-<section id="grammar-language-map">
-<h2>Language Map</h2>
-<p>A <tdef>language map</tdef> is used to associate a language with a value in a
-  way that allows easy programmatic access. A <tref>language map</tref> may be
-  used as a term value within a <tref>node object</tref> if the term is defined
-  with <code>@container</code> set to <code>@language</code>. The keys of a
-  <tref>language map</tref> MUST be lowercase [[BCP47]]
-  <tref title="string">strings</tref> with an associated value that is any
-  of the following types:</p>
-<ul>
-  <li><tref>string</tref>, or</li>
-  <li>an <tref>array</tref> of zero or more strings</li>
-</ul>
-<p>See <a href="#language-tagged-strings"></a> for further discussion on language maps.</p>
-</section>
+    <p>A <tref>value object</tref> MUST be a <tref>JSON object</tref> containing the
+      <code>@value</code> key. It MAY also contain a <code>@type</code>,
+      a <code>@language</code>, an <code>@index</code>, or an <code>@context</code> key but MUST NOT contain
+      both a <code>@type</code> and a <code>@language</code> key at the same time.
+      A <tref>value object</tref> MUST NOT contain any other keys that expand to an
+      <tref>absolute IRI</tref> or <tref>keyword</tref>.</p>
 
-<section id="grammar-index-map">
-<h2>Index Map</h2>
-<p>An <tdef>index map</tdef> allows keys that have no semantic meaning,
-  but should be preserved regardless, to be used in JSON-LD documents.
-  An <tref>index map</tref> may
-  be used as a <tref>term</tref> value within a <tref>node object</tref> if the
-  term is defined with <code>@container</code> set to <code>@index</code>.
-  The values of the members of an <tref>index map</tref> MUST be one
-  of the following types:</p>
-<ul>
-  <li><tref>string</tref>,</li>
-  <li><tref>number</tref>,</li>
-  <li><tref>true</tref>,</li>
-  <li><tref>false</tref>,</li>
-  <li><tref>null</tref>,</li>
-  <li><tref>node object</tref>,</li>
-  <li><tref>expanded value</tref>,</li>
-  <li>an <tref>array</tref> of zero or more of the above possibilities</li>
-</ul>
-<p>See <a href="#data-indexing"></a> for further information on this
-topic.</p>
-</section>
+    <p>The value associated with the <code>@value</code> key MUST be either a
+      <tref>string</tref>, a <tref>number</tref>, <tref>true</tref>,
+      <tref>false</tref> or <tref>null</tref>.</p>
 
-<section id="grammar-expanded-values">
-<h2>Expanded Values</h2>
+    <p>The value associated with the <code>@type</code> key MUST be a
+      <tref>term</tref>, a <tref>compact IRI</tref>,
+      an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>, or <tref>null</tref>.</p>
 
-<p>An <tdef>expanded value</tdef> is used to explicitly associate a type or a
-  language with a value to create a <tref>typed value</tref> or a <tref>language-tagged
-  string</tref>.</p>
+    <p>The value associated with the <code>@language</code> key MUST have the
+      lexical form described in [[!BCP47]], or be <tref>null</tref>.</p>
 
-<p>An <tref>expanded value</tref> MUST be a <tref>JSON object</tref> containing the
-  <code>@value</code> key. It MAY also contain a <code>@type</code>,
-  a <code>@language</code>, or an <code>@index</code> key but MUST NOT contain
-  both a <code>@type</code> and a <code>@language</code> key at the same time.
-  An <tref>expanded value</tref> MUST NOT contain keys other than
-  <code>@value</code>, <code>@type</code>, <code>@language</code>, and
-  <code>@index</code>. An <tref>expanded value</tref> that contains a
-  <code>@type</code> key is called an <tdef>expanded typed value</tdef>.
-  An <tref>expanded value</tref> that contains a <code>@language</code> key
-  is called an <tdef>expanded language-tagged string</tdef>.</p>
+    <p>The value associated with the <code>@index</code> key MUST be a
+      <tref>string</tref>.</p>
 
-<p>The value associated with the <code>@value</code> key MUST be either a
-  <tref>string</tref>, <tref>number</tref>, <tref>true</tref>,
-  <tref>false</tref> or <tref>null</tref>.</p>
+    <p>See section <a href="#typed-values"></a> and <a href="#string-internationalization"></a>
+      for more information on <tref title="value object">value objects</tref>.</p>
+  </section>
 
-<p>The value associated with the <code>@type</code> key MUST be a
-  <tref>term</tref>, a <tref>compact IRI</tref>,
-  an <tref>absolute IRI</tref>, a <tref>relative IRI</tref>, or <tref>null</tref>.</p>
+  <section>
+    <h2>Lists and Sets</h2>
 
-<p>The value associated with the <code>@language</code> key MUST have the
-  lexical form described in [[!BCP47]], or be <tref>null</tref>.</p>
+    <p>A <tref>list</tref> represents an <em>ordered</em> set of values. A set
+      represents an <em>unordered</em> set of values. Unless otherwise specified,
+      <tref title="array">arrays</tref> are unordered in JSON-LD. As such, the
+      <code>@set</code> keyword, when used in the body of a JSON-LD document,
+      represents just syntactic sugar which is optimized away when processing the document.
+      However, it is very helpful when used within the context of a document. Values
+      of terms associated with a <code>@set</code> or <code>@list</code> container
+      will always be represented in the form of an <tref>array</tref> when a document
+      is processed&mdash;even if there is just a single value that would otherwise be optimized to
+      a non-array form in <a href="#compact-document-form">compact document form</a>.
+      This simplifies post-processing of the data as the data is always in a
+      deterministic form.</p>
 
-<p>The value associated with the <code>@index</code> key MUST be a
-  <tref>string</tref>.</p>
+    <p>A <tdef>list object</tdef> MUST be a <tref>JSON object</tref> that contains no
+      keys that expand to an <tref>absolute IRI</tref> or <tref>keyword</tref> other
+      than <code>@list</code>, <code>@context</code>, and <code>@index</code>.</p>
 
-<p>See <a href="#typed-values"></a> and <a href="#language-tagged-strings"></a>
-  for more information on
-  <tref title="expanded value">expanded values</tref>.</p>
-</section>
+    <p>A <tdef>set object</tdef> MUST be a <tref>JSON object</tref> that contains no
+      keys that expand to an <tref>absolute IRI</tref> or <tref>keyword</tref> other
+      than <code>@list</code>, <code>@context</code>, and <code>@index</code>.
+      Please note that the <code>@index</code> key will be ignored when being processed.</p>
 
-<section id="grammar-set-list">
-<h2>List and Set Values</h2>
+    <p>In both cases, the value associated with the keys <code>@list</code> and <code>@set</code>
+      MUST be one of the following types:</p>
+    <ul>
+      <li><tref>string</tref>,</li>
+      <li><tref>number</tref>,</li>
+      <li><tref>true</tref>,</li>
+      <li><tref>false</tref>,</li>
+      <li><tref>null</tref>,</li>
+      <li><tref>node object</tref>,</li>
+      <li><tref>value object</tref>, or</li>
+      <li>an <tref>array</tref> of zero or more of the above possibilities</li>
+    </ul>
 
-<p>A <tref>list</tref> represents an <em>ordered</em> set of values. A <tdef>set</tdef>
-  represents an <em>unordered</em> set of values. Unless otherwise specified,
-  <tref title="array">arrays</tref> are unordered in JSON-LD. As such, the
-  <code>@set</code> keyword, when used in the body of a JSON-LD document,
-  represents just syntactic sugar which is optimized away when processing the document.
-  However, it is very helpful when used within the context of a document. Values
-  of terms associated with a <code>@set</code> or <code>@list</code> container
-  will always be represented in the form of an array when a document is processed -
-  even if there is just a single value that would otherwise be optimized to
-  a non-array form in <a href="#compact-document-form">compact document form</a>.
-  This simplifies post-processing of the data as the data is always in array form.</p>
+    <p>See section <a href="#sets-and-lists"></a> for further discussion on sets and lists.</p>
+  </section>
 
-<p>A <tref>list</tref> MUST be a <tref>JSON object</tref> that contains no other
-  keys than <code>@list</code>, <code>@context</code>, and <code>@index</code>.</p>
+  <section>
+    <h2>Language Maps</h2>
 
-<p>A <tref>set</tref> MUST be a <tref>JSON object</tref> that that contains no other
-  keys than <code>@set</code>, <code>@context</code>, and <code>@index</code>.
-  Please note that the <code>@index</code> key will be ignored, and thus be dropped,
-  when being processed.</p>
+    <p>A <tdef>language map</tdef> is used to associate a language with a value in a
+      way that allows easy programmatic access. A <tref>language map</tref> may be
+      used as a term value within a <tref>node object</tref> if the term is defined
+      with <code>@container</code> set to <code>@language</code>. The keys of a
+      <tref>language map</tref> MUST be <tref title="string">strings</tref> representing
+      [[BCP47]] language codes with and the values MUST be any of the following types:</p>
 
-<p>In both cases, the value associated with the keys <code>@list</code> and <code>@set</code>
-  MUST be an <tref>array</tref> of any of the following:</p>
-<ul>
-  <li><tref>string</tref>,</li>
-  <li><tref>number</tref>,</li>
-  <li><tref>true</tref>,</li>
-  <li><tref>false</tref>,</li>
-  <li><tref>null</tref>,</li>
-  <li><tref>node object</tref>, or</li>
-  <li><tref>expanded value</tref></li>
-</ul>
+    <ul>
+      <li><tref>null</tref>,</li>
+      <li><tref>string</tref>, or</li>
+      <li>an <tref>array</tref> of zero or more of the above possibilities</li>
+    </ul>
 
-<p>See <a href="#sets-and-lists"></a> for further discussion on List and Set Values.</p>
-</section>
+    <p>See section <a href="#string-internationalization"></a> for further discussion
+      on language maps.</p>
+  </section>
 
-<section id="grammar-context">
-  <h2>Context Definition</h2>
+  <section>
+    <h2>Index Maps</h2>
+
+    <p>An <tdef>index map</tdef> allows keys that have no semantic meaning,
+      but should be preserved regardless, to be used in JSON-LD documents.
+      An <tref>index map</tref> may
+      be used as a <tref>term</tref> value within a <tref>node object</tref> if the
+      term is defined with <code>@container</code> set to <code>@index</code>.
+      The values of the members of an <tref>index map</tref> MUST be one
+      of the following types:</p>
+
+    <ul>
+      <li><tref>string</tref>,</li>
+      <li><tref>number</tref>,</li>
+      <li><tref>true</tref>,</li>
+      <li><tref>false</tref>,</li>
+      <li><tref>null</tref>,</li>
+      <li><tref>node object</tref>,</li>
+      <li><tref>value object</tref>,</li>
+      <li><tref>list object</tref>,</li>
+      <li><tref>set object</tref>,</li>
+      <li>an <tref>array</tref> of zero or more of the above possibilities</li>
+    </ul>
+
+    <p>See section <a href="#data-indexing"></a> for further information on this topic.</p>
+  </section>
+
+<section>
+  <h2>Context Definitions</h2>
 
   <p>A <tdef>context definition</tdef> defines a <tref>local context</tref> in a
     <tref>node object</tref>.</p>
 
-  <p>A <tref>context definition</tref> MUST be a <tref>JSON object</tref>
-    containing one or more key-value pairs. Keys MUST either be
-    <tref title="term">terms</tref> or <code>@language</code> or <code>@vocab</code>
-    <tref title="keyword">keywords</tref>.
+  <p>A <tref>context definition</tref> MUST be a <tref>JSON object</tref> whose
+    keys MUST either be <tref title="term">terms</tref>,
+    <tref title="compact IRI">compact IRIs</tref>, <tref title="absolute IRI">absolute IRIs</tref>,
+    or the <tref title="keyword">keywords</tref> <code>@language</code>, <code>@base</code>,
+    and <code>@vocab</code>.
 
   <p>If the <tref>context definition</tref> has a <code>@language</code> key,
     its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
 
   <p>If the <tref>context definition</tref> has a <code>@base</code> key,
-    its value MUST be <tref>null</tref> or a <tref>string</tref> representing an
-    <tref>absolute IRI</tref> or <tref>relative IRI</tref>.</p>
+    its value MUST be an <tref>absolute IRI</tref> or <tref>null</tref>.</p>
 
   <p>If the <tref>context definition</tref> has a <code>@vocab</code> key,
-    its value MUST have the lexical form of <tref>absolute IRI</tref> or be <tref>null</tref>.</p>
+    its value MUST be a <tref>absolute IRI</tref>, a <tref>compact IRI</tref>,
+    a <tref>term</tref>, or <tref>null</tref>.</p>
 
-  <p><tref>Term</tref> values MUST be either a <tref>string</tref>, <tref>null</tref>, or
-    an <tref>expanded term definition</tref>.</p>
+  <p>The value of keys that are not <tref title="keyword">keywords</tref> MUST be either an
+    <tref>absolute IRI</tref>, a <tref>compact IRI</tref>, a <tref>term</tref>,
+    a <tref>blank node identifier</tref>, a <tref>keyword</tref>, <tref>null</tref>,
+    or an <tref>expanded term definition</tref>.</p>
 
   <p>An <tref>expanded term definition</tref> is used to describe the mapping
     between a <tref>term</tref> and its expanded identifier, as well as other
@@ -2919,22 +2923,20 @@ topic.</p>
     If an <code>@container</code> member exists, its value MUST be <tref>null</tref>
     or <code>@index</code>.</p>
 
-  <p>If the <tref>term</tref> definition is not <tref>null</tref>, a <tref>compact IRI</tref>,
-    or an <tref>absolute IRI</tref> and the <tref>active context</tref> does not have an
+  <p>If the term being defined is not a <tref>compact IRI</tref> or
+    <tref>absolute IRI</tref> and the <tref>active context</tref> does not have an
     <code>@vocab</code> mapping, the <tref>expanded term definition</tref> MUST
     include the <code>@id</code> key.</p>
 
   <p>If the <tref>expanded term definition</tref> contains the <code>@id</code>
     <tref>keyword</tref>, its value MUST be <tref>null</tref>, an <tref>absolute IRI</tref>,
-    a <tref>blank node identifier</tref>, a <tref>compact IRI</tref>, or a <tref>term</tref>
-    defined in the defining <tref>context definition</tref> or the <tref>active context</tref>.</p>
+    a <tref>blank node identifier</tref>, a <tref>compact IRI</tref>, or a <tref>term</tref>.</p>
 
   <p>If the <tref>expanded term definition</tref> contains the <code>@type</code>
     <tref>keyword</tref>, its value MUST be an <tref>absolute IRI</tref>, a
-    <tref>compact IRI</tref>, a <tref>term</tref> defined in the defining
-    <tref>context definition</tref> or the <tref>active context</tref>, <tref>null</tref>,
-    or the one of the <tref title="keyword">keywords</tref> <code>@id</code> or
-    <code>@vocab</code>.</p>
+    <tref>compact IRI</tref>, a <tref>blank node identifier</tref>, a <tref>term</tref> or
+    the <tref>active context</tref>, <tref>null</tref>, or the one of the
+    <tref title="keyword">keywords</tref> <code>@id</code> or <code>@vocab</code>.</p>
 
   <p>If the <tref>expanded term definition</tref> contains the <code>@language</code> <tref>keyword</tref>,
     its value MUST have the lexical form described in [[!BCP47]] or be <tref>null</tref>.</p>
@@ -2949,10 +2951,10 @@ topic.</p>
     <tref>index map</tref>.</p>
 
   <p><tref title="term">Terms</tref> MUST NOT be used in a circular manner. That is,
-    the definition of a term cannotdepend on the definition of another term if that other
+    the definition of a term cannot depend on the definition of another term if that other
     term also depends on the first term.</p>
 
-  <p>See <a href="#the-context"></a> for further discussion on contexts.</p>
+  <p>See section <a href="#the-context"></a> for further discussion on contexts.</p>
 </section>
 
 </section>
