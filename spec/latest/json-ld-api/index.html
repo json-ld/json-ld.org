@@ -1436,28 +1436,21 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>The algorithm takes four input variables: an <tref>active context</tref>,
-        an <tref>active property</tref>, an <i>element</i> to be expanded, and
-        an <i>insideList</i> flag. To begin, the <tref>active context</tref> is set
-        to the result of performing, <a href="#context-processing-algorithm">Context Processing</a> on the passed
+      <p>The algorithm takes three input variables: an <tref>active context</tref>,
+        an <tref>active property</tref>, and an <i>element</i> to be expanded.
+        To begin, the <tref>active context</tref> is set to the result of performing,
+        <a href="#context-processing-algorithm">Context Processing</a> on the passed
         <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>,
         or empty if <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
         is <tref>null</tref>, <tref>active property</tref> is set to <tref>null</tref>,
-        <i>element</i> is set to the <tref>JSON-LD input</tref>, and <i>insideList</i>
-        is set to <tref>false</tref>. This algorithm expects the
-        <tref>JSON-LD input</tref> to be a well-formed JSON-LD document as defined
-        in [[!JSON-LD]].</p>
+        and <i>element</i> is set to the <tref>JSON-LD input</tref>.</p>
 
       <ol class="algorithm">
         <li>If <i>element</i> is <tref>null</tref>, return <tref>null</tref>.</li>
         <li>If <i>element</i> is a <tref>scalar</tref>,
           <ol class="algorithm">
-            <li>If <i>insideList</i> is <tref>false</tref> and
-              either <tref>active property</tref> is <tref>null</tref> or
-              the result of expanding <tref>active property</tref> using the
-              <a href="#iri-expansion">IRI Expansion algorithm </a> is
-              <code>@graph</code>, then drop the top-level
-              <tref>scalar</tref> by returning <tref>null</tref>.</li>
+            <li>If <tref>active property</tref> is <tref>null</tref> or <code>@graph</code>,
+              drop the free-floating <tref>scalar</tref> by returning <tref>null</tref>.</li>
             <li>Return the result of the
               <a href="#value-expansion">Value Expansion algorithm</a>, passing the
               <tref>active context</tref>, <tref>active property</tref>, and
@@ -1471,9 +1464,9 @@
               <ol class="algorithm">
                 <li>Initialize <i>expanded item</i> to the result of using this
                   algorithm recursively, passing <tref>active context</tref>,
-                  <tref>active property</tref>, <i>item</i> as <i>element</i>,
-                  and <i>insideList</i>.</li>
-                <li>If <i>insideList</i> is <tref>true</tref> then
+                  <tref>active property</tref>, and <i>item</i> as <i>element</i>.</li>
+                <li>If the <tref>active property</tref> is <code>@list</code> or it's
+                  <tref>container mapping</tref> is set to <code>@list</code>, the
                   <i>expanded item</i> must not be an <tref>array</tref> or a
                   <tref>list object</tref>, otherwise a
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code> error has been detected.</li>
@@ -1491,10 +1484,6 @@
           <a href="#context-processing-algorithm">Context Processing algorithm</a>,
           passing <tref>active context</tref> and the value of the
           <code>@context</code> key as <tref>local context</tref>.</li>
-        <li>Initialize <i>expanded active property</i> to the result of the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-          <tref>active context</tref>, <tref>active property</tref> for
-          <i>value</i>, and <tref>true</tref> for <i>vocabRelative</i>.</li>
         <li>Initialize an empty <tref>JSON object</tref>, <i>result</i>.</li>
         <li>For each <i>key</i> and <i>value</i> in <i>element</i>,
           ordered lexicographically by <i>key</i>:
@@ -1553,8 +1542,8 @@
               <ol class="algorithm">
                 <li>Initialize <i>expanded value</i> to the result of using this
                   algorithm recursively, passing <tref>active context</tref>,
-                  <code>@reverse</code> as <tref>active property</tref>, <i>value</i>
-                  as <i>element</i>, and <i>insideList</i>.</li>
+                  <code>@reverse</code> as <tref>active property</tref>, and
+                  <i>value</i> as <i>element</i>.</li>
                 <li>If <i>expanded value</i> contains an <code>@reverse</code> member,
                   i.e., properties that are reversed twice, execute for each of its
                   <i>property</i> and <i>item</i> the following steps:
@@ -1640,9 +1629,9 @@
                       <i>index value</i>.</li>
                     <li>Initialize <i>index value</i> to the result of
                       using this algorithm recursively, passing
-                      <tref>active context</tref>, <tref>active property</tref>,
-                      <i>index value</i> as <i>element</i>, and
-                      <tref>false</tref> for <i>insideList</i>.</li>
+                      <tref>active context</tref>,
+                      <i>key</i> as <tref>active property</tref>,
+                      and <i>index value</i> as <i>element</i>.</li>
                     <li>For each <i>item</i> in <i>index value</i>:
                       <ol class="algorithm">
                         <li>If <i>item</i> does not have the key
@@ -1656,31 +1645,23 @@
                 </li>
               </ol>
             </li>
-            <li>Otherwise, if <i>expanded property</i> is <code>@list</code>
-              or <code>@set</code>:
+            <li>Otherwise, if <i>expanded property</i> is <code>@list</code>:
               <ol class="algorithm">
+                <li>If <tref>active property</tref> is <tref>null</tref> or
+                  <code>@graph</code>, return <tref>null</tref> to remove
+                  the free-floating list.</tref>.</li>
                 <li>Initialize <i>expanded value</i> to the result of using
-                  this algorithm recursively passing
-                  <tref>active context</tref>, <tref>null</tref> for
-                  <tref>active property</tref> if <i>expanded property</i>
-                  is <code>@list</code> and <i>expanded active property</i>
-                  is <code>@graph</code> otherwise <tref>active property</tref>,
-                  <i>value</i> for <i>element</i>, and <tref>true</tref>
-                  for <i>insideList</i> if <i>expanded property</i> is
-                  <code>@list</code> otherwise <tref>false</tref>.</li>
-                <li>If <i>expanded property</i> is <code>@list</code>
-                  then <i>expanded value</i> must not be a
-                  <tref>list object</tref>, otherwise a
+                  this algorithm recursively passing <tref>active context</tref>,
+                  <tref>active property</tref>, and <i>value</i> for <i>element</i>.</li>
+                <li>If <i>expanded value</i> is a <tref>list object</tref>, a
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
                   error has been detected.</li>
               </ol>
             </li>
             <li>Otherwise, initialize <i>expanded value</i> to the result of
-              using this algorithm recursively, passing
-              <tref>active context</tref>, <i>key</i> for
-              <tref>active property</tref>, <i>value</i>
-              for <i>element</i>, and <tref>false</tref> for
-              <i>insideList</i>.</li>
+              using this algorithm recursively, passing <tref>active context</tref>,
+              <i>key</i> for <tref>active property</tref>, and <i>value</i>
+              for <i>element</i>.</li>
             <li>If <i>expanded value</i> is <tref>null</tref> and
               <i>expanded property</i> is not <code>@value</code> then
               drop <i>key</i> by continuing to the next key.</li>
@@ -1761,28 +1742,25 @@
         </li>
         <li>If <i>result</i> contains only the key
           <code>@language</code>, set <i>result</i> to <tref>null</tref>.</li>
-        <li>If <i>insideList</i> is <tref>false</tref> and either
-          <tref>active property</tref> is <tref>null</tref> or
-          <i>expanded active property</i> is <code>@graph</code>, then
+        <li>If <tref>active property</tref> is <tref>null</tref> or <code>@graph</code>,
           drop free-floating values as follows:
           <ol class="algorithm">
-            <li>If <i>result</i> contains no keys or contains the key
-              <code>@value</code>, setting <i>result</i> to
-              <tref>null</tref>.</li><li>
-              Otherwise, if <i>result</i>'s keys are only keywords and none
-              of the keys are <code>@graph</code> or <code>@type</code> then
-              set <i>result</i> to <tref>null</tref>.</li>
+            <li>If <i>result</i> is an empty <tref>JSON object</tref> or contains
+              the keys <code>@value</code> or <code>@list</code>, set <i>result</i> to
+              <tref>null</tref>.</li>
+            <li>Otherwise, if <i>result</i> is a <tref>JSON object</tref> whose only
+              key is <code>@id</code>, set <i>result</i> to <tref>null</tref>.</li>
           </ol>
         </li>
         <li>Return <i>result</i>.</li>
       </ol>
 
       <p>If, after the above algorithm is run, the result is a
-      <tref>JSON object</tref> that contains only an <code>@graph</code> key, set the
-      result to the value of <code>@graph</code>'s value. Otherwise, if the result
-      is <tref>null</tref>, set it to an empty <tref>array</tref>. Finally, if
-      the result is not an <tref>array</tref>, then set the result to an
-      <tref>array</tref> containing only the result.</p>
+        <tref>JSON object</tref> that contains only an <code>@graph</code> key, set the
+        result to the value of <code>@graph</code>'s value. Otherwise, if the result
+        is <tref>null</tref>, set it to an empty <tref>array</tref>. Finally, if
+        the result is not an <tref>array</tref>, then set the result to an
+        <tref>array</tref> containing only the result.</p>
     </section>
   </section> <!-- end of Expansion Algorithm -->
 
