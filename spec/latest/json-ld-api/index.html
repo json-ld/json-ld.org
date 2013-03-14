@@ -2938,7 +2938,9 @@
     <ol class="algorithm">
       <li>Expand <i>element</i> according the
         <a href="#expansion-algorithm">Expansion algorithm</a>.</li>
-      <li>Initialize an empty <tref>JSON object</tref> <i>node map</i>.</li>
+      <li>Initialize <i>node map</i> to a <tref>JSON object</tref> consisting of
+        a single member whose key is <code>@default</code> and whose value is
+        an empty <tref>JSON object</tref>.</li>
       <li>Perform the <a href="#node-map-generation">Node Map Generation algorithm</a>, passing
         <i>element</i> and <i>node map</i>.</li>
       <li>Initialize <i>default graph</i> to the value of the <code>@default</code>
@@ -2974,106 +2976,120 @@
   <section>
     <h2>Node Map Generation</h2>
 
-    <p>This algorithm creates a <tref>JSON object</tref> <i>nodeMap</i> holding an indexed
+    <p>This algorithm creates a <tref>JSON object</tref> <i>node map</i> holding an indexed
       representation of the <tref title="JSON-LD graph">graphs</tref> and <tref title="node">nodes</tref>
       represented in the passed, expanded document. All <tref title="node">nodes</tref> that are not
       uniquely identified by an IRI get assigned a (new) <tref>blank node identifier</tref>.
-      The resulting <i>nodeMap</i> will have a member for every graph in the document whose
+      The resulting <i>node map</i> will have a member for every graph in the document whose
       value is another object with a member for every <tref>node</tref> represented in the document.
       The default graph is stored under the <code>@default</code> member, all other graphs are
       stored under their <tref>graph name</tref>.</p>
 
     <p>The algorithm takes as input an expanded JSON-LD document <i>element</i> and a reference to
-      a <tref>JSON object</tref> <i>nodeMap</i>. Furthermore it has the optional parameters
+      a <tref>JSON object</tref> <i>node map</i>. Furthermore it has the optional parameters
       <tref>active graph</tref> (which defaults to <code>@default</code>), an <tref>active subject</tref>,
-      <tref>active property</tref>, and a reference to a <tref>JSON object</tref> <i>list</i>. The
-      <i>nodeMap</i> must be initialized to a <tref>JSON object</tref> consisting of a single member
-      whose name corresponds with <tref>active graph</tref> and whose value is an empty <tref>JSON object</tref>.</p>
+      <tref>active property</tref>, and a reference to a <tref>JSON object</tref> <i>list</i>. If
+      not passed, <tref>active subject</tref>, <tref>active property</tref>, and <i>list</i> are
+      set to <tref>null</tref>.</p>
 
     <ol class="algorithm">
-      <li>If <i>element</i> is an array, process each entry in <i>element</i> recursively, using this algorithm
-        and return.</li>
-      <li>Otherwise <i>element</i> is a <tref>JSON object</tref>. Let <i>activeGraph</i> be the
-        <tref>JSON object</tref> which is the value of the <tref>active graph</tref> member of
-        <i>nodeMap</i>.</li>
-      <li>If it has an <code>@type</code> member, perform for each <i>item</i> the following
-        steps:
+      <li>If <i>element</i> is an array, process each <i>item</i> in <i>element</i>
+        as follows and then return:
         <ol class="algorithm">
-          <li>If <i>item</i> is a <tref>blank node identifier</tref>, replace it with a
-            <a href="#generate-blank-node-identifier">new blank node identifier</a>.</li>
-          <li>If <i>activeGraph</i> has no member <i>item</i>, create it and initialize its
+          <li>Run this algorithm recursively by passing <i>item</i> for <i>element</i>,
+            <i>node map</i>, <tref>active graph</tref>, <tref>active subject</tref>,
+            <tref>active property</tref>, and <i>list</i>.</li>
+        </ol>
+      </li>
+      <li>Otherwise <i>element</i> is a <tref>JSON object</tref>. Reference the
+        <tref>JSON object</tref> which is the value of the <tref>active graph</tref>
+        member of <i>node map</i> using the variable <i>graph</i>. If the
+        <tref>active subject</tref> is <tref>null</tref>, set <i>node</i> to <tref>null</tref>
+        otherwise reference the <tref>active subject</tref> member of <i>graph</i> using the
+        variable <i>node</i>.</li>
+      <li>If <i>element</i> has an <code>@type</code> member, perform for each
+        <i>item</i> the following steps:
+        <ol class="algorithm">
+          <li>If <i>item</i> is a <tref>blank node identifier</tref>, replace it
+            with a newly
+            <a href="#generate-blank-node-identifier">generated blank node identifier</a>
+            passing <i>item</i> for <i>identifier</i>.</li>
+          <li>If <i>graph</i> has no member <i>item</i>, create one and initialize its
             value to a <tref>JSON object</tref> consisting of a single member <code>@id</code>
-            with the value <i>item</i>.</li>
+            whose value is <i>item</i>.</li>
         </ol>
       </li>
       <li>If <i>element</i> has an <code>@value</code> member, perform the following steps:
         <ol class="algorithm">
-          <li>If no <i>list</i> has been passed, merge <i>element</i> into the
-            <tref>active property</tref> member of the <tref>active subject</tref> in
-            <i>activeGraph</i>.</li>
+          <li>If <i>list</i> is <tref>null</tref>, merge <i>element</i> into the
+            <tref>active property</tref> member of <i>node</i>; the resulting
+            <tref>array</tref> must not contain any duplicate values.</li>
           <li>Otherwise, append <i>element</i> to the <code>@list</code> member of <i>list</i>.</li>
         </ol>
       </li>
       <li>Otherwise, if <i>element</i> has an <code>@list</code> member, perform
         the following steps:
         <ol class="algorithm">
-          <li>Initialize a new <tref>JSON object</tref> <i>result</i> having a single member
+          <li>Initialize a new <tref>JSON object</tref> <i>result</i> consisting of a single member
             <code>@list</code> whose value is initialized to an empty <tref>array</tref>.</li>
           <li>Recursively call this algorithm passing the value of <i>element's</i>
-            <code>@list</code> member as new <i>element</i> and <i>result</i> as <i>list</i>.</li>
-          <li>If <tref>active property</tref> is <tref>null</tref> or <code>@graph</code>,
-            <a href="#generate-blank-node-identifier">generate a blank node identifier</a> <i>id</i>
-            and store <i>result</i> as value of the member <i>id</i> in <i>activeGraph</i>.</li>
-          <li>Otherwise, add <i>result</i> to the the value of the <tref>active property</tref> member
-            of the <tref>active subject</tref> in <i>activeGraph</i>.</li>
+            <code>@list</code> member for <i>element</i>, <tref>active graph</tref>,
+            <tref>active subject</tref>, <tref>active property</tref>, and
+            <i>result</i> for <i>list</i>.</li>
+          <li>Append <i>result</i> to the the value of the <tref>active property</tref> member
+            of <i>node</i>.</li>
         </ol>
       </li>
-      <li>Otherwise <i>element</i> is a <tref>node object</tref>, perform the following
-        steps:
+      <li>Otherwise <i>element</i> is a <tref>node object</tref>, perform
+        the following steps:
         <ol class="algorithm">
-          <li>If <i>element</i> has an <code>@id</code> member, store its value in <i>id</i> and remove
-            the member from <i>element</i>. If <i>id</i> is a <tref>blank node identifier</tref>, replace it with
-            <a href="#generate-blank-node-identifier">a new blank node identifier</a>.</li>
-          <li>Otherwise <a href="#generate-blank-node-identifier">generate a new blank node identifier</a>
-            and store it as <i>id</i>.</li>
-          <li>If <i>activeGraph</i> does not contain a member <i>id</i>, create one and initialize
-            it to a <tref>JSON object</tref> consisting of a single member <code>@id</code> whose
-            value is set to <i>id</i>.</li>
+          <li>If <i>element</i> has an <code>@id</code> member, set <i>id</i>
+            to its value and remove the member from <i>element</i>. If <i>id</i>
+            is a <tref>blank node identifier</tref>, replace it with a newly
+            <a href="#generate-blank-node-identifier">generated blank node identifier</a>
+            passing <i>id</i> for <i>identifier</i>.</li>
+          <li>Otherwise, set <i>id</i> to the result of the
+            <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>
+            passing <tref>null</tref> for <i>identifier</i>.</li>
+          <li>If <i>graph</i> does not contain a member <i>id</i>, create one and initialize
+            its value to a <tref>JSON object</tref> consisting of a single member <code>@id</code> whose
+            value is <i>id</i>.</li>
           <li>If <tref>active property</tref> is not <tref>null</tref>, perform the following steps:
             <ol class="algorithm">
               <li>Create a new <tref>JSON object</tref> <i>reference</i> consisting of a single member
                 <code>@id</code> whose value is <i>id</i>.</li>
-              <li>If no <i>list</i> has been passed, merge <i>element</i> into the
-                <tref>active property</tref> member of the <tref>active subject</tref> in
-                <i>activeGraph</i>.</li>
+              <li>If <i>list</i> is <tref>null</tref>, merge <i>element</i> into the
+                <tref>active property</tref> member of <i>node</i>; the resulting
+                <tref>array</tref> must not contain any duplicate values.</li>
               <li>Otherwise, append <i>element</i> to the <code>@list</code> member of <i>list</i>.</li>
             </ol>
           </li>
-          <li>If <i>element</i> has an <code>@type</code> member, merge each value into the <code>@type</code>
-            of <tref>active subject</tref> in <i>activeGraph</i>. Then remove the <code>@type</code> member
-            from <i>element</i>.</li>
+          <li>Reference the value of the <i>id</i> member of <i>graph</i> using the
+            variable <i>node</i>.</li>
+          <li>If <i>element</i> has an <code>@type</code> member, merge each of its values into the
+            <code>@type</code> member of <i>node</i> and finally remove the
+            <code>@type</code> member from <i>element</i>; the resulting
+            <tref>array</tref> must not contain any duplicate values.</li>
           <li>If <i>element</i> has an <code>@index</code> member, set the <code>@index</code>
-            of <tref>active subject</tref> in <i>activeGraph</i> to its value. There must be no
-            existing member already in <tref>active subject</tref> with a different value, if there
-            is, then a
+            member of <i>node</i> to its value. If <tref>node</tref> has already an
+            <code>@index</code> member with a different value, a
             <code class="error"><a href="#idl-def-JsonLdErrorCode.conflicting-indexes">conflicting indexes</a></code>
-            error has been detected. Continue and remove the
-            <code>@index</code> from <i>element</i>.</li>
+            error has been detected. Remove the <code>@index</code> member from <i>element</i>.</li>
           <li>If <i>element</i> has an <code>@reverse</code> member:
             <ol class="algorithm">
               <li>Create a <tref>JSON object</tref> <i>referenced node</i> with a single member <code>@id</code> whose
                 value is <i>id</i>.</li>
               <li>Set <i>reverse map</i> to the value of the <code>@reverse</code> member of
                 <i>element</i>.</li>
-              <li>For each <i>property</i>-<i>values</i> pair in <i>reverse map</i>:
+              <li>For each key-value pair <i>property</i>-<i>values</i> in <i>reverse map</i>:
                 <ol class="algorithm">
-                  <li>For each <i>item</i> of <i>values</i>:
+                  <li>For each <i>value</i> of <i>values</i>:
                     <ol class="algorithm">
-                      <li>If <i>item</i> has a <i>property</i> member, append <i>referenced node</i>
-                        to its value; otherwise create a <i>property</i> member whose value is an
-                        <tref>array</tref> containing a <i>referenced node</i>.</li>
-                      <li>Recursively invoke this algorithm passing <i>nodeMap</i>, </em><i>item</i> as new
-                        <i>element</i>, and <tref>active graph</tref>.</li>
+                      <li>If <i>value</i> has a <i>property</i> member, append <i>referenced node</i> to
+                        its value; otherwise create a <i>property</i> member whose value is an
+                        <tref>array</tref> containing <i>referenced node</i>.</li>
+                      <li>Recursively invoke this algorithm passing </em><i>value</i> for
+                        <i>element</i>, <i>node map</i>, and <tref>active graph</tref>.</li>
                     </ol>
                   </li>
                 </ol>
@@ -3081,17 +3097,18 @@
               <li>Remove the <code>@reverse</code> member from <i>element</i>.</li>
             </ol>
           </li>
-          <li>If <i>element</i> has an <code>@graph</code> member, recursively invoke this algorithm passing
-            the value of the <code>@graph</code> member as new <i>element</i> and <i>id</i> as new
-            <tref>active subject</tref>. Then remove the <code>@graph</code> member from <i>element</i>.</li>
-          <li>Finally for each <i>property</i>-<i>value</i> pair in <i>element</i> ordered by
+          <li>If <i>element</i> has an <code>@graph</code> member, recursively invoke this
+            algorithm passing the value of the <code>@graph</code> member for <i>element</i>,
+            <i>node map</i>, and <i>id</i> for <tref>active graph</tref> before removing
+            the <code>@graph</code> member from <i>element</i>.</li>
+          <li>Finally, for each key-value pair <i>property</i>-<i>value</i> in <i>element</i> ordered by
             <i>property</i> perform the following steps:
             <ol class="algorithm">
-              <li>If no <i>property</i> member exists in the <tref>JSON object</tref> which is the
-                value of the <i>id</i> member of <i>activeGraph</i> create the member and initialize
+              <li>If <i>node</i> does not have a <i>property</i> member, create one and initialize
                 its value to an empty <tref>array</tref>.</li>
-              <li>Recursively invoke this algorithm passing <i>value</i> as new <i>element</i>, <i>id</i>
-                as new <tref>active subject</tref>, and <i>property</i> as new <tref>active property</tref>.</li>
+              <li>Recursively invoke this algorithm passing <i>value</i> for <i>element</i>,
+                <i>node map</i>, <tref>active graph</tref>, <i>id</i> for <tref>active subject</tref>,
+                <i>property</i> for <tref>active property</tref>, and <i>list</i>.</li>
             </ol>
           </li>
         </ol>
