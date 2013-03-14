@@ -176,8 +176,8 @@
   <ul>
     <li>a universal identifier mechanism for <tref title="JSON object">JSON objects</tref>
       via the use of <tref title="IRI">IRIs</tref>,</li>
-    <li>a way to disambiguate the keys used between multiple JSON documents
-      by mapping them to <tref title="IRI">IRIs</tref> via a <tref>context</tref>,</li>
+    <li>a way to disambiguate keys shared among different JSON documents by mapping
+      them to <tref title="IRI">IRIs</tref> via a <tref>context</tref>,</li>
     <li>a mechanism in which a value in a <tref>JSON object</tref> may refer
       to a <tref>JSON object</tref> on a different site on the Web,</li>
     <li>the ability to annotate <tref title="string">strings</tref> with their language,</li>
@@ -234,8 +234,8 @@
    <dd>A JSON-LD document must be 100% compatible with JSON. This ensures that
     all of the standard JSON libraries work seamlessly with JSON-LD documents.</dd>
    <dt>Expressiveness</dt>
-   <dd>The syntax must be able to express directed graphs, which have been proven
-    to be able to express almost every real world data model.</dd>
+   <dd>The syntax must be able to serialize directed graphs. This ensures that almost
+    every real world data model can be expressed.</dd>
    <dt>Terseness</dt>
    <dd>The JSON-LD syntax must be very terse and human readable, requiring as
     little effort as possible from the developer.</dd>
@@ -563,8 +563,7 @@
     <em>fragment</em> segments. A <tdef>relative IRI</tdef> is an IRI
     that is relative to some other <tref>absolute IRI</tref>.
     In JSON-LD all <tref title="relative IRI">relative IRIs</tref> are resolved
-    relative to the <tdef>base IRI</tdef> associated with the document, which
-    is typically the directory path containing the document.</p>
+    relative to the <tdef>base IRI</tdef> associated with the document.</p>
 
   <p>A <tref>string</tref> is interpreted as an <tref>IRI</tref> when it is the
     value of an <code>@id</code> member:</p>
@@ -1045,11 +1044,10 @@ in the body of a JSON-LD document:</p>
   with a <tref>node</tref>. The concept of a <tref>node type</tref> and
   a <tref>value type</tref> are different.</p>
 
-<p>Generally speaking, a
-  <tdef>node type</tdef> specifies the type of thing that is being described,
-  like a person, place, event, or web page. A <tdef>value type</tdef> specifies
-  the unit of measurement for a particular value, such as a date, meter,
-  or light year.</p>
+<p>Generally speaking, a <tdef>node type</tdef> specifies the type of thing
+  that is being described, like a person, place, event, or web page. A
+  <tdef>value type</tdef> specifies the data type of a particular value, such
+  as an integer, a floating point number, or a date.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Example demonstrating the context-sensitivity for @type">
@@ -1135,7 +1133,7 @@ the data type to be specified with each piece of data.</p>
   context definition.</p>
 
 <p>The example below demonstrates how a JSON-LD author can coerce values to
-<tref title="typed value">typed values</tref>, IRIs, and lists.</p>
+<tref title="typed value">typed values</tref> and <tref="IRI">IRIs</tref>.</p>
 
 <pre class="example" data-transform="updateExample"
      title="Expanded term definition with types">
@@ -1153,8 +1151,7 @@ the data type to be specified with each piece of data.</p>
     "homepage":
     ****{
       "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id",
-      "@container": "@list"
+      "@type": "@id"
     }****
   },
   "@id": "http://example.com/people#john",
@@ -1169,9 +1166,7 @@ the data type to be specified with each piece of data.</p>
 -->
 </pre>
 
-<p>The example shown above would generate the following data. The data has no inherent order
-  except for the values of the <code>http://schema.org/homepage</code> property
-  which represent an ordered list.</p>
+<p>The example shown above would generate the following data.</p>
 
 <table class="example">
 <thead>
@@ -1197,17 +1192,18 @@ the data type to be specified with each piece of data.</p>
   <td rowspan="2">http://example.com/people#john</td>
   <td rowspan="2">http://xmlns.com/foaf/0.1/homepage</td>
   <td>http://personal.example.org/</td>
-  <td>&nbsp;</td>
+  <td><tref>IRI</tref></td>
 </tr>
 <tr>
   <td>http://work.example.com/jsmith/</td>
-  <td>&nbsp;</td>
+  <td><tref>IRI</tref></td>
 </tr>
 </tbody>
 </table>
 
-<p>Terms may also be defined using <tref title="absolute iri">absolute IRIs</tref> or <tref title="compact iri">compact IRIs</tref>.
-  This allows coercion rules to be applied to keys which are not represented as a simple <tref>term</tref>.
+<p>Terms may also be defined using <tref title="absolute iri">absolute IRIs</tref>
+  or <tref title="compact iri">compact IRIs</tref>. This allows coercion rules
+  to be applied to keys which are not represented as a simple <tref>term</tref>.
   For example:</p>
 
 <pre class="example" data-transform="updateExample"
@@ -1487,7 +1483,8 @@ the data type to be specified with each piece of data.</p>
 
   <p>The example above would associate the <code>ja</code> language
     code with the two <tref title="string">strings</tref> <em>花澄</em> and <em>科学者</em>.
-    Languages codes are defined in [[!BCP47]].</p>
+    Languages codes are defined in [[!BCP47]]. The default language applies to all
+    <tref>string</tref> values that are not <a href="#type-coercion">type coerced</a>.</p>
 
   <p>To clear the default language for a subtree, <code>@language</code> can
     be set to <code>null</code> in a <tref>local context</tref> as follows:</p>
@@ -1543,10 +1540,9 @@ the data type to be specified with each piece of data.</p>
     associated with any language code since <code>@language</code> was reset to
     <tref>null</tref> in the <tref>expanded term definition</tref>.</p>
 
-  <p class="note">Language associations can only be applied to plain
-    literal <tref title="string">strings</tref>.
-    <tref title="typed value">Typed values</tref> or values that are subject
-    to <a href="#type-coercion"></a> cannot be language tagged.</p>
+  <p class="note">Language associations are only applied to plain
+    <tref title="string">strings</tref>. <tref title="typed value">Typed values</tref>
+    or values that are subject to <a href="#type-coercion"></a> are not language tagged.</p>
 
   <p>Just as in the example above, systems often need to express the value of a
     property in multiple languages. Typically, such systems also try to ensure that
@@ -2539,6 +2535,77 @@ specified. The full <tref>IRI</tref> for
   </pre>
 </section>
 
+<section class="informative">
+  <h3>Flattened Document Form</h3>
+
+  <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]] defines
+    a method for <em>flattening</em> a JSON-LD document. Flattening collects all
+    properties of a <tref>node</tref> in a single <tref>JSON object</tref> and labels
+    all <tref title="blank node">blank nodes</tref> with
+    <tref title="blank node identifier">blank node identifiers</tref>.
+    This ensures a shape of the data and consequently may drastically simplify the code
+    required to process JSON-LD in certain applications.</p>
+
+  <p>For example, assume the following JSON-LD input document:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Sample JSON-LD document">
+  <!--
+  {
+    "@context": {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows"
+    },
+    "@id": "http://me.markus-lanthaler.com/",
+    "name": "Markus Lanthaler",
+    "knows": [
+      {
+        "@id": "http://manu.sporny.org/",
+        "name": "Manu Sporny"
+      },
+      {
+        "name": "Dave Longley"
+      }
+    ]
+  }
+  -->
+  </pre>
+
+  <p>Running the JSON-LD Flattening algorithm against the JSON-LD input document in
+    the example above and using the same context would result in the following
+    output:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Flattened and compacted form for the previous example">
+  <!--
+  {
+    "@context": {
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows"
+    },
+    "@graph": [
+      {
+        "@id": "_:b0",
+        "name": "Dave Longley"
+      },
+      {
+        "@id": "http://manu.sporny.org/",
+        "name": "Manu Sporny"
+      },
+      {
+        "@id": "http://me.markus-lanthaler.com/",
+        "name": "Markus Lanthaler",
+        "knows": [
+          { "@id": "http://manu.sporny.org/" },
+          { "@id": "_:b0" }
+        ]
+      }
+    ]
+  }
+  -->
+  </pre>
+</section>
+
 </section>
 
 <section class="appendix normative">
@@ -2575,7 +2642,7 @@ specified. The full <tref>IRI</tref> for
       <tref>JSON-LD graph</tref> SHOULD return a <tref>Linked Data</tref> document describing
       the resource denoted by that <tref>IRI</tref> when being dereferenced.</li>
     <li>A <tdef>blank node</tdef> is a <tref>node</tref> which is neither an <tref>IRI</tref>,
-      nor a <tref>JSON-LD value</tref>, or a <tref>list</tref>. A blank node MAY be identified
+      nor a <tref>JSON-LD value</tref>, nor a <tref>list</tref>. A blank node MAY be identified
       using a <tref>blank node identifier</tref>.</li>
     <li>A <tdef>blank node identifier</tdef> is a string that can be used as an identifier
       for a <tref>blank node</tref> within the scope of a <tref>JSON-LD document</tref>.
@@ -2595,9 +2662,10 @@ specified. The full <tref>IRI</tref> for
       <tref title="JSON-LD value">JSON-LD values</tref>.</li>
   </ul>
 
-  <p class="issue" data-number="217">In contrast to the RDF data model as defined in [[RDF-CONCEPTS]], JSON-LD allows
-    blank nodes as property labels and graph names. This feature is
-    controversial in the RDF WG and may be removed in the future.</p>
+  <p class="issue atrisk" data-number="217">In contrast to the RDF data model as defined in
+    [[RDF-CONCEPTS]], JSON-LD allows blank nodes as property labels and graph names. Thus,
+    some data that is valid JSON-LD cannot be converted to RDF. This feature may be removed
+    in the future.</p>
 
   <p><tref title="JSON-LD document">JSON-LD documents</tref> MAY contain data that cannot be
     represented by the <tref title="JSON-LD data model">data model</tref> defined above.
