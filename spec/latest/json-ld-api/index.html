@@ -881,14 +881,14 @@
       <ol class="algorithm">
         <li>Initialize <i>result</i> to the result of cloning
           <tref>active context</tref>.</li>
-        <li>If <tref>local context</tref> is not an <tref>array</tref>, then
+        <li>If <tref>local context</tref> is not an <tref>array</tref>,
           set it to an <tref>array</tref> containing only
           <tref>local context</tref>.</li>
         <li>
           For each item <i>context</i> in <tref>local context</tref>:
           <ol class="algorithm">
-            <li>If <i>context</i> is <tref>null</tref>, then set <i>result</i>
-              to a newly-initialized <tref>active context</tref> and continue to the
+            <li>If <i>context</i> is <tref>null</tref>, set <i>result</i> to a
+              newly-initialized <tref>active context</tref> and continue with the
               next <i>context</i>.</li>
             <li>If <i>context</i> is a <tref>string</tref>,
               <ol class="algorithm">
@@ -906,21 +906,24 @@
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-remote-context">invalid remote context</a></code>
                   has been detected; otherwise,
                   set <i>context</i> to the value of that member.</li>
-                <li>Set <i>context</i> to the result of recursively calling this algorithm,
+                <li>Set <i>result</i> to the result of recursively calling this algorithm,
                   passing <tref>active context</tref>, <i>context</i> as <tref>local context</tref>,
-                  and <i>remote contexts</i>.</li>
+                  and <i>remote contexts</i> and continue with the next <i>context</i>..</li>
               </ol>
+            <li>If <i>context</i> is not a <tref>JSON object</tref>, a
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-local-context">invalid local context</a></code>
+              error has been detected.</li>
             <li>If <i>context</i> has an <code>@base</code> key:
               <p class="issue atrisk">This feature is at risk as the fact that a document may
                 have multiple base IRIs is potentially confusing for developers.</p>
               <ol class="algorithm">
                 <li>Initialize <i>value</i> to the value associated with the
                   <code>@base</code> key.</li>
-                <li>If <i>value</i> is <tref>null</tref>, then set the
-                  <tref>base IRI</tref> of <i>result</i> to the document's base IRI according section
+                <li>If <i>value</i> is <tref>null</tref>, set the
+                  <tref>base IRI</tref> of <i>result</i> to the base IRI established according section
                   <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a Base URI</a></cite>
                   of [[!RFC3986]].</li>
-                <li>Otherwise, <i>value</i> must be a <tref>string</tref>, if not, an
+                <li>Otherwise, <i>value</i> must be an <tref>absolute IRI</tref>, if not, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-base-IRI">invalid base IRI</a></code>
                   error has been detected. Set <i>result</i>'s <tref>base IRI</tref>
                   to <i>value</i>.</li>
@@ -930,7 +933,7 @@
               <ol class="algorithm">
                 <li>Initialize <i>value</i> to the value associated with the
                   <code>@vocab</code> key.</li>
-                <li>If <i>value</i> is <tref>null</tref>, then remove
+                <li>If <i>value</i> is <tref>null</tref>, remove
                   any <tref>vocabulary mapping</tref> from <i>result</i>.</li>
                 <li>Otherwise, <i>value</i> must be an <tref>absolute IRI</tref>, if not, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-vocab-mapping">invalid vocab mapping</a></code>
@@ -942,7 +945,7 @@
               <ol class="algorithm">
                 <li>Initialize <i>value</i> to the value associated with the
                   <code>@language</code> key.</li>
-                <li>If <i>value</i> is <tref>null</tref>, then remove
+                <li>If <i>value</i> is <tref>null</tref>, remove
                   any <tref>default language</tref> from <i>result</i>.</li>
                 <li>Otherwise, <i>value</i> must be a <tref>string</tref>, if not, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-default-language">invalid default language</a></code>
@@ -1016,9 +1019,10 @@
         a <i>term</i>, and a map <i>defined</i>.</p>
 
       <ol class="algorithm">
-        <li>If <i>defined</i> contains the key <i>term</i>, then the associated
-          value must be <tref>true</tref>, indicating that the
-          <tref>term definition</tref> has already been created, so return. Otherwise, a
+        <li>If <i>defined</i> contains the key <i>term</i> and the associated
+          value is <tref>true</tref> (indicating that the
+          <tref>term definition</tref> has already been created), return. Otherwise,
+          if the value is <tref>false</tref>, a
           <code class="error"><a href="#idl-def-JsonLdErrorCode.cyclic-IRI-mapping">cyclic IRI mapping</a></code>
           error has been detected.</li>
         <li>Set the value associated with <i>defined</i>'s <i>term</i> key to
@@ -1034,7 +1038,7 @@
           <i>term</i> in <tref>local context</tref>.</li>
         <li>If <i>value</i> is <tref>null</tref> or <i>value</i>
           is a <tref>JSON object</tref> containing the key-value pair
-          (<code>@id</code>-<tref>null</tref>), then set the
+          <code>@id</code>-<tref>null</tref>, set the
           <tref>term definition</tref> in <tref>active context</tref> to
           <tref>null</tref>, set the value associated with <i>defined</i>'s
           key <i>term</i> to <tref>true</tref>, and return.</li>
@@ -1046,13 +1050,13 @@
               <tref>true</tref> for <i>vocabRelative</i>,
               <tref>true</tref> for <i>documentRelative</i>,
               <tref>local context</tref>, and <i>defined</i>.</li>
-            <li>If <i>value</i> is a <tref>keyword</tref>, then <i>value</i>
+            <li>If <i>value</i> is a <tref>keyword</tref>, <i>value</i>
               must not be <code>@context</code>, if it is, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-keyword-alias">invalid keyword alias</a></code>
               error has been
               detected. Add <i>term</i> to <tref>active context</tref> as a
               <tref>keyword</tref> alias for <i>value</i>. If there is more than
-              one <tref>keyword</tref> alias for <i>value</i>, then store its
+              one <tref>keyword</tref> alias for <i>value</i>, store its
               aliases as an <tref>array</tref>, sorted by length, breaking ties
               lexicographically.</li>
             <li>Set the <tref>IRI mapping</tref> for the <tref>term definition</tref>
@@ -1075,7 +1079,7 @@
               is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
               error has been detected.</li>
-            <li>Otherwise, set the <tref>IRI mapping</tref> for<i>definition</i> to the
+            <li>Otherwise, set the <tref>IRI mapping</tref> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
               passing <tref>active context</tref>, the value associated with
               the <code>@reverse</code> key for <i>value</i>, <tref>true</tref>
@@ -1085,30 +1089,30 @@
               colon (<code>:</code>), an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
               error has been detected.</li>
-            <li>Set the <tref>type mapping</tref> for <i>definition</i> to
+            <li>Set the <tref>type mapping</tref> of <i>definition</i> to
               <code>@id</code>.</li>
             <li>If <i>value</i> contains an <code>@container</code> member,
-              set the <tref>container mapping</tref> for <i>definition</i>
+              set the <tref>container mapping</tref> of <i>definition</i>
               to <code>@index</code> if that is the value of the
               <code>@container</code> member; otherwise an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
               error has been detected (reverse properties only support index-containers).</li>
-            <li>Set the <tref>reverse property</tref> flag for <i>definition</i>
+            <li>Set the <tref>reverse property</tref> flag of <i>definition</i>
               to <tref>true</tref>.</li>
-            <li>Set the <tref>term definition</tref> for <i>term</i> in
+            <li>Set the <tref>term definition</tref> of <i>term</i> in
               <tref>active context</tref> to <i>definition</i> and the
               value associated with <i>defined</i>'s key <i>term</i> to
-              <tref>true</tref>; then return.</li>
+              <tref>true</tref> and return.</li>
           </ol>
         </li>
-        <li>Set the <tref>reverse property</tref> flag for <i>definition</i>
+        <li>Set the <tref>reverse property</tref> flag of <i>definition</i>
           to <tref>false</tref>.</li>
         <li>If <i>value</i> contains the key <code>@id</code>:
           <ol class="algorithm">
             <li>If the value associated with the <code>@id</code> key is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
               error has been detected.</li>
-            <li>Otherwise, set the <tref>IRI mapping</tref> for <i>definition</i> to the
+            <li>Otherwise, set the <tref>IRI mapping</tref> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
               <tref>active context</tref>, the value associated with the <code>@id</code> key for
               <i>value</i>, <tref>true</tref> for <i>vocabRelative</i>,
@@ -1120,24 +1124,24 @@
           Otherwise if the <i>term</i> contains a colon (<code>:</code>):
           <ol class="algorithm">
             <li>If <i>term</i> is a <tref>compact IRI</tref> with a
-              <tref>prefix</tref> that is a key in <tref>local context</tref> then
+              <tref>prefix</tref> that is a key in <tref>local context</tref>
               a dependency has been found. Use this algorithm recursively passing
               <tref>active context</tref>, <tref>local context</tref>, the
               <tref>prefix</tref> as <i>term</i>, and <i>defined</i>.</li>
             <li>If <i>term</i>'s <tref>prefix</tref> has a
               <tref>term definition</tref> in <tref>active context</tref>, set
-              the <tref>IRI mapping</tref> for <i>definition</i> to the result of
+              the <tref>IRI mapping</tref> of <i>definition</i> to the result of
               concatenating the value associated with the <tref>prefix</tref>'s
               <tref>IRI mapping</tref> and the <i>term</i>'s <i>suffix</i>.</li>
             <li>Otherwise, <i>term</i> is an <tref>absolute IRI</tref>. Set the
-              <tref>IRI mapping</tref> for <i>definition</i> to <i>term</i>.</li>
+              <tref>IRI mapping</tref> of <i>definition</i> to <i>term</i>.</li>
           </ol>
         </li>
         <li>Otherwise, <tref>active context</tref> must have a
           <tref>vocabulary mapping</tref>, if not, an
           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
           error been detected. Set the <tref>IRI mapping</tref>
-          for <i>definition</i> to the result of concatenating the value
+          of <i>definition</i> to the result of concatenating the value
           associated with the <tref>vocabulary mapping</tref> and <i>term</i>.</li>
         <li>If <i>value</i> contains the key <code>@type</code>:
           <ol class="algorithm">
@@ -1145,25 +1149,27 @@
               <code>@type</code> key, which must be a <tref>string</tref>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
               error has been detected.</li>
-            <li>If <i>type</i> is not <code>@id</code> then set it to
-              the result of using the
+            <li>Set <i>type</i> to the result of using the
               <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
               <tref>active context</tref>, <i>type</i> for <i>value</i>,
               <tref>true</tref> for <i>vocabRelative</i>,
               <tref>true</tref> for <i>documentRelative</i>,
-              <tref>local context</tref>, and <i>defined</i>. Set the
-              <tref>type mapping</tref> for <i>definition</i> to <i>type</i>.</li>
+              <tref>local context</tref>, and <i>defined</i>. If the expanded <i>type</i> is
+              neither <code>@id</code>, nor <code>@vocab</code>, nor an <tref>absolute IRI</tref>, an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
+              error has been detected.</li>
+            <li>Set the <tref>type mapping</tref> for <i>definition</i> to <i>type</i>.</li>
           </ol>
         </li>
         <li>If <i>value</i> contains the key <code>@container</code>:
           <ol class="algorithm">
             <li>Initialize <i>container</i> to the value associated with the
-              <code>@container</code> key, which must be either:
+              <code>@container</code> key, which must be either
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
               or <code>@language</code>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-container-mapping">invalid container mapping</a></code> error
               has been detected.</li>
-            <li>Set the <tref>container mapping</tref> for <i>definition</i> to
+            <li>Set the <tref>container mapping</tref> of <i>definition</i> to
               <i>container</i>.</li>
           </ol>
         </li>
@@ -1177,10 +1183,10 @@
               error has been detected.</li>
             <li>If <i>language</i> is a <tref>string</tref> set it to
               lowercased <i>language</i>. Set the <tref>language mapping</tref>
-              for <i>definition</i> to <i>language</i>.</li>
+              of <i>definition</i> to <i>language</i>.</li>
           </ol>
         </li>
-        <li>Set the <tref>term definition</tref> for <i>term</i> in
+        <li>Set the <tref>term definition</tref> of <i>term</i> in
           <tref>active context</tref> to <i>definition</i> and set the value
           associated with <i>defined</i>'s key <i>term</i> to
           <tref>true</tref>.</li>
@@ -1268,8 +1274,7 @@
         <li>If <tref>local context</tref> is not <tref>null</tref>, it contains
           a key that equals <i>value</i>, and the value associated with the key
           that equals <i>value</i> in <i>defined</i> is not <tref>true</tref>,
-          then invoke the
-          <a href="#create-term-definition">Create Term Definition algorithm</a>,
+          invoke the <a href="#create-term-definition">Create Term Definition algorithm</a>,
           passing <tref>active context</tref>, <tref>local context</tref>,
           <i>value</i> as <i>term</i>, and <i>defined</i>. This will ensure that
           a <tref>term definition</tref> is created for <i>value</i> in
@@ -1279,24 +1284,26 @@
         <li>If <i>vocabRelative</i> is <tref>true</tref>:
           <ol class="algorithm">
             <li>If <i>value</i> has a <tref>null</tref> mapping in
-              <tref>active context</tref>, then return <tref>null</tref>.</li>
+              <tref>active context</tref>, return <tref>null</tref>.</li>
             <li>If <tref>active context</tref> has a <tref>term definition</tref> for
-              <i>value</i>, then set <i>result</i> to the associated
+              <i>value</i>, set <i>result</i> to the associated
               <tref>IRI mapping</tref>.</li>
           </ol>
         </li>
         <li>If <i>result</i> is <tref>null</tref> and <i>value</i> contains a
-          colon (<code>:</code>), then it is either an <tref>absolute IRI</tref> or
+          colon (<code>:</code>), it is either an <tref>absolute IRI</tref> or
           a <tref>compact IRI</tref>:
           <ol class="algorithm">
             <li>Split <i>value</i> into a <tref>prefix</tref> and <i>suffix</i>
               at the first occurrence of a colon (<code>:</code>).</li>
             <li>If <tref>prefix</tref> is not underscore (<code>_</code>)
               and <i>suffix</i> does not begin with double-forward-slash
-              (<code>//</code>), then it may be a <tref>compact IRI</tref>:
+              (<code>//</code>), it may be a <tref>compact IRI</tref>:
               <ol class="algorithm">
-                <li>If <tref>local context</tref> is not <tref>null</tref> and it
-                  contains a key that equals <tref>prefix</tref>, then invoke the
+                <li>If <tref>local context</tref> is not <tref>null</tref>, it
+                  contains a key that equals <tref>prefix</tref>, and the value
+                  associated with the key that equals <i>prefix</i> in <i>defined</i>
+                  is not <tref>true</tref>, invoke the
                   <a href="#create-term-definition">Create Term Definition algorithm</a>,
                   passing <tref>active context</tref>,
                   <tref>local context</tref>, <i>prefix</i> as <i>term</i>,
@@ -1305,9 +1312,8 @@
                   in <tref>active context</tref> during
                   <a href="#context-processing-algorithm">Context Processing</a>.</li>
                 <li>If <tref>active context</tref> contains a <tref>term definition</tref>
-                  for <tref>prefix</tref> then set <i>result</i>
-                  to the result of concatenating the value associated with the
-                  <tref>prefix</tref>'s <tref>IRI mapping</tref> and
+                  for <tref>prefix</tref> set <i>result</i> to the result of concatenating
+                  the <tref>IRI mapping</tref> associated with <tref>prefix</tref> and
                   <i>suffix</i>.</li>
               </ol>
             </li>
@@ -1315,9 +1321,9 @@
         </li>
         <li>If <i>result</i> is <tref>null</tref>, set it to <i>value</i>.</li>
         <li>If <tref>active context</tref> indicates that <i>value</i> is a
-          <tref>keyword</tref> alias then return the associated <tref>keyword</tref>.</li>
+          <tref>keyword</tref> alias return the associated <tref>keyword</tref>.</li>
         <li>If <tref>local context</tref> is <tref>null</tref> and <i>result</i>
-          begins with an underscore and colon (<code>_:</code>) then <i>result</i> is a
+          begins with an underscore and colon (<code>_:</code>) <i>result</i> is a
           <tref>blank node identifier</tref>. Set <i>result</i> to the
           result of the
           <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>,
@@ -1326,7 +1332,7 @@
         <li>Otherwise, if <i>result</i> does not contain a colon (<code>:</code>),
           <i>vocabRelative</i> is <tref>true</tref>, and
           <tref>active context</tref> has a <tref>vocabulary mapping</tref>,
-          then set <i>result</i> to the result of concatenating the
+          set <i>result</i> to the result of concatenating the
           <tref>vocabulary mapping</tref> with <i>result</i>.</li>
         <li>Otherwise, if <i>documentRelative</i> is <tref>true</tref>,
           set <i>result</i> to the result of resolving <i>result</i> against
@@ -1362,15 +1368,15 @@
       be <tref>null</tref>.</p>
 
     <ol class="algorithm">
-      <li>If the <i>identifier</i> is not <tref>null</tref> and is in the
+      <li>If <i>identifier</i> is not <tref>null</tref> and has an entry in the
         <i>identifier map</i>, return the mapped identifier.</li>
-      <li>Otherwise, generate a new <i>blankNodeIdentifier</i> by concatenating
+      <li>Otherwise, generate a new <tref>blank node identifier</tref> by concatenating
         the string <code>_:b</code> and <i>counter</i>.</li>
       <li>Increment <i>counter</i> by <code>1</code>.</li>
       <li>If <i>identifier</i> is not <tref>null</tref>, create a new entry
         for <i>identifier</i> in <i>identifier map</i> and set its value
-        to <i>blankNodeIdentifer</i>.</li>
-      <li>Return <i>blankNodeIdentifier</i>.</li>
+        to the new <tref>blank node identifier</tref>.</li>
+      <li>Return the new <tref>blank node identifier</tref>.</li>
     </ol>
   </section> <!-- end of Generate Blank Node Identifier -->
 </section> <!-- end of Context Processing section -->
