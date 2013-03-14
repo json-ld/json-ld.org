@@ -2931,31 +2931,35 @@
   <section>
     <h2>Flattening Algorithm</h2>
 
-    <p>The algorithm takes two input variables, an <i>element</i> to flatten and a
-      <i>context</i> used to compact the flattened document.</p>
+    <p>The algorithm takes two input variables, an <i>element</i> to flatten and
+      an optional <i>context</i> used to compact the flattened document. If not
+      passed, <i>context</i> is set to <tref>null</tref>.</p>
 
     <ol class="algorithm">
       <li>Expand <i>element</i> according the
         <a href="#expansion-algorithm">Expansion algorithm</a>.</li>
-      <li>Generate a <i>nodeMap</i> according the
-        <a href="#node-map-generation">Node Map Generation algorithm</a>.</li>
-      <li>Let <i>defaultGraph</i> be the value of the <code>@default</code> member of
-        <i>nodeMap</i>; a <tref>JSON object</tref> representing the <tref>default graph</tref>.</li>
-      <li>For each other <i>graphName</i>-<i>graph</i> pair in <i>nodeMap</i>
-        perform the following steps:
+      <li>Initialize an empty <tref>JSON object</tref> <i>node map</i>.</li>
+      <li>Perform the <a href="#node-map-generation">Node Map Generation algorithm</a>, passing
+        <i>element</i> and <i>node map</i>.</li>
+      <li>Initialize <i>default graph</i> to the value of the <code>@default</code>
+        member of <i>node map</i>, which is a <tref>JSON object</tref> representing
+        the <tref>default graph</tref>.</li>
+      <li>For each key-value pair <i>graph name</i>-<i>graph</i> in <i>node map</i>
+        where <i>graph name</i> is not <code>@default</code>,  perform the following steps:
         <ol class="algorithm">
-          <li>If <i>defaultGraph</i> does not have a <i>graphName</i> member, create
+          <li>If <i>default graph</i> does not have a <i>graph name</i> member, create
             one and initialize its value to a <tref>JSON object</tref> consisting of an
-            <code>@id</code> member whose value is set to <i>graphName</i>.</li>
-          <li>Add an <code>@graph</code> member set to an empty <tref>array</tref>
-            (referred to as <i>nodes</i>) to the <tref>JSON object</tref> which is the
-            value of the <i>graphName</i> member of <i>nodeMap</i>.</li>
+            <code>@id</code> member whose value is set to <i>graph name</i>.</li>
+          <li>Reference the value associated with the <i>graph name</i> member in
+            <i>default graph</i> using the variable <i>entry</i>.</li>
+          <li>Add an <code>@graph</code> member to <i>entry</i> and set it to an
+            empty <tref>array</tref>.</li>
           <li>For each <i>id</i>-<i>node</i> pair in <i>graph</i> ordered by <i>id</i>,
-            add <i>node</i> to the <i>nodes</i> <tref>array</tref>.</li>
+            add <i>node</i> to the <code>@graph</code> member of <i>entry</i>.</li>
         </ol>
       </li>
-      <li>Initialize an empty <tref>array</tref> flattened.</li>
-      <li>For each <i>id</i>-<i>node</i> pair in <i>defaultGraph</i> ordered by <i>id</i>,
+      <li>Initialize an empty <tref>array</tref> <i>flattened</i>.</li>
+      <li>For each <i>id</i>-<i>node</i> pair in <i>default graph</i> ordered by <i>id</i>,
         add <i>node</i> to <i>flattened</i>.</li>
       <li>If <i>context</i> is <tref>null</tref>, return <i>flattened</i>.</li>
       <li>Otherwise, return the result of compacting <i>flattened</i> according the
