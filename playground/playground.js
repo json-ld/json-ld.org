@@ -158,12 +158,12 @@
    */
   playground.tabSelected = function(event, ui) {
     playground.activeTab = ui.tab.id;
-    if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-framed') {
-      // if the 'compact' or 'frame' tab is selected, display the appropriate
-      // input textarea
+    if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
+      ui.tab.id === 'tab-framed') {
+      // these options require more UI inputs, so compress UI space
       $('#markup').addClass('compressed');
 
-      if(ui.tab.id === 'tab-compacted') {
+      if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
         $('#context').show();
         $('#frame').hide();
@@ -200,13 +200,14 @@
     // set base IRI
     var options = {base: document.baseURI};
 
-    if(playground.activeTab === 'tab-normalized') {
-      options.format = 'application/nquads';
-      jsonld.normalize(input, options, function(err, normalized) {
+    if(playground.activeTab === 'tab-compacted') {
+      jsonld.compact(input, param, options, function(err, compacted) {
         if(err) {
           return callback(err);
         }
-        $('#normalized').html(playground.htmlEscape(normalized));
+        $('#compacted').html(js_beautify(
+          JSON.stringify(compacted).replace('<', '&lt;').replace('>', '&gt;'),
+          {'indent_size': 2}));
         callback();
       });
     }
@@ -215,18 +216,20 @@
         if(err) {
           return callback(err);
         }
-        $('#expanded').html(js_beautify(JSON.stringify(expanded).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2, 'brace_style': 'expand'}));
+        $('#expanded').html(js_beautify(
+          JSON.stringify(expanded).replace('<', '&lt;').replace('>', '&gt;'),
+          {'indent_size': 2}));
         callback();
       });
     }
-    else if(playground.activeTab === 'tab-compacted') {
-      jsonld.compact(input, param, options, function(err, compacted) {
+    else if(playground.activeTab === 'tab-flattened') {
+      jsonld.flatten(input, param, options, function(err, flattened) {
         if(err) {
           return callback(err);
         }
-        $('#compacted').html(js_beautify(JSON.stringify(compacted).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2, 'brace_style': 'expand'}));
+        $('#flattened').html(js_beautify(
+          JSON.stringify(flattened).replace('<', '&lt;').replace('>', '&gt;'),
+          {'indent_size': 2}));
         callback();
       });
     }
@@ -235,8 +238,9 @@
         if(err) {
           return callback(err);
         }
-        $('#framed').html(js_beautify(JSON.stringify(framed).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2, 'brace_style': 'expand'}));
+        $('#framed').html(js_beautify(
+          JSON.stringify(framed).replace('<', '&lt;').replace('>', '&gt;'),
+          {'indent_size': 2}));
         callback();
       });
     }
@@ -247,6 +251,16 @@
           return callback(err);
         }
         $('#nquads').html(playground.htmlEscape(nquads));
+        callback();
+      });
+    }
+    else if(playground.activeTab === 'tab-normalized') {
+      options.format = 'application/nquads';
+      jsonld.normalize(input, options, function(err, normalized) {
+        if(err) {
+          return callback(err);
+        }
+        $('#normalized').html(playground.htmlEscape(normalized));
         callback();
       });
     }
@@ -282,7 +296,8 @@
     var param = null;
     var jsonParam = null;
 
-    if(playground.activeTab === 'tab-compacted') {
+    if(playground.activeTab === 'tab-compacted' ||
+      playground.activeTab === 'tab-flattened') {
       jsonParam = $('#context').val();
       needParam = true;
     }
