@@ -1501,91 +1501,123 @@
             <li>If <i>expanded property</i> is <tref>null</tref> or it neither
               contains a colon (<code>:</code>) nor it is a <tref>keyword</tref>,
               drop <i>key</i> by continuing to the next <i>key</i>.</li>
-            <li>Validate <i>expanded property</i> against <i>value</i>
-              as follows:
+            <li>If <i>expanded property</i> is a <tref>keyword</tref>:
               <ol class="algorithm">
-                <li>If <i>expanded property</i> is a <tref>keyword</tref>
-                  and <tref>active property</tref> equals <code>@reverse</code>,
+                <li>If <tref>active property</tref> equals <code>@reverse</code>,
                   an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property-map">invalid reverse property map</a></code>
                   error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@id</code> then
-                  <i>value</i> must be a <tref>string</tref>, otherwise an
+                <li>If <i>result</i> has already an <i>expanded property</i> member, an
+                  <code class="error"><a href="#idl-def-JsonLdErrorCode.colliding-keywords">colliding keywords</a></code>
+                <li>If <i>expanded property</i> is <code>@id</code> and
+                  <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--id-value">invalid @id value</a></code>
-                  error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@type</code> then
-                  <i>value</i> must be a <tref>string</tref> or an <tref>array</tref>
-                  of strings, otherwise an
+                  error has been detected. Otherwise, set <i>expanded value</i> to
+                  the result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
+                  passing <tref>active context</tref>, <i>value</i>, and <tref>true</tref>
+                  for <i>documentRelative</i>.</li>
+                <li>If <i>expanded property</i> is <code>@type</code> and <i>value</i>
+                  is neither a <tref>string</tref> nor an <tref>array</tref> of
+                  <tref title="string">strings</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-value">invalid type value</a></code>
-                  error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@graph</code> then
-                  <i>value</i> must be a <tref>JSON object</tref> or an
-                  <tref>array</tref>, otherwise an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--graph-value">invalid @graph value</a></code>
-                  error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@value</code> then
-                  <i>value</i> must not be a <tref>JSON object</tref> or
-                  an <tref>array</tref>, otherwise an
+                  error has been detected. Otherwise, set <i>expanded value</i> to the
+                  result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
+                  passing <tref>active context</tref>, <tref>true</tref> for <i>vocabRelative</i>,
+                  and <tref>true</tref> for <i>documentRelative</i> to expand the <i>value</i>
+                  or each of its items.</li>
+                <li>If <i>expanded property</i> is <code>@graph</code>, set
+                  <i>expanded value</i> to the result of using this algorithm
+                  recursively passing <tref>active context</tref>, <code>@graph</code>
+                  for <tref>active property</tref>, and <i>value</i> for <i>element</i>.</li>
+                <li>If <i>expanded property</i> is <code>@value</code> and
+                  <i>value</i> is not a <tref>scalar</tref> or <tref>null</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-value-object-value">invalid value object value</a></code>
-                  error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@language</code> then
-                  <i>value</i> must be a <tref>string</tref>, otherwise an
+                  error has been detected. Otherwise, set <i>expanded value</i> to <i>value</i>.
+                  If <i>expanded value</i> is <tref>null</tref>, set the <code>@value</code>
+                  member of <i>result</i> to <tref>null</tref> and continue with the
+                  next <i>key</i> from <i>element</i>. Null values need to be preserved
+                  in this case as the meaning of an <code>@type</code> member depends
+                  on the existence of an <code>@value</code> member.</li>
+                <li>If <i>expanded property</i> is <code>@language</code> and
+                  <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-tagged-string">invalid language-tagged string</a></code>
-                  error has been detected. Set <i>expanded value</i> to lowercased
-                  <i>value</i>.</li>
-                <li>If <i>expanded property</i> is <code>@index</code>
-                  then <i>value</i> must be a <tref>string</tref>, otherwise an
+                  error has been detected. Otherwise, set <i>expanded value</i> to
+                  lowercased <i>value</i>.</li>
+                <li>If <i>expanded property</i> is <code>@index</code> and
+                  <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--index-value">invalid @index value</a></code>
-                  error has been detected.</li>
-                <li>If <i>expanded property</i> is <code>@reverse</code> then
-                  <i>value</i> must be a <tref>JSON object</tref>, otherwise an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid @reverse value</a></code>
-                  error has been detected.</li>
-              </ol>
-            </li>
-            <li>If <i>expanded property</i> is <code>@reverse</code>:
-              <ol class="algorithm">
-                <li>Initialize <i>expanded value</i> to the result of using this
-                  algorithm recursively, passing <tref>active context</tref>,
-                  <code>@reverse</code> as <tref>active property</tref>, and
-                  <i>value</i> as <i>element</i>.</li>
-                <li>If <i>expanded value</i> contains an <code>@reverse</code> member,
-                  i.e., properties that are reversed twice, execute for each of its
-                  <i>property</i> and <i>item</i> the following steps:
+                  error has been detected. Otherwise, set <i>expanded value</i>
+                  to <i>value</i>.</li>
+                <li>If <i>expanded property</i> is <code>@list</code>:
                   <ol class="algorithm">
-                    <li>If <i>result</i> does not have a <i>property</i> member, create
-                      one and set its value to an empty <tref>array</tref>.</li>
-                    <li>Append <i>item</i> to the value of the <i>property</i> member
-                      of <i>result</i>.</li>
+                    <li>If <tref>active property</tref> is <tref>null</tref> or
+                      <code>@graph</code>, continue with the next <i>key</i>
+                      from <i>element</i> to remove the free-floating list.</tref>.</li>
+                    <li>Otherwise, initialize <i>expanded value</i> to the result of using
+                      this algorithm recursively passing <tref>active context</tref>,
+                      <tref>active property</tref>, and <i>value</i> for <i>element</i>.</li>
+                    <li>If <i>expanded value</i> is a <tref>list object</tref>, a
+                      <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
+                      error has been detected.</li>
                   </ol>
                 </li>
-                <li>If <i>expanded value</i> contains members other than <code>@reverse</code>:
+                <li>If <i>expanded property</i> is <code>@set</code>, set
+                  <i>expanded value</i> to the result of using this algorithm
+                  recursively, passing <tref>active context</tref>,
+                  <tref>active property</tref>, and <i>value</i> for
+                  <i>element</i>.</li>
+                <li>If <i>expanded property</i> is <code>@reverse</code> and
+                  <i>value</i> is not a <tref>JSON object</tref>, an
+                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid @reverse value</a></code>
+                  error has been detected. Otherwise
                   <ol class="algorithm">
-                    <li>If <i>result</i> does not have an <code>@reverse</code> member, create
-                      one and set its value to an empty <tref>JSON object</tref>.</li>
-                    <li>Reference the value of the <code>@reverse</code> member in <i>result</i>
-                      using the variable <i>reverse map</i>.</li>
-                    <li>For each <i>property</i> and <i>items</i> in <i>expanded value</i>
-                      other than <code>@reverse</code>:
+                    <li>Initialize <i>expanded value</i> to the result of using this
+                      algorithm recursively, passing <tref>active context</tref>,
+                      <code>@reverse</code> as <tref>active property</tref>, and
+                      <i>value</i> as <i>element</i>.</li>
+                    <li>If <i>expanded value</i> contains an <code>@reverse</code> member,
+                      i.e., properties that are reversed twice, execute for each of its
+                      <i>property</i> and <i>item</i> the following steps:
                       <ol class="algorithm">
-                        <li>For each <i>item</i> in <i>items</i>:
+                        <li>If <i>result</i> does not have a <i>property</i> member, create
+                          one and set its value to an empty <tref>array</tref>.</li>
+                        <li>Append <i>item</i> to the value of the <i>property</i> member
+                          of <i>result</i>.</li>
+                      </ol>
+                    </li>
+                    <li>If <i>expanded value</i> contains members other than <code>@reverse</code>:
+                      <ol class="algorithm">
+                        <li>If <i>result</i> does not have an <code>@reverse</code> member, create
+                          one and set its value to an empty <tref>JSON object</tref>.</li>
+                        <li>Reference the value of the <code>@reverse</code> member in <i>result</i>
+                          using the variable <i>reverse map</i>.</li>
+                        <li>For each <i>property</i> and <i>items</i> in <i>expanded value</i>
+                          other than <code>@reverse</code>:
                           <ol class="algorithm">
-                            <li>If <i>item</i> is a <tref>value object</tref> or <tref>list object</tref>, an
-                              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
-                              has been detected.</li>
-                            <li>If <i>reverse map</i> has no <i>property</i> member, create one
-                              and initialize its value to an empty <tref>array</tref>.</li>
-                            <li>Append <i>item</i> to the value of the <i>property</i>
-                              member in <i>reverse map</i>.</li>
+                            <li>For each <i>item</i> in <i>items</i>:
+                              <ol class="algorithm">
+                                <li>If <i>item</i> is a <tref>value object</tref> or <tref>list object</tref>, an
+                                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
+                                  has been detected.</li>
+                                <li>If <i>reverse map</i> has no <i>property</i> member, create one
+                                  and initialize its value to an empty <tref>array</tref>.</li>
+                                <li>Append <i>item</i> to the value of the <i>property</i>
+                                  member in <i>reverse map</i>.</li>
+                              </ol>
+                            </li>
                           </ol>
                         </li>
                       </ol>
                     </li>
+                    <li>Continue with the next <i>key</i> from <i>element</i>.</li>
                   </ol>
                 </li>
-                <li>Continue with the next <i>key</i> from <i>element</i>.</li>
+                <li>Unless <i>expanded value</i> is <tref>null</tref>, set
+                  the <i>expanded property</i> member of <i>result</i> to
+                  <i>expanded value</i>.</li>
+                <li>Continue with the next <i>key</i> from <i>element.</i>.</li>
               </ol>
             </li>
-            <li>If <i>key</i>'s <tref>container mapping</tref> in
+            <li>Otherwise, if <i>key</i>'s <tref>container mapping</tref> in
               <tref>active context</tref> is <code>@language</code> and
               <i>value</i> is a <tref>JSON object</tref> then <i>value</i>
               is expanded from a <tref href="../json-ld-syntax/#dfn-language-map">language map</tref>
@@ -1616,7 +1648,7 @@
                 </li>
               </ol>
             </li>
-            <li>If <i>key</i>'s <tref>container mapping</tref> in
+            <li>Otherwise, if <i>key</i>'s <tref>container mapping</tref> in
               <tref>active context</tref> is <code>@index</code> and
               <i>value</i> is a <tref>JSON object</tref> then <i>value</i>
               is expanded from an index map as follows:
@@ -1647,43 +1679,22 @@
                 </li>
               </ol>
             </li>
-            <li>Otherwise, if <i>expanded property</i> is <code>@list</code>:
-              <ol class="algorithm">
-                <li>If <tref>active property</tref> is <tref>null</tref> or
-                  <code>@graph</code>, return <tref>null</tref> to remove
-                  the free-floating list.</tref>.</li>
-                <li>Initialize <i>expanded value</i> to the result of using
-                  this algorithm recursively passing <tref>active context</tref>,
-                  <tref>active property</tref>, and <i>value</i> for <i>element</i>.</li>
-                <li>If <i>expanded value</i> is a <tref>list object</tref>, a
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
-                  error has been detected.</li>
-              </ol>
-            </li>
             <li>Otherwise, initialize <i>expanded value</i> to the result of
               using this algorithm recursively, passing <tref>active context</tref>,
               <i>key</i> for <tref>active property</tref>, and <i>value</i>
               for <i>element</i>.</li>
-            <li>If <i>expanded value</i> is <tref>null</tref> and
-              <i>expanded property</i> is not <code>@value</code> then
-              drop <i>key</i> by continuing to the next key.</li>
-            <li>If <i>expanded property</i> is not <code>@list</code> and
-              <i>expanded value</i> is not a <tref>list object</tref> and
-              <i>key</i>'s <tref>container mapping</tref> in
-              <tref>active context</tref> is <code>@list</code> then convert
-              <i>expanded value</i> to a <tref>list object</tref> by first
-              setting it to an <tref>array</tref> containing only
-              <i>expanded value</i> if it is not already an
-              <tref>array</tref>, and then by setting it to a
-              <tref>JSON object</tref> containing the key-value pair
-              (<code>@list</code>-<i>expanded value</i>).</li>
-            <li>Otherwise, if <i>expanded property</i> is
-              <code>@index</code>, <code>@id</code>, <code>@type</code>,
-              <code>@value</code>, or <code>@language</code>, then
-              set key <i>expanded property</i>'s value to
-              <i>expanded value</i> in <i>result</i>.</li>
-            <li>Otherwise, if key's <tref>term definition</tref> indicates that
-              it is a <tref>reverse property</tref>
+            <li>If <i>expanded value</i> is <tref>null</tref>, ignore <i>key</i>
+              by continuing to the next <i>key</i> from <i>element</i>.</li>
+            <li>If the <tref>container mapping</tref> associated to <i>key</i> in
+              <tref>active context</tref> is <code>@list</code> and
+              <i>expanded value</i> is not already a <tref>list object</tref>,
+              convert <i>expanded value</i> to a <tref>list object</tref>
+              by first setting it to an <tref>array</tref> containing only
+              <i>expanded value</i> if it is not already an <tref>array</tref>,
+              and then by setting it to a <tref>JSON object</tref> containing
+              the key-value pair <code>@list</code>-<i>expanded value</i>.</li>
+            <li>Otherwise, if the <tref>term definition</tref> associated to
+              <i>key</i> indicates that it is a <tref>reverse property</tref>
               <ol class="algorithm">
                 <li>If <i>result</i> has no <code>@reverse</code> member, create
                   one and initialize its value to an empty <tref>JSON object</tref>.</li>
@@ -1704,11 +1715,15 @@
                 </li>
               </ol>
             </li>
-            <li>Otherwise, if <i>result</i> does not have the key
-              <i>expanded property</i>, set this key's value in <i>result</i>
-              to an empty <tref>array</tref>. Append <i>expanded value</i>
-              to the <tref>array</tref> value associated with <i>result</i>'s
-              <i>expanded property</i> key.</li>
+            <li>Otherwise, if <i>key</i> is not a <tref>reverse property</tref>:
+              <ol class="algorithm">
+                <li>If <i>result</i> does not have an <i>expanded property</i>
+                  member, create one and initialize its value to an empty
+                  <tref>array</tref>.</li>
+                <li>Append <i>expanded value</i> to value of the <i>expanded property</i>
+                  member of <i>result</i>.</li>
+              </ol>
+            </li>
           </ol>
         </li>
         <li>If <i>result</i> contains the key <code>@value</code>:
@@ -1790,36 +1805,20 @@
     <section class="informative">
       <h3>General Solution</h3>
 
-      <p>Other than the simple case where <i>value</i> is <tref>null</tref>, for
-        which we return <tref>null</tref>, we must primarily look at <i>value</i>'s
-        associated <tref>active property</tref> to determine how to expand it.</p>
+      <p>If <tref>active property</tref> has a <tref>type mapping</tref> in the
+        <tref>active context</tref> set to <code>@id</code> or <code>@vocab</code>,
+        a <tref>JSON object</tref> with a single member <code>@id</code> whose
+        values is the result of using the
+        <a href="#iri-expansion">IRI Expansion algorithm</a> on <i>value</i>
+        is returned.</p>
 
-      <p>First we <tref title="expansion">expand</tref> the
-        <tref>active property</tref> itself, so that we can resolve
-        <tref>keyword</tref> aliases. Then, for certain
-        <tref title="keyword">keywords</tref> like <code>@id</code> and
-        <code>@type</code>, we simply expand <i>value</i>
-        using the <a href="#iri-expansion">IRI Expansion algorithm</a> and return
-        the result.</p>
-
-      <p>Next, we check to see if <tref>active property</tref> has a
-        <tref>type mapping</tref> in the <tref>active context</tref> that would alter
-        what we return. If it has one that is <code>@vocab</code> or
-        <code>@type</code> or if the <i>expanded property</i> is <code>@graph</code>
-        then we return a <tref>JSON object</tref> with a single key-pair of
-        <code>@id</code> and the result of using the
-        <a href="#iri-expansion">IRI Expansion algorithm</a> on <i>value</i>.</p>
-
-      <p>If we haven't returned yet and the <i>expanded property</i> is a
-        <tref>keyword</tref>, then there is no special <tref>expansion</tref> to be
-        performed on the <i>value</i>, so we return it as is.</p>
-
-      <p>Otherwise, we'll our result will be a <tref>JSON object</tref> containing
-        the key <code>@value</code> with the value the <i>value</i>. Additionally,
-        a <code>@type</code> key-value pair will be included if there is a
+      <p>Otherwise, the result will be a <tref>JSON object</tref> containing
+        an <code>@value</code> member whose value is the passed <i>value</i>.
+        Additionally, an <code>@type</code> member will be included if there is a
         <tref>type mapping</tref> associated with the <tref>active property</tref>
-        or a <code>@language</code> key-value pair if <i>value</i> is a
-        <tref>string</tref> and there is <tref>language mapping</tref>.</p>
+        or an <code>@language</code> member if <i>value</i> is a
+        <tref>string</tref> and there is <tref>language mapping</tref> associated
+        with the <tref>active property</tref>.</p>
     </section>
 
     <section>
@@ -1829,45 +1828,24 @@
         an <tref>active property</tref>, and a <i>value</i> to expand.</p>
 
       <ol class="algorithm">
-        <li>If <i>value</i> is <tref>null</tref>, then return <tref>null</tref>.</li>
-        <li>Initialize <i>expanded property</i> to the result of using the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-          <tref>active context</tref>, <tref>active property</tref> for
-          <i>value</i>, and <tref>true</tref> for <i>vocabRelative</i>.</li>
-        <li>If <i>expanded property</i> is <code>@id</code> then return
-          the result of using the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-          <tref>active context</tref>, <i>value</i>, and <tref>true</tref>
-          for <i>documentRelative</i>.</li>
-        <li>If <i>expanded property</i> is <code>@type</code> then
-          return the result of using the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-          <tref>active context</tref>, <i>value</i>, <tref>true</tref> for
-          <i>vocabRelative</i>, and <tref>true</tref> for
-          <i>documentRelative</i>.</li>
-        <li>If the <tref>active context</tref> indicates that <tref>active property</tref>
-          is a <tref>reverse property</tref>, <tref>active property</tref> has
-          a <tref>type mapping</tref> in <tref>active context</tref> that is
-          <code>@id</code>, or if <i>expanded property</i> is <code>@graph</code>
-          and <i>value</i> is a <tref>string</tref>, then return a new
+        <li>If the <tref>active property</tref> has a <tref>type mapping</tref>
+          in <tref>active context</tref> that is <code>@id</code>, return a new
           <tref>JSON object</tref> containing a single key-value pair where the
           key is <code>@id</code> and the value is the result of using the
           <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
           <tref>active context</tref>, <i>value</i>, and <tref>true</tref> for
           <i>documentRelative</i>.</li>
         <li>If <tref>active property</tref> has a <tref>type mapping</tref> in
-          <tref>active context</tref> that is <code>@vocab</code>, then return
+          <tref>active context</tref> that is <code>@vocab</code>, return
           a new <tref>JSON object</tref> containing a single key-value pair
           where the key is <code>@id</code> and the value is the result of
-          using the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
+          using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
           <tref>active context</tref>, <i>value</i>, <tref>true</tref> for
           <i>vocabRelative</i>, and <tref>true</tref> for
           <i>documentRelative</i>.</li>
-        <li>If <i>expanded property</i> is a <tref>keyword</tref> return
-          <i>value</i> as is.</li>
-        <li>Otherwise, initialize <i>result</i> to an empty
-          <tref>JSON object</tref>.</li>
+        <li>Otherwise, initialize <i>result</i> to a <tref>JSON object</tref>
+          with an <code>@value</code> member whose value is set to
+          <i>value</i>.</li>
         <li>If <tref>active property</tref> has a <tref>type mapping</tref> in
           <tref>active context</tref>:
           <ol class="algorithm">
@@ -1878,26 +1856,26 @@
               <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>,
               passing <tref>active context</tref> and <i>type</i> for
               <i>identifier</i>.</li>
-            <li>Add the key-value pair, (<code>@type</code>-<i>type</i>), to
-              <i>result</i>.</li>
+            <li>Add an <code>@type</code> member to <i>result</i> and set its
+              value to <i>type</i>.</li>
           </ol>
         </li>
         <li>Otherwise, if <i>value</i> is a <tref>string</tref>:
           <ol class="algorithm">
-            <li>If <i>value</i> has a <tref>language mapping</tref> in
-              <tref>active context</tref> that is not <tref>null</tref>, then
-              add a key-value pair to <i>result</i> where the key is
-              <code>@language</code> and the value is the value associated with
-              the <tref>language mapping</tref>.</li>
-            <li>Otherwise, if <i>value</i> has no <tref>language mapping</tref> in
-              <tref>active context</tref> and <tref>active context</tref> has a
-              <tref>default language</tref>, then add a key-value pair to
-              <i>result</i> where the key is <code>@language</code> and the value
-              is the <tref>default language</tref>.</li>
+            <li>If a <tref>language mapping</tref> is associated with
+              <tref>active property</tref> in <tref>active context</tref>,
+              add an <code>@language</code> to <i>result</i> and set its
+              value to the language code associated with the
+              <tref>language mapping</tref>; unless the
+              <tref>language mapping</tref> is set to <tref>null</tref> in
+              which case no member is added.</li>
+            <li>Otherwise, if the <tref>active context</tref> has a
+              <tref>default language</tref>, add an <code>@language</code>
+              to <i>result</i> and set its value to the
+              <tref>default language</tref>.</li>
           </ol>
         </li>
-        <li>Finally, add the key-value pair, (<code>@value</code>-<i>value</i>), to
-          <i>result</i> and return <i>result</i>.</li>
+        <li>Return <i>result</i>.</li>
       </ol>
     </section>
   </section> <!-- end of Value Expansion -->
@@ -3949,14 +3927,14 @@
         <dd>An <code>@language</code> member in a <tref>term definition</tref>
           was encountered whose value was neither a <tref>string</tref> nor
           <tref>null</tref> and thus invalid.</dd>
+        <dt>colliding keywords</dt>
+        <dd>Two properties which expand to the same keyword have been detected.
+          This might occur if a <tref>keyword</tref> and an an alias thereof
+          are used at the same time.</dd>
         <dt>invalid container mapping</dt>
         <dd>An <code>@container</code> member was encountered whose value was
           not one of the following <tref title="string">strings</tref>:
           <code>@list</code>, <code>@set</code>, or <code>@index</code>.</dd>
-        <dt>invalid @graph value</dt>
-        <dd>An invalid value for an <code>@graph</code> member has been detected,
-          i.e., the value was neither a <tref>JSON object</tref> nor an
-          <tref>array</tref>.</dd>
         <dt>invalid type value</dt>
         <dd>An invalid value for an <code>@type</code> member has been detected,
           i.e., the value was neither a <tref>string</tref> nor an <tref>array</tref>
