@@ -1982,12 +1982,12 @@
           </ol>
         </li>
         <li>Otherwise <i>element</i> is a <tref>JSON object</tref>.</li>
-        <li>If <i>element</i> contains the key <code>@value</code> or
-          if it contains only one key and that key is <code>@id</code>,
-          then return the result of using the
+        <li>If <i>element</i> has an <code>@value</code> or <code>@id</code>
+          member and the result of using the
           <a href="#value-compaction">Value Compaction algorithm</a>,
           passing <tref>active context</tref>, <tref>inverse context</tref>,
-          <tref>active property</tref>,and <i>element</i> as <i>value</i>.</li>
+          <tref>active property</tref>,and <i>element</i> as <i>value</i> is
+          a <tref>scalar</tref>, return that result.</li>
         <li>Initialize <i>inside reverse</i> to <tref>true</tref> if
           <tref>active property</tref> equals <code>@reverse</code>,
           otherwise to <tref>false</tref>.</li>
@@ -2076,22 +2076,21 @@
                   </ol>
               </ol>
             </li>
-            <li>If <i>expanded property</i> is <code>@index</code>:
+            <li>If <i>expanded property</i> is <code>@index</code> and
+              <tref>active property</tref> has a <tref>container mapping</tref>
+              in <tref>active context</tref> that is <code>@index</code>,
+              then the compacted result will be inside of an <code>@index</code>
+              container, drop the <code>@index</code> property by continuing
+              to the next <i>expanded property</i>.</li>
+            <li>Otherwise, if <i>expanded property</i> is <code>@index</code>,
+              <code>@value</code>, or <code>@language</code>:
               <ol class="algorithm">
-                <li>If <tref>active property</tref> has a
-                  <tref>container mapping</tref> in <tref>active context</tref>
-                  that is <code>@index</code>, then the compacted
-                  result will be inside of an <code>@index</code>
-                  container, so simply drop the <code>@index</code>
-                  property by continuing to the next
-                  <i>expanded property</i>.</li>
-                <li>Otherwise, initialize <i>alias</i> to the result of using
+                <li>Initialize <i>alias</i> to the result of using
                   the <a href="#iri-compaction">IRI Compaction algorithm</a>,
                   passing <tref>active context</tref>, <tref>inverse context</tref>, and
                   <i>expanded property</i> for <i>iri</i>.</li>
-                <li>Add the key-value pair,
-                  (<i>alias</i>-<i>expanded value</i>) to
-                  <i>result</i> and continue to the next
+                <li>Add a member <i>alias</i> to <i>result</i> whose value is
+                  set to <i>expanded value</i> and continue with the next
                   <i>expanded property</i>.</li>
               </ol>
             </li>
@@ -2786,32 +2785,32 @@
     <section class="informative">
       <h3>General Solution</h3>
 
-      <p>The <i>value</i> to compact either contains the key <code>@value</code>
-        or the key <code>@id</code>.</p>
+      <p>The <i>value</i> to compact has either an <code>@id</code> or an
+        <code>@value</code> member.</p>
 
-      <p>We start with the former case, first trying to compact the
-        <i>value</i> into just the value associated with its
-        <code>@value</code> key. This can be done if the <i>value</i> is not
-        going to be contained by an <code>@index</code> container and if the
-        <tref>active property</tref> has a matching <tref>type mapping</tref> or
-        <tref>language mapping</tref>. It can also be done if <code>@value</code>
-        is the only key in <i>value</i> and either its associated value is
-        not a <tref>string</tref>, there's no <tref>default language</tref>, or
-        there's an explicit <tref>null</tref> <tref>language mapping</tref> for
-        the <tref>active property</tref>.</p>
+      <p>For the former case, if the <tref>type mapping</tref> of
+        <tref>active property</tref> is set to <code>@id</code> or <code>@vocab</code>
+        and <i>value</i> consists of only of an <code>@id</code> member and, if
+        if the <tref>container mapping</tref> of <tref>active property</tref>
+        is set to <code>@index</code>, an <code>@index</code> member, <i>value</i>
+        can be compacted to a <tref>string</tref> by returning the result of
+        using the <a href="#iri-compaction">IRI Compaction algorithm</a>
+        to compact the value associated with the <code>@id</code> member.
+        Otherwise, <i>value</i> cannot be compacted and is returned as is.</p>
 
-      <p>If we couldn't do the above optimal compaction, then we simply replace
-        <tref title="keyword">keywords</tref> with aliases and compact any
-        <tref title="IRI">IRIs</tref>.</p>
-
-      <p>For the latter case, where the key <code>@id</code> appears in <i>value</i>,
-        we compact the associated value using the
-        <a href="#iri-compaction">IRI Compaction algorithm</a>, and
-        use its value if the <tref>type mapping</tref> associated with the
-        <tref>active property</tref> is <code>@id</code> or the expanded value for
-        the <tref>active property</tref> is <code>@graph</code>. Otherwise, we
-        replace the <code>@id</code> key with its alias and its associated value
-        with its compacted version.</p>
+      <p>For the latter case, it might be possible to compact <i>value</i>
+        just into the value associated with the <code>@value</code> member.
+        This can be done if the <tref>active property</tref> has a matching
+        <tref>type mapping</tref> or <tref>language mapping</tref> and there
+        is either no <code>@index</code> member or the <tref>container mapping</tref>
+        of <tref>active property</tref> is set to <code>@index</code>. It can
+        also be done if <code>@value</code> is the only member in <i>value</i>
+        (apart an <code>@index</code> member in case the <tref>container mapping</tref>
+        of <tref>active property</tref> is set to <code>@index</code>) and
+        either its associated value is not a <tref>string</tref>, there is
+        no <tref>default language</tref>, or there is an explicit
+        <tref>null</tref> <tref>language mapping</tref> for the
+        <tref>active property</tref>.</p>
     </section>
 
     <section>
@@ -2822,85 +2821,47 @@
         to be compacted.</p>
 
       <ol class="algorithm">
-        <li>If <i>value</i> contains the key <code>@value</code>:
+        <li>Initialize <i>number members</i> to the number of members
+          <i>value</i> contains.</li>
+        <li>If <i>value</i> has an <code>@index</code> member and the
+          <tref>container mapping</tref> associated to <tref>active property</tref>
+          is set to <code>@index</code>, decrease <i>number members</i> by
+          <code>1</code>.</li>
+        <li>If <i>number members</i> is greater than <code>2</code>, return
+          <i>value</i> as it cannot be compacted.</li>
+        <li>If <i>value</i> has an <code>@id</code> member:
           <ol class="algorithm">
-            <li>Initialize <i>preserveIndex</i> to <tref>false</tref>. If
-              <code>@index</code> is a key in <i>value</i> and
-              <tref>active property</tref> does not have a
-              <tref>container mapping</tref> in <tref>active context</tref> that
-              is <code>@index</code>, set <i>preserveIndex</i> to
-              <tref>true</tref>.</li>
-            <li>If <i>preserveIndex</i> is <tref>false</tref> and either
-              <i>value</i> has a <code>@type</code> key with a value that
-              matches <tref title="active property">active property's</tref>
-              <tref>type mapping</tref> in <tref>active context</tref> or
-              <i>value</i> has a <code>@language</code> key with a value that
-              matches <tref title="active property">active property's</tref>
-              <tref>language mapping</tref> in <tref>active context</tref>, then
-              return the value associated with the <code>@value</code> key in
-              <i>value</i>.</li>
-            <li>If <code>@value</code> is the only key in <i>value</i> or
-              <i>preserveIndex</i> is <tref>false</tref> and either
-              there is no <tref>default language</tref> in
-              <tref>active context</tref>, the value associated with the
-              <code>@value</code> key in <i>value</i> is not a
-              <tref>string</tref>, or <tref>active property</tref>
-              has a <tref>null</tref> <tref>language mapping</tref> in
-              <tref>active context</tref>, then return the value
-              associated with the <code>@value</code> key in <i>value</i>.</li>
-            <li>Initialize <i>result</i> to an empty <tref>JSON object</tref>.</li>
-            <li>If <i>preserveIndex</i> is <tref>true</tref>, then add
-              a key-value pair to <i>result</i> where the key is the result
-              using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, <tref>inverse context</tref>,
-              <code>@index</code> for <i>iri</i>, and the value associated wit
-              the <code>@index</code> key in <i>value</i> as <i>value</i>.</li>
-            <li>If <i>value</i> contains the key <code>@type</code>, then add
-              a key-value pair to <i>result</i> where the key is the result
-              using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, <tref>inverse context</tref>,
-              <code>@type</code> for <i>iri</i>, and the <i>value</i> is the result
-              of using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, <tref>inverse context</tref>, the value
-              associated with the <code>@type</code> key in <i>value</i> for <i>iri</i>,
-              and <tref>true</tref> for <i>vocabRelative</i>.</li>
-            <li>Otherwise, if <i>value</i> contains the key <code>@language</code>,
-              then add a key-value pair to <i>result</i> where the key is the
-              result using the
+            <li>If <i>number members</i> is <code>1</code> and
+              the <tref>type mapping</tref> of <tref>active property</tref>
+              is set to <code>@id</code>, return the result of using the
               <a href="#iri-compaction">IRI compaction algorithm</a>,
               passing <tref>active context</tref>, <tref>inverse context</tref>,
-              <code>@language</code> for <i>iri</i>, and the value associated
-              with the <code>@language</code> key in <i>value</i> as <i>value</i>.</li>
-            <li>Add a key-value pair to <i>result</i> where the key is the result
-              using the <a href="#iri-compaction">IRI compaction algorithm</a>,
+              and the value of the <code>@id</code> member for <i>iri</i>.</li>
+            <li>Otherwise, if <i>number members</i> is <code>1</code> and
+              the <tref>type mapping</tref> of <tref>active property</tref>
+              is set to <code>@vocab</code>, return the result of using the
+              <a href="#iri-compaction">IRI compaction algorithm</a>,
               passing <tref>active context</tref>, <tref>inverse context</tref>,
-              <code>@value</code> for <i>iri</i>, and the value is the value
-              associated with the <code>@value</code> key in <i>value</i>.</li>
-            <li>Return <i>result</i>.</li>
+              the value of the <code>@id</code> member for <i>iri</i>, and
+              <tref>true</tref> for <i>vocabRelative</i>.</li>
+            <li>Otherwise, return <i>value</i> as is.</li>
           </ol>
         </li>
-        <li>Otherwise, <i>value</i> must contain the single key <code>@id</code>.
-          Initialize <i>expanded property</i> to the result of using the
-          <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
-          <tref>active context</tref>, <i>value</i>, and
-          <tref>true</tref> for <i>vocabRelative</i>.</li>
-        <li>Initialize <i>term</i> to the result of using the
-          <a href="#iri-compaction">IRI compaction algorithm</a>,
-          passing <tref>active context</tref>, <tref>inverse context</tref>, the value
-          associated with the key <code>@id</code> in <i>value</i> for <i>iri</i>, and
-          <tref>true</tref> for <i>vocabRelative</i> if
-          <tref>active property</tref> has a <tref>type mapping</tref> in the
-          <tref>active context</tref> that is <code>@vocab</code>.</li>
-        <li>If <tref>active property</tref> has a <tref>type mapping</tref> in
-          the <tref>active context</tref> that is <code>@id</code> or
-          <code>@vocab</code> or if <i>expanded property</i> is
-          <code>@graph</code>, then return <i>term</i>.</li>
-        <li>Initialize <i>result</i> to an empty <tref>JSON object</tref>. Add
-          a key-value pair to <i>result</i> where the key is the result of
-          using the <a href="#iri-compaction">IRI compaction algorithm</a>,
-          passing <tref>active context</tref>, <tref>inverse context</tref>,
-          <code>@id</code> for <i>iri</i>, and <i>term</i> for <i>value</i>.</li>
-        <li>Return <i>result</i>.</li>
+        <li>Otherwise, if <i>value</i> has an <code>@type</code> member whose
+          value matches the <tref>type mapping</tref> of <tref>active property</tref>,
+          return the value associated with the <code>@value</code> member
+          of <i>value</i>.</li>
+        <li>Otherwise, if <i>value</i> has an <code>@language</code> member whose
+          value matches the <tref>language mapping</tref> of
+          <tref>active property</tref>, return the value associated with the
+          <code>@value</code> member of <i>value</i>.</li>
+        <li>Otherwise, if <i>number members</i> equals <code>1</code> and either
+          the value of the <code>@value</code> member is not a <tref>string</tref>,
+          or the <tref>active context</tref> has no <tref>default language</tref>,
+          or the <tref>language mapping</tref> of <tref>active property</tref>
+          is set to <tref>null</tref>,, return the value associated with the
+          <code>@value</code> member.</li>
+        <li>Otherwise, return <i>value</i> as is.</li>
       </ol>
     </section>
   </section> <!-- end of Value Compaction algorithm -->
