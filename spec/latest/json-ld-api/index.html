@@ -1947,15 +1947,21 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>The algorithm takes four required input variables: an <tref>active context</tref>,
-        an <tref>inverse context</tref> an <tref>active property</tref>, and an
-        <i>element</i> to be compacted. To begin, the <tref>active context</tref>
-        is set to the result of performing <a href="#context-processing-algorithm">Context Processing</a>
-        on the passed <i>context</i>, the <tref>inverse context</tref> is set to the result
-        of performing the <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
-        on <tref>active context</tref>, the <tref>active property</tref> is set to <tref>null</tref>,
-        and <i>element</i> is set to the result of performing the
-        <a href="#expansion-algorithm">Expansion algorithm</a> on the <tref>JSON-LD input</tref>.</p>
+      <p>The algorithm takes five required input variables: an <tref>active context</tref>,
+        an <tref>inverse context</tref>, an <tref>active property</tref>, an
+        <i>element</i> to be compacted, and a flag
+        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>.
+        To begin, the <tref>active context</tref> is set to the result of
+        performing <a href="#context-processing-algorithm">Context Processing</a>
+        on the passed <tref>context</tref>, the <tref>inverse context</tref> is
+        set to the result of performing the
+        <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
+        on <tref>active context</tref>, the <tref>active property</tref> is
+        set to <tref>null</tref>, <i>element</i> is set to the result of
+        performing the <a href="#expansion-algorithm">Expansion algorithm</a>
+        on the <tref>JSON-LD input</tref>, and, if not passed,
+        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+        is set to <tref>true</tref>.</p>
 
       <ol class="algorithm">
         <li>If <i>element</i> is a <tref>scalar</tref>, it is already in its most
@@ -1974,10 +1980,10 @@
               </ol>
             </li>
             <li>If <i>result</i> contains only one item (it has a length of
-              <code>1</code>) and <tref>active property</tref> has no
-              <tref>container mapping</tref> in <tref>active context</tref>,
-              and array compaction has been requested, then set <i>result</i>
-              to its only item.</li>
+              <code>1</code>), <tref>active property</tref> has no
+              <tref>container mapping</tref> in <tref>active context</tref>, and
+              <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+              is <tref>true</tref>, set <i>result</i> to its only item.</li>
             <li>Return <i>result</i>.</li>
           </ol>
         </li>
@@ -2046,8 +2052,10 @@
                       <tref>active context</tref> indicates that <i>property</i> is
                       a <tref>reverse property</tref>
                       <ol class="algorithm">
-                        <li>If array compaction has not been requested and <i>value</i>
-                          is not an <tref>array</tref>, set <i>value</i> to a new
+                        <li>If
+                          <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+                          is <tref>false</tref> and <i>value</i> is not an
+                          <tref>array</tref>, set <i>value</i> to a new
                           <tref>array</tref> containing only <i>value</i>.</li>
                         <li>If <i>property</i> is not a member of
                           <i>result</i>, add one and set its value to <i>value</i>.</li>
@@ -2194,17 +2202,13 @@
                 <li>
                   Otherwise,
                   <ol class="algorithm">
-                    <li>Initialize <i>useArray</i> to <tref>false</tref>. If
-                      array compaction has not been requested, or
-                      <i>container</i> is <code>@set</code> or
-                      <code>@list</code>, or <i>compacted item</i> is
-                      an empty <tref>array</tref>, or
-                      <i>expanded property</i> is <code>@list</code> or
-                      <code>@graph</code>, then set <i>useArray</i>
-                      to <tref>true</tref>.</li>
-                    <li>If <i>useArray</i> is <tref>true</tref> and
+                    <li>If
+                      <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+                      is <tref>false</tref>, <i>container</i> is <code>@set</code> or
+                      <code>@list</code>, or <i>expanded property</i> is
+                      <code>@list</code> or <code>@graph</code> and
                       <i>compacted item</i> is not an <tref>array</tref>,
-                      then set it to a new <tref>array</tref>
+                      set it to a new <tref>array</tref>
                       containing only <i>compacted item</i>.</li>
                     <li>If <i>item active property</i> is not a key in
                       <i>result</i> then add the key-value pair,
@@ -2234,12 +2238,12 @@
         <tref>active context</tref>, <tref>inverse context</tref>, <code>@graph</code>
         as <i>iri</i>, and <i>result</i> as <i>value</i>. Otherwise, if
         <i>result</i> is an <tref>array</tref> with only one item and
-        array compaction has been requested, set <i>result</i> to that item.
-        Otherwise, if <i>result</i> is an <tref>array</tref> with zero items,
-        replace it with an empty <tref>JSON object</tref>. Finally, if a
-        <i>context</i> has been passed, add an <code>@context</code> property to
-        <i>result</i> and set its value to the initially passed
-        <i>context</i>.</p>
+        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+        is <tref>true</tref>, set <i>result</i> to that item. Otherwise, if
+        <i>result</i> is an <tref>array</tref> with zero items, replace it
+        with an empty <tref>JSON object</tref>. Finally, if a <i>context</i>
+        has been passed, add an <code>@context</code> property to <i>result</i>
+        and set its value to the initially passed <i>context</i>.</p>
     </section>
   </section> <!-- end of Compaction -->
 
