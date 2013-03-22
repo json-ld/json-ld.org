@@ -3335,10 +3335,6 @@
         originally represented in an <tref>RDF dataset</tref>. This algorithm is
         designed to simply translate an array of <tref title="triple">triples</tref>
         into a JSON-LD document.</p>
-      <p>When expanding <tref title="typed value">typed values</tref> having a datatype
-        of <code>xsd:string</code>, the <code>@type</code> must not be set to
-        <code>xsd:string</code> and the resulting value must have only an
-        <code>@value</code> property.</p>
     </section>
 
     <section class="informative">
@@ -3354,154 +3350,216 @@
     <section>
       <h2>Algorithm</h2>
 
-      <p>The algorithm takes a single parameter <i>dataSet</i> in the form of
+      <p>The algorithm takes a single parameter <i>dataset</i> in the form of
         an array of an <tref>RDF dataset</tref>.</p>
 
       <ol class="algorithm">
-        <li id="new_graph">Construct <i>defaultGraph</i> as a
-          <tref>JSON object</tref> containing <i>nodes</i> and <i>listMap</i>,
-          each an empty <tref>JSON object</tref>.</li>
-        <li>Construct <i>graphs</i> as a <tref>JSON object</tref>
-          containing <i>defaultGraph</i> identified by <code>@default</code>.</li>
-        <li>For each <i>graph</i> in <i>dataSet</i>:
+        <li>Initialize <i>default graph</i> to a new <tref>JSON object</tref>
+          consisting of two members, <code>nodeMap</code> and <code>listMap</code>,
+          whose value is an an empty <tref>JSON object</tref>.</li>
+        <li>Initialize <i>graph map</i> to an empty <tref>JSON object</tref> consisting
+          of a single member <code>@default</code> whose value is set to
+          reference <i>default graph</i>.</li>
+        <li>Reference the <code>nodeMap</code> member of <i>default graph</i>
+          using the variable <i>default graph nodes</i>.</li>
+        <li>For each <i>graph</i> in <i>dataset</i>:
           <ol class="algorithm">
             <li>If <i>graph</i> is the <tref>default graph</tref>,
               set <i>name</i> to <code>@default</code>, otherwise to the
               <tref>graph name</tref> associated with <i>graph</i>.</li>
-            <li>Set <i>graph object</i> to the entry in <i>graphs</i>
-              identified by <i>name</i>, initializing it to a new entry as an empty
-              <tref>JSON object</tref> containing <i>nodes</i> and
-              <i>listMap</i>, each an empty <tref>JSON object</tref>.</li>
-            <li>For each <tref>RDF triple</tref> <i>triple</i> in <i>graph</i>
-              having <i>subject</i>, <i>predicate</i> and <i>object</i>:
+            <li>If <i>graph map</i> has no <i>name</i> member, create one and set
+              its value to a to a new <tref>JSON object</tref> consisting of two
+              members, <code>nodeMap</code> and <code>listMap</code>, whose value
+              is an an empty <tref>JSON object</tref>.</li>
+            <li>If <i>graph</i> is not the <tref>default graph</tref> and
+              <i>default graph nodes</i> does not have a <i>name</i> member,
+              create such a member and initialize its value to a new
+              <tref>JSON object</tref> with a single member <code>@id</code>
+              whose value is <i>name</i>.</li>
+            <li>Reference the value of the <i>name</i> member in <i>graph map</i>
+              using the variable <i>graph object</i>.</li>
+            <li>Reference the value of the <code>nodeMap</code> member in
+              <i>graph object</i> using the variable <i>node map</i> and the
+              value of the <code>listMap</code> member using the variable
+              <i>list map</i>.</li>
+            <li>For each <tref>RDF triple</tref> in <i>graph</i>
+              consisting of <i>subject</i>, <i>predicate</i>, and <i>object</i>:
               <ol class="algorithm">
-                <li>If <i>predicate</i> is <code>rdf:first</code>,
-                  use the entry in <i>graph.listMap</i> identified by
-                  <i>subject</i>, initializing it to a new <tref>JSON object</tref>
-                  if necessary. Represent <i>object</i> in <tref>expanded
-                  form</tref>, as described in the
-                  <a href="#value-expansion">Value Expansion algorithm</a>.
-                  Add the resulting <i>object representation</i> to
-                  the entry indexed by <i>first</i>, and skip to the next
-                  <tref>triple</tref>.</li>
-                <li>If <i>predicate</i> is <code>rdf:rest</code>:
+                <li>If <i>predicate</i> equals <code>rdf:first</code>,
                   <ol class="algorithm">
-                    <li>If <i>object</i> is a <tref>blank node</tref>,
-                      use the entry in <i>graph.listMap</i> identified by
-                      <i>subject</i>, initializing it to a new <tref>JSON
-                      object</tref> if necessary. Add the <i>nominalValue</i> of
-                      <i>object</i> to the entry indexed by <i>rest</i>.
-                      <p class="issue">What is <i>nominalValue</i>? Presumably
-                        this references the object in <i>graph.listMap</i>
-                        identified by <i>object</i>.</p></li>
-                    <li>Skip to the next <tref>triple</tref>.</li>
+                    <li>If <i>list map</i> has no <i>subject</i> member, create
+                      one and initialize it to an empty <tref>JSON object</tref>.</li>
+                    <li>Initialize the value of the <code>first</code> member of
+                      the <i>subject</i> member of <i>list map</i> to the result of the
+                      <a href="#rdf-to-object-conversion">RDF to Object Conversion algorithm</a>,
+                      passing <i>object</i>.</li>
+                    <li>Continue with the next <tref>RDF triple</tref>.</li>
+                  </ol>
+                <li>If <i>predicate</i> equals <code>rdf:rest</code>:
+                  <ol class="algorithm">
+                    <li>If <i>list map</i> has no <i>subject</i> member, create
+                      one and initialize it to an empty <tref>JSON object</tref>.</li>
+                    <li>Initialize the value of the <code>rest</code> member of
+                      the <i>subject</i> member of <i>list map</i> to
+                      <tref>object</tref>, which is either an <tref>absolute IRI</tref>
+                      or <tref>blank node identifier</tref>.</li>
+                    <li>Continue with the next <tref>RDF triple</tref>.</li>
                   </ol>
                 </li>
-                <li>If <i>name</i> is not <code>@default</code>,
-                  and <i>defaultGraph.nodes</i> does not contain an entry for
-                  <i>name</i>, create a new entry for <i>name</i> from a new
-                  <tref>JSON object</tref> with key/value pair of <code>@id</code>
-                  and <i>name</i> represented in <tref>expanded IRI
-                  form</tref>.</li>
-                <li>Set <i>value</i> as the entry from <i>graph.nodes</i> for
-                  <i>subject</i>, initializing it to a new <tref>JSON object</tref>
-                  with key/value pair of <code>@id</code> and <i>subject</i>
-                  represented in <tref>expanded IRI form</tref> if necessary.</li>
-                <li>If <i>predicate</i> is <code>rdf:type</code>, <i>object</i>
-                  is not a <tref>JSON-LD value</tref>, and the use of <code>rdf:type</code>
-                  has not been requested:
+                <li>If <i>node map</i> does not have a <i>subject</i> member,
+                  create one and initialize its value to a new <tref>JSON object</tref>
+                  consisting of a single member <code>@id</code> whose value is
+                  set to <i>subject</i>.</li>
+                <li>Reference the value of the <i>subject</i> member in <i>node map</i>
+                  using the variable <i>node</i>.</li>
+                <li>If <i>predicate</i> equals <code>rdf:type</code>, and <i>object</i>
+                  is an <tref>IRI</tref> or <tref>blank node identifier</tref>,
+                  append <i>object</i> to the value of the <code>@type</code>
+                  member of <i>node</i>. If no such member exists, create one
+                  and initialize it to an <tref>array</tref> whose only item is
+                  <i>object</i>. Finally, continue to the next
+                  <tref>RDF triple</tref>.</li>
+                <li>If <i>node</i> does not have an <i>predicate</i> member, create one
+                  and initialize its value to an empty <tref>array</tref>.</li>
+                <li>Set <i>value</i> to the result of using the
+                  <a href="#rdf-to-object-conversion">RDF to Object Conversion algorithm</a>,
+                  passing <i>object</i>.</li>
+                <li>Add a reference to <i>value</i> to the to the <tref>array</tref>
+                  associated with the <i>predicate</i> member of <i>node</i>.</li>
+                <li>If <i>object</i> is an <tref>IRI</tref> or a
+                  <tref>blank node identifier</tref> it might represent the
+                  head of a RDF list:
                   <ol class="algorithm">
-                    <li>Append <i>object</i> represented in
-                      <tref>expanded IRI form</tref> to the array value for the key
-                      <code>@type</code>, creating an entry in <i>value</i> if
-                      necessary.</li>
-                  </ol>
-                </li>
-                <li>Otherwise, if <i>object</i> is a <tref>typed value</tref>
-                  and the use of native types has been requested:
-                  <ol class="algorithm">
-                    <li>Generate a <i>converted value</i>:
-                      <ol class="algorithm">
-                        <li>If the literal's type is <code>xsd:boolean</code>, the
-                          <i>converted value</i> is <tref>true</tref> if the literal
-                          matches the value <code>true</code> or <code>false</code> if
-                          the literal matches the value <code>false</code>.</li>
-                        <li>If the literal's type is <code>xsd:integer</code> or
-                          <code>xsd:double</code>, try to convert the literal to a
-                          JSON <tref>number</tref>. If the conversion is successful,
-                          store the result in <i>converted value</i>, otherwise
-                          set <i>converted value</i> to <i>value</i>.</li>
-                        <li>Otherwise, do not perform a conversion. Set
-                          the <i>converted value</i> to the <i>value</i>.</li>
-                      </ol>
-                    </li>
-                    <li>Append the <i>converted value</i> to the array value for the
-                      key, creating an entry in <i>value</i> if necessary.</li>
-                  </ol>
-                </li>
-                <li>Otherwise, if <i>object</i> is <code>rdf:nil</code>:
-                  <ol class="algorithm">
-                    <li>Let <i>key</i> be <i>predicate</i>
-                      expressed in <tref>expanded IRI form</tref>.</li>
-                    <li>Append an empty <code>@list</code> representation
-                      to the array value for <i>key</i>, creating an entry in
-                      <i>value</i> if necessary.</li>
-                  </ol>
-                </li>
-                <li>Otherwise,
-                  <ol class="algorithm">
-                    <li>Let <i>key</i> be <i>predicate</i>
-                      expressed in <tref>expanded IRI form</tref> and let
-                      <i>object representation</i> be <i>object</i> represented in
-                      <tref>expanded form</tref> as described in <a
-                      href="#value-expansion">Value Expansion algorithm</a>.</li>
-                    <li>If <i>object</i> is a <tref>blank node</tref>,
-                      use the entry in <i>graph.listMap</i> indexed by
-                      <i>object</i>, initializing it to a new <tref>JSON
-                      object</tref> if necessary. Add an entry for <i>head</i> with
-                      <i>object representation</i>.</li>
-                    <li>Append <i>object representation</i> to the array value for
-                      <i>key</i>, creating an entry in <i>value</i> if
-                      necessary.</li>
+                    <li>If <i>list map</i> has no <i>object</i> member, create
+                      one and set its value to an empty <tref>JSON object</tref>.</li>
+                    <li>Set the <code>head</code> member of the <i>object</i>
+                      member of <i>list map</i> to a reference of <i>value</i>.
+                      This reference may be required later to replace the
+                      <i>value</i> in the <i>predicate</i> member of <i>node</i>
+                      with a <tref>list object</tref>.</li>
                   </ol>
                 </li>
               </ol>
             </li>
           </ol>
         </li>
-        <li>For each <i>name</i> and <i>graph object</i> in <i>graphs</i>:
+        <li>For each <i>name</i> and <i>graph object</i> in <i>graph map</i>:
           <ol class="algorithm">
-            <li>For each <i>subject</i> and <i>entry</i> in <i>graph object</i>
-              where <i>entry</i> has both <i>head</i> and <i>first</i> keys:
+            <li>Reference the value of the <code>listMap</code> member in
+              <i>graph object</i> using the variable <i>list map</i>.</li>
+            <li>For each key-value pair <i>subject</i>-<i>entry</i> of the
+              value associated to the <code>listMap</code> member of
+              <i>graph object</i>:
               <ol class="algorithm">
-                <li>Set <i>value</i> to the value of <i>head</i> in <i>entry</i>.</li>
-                <li>Remove the entry for <code>@id</code> in <i>value</i>.</li>
-                <li>Add an entry to <i>value</i> for <code>@list</code> initialized to a new array
-                  containing the value of <i>first</i> from <i>entry</i>.</li>
-                <li>While <i>entry</i> has a key for <i>rest</i>:
+                <li>If <i>entry</i> has not an <code>head</code> and an
+                  <code>first</code> member it does not represent the head of
+                  a <tref>list</tref>. Continue with the next key-value pair.</li>
+                <li>Reference the value of the <code>head</code> member in <i>entry</i>
+                  using the variable <i>value</i>.</li>
+                <li>Remove the <code>@id</code> member from <i>value</i>.</li>
+                <li>Add an <code>@list</code> member to <i>value</i> and initialize
+                  it to an <tref>array</tref> containing the value of the
+                  <code>first</code> member of <i>entry</i>.</li>
+                <li>While the value associated with the <code>rest</code> member
+                  of <i>entry</i> is not <code>rdf:nil</code>:
                   <ol class="algorithm">
-                    <li>Set <i>entry</i> to the value of <i>graph.listMap</i> for <i>entry.rest</i>.</li>
-                    <li>Add the value for <i>entry.first</i> to the list array.</li>
+                    <li>Set <i>rest</i> to the value of the <code>rest</code>
+                      member of <i>entry</i>.</li>
+                    <li>Set <i>entry</i> to the value associated with the
+                      <i>rest</i> member of <i>list map</i>.</li>
+                    <li>Add the value associated with the <code>first</code>
+                      member of <i>entry</i> to the <code>@list</code> member
+                      of <i>value</i>.</li>
                   </ol>
                 </li>
               </ol>
             </li>
           </ol>
         </li>
-        <li>Create <i>array</i> as an empty <tref>array</tref>.</li>
-        <li>For each <i>subject</i> and <i>entry</i> in <i>defaultGraph.nodes</i>
+        <li>Initialize an empty <tref>array</tref> <i>result</i>.</li>
+        <li>For each <i>subject</i> and <i>node</i> in <i>default graph nodes</i>
           ordered by <i>subject</i>:
           <ol class="algorithm">
-            <li>Add <i>entry</i> to <i>array</i>.</li>
-            <li>If <i>graphs</i> has an entry for <i>subject</i>, add a property
-              <code>@graph</code> in <i>entry</i> containing the ordered entries
-              from <i>graphs[subject].nodes</i>.</li>
+            <li>If <i>graph map</i> has an <i>subject</i> member:
+              <ol class="algorithm">
+                <li>Add a <code>@graph</code> member to <i>node</i> and initialize
+                  its value to an empty <tref>array</tref>.</li>
+                <li>Reference the <code>nodeMap</code> member of the <i>subject</i>
+                  member of <i>graph map</i> using the variable <i>node map</i>.</li>
+                <li>For each key-value pair <i>s</i>-<i>n</i> in <i>node map</i>
+                  ordered by <i>s</i>, append <i>n</i> to the <code>@graph</code>
+                  member of <i>node</i>.</li>
+              </ol>
+            <li>Append <i>node</i> to <i>result</i>.</li>
           </ol>
         </li>
-        <li>Return <i>array</i> as the result.</li>
+        <li>Return <i>result</i>.</li>
       </ol>
     </section>
   </section> <!-- end of Convert from RDF algorithm -->
+
+  <section>
+    <h2>RDF to Object Conversion</h2>
+
+    <p>This algorithm transforms an RDF literal to a JSON-LD <tref>value object</tref>
+      and a RDF blank node or IRI to an JSON-LD <tref>node object</tref>.</p>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <p>This algorithm takes as single input variable <i>value</i> that
+        is converted to a <tref>JSON object</tref>.</p>
+
+      <ol class="algorithm">
+        <li>If <i>value</i> is an an <tref>IRI</tref> or a
+          <tref>blank node identifier</tref>:
+          <ol class="algorithm">
+            <li>If <i>value</i> equals <code>rdf:nil</code> return a new
+              <tref>JSON object</tref> consisting of a single member
+              <code>@list</code> whose value is set to an empty
+              <tref>array</tref>. This is behavior is required by the
+              <a href="#convert-from-rdf-algorithm">Convert from RDF algorithm</a>.</li>
+            <li>Otherwise, return a new <tref>JSON object</tref> consisting of
+              a single member <code>@id</code> whose value is set to <i>value</i>.</li>
+          </ol>
+        </li>
+        <li>Otherwise <i>value</i> is an
+          <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">RDF literal</tref>:
+          <ol class="algorithm">
+            <li>Initialize a new empty <tref>JSON object</tref> result.</li>
+            <li>Initialize <i>converted value</i> to <i>value</i>.</li>
+            <li>Initialize <i>type</i> to <tref>null</tref></li>
+            <li>If the
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+              of <i>value</i> equals <code>xsd:boolean</code>, set
+              <i>converted value</i> to <tref>true</tref> if the
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+              of <i>value</i> matches <code>true</code>, or <code>false</code> if
+              it matches <code>false</code>.</li>
+            <li>Otherwise, if the
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+              of <i>value</i> equals <code>xsd:integer</code> or
+              <code>xsd:double</code>, try to convert the literal to a
+              <tref title="number">JSON number</tref>. If the conversion is
+              successful, store the result in <i>converted value</i>.</li>
+            <li>Otherwise, if <i>value</i> is a
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-string">language-tagged string</tref>
+              add a member <code>@language</code> to <i>result</i> and set its value to the
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tag">language tag</tref>
+              of <i>value</i>.</li>
+            <li>Otherwise, set <i>type</i> to the
+              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+              of <i>value</i>, unless it equals <code>xsd:string</code> which is ignored.</li>
+            <li>Add a member <code>@value</code> to <i>result</i> whose value
+              is set to <i>converted value</i>.</li>
+            <li>If <i>type</i> is not <tref>null</tref>, add a member <code>@type</code>
+              to <i>result</i> whose value is set to <i>type</i>.</li>
+            <li>Return <i>result</i>.</li>
+          </ol>
+        </li>
+      </ol>
+    </section>
+  </section>
 
   <section>
     <h2>Data Round Tripping</h2>
