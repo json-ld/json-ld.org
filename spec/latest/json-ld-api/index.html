@@ -701,9 +701,9 @@
       which is an <tref>IRI</tref>.</dd>
     <dt><tdef>language-tagged string</tdef></dt>
     <dd>A <tref>language-tagged string</tref> consists of a string and a non-empty language
-      tag as defined by [[BCP47]]. The language tag must be well-formed according to section
-      <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9</a> of [[BCP47]], and is
-      normalized to lowercase.</dd>
+      tag as defined by [[BCP47]]. The language tag must be well-formed according to
+      <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">section 2.2.9</a>
+      of [[BCP47]], and is normalized to lowercase.</dd>
     <dt><tdef>list</tdef></dt>
     <dd>A <tref>list</tref> is an ordered sequence of <tref title="IRI">IRIs</tref>,
       <tref title="blank node">blank nodes</tref>, and
@@ -892,27 +892,39 @@
               next <i>context</i>.</li>
             <li>If <i>context</i> is a <tref>string</tref>,
               <ol class="algorithm">
-                <li>Set <i>context</i> to the result of calling the
-                  <a href="#iri-expansion">IRI Expansion algorithm</a>
-                  passing <tref>active context</tref>, <i>context</i> for <i>value</i>,
-                  <tref>false</tref> for <i>vocabRelative</i> and <tref>true</tref> for
-                  <i>documentRelative</i>.</li>
+                <li>Set <i>context</i> to the result of resolving <i>value</i> against
+                  the base IRI which is established as specified in
+                  <cite><a href="http://tools.ietf.org/html/rfc3986#section-5.1">section 5.1 Establishing a Base URI</a></cite>
+                  of [[!RFC3986]]. Only the basic algorithm in
+                  <cite><a href="http://tools.ietf.org/html/rfc3986#section-5.2">section 5.2</a></cite>
+                  of [[!RFC3986]] is used; neither
+                  <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.2">Syntax-Based Normalization</a></cite> nor
+                  <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.3">Scheme-Based Normalization</a></cite>
+                  are performed. Characters additionally allowed in IRI
+                  references are treated in the same way that unreserved
+                  characters are treated in URI references, per
+                  <cite><a href="http://tools.ietf.org/html/rfc3987#section-6.5">section 6.5</a></cite>
+                  of [[!RFC3987]].</li>
                 <li>If <i>context</i> is in the <i>remote contexts</i> array, a
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.recursive-context-inclusion">recursive context inclusion</a></code>
                   error has been detected;
                   otherwise, add <i>context</i> to <i>remote contexts</i>.</li>
-                <li>Initialize <i>context new base</i> to the result of cloning the
+                <li>Initialize <i>context no base</i> to the result of cloning the
                   <tref>active context</tref>.</li>
-                <li>Set the <tref>base IRI</tref> of <i>context new base</i> to <i>context</i>.</li>
+                <li>Remove the <tref>base IRI</tref> of <i>context no base</i>.</li>
                 <li>Dereference <i>context</i>. If the dereferenced document has no
                   top-level <tref>JSON object</tref> with an <code>@context</code> member, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-remote-context">invalid remote context</a></code>
                   has been detected; otherwise,
                   set <i>context</i> to the value of that member.</li>
-                <li>Set <i>result</i> to the result of recursively calling this algorithm,
-                  passing <i>context new base</i> for <tref>active context</tref>,
-                  <i>context</i> for <tref>local context</tref>,
-                  and <i>remote contexts</i> and continue with the next <i>context</i>.</li>
+                <li>Set <i>context</i> to the result of recursively calling this algorithm,
+                  passing <i>context no base</i> for <tref>active context</tref>,
+                  <i>context</i> for <tref>local context</tref>, and <i>remote contexts</i>.</li>
+                <li>If <i>context</i> has no <tref>base IRI</tref> but <i>result</i> does,
+                  set the <tref>base IRI</tref> of <i>context</i> to the one of
+                  <i>result</i>.</li>
+                <li>Overwrite <i>result</i> with <i>context</i> and continue with the
+                  next <i>context</i>.</li>
               </ol>
             <li>If <i>context</i> is not a <tref>JSON object</tref>, a
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-local-context">invalid local context</a></code>
@@ -923,14 +935,12 @@
               <ol class="algorithm">
                 <li>Initialize <i>value</i> to the value associated with the
                   <code>@base</code> key.</li>
-                <li>If <i>value</i> is <tref>null</tref>, set the
-                  <tref>base IRI</tref> of <i>result</i> to the base IRI established according section
-                  <cite><a href="http://www.ietf.org/rfc/rfc2396.txt">section 5.1 Establishing a Base URI</a></cite>
-                  of [[!RFC3986]].</li>
+                <li>If <i>value</i> is <tref>null</tref>, remove the
+                  <tref>base IRI</tref> of <i>result</i>.</li>
                 <li>Otherwise, <i>value</i> must be an <tref>absolute IRI</tref>, if not, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-base-IRI">invalid base IRI</a></code>
-                  error has been detected. Set <i>result</i>'s <tref>base IRI</tref>
-                  to <i>value</i>.</li>
+                  error has been detected. Set the <tref>base IRI</tref> of
+                  <i>result</i> to <i>value</i>.</li>
               </ol>
             </li>
             <li>If <i>context</i> has an <code>@vocab</code> key:
@@ -1341,11 +1351,14 @@
         <li>Otherwise, if <i>documentRelative</i> is <tref>true</tref>,
           set <i>result</i> to the result of resolving <i>result</i> against
           the <tref>base IRI</tref>. Only the basic algorithm in
-          section 5.2 of [[!RFC3986]] is used; neither Syntax-Based Normalization
-          nor Scheme-Based Normalization (as described in sections 6.2.2 and
-          6.2.3 of [[RFC3986]]) are performed. Characters additionally allowed in
-          IRI references are treated in the same way that unreserved characters
-          are treated in URI references, per section 6.5 of [[!RFC3987]].</li>
+          <cite><a href="http://tools.ietf.org/html/rfc3986#section-5.2">section 5.2</a></cite>
+          of [[!RFC3986]] is used; neither
+          <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.2">Syntax-Based Normalization</a></cite> nor
+          <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.3">Scheme-Based Normalization</a></cite>
+          are performed. Characters additionally allowed in IRI references are treated
+          in the same way that unreserved characters are treated in URI references, per
+          <cite><a href="http://tools.ietf.org/html/rfc3987#section-6.5">section 6.5</a></cite>
+          of [[!RFC3987]].</li>
         <li>If <tref>local context</tref> is not <tref>null</tref> then
           <i>result</i> must be an <tref>absolute IRI</tref>, if not,
           an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
