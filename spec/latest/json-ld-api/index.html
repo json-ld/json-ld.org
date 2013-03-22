@@ -909,7 +909,7 @@
                   of [[!RFC3987]].</li>
                 <li>If <i>context</i> is in the <i>remote contexts</i> array, a
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.recursive-context-inclusion">recursive context inclusion</a></code>
-                  error has been detected;
+                  error has been detected and processing is aborted;
                   otherwise, add <i>context</i> to <i>remote contexts</i>.</li>
                 <li>Initialize <i>context no base</i> to the result of cloning the
                   <tref>active context</tref>.</li>
@@ -917,7 +917,7 @@
                 <li>Dereference <i>context</i>. If the dereferenced document has no
                   top-level <tref>JSON object</tref> with an <code>@context</code> member, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-remote-context">invalid remote context</a></code>
-                  has been detected; otherwise,
+                  has been detected and processing is aborted; otherwise,
                   set <i>context</i> to the value of that member.</li>
                 <li>Set <i>context</i> to the result of recursively calling this algorithm,
                   passing <i>context no base</i> for <tref>active context</tref>,
@@ -928,9 +928,9 @@
                 <li>Overwrite <i>result</i> with <i>context</i> and continue with the
                   next <i>context</i>.</li>
               </ol>
-            <li>If <i>context</i> is not a <tref>JSON object</tref>, a
+            <li>If <i>context</i> is not a <tref>JSON object</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-local-context">invalid local context</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>If <i>context</i> has an <code>@base</code> key:
               <p class="issue atrisk">This feature is at risk as the fact that a document may
                 have multiple base IRIs is potentially confusing for developers.</p>
@@ -939,10 +939,11 @@
                   <code>@base</code> key.</li>
                 <li>If <i>value</i> is <tref>null</tref>, remove the
                   <tref>base IRI</tref> of <i>result</i>.</li>
-                <li>Otherwise, <i>value</i> must be an <tref>absolute IRI</tref>, if not, an
+                <li>Otherwise, if <i>value</i> is an <tref>absolute IRI</tref>,
+                  the <tref>base IRI</tref> of <i>result</i> is set to <i>value</i>.
+                  If it is not an <tref>absolute IRI</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-base-IRI">invalid base IRI</a></code>
-                  error has been detected. Set the <tref>base IRI</tref> of
-                  <i>result</i> to <i>value</i>.</li>
+                  error has been detected and processing is aborted.</li>
               </ol>
             </li>
             <li>If <i>context</i> has an <code>@vocab</code> key:
@@ -951,10 +952,11 @@
                   <code>@vocab</code> key.</li>
                 <li>If <i>value</i> is <tref>null</tref>, remove
                   any <tref>vocabulary mapping</tref> from <i>result</i>.</li>
-                <li>Otherwise, <i>value</i> must be an <tref>absolute IRI</tref>, if not, an
+                <li>Otherwise, if <i>value</i> is an <tref>absolute IRI</tref>,
+                  the <tref>vocabulary mapping</tref> of <i>result</i> is set
+                  to <i>value</i>. If it is not an <tref>absolute IRI</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-vocab-mapping">invalid vocab mapping</a></code>
-                  error has been detected. Set <i>result</i>'s
-                  <tref>vocabulary mapping</tref> to <i>value</i>.</li>
+                  error has been detected and processing is aborted.</li>
               </ol>
             </li>
             <li>If <i>context</i> has an <code>@language</code> key:
@@ -963,10 +965,11 @@
                   <code>@language</code> key.</li>
                 <li>If <i>value</i> is <tref>null</tref>, remove
                   any <tref>default language</tref> from <i>result</i>.</li>
-                <li>Otherwise, <i>value</i> must be a <tref>string</tref>, if not, an
+                <li>Otherwise, if <i>value</i> is <tref>string</tref>, the
+                  <tref>default language</tref> of <i>result</i> is set to
+                  lowercased <i>value</i>. If it is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-default-language">invalid default language</a></code>
-                  error has been detected. Set <i>result</i>'s
-                  <tref>default language</tref> to lowercased <i>value</i>.</li>
+                  error has been detected and processing is aborted.</li>
               </ol>
             </li>
             <li>Create a <tref>JSON object</tref> <i>defined</i> to use to keep
@@ -1040,14 +1043,14 @@
           <tref>term definition</tref> has already been created), return. Otherwise,
           if the value is <tref>false</tref>, a
           <code class="error"><a href="#idl-def-JsonLdErrorCode.cyclic-IRI-mapping">cyclic IRI mapping</a></code>
-          error has been detected.</li>
+          error has been detected and processing is aborted.</li>
         <li>Set the value associated with <i>defined</i>'s <i>term</i> key to
           <tref>false</tref>. This indicates that the <tref>term definition</tref>
           is now being created but is not yet complete.</li>
         <li>Since <tref title="keyword">keywords</tref> cannot be overridden,
           <i>term</i> must not be a <tref>keyword</tref>. Otherwise, a
           <code class="error"><a href="#idl-def-JsonLdErrorCode.keyword-redefinition">keyword redefinition</a></code>
-          error has been detected.</li>
+          error has been detected and processing is aborted.</li>
         <li>Remove any existing <tref>term definition</tref> for <i>term</i> in
           <tref>active context</tref>.</li>
         <li>Initialize <i>value</i> to the value associated with the key
@@ -1066,10 +1069,9 @@
               <tref>true</tref> for <i>vocabRelative</i>,
               <tref>true</tref> for <i>documentRelative</i>,
               <tref>local context</tref>, and <i>defined</i>.</li>
-            <li>If <i>value</i> is a <tref>keyword</tref>, <i>value</i>
-              must not be <code>@context</code>, if it is, an
+            <li>If <i>value</i> is <code>@context</code>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-keyword-alias">invalid keyword alias</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Set the <tref>IRI mapping</tref> for the <tref>term definition</tref>
               for <i>term</i> in <tref>active context</tref> to <i>value</i>,
               set the value associated with <i>defined</i>'s key <i>term</i> to
@@ -1078,18 +1080,18 @@
         </li>
         <li>Otherwise, <i>value</i> must be a <tref>JSON object</tref>, if not, an
           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-term-definition">invalid term definition</a></code>
-          error has been detected.</li>
+          error has been detected and processing is aborted.</li>
         <li>Create a new <tref>term definition</tref>, <i>definition</i>.</li>
         <li>If <i>value</i> contains the key <code>@reverse</code>:
           <ol class="algorithm">
             <li>If <i>value</i> contains an <code>@id</code>, an
               <code>@type</code>, or an <code>@language</code>, member, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>If the value associated with the <code>@reverse</code> key
               is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Otherwise, set the <tref>IRI mapping</tref> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
               passing <tref>active context</tref>, the value associated with
@@ -1099,7 +1101,7 @@
               is not an <tref>absolute IRI</tref>, i.e., it contains no
               colon (<code>:</code>), an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Set the <tref>type mapping</tref> of <i>definition</i> to
               <code>@id</code>.</li>
             <li>If <i>value</i> contains an <code>@container</code> member,
@@ -1107,7 +1109,8 @@
               to <code>@index</code> if that is the value of the
               <code>@container</code> member; otherwise an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
-              error has been detected (reverse properties only support index-containers).</li>
+              error has been detected (reverse properties only support
+              index-containers) and processing is aborted.</li>
             <li>Set the <tref>reverse property</tref> flag of <i>definition</i>
               to <tref>true</tref>.</li>
             <li>Set the <tref>term definition</tref> of <i>term</i> in
@@ -1122,7 +1125,7 @@
           <ol class="algorithm">
             <li>If the value associated with the <code>@id</code> key is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Otherwise, set the <tref>IRI mapping</tref> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
               <tref>active context</tref>, the value associated with the <code>@id</code> key for
@@ -1148,18 +1151,19 @@
               <tref>IRI mapping</tref> of <i>definition</i> to <i>term</i>.</li>
           </ol>
         </li>
-        <li>Otherwise, <tref>active context</tref> must have a
-          <tref>vocabulary mapping</tref>, if not, an
+        <li>Otherwise, if <tref>active context</tref> has a
+          <tref>vocabulary mapping</tref>, the <tref>IRI mapping</tref>
+          of <i>definition</i> is set to the result of concatenating the value
+          associated with the <tref>vocabulary mapping</tref> and <i>term</i>.
+          If it does not have a <tref>vocabulary mapping</tref>, an
           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-          error been detected. Set the <tref>IRI mapping</tref>
-          of <i>definition</i> to the result of concatenating the value
-          associated with the <tref>vocabulary mapping</tref> and <i>term</i>.</li>
+          error been detected and processing is aborted.</li>
         <li>If <i>value</i> contains the key <code>@type</code>:
           <ol class="algorithm">
             <li>Initialize <i>type</i> to the value associated with the
               <code>@type</code> key, which must be a <tref>string</tref>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Set <i>type</i> to the result of using the
               <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
               <tref>active context</tref>, <i>type</i> for <i>value</i>,
@@ -1168,7 +1172,7 @@
               <tref>local context</tref>, and <i>defined</i>. If the expanded <i>type</i> is
               neither <code>@id</code>, nor <code>@vocab</code>, nor an <tref>absolute IRI</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>Set the <tref>type mapping</tref> for <i>definition</i> to <i>type</i>.</li>
           </ol>
         </li>
@@ -1179,7 +1183,7 @@
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
               or <code>@language</code>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-container-mapping">invalid container mapping</a></code> error
-              has been detected.</li>
+              has been detected and processing is aborted.</li>
             <li>Set the <tref>container mapping</tref> of <i>definition</i> to
               <i>container</i>.</li>
           </ol>
@@ -1191,7 +1195,7 @@
               <code>@language</code> key, which must be either <tref>null</tref>
               or a <tref>string</tref>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-mapping">invalid language mapping</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>If <i>language</i> is a <tref>string</tref> set it to
               lowercased <i>language</i>. Set the <tref>language mapping</tref>
               of <i>definition</i> to <i>language</i>.</li>
@@ -1360,7 +1364,7 @@
         <li>If <tref>local context</tref> is not <tref>null</tref> then
           <i>result</i> must be an <tref>absolute IRI</tref>, if not,
           an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
-          error has been detected.</li>
+          error has been detected and processing is aborted.</li>
         <li>Return <i>result</i>.</li>
       </ol>
     </section>
@@ -1484,7 +1488,8 @@
                   <tref>container mapping</tref> is set to <code>@list</code>, the
                   <i>expanded item</i> must not be an <tref>array</tref> or a
                   <tref>list object</tref>, otherwise a
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code> error has been detected.</li>
+                  <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
+                  error has been detected and processing is aborted.</li>
                 <li>If <i>expanded item</i> is an <tref>array</tref>, append each
                   of its items to <i>result</i>. Otherwise, if
                   <i>expanded item</i> is not null, append it to <i>result</i>.</li>
@@ -1514,25 +1519,28 @@
               drop <i>key</i> by continuing to the next <i>key</i>.</li>
             <li>If <i>expanded property</i> is a <tref>keyword</tref>:
               <ol class="algorithm">
-                <li>If <tref>active property</tref> equals <code>@reverse</code>,
-                  an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property-map">invalid reverse property map</a></code>
-                  error has been detected.</li>
+                <li>If <tref>active property</tref> equals <code>@reverse</code>, an
+                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property-map">invalid reverse property map</a></code>
+                  error has been detected and processing is aborted.</li>
                 <li>If <i>result</i> has already an <i>expanded property</i> member, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.colliding-keywords">colliding keywords</a></code>
+                  error has been detected and processing is aborted.</li>
                 <li>If <i>expanded property</i> is <code>@id</code> and
                   <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--id-value">invalid @id value</a></code>
-                  error has been detected. Otherwise, set <i>expanded value</i> to
-                  the result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
+                  error has been detected and processing is aborted. Otherwise,
+                  set <i>expanded value</i> to the result of using the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>,
                   passing <tref>active context</tref>, <i>value</i>, and <tref>true</tref>
                   for <i>documentRelative</i>.</li>
                 <li>If <i>expanded property</i> is <code>@type</code> and <i>value</i>
                   is neither a <tref>string</tref> nor an <tref>array</tref> of
                   <tref title="string">strings</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-value">invalid type value</a></code>
-                  error has been detected. Otherwise, set <i>expanded value</i> to the
-                  result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
-                  passing <tref>active context</tref>, <tref>true</tref> for <i>vocabRelative</i>,
+                  error has been detected and processing is aborted. Otherwise,
+                  set <i>expanded value</i> to the result of using the
+                  <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
+                  <tref>active context</tref>, <tref>true</tref> for <i>vocabRelative</i>,
                   and <tref>true</tref> for <i>documentRelative</i> to expand the <i>value</i>
                   or each of its items.</li>
                 <li>If <i>expanded property</i> is <code>@graph</code>, set
@@ -1542,8 +1550,9 @@
                 <li>If <i>expanded property</i> is <code>@value</code> and
                   <i>value</i> is not a <tref>scalar</tref> or <tref>null</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-value-object-value">invalid value object value</a></code>
-                  error has been detected. Otherwise, set <i>expanded value</i> to <i>value</i>.
-                  If <i>expanded value</i> is <tref>null</tref>, set the <code>@value</code>
+                  error has been detected and processing is aborted. Otherwise,
+                  set <i>expanded value</i> to <i>value</i>. If <i>expanded value</i>
+                  is <tref>null</tref>, set the <code>@value</code>
                   member of <i>result</i> to <tref>null</tref> and continue with the
                   next <i>key</i> from <i>element</i>. Null values need to be preserved
                   in this case as the meaning of an <code>@type</code> member depends
@@ -1551,13 +1560,13 @@
                 <li>If <i>expanded property</i> is <code>@language</code> and
                   <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-tagged-string">invalid language-tagged string</a></code>
-                  error has been detected. Otherwise, set <i>expanded value</i> to
-                  lowercased <i>value</i>.</li>
+                  error has been detected and processing is aborted. Otherwise,
+                  set <i>expanded value</i> to lowercased <i>value</i>.</li>
                 <li>If <i>expanded property</i> is <code>@index</code> and
                   <i>value</i> is not a <tref>string</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--index-value">invalid @index value</a></code>
-                  error has been detected. Otherwise, set <i>expanded value</i>
-                  to <i>value</i>.</li>
+                  error has been detected and processing is aborted. Otherwise,
+                  set <i>expanded value</i> to <i>value</i>.</li>
                 <li>If <i>expanded property</i> is <code>@list</code>:
                   <ol class="algorithm">
                     <li>If <tref>active property</tref> is <tref>null</tref> or
@@ -1568,7 +1577,7 @@
                       <tref>active property</tref>, and <i>value</i> for <i>element</i>.</li>
                     <li>If <i>expanded value</i> is a <tref>list object</tref>, a
                       <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
-                      error has been detected.</li>
+                      error has been detected and processing is aborted.</li>
                   </ol>
                 </li>
                 <li>If <i>expanded property</i> is <code>@set</code>, set
@@ -1579,7 +1588,7 @@
                 <li>If <i>expanded property</i> is <code>@reverse</code> and
                   <i>value</i> is not a <tref>JSON object</tref>, an
                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid @reverse value</a></code>
-                  error has been detected. Otherwise
+                  error has been detected and processing is aborted. Otherwise
                   <ol class="algorithm">
                     <li>Initialize <i>expanded value</i> to the result of using this
                       algorithm recursively, passing <tref>active context</tref>,
@@ -1608,7 +1617,7 @@
                               <ol class="algorithm">
                                 <li>If <i>item</i> is a <tref>value object</tref> or <tref>list object</tref>, an
                                   <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
-                                  has been detected.</li>
+                                  has been detected and processing is aborted.</li>
                                 <li>If <i>reverse map</i> has no <i>property</i> member, create one
                                   and initialize its value to an empty <tref>array</tref>.</li>
                                 <li>Append <i>item</i> to the value of the <i>property</i>
@@ -1647,7 +1656,7 @@
                         <li><i>item</i> must be a <tref>string</tref>,
                           otherwise an
                           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-map-value">invalid language map value</a></code>
-                          error has been detected.</li>
+                          error has been detected and processing is aborted.</li>
                         <li>Append a <tref>JSON object</tref> to
                           <i>expanded value</i> that consists of two
                           key-value pairs: (<code>@value</code>-<i>item</i>)
@@ -1717,7 +1726,7 @@
                   <ol class="algorithm">
                     <li>If <i>item</i> is a <tref>value object</tref> or <tref>list object</tref>, an
                       <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
-                      has been detected.</li>
+                      has been detected and processing is aborted.</li>
                     <li>If <i>reverse map</i> has no <i>expanded property</i> member,
                       create one and initialize its value to an empty <tref>array</tref>.</li>
                     <li>Append <i>item</i> to the value of the <i>expanded property</i>
@@ -1745,18 +1754,19 @@
               <code>@language</code> key and the <code>@type</code> key.
               Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-value-object">invalid value object</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>If the value of <i>result</i>'s <code>@value</code> key is
               <tref>null</tref>, then set <i>result</i> to <tref>null</tref>.</li>
             <li>Otherwise, if the value of <i>result</i>'s <code>@value</code> member
               is not a <tref>string</tref> and <i>result</i> contains the key
               <code>@language</code>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-tagged-value">invalid language-tagged value</a></code>
-              error has been detected (only <tref title="string">strings</tref> can be language-tagged).</li>
+              error has been detected (only <tref title="string">strings</tref>
+              can be language-tagged) and processing is aborted.</li>
             <li>Otherwise, if the <i>result</i> has a <code>@type</code> member
               and its value is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-typed-value">invalid typed value</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
           </ol>
         </li>
         <li>Otherwise, if <i>result</i> contains the key <code>@type</code>
@@ -1768,7 +1778,7 @@
             <li>The <i>result</i> must contain at most one other key and that
               key must be <code>@index</code>. Otherwise, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-set-or-list-object">invalid set or list object</a></code>
-              error has been detected.</li>
+              error has been detected and processing is aborted.</li>
             <li>If <i>result</i> contains the key <code>@set</code>, then
               set <i>result</i> to the key's associated value.</li>
           </ol>
@@ -2179,7 +2189,7 @@
                       with an <tref>active property</tref> that has a
                       <tref>container mapping</tref>; a
                       <code class="error"><a href="#idl-def-JsonLdErrorCode.compaction-to-list-of-lists">compaction to list of lists</a></code>
-                      error has been detected.</li>
+                      error has been detected and processing is aborted.</li>
                   </ol>
                 </li>
                 <li>
@@ -3017,7 +3027,8 @@
             member of <i>node</i> to its value. If <tref>node</tref> has already an
             <code>@index</code> member with a different value, a
             <code class="error"><a href="#idl-def-JsonLdErrorCode.conflicting-indexes">conflicting indexes</a></code>
-            error has been detected. Remove the <code>@index</code> member from <i>element</i>.</li>
+            error has been detected and processing is aborted. Otherwise, continue by
+            removing the <code>@index</code> member from <i>element</i>.</li>
           <li>If <i>element</i> has an <code>@reverse</code> member:
             <ol class="algorithm">
               <li>Create a <tref>JSON object</tref> <i>referenced node</i> with a single member <code>@id</code> whose
@@ -3681,7 +3692,7 @@
       <dl title="callback JsonLdCallback = void" class="idl">
         <dt>JsonLdError error</dt>
         <dd>If the value is <tref>null</tref>, then no issue was detected
-          during processing. Otherwise, a processing issue was detected and
+          during processing. Otherwise, a processing error was detected and
           the details are contained within the <em>error</em> object.</dd>
         <dt>object or object[] document</dt>
         <dd>The processed JSON-LD document.</dd>
