@@ -816,16 +816,6 @@
       references to remote contexts, this includes their retrieval.</p>
 
     <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A <tref>local context</tref> needs to be merged into an
-        <tref>active context</tref> so that the <tref>active context</tref> can be
-        used when executing other JSON-LD algorithms such as the
-        <a href="#expansion-algorithm">Expansion algorithm</a> or
-        <a href="#compaction-algorithm">Compaction algorithm</a>.</p>
-    </section>
-
-    <section class="informative">
       <h3>General Solution</h3>
 
       <p>First we prepare a new <tref>active context</tref> <i>result</i> by cloning
@@ -988,15 +978,8 @@
 
     <p>This algorithm is called from the
       <a href="#context-processing-algorithm">Context Processing algorithm</a>
-      to create <tref title="term definition">term definitions</tref> in a new
-      <tref>active context</tref>.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A <tref>term definition</tref> must be created for the given
-        <tref>term</tref>.</p>
-    </section>
+      to create a <tref>term definition</tref> in the <tref>active context</tref>
+      for a <tref>term</tref> being processed in a <tref>local context</tref>.</p>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -1209,9 +1192,9 @@
     <p>In JSON-LD documents, some keys and values may represent
       <tref title="IRI">IRIs</tref>. This section defines an algorithm for
       transforming a <tref>string</tref> that represents an <tref>IRI</tref> into
-      an <tref>absolute IRI</tref>. It also covers transforming
-      <tref title="keyword alias">keyword aliases</tref> into
-      <tref title="keyword">keywords</tref>.</p>
+      an <tref>absolute IRI</tref> or <tref>blank node identifier</tref>.
+      It also covers transforming <tref title="keyword alias">keyword aliases</tref>
+      into <tref title="keyword">keywords</tref>.</p>
 
     <p><tref>IRI</tref> expansion may occur during context processing or during
       any of the other JSON-LD algorithms. If IRI expansion occurs during context
@@ -1220,21 +1203,6 @@
       are passed to this algorithm. This allows for <tref>term definition</tref>
       dependencies to be processed via the
       <a href="#create-term-definition">Create Term Definition algorithm</a>.</p>
-
-    <p>After application of this algorithm, values processed by this algorithm are
-      said to be in <tdef>expanded IRI form</tdef> (Advanced note: this form
-      may also include
-      <tref title="blank node identifier">blank node identifiers</tref> and
-      JSON-LD <tref title="keyword">keywords</tref>).</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>We have a value that needs to be expanded to an <tref>absolute IRI</tref>
-        or a <tref>keyword</tref>. The given value may be <tref>null</tref>, a
-        <tref>term</tref>, a <tref>keyword alias</tref>, a <tref>compact IRI</tref>,
-        a <tref>relative IRI</tref>, or an <tref>absolute IRI</tref>.</p>
-    </section>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -1401,16 +1369,14 @@
   <section>
     <h2>Expansion Algorithm</h2>
 
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A JSON-LD document needs to be expanded, such that all <tref>context</tref>
-        definitions have been removed, all <tref title="term">terms</tref> and
-        <tref title="compact IRI">compact IRIs</tref> have been expanded to absolute
-        <tref title="IRI">IRIs</tref>, and all
-        <tref title="JSON-LD value">JSON-LD values</tref> are expressed in
-        <tref title="array">arrays</tref> in <tref>expanded form</tref>.</p>
-    </section>
+    <p>This algorithm expands a JSON-LD document, such that all <tref>context</tref>
+      definitions are removed, all <tref title="term">terms</tref> and
+      <tref title="compact IRI">compact IRIs</tref> are expanded to
+      <tref title="absolute IRI">absolute IRIs</tref>,
+      <tref title="blank node identifier">blank node identifiers</tref>, or
+      <tref title="keyword">keywords</tref> and all
+      <tref title="JSON-LD value">JSON-LD values</tref> are expressed in
+      <tref title="array">arrays</tref> in <tref>expanded form</tref>.</p>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -1805,17 +1771,11 @@
   <section>
     <h2>Value Expansion</h2>
 
-    <p>Some values in JSON-LD can be expressed in a <tref>compacted form</tref>.
-      These values are required to be <tref title="expansion">expanded</tref> at
-      times when processing JSON-LD documents. A value is said to be in
-      <tdef>expanded form</tdef> after the application of this algorithm.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A <i>value</i> associated with an <tref>active property</tref> must
-        be <tref title="expansion">expanded</tref> to <tref>expanded form</tref>.</p>
-    </section>
+    <p>Some values in JSON-LD can be expressed in a
+      <tref title="compacted form">compact form</tref>. These values are required
+      to be <tref title="expansion">expanded</tref> at times when processing
+      JSON-LD documents. A value is said to be in <tdef>expanded form</tdef>
+      after the application of this algorithm.</p>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -1904,19 +1864,17 @@
   <section>
     <h2>Compaction Algorithm</h2>
 
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A JSON-LD document needs to be compacted, such that the given
-        <tref>context</tref> is applied. This must result in shortening
-        any applicable <tref title="IRI">IRIs</tref> to
-        <tref title="term">terms</tref> or
-        <tref title="compact IRI">compact IRIs</tref> and
-        any applicable <tref title="JSON-LD value">JSON-LD values</tref>
-        expressed in <tref>expanded form</tref> to simple values such as
-        <tref title="string">strings</tref> or
-        <tref title="number">numbers</tref>.</p>
-    </section>
+    <p>This algorithm compacts a JSON-LD document, such that the given
+      <tref>context</tref> is applied. This must result in shortening
+      any applicable <tref title="IRI">IRIs</tref> to
+      <tref title="term">terms</tref> or
+      <tref title="compact IRI">compact IRIs</tref>, any applicable
+      <tref title="keyword">keywords</tref> to
+      <tref title="keyword alias">keyword aliases</tref>, and
+      any applicable <tref title="JSON-LD value">JSON-LD values</tref>
+      expressed in <tref>expanded form</tref> to simple values such as
+      <tref title="string">strings</tref> or
+      <tref title="number">numbers</tref>.</p>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -2256,12 +2214,11 @@
     <h2>Inverse Context Creation</h2>
 
     <p>When there is more than one <tref>term</tref> that could be chosen
-      to compact an <tref>IRI</tref>, we want to ensure that our <tref>term</tref>
-      selection is both deterministic and not unexpected, representing the most
-      context-appropriate choice whilst taking into consideration algorithmic
-      complexity.</p>
+      to compact an <tref>IRI</tref>, it has to be ensured that the <tref>term</tref>
+      selection is both deterministic and represents the most context-appropriate
+      choice whilst taking into consideration algorithmic complexity.</p>
 
-    <p>In order to make <tref>term</tref> selections the concept of an
+    <p>In order to make <tref>term</tref> selections, the concept of an
       <tref>inverse context</tref> is introduced. An <tdef>inverse context</tdef>
       is essentially a reverse lookup table that maps
       <tref title="container mapping">container mappings</tref>,
@@ -2278,13 +2235,6 @@
       are then fed to the <a href="#term-selection">Term Selection algorithm</a>,
       which will find the <tref>term</tref> that most appropriately
       matches the value's mappings.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>An <tref>inverse context</tref> must be created for the given
-        <tref>active context</tref>.</p>
-    </section>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -2414,19 +2364,11 @@
   <section>
     <h2>IRI Compaction</h2>
 
-    <p>This section defines an algorithm for transforming an <tref>IRI</tref>
-      to a <tref>term</tref> or <tref>compact IRI</tref>, or a <tref>keyword</tref>
-      to a <tref>keyword alias</tref>. A value that is associated with the
+    <p>This algorithm compacts an <tref>IRI</tref> to a <tref>term</tref> or
+      <tref>compact IRI</tref>, or a <tref>keyword</tref> to a
+      <tref>keyword alias</tref>. A value that is associated with the
       <tref>IRI</tref> may be passed in order to assist in selecting the most
       context-appropriate <tref>term</tref>.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>We have an <tref>IRI</tref> or <tref>keyword</tref> that we want
-        to compact to a <tref>term</tref>, a <tref>compact IRI</tref>, or
-        a <tref>keyword alias</tref>.</p>
-    </section>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -2658,13 +2600,6 @@
       be best used to express the value.</p>
 
     <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>An <tref>IRI</tref> with an associated <i>value</i> should be compacted
-        to the most appropriate <tref>term</tref> in the <tref>active context</tref>.</p>
-    </section>
-
-    <section class="informative">
       <h3>General Solution</h3>
 
       <p>The <tref title="inverse context">inverse context's</tref> entry for
@@ -2778,13 +2713,6 @@
       value according to the <tref>term definition</tref> in the given
       <tref>active context</tref> that is associated with the value's associated
       <tref>active property</tref>.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>A <i>value</i> associated with an <tref>active property</tref> must
-        be <tref title="compaction">compacted</tref> to <tref>compacted form</tref>.</p>
-    </section>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -3069,6 +2997,10 @@
 <section>
   <h1>RDF Conversion Algorithms</h1>
 
+  <p>This section describes algorithms to transform a JSON-LD document to an
+    <tref>RDF dataset</tref> and vice versa. The algorithms are designed for in-memory
+    implementations with random access to <tref>JSON object</tref> elements.</p>
+
   <p>Throughout this section, the following vocabulary
     <tref title="prefix">prefixes</tref> are used in
     <tref title="compact iri">compact IRIs</tref>:</p>
@@ -3097,17 +3029,10 @@
   <section>
     <h2>Convert to RDF Algorithm</h2>
 
-    <p>This section describes algorithms to transform a JSON-LD document to an
-      <tref>RDF dataset</tref>. The algorithm below is designed for in-memory
-      implementations with random access to <tref>JSON object</tref> elements.</p>
+    <p>This algorithms converts a JSON-LD document to an <tref>RDF dataset</tref>.</p>
 
-    <section class="informative">
-      <h3>Purpose</h3>
-      <p>A JSON-LD document needs to be converted to an <tref>RDF dataset</tref>.</p>
-
-      <p class="issue" data-number="217">RDF does not currently allow a
-        <tref>blank node identifier</tref> to be used as a <tref>graph name</tref>.</p>
-    </section>
+    <p class="issue" data-number="217">RDF does not currently allow a
+      <tref>blank node identifier</tref> to be used as a <tref>graph name</tref>.</p>
 
     <section class="informative">
       <h3>General Solution</h3>
@@ -3203,13 +3128,6 @@
       to be used as the <tref>object</tref> of an <tref>RDF triple</tref>.</p>
 
     <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>Create an <tref>RDF resource</tref> from a <tref>node object</tref> or
-        <tref>value object</tref>.</p>
-    </section>
-
-    <section class="informative">
       <h3>General Solution</h3>
 
       <p><tref title="value object">Value objects</tref> are transformed to
@@ -3271,13 +3189,6 @@
       as defined in RDF Semantics [[!RDF-MT]].</p>
 
     <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>Transform a sequential set of <tref title="node">nodes</tref> in a
-        <tref>list</tref> into the equivalent <tref>RDF Collection</tref>.</p>
-    </section>
-
-    <section class="informative">
       <h3>General Solution</h3>
 
       <p>For each element of the <tref>list</tref> a new <tref>blank node identifier</tref>
@@ -3322,23 +3233,17 @@
   <section>
     <h2>Convert from RDF Algorithm</h2>
 
-    <p>This section describes algorithms to transform an <tref>RDF dataset</tref>
+    <p>This algorithm converts an <tref>RDF dataset</tref> consisting of a
+      <tref>default graph</tref> and zero or more
+       <tref title="named graph">named graphs</tref> into a JSON-LD document.</p>
+
+    <p>In some cases, data exists natively in the form of triples or
+      <tref title="triple">triples</tref>; for example, if the data was
+      originally represented in an <tref>RDF dataset</tref>. This algorithm is
+      designed to simply translate an array of <tref title="triple">triples</tref>
       into a JSON-LD document.</p>
 
     <p class="note">This algorithm does not support lists containing lists.</p>
-
-    <section class="informative">
-      <h3>Purpose</h3>
-
-      <p>An <tref>RDF dataset</tref> including a <tref>default graph</tref> and zero or more
-        <tref title="named graph">named graphs</tref> needs to be converted to JSON-LD document.</p>
-
-      <p>In some cases, data exists natively in the form of triples or
-        <tref title="triple">triples</tref>; for example, if the data was
-        originally represented in an <tref>RDF dataset</tref>. This algorithm is
-        designed to simply translate an array of <tref title="triple">triples</tref>
-        into a JSON-LD document.</p>
-    </section>
 
     <section class="informative">
       <h3>General Solution</h3>
