@@ -2430,14 +2430,14 @@
               preferred <tref title="container mapping">container mappings</tref>
               for a <tref>term</tref>, based on what is compatible with
               <i>value</i>.</li>
-            <li>If <i>value</i> is a <tref>JSON object</tref> that contains the
-              key <code>@index</code>, then append the value <code>@index</code>
-              to <i>containers</i>.</li>
             <li>Initialize <i>typeOrLanguage</i> to <code>@language</code>,
               and <i>typeOrLanguageValue</i> to <code>@null</code>. These two
               variables will keep track of the preferred
               <tref>type mapping</tref> or <tref>language mapping</tref> for
               a <tref>term</tref>, based on what is compatible with <i>value</i>.</li>
+            <li>If <i>value</i> is a <tref>JSON object</tref> that contains the
+              key <code>@index</code>, then append the value <code>@index</code>
+              to <i>containers</i>.</li>
             <li>If <i>reverse</i> is <tref>true</tref>, set <i>typeOrLanguage</i>
               to <code>@type</code>, <i>typeOrLanguageValue</i> to
               <code>@reverse</code>, and append <code>@set</code> to <i>containers</i>.</li>
@@ -2503,7 +2503,7 @@
             </li>
             <li>Otherwise:
               <ol class="algorithm">
-                <li>If <i>value</i> contains the key <code>@value</code>:
+                <li>If <i>value</i> is a <tref>value object</tref>:
                   <ol class="algorithm">
                     <li>If <i>value</i> contains the key <code>@language</code>
                       and does not contain the key <code>@index</code>,
@@ -2525,11 +2525,39 @@
               the non-existence of a <tref>container mapping</tref>, and it will
               be the last <tref>container mapping</tref> value to be checked as it
               is the most generic.</li>
+            <li>If <i>typeOrLanguageValue</i> is <tref>null</tref>, set it to
+              <code>@null</code>. This is the key under which <tref>null</tref> values
+              are stored in the <tref>inverse context</tref> <i>entry</i>.</li>
+            <li>Initialize <i>preferred values</i> to an empty <tref>array</tref>.
+              This <tref>array</tref> will indicate, in order, the preferred values for
+              a <tref title="term">term's</tref> <tref>type mapping</tref> or
+              <tref>language mapping</tref>.</li>
+            <li>If <i>typeOrLanguageValue</i> is <code>@reverse</code>, append
+              <code>@reverse</code> to <i>preferred values</i>.</li>
+            <li>If <i>typeOrLanguageValue</i> is <code>@id</code> or <code>@reverse</code>
+              and <i>value</i> has an <code>@id</code> member:
+              <ol class="algorithm">
+                <li>If the result of using the
+                  <a href="#iri-compaction">IRI compaction algorithm</a>,
+                  passing <tref>active context</tref>, <tref>inverse context</tref>,
+                  the value associated with the <code>@id</code> key in <i>value</i> for
+                  <i>iri</i>, <tref>true</tref> for <i>vocabRelative</i>, and
+                  <tref>true</tref> for <i>documentRelative</i> has a
+                  <tref>term definition</tref> in the <tref>active context</tref>
+                  with an <tref>IRI mapping</tref> that equals the value associated
+                  with the <code>@id</code> key in <i>value</i>,
+                  then append <code>@vocab</code>, <code>@id</code>, and
+                  <code>@none</code>, in that order, to <i>preferred values</i>.</li>
+                <li>Otherwise, append <code>@id</code>, <code>@vocab</code>, and
+                  <code>@none</code>, in that order, to <i>preferred values</i>.</li>
+              </ol>
+            </li>
+            <li>Otherwise, append <i>typeOrLanguageValue</i> and <code>@none</code>, in
+              that order, to <i>preferred values</i>.</li>
             <li>Initialize <i>term</i> to the result of the
               <a href="#term-selection">Term Selection algorithm</a>, passing
-              <tref>active context</tref>, <tref>inverse context</tref>, <i>iri</i>,
-              <i>value</i>, <i>containers</i>, <i>typeOrLanguage</i>, and
-              <i>typeOrLanguageValue</i>.</li>
+              <tref>inverse context</tref>, <i>iri</i>, <i>containers</i>,
+              <i>typeOrLanguage</i>, and <i>preferred values</i>.</li>
             <li>If <i>term</i> is not <tref>null</tref>, return <i>term</i>.</li>
           </ol>
         </li>
@@ -2628,78 +2656,43 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm has seven required inputs. They are:
-        an <tref>active context</tref>, an <tref>inverse context</tref>, an
-        <tref>IRI</tref> <i>iri</i>, a <i>value</i> associated with the
-        <tref>IRI</tref>, an <tref>array</tref> <i>containers</i> that
-        represents ordered list of preferred
-        <tref title="container mapping">container mappings</tref>, a
-        <tref>string</tref> <i>typeOrLanguage</i> that indicates whether
+      <p>This algorithm has five required inputs. They are:
+        an <tref>inverse context</tref>, a <tref>keyword</tref> or <tref>IRI</tref>
+        <i>iri</i>, an <tref>array</tref> <i>containers</i> that represents an
+        ordered list of preferred <tref title="container mapping">container mappings</tref>,
+        a <tref>string</tref> <i>typeOrLanguage</i> that indicates whether
         to look for a <tref>term</tref> with a matching <tref>type mapping</tref>
-        or <tref>language mapping</tref>, and a <tref>string</tref>
-        <i>typeOrLanguageValue</i> with the associated value for the
-        <tref>type mapping</tref> or <tref>language mapping</tref> to look for.</p>
+        or <tref>language mapping</tref>, and an <tref>array</tref> representing
+        an ordered list of <i>preferred values</i> for the <tref>type mapping</tref>
+        or <tref>language mapping</tref> to look for.</p>
 
       <ol class="algorithm">
         <li>Initialize <i>container map</i> to the value associated with
           <i>iri</i> in the <tref>inverse context</tref>.</li>
-        <li>If <i>typeOrLanguageValue</i> is <tref>null</tref>, set it to
-          <code>@null</code>. This is the key under which <tref>null</tref> values
-          are stored in the <tref>inverse context</tref> <i>entry</i>.</li>
-        <li>Initialize <i>preferred values</i> to an empty <tref>array</tref>.
-          This <tref>array</tref> will indicate, in order, the preferred values for
-          a <tref title="term">term's</tref> <tref>type mapping</tref> or
-          <tref>language mapping</tref>.</li>
-<!-- FIXME: This is better done in IRI compaction, this way we don't need to pass around the active context etc. -->
-        <li>If <i>typeOrLanguageValue</i> is <code>@id</code> or <code>@reverse</code>
-          and <i>value</i> is a <tref>JSON object</tref> containing the key
-          <code>@id</code>:
-          <ol class="algorithm">
-            <li>If <i>typeOrLanguageValue</i> is <code>@reverse</code>, append
-              <code>@reverse</code> to <i>preferred values</i>.</li>
-            <li>If the result of using the
-              <a href="#iri-compaction">IRI compaction algorithm</a>,
-              passing <tref>active context</tref>, <tref>inverse context</tref>,
-              the value associated with the <code>@id</code> key in <i>value</i> for
-              <i>iri</i>, <tref>true</tref> for <i>vocabRelative</i>, and
-              <tref>true</tref> for <i>documentRelative</i> has a
-              <tref>term definition</tref> in the <tref>active context</tref>
-              with an <tref>IRI mapping</tref> that equals the value associated
-              with the <code>@id</code> key in <i>value</i>,
-              then append <code>@vocab</code>, <code>@id</code>, and
-              <code>@none</code>, in that order, to <i>preferred values</i>.</li>
-            <li>Otherwise, append <code>@id</code>, <code>@vocab</code>, and
-              <code>@none</code>, in that order, to <i>preferred values</i>.</li>
-          </ol>
-        </li>
-        <li>Otherwise, append <i>typeOrLanguageValue</i> and <code>@none</code>, in
-          that order, to <i>preferred values</i>.</li>
-        <li>Initialize <i>selected term</i> to <tref>null</tref>.</li>
-        <li>For each item <i>container</i> in <i>containers</i> while
-          <i>selected term</i> is <tref>null</tref>:
+        <li>For each item <i>container</i> in <i>containers</i>:
           <ol class="algorithm">
             <li>If <i>container</i> is not a key in <i>container map</i>, then
               there is no <tref>term</tref> with a matching
               <tref>container mapping</tref> for it, so continue to the next
               <i>container</i>.</li>
             <li>Initialize <i>typeOrLanguage map</i> to the value associated
-              with <i>container</i> in <i>container map</i>.</li>
+              with the <i>container</i> member in <i>container map</i>.</li>
             <li>Initialize <i>typeOrLanguageValue map</i> to the value associated
-              with <i>typeOrLanguage</i> in <i>typeOrLanguage map</i>.</li>
-            <li>For each <i>item</i> in <i>preferred values</i> while
-              <i>selected term</i> is <tref>null</tref>:
+              with <i>typeOrLanguage</i> member in <i>typeOrLanguage map</i>.</li>
+            <li>For each <i>item</i> in <i>preferred values</i>:
               <ol class="algorithm">
                 <li>If <i>item</i> is not a key in <i>typeOrLanguageValue map</i>,
                   then there is no <tref>term</tref> with a matching
                   <tref>type mapping</tref> or <tref>language mapping</tref>,
                   so continue to the next <i>item</i>.</li>
-                <li>Set <i>selected term</i> to the value associated with
-                  <i>item</i> in <i>typeOrLanguageValue map</i>.</li>
+                <li>Otherwise, a matching term has been found, return the value
+                  associated with the <i>item</i> member in
+                  <i>typeOrLanguageValue map</i>.</li>
               </ol>
             </li>
           </ol>
         </li>
-        <li>Return <i>selected term</i>.</li>
+        <li>No matching term has been found. Return <tref>null</tref>.</li>
       </ol>
     </section>
   </section> <!-- end of Term Selection -->
