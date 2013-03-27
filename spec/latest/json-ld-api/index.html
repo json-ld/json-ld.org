@@ -2745,9 +2745,9 @@
   <section>
     <h2>Flattening Algorithm</h2>
 
-    <p>This algorithm flattens a JSON-LD document by collecting all properties
-      of a <tref>node</tref> in a single <tref>JSON object</tref> and labeling
-      all <tref title="blank node">blank nodes</tref> with
+    <p>This algorithm flattens an expanded JSON-LD document by collecting all
+      properties of a <tref>node</tref> in a single <tref>JSON object</tref>
+      and labeling all <tref title="blank node">blank nodes</tref> with
       <tref title="blank node identifier">blank node identifiers</tref>.
       This resulting uniform shape of the document, may drastically simplify
       the code required to process JSON-LD data in certain applications.</p>
@@ -2755,21 +2755,13 @@
     <section class="informative">
       <h3>General Solution</h3>
 
-      <p>First, the document is expanded using the
-        <a href="#expansion-algorithm">Expansion algorithm</a>. This removes
-        all context definitions and expands all <tref title="term">terms</tref>
-        and <tref title="compact IRI">compact IRIs</tref> to
-        <tref title="absolute IRI">absolute IRIs</tref>,
-        <tref title="blank node identifier">blank node identifiers</tref>,
-        or <tref title="keyword">keywords</tref> and all
-        <tref title="JSON-LD value">JSON-LD values</tref> to <tref>expanded
-        form</tref>. In the next step, a <i>node map</i> is generated using
-        the <a href="#node-map-generation">Node Map Generation algorithm</a>
+      <p>First, a <i>node map</i> is generated using the
+        <a href="#node-map-generation">Node Map Generation algorithm</a>
         which collects all properties of a <tref>node</tref> in a single
-        <tref>JSON object</tref>. Finally, the <i>node map</i> is converted
-        to a JSON-LD document in
+        <tref>JSON object</tref>. In the next step, the <i>node map</i> is
+        converted to a JSON-LD document in
         <tref href="../json-ld-syntax/#flattened-document-form">flattened document form</tref>.
-        If a <tref>context</tref> has been passed, the flattened document
+        Finally, if a <tref>context</tref> has been passed, the flattened document
         is compacted using the <a href="#compaction-algorithm">Compaction algorithm</a>
         before being returned.</p>
     </section>
@@ -2782,8 +2774,6 @@
         passed, <i>context</i> is set to <tref>null</tref>.</p>
 
       <ol class="algorithm">
-        <li>Expand <i>element</i> according the
-          <a href="#expansion-algorithm">Expansion algorithm</a>.</li>
         <li>Initialize <i>node map</i> to a <tref>JSON object</tref> consisting of
           a single member whose key is <code>@default</code> and whose value is
           an empty <tref>JSON object</tref>.</li>
@@ -3613,14 +3603,45 @@
     <p>The JSON-LD Processor interface is the high-level programming structure
       that developers use to access the JSON-LD transformation methods.</p>
 
-    <p>It is important to highlight that conformant <tref title="JSON-LD Processor">JSON-LD processors</tref>
-      MUST NOT modify the input parameters.</p>
+    <p>It is important to highlight that conformant
+      <tref title="JSON-LD Processor">JSON-LD processors</tref> MUST NOT modify
+      the input parameters. If an error is detected, the <i>callback</i> is
+      invoked passing a <a>JsonLdError</a> with the corresponding error
+      <code class="idlMemberName"><a href="#widl-JsonLdError-code">code</a></code>
+      and processing is stopped.</li></p>
 
     <dl title="[Constructor] interface JsonLdProcessor" class="idl">
       <dt>void expand()</dt>
       <dd>
-        <a href="#expansion">Expands</a> the given <code>input</code> according to
-        the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>.
+        <p><a href="#expansion">Expands</a> the given <code>input</code> according to
+          the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>:</p>
+
+        <ol class="algorithm">
+          <li>If the passed <i>input</i> is a DOMString representing the <tref>IRI</tref>
+            of a remote document, dereference it. If the retrieved document has a content type
+            different than <code>application/ld+json</code> or <code>application/json</code> or
+            if the document cannot be parsed as JSON, invoke the <i>callback</i> passing an
+            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+            error.</li>
+          <li>Initialize a new empty <tref>active context</tref>.</li>
+          <li>If an
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            has been passed, update the <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            as <tref>local context</tref>.</li>
+          <li>If the <i>input</i> has been retrieved and the response has a content type
+            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
+            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
+            <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+          <li>Set <i>expanded</i> to the result of using the
+            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
+            <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>Invoke <i>callback</i>, passing <tref>null</tref> for <i>error</i> and
+            <i>expanded</i> for <i>document</i>.</li>
+        </ol>
 
         <dl class="parameters">
           <dt>(object or object[] or DOMString) input</dt>
@@ -3638,15 +3659,47 @@
 
       <dt>void compact()</dt>
       <dd>
-        <a href="#compaction">Compacts</a> the given <code>input</code> using the
-        <code>context</code> according to the steps in the
-        <a href="#compaction-algorithm">Compaction algorithm</a>.
+        <p><a href="#compaction">Compacts</a> the given <code>input</code> using the
+          <code>context</code> according to the steps in the
+          <a href="#compaction-algorithm">Compaction algorithm</a>:</p>
+
+        <ol class="algorithm">
+          <li>If the passed <i>input</i> is a DOMString representing the <tref>IRI</tref>
+            of a remote document, dereference it. If the retrieved document has a content type
+            different than <code>application/ld+json</code> or <code>application/json</code> or
+            if the document cannot be parsed as JSON, invoke the <i>callback</i> passing an
+            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+            error.</li>
+          <li>Initialize a new empty <tref>active context</tref>.</li>
+          <li>If an
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            has been passed, update the <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            as <tref>local context</tref>.</li>
+          <li>If the <i>input</i> has been retrieved and the response has a content type
+            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
+            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
+            <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+          <li>Set <i>expanded</i> to the result of using the
+            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
+            <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>Set <i>compacted</i> to the result of using the
+            <a href="#compaction-algorithm">Compaction algorithm</a>, passing
+            <i>context</i>, <i>expanded</i> as <i>element</i>, and if passed, the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+            flag in <i>options</i>.</li>
+          <li>Invoke <i>callback</i>, passing <tref>null</tref> for <i>error</i> and
+            <i>compacted</i> for <i>document</i>.</li>
+        </ol>
 
         <dl class="parameters">
           <dt>(object or object[] or DOMString) input</dt>
            <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
             <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
-          <dt>(object or DOMString) context</dt>
+          <dt>(object or DOMString)? context</dt>
           <dd>The context to use when compacting the <code>input</code>; either in the
             form of a <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
           <dt>JsonLdCallback callback</dt>
@@ -3661,9 +3714,42 @@
 
       <dt>void flatten()</dt>
       <dd>
-        <a href="#flattening">Flattens</a> the given <code>input</code> and
-        <a href="#compaction">compacts</a> it using the passed <code>context</code>
-          according to the steps in the <a href="#flattening-algorithm">Flattening algorithm</a>.
+        <p><a href="#flattening">Flattens</a> the given <code>input</code> and
+          <a href="#compaction">compacts</a> it using the passed <code>context</code>
+          according to the steps in the <a href="#flattening-algorithm">Flattening algorithm</a>:</p>
+
+        <ol class="algorithm">
+          <li>If the passed <i>input</i> is a DOMString representing the <tref>IRI</tref>
+            of a remote document, dereference it. If the retrieved document has a content type
+            different than <code>application/ld+json</code> or <code>application/json</code> or
+            if the document cannot be parsed as JSON, invoke the <i>callback</i> passing an
+            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+            error.</li>
+          <li>Initialize a new empty <tref>active context</tref>.</li>
+          <li>If an
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            has been passed, update the <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            as <tref>local context</tref>.</li>
+          <li>If the <i>input</i> has been retrieved and the response has a content type
+            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
+            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
+            <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+          <li>Set <i>expanded</i> to the result of using the
+            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
+            <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>Set <i>flattened</i> to the result of using the
+            <a href="#flattening-algorithm">Flattening algorithm</a>, passing
+            <i>expanded</i> as <i>element</i>, <i>context</i>, and if passed, the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+            flag in <i>options</i> (which is internally passed to the
+            <a href="#compaction-algorithm">Compaction algorithm</a>).</li>
+          <li>Invoke <i>callback</i>, passing <tref>null</tref> for <i>error</i> and
+            <i>flattened</i> for <i>document</i>.</li>
+        </ol>
 
         <dl class="parameters">
           <dt>(object or object[] or DOMString) input</dt>
@@ -3815,8 +3901,8 @@
         codes.</p>
 
       <dl title="enum JsonLdErrorCode" class="idl">
-        <dt>invalid syntax</dt>
-        <dd>The document could not be parsed as JSON.</dd>
+        <dt>loading document failed</dt>
+        <dd>The document could not be loaded or parsed as JSON.</dd>
         <dt>list of lists detected</dt>
         <dd>A list of lists was detected. List of lists are not supported in
           this version of JSON-LD due to the algorithmic complexity associated
