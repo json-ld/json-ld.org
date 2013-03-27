@@ -1261,21 +1261,11 @@
           a <tref>term definition</tref> is created for <i>value</i> in
           <tref>active context</tref> during <a href="#context-processing-algorithm">Context Processing</a>.
         </li>
-        <li>Initialize <i>result</i> to <tref>null</tref>.</li>
-        <li>If <i>vocabRelative</i> is <tref>true</tref>:
-          <ol class="algorithm">
-            <li>If <i>value</i> has a <tref>null</tref> mapping in
-              <tref>active context</tref>, return <tref>null</tref>.</li>
-            <li>If <tref>active context</tref> has a <tref>term definition</tref> for
-              <i>value</i>, set <i>result</i> to the associated
-              <tref>IRI mapping</tref>.</li>
-            <li>If <i>result</i> is a <tref>keyword</tref> (meaning that <i>value</i>
-              is a <tref>keyword alias</tref>), return <i>result</i>.</li>
-          </ol>
-        </li>
-        <li>If <i>result</i> is <tref>null</tref> and <i>value</i> contains a
-          colon (<code>:</code>), it is either an <tref>absolute IRI</tref> or
-          a <tref>compact IRI</tref>:
+        <li>If <i>vocabRelative</i> is <tref>true</tref> and the
+          <tref>active context</tref> has a <tref>term definition</tref> for
+          <i>value</i>, return the associated <tref>IRI mapping</tref>.</li>
+        <li>Otherwise, if <i>value</i> contains a colon (<code>:</code>),
+          it is either an <tref>absolute IRI</tref> or a <tref>compact IRI</tref>:
           <ol class="algorithm">
             <li>Split <i>value</i> into a <tref>prefix</tref> and <i>suffix</i>
               at the first occurrence of a colon (<code>:</code>).</li>
@@ -1295,92 +1285,39 @@
                   in <tref>active context</tref> during
                   <a href="#context-processing-algorithm">Context Processing</a>.</li>
                 <li>If <tref>active context</tref> contains a <tref>term definition</tref>
-                  for <tref>prefix</tref> set <i>result</i> to the result of concatenating
+                  for <tref>prefix</tref>, return the result of concatenating
                   the <tref>IRI mapping</tref> associated with <tref>prefix</tref> and
                   <i>suffix</i>.</li>
               </ol>
             </li>
           </ol>
         </li>
-        <li>If <i>result</i> is <tref>null</tref>, set it to <i>value</i>.</li>
-        <li>If <tref>local context</tref> is <tref>null</tref> and <i>result</i>
-          begins with an underscore and colon (<code>_:</code>) <i>result</i> is a
-          <tref>blank node identifier</tref>. Set <i>result</i> to the
-          result of the
-          <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>,
-          passing <tref>active context</tref> and <i>result</i>
-          for <i>identifier</i>.</li>
-        <li>Otherwise, if <i>result</i> does not contain a colon (<code>:</code>),
-          <i>vocabRelative</i> is <tref>true</tref>, and
-          <tref>active context</tref> has a <tref>vocabulary mapping</tref>,
-          set <i>result</i> to the result of concatenating the
-          <tref>vocabulary mapping</tref> with <i>result</i>.</li>
-        <li>Otherwise, if <i>documentRelative</i> is <tref>true</tref>,
-          set <i>result</i> to the result of resolving <i>result</i> against
-          the <tref>base IRI</tref>. Only the basic algorithm in
-          <cite><a href="http://tools.ietf.org/html/rfc3986#section-5.2">section 5.2</a></cite>
-          of [[!RFC3986]] is used; neither
-          <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.2">Syntax-Based Normalization</a></cite> nor
-          <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.3">Scheme-Based Normalization</a></cite>
-          are performed. Characters additionally allowed in IRI references are treated
-          in the same way that unreserved characters are treated in URI references, per
-          <cite><a href="http://tools.ietf.org/html/rfc3987#section-6.5">section 6.5</a></cite>
-          of [[!RFC3987]].</li>
-        <li>If <tref>local context</tref> is not <tref>null</tref> then
-          <i>result</i> must be an <tref>absolute IRI</tref>, if not,
-          an <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+        <li>Otherwise, if <i>value</i> does not contain a colon (<code>:</code>):
+          <ol class="algorithm">
+            <li>If <i>vocabRelative</i> is <tref>true</tref>, and
+              <tref>active context</tref> has a <tref>vocabulary mapping</tref>,
+              return the result of concatenating the <tref>vocabulary mapping</tref>
+              with <i>value</i>.</li>
+            <li>Otherwise, if <i>documentRelative</i> is <tref>true</tref>,
+              return the result of resolving <i>value</i> against
+              the <tref>base IRI</tref>. Only the basic algorithm in
+              <cite><a href="http://tools.ietf.org/html/rfc3986#section-5.2">section 5.2</a></cite>
+              of [[!RFC3986]] is used; neither
+              <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.2">Syntax-Based Normalization</a></cite> nor
+              <cite><a href="http://tools.ietf.org/html/rfc3986#section-6.2.3">Scheme-Based Normalization</a></cite>
+              are performed. Characters additionally allowed in IRI references are treated
+              in the same way that unreserved characters are treated in URI references, per
+              <cite><a href="http://tools.ietf.org/html/rfc3987#section-6.5">section 6.5</a></cite>
+              of [[!RFC3987]].</li>
+          </ol>
+        <li>If <tref>local context</tref> is not <tref>null</tref> and
+          <i>value</i> is not an <tref>absolute IRI</tref>, an
+          <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
           error has been detected and processing is aborted.</li>
-        <li>Return <i>result</i>.</li>
+        <li>Otherwise, return <i>value</i> as is.</li>
       </ol>
     </section>
   </section> <!-- end of IRI Expansion -->
-
-  <section>
-    <h2>Generate Blank Node Identifier</h2>
-
-    <p>This algorithm is used to generate new
-      <tref title="blank node identifier">blank node identifiers</tref> or to
-      relabel an existing <tref>blank node identifier</tref> to avoid collision
-      by the introduction of new ones.</p>
-
-    <section class="informative">
-      <h3>General Solution</h3>
-
-      <p>The simplest case is if there exists already a <tref>blank node identifier</tref>
-        in the <i>identifier map</i> for the passed <i>identifier</i>, in which
-        case it is simply returned. Otherwise, a new <tref>blank node identifier</tref>
-        is generated by concatenating the string <code>_:b</code> and the
-        <i>counter</i>. If the passed <i>identifier</i> is not <tref>null</tref>,
-        an entry is created in the <i>identifier map</i> associating the
-        <i>identifier</i> with the <tref>blank node identifier</tref>. Finally,
-        the <i>counter</i> is increased by one and the new
-        <tref>blank node identifier</tref> is returned.</p>
-    </section>
-
-    <section>
-      <h3>Algorithm</h3>
-
-      <p>The algorithm takes a single input variable <i>identifier</i> which may
-        be <tref>null</tref>. Between its executions, the algorithm needs to
-        keep an <i>identifier map</i> to relabel existing
-        <tref title="blank node identifier">blank node identifiers</tref>
-        consistently and a <i>counter</i> to generate new
-        <tref title="blank node identifier">blank node identifiers</tref>. The
-        <i>counter</i> is initialized to <code>0</code> by default.</p>
-
-      <ol class="algorithm">
-        <li>If <i>identifier</i> is not <tref>null</tref> and has an entry in the
-          <i>identifier map</i>, return the mapped identifier.</li>
-        <li>Otherwise, generate a new <tref>blank node identifier</tref> by concatenating
-          the string <code>_:b</code> and <i>counter</i>.</li>
-        <li>Increment <i>counter</i> by <code>1</code>.</li>
-        <li>If <i>identifier</i> is not <tref>null</tref>, create a new entry
-          for <i>identifier</i> in <i>identifier map</i> and set its value
-          to the new <tref>blank node identifier</tref>.</li>
-        <li>Return the new <tref>blank node identifier</tref>.</li>
-      </ol>
-    </section>
-  </section> <!-- end of Generate Blank Node Identifier -->
 </section> <!-- end of Context Processing section -->
 
 
@@ -1843,19 +1780,9 @@
           with an <code>@value</code> member whose value is set to
           <i>value</i>.</li>
         <li>If <tref>active property</tref> has a <tref>type mapping</tref> in
-          <tref>active context</tref>:
-          <ol class="algorithm">
-            <li>Initialize <i>type</i> to the value associated with the
-              <tref>type mapping</tref>.</li>
-            <li>If <i>type</i> is a <tref>blank node identifier</tref> (it
-              begins with <code>_:</code>), then set it to the result of the
-              <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>,
-              passing <tref>active context</tref> and <i>type</i> for
-              <i>identifier</i>.</li>
-            <li>Add an <code>@type</code> member to <i>result</i> and set its
-              value to <i>type</i>.</li>
-          </ol>
-        </li>
+          <tref>active context</tref>, add an <code>@type</code> member to
+          <i>result</i> and set its value to the value associated with the
+          <tref>type mapping</tref>.</li>
         <li>Otherwise, if <i>value</i> is a <tref>string</tref>:
           <ol class="algorithm">
             <li>If a <tref>language mapping</tref> is associated with
@@ -2957,8 +2884,7 @@
         <li>If <i>element</i> has an <code>@type</code> member, perform for each
           <i>item</i> the following steps:
           <ol class="algorithm">
-            <li>If <i>item</i> is a <tref>blank node identifier</tref>, replace it
-              with a newly
+            <li>If <i>item</i> is a <tref>blank node identifier</tref>, replace it with a newly
               <a href="#generate-blank-node-identifier">generated blank node identifier</a>
               passing <i>item</i> for <i>identifier</i>.</li>
             <li>If <i>graph</i> has no member <i>item</i>, create one and initialize its
@@ -3052,6 +2978,9 @@
             <li>Finally, for each key-value pair <i>property</i>-<i>value</i> in <i>element</i> ordered by
               <i>property</i> perform the following steps:
               <ol class="algorithm">
+                <li>If <i>property</i> is a <tref>blank node identifier</tref>, replace it with a newly
+                  <a href="#generate-blank-node-identifier">generated blank node identifier</a>
+                  passing <i>property</i> for <i>identifier</i>.</li>
                 <li>If <i>node</i> does not have a <i>property</i> member, create one and initialize
                   its value to an empty <tref>array</tref>.</li>
                 <li>Recursively invoke this algorithm passing <i>value</i> for <i>element</i>,
@@ -3064,6 +2993,53 @@
       </ol>
     </section>
   </section> <!-- end of Node Map Generation -->
+
+  <section>
+    <h2>Generate Blank Node Identifier</h2>
+
+    <p>This algorithm is used to generate new
+      <tref title="blank node identifier">blank node identifiers</tref> or to
+      relabel an existing <tref>blank node identifier</tref> to avoid collision
+      by the introduction of new ones.</p>
+
+    <section class="informative">
+      <h3>General Solution</h3>
+
+      <p>The simplest case is if there exists already a <tref>blank node identifier</tref>
+        in the <i>identifier map</i> for the passed <i>identifier</i>, in which
+        case it is simply returned. Otherwise, a new <tref>blank node identifier</tref>
+        is generated by concatenating the string <code>_:b</code> and the
+        <i>counter</i>. If the passed <i>identifier</i> is not <tref>null</tref>,
+        an entry is created in the <i>identifier map</i> associating the
+        <i>identifier</i> with the <tref>blank node identifier</tref>. Finally,
+        the <i>counter</i> is increased by one and the new
+        <tref>blank node identifier</tref> is returned.</p>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <p>The algorithm takes a single input variable <i>identifier</i> which may
+        be <tref>null</tref>. Between its executions, the algorithm needs to
+        keep an <i>identifier map</i> to relabel existing
+        <tref title="blank node identifier">blank node identifiers</tref>
+        consistently and a <i>counter</i> to generate new
+        <tref title="blank node identifier">blank node identifiers</tref>. The
+        <i>counter</i> is initialized to <code>0</code> by default.</p>
+
+      <ol class="algorithm">
+        <li>If <i>identifier</i> is not <tref>null</tref> and has an entry in the
+          <i>identifier map</i>, return the mapped identifier.</li>
+        <li>Otherwise, generate a new <tref>blank node identifier</tref> by concatenating
+          the string <code>_:b</code> and <i>counter</i>.</li>
+        <li>Increment <i>counter</i> by <code>1</code>.</li>
+        <li>If <i>identifier</i> is not <tref>null</tref>, create a new entry
+          for <i>identifier</i> in <i>identifier map</i> and set its value
+          to the new <tref>blank node identifier</tref>.</li>
+        <li>Return the new <tref>blank node identifier</tref>.</li>
+      </ol>
+    </section>
+  </section> <!-- end of Generate Blank Node Identifier -->
 </section> <!-- end of Flattening section -->
 
 
