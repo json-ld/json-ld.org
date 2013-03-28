@@ -35,7 +35,7 @@
 
                <h2>The JSON-LD Syntax</h2>
                <ul>
-                 <li><a href="latest/json-ld-syntax/">latest</a></li>
+                 <li><a href="latest/json-ld/">latest</a></li>
 <?php
 
 function getDrafts($spec)
@@ -80,13 +80,13 @@ function getDrafts($spec)
         }
     }
 
-    // Sort draftsin descending order
+    // Sort drafts in descending order
     krsort($all);
 
     return $all;
 }
 
-$drafts = getDrafts('json-ld-syntax');
+$drafts = getDrafts('json-ld') + getDrafts('json-ld-syntax');
 
 foreach ($drafts as $date => $dir) {
     print("                 <li><a href=\"$dir/\">$date</a></li>");
