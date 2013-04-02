@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>JSON-LD idlharness test</title>
+<link rel="author" title="W3C" href="http://www.w3.org/" />
+<link rel="help" href="http://www.w3.org/TR/json-ld-api/#jsonldprocessor" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonldcallback" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#loadcontextcallback" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#contextloadedcallback" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonldoptions" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonlderror" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonlderrorcode" />
+<script src="../../playground/jsonld.js"
+<script src="http://w3c-test.org/resources/testharness.js"></script>
+<script src="http://w3c-test.org/resources/testharnessreport.js"></script>
+<script src="http://w3c-test.org/resources/WebIDLParser.js"></script>
+<script src="http://w3c-test.org/resources/idlharness.js"></script>
+</head>
+<body>
+<h1>idlharness test</h1>
+<p>This test validates the WebIDL included in the JSON-LD 1.0 Processing Algorithms and API specification.</p>
+
+<pre id='untested_idl' style='display:none'>
+interface Window {
+    JsonLdProcessor jsonld;
+};
+</pre>
+
+<pre id='idl'>
+interface JsonLdProcessor {
+    void expand ((object or object[] or DOMString) input, JsonLdCallback callback, optional JsonLdOptions? options);
+    void compact ((object or object[] or DOMString) input, (object or DOMString)? context, JsonLdCallback callback, optional JsonLdOptions? options);
+    void flatten ((object or object[] or DOMString) input, (object or DOMString)? context, JsonLdCallback callback, optional JsonLdOptions? options);
+};
+
+callback JsonLdCallback = void (JsonLdError error, (object or object[]) document);
+
+callback LoadContextCallback = void (DOMString url, ContextLoadedCallback callback);
+
+callback ContextLoadedCallback = void (JsonLdError error, DOMString url, DOMString context);
+
+dictionary JsonLdOptions {
+    DOMString             base;
+    boolean               compactArrays = true;
+    LoadContextCallback   loadContext;
+    (object or DOMString) expandContext = null;
+    DOMString             processingMode = "json-ld-1.0";
+};
+
+dictionary JsonLdError {
+    JsonLdErrorCode code;
+    DOMString?      message;
+};
+
+enum JsonLdErrorCode {
+    "loading document failed",
+    "list of lists",
+    "invalid @index value",
+    "conflicting indexes",
+    "invalid @id value",
+    "invalid local context",
+    "loading remote context failed",
+    "invalid remote context",
+    "recursive context inclusion",
+    "invalid base IRI",
+    "invalid vocab mapping",
+    "invalid default language",
+    "keyword redefinition",
+    "invalid term definition",
+    "invalid reverse property",
+    "invalid IRI mapping",
+    "cyclic IRI mapping",
+    "invalid keyword alias",
+    "invalid type mapping",
+    "invalid language mapping",
+    "colliding keywords",
+    "invalid container mapping",
+    "invalid type value",
+    "invalid value object",
+    "invalid value object value",
+    "invalid language-tagged string",
+    "invalid language-tagged value",
+    "invalid typed value",
+    "invalid set or list object",
+    "invalid language map value",
+    "compaction to list of lists",
+    "invalid reverse property map",
+    "invalid @reverse value",
+    "invalid reverse property value"
+};
+</pre>
+
+<script>
+
+(function() {
+  var idl_array = new IdlArray();
+
+  //idl_array.add_untested_idls(document.getElementById("untested_idl").textContent);
+  idl_array.add_idls(document.getElementById("idl").textContent);
+
+  idl_array.add_objects( { JsonLdProcessor: ["window.jsonld"] } );
+
+  idl_array.test();
+})();
+
+
+</script>
+
+<div id="log"></div>
+
+</body>
+</html>
