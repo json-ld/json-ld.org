@@ -2329,7 +2329,7 @@
         it is relative to <tref title="active context">active context's</tref>
         <tref>vocabulary mapping</tref>. In order to select the most appropriate
         <tref>term</tref>, we may have to collect information about the passed
-        <i>value</i>. This information includes whic
+        <i>value</i>. This information includes which
         <tref title="container mapping">container mappings</tref>
         would be preferred for expressing the <i>value</i>, and what its
         <tref>type mapping</tref> or <tref>language mapping</tref> is. For
@@ -2341,11 +2341,11 @@
         return the most appropriate <tref>term</tref> to use.</p>
 
       <p>If no <tref>term</tref> was found that could be used to compact the
-        <tref>IRI</tref>, then an attempt is made to find a <tref>compact IRI</tref>
-        to use. If there is no appropriate <tref>compact IRI</tref>, then, if
-        the <tref>IRI</tref> is relative to
-        <tref title="active context">active context's</tref>
-        <tref>vocabulary mapping</tref>, then it is used. Otherwise, it is
+        <tref>IRI</tref>, an attempt is made compact the <tref>IRI</tref> using the
+        <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref>,
+        if there is one. If the <tref>IRI</tref> could not be compacted, an
+        attempt is made to find a <tref>compact IRI</tref>. If there is no
+        appropriate <tref>compact IRI</tref>, the <tref>IRI</tref> is
         transformed to a <tref>relative IRI</tref> using the document's
         <tref>base IRI</tref>. Finally, if the <tref>IRI</tref> or
         <tref>keyword</tref> still could not be compacted, it is returned
@@ -2512,10 +2512,23 @@
           </ol>
         </li>
         <li>At this point, there is no simple <tref>term</tref> that <i>iri</i>
-          can be compacted to. Instead, try to create a <tref>compact IRI</tref>,
-          starting by initializing <i>compact IRI</i> to <tref>null</tref>. This
-          variable will be used to store the created <tref>compact IRI</tref>, if
-          any.</li>
+          can be compacted to. If <i>vocab</i> is <tref>true</tref> and
+          <tref>active context</tref> has a <tref>vocabulary mapping</tref>:
+          <ol class="algorithm">
+            <li>If <i>iri</i> begins with the
+              <tref title="vocabulary mapping">vocabulary mapping's</tref> value
+              but is longer, then initialize <i>suffix</i> to the substring
+              of <i>iri</i> that does not match. If <i>suffix</i> does not
+              have a <tref>term definition</tref> in <tref>active context</tref>,
+              then return <i>suffix</i>.</li>
+          </ol>
+        </li>
+        <li>The <i>iri</i> could not be compacted using the
+          <tref title="active context">active context's</tref> <tref>vocabulary mapping</tref>.
+          Try to create a <tref>compact IRI</tref>, starting by initializing
+          <i>compact IRI</i> to <tref>null</tref>. This variable will be used to
+          tore the created <tref>compact IRI</tref>, if any.</li>
+        </li>
         <li>For each key <tref>term</tref> and value <tref>term definition</tref> in
           the <tref>active context</tref>:
           <ol class="algorithm">
@@ -2544,19 +2557,6 @@
           </ol>
         </li>
         <li>If <i>compact IRI</i> is not <tref>null</tref>, return <i>compact IRI</i>.</li>
-        <li>At this point, there is no <tref>compact IRI</tref> that <i>iri</i>
-          can be compacted to, so if <i>vocab</i> is
-          <tref>true</tref> and <tref>active context</tref> has a
-          <tref>vocabulary mapping</tref>:
-          <ol class="algorithm">
-            <li>If <i>iri</i> begins with the
-              <tref title="vocabulary mapping">vocabulary mapping's</tref> value
-              but is longer, then initialize <i>suffix</i> to the substring
-              of <i>iri</i> that does not match. If <i>suffix</i> does not
-              have a <tref>term definition</tref> in <tref>active context</tref>,
-              then return <i>suffix</i>.</li>
-          </ol>
-        </li>
         <li>If <i>vocab</i> is <tref>false</tref> then
           transform <i>iri</i> to a <tref>relative IRI</tref> using
           the document's base <tref>IRI</tref>.</li>
