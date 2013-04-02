@@ -3316,14 +3316,24 @@
         <tref title="rdf collection">RDF Collections</tref> into a <tref>list</tref>
         and generating a JSON-LD document in expanded form for all
         <tref title="RDF literal">RDF literals</tref>, <tref title="IRI">IRIs</tref>
-        and <tref title="blank node identifier">blank node identifiers</tref>.</p>
+        and <tref title="blank node identifier">blank node identifiers</tref>.
+        If the <i>use native types</i> flag is set to <tref>true</tref>,
+        <tref title="RDF literal">RDF literals</tref> with a
+        <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+        that equals <code>xsd:integer</code> or <code>xsd:double</code> are converted
+        to a <tref title="number">JSON numbers</tref> and <tref title="RDF literal">RDF literals</tref>
+        with a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+        that equals <code>xsd:boolean</code> are converted to <tref>true</tref> or
+        <tref>false</tref> based on their
+        <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+        as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.</p>
     </section>
 
     <section>
       <h2>Algorithm</h2>
 
-      <p>The algorithm takes a single parameter <i>dataset</i> in the form of
-        an array of an <tref>RDF dataset</tref>.</p>
+      <p>The algorithm takes two required inputs: an <tref>RDF dataset</tref> and a flag
+        <i>use native types</i> that defaults to <tref>true</tref>.</p>
 
       <ol class="algorithm">
         <li>Initialize <i>default graph</i> to a new <tref>JSON object</tref>
@@ -3334,7 +3344,7 @@
           reference <i>default graph</i>.</li>
         <li>Reference the <code>nodeMap</code> member of <i>default graph</i>
           using the variable <i>default graph nodes</i>.</li>
-        <li>For each <i>graph</i> in <i>dataset</i>:
+        <li>For each <i>graph</i> in <tref>RDF dataset</tref>:
           <ol class="algorithm">
             <li>If <i>graph</i> is the <tref>default graph</tref>,
               set <i>name</i> to <code>@default</code>, otherwise to the
@@ -3364,7 +3374,7 @@
                     <li>Initialize the value of the <code>first</code> member of
                       the <i>subject</i> member of <i>list map</i> to the result of the
                       <a href="#rdf-to-object-conversion">RDF to Object Conversion algorithm</a>,
-                      passing <i>object</i>.</li>
+                      passing <i>object</i> and <i>use native types</i>.</li>
                     <li>Continue with the next <tref>RDF triple</tref>.</li>
                   </ol>
                 <li>If <i>predicate</i> equals <code>rdf:rest</code>:
@@ -3395,7 +3405,7 @@
                   and initialize its value to an empty <tref>array</tref>.</li>
                 <li>Set <i>value</i> to the result of using the
                   <a href="#rdf-to-object-conversion">RDF to Object Conversion algorithm</a>,
-                  passing <i>object</i>.</li>
+                  passing <i>object</i> and <i>use native types</i>.</li>
                 <li>Add a reference to <i>value</i> to the to the <tref>array</tref>
                   associated with the <i>predicate</i> member of <i>node</i>.</li>
                 <li>If <i>object</i> is an <tref>IRI</tref> or a
@@ -3480,18 +3490,26 @@
       <h3>Overview</h3>
 
       <p><tref title="RDF literal">RDF literals</tref> are transformed to
-        <tref title="value object">value objects</tref> as defined in the section
-        <a href="#data-round-tripping">Data Round Tripping</a> whereas
-        <tref title="IRI">IRIs</tref> and
+        <tref title="value object">value objects</tref> whereas <tref title="IRI">IRIs</tref> and
         <tref title="blank node identifier">blank node identifiers</tref> are
-        transformed to <tref title="node object">node objects</tref>.</p>
+        transformed to <tref title="node object">node objects</tref>.
+        If the <i>use native types</i> flag is set to <tref>true</tref>,
+        <tref title="RDF literal">RDF literals</tref> with a
+        <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+        that equals <code>xsd:integer</code> or <code>xsd:double</code> are converted
+        to a <tref title="number">JSON numbers</tref> and <tref title="RDF literal">RDF literals</tref>
+        with a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+        that equals <code>xsd:boolean</code> are converted to <tref>true</tref> or
+        <tref>false</tref> based on their
+        <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+        as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.</p>
     </section>
 
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm takes as single input variable <i>value</i> that
-        is converted to a <tref>JSON object</tref>.</p>
+      <p>This algorithm takes two required inputs: a <i>value</i> to be converted
+        to a <tref>JSON object</tref> and a flag <i>use native types</i>.</p>
 
       <ol class="algorithm">
         <li>If <i>value</i> is an an <tref>IRI</tref> or a
@@ -3512,19 +3530,26 @@
             <li>Initialize a new empty <tref>JSON object</tref> result.</li>
             <li>Initialize <i>converted value</i> to <i>value</i>.</li>
             <li>Initialize <i>type</i> to <tref>null</tref></li>
-            <li>If the
-              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
-              of <i>value</i> equals <code>xsd:boolean</code>, set
-              <i>converted value</i> to <tref>true</tref> if the
-              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
-              of <i>value</i> matches <code>true</code>, or <code>false</code> if
-              it matches <code>false</code>.</li>
-            <li>Otherwise, if the
-              <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
-              of <i>value</i> equals <code>xsd:integer</code> or
-              <code>xsd:double</code>, try to convert the literal to a
-              <tref title="number">JSON number</tref>. If the conversion is
-              successful, store the result in <i>converted value</i>.</li>
+            <li>If <i>use native types</i> is <tref>true</tref>
+              <ol class="algorithm">
+                <li>If the
+                  <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+                  of <i>value</i> equals <code>xsd:boolean</code>, set
+                  <i>converted value</i> to <tref>true</tref> if the
+                  <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+                  of <i>value</i> matches <code>true</code>, or <code>false</code> if
+                  it matches <code>false</code>. If it matches neither, set <i>type</i> to
+                  <code>xsd:boolean</code>.</li>
+                <li>Otherwise, if the
+                  <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+                  of <i>value</i> equals <code>xsd:integer</code> or
+                  <code>xsd:double</code>, try to convert the literal to a
+                  <tref title="number">JSON number</tref>. If the conversion is
+                  successful, store the result in <i>converted value</i>; otherwise, set <i>type</i> to
+                  the <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+                  of <i>value</i>.</li>
+              </ol>
+            </li>
             <li>Otherwise, if <i>value</i> is a
               <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-string">language-tagged string</tref>
               add a member <code>@language</code> to <i>result</i> and set its value to the
