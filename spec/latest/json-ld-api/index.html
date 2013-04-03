@@ -3184,10 +3184,10 @@
       <h3>Overview</h3>
 
       <p><tref title="value object">Value objects</tref> are transformed to
-        <tref title="RDF literal">RDF literals</tref> as defined in the section
-        <a href="#data-round-tripping">Data Round Tripping</a> whereas
-        <tref title="node object">node objects</tref> are transformed to
-        <tref title="IRI">IRIs</tref> or
+        <tref title="RDF literal">RDF literals</tref> as described in
+        <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>
+        whereas <tref title="node object">node objects</tref> are transformed
+        to <tref title="IRI">IRIs</tref> or
         <tref title="blank node identifier">blank node identifiers</tref>.</p>
     </section>
 
@@ -3208,18 +3208,30 @@
           <code>@type</code> member of <i>item</i> or  <code>null</code> if
           <i>item</i> does not have such a member.</li>
         <li>If <i>value</i> is <tref>true</tref> or
-          <tref>false</tref>, set <i>value</i> to its
-          <tref>canonical lexical form</tref> as defined
-          in the section <a href="#data-round-tripping">Data Round Tripping</a>.
+          <tref>false</tref>, set <i>value</i> to the <tref>string</tref>
+          <code>true</code> or <code>false</code> which is the
+          <tref>canonical lexical form</tref> as described in
+          <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>
           If <i>datatype</i> is <tref>null</tref>, set it to
           <code>xsd:boolean</code>.</li>
-        <li>Otherwise, if <i>value</i> is a <tref>number</tref>, then set
-          <i>value</i> to its <tref>canonical lexical form</tref> as defined
-          in the section <a href="#data-round-tripping">Data Round Tripping</a>.
-          If <i>datatype</i> is <tref>null</tref>, set it to either
-          <code>xsd:integer</code> or <code>xsd:double</code>, depending
-          on if the value contains a fractional and/or an exponential
-          component.</li>
+        <li>Otherwise, if <i>value</i> is a <tref>number</tref> with fractions
+          or <i>value</i> is a <tref>number</tref> and <i>datatype</i> equals
+          <code>xsd:double</code>, convert <i>value</i> to a
+          <tref>string</tref> in <tref>canonical lexical form</tref> of
+          an <code>xsd:double</code> as defined in [[!XMLSCHEMA11-2]]
+          and described in
+          <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>.
+          If <i>datatype</i> is <tref>null</tref>, set it to
+          <code>xsd:double</code>.</li>
+        <li>Otherwise, if <i>value</i> is a <tref>number</tref> without fractions
+          or <i>value</i> is a <tref>number</tref> and <i>datatype</i> equals
+          <code>xsd:integer</code>, convert <i>value</i> to a
+          <tref>string</tref> in <tref>canonical lexical form</tref> of
+          an <code>xsd:integer</code> as defined in [[!XMLSCHEMA11-2]]
+          and described in
+          <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>.
+          If <i>datatype</i> is <tref>null</tref>, set it to
+          <code>xsd:integer</code>.</li>
         <li>Otherwise, if <i>datatype</i> is <tref>null</tref>, set it to
           <code>xsd:string</code> or <code>rdf:langString</code>, depending on if
           item has an <code>@language</code> member.</li>
@@ -3326,7 +3338,8 @@
         that equals <code>xsd:boolean</code> are converted to <tref>true</tref> or
         <tref>false</tref> based on their
         <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
-        as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.</p>
+        as described in
+        <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>.</p>
     </section>
 
     <section>
@@ -3502,7 +3515,8 @@
         that equals <code>xsd:boolean</code> are converted to <tref>true</tref> or
         <tref>false</tref> based on their
         <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
-        as defined in the section <a href="#data-round-tripping">Data Round Tripping</a>.</p>
+        as described in
+        <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>.</p>
     </section>
 
     <section>
@@ -3537,17 +3551,19 @@
                   of <i>value</i> equals <code>xsd:boolean</code>, set
                   <i>converted value</i> to <tref>true</tref> if the
                   <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
-                  of <i>value</i> matches <code>true</code>, or <code>false</code> if
-                  it matches <code>false</code>. If it matches neither, set <i>type</i> to
-                  <code>xsd:boolean</code>.</li>
+                  of <i>value</i> matches <code>true</code>, or <tref>false</tref>
+                  if it matches <code>false</code>. If it matches neither,
+                  set <i>type</i> to <code>xsd:boolean</code>.</li>
                 <li>Otherwise, if the
                   <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
                   of <i>value</i> equals <code>xsd:integer</code> or
-                  <code>xsd:double</code>, try to convert the literal to a
-                  <tref title="number">JSON number</tref>. If the conversion is
-                  successful, store the result in <i>converted value</i>; otherwise, set <i>type</i> to
-                  the <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
-                  of <i>value</i>.</li>
+                  <code>xsd:double</code> and its
+                  <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+                  is a valid <code>xsd:integer</code> or <code>xsd:double</code>
+                  according [[!XMLSCHEMA11-2]], set <i>converted value</i>
+                  to the result of converting the
+                  <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-lexical-form">lexical form</tref>
+                  to a JSON <tref>number</tref>.</li>
               </ol>
             </li>
             <li>Otherwise, if <i>value</i> is a
@@ -3572,19 +3588,23 @@
   <section>
     <h2>Data Round Tripping</h2>
 
-    <p>When <a href="#rdf-conversion">converting JSON-LD to RDF</a> JSON-native types such as
-      <em>numbers</em> and <em>booleans</em> are automatically coerced to
-      <code>xsd:integer</code>, <code>xsd:double</code>, or <code>xsd:boolean</code>.
-      Implementers MUST ensure that the result is in <tref>canonical lexical form</tref>. A
-      <tdef>canonical lexical form</tdef> is a set of literals from among the valid set of literals for
-      a datatype such that there is a one-to-one mapping between the <tref>canonical lexical form</tref>
-      and a value in the value space as defined in [[!XMLSCHEMA11-2]]. In other words, every
-      value MUST be converted to a deterministic <tref>string</tref> representation.</p>
+    <p>When <a href="#convert-to-rdf-algorithm">converting JSON-LD to RDF</a>
+      JSON-native <tref title="number">numbers</tref> are automatically
+      type-coerced to <code>xsd:integer</code> or <code>xsd:double</code>
+      depending on whether the <tref>number</tref> has fractions or not and
+      the boolean values <tref>true</tref> and <tref>false</tref> are
+      coerced to <code>xsd:boolean</code>. The numeric or boolean value
+      itself is converted to <tdef>canonical lexical form</tdef>, i.e., a
+      deterministic string representation as defined in
+      [[!XMLSCHEMA11-2]].</p>
 
-    <p>The canonical lexical form of an <em>integer</em>, i.e., a number without fractions
-      or a number coerced to <code>xsd:integer</code>, is a finite-length sequence of decimal
-      digits (<code>0-9</code>) with an optional leading minus sign; leading zeros are prohibited.
-      To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+    <p>The <tref>canonical lexical form</tref> of an <em>integer</em>, i.e.,
+      a <tref>number</tref> without fractions or a <tref>number</tref> coerced
+      to <code>xsd:integer</code>, is a finite-length sequence of decimal
+      digits (<code>0-9</code>) with an optional leading minus sign; leading
+      zeros are prohibited. In JavaScript, implementers can use the following
+      snippet of code to convert an integer to
+      <tref>canonical lexical form</tref>:</p>
 
     <pre class="example" data-transform="updateExample"
          title="Sample integer serialization implementation in JavaScript">
@@ -3593,21 +3613,27 @@
     -->
     </pre>
 
-    <p>The canonical lexical form of a <em>double</em>, i.e., a number with fractions
-      or a number coerced to <code>xsd:double</code>, consists of a mantissa followed by the
-      character "E", followed by an exponent. The mantissa MUST be a decimal number. The exponent
-      MUST be an integer. Leading zeros and a preceding plus sign (<code>+</code>) are prohibited
-      in the exponent. If the exponent is zero, it must be indicated by <code>E0</code>.
-      For the mantissa, the preceding optional plus sign is prohibited and the decimal point is
-      required. Leading and trailing zeros are prohibited subject to the following: number
-      representations must be normalized such that there is a single digit which is non-zero to the
-      left of the decimal point and at least a single digit to the right of the decimal point unless
-      the value being represented is zero. The canonical representation for zero is <code>0.0E0</code>.
-      <code>xsd:double</code>'s value space is defined by the IEEE double-precision 64-bit
-      floating point type [[!IEEE-754-1985]]; in JSON-LD the mantissa is rounded to 15 digits after the
-      decimal point.</p>
-
-    <p>To convert the number in JavaScript, implementers can use the following snippet of code:</p>
+    <p>The <tref>canonical lexical form</tref> of a <em>double</em>, i.e., a
+      <tref>number</tref> with fractions or a <tref>number</tref> coerced to
+      <code>xsd:double</code>, consists of a mantissa followed by the
+      character <code>E</code>, followed by an exponent. The mantissa is a
+      decimal number and the exponent is an integer. Leading zeros and a
+      preceding plus sign (<code>+</code>) are prohibited in the exponent.
+      If the exponent is zero, it is indicated by <code>E0</code>. For the
+      mantissa, the preceding optional plus sign is prohibited and the
+      decimal point is required. Leading and trailing zeros are prohibited
+      subject to the following: number representations must be normalized
+      such that there is a single digit which is non-zero to the left of
+      the decimal point and at least a single digit to the right of the
+      decimal point unless the value being represented is zero. The
+      canonical representation for zero is <code>0.0E0</code>.
+      <code>xsd:double</code>'s value space is defined by the IEEE
+      double-precision 64-bit floating point type [[!IEEE-754-1985]] whereas
+      the value space of JSON <tref title="number">numbers</tref> is not
+      specified; when converting JSON-LD to RDF the mantissa is rounded to
+      15&nbsp;digits after the decimal point. In JavaScript, implementers
+      can use the following snippet of code to convert a double to
+      <tref>canonical lexical form</tref>:</p>
 
     <pre class="example" data-transform="updateExample"
          title="Sample floating point number serialization implementation in JavaScript">
@@ -3616,14 +3642,30 @@
     -->
     </pre>
 
-    <p>The canonical lexical form of the <em>boolean</em> values <tref>true</tref> and <tref>false</tref>
-      are the strings <code>true</code> and <code>false</code>.</p>
+    <p>The <tref>canonical lexical form</tref> of the <em>boolean</em>
+      values <tref>true</tref> and <tref>false</tref> are the strings
+      <code>true</code> and <code>false</code>.</p>
 
-    <p>When JSON-native <tref>number</tref>s, are type coerced, lossless data round-tripping can not
-      be guaranteed as rounding errors might occur. Additionally, only literals typed as
-      <code>xsd:integer</code>, <code>xsd:double</code>, and  <code>xsd:boolean</code> are
-      automatically converted back to their JSON-native counterparts in when
-      <a href="#rdf-conversion">converting from RDF</a>.</p>
+    <p>When JSON-native <tref title="number">numbers</tref>, are converted
+      to RDF, lossless data round-tripping can not be guaranteed as rounding
+      errors might occur. When converting
+      <a href="#convert-from-rdf-algorithm">RDF to JSON-LD</a>, similar
+      rounding errors might occur. Furthermore, the datatype or the lexical
+      representation might be lost. An <code>xsd:double</code> with a value
+      of <code>2.0</code> will, e.g., result in an <code>xsd:integer</code>
+      with a value of <code>2</code> in <tref>canonical lexical form</tref>
+      when converted from RDF to JSON-LD and back to RDF.</p>
+
+    <p>To ensure lossless round-tripping the
+      <a href="#convert-from-rdf-algorithm">Converting from RDF algorithm</a>
+      specifies an <i>use native types</i> flag which controls whether
+      <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">RDF literals</tref>
+      with a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
+      equal to <code>xsd:integer</code>, <code>xsd:double</code>, or
+      <code>xsd:boolean</code> are converted to their JSON-native
+      counterparts. If the <i>use native types</i> flag is set to
+      <tref>false</tref>, all literals remain in their original string
+      representation.</p>
 
     <p>Some JSON serializers, such as PHP's native implementation in some versions,
       backslash-escape the forward slash character. For example, the value
