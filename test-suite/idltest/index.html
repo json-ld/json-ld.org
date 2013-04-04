@@ -21,17 +21,17 @@
 <h1>idlharness test</h1>
 <p>This test validates the WebIDL included in the JSON-LD 1.0 Processing Algorithms and API specification.</p>
 
-<pre id='untested_idl' style='display:none'>
+<pre id="untested_idl" style="display:none">
 interface Window {
     JsonLdProcessor jsonld;
 };
 </pre>
 
-<pre id='idl'>
+<pre id="idl">
 interface JsonLdProcessor {
-    void expand ((object or object[] or DOMString) input, JsonLdCallback callback, optional JsonLdOptions? options);
-    void compact ((object or object[] or DOMString) input, (object or DOMString)? context, JsonLdCallback callback, optional JsonLdOptions? options);
-    void flatten ((object or object[] or DOMString) input, (object or DOMString)? context, JsonLdCallback callback, optional JsonLdOptions? options);
+    void expand ((object or object[] or DOMString) input, optional JsonLdOptions? options, JsonLdCallback callback);
+    void compact ((object or object[] or DOMString) input, (object or DOMString)? context, optional JsonLdOptions? options, JsonLdCallback callback);
+    void flatten ((object or object[] or DOMString) input, (object or DOMString)? context, optional JsonLdOptions? options, JsonLdCallback callback);
 };
 
 callback JsonLdCallback = void (JsonLdError error, (object or object[]) document);
@@ -94,16 +94,14 @@ enum JsonLdErrorCode {
 <script>
 
 (function() {
+  window.JsonLdProcessor = window.jsonld.JsonLdProcessor;
+  window.jsonldProcessor = new JsonLdProcessor();
   var idl_array = new IdlArray();
-
   //idl_array.add_untested_idls(document.getElementById("untested_idl").textContent);
-  idl_array.add_idls(document.getElementById("idl").textContent);
-
-  idl_array.add_objects( { JsonLdProcessor: ["window.jsonld"] } );
-
+  idl_array.add_idls(document.getElementById('idl').textContent);
+  idl_array.add_objects({JsonLdProcessor: ['window.jsonldProcessor']});
   idl_array.test();
 })();
-
 
 </script>
 

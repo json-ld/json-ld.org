@@ -66,6 +66,7 @@ jsonld.compact = function(input, ctx, options, callback) {
     callback = options;
     options = {};
   }
+  options = options || {};
 
   // nothing to compact
   if(input === null) {
@@ -211,16 +212,13 @@ jsonld.compact = function(input, ctx, options, callback) {
  *          [loadContext(url, callback(err, url, result))] the context loader.
  * @param callback(err, expanded) called once the operation completes.
  */
-jsonld.expand = function(input) {
+jsonld.expand = function(input, options, callback) {
   // get arguments
-  var options = {};
-  var callback;
-  var callbackArg = 1;
-  if(arguments.length > 2) {
-    options = arguments[1] || {};
-    callbackArg += 1;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
   }
-  callback = arguments[callbackArg];
+  options = options || {};
 
   // set default options
   if(!('base' in options)) {
@@ -282,6 +280,7 @@ jsonld.flatten = function(input, ctx, options, callback) {
     callback = options;
     options = {};
   }
+  options = options || {};
 
   // set default options
   if(!('base' in options)) {
@@ -338,15 +337,13 @@ jsonld.flatten = function(input, ctx, options, callback) {
  *          [loadContext(url, callback(err, url, result))] the context loader.
  * @param callback(err, framed) called once the operation completes.
  */
-jsonld.frame = function(input, frame) {
+jsonld.frame = function(input, frame, options, callback) {
   // get arguments
-  var options = {};
-  var callbackArg = 2;
-  if(arguments.length > 3) {
-    options = arguments[2] || {};
-    callbackArg += 1;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
   }
-  var callback = arguments[callbackArg];
+  options = options || {};
 
   // set default options
   if(!('base' in options)) {
@@ -419,15 +416,13 @@ jsonld.frame = function(input, frame) {
  *          [loadContext(url, callback(err, url, result))] the context loader.
  * @param callback(err, objectified) called once the operation completes.
  */
-jsonld.objectify = function(input, ctx) {
+jsonld.objectify = function(input, ctx, options, callback) {
   // get arguments
-  var options = {};
-  var callbackArg = 2;
-  if(arguments.length > 3) {
-    options = arguments[2] || {};
-    callbackArg += 1;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
   }
-  var callback = arguments[callbackArg];
+  options = options || {};
 
   // set default options
   if(!('base' in options)) {
@@ -716,6 +711,18 @@ jsonld.loadContext = function(url, callback) {
     'jsonld.ContextUrlError'), url);
 };
 
+/* WebIDL API */
+
+function JsonLdProcessor() {};
+JsonLdProcessor.prototype.expand = jsonld.expand;
+JsonLdProcessor.prototype.compact = jsonld.compact;
+JsonLdProcessor.prototype.flatten = jsonld.flatten;
+JsonLdProcessor.prototype.frame = jsonld.frame;
+JsonLdProcessor.prototype.fromRDF = jsonld.fromRDF;
+JsonLdProcessor.prototype.toRDF = jsonld.toRDF;
+JsonLdProcessor.prototype.normalize = jsonld.normalize;
+jsonld.JsonLdProcessor = JsonLdProcessor;
+
 /* Utility API */
 
 // define nextTick
@@ -780,8 +787,7 @@ jsonld.ActiveContextCache.prototype.get = function(activeCtx, localCtx) {
   var key2 = JSON.stringify(localCtx);
   var level1 = this.cache[key1];
   if(level1 && key2 in level1) {
-    // get shareable copy of cached active context
-    return level1[key2].share();
+    return level1[key2];
   }
   return null;
 };
@@ -989,7 +995,8 @@ jsonld.processContext = function(activeCtx, localCtx) {
 
   // retrieve URLs in localCtx
   localCtx = _clone(localCtx);
-  if(_isObject(localCtx) && !('@context' in localCtx)) {
+  if(_isString(localCtx) ||
+    (_isObject(localCtx) && !('@context' in localCtx))) {
     localCtx = {'@context': localCtx};
   }
   _retrieveContextUrls(localCtx, options, function(err, ctx) {
@@ -3263,8 +3270,15 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
       continue;
     }
 
-    // iterate over objects (ensure property is added for empty arrays)
+    // iterate over objects
     var objects = input[property];
+
+    // if property is a bnode, assign it a new id
+    if(property.indexOf('_:') === 0) {
+      property = namer.getName(property);
+    }
+
+    // ensure property is added for empty arrays
     if(objects.length === 0) {
       jsonld.addValue(subject, property, [], {propertyIsArray: true});
       continue;
@@ -3802,9 +3816,8 @@ function _selectTerm(
   }
   prefs.push('@none');
 
-  var term = null;
   var containerMap = activeCtx.inverse[iri];
-  for(var ci = 0; term === null && ci < containers.length; ++ci) {
+  for(var ci = 0; ci < containers.length; ++ci) {
     // if container not available in the map, continue
     var container = containers[ci];
     if(!(container in containerMap)) {
@@ -3812,7 +3825,7 @@ function _selectTerm(
     }
 
     var typeOrLanguageValueMap = containerMap[container][typeOrLanguage];
-    for(var pi = 0; term === null && pi < prefs.length; ++pi) {
+    for(var pi = 0; pi < prefs.length; ++pi) {
       // if type/language option not available in the map, continue
       var pref = prefs[pi];
       if(!(pref in typeOrLanguageValueMap)) {
@@ -3820,11 +3833,11 @@ function _selectTerm(
       }
 
       // select term
-      term = typeOrLanguageValueMap[pref];
+      return typeOrLanguageValueMap[pref];
     }
   }
 
-  return term;
+  return null;
 }
 
 /**
@@ -3835,7 +3848,6 @@ function _selectTerm(
  * @param iri the IRI to compact.
  * @param value the value to check or null.
  * @param relativeTo options for how to compact IRIs:
- *          base: true to resolve against the base IRI, false not to.
  *          vocab: true to split after @vocab, false not to.
  * @param reverse true if a reverse property is being compacted, false if not.
  *
@@ -3964,7 +3976,22 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
     }
   }
 
-  // no term match, check for possible CURIEs
+  // no term match, use @vocab if available
+  if(relativeTo.vocab) {
+    if('@vocab' in activeCtx) {
+      // determine if vocab is a prefix of the iri
+      var vocab = activeCtx['@vocab'];
+      if(iri.indexOf(vocab) === 0 && iri !== vocab) {
+        // use suffix as relative iri if it is not a term in the active context
+        var suffix = iri.substr(vocab.length);
+        if(!(suffix in activeCtx.mappings)) {
+          return suffix;
+        }
+      }
+    }
+  }
+
+  // no term or @vocab match, check for possible CURIEs
   var choice = null;
   for(var term in activeCtx.mappings) {
     // skip terms with colons, they can't be prefixes
@@ -4000,22 +4027,8 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
     return choice;
   }
 
-  // no matching terms or curies, use @vocab if available
-  if(relativeTo.vocab) {
-    if('@vocab' in activeCtx) {
-      // determine if vocab is a prefix of the iri
-      var vocab = activeCtx['@vocab'];
-      if(iri.indexOf(vocab) === 0 && iri !== vocab) {
-        // use suffix as relative iri if it is not a term in the active context
-        var suffix = iri.substr(vocab.length);
-        if(!(suffix in activeCtx.mappings)) {
-          return suffix;
-        }
-      }
-    }
-  }
   // compact IRI relative to base
-  else {
+  if(!relativeTo.vocab) {
     return _removeBase(activeCtx['@base'], iri);
   }
 
@@ -4360,17 +4373,19 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
 
     // do not expand blank nodes (prefix of '_') or already-absolute
     // IRIs (suffix of '//')
-    if(prefix !== '_' && suffix.indexOf('//') !== 0) {
-      // prefix dependency not defined, define it
-      if(localCtx && prefix in localCtx) {
-        _createTermDefinition(activeCtx, localCtx, prefix, defined);
-      }
+    if(prefix === '_' || suffix.indexOf('//') === 0) {
+      return value;
+    }
 
-      // use mapping if prefix is defined
-      var mapping = activeCtx.mappings[prefix];
-      if(mapping) {
-        return mapping['@id'] + suffix;
-      }
+    // prefix dependency not defined, define it
+    if(localCtx && prefix in localCtx) {
+      _createTermDefinition(activeCtx, localCtx, prefix, defined);
+    }
+
+    // use mapping if prefix is defined
+    var mapping = activeCtx.mappings[prefix];
+    if(mapping) {
+      return mapping['@id'] + suffix;
     }
 
     // already absolute IRI
@@ -4560,8 +4575,7 @@ function _getInitialContext(options) {
     mappings: {},
     inverse: null,
     getInverse: _createInverseContext,
-    clone: _cloneActiveContext,
-    share: _shareActiveContext
+    clone: _cloneActiveContext
   };
 
   /**
@@ -4671,7 +4685,6 @@ function _getInitialContext(options) {
     child['@base'] = this['@base'];
     child.mappings = _clone(this.mappings);
     child.clone = this.clone;
-    child.share = this.share;
     child.inverse = null;
     child.getInverse = this.getInverse;
     if('@language' in this) {
@@ -4681,30 +4694,6 @@ function _getInitialContext(options) {
       child['@vocab'] = this['@vocab'];
     }
     return child;
-  }
-
-  /**
-   * Returns a copy of this active context that can be shared between
-   * different processing algorithms. This method only copies the parts
-   * of the active context that can't be shared.
-   *
-   * @return a shareable copy of this active context.
-   */
-  function _shareActiveContext() {
-    var rval = {};
-    rval['@base'] = this['@base'];
-    rval.mappings = this.mappings;
-    rval.clone = this.clone;
-    rval.share = this.share;
-    rval.inverse = this.inverse;
-    rval.getInverse = this.getInverse;
-    if('@language' in this) {
-      rval['@language'] = this['@language'];
-    }
-    if('@vocab' in this) {
-      rval['@vocab'] = this['@vocab'];
-    }
-    return rval;
   }
 }
 
