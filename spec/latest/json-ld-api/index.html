@@ -2890,9 +2890,23 @@
         </li>
         <li>If <i>element</i> has an <code>@value</code> member, perform the following steps:
           <ol class="algorithm">
-            <li>If <i>list</i> is <tref>null</tref>, merge <i>element</i> into the
-              <tref>active property</tref> member of <i>node</i>; the resulting
-              <tref>array</tref> must not contain any duplicate values.</li>
+            <li>If <i>list</i> is <tref>null</tref>:
+              <ol class="algorithm">
+                <li>If <tref>active property</tref> is not a key in <i>node</i>,
+                  then add a key-value pair to <i>node</i> where the key is
+                  <tref>active property</tref> and the value is an <tref>array</tref>
+                  containing <i>element</i>.
+                </li>
+                <li>
+                  Otherwise, compare <i>element</i> against every item in the
+                  <tref>array</tref> associated with the key <tref>active property</tref> in
+                  <i>node</i> using the
+                  <a href="#compare-flattened-values">Compare Flattened Values</a>
+                  algorithm. If there is no item equivalent to <i>element</i>
+                  in the <tref>array</tref>, append <i>element</i> to it.</li>
+                </li>
+              </ol>
+            </li>
             <li>Otherwise, append <i>element</i> to the <code>@list</code> member of <i>list</i>.</li>
           </ol>
         </li>
@@ -2927,18 +2941,33 @@
               <ol class="algorithm">
                 <li>Create a new <tref>JSON object</tref> <i>reference</i> consisting of a single member
                   <code>@id</code> whose value is <i>id</i>.</li>
-                <li>If <i>list</i> is <tref>null</tref>, merge <i>element</i> into the
-                  <tref>active property</tref> member of <i>node</i>; the resulting
-                  <tref>array</tref> must not contain any duplicate values.</li>
+                <li>If <i>list</i> is <tref>null</tref>:
+                  <ol class="algorithm">
+                    <li>If <tref>active property</tref> is not a key in <i>node</i>,
+                      then add a key-value pair to <i>node</i> where the key is
+                      <tref>active property</tref> and the value is an <tref>array</tref>
+                      containing <i>element</i>.
+                    </li>
+                    <li>
+                      Otherwise, compare <i>element</i> against every item in the
+                      <tref>array</tref> associated with the key <tref>active property</tref> in
+                      <i>node</i> using the
+                      <a href="#compare-flattened-values">Compare Flattened Values</a>
+                      algorithm. If there is no item equivalent to <i>element</i>
+                      in the <tref>array</tref>, append <i>element</i> to it.</li>
+                    </li>
+                  </ol>
+                </li>
                 <li>Otherwise, append <i>element</i> to the <code>@list</code> member of <i>list</i>.</li>
               </ol>
             </li>
             <li>Reference the value of the <i>id</i> member of <i>graph</i> using the
               variable <i>node</i>.</li>
-            <li>If <i>element</i> has an <code>@type</code> member, merge each of its values into the
-              <code>@type</code> member of <i>node</i> and finally remove the
-              <code>@type</code> member from <i>element</i>; the resulting
-              <tref>array</tref> must not contain any duplicate values.</li>
+            <li>If <i>element</i> has an <code>@type</code> key, append
+              each item of its associated <tref>array</tref> to the
+              <tref>array</tref> associated with the <code>@type</code> key of
+              <i>node</i> unless it is already in that <tref>array</tref>. Finally
+              remove the <code>@type</code> member from <i>element</i>.</li>
             <li>If <i>element</i> has an <code>@index</code> member, set the <code>@index</code>
               member of <i>node</i> to its value. If <tref>node</tref> has already an
               <code>@index</code> member with a different value, a
@@ -2991,9 +3020,75 @@
   </section> <!-- end of Node Map Generation -->
 
   <section>
+    <h2>Compare Flattened Values</h2>
+
+    <p>This algorithm is used to compare two flattened values for equivalence.
+      It is used by the
+      <a href="#node-map-generation">Node Map Generation algorithm</a> in
+      order to detect duplicate values.</p>
+
+    <section class="informative">
+      <h3>Overview</h3>
+
+      <p>Two flattened values are considered equivalent if they are
+        equivalent <tref title="value object">value objects</tref>,
+        they are both <tref title="JSON object">JSON objects</tref> with
+        equivalent key-pairs for the key <code>@id</code>, or they are both
+        <tref title="list object">list objects</tref> with equivalent
+        key-pairs for the key <code>@index</code> (or neither have
+        <code>@index</code> keys) and have equivalent values, per this
+        algorithm, in each position.</p>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <p>The algorithm takes two input variables: <i>v1</i> and <i>v2</i>,
+        the two flattened values to compare. It returns <tref>true</tref>
+        if the values are equivalent and <tref>false</tref> if not.</p>
+
+      <ol class="algorithm">
+        <li>If <i>v1</i> and <i>v2</i> are both
+          <tref title="value object">value objects</tref>:
+          <ol class="algorithm">
+            <li>If <i>v1</i> and <i>v2</i> have equivalent
+              key-value pairs for the keys <code>@value</code>,
+              <code>@type</code>, <code>@language</code>, and
+              <code>@index</code>, then return <tref>true</tref>, otherwise
+              return <tref>false</tref>.</li>
+            </li>
+          </ol>
+        </li>
+        <li>If <i>v1</i> and <i>v2</i> are both
+          <tref title="list object">list objects</tref>:
+          <ol class="algorithm">
+            <li>If <i>v1</i> and <i>v2</i> have equivalent
+              key-value pairs for the key <code>@index</code>, or if neither
+              have the key <code>@index</code>, and the
+              <tref title="array">arrays</tref> associated with their
+              <code>@list</code> keys have the same length and their
+              corresponding items, by index, are equivalent as determined by
+              recursively calling this algorithm, then return
+              <tref>true</tref>, otherwise return <tref>false</tref>.
+            </li>
+          </ol>
+        </li>
+        <li>If <i>v1</i> and <i>v2</i> are both
+          <tref title="JSON object">JSON objects</tref> that contain
+          the key <code>@id</code> and the values associated with their
+          keys are equal, return <tref>true</tref>.
+        </li>
+        <li>
+          Return <tref>false</tref>.
+        </li>
+      </ol>
+    </section>
+  </section> <!-- end of Compare Flattened Values -->
+
+  <section>
     <h2>Generate Blank Node Identifier</h2>
 
-    <p>This algorithm is used to generate new
+    <p>This algorithm is used to determine if two generate new
       <tref title="blank node identifier">blank node identifiers</tref> or to
       relabel an existing <tref>blank node identifier</tref> to avoid collision
       by the introduction of new ones.</p>
