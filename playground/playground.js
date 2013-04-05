@@ -206,8 +206,8 @@
           return callback(err);
         }
         $('#compacted').html(js_beautify(
-          JSON.stringify(compacted).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2}));
+          playground.htmlEscape(JSON.stringify(compacted)),
+          {'indent_size': 2}).replace(/\n/g, '<br>'));
         callback();
       });
     }
@@ -217,8 +217,8 @@
           return callback(err);
         }
         $('#expanded').html(js_beautify(
-          JSON.stringify(expanded).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2}));
+          playground.htmlEscape(JSON.stringify(expanded)),
+          {'indent_size': 2}).replace(/\n/g, '<br>'));
         callback();
       });
     }
@@ -228,8 +228,8 @@
           return callback(err);
         }
         $('#flattened').html(js_beautify(
-          JSON.stringify(flattened).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2}));
+          playground.htmlEscape(JSON.stringify(flattened)),
+          {'indent_size': 2}).replace(/\n/g, '<br>'));
         callback();
       });
     }
@@ -239,8 +239,8 @@
           return callback(err);
         }
         $('#framed').html(js_beautify(
-          JSON.stringify(framed).replace('<', '&lt;').replace('>', '&gt;'),
-          {'indent_size': 2}));
+          playground.htmlEscape(JSON.stringify(framed)),
+          {'indent_size': 2}).replace(/\n/g, '<br>'));
         callback();
       });
     }
@@ -250,7 +250,7 @@
         if(err) {
           return callback(err);
         }
-        $('#nquads').html(playground.htmlEscape(nquads));
+        $('#nquads').html(playground.htmlEscape(nquads).replace(/\n/g, '<br>'));
         callback();
       });
     }
@@ -260,7 +260,7 @@
         if(err) {
           return callback(err);
         }
-        $('#normalized').html(playground.htmlEscape(normalized));
+        $('#normalized').html(playground.htmlEscape(normalized).replace(/\n/g, '<br>'));
         callback();
       });
     }
