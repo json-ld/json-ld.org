@@ -939,7 +939,7 @@ jsonld.contextLoaders['node'] = function(options) {
 
 /**
  * Assigns the default context loader for external @context URLs to a built-in
- * default. Supported types currently include: 'jquery'.
+ * default. Supported types currently include: 'jquery' and 'node'.
  *
  * To use the jquery context loader, the 'data' parameter must be a reference
  * to the main jquery object.
@@ -1182,8 +1182,7 @@ jsonld.removeValue = function(subject, property, value, options) {
  * 1. They are both primitives of the same type and value.
  * 2. They are both @values with the same @value, @type, @language,
  *   and @index, OR
- * 3. They are both @lists with the same @list and @index, OR
- * 4. They both have @ids they are the same.
+ * 3. They both have @ids they are the same.
  *
  * @param v1 the first value.
  * @param v2 the second value.
@@ -1205,25 +1204,7 @@ jsonld.compareValues = function(v1, v2) {
     return true;
   }
 
-  // 3. equal @lists
-  if(_isList(v1) && _isList(v2)) {
-    if(v1['@index'] !== v2['@index']) {
-      return false;
-    }
-    var list1 = v1['@list'];
-    var list2 = v2['@list'];
-    if(list1.length !== list2.length) {
-      return false;
-    }
-    for(var i = 0; i < list1.length; ++i) {
-      if(!jsonld.compareValues(list1[i], list2[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // 4. equal @ids
+  // 3. equal @ids
   if(_isObject(v1) && ('@id' in v1) && _isObject(v2) && ('@id' in v2)) {
     return v1['@id'] === v2['@id'];
   }
@@ -6168,6 +6149,21 @@ function _removeDotSegments(path, hasAuthority) {
 if(_nodejs) {
   // use node context loader by default
   jsonld.useContextLoader('node');
+}
+
+if(_nodejs) {
+  jsonld.use = function(extension) {
+    switch(extension) {
+      case 'request':
+        // use node JSON-LD request extension
+        jsonld.request = require('./request');
+        break;
+      default:
+        throw new JsonLdError(
+          'Unknown extension.',
+          'jsonld.UnknownExtension', {extension: extension});
+    }
+  }
 }
 
 // end of jsonld API factory
