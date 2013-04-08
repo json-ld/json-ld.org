@@ -5,8 +5,29 @@
   <title>JSON-LD - Test Suite</title>
   <link href="../site.css" rel="stylesheet" type="text/css" />
   <link rel="shortcut icon" href="../favicon.ico" />
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://raw.github.com/wycats/handlebars.js/1.0.0-rc.3/dist/handlebars.js"></script>
+  <script id="manifest" tile="application/ld+json" src="manifest.jsonld"></script>
+  <script id="manifest-template" type="text/x-handlebars-template">
+    <section>
+      <h3>{{name}}</h3>
+      <p>{{description}}</p>
+      <dl class="test-description">
+        {{#each sequence}}
+        <dt>Test {{number this}}: {{this.name}}</dt>
+        <dd>
+          {{#if this.purpose}}
+          <div>Purpose: {{this.purpose}}</div>
+          {{/if}}
+          <div>Test input: <a href="{{this.input}}">{{this.input}}</a></div>
+          <div>Expected output: <a href="{{this.input}}">{{this.input}}</a></div>
+        </dd>
+        {{/each}}
+      </dl>
+    </section>
+  </script>
 </head>
-<body>
+<body onload="load_manifests();">
   <div id="container">
      <div id="header">
         <span class="col">
@@ -81,5 +102,23 @@
         long-term goal of having a comprehensive test suite for JSON-LD can be achieved
         by the JSON-LD community.</p>
 </div></div></div>
+<div id="manifests" class="container">
+  <h2>Test Manifests</h2>
+</div>
 </body>
+<script type="text/javascript">
+function load_manifests() {
+  Handlebars.registerHelper('number', function(that) {
+    return that['@id'].substring(2);
+  });
+  var man_tmpl = Handlebars.compile($("#manifest-template").html());
+  $.getJSON($("#manifest").attr("src"), null, function(data, status) {
+    data.sequence.forEach(function(man) {
+      $.getJSON(man, null, function(data, status) {
+        $("#manifests").append($(man_tmpl(data)));
+      });
+    });
+  });
+}
+</script>
 </html>
