@@ -1860,7 +1860,7 @@
       </ol>
 
       <p>The final output is a <tref>JSON object</tref> with a <code>@context</code>
-        key, if a <tref>context</tref> was given, where the <tref>JSON object</tref>
+        key, if a non-empty <tref>context</tref> was given, where the <tref>JSON object</tref>
         is either <i>result</i> or a wrapper for it where <i>result</i> appears
         as the value of an (aliased) <code>@graph</code> key because <i>result</i>
         contained two or more items in an <tref>array</tref>.</p>
@@ -2157,9 +2157,9 @@
         of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
         passing <tref>active context</tref>, <tref>inverse context</tref>, and
         <code>@graph</code> as <i>iri</i> and whose value is the <tref>array</tref>
-        <i>result</i>. Finally, if a <i>context</i> has been passed, add an
-        <code>@context</code> member to <i>result</i> and set its value to
-        the passed <i>context</i>.</p>
+        <i>result</i>. Finally, if a non-empty <i>context</i> has been passed,
+        add an <code>@context</code> member to <i>result</i> and set its value
+        to the passed <i>context</i>.</p>
     </section>
   </section> <!-- end of Compaction -->
 
@@ -3750,52 +3750,6 @@
       and processing is stopped.</li></p>
 
     <dl title="[Constructor] interface JsonLdProcessor" class="idl">
-      <dt>void expand()</dt>
-      <dd>
-        <p><a href="#expansion">Expands</a> the given <i>input</i> according to
-          the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>:</p>
-
-        <ol class="algorithm">
-          <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
-            representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
-            different than <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, invoke the <i>callback</i> passing an
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-            error.</li>
-          <li>Initialize a new empty <tref>active context</tref>.</li>
-          <li>If an
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            has been passed, update the <tref>active context</tref> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <tref>local context</tref>.</li>
-          <li>If the <i>input</i> has been retrieved and the response has a content type
-            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
-            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
-            <tref>active context</tref> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
-          <li>Set <i>expanded</i> to the result of using the
-            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
-            <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
-          <li>Invoke <i>callback</i>, passing <tref>null</tref> for <i>error</i> and
-            <i>expanded</i> for <i>document</i>.</li>
-        </ol>
-
-        <dl class="parameters">
-          <dt>JsonLdInput input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
-            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing completed successfully
-            on the given <code>input</code>, or a fatal error prevented
-            processing from completing.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
-            to set the input document's base <tref>IRI</tref>.</dd>
-        </dl>
-      </dd>
-
       <dt>void compact()</dt>
       <dd>
         <p><a href="#compaction">Compacts</a> the given <i>input</i> using the
@@ -3839,16 +3793,98 @@
           <dt>JsonLdInput input</dt>
            <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
             <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
-          <dt>JsonLdContext? context</dt>
+          <dt>JsonLdContext context</dt>
+          <dd>The context to use when compacting the <code>input</code>; either in the
+            form of a <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
+          <dt>JsonLdOptions options</dt>
+          <dd>A set of options to configure the algorithms. This allows, e.g.,
+            to set the input document's base <tref>IRI</tref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing completed successfully
+            on the given <code>input</code>, or a fatal error prevented
+            processing from completing.</dd>
+        </dl>
+      </dd>
+
+      <dt>void compact()</dt>
+      <dd>
+        <p>This method is the same as the
+          <code class="idlMethName"><a href="#widl-JsonLdProcessor-compact-void-JsonLdInput-input-JsonLdContext-context-JsonLdOptions-options-JsonLdCallback-callback">compact</a></code>
+          method defined above but without the the <i>options</i> parameter:</p>
+
+        <dl class="parameters">
+          <dt>JsonLdInput input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to compact.</dd>
+          <dt>JsonLdContext context</dt>
           <dd>The context to use when compacting the <code>input</code>; either in the
             form of a <tref>JSON object</tref> or as <tref>IRI</tref>.</dd>
           <dt>JsonLdCallback callback</dt>
           <dd>A callback that is called when processing completed successfully
             on the given <code>input</code>, or a fatal error prevented
             processing from completing.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options to configure the algorithms. This allows, e.g.,
+        </dl>
+      </dd>
+
+      <dt>void expand()</dt>
+      <dd>
+        <p><a href="#expansion">Expands</a> the given <i>input</i> according to
+          the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>:</p>
+
+        <ol class="algorithm">
+          <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
+            representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
+            different than <code>application/ld+json</code> or <code>application/json</code> or
+            if the document cannot be parsed as JSON, invoke the <i>callback</i> passing an
+            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+            error.</li>
+          <li>Initialize a new empty <tref>active context</tref>.</li>
+          <li>If an
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            has been passed, update the <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            as <tref>local context</tref>.</li>
+          <li>If the <i>input</i> has been retrieved and the response has a content type
+            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
+            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
+            <tref>active context</tref> using the
+            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
+            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+          <li>Set <i>expanded</i> to the result of using the
+            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
+            <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>Invoke <i>callback</i>, passing <tref>null</tref> for <i>error</i> and
+            <i>expanded</i> for <i>document</i>.</li>
+        </ol>
+
+        <dl class="parameters">
+          <dt>JsonLdInput input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dt>JsonLdOptions options</dt>
+          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
             to set the input document's base <tref>IRI</tref>.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing completed successfully
+            on the given <code>input</code>, or a fatal error prevented
+            processing from completing.</dd>
+        </dl>
+
+      <dt>void expand()</dt>
+      <dd>
+        <p>This method is the same as the
+          <code class="idlMethName"><a href="#widl-JsonLdProcessor-expand-void-JsonLdInput-input-JsonLdOptions-options-JsonLdCallback-callback">expand</a></code>
+          method defined above but without the the <i>options</i> parameter:</p>
+
+        <dl class="parameters">
+          <dt>JsonLdInput input</dt>
+          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
+            <tref>IRI</tref> referencing the JSON-LD document to expand.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing completed successfully
+            on the given <code>input</code>, or a fatal error prevented
+            processing from completing.</dd>
         </dl>
       </dd>
 
@@ -3903,13 +3939,35 @@
             in the form of a <tref>JSON object</tref> or as <tref>IRI</tref>. If
             <tref>null</tref> is passed, the result will not be compacted but kept
             in expanded form.</dd>
+          <dt>JsonLdOptions options</dt>
+          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
+            to set the input document's base <tref>IRI</tref>.</dd>
           <dt>JsonLdCallback callback</dt>
           <dd>A callback that is called when processing completed successfully
             on the given <code>input</code>, or a fatal error prevented
             processing from completing.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options to configure the used algorithms such. This allows, e.g.,
-            to set the input document's base <tref>IRI</tref>.</dd>
+        </dl>
+      </dd>
+
+      <dt>void flatten()</dt>
+      <dd>
+        <p>This method is the same as the
+          <code class="idlMethName"><a href="#widl-JsonLdProcessor-flatten-void-JsonLdInput-input-JsonLdContext-context-JsonLdOptions-options-JsonLdCallback-callback">flatten</a></code>
+          method defined above but without the the <i>options</i> parameter:</p>
+
+        <dl class="parameters">
+          <dt>JsonLdInput input</dt>
+           <dd>The JSON-LD object or array of JSON-LD objects or an <tref>IRI</tref>
+            referencing the JSON-LD document to flatten.</dd>
+          <dt>JsonLdContext? context</dt>
+          <dd>The context to use when compacting the flattened <code>input</code>; either
+            in the form of a <tref>JSON object</tref> or as <tref>IRI</tref>. If
+            <tref>null</tref> is passed, the result will not be compacted but kept
+            in expanded form.</dd>
+          <dt>JsonLdCallback callback</dt>
+          <dd>A callback that is called when processing completed successfully
+            on the given <code>input</code>, or a fatal error prevented
+            processing from completing.</dd>
         </dl>
       </dd>
     </dl>
@@ -3975,10 +4033,10 @@
           the details are contained within the <em>error</em> object. All
           errors MUST have a <a>JsonLdErrorCode</a> of
           <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-remote-context-failed">loading remote context failed</a></code>.</dd>
-        <dt>DOMString url</dt>
+        <dt>optional DOMString url</dt>
         <dd>The final URL of the loaded JSON-LD context. This is important
           to handle HTTP redirects properly.</dd>
-        <dt>DOMString context</dt>
+        <dt>optional DOMString context</dt>
         <dd>The raw content of the retrieved JSON-LD context.</dd>
       </dl>
     </section>
@@ -4023,7 +4081,7 @@
         <dd>The callback of the context loader to be used to retrieve remote contexts.
           If specified, it MUST be used to retrieve remote contexts; otherwise, if not specified,
           the processor's built-in context loader MUST be used.</dd>
-        <dt>(object or DOMString) expandContext = null</dt>
+        <dt>(object? or DOMString) expandContext = null</dt>
         <dd>A context that is used to initialize the active context when expanding a document.</dd>
         <dt>DOMString processingMode = "json-ld-1.0"</dt>
         <dd>If set to <code>json-ld-1.0</code>, the JSON-LD processor MUST produce
@@ -4049,7 +4107,7 @@
         <dt>JsonLdErrorCode code</dt>
         <dd>a string representing the particular error type, as described in
           the various algorithms in this document.</dd>
-        <dt>DOMString? message</dt>
+        <dt>DOMString? message = null</dt>
         <dd>an optional error message containing additional debugging information.
           The specific contents of error messages are outside the scope of this
           specification.</dd>
