@@ -68,6 +68,12 @@ jsonld.compact = function(input, ctx, options, callback) {
   }
   options = options || {};
 
+  if(ctx === null) {
+    return callback(new JsonLdError(
+      'The compaction context must not be null.',
+      'jsonld.CompactError'));
+  }
+
   // nothing to compact
   if(input === null) {
     return callback(null, null);
@@ -175,25 +181,23 @@ jsonld.compact = function(input, ctx, options, callback) {
       ctx = ctx[0];
     }
 
-    // add context
-    if(hasContext || options.graph) {
-      if(_isArray(compacted)) {
-        // use '@graph' keyword
-        var kwgraph = _compactIri(activeCtx, '@graph');
-        var graph = compacted;
-        compacted = {};
-        if(hasContext) {
-          compacted['@context'] = ctx;
-        }
-        compacted[kwgraph] = graph;
+    // add context and/or @graph
+    if(_isArray(compacted)) {
+      // use '@graph' keyword
+      var kwgraph = _compactIri(activeCtx, '@graph');
+      var graph = compacted;
+      compacted = {};
+      if(hasContext) {
+        compacted['@context'] = ctx;
       }
-      else if(_isObject(compacted)) {
-        // reorder keys so @context is first
-        var graph = compacted;
-        compacted = {'@context': ctx};
-        for(var key in graph) {
-          compacted[key] = graph[key];
-        }
+      compacted[kwgraph] = graph;
+    }
+    else if(_isObject(compacted) && hasContext) {
+      // reorder keys so @context is first
+      var graph = compacted;
+      compacted = {'@context': ctx};
+      for(var key in graph) {
+        compacted[key] = graph[key];
       }
     }
 
@@ -714,37 +718,16 @@ jsonld.loadContext = function(url, callback) {
 /* WebIDL API */
 
 function JsonLdProcessor() {};
-// callback param order unconventional w/WebIDL API
-JsonLdProcessor.prototype.expand = function(input, callback) {
-  var options = {};
-  if(arguments.length > 2) {
-    options = callback;
-    callback = arguments[2];
-  }
-  jsonld.expand(input, options, callback);
-};
-// callback param order unconventional w/WebIDL API
-JsonLdProcessor.prototype.compact = function(input, ctx, callback) {
-  var options = {};
-  if(arguments.length > 3) {
-    options = callback;
-    callback = arguments[3];
-  }
-  jsonld.compact(input, ctx, options, callback);
-};
-// callback param order unconventional w/WebIDL API
-JsonLdProcessor.prototype.flatten = function(input, ctx, callback) {
-  var options = {};
-  if(arguments.length > 3) {
-    options = callback;
-    callback = arguments[3];
-  }
-  jsonld.flatten(input, ctx, options, callback);
-};
+JsonLdProcessor.prototype.expand = jsonld.expand;
+JsonLdProcessor.prototype.compact = jsonld.compact;
+JsonLdProcessor.prototype.flatten = jsonld.flatten;
 JsonLdProcessor.prototype.frame = jsonld.frame;
 JsonLdProcessor.prototype.fromRDF = jsonld.fromRDF;
 JsonLdProcessor.prototype.toRDF = jsonld.toRDF;
 JsonLdProcessor.prototype.normalize = jsonld.normalize;
+JsonLdProcessor.prototype.toString = function() {
+  return '[object JsonLdProcessor]';
+};
 jsonld.JsonLdProcessor = JsonLdProcessor;
 
 /* Utility API */

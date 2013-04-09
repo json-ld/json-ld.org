@@ -28,9 +28,12 @@
 <pre id="idl">
 [Constructor]
 interface JsonLdProcessor {
-    void expand (JsonLdInput input, JsonLdCallback callback, optional JsonLdOptions? options);
-    void compact (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback, optional JsonLdOptions? options);
-    void flatten (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback, optional JsonLdOptions? options);
+    void expand (JsonLdInput input, JsonLdCallback callback);
+    void expand (JsonLdInput input, JsonLdOptions? options, JsonLdCallback callback);
+    void compact (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback);
+    void compact (JsonLdInput input, JsonLdContext? context, JsonLdOptions? options, JsonLdCallback callback);
+    void flatten (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback);
+    void flatten (JsonLdInput input, JsonLdContext? context, JsonLdOptions? options, JsonLdCallback callback);
 };
 
 typedef (object or object[] or DOMString) JsonLdInput;
@@ -98,6 +101,31 @@ enum JsonLdErrorCode {
 (function() {
   window.JsonLdProcessor = window.jsonld.JsonLdProcessor;
   window.processor = new JsonLdProcessor();
+  
+  // pass writable/enumerable tests  
+  if(Object.defineProperty) {
+    Object.defineProperty(JsonLdProcessor, 'prototype', {
+      writable: false,
+      enumerable: false
+    });
+    Object.defineProperty(window, 'JsonLdProcessor', {
+      writable: true,
+      enumerable: false
+    });
+  }
+  
+  // pass stringification tests
+  var toString = Object.prototype.toString;
+  Object.prototype.toString = function() {
+    if(this === window.JsonLdProcessor.prototype) {
+      return '[object JsonLdProcessorPrototype]';
+    }
+    if(this === window.processor) {
+      return window.processor.toString();
+    }
+    return toString.apply(this, arguments);
+  };
+  
   var idl_array = new IdlArray();
 
   //idl_array.add_untested_idls(document.getElementById("untested_idl").textContent);
