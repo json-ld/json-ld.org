@@ -28,12 +28,12 @@
 <pre id="idl">
 [Constructor]
 interface JsonLdProcessor {
+    void compact (JsonLdInput input, JsonLdContext context, JsonLdOptions options, JsonLdCallback callback);
+    void compact (JsonLdInput input, JsonLdContext context, JsonLdCallback callback);
+    void expand (JsonLdInput input, JsonLdOptions options, JsonLdCallback callback);
     void expand (JsonLdInput input, JsonLdCallback callback);
-    void expand (JsonLdInput input, JsonLdOptions? options, JsonLdCallback callback);
-    void compact (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback);
-    void compact (JsonLdInput input, JsonLdContext? context, JsonLdOptions? options, JsonLdCallback callback);
+    void flatten (JsonLdInput input, JsonLdContext? context, JsonLdOptions options, JsonLdCallback callback);
     void flatten (JsonLdInput input, JsonLdContext? context, JsonLdCallback callback);
-    void flatten (JsonLdInput input, JsonLdContext? context, JsonLdOptions? options, JsonLdCallback callback);
 };
 
 typedef (object or object[] or DOMString) JsonLdInput;
@@ -43,19 +43,19 @@ callback JsonLdCallback = void (JsonLdError error, optional (object or object[])
 
 callback LoadContextCallback = void (DOMString url, ContextLoadedCallback callback);
 
-callback ContextLoadedCallback = void (JsonLdError error, DOMString url, DOMString context);
+callback ContextLoadedCallback = void (JsonLdError error, optional DOMString url, optional DOMString context);
 
 dictionary JsonLdOptions {
-    DOMString             base;
-    boolean               compactArrays = true;
-    LoadContextCallback   loadContext;
-    (object or DOMString) expandContext = null;
-    DOMString             processingMode = "json-ld-1.0";
+    DOMString              base;
+    boolean                compactArrays = true;
+    LoadContextCallback    loadContext;
+    (object? or DOMString) expandContext = null;
+    DOMString              processingMode = "json-ld-1.0";
 };
 
 dictionary JsonLdError {
     JsonLdErrorCode code;
-    DOMString?      message;
+    DOMString?      message = null;
 };
 
 enum JsonLdErrorCode {
@@ -101,8 +101,8 @@ enum JsonLdErrorCode {
 (function() {
   window.JsonLdProcessor = window.jsonld.JsonLdProcessor;
   window.processor = new JsonLdProcessor();
-  
-  // pass writable/enumerable tests  
+
+  // pass writable/enumerable tests
   if(Object.defineProperty) {
     Object.defineProperty(JsonLdProcessor, 'prototype', {
       writable: false,
@@ -113,7 +113,7 @@ enum JsonLdErrorCode {
       enumerable: false
     });
   }
-  
+
   // pass stringification tests
   var toString = Object.prototype.toString;
   Object.prototype.toString = function() {
@@ -125,7 +125,7 @@ enum JsonLdErrorCode {
     }
     return toString.apply(this, arguments);
   };
-  
+
   var idl_array = new IdlArray();
 
   //idl_array.add_untested_idls(document.getElementById("untested_idl").textContent);
