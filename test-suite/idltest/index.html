@@ -99,32 +99,33 @@ enum JsonLdErrorCode {
 <script>
 
 (function() {
-  window.JsonLdProcessor = window.jsonld.JsonLdProcessor;
-  window.processor = new JsonLdProcessor();
-
-  // pass writable/enumerable tests
-  if(Object.defineProperty) {
+  // setup JsonLdProcessor
+  if (Object.defineProperty) {
+    Object.defineProperty(window, 'JsonLdProcessor', {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: window.jsonld.JsonLdProcessor
+    });
     Object.defineProperty(JsonLdProcessor, 'prototype', {
       writable: false,
       enumerable: false
     });
-    Object.defineProperty(window, 'JsonLdProcessor', {
-      writable: true,
-      enumerable: false
-    });
   }
 
-  // pass stringification tests
+  // Ensure that stringification tests are passed
   var toString = Object.prototype.toString;
   Object.prototype.toString = function() {
-    if(this === window.JsonLdProcessor.prototype) {
+    if (this === window.JsonLdProcessor.prototype) {
       return '[object JsonLdProcessorPrototype]';
+    } else if (this.constructor === window.JsonLdProcessor) {
+      return '[object JsonLdProcessor]';
     }
-    if(this === window.processor) {
-      return window.processor.toString();
-    }
+
     return toString.apply(this, arguments);
-  };
+  }
+
+  window.processor = new JsonLdProcessor();
 
   var idl_array = new IdlArray();
 
@@ -141,3 +142,4 @@ enum JsonLdErrorCode {
 
 </body>
 </html>
+
