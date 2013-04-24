@@ -69,14 +69,18 @@ jsonld.compact = function(input, ctx, options, callback) {
   options = options || {};
 
   if(ctx === null) {
-    return callback(new JsonLdError(
+    return jsonld.nextTick(function() {
+      callback(new JsonLdError(
       'The compaction context must not be null.',
       'jsonld.CompactError'));
+    });
   }
 
   // nothing to compact
   if(input === null) {
-    return callback(null, null);
+    return jsonld.nextTick(function() {
+      callback(null, null);
+    });
   }
 
   // set default options
@@ -100,10 +104,12 @@ jsonld.compact = function(input, ctx, options, callback) {
   }
 
   var expand = function(input, options, callback) {
-    if(options.skipExpansion) {
-      return callback(null, input);
-    }
-    jsonld.expand(input, options, callback);
+    jsonld.nextTick(function() {
+      if(options.skipExpansion) {
+        return callback(null, input);
+      }
+      jsonld.expand(input, options, callback);
+    });
   };
 
   // expand input then do compaction
@@ -235,36 +241,38 @@ jsonld.expand = function(input, options, callback) {
     options.keepFreeFloatingNodes = false;
   }
 
-  // retrieve all @context URLs in the input
-  input = _clone(input);
-  _retrieveContextUrls(input, options, function(err, input) {
-    if(err) {
-      return callback(err);
-    }
-    try {
-      // do expansion
-      var activeCtx = _getInitialContext(options);
-      var expanded = new Processor().expand(
-        activeCtx, null, input, options, false);
+  jsonld.nextTick(function() {
+    // retrieve all @context URLs in the input
+    input = _clone(input);
+    _retrieveContextUrls(input, options, function(err, input) {
+      if(err) {
+        return callback(err);
+      }
+      try {
+        // do expansion
+        var activeCtx = _getInitialContext(options);
+        var expanded = new Processor().expand(
+          activeCtx, null, input, options, false);
 
-      // optimize away @graph with no other properties
-      if(_isObject(expanded) && ('@graph' in expanded) &&
-        Object.keys(expanded).length === 1) {
-        expanded = expanded['@graph'];
-      }
-      else if(expanded === null) {
-        expanded = [];
-      }
+        // optimize away @graph with no other properties
+        if(_isObject(expanded) && ('@graph' in expanded) &&
+          Object.keys(expanded).length === 1) {
+          expanded = expanded['@graph'];
+        }
+        else if(expanded === null) {
+          expanded = [];
+        }
 
-      // normalize to an array
-      if(!_isArray(expanded)) {
-        expanded = [expanded];
+        // normalize to an array
+        if(!_isArray(expanded)) {
+          expanded = [expanded];
+        }
+        callback(null, expanded);
       }
-      callback(null, expanded);
-    }
-    catch(ex) {
-      callback(ex);
-    }
+      catch(ex) {
+        callback(ex);
+      }
+    });
   });
 };
 
@@ -619,21 +627,23 @@ jsonld.fromRDF = function(dataset, options, callback) {
     }
   }
 
-  // handle special format
-  if(options.format) {
-    // supported formats
-    if(options.format in _rdfParsers) {
-      dataset = _rdfParsers[options.format](dataset);
+  jsonld.nextTick(function() {
+    // handle special format
+    if(options.format) {
+      // supported formats
+      if(options.format in _rdfParsers) {
+        dataset = _rdfParsers[options.format](dataset);
+      }
+      else {
+        throw new JsonLdError(
+          'Unknown input format.',
+          'jsonld.UnknownFormat', {format: options.format});
+      }
     }
-    else {
-      throw new JsonLdError(
-        'Unknown input format.',
-        'jsonld.UnknownFormat', {format: options.format});
-    }
-  }
 
-  // convert from RDF
-  new Processor().fromRDF(dataset, options, callback);
+    // convert from RDF
+    new Processor().fromRDF(dataset, options, callback);
+  });
 };
 
 /**
@@ -715,16 +725,100 @@ jsonld.loadContext = function(url, callback) {
     'jsonld.ContextUrlError'), url);
 };
 
+/* Futures/Promises API */
+
+jsonld.futures = jsonld.promises = function() {
+  var Future = _nodejs ? require('./Future') : window.Future;
+
+  // converts a node.js async op into a future w/boxed resolved value(s)
+  function futurize(op) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Future(function(resolver) {
+      op.apply(null, args.concat(function(err, value) {
+        if(err) {
+          resolver.reject(err);
+        }
+        else {
+          resolver.resolve(value);
+        }
+      }));
+    });
+  }
+
+  // converts a load context promise callback to a node-style callback
+  function createContextLoader(promise) {
+    return function(url, callback) {
+      promise(url).then(
+        // success
+        function(remoteContext) {
+          callback(null, remoteContext.url, remoteContext.context);
+        },
+        // failure
+        callback
+      );
+    };
+  }
+
+  var api = {};
+  api.expand = function(input) {
+    var options = (arguments.length > 1) ? arguments[1] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    return futurize(jsonld.expand, input, options);
+  };
+  api.compact = function(input, ctx) {
+    var options = (arguments.length > 2) ? arguments[2] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    var compact = function(input, ctx, options, callback) {
+      // ensure only one value is returned in callback
+      jsonld.compact(input, ctx, options, function(err, compacted) {
+        callback(err, compacted);
+      });
+    };
+    return futurize(compact, input, ctx, options);
+  };
+  api.flatten = function(input, ctx) {
+    var options = (arguments.length > 2) ? arguments[2] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    return futurize(jsonld.flatten, input, ctx, options);
+  };
+  api.frame = function(input, frame) {
+    var options = (arguments.length > 2) ? arguments[2] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    return futurize(jsonld.frame, input, frame, options);
+  };
+  api.fromRDF = function(dataset) {
+    var options = (arguments.length > 1) ? arguments[1] : {};
+    return futurize(jsonld.fromRDF, dataset, options);
+  };
+  api.toRDF = function(input) {
+    var options = (arguments.length > 1) ? arguments[1] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    return futurize(jsonld.toRDF, input, options);
+  };
+  api.normalize = function(input) {
+    var options = (arguments.length > 1) ? arguments[1] : {};
+    if('loadContext' in options) {
+      options.loadContext = createContextLoader(options.loadContext);
+    }
+    return futurize(jsonld.normalize, input, options);
+  };
+  return api;
+};
+
 /* WebIDL API */
 
 function JsonLdProcessor() {};
-JsonLdProcessor.prototype.expand = jsonld.expand;
-JsonLdProcessor.prototype.compact = jsonld.compact;
-JsonLdProcessor.prototype.flatten = jsonld.flatten;
-JsonLdProcessor.prototype.frame = jsonld.frame;
-JsonLdProcessor.prototype.fromRDF = jsonld.fromRDF;
-JsonLdProcessor.prototype.toRDF = jsonld.toRDF;
-JsonLdProcessor.prototype.normalize = jsonld.normalize;
+JsonLdProcessor.prototype = jsonld.futures();
 JsonLdProcessor.prototype.toString = function() {
   return '[object JsonLdProcessor]';
 };
