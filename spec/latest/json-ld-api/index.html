@@ -1042,7 +1042,7 @@
           error has been detected and processing is aborted.</li>
         <li>Remove any existing <tref>term definition</tref> for <i>term</i> in
           <tref>active context</tref>.</li>
-        <li>Initialize <i>value</i> to the value associated with the key
+        <li>Initialize <i>value</i> to a copy of the value associated with the key
           <i>term</i> in <tref>local context</tref>.</li>
         <li>If <i>value</i> is <tref>null</tref> or <i>value</i>
           is a <tref>JSON object</tref> containing the key-value pair
@@ -1050,23 +1050,9 @@
           <tref>term definition</tref> in <tref>active context</tref> to
           <tref>null</tref>, set the value associated with <i>defined</i>'s
           key <i>term</i> to <tref>true</tref>, and return.</li>
-        <li>Otherwise, if <i>value</i> is a <tref>string</tref>:
-          <ol class="algorithm">
-            <li>Expand <i>value</i> by setting it to the result of
-              using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
-              passing <tref>active context</tref>, <i>value</i>,
-              <tref>true</tref> for <i>vocab</i>,
-              <tref>true</tref> for <i>document relative</i>,
-              <tref>local context</tref>, and <i>defined</i>.</li>
-            <li>If <i>value</i> is <code>@context</code>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-keyword-alias">invalid keyword alias</a></code>
-              error has been detected and processing is aborted.</li>
-            <li>Set the <tref>IRI mapping</tref> for the <tref>term definition</tref>
-              for <i>term</i> in <tref>active context</tref> to <i>value</i>,
-              set the value associated with <i>defined</i>'s key <i>term</i> to
-              <tref>true</tref>, and return.</li>
-          </ol>
-        </li>
+        <li>Otherwise, if <i>value</i> is a <tref>string</tref>, convert it
+          to a <tref>JSON object</tref> consisting of a single member whose
+          key is <code>@id</code> and whose value is <i>value</i>.</li>
         <li>Otherwise, <i>value</i> must be a <tref>JSON object</tref>, if not, an
           <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-term-definition">invalid term definition</a></code>
           error has been detected and processing is aborted.</li>
@@ -1110,7 +1096,8 @@
         </li>
         <li>Set the <tref>reverse property</tref> flag of <i>definition</i>
           to <tref>false</tref>.</li>
-        <li>If <i>value</i> contains the key <code>@id</code>:
+        <li>If <i>value</i> contains the key <code>@id</code> and its value
+          does not equal <i>term</i>:
           <ol class="algorithm">
             <li>If the value associated with the <code>@id</code> key is not a <tref>string</tref>, an
               <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
@@ -1120,7 +1107,10 @@
               <tref>active context</tref>, the value associated with the <code>@id</code> key for
               <i>value</i>, <tref>true</tref> for <i>vocab</i>,
               <tref>true</tref> for <i>document relative</i>,
-              <tref>local context</tref>, and <i>defined</i>.</li>
+              <tref>local context</tref>, and <i>defined</i>. If the resulting
+              <tref>IRI mapping</tref> equals <code>@context</code>, an
+              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-keyword-alias">invalid keyword alias</a></code>
+              error has been detected and processing is aborted.</li>
           </ol>
         </li>
         <li>
