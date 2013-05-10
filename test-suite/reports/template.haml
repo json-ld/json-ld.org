@@ -1,6 +1,7 @@
 -# This template is used for generating a rollup EARL report. It expects to be
 -# called with a single _tests_ local with the following structure
 - require 'cgi'
+- require 'digest'
 
 !!! 5
 %html{:prefix => "earl: http://www.w3.org/ns/earl# doap: http://usefulinc.com/ns/doap# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"}
@@ -221,7 +222,7 @@
                   %th
                     %a{:href => '#' + subject_refs[subject['@id']]}<=subject['name']
             - test_cases.each do |test|
-              - tid = 'test_' + (test['@id'][0,2] == '_:' ? test['@id'][2..-1] : test['@id'].split('#').last)
+              - tid = "test_#{Digest::MD5.hexdigest(test['@id'])}"
               - (test_info[tid] ||= []) << test
               - test_refs[test['@id']] = tid
               %tr{:rel => "mf:entries", :typeof => test['@type'].join(" "), :resource => test['@id'], :inlist => true}
