@@ -1,3 +1,5 @@
+# JSON-LD Data Icons
+
 LOGO_NAME=json-ld-logo
 LOGO_SRC=$(LOGO_NAME).svg
 LOGO_PNGS=\
@@ -20,6 +22,7 @@ DATA_PNGS=\
 	$(DATA_NAME)-24.png \
 	$(DATA_NAME)-16.png
 
+# Maximum width of "high resolution" PNGs
 HD_WIDTH=1920
 
 #	convert -background none -resize 256 $< $(DATA_NAME)-256.gif
