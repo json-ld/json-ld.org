@@ -1,5 +1,6 @@
 // extend the bibliography entries
 var localBibliography = {
+    "LINKED-DATA": "Tim Berners-Lee. <cite><a href=\"http://www.w3.org/DesignIssues/LinkedData.html\">Linked Data</a>.</cite>Personal View, imperfect but published. URL: <a href=\"http://www.w3.org/DesignIssues/LinkedData.html\">http://www.w3.org/DesignIssues/LinkedData.html</a>",
     "JSON-LD": "Manu Sporny, Gregg Kellogg, Markus Lanthaler, Editors. <cite><a href=\"http://json-ld.org/spec/latest/json-ld/\">JSON-LD 1.0</a>.</cite> W3C Editor's Draft (work in progress). URL: <a href=\"http://json-ld.org/spec/latest/json-ld/\">http://json-ld.org/spec/latest/json-ld/</a>",
     "JSON-LD-API": "Markus Lanthaler, Gregg Kellogg, Manu Sporny, Editors. <cite><a href=\"http://json-ld.org/spec/latest/json-ld-api/\">JSON-LD 1.0 Processing Algorithms and API</a>.</cite> W3C Editor's Draft (work in progress). URL: <a href=\"http://json-ld.org/spec/latest/json-ld-api/\">http://json-ld.org/spec/latest/json-ld-api/</a>",
     "JSON-LD-TESTS": "<cite><a href=\"http://www.w3.org/2013/json-ld-tests/\">JSON-LD 1.0 Test Suite</a></cite>. W3C Test Suite (work in progress). URL: <a href=\"http://www.w3.org/2013/json-ld-tests/\">http://www.w3.org/2013/json-ld-tests/</a>",
