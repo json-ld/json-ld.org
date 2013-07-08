@@ -157,6 +157,7 @@
    * @param ui the ui tab object that was selected
    */
   playground.tabSelected = function(event, ui) {
+    console.log('tab selected');
     playground.activeTab = ui.tab.id;
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
       ui.tab.id === 'tab-framed') {
@@ -459,8 +460,8 @@
 
   // event handlers
   $(document).ready(function() {
-    // use jquery context loader
-    jsonld.useContextLoader('jquery', $);
+    // use jquery document loader
+    jsonld.useDocumentLoader('jquery', $);
 
     // set up buttons to load examples
     $('.button').each(function(idx) {
