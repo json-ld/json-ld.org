@@ -5,12 +5,12 @@
 <title>JSON-LD idlharness test</title>
 <link rel="author" title="W3C" href="http://www.w3.org/" />
 <link rel="help" href="http://www.w3.org/TR/json-ld-api/#jsonldprocessor" />
-<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#loadcontextcallback" />
-<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#remotecontext" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#loaddocumentcallback" />
+<link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#remotedocument" />
 <link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonldoptions" />
 <link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonlderror" />
 <link rel="help" href="http://json-ld.org/spec/latest/json-ld-api/#jsonlderrorcode" />
-<script src="../../playground/Future.js"></script>
+<script src="../../playground/Promise.js"></script>
 <script src="../../playground/jsonld.js"></script>
 <script src="http://w3c-test.org/resources/testharness.js"></script>
 <script src="http://w3c-test.org/resources/testharnessreport.js"></script>
@@ -28,9 +28,9 @@
 <pre id="idl">
 [Constructor]
 interface JsonLdProcessor {
-    Future compact (any input, JsonLdContext context, optional JsonLdOptions options);
-    Future expand (any input, optional JsonLdOptions options);
-    Future flatten (any input, optional JsonLdContext? context, optional JsonLdOptions options);
+    Promise compact (any input, JsonLdContext context, optional JsonLdOptions options);
+    Promise expand (any input, optional JsonLdOptions options);
+    Promise flatten (any input, optional JsonLdContext? context, optional JsonLdOptions options);
 };
 
 typedef (object or DOMString) JsonLdContext;
@@ -38,16 +38,17 @@ typedef (object or DOMString) JsonLdContext;
 dictionary JsonLdOptions {
     DOMString              base;
     boolean                compactArrays = true;
-    LoadContextCallback    loadContext;
+    LoadDocumentCallback   loadDocument;
     (object? or DOMString) expandContext = null;
     DOMString              processingMode = "json-ld-1.0";
 };
 
-callback LoadContextCallback = Future (DOMString url);
+callback LoadDocumentCallback = Promise (DOMString url);
 
-dictionary RemoteContext {
-    DOMString url;
-    DOMString context;
+dictionary RemoteDocument {
+    DOMString contextUrl = null;
+    DOMString documentUrl;
+    any document;
 };
 
 dictionary JsonLdError {
