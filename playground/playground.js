@@ -157,7 +157,6 @@
    * @param ui the ui tab object that was selected
    */
   playground.tabSelected = function(event, ui) {
-    console.log('tab selected');
     playground.activeTab = ui.tab.id;
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
       ui.tab.id === 'tab-framed') {
@@ -191,21 +190,21 @@
   };
 
   /**
-   * Returns a Future to performs the JSON-LD API action based on the active
+   * Returns a Promise to performs the JSON-LD API action based on the active
    * tab.
    *
    * @param input the JSON-LD object input or null no error.
    * @param param the JSON-LD param to use.
    */
   playground.performAction = function(input, param) {
-    return new Future(function(resolver) {
+    return new Promise(function(resolver) {
       var processor = new jsonld.JsonLdProcessor();
 
       // set base IRI
       var options = {base: document.baseURI};
 
       if(playground.activeTab === 'tab-compacted') {
-        processor.compact(input, param, options).done(function(compacted) {
+        processor.compact(input, param, options).then(function(compacted) {
           $('#compacted').html(js_beautify(
             playground.htmlEscape(JSON.stringify(compacted)),
             {'indent_size': 2}).replace(/\n/g, '<br>'));
@@ -213,7 +212,7 @@
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-expanded') {
-        processor.expand(input, options).done(function(expanded) {
+        processor.expand(input, options).then(function(expanded) {
           $('#expanded').html(js_beautify(
             playground.htmlEscape(JSON.stringify(expanded)),
             {'indent_size': 2}).replace(/\n/g, '<br>'));
@@ -221,7 +220,7 @@
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-flattened') {
-        processor.flatten(input, param, options).done(function(flattened) {
+        processor.flatten(input, param, options).then(function(flattened) {
           $('#flattened').html(js_beautify(
             playground.htmlEscape(JSON.stringify(flattened)),
             {'indent_size': 2}).replace(/\n/g, '<br>'));
@@ -229,7 +228,7 @@
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-framed') {
-        processor.frame(input, param, options).done(function(framed) {
+        processor.frame(input, param, options).then(function(framed) {
           $('#framed').html(js_beautify(
             playground.htmlEscape(JSON.stringify(framed)),
             {'indent_size': 2}).replace(/\n/g, '<br>'));
@@ -238,7 +237,7 @@
       }
       else if(playground.activeTab === 'tab-nquads') {
         options.format = 'application/nquads';
-        processor.toRDF(input, options).done(function(nquads) {
+        processor.toRDF(input, options).then(function(nquads) {
           $('#nquads').html(
             playground.htmlEscape(nquads).replace(/\n/g, '<br>'));
           resolver.resolve();
@@ -246,7 +245,7 @@
       }
       else if(playground.activeTab === 'tab-normalized') {
         options.format = 'application/nquads';
-        processor.normalize(input, options).done(function(normalized) {
+        processor.normalize(input, options).then(function(normalized) {
           $('#normalized').html(
             playground.htmlEscape(normalized).replace(/\n/g, '<br>'));
           resolver.resolve();
@@ -315,7 +314,7 @@
     }
 
     // no errors, perform the action and display the output
-    playground.performAction(input, param).done(function() {
+    playground.performAction(input, param).then(function() {
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
       if($('#frame').val().length > 0) {
