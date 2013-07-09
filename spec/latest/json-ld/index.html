@@ -2709,10 +2709,13 @@ specified. The full <tref>IRI</tref> for
 
   <p>JSON-LD is a serialization format for Linked Data based on JSON.
     It is therefore important to distinguish between the syntax, which is
-    defined by JSON in [[RFC4627]], and the
-    <tdef title="data model">data model</tdef> which is an extension of the
-    RDF data model [[RDF11-CONCEPTS]]. To ease understanding for developers
-    unfamiliar with the RDF model, the following summary is provided:</p>
+    defined by JSON in [[RFC4627]], and the <tdef>data model</tdef> which is
+    an extension of the RDF data model [[RDF11-CONCEPTS]]. The precise
+    details of how JSON-LD relates to the RDF data model are given in
+    <a class="sectionRef" href="#relationship-to-rdf"></a>.</p>
+
+  <p>To ease understanding for developers unfamiliar with the RDF model, the
+    following summary is provided:</p>
 
   <ul>
     <li>A <tdef>JSON-LD document</tdef> serializes a
@@ -2753,9 +2756,14 @@ specified. The full <tref>IRI</tref> for
       is a string that can be used as an identifier for a <tref>blank node</tref> within
       the scope of a <tref>JSON-LD document</tref>. Blank node identifiers begin with
       <code>_:</code>.</li>
-    <li>A <tdef>JSON-LD value</tdef> is a <tref>string</tref>, a <tref>number</tref>,
-      <tref>true</tref> or <tref>false</tref>, a <tref>typed value</tref>, or a
-      <tref>language-tagged string</tref>.</li>
+    <li>A <tdef>JSON-LD value</tdef> is a <tref>typed value</tref>, a <tref>string</tref> (which is interpreted
+      as <tref>typed value</tref> with type <code>xsd:string</code>), a <tref>number</tref>
+      (<tref title="number">numbers</tref> with a non-zero fractional part are interpreted as
+      <tref title="typed value">typed values</tref> with type <code>xsd:double</code>, all other
+      <tref title="number">numbers</tref> are interpreted as <tref title="typed value">typed values</tref>
+      with type <code>xsd:integer</code>), <tref>true</tref> or <tref>false</tref> (which are interpreted as
+      <tref title="typed value">typed values</tref> with type <code>xsd:boolean</code>),
+      or a <tref>language-tagged string</tref>.</li>
     <li>A <tdef>typed value</tdef> consists of a value, which is a string, and a type, which is an
       <tref>IRI</tref>.</li>
     <li>A <tdef><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-string" class="externalDFN">language-tagged string</a></tdef>
@@ -2763,10 +2771,10 @@ specified. The full <tref>IRI</tref> for
       The language tag MUST be well-formed according to section
       <a href="http://tools.ietf.org/html/bcp47#section-2.2.9">2.2.9 Classes of Conformance</a>
       of [[BCP47]].</li>
-    <li>A <tdef>list</tdef> is an sequence of zero or more
-      <tref title="IRI">IRIs</tref>,
-      <tref title="blank node">blank nodes</tref>, and
-      <tref title="JSON-LD value">JSON-LD values</tref>.</li>
+    <li>A <tdef>list</tdef> is a sequence of zero or more <tref title="IRI">IRIs</tref>,
+      <tref title="blank node">blank nodes</tref>, and <tref title="JSON-LD value">JSON-LD values</tref>.
+      <tref title="list">Lists</tref> are interpreted as
+      <a href="http://www.w3.org/TR/rdf11-mt/#rdf-collections" class="externalDFN">RDF list structures</a> [[RDF11-MT]].</li>
   </ul>
 
   <div class="issue atrisk" data-number="3" title="Allow blank nodes to be used as properties">
@@ -2787,23 +2795,12 @@ specified. The full <tref>IRI</tref> for
       If this change would affect you, be sure to send in a comment.</p>
   </div>
 
-  <p>The intent is for the definitions above to be as compatible as possible
-    with the abstract syntax of RDF datasets and RDF graphs. The only point at
-    which the definitions deviate from the ones in RDF Concepts is when
-    the RDF model is extended. Complete details of how JSON-LD
-    extends the RDF model can be found in
-    <a class="sectionRef" href="#relationship-to-rdf"></a>.</p>
-
-  <p>
-   <tref title="JSON-LD document">JSON-LD documents</tref>
-   MAY contain data that cannot be represented by the
-   <tref title="data model">data model</tref> defined above. Unless otherwise
-   specified, such data is ignored when a <tref>JSON-LD document</tref>
-   is being processed. One result of this rule is that properties which
-   are not mapped to an <tref>IRI</tref> or <tref>blank node</tref> will
-   be ignored.
-  </p>
-
+  <p><tref title="JSON-LD document">JSON-LD documents</tref> MAY contain data
+    that cannot be represented by the <tref title="data model">data model</tref>
+    defined above. Unless otherwise specified, such data is ignored when a
+    <tref>JSON-LD document</tref> is being processed. One result of this rule
+    is that properties which are not mapped to an <tref>IRI</tref>,
+    a <tref>blank node</tref>, or <tref>keyword</tref> will be ignored.</p>
 
   <p style="text-align: center"><img src="linked-data-graph.png" title="An illustration of the data model" alt="An illustration of the data model" /></p>
   <p style="text-align: center">Figure&nbsp;1: An illustration of the data model.</p>
@@ -3177,40 +3174,26 @@ specified. The full <tref>IRI</tref> for
   <ul>
     <li>In JSON-LD <tref title="property">properties</tref> can be
       <tref title="IRI">IRIs</tref> or <tref title="blank node">blank nodes</tref>
-      whereas in RDF properties (predicates) have to be
-      <tref title="IRI">IRIs</tref>.</li>
-    <li>In JSON-LD sets and lists are part of the data model whereas in RDF
-      they are part of a vocabulary, namely [[RDF-SCHEMA]].</li>
+      whereas in RDF properties (predicates) have to be <tref title="IRI">IRIs</tref>. This
+      means that JSON-LD serializes
+      <tref href="http://www.w3.org/TR/rdf11-concepts/#fn-generalized-rdf-dataset">generalized RDF Datasets</tref>.</li>
+    <li>In JSON-LD <tref title="list">lists</tref> are part of the data model
+      whereas in RDF they are part of a vocabulary, namely [[RDF-SCHEMA]].</li>
     <li>RDF values are either typed <em>literals</em>
       (<tref title="typed value">typed values</tref>) or <em>language-tagged strings</em>
       (<tref title="language-tagged string">language-tagged strings</tref>) whereas
       JSON-LD also supports JSON's native data types, i.e., <tref title="number">number</tref>,
       <tref title="string">strings</tref>, and the boolean values <tref>true</tref>
       and <tref>false</tref>. The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]]
-      defines the conversion rules between JSON's native data types and RDF's counterparts to
-      allow full round-tripping.</li>
-
+      defines the <a href="../json-ld-api/#data-round-tripping">conversion rules</a>
+      between JSON's native data types and RDF's counterparts to allow round-tripping.</li>
   </ul>
-
-  <p class="note">All JSON numbers and booleans can be mapped to XML Schema
-  datatypes, which are built-in datatypes in the RDF model.
-  Non-decimal JSON numbers map to <code>xsd:integer</code> and
-  decimal numbers map to <code>xsd:double</code>. JSON numbers are
-  described as extensions to the RDF data model because they combine the value
-  space of <code>xsd:integer</code> and <code>xsd:double</code> into a single
-  value space. JSON booleans may be mapped to XML Schema using the
-  <code>xsd:boolean</code> datatype. JSON booleans are described as extensions
-  to the RDF data model because, while they have the same value space,
-  they omit the values of <code>0</code> and <code>1</code> from the
-  lexical space.
-  </p>
 
   <p>Summarized, these differences mean that JSON-LD is capable of serializing any RDF
     graph or dataset and most, but not all, JSON-LD documents can be directly
     interpreted as RDF. It is possible to work around this restriction, when
     interpreting JSON-LD as RDF, by transforming <tref title="blank node">blank nodes</tref>
-    used as <tref title="graph name">graph names</tref> or
-    <tref title="property">properties</tref> to <tref title="IRI">IRIs</tref>,
+    used as <tref title="property">properties</tref> to <tref title="IRI">IRIs</tref>,
     minting new "Skolem IRIs" as per
     <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-skolemization">Replacing Blank Nodes with IRIs</a></cite>
     of [[RDF11-CONCEPTS]]. The normative algorithms for interpreting JSON-LD as RDF
@@ -3218,7 +3201,7 @@ specified. The full <tref>IRI</tref> for
     JSON-LD Processing Algorithms and API specification [[JSON-LD-API]].</p>
 
   <p>Even though JSON-LD serializes
-    <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-dataset">RDF Datasets</tref>, it can
+    <tref href="http://www.w3.org/TR/rdf11-concepts/#fn-generalized-rdf-dataset">generalized RDF Datasets</tref>, it can
     also be used as a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-source">RDF graph source</tref>.
     In that case, a consumer MUST only use the default graph and ignore all named graphs.
     This allows servers to expose data in, e.g., both Turtle and JSON-LD using content
