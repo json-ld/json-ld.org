@@ -446,52 +446,83 @@ jsonld.frame = function(input, frame, options, callback) {
   options.explicit = options.explicit || false;
   options.omitDefault = options.omitDefault || false;
 
-  // preserve frame context
-  var ctx = frame['@context'] || {};
+  jsonld.nextTick(function() {
+    // if frame is a string, attempt to dereference remote document
+    if(typeof frame === 'string') {
+      return options.loadDocument(frame, function(err, remoteDoc) {
+        if(err) {
+          return callback(err);
+        }
+        doFrame(remoteDoc);
+      });
+    }
+    // nothing to load
+    doFrame({contextUrl: null, documentUrl: null, document: frame});
+  });
 
-  // expand input
-  jsonld.expand(input, options, function(err, expanded) {
-    if(err) {
-      return callback(new JsonLdError(
-        'Could not expand input before framing.',
-        'jsonld.FrameError', {cause: err}));
+  function doFrame(remoteFrame) {
+    // preserve frame context and add any Link header context
+    var frame = remoteFrame.document;
+    if(frame) {
+      var ctx = frame['@context'] || {};
+      if(remoteFrame.contextUrl) {
+        if(!ctx) {
+          ctx = remoteFrame.contextUrl;
+        }
+        else if(_isArray(ctx)) {
+          ctx.push[remoteFrame.contextUrl];
+        }
+        else {
+          ctx = [ctx, remoteFrame.contextUrl];
+        }
+        frame['@context'] = ctx;
+      }
     }
 
-    // expand frame
-    var opts = _clone(options);
-    opts.keepFreeFloatingNodes = true;
-    jsonld.expand(frame, opts, function(err, expandedFrame) {
+    // expand input
+    jsonld.expand(input, options, function(err, expanded) {
       if(err) {
         return callback(new JsonLdError(
-          'Could not expand frame before framing.',
+          'Could not expand input before framing.',
           'jsonld.FrameError', {cause: err}));
       }
 
-      try {
-        // do framing
-        var framed = new Processor().frame(expanded, expandedFrame, options);
-      }
-      catch(ex) {
-        return callback(ex);
-      }
-
-      // compact result (force @graph option to true, skip expansion)
-      opts.graph = true;
-      opts.skipExpansion = true;
-      jsonld.compact(framed, ctx, opts, function(err, compacted, ctx) {
+      // expand frame
+      var opts = _clone(options);
+      opts.keepFreeFloatingNodes = true;
+      jsonld.expand(frame, opts, function(err, expandedFrame) {
         if(err) {
           return callback(new JsonLdError(
-            'Could not compact framed output.',
+            'Could not expand frame before framing.',
             'jsonld.FrameError', {cause: err}));
         }
-        // get graph alias
-        var graph = _compactIri(ctx, '@graph');
-        // remove @preserve from results
-        compacted[graph] = _removePreserve(ctx, compacted[graph], opts);
-        callback(null, compacted);
+
+        try {
+          // do framing
+          var framed = new Processor().frame(expanded, expandedFrame, options);
+        }
+        catch(ex) {
+          return callback(ex);
+        }
+
+        // compact result (force @graph option to true, skip expansion)
+        opts.graph = true;
+        opts.skipExpansion = true;
+        jsonld.compact(framed, ctx, opts, function(err, compacted, ctx) {
+          if(err) {
+            return callback(new JsonLdError(
+              'Could not compact framed output.',
+              'jsonld.FrameError', {cause: err}));
+          }
+          // get graph alias
+          var graph = _compactIri(ctx, '@graph');
+          // remove @preserve from results
+          compacted[graph] = _removePreserve(ctx, compacted[graph], opts);
+          callback(null, compacted);
+        });
       });
     });
-  });
+  }
 };
 
 /**
@@ -1030,8 +1061,9 @@ else {
  */
 jsonld.parseLinkHeader = function(header) {
   var rval = {};
-  var entries = header.split(',');
-  var rLinkHeader = /\s*<(.*?)>\s*(?:;\s*(.*))?/;
+  // split on unbracketed/unquoted commas
+  var entries = header.match(/(?:<[^>]*?>|"[^"]*?"|[^,])+/g);
+  var rLinkHeader = /\s*<([^>]*?)>\s*(?:;\s*(.*))?/;
   for(var i = 0; i < entries.length; ++i) {
     var match = entries[i].match(rLinkHeader);
     if(!match) {
@@ -1039,9 +1071,9 @@ jsonld.parseLinkHeader = function(header) {
     }
     var result = {target: match[1]};
     var params = match[2];
-    var rParams = /(.*?)="?(.*?)"?\s*(?:(?:;\s*)|$)/g;
+    var rParams = /(.*?)=(?:(?:"([^"]*?)")|([^"]*?))\s*(?:(?:;\s*)|$)/g;
     while(match = rParams.exec(params)) {
-      result[match[1]] = match[2];
+      result[match[1]] = (match[2] === undefined) ? match[3] : match[2];
     }
     var rel = result['rel'];
     if(_isArray(rval[rel])) {
@@ -5781,7 +5813,9 @@ function _toNQuad(triple, graphName, bnode) {
       .replace(/\"/g, '\\"');
     quad += '"' + escaped + '"';
     if(o.datatype === RDF_LANGSTRING) {
-      quad += '@' + o.language;
+      if(o.language) {
+        quad += '@' + o.language;
+      }
     }
     else if(o.datatype !== XSD_STRING) {
       quad += '^^<' + o.datatype + '>';
