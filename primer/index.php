@@ -21,20 +21,10 @@ lang="en" >
 <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
 <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
-<link rel="stylesheet" href="../common/prettify.css" type="text/css" />
 <link rel="shortcut icon" href="../favicon.ico" />
 
 <!-- script tags -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-<script type="text/javascript" src="jquery-ui-1.8.14.custom.min.js"></script>
-<script type="text/javascript" src="js_beautify.js"></script>
-<script type="text/javascript" src="../common/prettify.js"></script>
-<script type="text/javascript" src="../common/lang-jsonld.js"></script>
-<script type="text/javascript" src="../common/lang-nquads.js"></script>
-<script type="text/javascript" src="Future.js"></script>
-<script type="text/javascript" src="jsonld.js"></script>
-<script type="text/javascript" src="playground.js"></script>
-<script type="text/javascript" src="playground-examples.js"></script>
 
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -134,6 +124,10 @@ Part of the <a href="http://payswarm.com/">payswarm.com</a> initiative.
 </div>
 
 </div> <!-- /container -->
+
+<!-- script tags -->
+<script type="text/javascript" src="../static/js/bootstrap/bootstrap.js"></script> 
+
 </body> 
 </html>
 
