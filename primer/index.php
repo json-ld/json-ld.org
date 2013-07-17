@@ -39,7 +39,7 @@ print <<< htmlcode
 
    </head>
 
-    <body>
+  <body>
       <div class="navbar navbar-static-top">
         <div class="navbar-inner">
           <div class="row-fluid">
