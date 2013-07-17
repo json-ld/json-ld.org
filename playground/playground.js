@@ -162,6 +162,8 @@
       ui.tab.id === 'tab-framed') {
       // these options require more UI inputs, so compress UI space
      $('#markup').addClass('compressed');
+     $('#markup').removeClass('span12');
+     $('#markup').addClass('span6');
 
       if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
@@ -179,6 +181,8 @@
       $('#context-div').hide();
       $('#frame-div').hide();
       $('#markup-div').removeClass('compressed');
+      $('#markup').removeClass('span6');
+      $('#markup').addClass('span12');
       $('#param-type').html('');
     }
 
