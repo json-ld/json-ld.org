@@ -161,24 +161,24 @@
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
       ui.tab.id === 'tab-framed') {
       // these options require more UI inputs, so compress UI space
-      $('#markup').addClass('compressed');
+     $('#markup').addClass('compressed');
 
       if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
-        $('#context').show();
-        $('#frame').hide();
+        $('#context-div').show();
+        $('#frame-div').hide();
       }
       else {
         $('#param-type').html('JSON-LD Frame');
-        $('#frame').show();
-        $('#context').hide();
+        $('#frame-div').show();
+        $('#context-div').hide();
       }
     }
     else {
       // else no input textarea required
-      $('#context').hide();
-      $('#frame').hide();
-      $('#markup').removeClass('compressed');
+      $('#context-div').hide();
+      $('#frame-div').hide();
+      $('#markup-div').removeClass('compressed');
       $('#param-type').html('');
     }
 
