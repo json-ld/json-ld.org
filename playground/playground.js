@@ -61,9 +61,9 @@
   playground.processQueryParameters = function() {
     // data from the query
     var queryData = {
-       markup: null,
-       frame: null,
-       context: null
+      markup: null,
+      frame: null,
+      context: null
     };
 
     /**
@@ -82,7 +82,6 @@
 
       // check 'json-ld' parameter
       if(param !== null) {
-        hasQueryData = true;
         if(param.length === 0 || param[0] === '{' || param[0] === '[') {
           // param looks like JSON
           queryData[fieldName] = param;
@@ -123,8 +122,8 @@
 
     var startTab = getParameterByName('startTab');
     if(startTab) {
-        // strip 'tab-' to get the tab's panel's I D
-        $('#tabs').tabs('select', '#' + startTab.substr(4));
+      // strip 'tab-' to get the tab's panel's ID
+      $('#tabs').tabs('select', '#' + startTab.substr(4));
     }
 
     // wait for ajax if needed
@@ -147,7 +146,9 @@
   playground.init = function() {
     $('#tabs').tabs();
     $('#tabs').bind('tabsselect', playground.tabSelected);
-    playground.processQueryParameters();
+    if(window.location.search) {
+      playground.processQueryParameters();
+    }
   };
 
   /**
