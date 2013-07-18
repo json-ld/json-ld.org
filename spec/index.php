@@ -24,15 +24,6 @@
 
       <!-- script tags -->
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-      <script type="text/javascript" src="jquery-ui-1.8.14.custom.min.js"></script>
-      <script type="text/javascript" src="js_beautify.js"></script>
-      <script type="text/javascript" src="../common/prettify.js"></script>
-      <script type="text/javascript" src="../common/lang-jsonld.js"></script>
-      <script type="text/javascript" src="../common/lang-nquads.js"></script>
-      <script type="text/javascript" src="Future.js"></script>
-      <script type="text/javascript" src="jsonld.js"></script>
-      <script type="text/javascript" src="playground.js"></script>
-      <script type="text/javascript" src="playground-examples.js"></script>
 
       <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -46,37 +37,47 @@
 
    </head>
 
-   <body onload="playground.init();">
+   <body>
       <div class="navbar navbar-static-top">
         <div class="navbar-inner">
           <div class="row-fluid">
-            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
+              <span class="icon-bar"></span> 
+              <span class="icon-bar"></span> 
               <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </a>
+            </a> 
             <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png"> JSON-LD</a>
             <div class="nav-collapse">
-              <ul class="nav">
-                <li><a href="#"><span class="icon-beer"></span> Play</a></li>
-                <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="icon-folder-open"></span> Specification <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav-header"><strong>Latest drafts</strong></li>
-                    <li><a href="http://json-ld.org/spec/latest/">Specification</a></li>
-                    <li><a href="http://json-ld.org/requirements/latest/">Requirements</a></li>
-                    <li class="divider"></li>
-                    <li class="nav-header"><strong>Previous Drafts</strong></li>
-                    <li><a href="http://json-ld.org/spec/">Specification</a></li>
-                    <li><a href="http://json-ld.org/requirements/">Requirements</a></li>
-                  </ul>
-                </li>
-                <li><a href="../learn.html"><span class="icon-book"></span> Documentation</a></li>
-                <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
-                <li><a href="../images/index.html"><span class="icon-picture"></span> Images</a></li>
+            <ul class="nav">
+              <li>
+                <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
+              </li>
+              <li>
+                <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
+              </li>
+              <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
+                 </a>
+                <ul class="dropdown-menu">
+                  <li class="nav-header"><strong>Latest</strong></li>
+                  <li><a href="../spec/latest/json-ld/">Syntax</a></li>
+                  <li><a href="../spec/latest/json-ld-api/">API</a></li>
+                  <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                  <li><a href="../spec/latest/rdf-graph-normalization/">Normalization</a></li>
+                  <li class="divider"></li>
+                  <li class="nav-header"><strong>Previous Drafts</strong></li>
+                  <li><a href="../spec#syntax">Syntax</a></li>
+                  <li><a href="../spec#api">API</a></li>
+                  <li><a href="../spec#framing">Framing</a></li>
+                  <li><a href="../spec#normalization">Normalization</a></li>
+                </ul>
+              </li>
+              <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
               </ul>
-            </div><!--/.nav-collapse -->
+            </div>
+            <!--/.nav-collapse -->
           </div>
         </div>
       </div>
