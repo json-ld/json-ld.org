@@ -114,18 +114,14 @@ if(is_dir('ED'))
 print <<< htmlcode
                </ul>
             </div>
-         </div>
-         
-         <br>
-
-         <div id="footer">
-            <p id="copyright">
-               Website content released under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution Share-Alike license</a> except where an alternate is specified.
-            </p>
-            <p id="legal">
-               Part of the <a href="http://payswarm.com/">payswarm.com</a> initiative.
-            </p>
-         </div>
+         </div>         
+        <hr>
+        <div id="footer">
+          <p id="copyright">
+           Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
+           Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
+          </p>
+        </div>
 
       </div> <!-- /container -->
    </body> 
