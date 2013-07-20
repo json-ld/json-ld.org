@@ -3169,7 +3169,7 @@ specified. The full <tref>IRI</tref> for
     <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-concrete-rdf-syntax">concrete RDF syntax</tref>
     as described in [[RDF11-CONCEPTS]]. Hence, a JSON-LD document is an
     RDF document and a JSON document and correspondingly represents an
-    instance of an extended RDF data model, namely
+    instance of an RDF data model, namely
     <tref href="http://www.w3.org/TR/rdf11-concepts/#fn-generalized-rdf-dataset">generalized RDF Datasets</tref>.
     The extensions to the RDF data model are:</p>
 
@@ -3193,21 +3193,44 @@ specified. The full <tref>IRI</tref> for
 
   <p>Summarized, these differences mean that JSON-LD is capable of serializing any RDF
     graph or dataset and most, but not all, JSON-LD documents can be directly
-    interpreted as RDF. It is possible to work around this restriction, when
-    interpreting JSON-LD as RDF, by transforming <tref title="blank node">blank nodes</tref>
-    used as <tref title="property">properties</tref> to <tref title="IRI">IRIs</tref>,
+    interpreted as RDF as described in RDF 1.1 Concepts [[RDF11-CONCEPTS]].</p>
+    
+  <p>For authors and developers working with 
+    <tref title="blank node">blank nodes</tref> as
+    <tref title="property">properties</tref> when converting to RDF, there are 
+    three potential approaches (in order of preference):</p>
+    
+  <ol>
+    <li>If the author is not yet ready to commit to a stable IRI, the
+      property should be mapped to an IRI that is documented as unstable.</li>
+    <li>If the developer wishes to use 
+    <tref title="blank node">blank nodes</tref> as
+    <tref title="property">properties</tref> and also wishes to interpret the
+    data as a 
+    <tref href="http://www.w3.org/TR/rdf11-concepts/#fn-generalized-rdf-dataset">generalized RDF Dataset</tref>,
+    there is an option in the [[JSON-LD-API]] to do so.</li>
+    <li>If the author or developer wishes to use 
+    <tref title="blank node">blank nodes</tref> as
+    <tref title="property">properties</tref> and wishes to interpret the data
+    as a non-generalized RDF Dataset, it is possible 
+    to losslessly interpret JSON-LD as RDF by 
+    transforming <tref title="blank node">blank nodes</tref> used as 
+    <tref title="property">properties</tref> to <tref title="IRI">IRIs</tref>,
     minting new "Skolem IRIs" as per
     <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-skolemization">Replacing Blank Nodes with IRIs</a></cite>
-    of [[RDF11-CONCEPTS]]. The normative algorithms for interpreting JSON-LD as RDF
-    and serializing RDF as JSON-LD are specified in the
-    JSON-LD Processing Algorithms and API specification [[JSON-LD-API]].</p>
+    of [[RDF11-CONCEPTS]].</li>
+  </ol>
+  
+  <p>The normative algorithms for interpreting JSON-LD as RDF and serializing 
+    RDF as JSON-LD are specified in the JSON-LD Processing Algorithms and API 
+    specification [[JSON-LD-API]].</p>
 
   <p>Even though JSON-LD serializes
     <tref href="http://www.w3.org/TR/rdf11-concepts/#fn-generalized-rdf-dataset">generalized RDF Datasets</tref>, it can
     also be used as a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-source">RDF graph source</tref>.
     In that case, a consumer MUST only use the default graph and ignore all named graphs.
-    This allows servers to expose data in, e.g., both Turtle and JSON-LD using content
-    negotiation.</p>
+    This allows servers to expose data in languages such as Turtle and JSON-LD 
+    using content negotiation.</p>
 
   <p class="note">Publishers supporting both dataset and graph syntaxes have to ensure that
     the primary data is stored in the default graph to enable consumers that do not support
