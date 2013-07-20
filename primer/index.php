@@ -1,16 +1,16 @@
 <?php
-print <<< htmlcode
-<!DOCTYPE html>
-<html version="HTML+RDFa 1.1"
-      prefix="
-             xhv: http://www.w3.org/1999/xhtml/vocab# 
-             xsd: http://www.w3.org/2001/XMLSchema#
-             rdfs: http://www.w3.org/2000/01/rdf-schema#
-             dc: http://purl.org/dc/terms/
-             vcard: http://www.w3.org/2006/vcard/ns#
-             v: http://rdf.data-vocabulary.org/#"
-      lang="en" >
-   <head>
+  print <<< htmlcode
+  <!DOCTYPE html>
+  <html
+    prefix="
+      xhv: http://www.w3.org/1999/xhtml/vocab# 
+      xsd: http://www.w3.org/2001/XMLSchema#
+      rdfs: http://www.w3.org/2000/01/rdf-schema#
+      dc: http://purl.org/dc/terms/
+      vcard: http://www.w3.org/2006/vcard/ns#
+      v: http://rdf.data-vocabulary.org/#"
+    lang="en" >
+    <head>
       <title>JSON-LD - JSON for Linking Data</title>
 
       <!-- Meta Tags -->
@@ -36,20 +36,19 @@ print <<< htmlcode
         ga('create', 'UA-40462488-1', 'json-ld.org');
         ga('send', 'pageview');
       </script>
-
    </head>
 
   <body>
-      <div class="navbar navbar-static-top">
-        <div class="navbar-inner">
-          <div class="row-fluid">
-            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
-              <span class="icon-bar"></span> 
-              <span class="icon-bar"></span> 
-              <span class="icon-bar"></span>
-            </a> 
-            <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png"> JSON-LD</a>
-            <div class="nav-collapse">
+    <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="row-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a> 
+          <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
+          <div class="nav-collapse">
             <ul class="nav">
               <li>
                 <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
@@ -61,7 +60,7 @@ print <<< htmlcode
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                   <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
-                 </a>
+                </a>
                 <ul class="dropdown-menu">
                   <li class="nav-header"><strong>Latest</strong></li>
                   <li><a href="../spec/latest/json-ld/">Syntax</a></li>
@@ -77,24 +76,21 @@ print <<< htmlcode
                 </ul>
               </li>
               <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
-              </ul>
-            </div>
-            <!--/.nav-collapse -->
+            </ul>
           </div>
+          <!--/.nav-collapse -->
         </div>
       </div>
-
-      <div class="container">
-        <br>
-
-
-         <div id="content"> 
-            <div id="info"> 
-               <h1>Primers</h1> 
-               <p>The following primers are sorted in most recent to
-               least recent order:</p>
-               <ul>
-                 <li><a href="latest/">Latest</a></li>
+    </div>
+    <div class="container">
+    <br>
+    <div id="content"> 
+      <div id="info"> 
+          <h1>Primers</h1> 
+          <p>The following primers are sorted in most recent to
+          least recent order:</p>
+          <ul>
+          <li><a href="latest/">Latest</a></li>
 
 htmlcode;
 
@@ -112,19 +108,18 @@ if(is_dir('ED'))
 }
 
 print <<< htmlcode
-               </ul>
-            </div>
-         </div>         
-        <hr>
-        <div id="footer">
-          <p id="copyright">
-           Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
-           Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
-          </p>
+          </ul>
         </div>
-
-      </div> <!-- /container -->
-   </body> 
+      </div>
+      <hr>
+      <div id="footer">
+        <p id="copyright">
+          Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
+          Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
+        </p>
+      </div>
+    </div> <!-- /container -->
+  </body> 
 </html>
 
 htmlcode;
