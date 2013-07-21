@@ -192,6 +192,7 @@
     <li>When generating RDF, exclude <tref title="rdf triple">triples</tref> containing a
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
       <i>produce generalized RDF</i> flag is set.</li>
+    <li>Update reference to DOM Promises (have been called DOM Futures)</li>
   </ul>
 </section>
 
@@ -316,7 +317,7 @@
       and regular way of expressing of values in JSON-LD; all contextual
       information from the document is instead stored locally with each value.
       Running the <a href="#expansion-algorithm">Expansion algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-expand-Future-any-input-JsonLdOptions-options">expand</a></code>
+      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options">expand</a></code>
       operation) against the above examples results in the following output:</p>
 
     <pre class="example" data-transform="updateExample"
@@ -404,7 +405,7 @@
     </pre>
 
     <p>Running the <a href="#compaction-algorithm">Compaction Algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-compact-Future-any-input-JsonLdContext-context-JsonLdOptions-options">compact</a></code>
+      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-compact-Promise-any-input-JsonLdContext-context-JsonLdOptions-options">compact</a></code>
       operation) given the context supplied above against the JSON-LD input
       document provided above would result in the following output:</p>
 
@@ -471,7 +472,7 @@
     </pre>
 
     <p>Running the <a href="#flattening-algorithm">Flattening algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-flatten-Future-any-input-JsonLdContext-context-JsonLdOptions-options">flatten</a></code>
+      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-flatten-Promise-any-input-JsonLdContext-context-JsonLdOptions-options">flatten</a></code>
       operation) with a context set to <tref>null</tref> to prevent compaction
       returns the following document:</p>
 
@@ -3757,13 +3758,13 @@
     work with. A conformant <tref>JSON-LD API Implementation</tref> MUST
     implement the entirety of the following API.</p>
 
-  <p>The JSON-LD API uses <tref title="Future">Futures</tref> to represent
+  <p>The JSON-LD API uses <tref title="Promise">Promises</tref> to represent
     the result of the various asynchronous operations.
-    <tdef title="Future">Futures</tdef> are defined in
-    <cite><a href="http://dom.spec.whatwg.org/#futures">section&nbsp;4 Futures</a></cite>
+    <tdef title="Promise">Promises</tdef> are defined in
+    <cite><a href="http://dom.spec.whatwg.org/#promises">section&nbsp;4 Promises</a></cite>
     of [[!DOM-WHATWG]].</p>
 
-    <div class="issue atrisk" data-number="8" title="Properly referencing the DOM Futures spec">
+    <div class="issue atrisk" data-number="8" title="Properly referencing the DOM Promises spec">
       <p class="atrisk-head">Note: This feature is
         <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
         be removed or modified heavily from the feature described in this specification
@@ -3771,7 +3772,7 @@
         <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
         For the current status see
         <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
-      <p>The JSON-LD API specification currently only refers to the "Future" interface and does not attempt to provide any details on the specific implementation of Futures. That is, it does not reference whether or not '.then()' must be specified. This is done in order to allow for some implementation flexibility in the event the DOM Futures spec changes. The editors of the WHATWG DOM specification have asserted that the Future interface is ready to be incorporated into specifications. The issue relates to how to properly refer to a spec living in the WHATWG as a living standard as well as how to ensure that the interface provided by the spec is stable.</p>
+      <p>The JSON-LD API specification currently only refers to the "Promise" interface and does not attempt to provide any details on the specific implementation of Promises. That is, it does not reference whether or not '.then()' must be specified. This is done in order to allow for some implementation flexibility in the event the DOM Promises spec changes. The editors of the WHATWG DOM specification have asserted that the Promise interface is ready to be incorporated into specifications. The issue relates to how to properly refer to a spec living in the WHATWG as a living standard as well as how to ensure that the interface provided by the spec is stable.</p>
     </div>
 
   <section>
@@ -3782,26 +3783,26 @@
 
     <p>It is important to highlight that conformant
       <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>
-      MUST NOT modify the input parameters. If an error is detected, the Future is
+      MUST NOT modify the input parameters. If an error is detected, the Promise is
       rejected passing a <a>JsonLdError</a> with the corresponding error
       <code class="idlMemberName"><a href="#widl-JsonLdError-code">code</a></code>
       and processing is stopped.</p>
 
     <dl title="[Constructor] interface JsonLdProcessor" class="idl">
-      <dt>Future compact()</dt>
+      <dt>Promise compact()</dt>
       <dd>
         <p><a href="#compaction">Compacts</a> the given <i>input</i> using the
           <i>context</i> according to the steps in the
           <a href="#compaction-algorithm">Compaction algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <tref>Future</tref> <i>future</i> and return it. The
+          <li>Create a new <tref>Promise</tref> <i>promise</i> and return it. The
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
             representing the <tref>IRI</tref> of a remote document, dereference it.
             If the retrieved document has a content type different than
             <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>future</i> passing an
+            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3829,7 +3830,7 @@
             <i>context</i>, <i>expanded</i> as <i>element</i>, and if passed, the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
             flag in <i>options</i>.</li>
-          <li>Accept the <i>future</i> passing <i>compacted</i>.</li>
+          <li>Fulfill the <i>promise</i> passing <i>compacted</i>.</li>
         </ol>
 
         <dl class="parameters">
@@ -3847,18 +3848,18 @@
         </dl>
       </dd>
 
-      <dt>Future expand()</dt>
+      <dt>Promise expand()</dt>
       <dd>
         <p><a href="#expansion">Expands</a> the given <i>input</i> according to
           the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <tref>Future</tref> <i>future</i> and return it. The
+          <li>Create a new <tref>Promise</tref> <i>promise</i> and return it. The
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
             representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
             different than <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>future</i> passing an
+            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3881,7 +3882,7 @@
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
-          <li>Accept the <i>future</i> passing <i>expanded</i>.</li>
+          <li>Fulfill the <i>promise</i> passing <i>expanded</i>.</li>
         </ol>
 
         <dl class="parameters">
@@ -3894,19 +3895,19 @@
         </dl>
       </dd>
 
-      <dt>Future flatten()</dt>
+      <dt>Promise flatten()</dt>
       <dd>
         <p><a href="#flattening">Flattens</a> the given <i>input</i> and
           <a href="#compaction">compacts</a> it using the passed <i>context</i>
           according to the steps in the <a href="#flattening-algorithm">Flattening algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <tref>Future</tref> <i>future</i> and return it. The
+          <li>Create a new <tref>Promise</tref> <i>promise</i> and return it. The
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
             representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
             different than <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>future</i> passing an
+            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3938,7 +3939,7 @@
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
             flag in <i>options</i> (which is internally passed to the
             <a href="#compaction-algorithm">Compaction algorithm</a>).</li>
-          <li>Accept the <i>future</i> passing <i>flattened</i>.</li>
+          <li>Fulfill the <i>promise</i> passing <i>flattened</i>.</li>
         </ol>
 
         <dl class="parameters">
@@ -4016,12 +4017,12 @@
       <p>The <a>LoadContextCallback</a> defines the callback that custom context loaders
         have to implement to be used to retrieve remote contexts.</p>
 
-      <dl title="callback LoadContextCallback = Future" class="idl">
+      <dl title="callback LoadContextCallback = Promise" class="idl">
         <dt>DOMString url</dt>
         <dd>The URL of the remote context to load.</dd>
       </dl>
 
-      <p>All errors MUST result in the <tref>Future</tref> being rejected with
+      <p>All errors MUST result in the <tref>Promise</tref> being rejected with
         a <a>JsonLdError</a> whose code is set to
         <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-remote-context-failed">loading remote context failed</a></code>.</p>
     </section>
