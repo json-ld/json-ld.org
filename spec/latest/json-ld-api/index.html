@@ -209,6 +209,8 @@
       handle lists correctly</li>
     <li>Support processing of documents with a <code>+json</code> media type as defined in
       [[RFC6839]]</li>
+    <li>Use the <a>LoadDocumentCallback</a> (previously <code>LoadContextCallback</code>)
+      to retrieve remote contexts and remote documents</li>
   </ul>
 </section>
 
@@ -4035,10 +4037,10 @@
         one element with that element during compaction. If set to <code>false</code>,
         all arrays will remain arrays even if they have just one element.
       </dd>
-      <dt>LoadContextCallback loadContext</dt>
-      <dd>The callback of the context loader to be used to retrieve remote contexts.
-        If specified, it MUST be used to retrieve remote contexts; otherwise, if not specified,
-        the processor's built-in context loader MUST be used.</dd>
+      <dt>LoadDocumentCallback documentLoader = null</dt>
+      <dd>The callback of the loader to be used to retrieve remote documents and contexts.
+        If specified, it MUST be used to retrieve remote documents and contexts; otherwise,
+        if not specified, the processor's built-in loader MUST be used.</dd>
       <dt>(object? or DOMString) expandContext = null</dt>
       <dd>A context that is used to initialize the active context when expanding a document.</dd>
       <dt>DOMString processingMode = "json-ld-1.0"</dt>
@@ -4056,44 +4058,56 @@
   </section> <!-- end JsonLdOptions -->
 
   <section>
-    <h3>Remote Context Retrieval</h3>
+    <h3>Remote Document and Context Retrieval</h3>
 
-    <p>Developers can utilize a callback to control how remote contexts are retrieved
+    <p>Developers can utilize a callback to control how remote documents and contexts are retrieved
       by <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>.
       This section details the parameters of that callback and the data structure
       used to return the retrieved context.</p>
 
     <section>
-      <h3>LoadContextCallback</h3>
+      <h3>LoadDocumentCallback</h3>
 
-      <p>The <a>LoadContextCallback</a> defines the callback that custom context loaders
-        have to implement to be used to retrieve remote contexts.</p>
+      <p>The <a>LoadDocumentCallback</a> defines a callback that custom document loaders
+        have to implement to be used to retrieve remote documents and contexts.</p>
 
-      <dl title="callback LoadContextCallback = Promise" class="idl">
+      <dl title="callback LoadDocumentCallback = Promise" class="idl">
         <dt>DOMString url</dt>
-        <dd>The URL of the remote context to load.</dd>
+        <dd>The URL of the remote document or context to load.</dd>
       </dl>
 
       <p>All errors MUST result in the <tref>Promise</tref> being rejected with
         a <a>JsonLdError</a> whose code is set to
-        <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-remote-context-failed">loading remote context failed</a></code>.</p>
+        <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+        or <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
+        as described in the next section.</p>
     </section>
 
     <section>
-      <h3>RemoteContext</h3>
+      <h3>RemoteDocument</h3>
 
-      <p>The <a>RemoteContext</a> type is used by a <a>LoadContextCallback</a>
-        to return information about a remote context.</p>
+      <p>The <a>RemoteDocument</a> type is used by a <a>LoadDocumentCallback</a>
+        to return information about a remote document or context.</p>
 
-      <dl title="dictionary RemoteContext" class="idl">
-        <dt>DOMString url</dt>
-        <dd>The final URL of the loaded JSON-LD context. This is important
+      <dl title="dictionary RemoteDocument" class="idl">
+        <dt>DOMString contextUrl = null</dt>
+        <dd>If available, the value of the HTTP Link Header [[!RFC5988]] using the
+          <code>http://www.w3.org/ns/json-ld#context</code> link relation in the
+          response. If the response's content type is <code>application/ld+json</code>,
+          the HTTP Link Header MUST be ignored. If multiple HTTP Link Headers using
+          the <code>http://www.w3.org/ns/json-ld#context</code> link relation are found,
+          the <tref>Promise</tref> of the <a>LoadDocumentCallback</a> MUST be rejected with
+          a <a>JsonLdError</a> whose code is set to
+          <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>.</dd>
+        <dt>DOMString documentUrl</dt>
+        <dd>The final URL of the loaded document. This is important
           to handle HTTP redirects properly.</dd>
-        <dt>DOMString context</dt>
-        <dd>The raw content of the retrieved JSON-LD context.</dd>
+        <dt>any document</dt>
+        <dd>The retrieved document. This can either be the raw payload or the already
+          parsed document.</dd>
       </dl>
     </section>
-  </section> <!-- end of Remote Context Retrieval -->
+  </section> <!-- end of Remote Document and Context Retrieval -->
 
   <section>
     <h3>Error Handling</h3>
