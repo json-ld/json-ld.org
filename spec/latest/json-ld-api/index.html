@@ -203,10 +203,12 @@
     <li>Clarify that blank node identifier are supported as value of <code>@vocab</code></li>
     <li>When generating RDF, exclude <tref title="rdf triple">triples</tref> containing a
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
-      <i>produce generalized RDF</i> flag is set.</li>
+      <i>produce generalized RDF</i> flag is set</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
     <li>Fix bug in <a href="#convert-from-rdf-algorithm">Convert from RDF algorithm</a> to
-      handle lists correctly.</li>
+      handle lists correctly</li>
+    <li>Support processing of documents with a <code>+json</code> media type as defined in
+      [[RFC6839]]</li>
   </ul>
 </section>
 
@@ -3829,9 +3831,10 @@
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
             representing the <tref>IRI</tref> of a remote document, dereference it.
-            If the retrieved document has a content type different than
-            <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
+            If the retrieved document's content type is neither <code>application/json</code>,
+            nor <code>application/ld+json</code>, nor any other media type using a
+            <code>+json</code> suffix as defined in [[RFC6839]]
+            or if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3845,12 +3848,14 @@
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             as <tref>local context</tref>.</li>
-          <li>If the <i>input</i> has been retrieved and the response has a content type
-            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
-            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
-            <tref>active context</tref> using the
+          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
+            using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
+            and a content type of <code>application/json</code> or any media type
+            with a <code>+json</code> suffix as defined in [[RFC6839]] except
+            <code>application/ld+json</code>, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+            context referenced in the HTTP Link Header as <tref>local context</tref>. The
+            HTTP Link Header is ignored for documents served as <code>application/ld+json</code>.</li>
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
@@ -3886,9 +3891,10 @@
           <li>Create a new <tref>Promise</tref> <i>promise</i> and return it. The
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
-            representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
-            different than <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
+            representing the <tref>IRI</tref> of a remote document, dereference it.
+            If the retrieved document's content type is neither <code>application/json</code>,
+            nor <code>application/ld+json</code>, nor any other media type using a
+            <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3902,12 +3908,14 @@
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             as <tref>local context</tref>.</li>
-          <li>If the <i>input</i> has been retrieved and the response has a content type
-            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
-            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
-            <tref>active context</tref> using the
+          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
+            using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
+            and a content type of <code>application/json</code> or any media type
+            with a <code>+json</code> suffix as defined in [[RFC6839]] except
+            <code>application/ld+json</code>, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+            context referenced in the HTTP Link Header as <tref>local context</tref>. The
+            HTTP Link Header is ignored for documents served as <code>application/ld+json</code>.</li>
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
@@ -3934,9 +3942,10 @@
           <li>Create a new <tref>Promise</tref> <i>promise</i> and return it. The
             following steps are then executed asynchronously.</li>
           <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
-            representing the <tref>IRI</tref> of a remote document, dereference it. If the retrieved document has a content type
-            different than <code>application/ld+json</code> or <code>application/json</code> or
-            if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
+            representing the <tref>IRI</tref> of a remote document, dereference it.
+            If the retrieved document's content type is neither <code>application/json</code>,
+            nor <code>application/ld+json</code>, nor any other media type using a
+            <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
             <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
             error.</li>
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
@@ -3950,12 +3959,14 @@
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             as <tref>local context</tref>.</li>
-          <li>If the <i>input</i> has been retrieved and the response has a content type
-            <code>application/json</code> and an HTTP Link Header [[!RFC5988]] using the
-            <code>http://www.w3.org/ns/json-ld#context</code> link relation, update the
-            <tref>active context</tref> using the
+          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
+            using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
+            and a content type of <code>application/json</code> or any media type
+            with a <code>+json</code> suffix as defined in [[RFC6839]] except
+            <code>application/ld+json</code>, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <tref>local context</tref>.</li>
+            context referenced in the HTTP Link Header as <tref>local context</tref>. The
+            HTTP Link Header is ignored for documents served as <code>application/ld+json</code>.</li>
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
