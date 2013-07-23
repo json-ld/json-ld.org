@@ -101,6 +101,18 @@
   .atrisk-head {
     font-style: italic;
   }
+  ol.algorithm {
+    counter-reset: numsection;
+    list-style-type: none;
+  }
+  ol.algorithm li {
+    margin: 0.5em 0;
+  }
+  ol.algorithm li:before {
+    font-weight: bold;
+    counter-increment: numsection;
+    content: counters(numsection, ".") ") ";
+  }
 </style>
 </head>
 
@@ -193,6 +205,8 @@
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
       <i>produce generalized RDF</i> flag is set.</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
+    <li>Fix bug in <a href="#convert-from-rdf-algorithm">Convert from RDF algorithm</a> to
+      handle lists correctly.</li>
   </ul>
 </section>
 
@@ -3433,8 +3447,7 @@
                   set to <i>subject</i>.</li>
                 <li>Reference the value of the <i>subject</i> member in <i>node map</i>
                   using the variable <i>node</i>.</li>
-                <li>If <i>object</i> is an <tref>IRI</tref> or
-                  <tref>blank node identifier</tref>, does not equal <code>rdf:nil</code>,
+                <li>If <i>object</i> is an <tref>IRI</tref> or <tref>blank node identifier</tref>,
                   and <i>node map</i> does not have an <i>object</i> member,
                   create one and initialize its value to a new <tref>JSON object</tref>
                   consisting of a single member <code>@id</code> whose value is
@@ -3442,30 +3455,33 @@
                 <li>If <i>predicate</i> equals <code>rdf:type</code>, and <i>object</i>
                   is an <tref>IRI</tref> or <tref>blank node identifier</tref>,
                   append <i>object</i> to the value of the <code>@type</code>
-                  member of <i>node</i>. If no such member exists, create one
+                  member of <i>node</i>; unless such an item already exists.
+                  If no such member exists, create one
                   and initialize it to an <tref>array</tref> whose only item is
                   <i>object</i>. Finally, continue to the next
                   <tref>RDF triple</tref>.</li>
-                <li>If <i>object</i> equals <code>rdf:nil</code> and <i>predicate</i> does
-                  not equal <code>rdf:rest</code>, set <i>value</i> to a new
-                  <tref>JSON object</tref> consisting of a single member
-                  <code>@list</code> whose value is set to an empty
-                  <tref>array</tref>.</li>
-                <li>Otherwise, set <i>value</i> to the result of using the
+                <li>Set <i>value</i> to the result of using the
                   <a href="#rdf-to-object-conversion">RDF to Object Conversion algorithm</a>,
                   passing <i>object</i> and <i>use native types</i>.</li>
                 <li>If <i>node</i> does not have an <i>predicate</i> member, create one
                   and initialize its value to an empty <tref>array</tref>.</li>
-                <li>Add a reference to <i>value</i> to the to the <tref>array</tref>
-                  associated with the <i>predicate</i> member of <i>node</i>.</li>
-                <li>If <i>object</i> is a <tref>blank node identifier</tref> and
-                  <i>predicate</i> equals neither <code>rdf:first</code> nor
-                  <code>rdf:rest</code>, it might represent the head of a RDF list:
+                <li>If there is no item equivalent to <i>value</i> in the <tref>array</tref>
+                  associated with the <i>predicate</i> member of <i>node</i>, append a
+                  reference to <i>value</i> to the <tref>array</tref>. Two JSON objects
+                  are considered equal if they have equivalent key-value pairs.</li>
+                <li>If <i>object</i> is a <tref>blank node identifier</tref>  or <tref>IRI</tref>,
+                  it might represent the a list node:
                   <ol class="algorithm">
-                    <li>If the <i>object</i> member of <i>node map</i> has an
-                      <code>usages</code> member, add a reference to <i>value</i> to it;
-                      otherwise create such a member and set its value to an
-                      <tref>array</tref> whose only item is a reference to <i>value</i>.</li>
+                    <li>If the <i>object</i> member of <i>node map</i> has no
+                      <code>usages</code> member, create one and initialize it to
+                      an empty <tref>array</tref>.</li>
+                    <li>Reference the <code>usages</code> member of the <i>object</i>
+                      member of <i>node map</i> using the variable <i>usages</i>.</li>
+                    <li>Append a new <tref>JSON object</tref> consisting of three
+                      members, <code>node</code>, <code>property</code>, and <code>value</code>
+                      to the <i>usages</i> <tref>array</tref>. The <code>node</code> member
+                      is set to a reference to <i>node</i>, <code>property</code> to <i>predicate</i>,
+                      and <code>value</code> to a reference to <i>value</i>.</li>
                   </ol>
                 </li>
               </ol>
@@ -3474,62 +3490,76 @@
         </li>
         <li>For each <i>name</i> and <i>graph object</i> in <i>graph map</i>:
           <ol class="algorithm">
-            <li>Initialize <i>subjects</i> to an <tref>array</tref> whose items
-              are the keys of <i>graph object</i>.</li>
-            <li>For item <i>subj</i> of the <tref>array</tref> <i>subjects</i>,
-              perform the following steps:
+            <li>If <i>graph object</i> has no <code>rdf:nil</code> member, continue
+              with the next <i>name</i>-<i>graph object</i> pair as the graph does
+              not contain any lists that need to be converted.</li>
+            <li>Initialize <i>nil</i> to the value of the <code>rdf:nil</code> member
+              of <i>graph object</i>.</li>
+            <li>For each item <i>usage</i> in the <code>usages</code> member of
+              <i>nil</i>, perform the following steps:
               <ol class="algorithm">
-                <li>If <i>graph object</i> does not have a <i>subj</i> member,
-                  it has been removed as it was part of a list. Continue with the
-                  next <i>subj</i>.</li>
-                <li>Reference the value of the <i>subj</i> member of <i>graph object</i>
-                  using the variable <i>node</i>.</li>
-                <li>If <i>node</i> has no <code>usages</code> member or its value
-                  is not an <tref>array</tref> consisting of one item, continue
-                  with the next <i>subj</i>.</li>
-                <li>Reference the only item of the <tref>array</tref> which is the value
-                  of the <code>usages</code> member of <i>node</i> using the variable
-                  <i>value</i>.</li>
-                <li>Initialize the variables <i>list</i> and <i>list nodes</i>
-                  to empty <tref title="array">arrays</tref>.</li>
-                <li>Initialize the <i>subject</i> to <i>subj</i>.</li>
-                <li>As long as <i>subject</i> does not equal <code>rdf:nil</code>
-                  and <i>list</i> is not <tref>null</tref>, perform the following steps:
+                <li>Initialize <i>node</i> to the value of the value of the
+                  <code>node</code> member of <i>usage</i>, <i>property</i> to
+                  the value of the <code>property</code> member of <i>usage</i>,
+                  and <i>head</i> to the value of the <code>value</code> member
+                  of <i>usage</i>.</li>
+                <li>Initialize two empty <tref title="array">arrays</tref> <i>list</i>
+                  and <i>list nodes</i>.</li>
+                <li id="find-list-head">If <i>property</i> equals <code>rdf:rest</code>, the value
+                  associated to the <code>usages</code> member of <i>node</i> has
+                  exactly 1 entry, <i>node</i> has a <code>rdf:first</code> and
+                  <code>rdf:rest</code> property, both of which have as value an
+                  <tref>array</tref> consisting of a single element, and <i>node</i>
+                  has no other members apart from an optional <code>@type</code>
+                  member whose value is an array with a single item equal to
+                  <code>rdf:List</code>, <i>node</i> represents a well-formed list
+                  node. Continue with the following steps:
                   <ol class="algorithm">
-                    <li>If <i>node</i> is <tref>null</tref>; the value of its <code>@id</code>
-                      member does not begin with <code>_:</code>; it has members other
-                      than <code>@id</code>, <code>usages</code>, <code>rdf:first</code>, and
-                      <code>rdf:rest</code>; the value of its <code>rdf:first</code> and
-                      member is not an <tref>array</tref> consisting of a single item;
-                      or the value of its <code>rdf:rest</code> member is not an <tref>array</tref>
-                      containing a single item which is a <tref>JSON object</tref> that has an
-                      <code>@id</code> member, it is not a valid list node. Set <i>list</i>
-                      to null.</li>
-                    <li>Otherwise:
-                      <ol class="algorithm">
-                        <li>Add the item of the <tref>array</tref> which is the value of
-                          the <code>rdf:first</code> member of <i>node</i> to <i>list</i>.</li>
-                        <li>Add the value of the <code>@id</code> member of <i>node</i> to
-                          <i>list nodes</i>.</li>
-                        <li>The only item of the <tref>array</tref> which is the value of the
-                          <code>rdf:rest</code> member of <i>node</i> is a <tref>JSON object</tref>.
-                          Set <i>subject</i> to the value of its <code>@id</code> member.</li>
-                        <li>If <i>graph object</i> has a <i>subject</i> member, reference its
-                          value using the variable <i>node</i>; otherwise set <i>node</i>
-                          to <tref>null</tref>.</li>
-                        <li>If <i>list nodes</i> contains <i>subject</i> a cycle has been detected,
-                          set <i>list</i> to <tref>null</tref>.</li>
-                      </ol>
-                    </li>
+                    <li>Append the only item of <code>rdf:first</code> member of
+                      <i>node</i> to the <i>list</i> <tref>array</tref>.</li>
+                    <li>Append the value of the <code>@id</code> member of
+                      <i>node</i> to the <i>list nodes</i> <tref>array</tref>.</li>
+                    <li>Initialize <i>node usage</i> to the only item of the
+                      <code>usages</code> member of <i>node</i>.</li>
+                    <li>Set <i>node</i> to the value of the <code>node</code> member
+                      of <i>node usage</i>, <i>property</i> to the value of the
+                      <code>property</code> member of <i>node usage</i>, and
+                      <i>head</i> to the value of the <code>value</code> member
+                      of <i>node usage</i>.</li>
+                    <li>If the <code>@id</code> member of <i>node</i> is a
+                      <tref>blank node identifier</tref>, continue to look for
+                      the head of the list by jumping to
+                      <a href="#find-list-head">step 4.3.3</a>.</li>
                   </ol>
                 </li>
-                <li>If <i>list</i> is <tref>null</tref>, continue with the next
-                  <i>subj</i>.</li>
-                <li>Remove the <code>@id</code> member from <i>value</i>.</li>
-                <li>Add an <code>@list</code> member to <i>value</i> and initialize
-                  it to <i>list</i>.</li>
-                <li>For each <i>subject</i> in <i>list nodes</i>, remove the
-                  <i>subject</i> member of <i>graph object</i>.</li>
+                <li>If <i>property</i> equals <code>rdf:first</code>, i.e., the
+                  detected list is nested inside another list
+                  <ol class="algorithm">
+                    <li>and the value of the <code>@id</code> of <i>node</i> equals
+                      <code>rdf:nil</code>, i.e., the detected list is empty,
+                      continue with the next <i>usage</i> item. The
+                      <code>rdf:nil</code> node cannot be converted to a
+                      <tref>list object</tref> as it would result in a list of
+                      lists, which isn't supported.</li>
+                    <li>Otherwise, the list consists of at least one item. We preserve the
+                      head node and transform the rest of the linked list to a
+                      <tref>list object</tref>.</li>
+                    <li>Set <i>head id</i> to the value of the <code>@id</code>
+                      member of <i>head</i>.</li>
+                    <li>Set <i>head</i> to the value of the <i>head id</i> member of
+                      <i>graph object</i> so that all it's properties can be accessed.</li>
+                    <li>Then, set <i>head</i> to the the only item in the value of the
+                      <code>rdf:rest</code> member of <i>head</i>.</li>
+                    <li>Finally, remove the last item of the <i>list</i> <tref>array</tref>
+                      and the last item of the <i>list nodes</i> <tref>array</tref>.</li>
+                  </ol>
+                </li>
+                <li>Remove the <code>@id</code> member from <i>head</i>.</li>
+                <li>Reverse the order of the <i>list</i> <tref>array</tref>.</li>
+                <li>Add a <code>@list</code> member to <i>head</i> and initialize
+                  its value to the the <i>list</i> <tref>array</tref>.</li>
+                <li>For each item <i>node id</i> in <i>list nodes</i>, remove the
+                  <i>node id</i> member from <i>graph object</i>.</li>
               </ol>
             </li>
           </ol>
@@ -3711,7 +3741,7 @@
       values <tref>true</tref> and <tref>false</tref> are the strings
       <code>true</code> and <code>false</code>.</p>
 
-    <p>When JSON-native <tref title="number">numbers</tref>, are converted
+    <p>When JSON-native <tref title="number">numbers</tref> are converted
       to RDF, lossless data round-tripping can not be guaranteed as rounding
       errors might occur. When converting
       <a href="#convert-from-rdf-algorithm">RDF to JSON-LD</a>, similar
