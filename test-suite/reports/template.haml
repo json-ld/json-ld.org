@@ -131,7 +131,7 @@
       td.passed-most {color: darkorange;}
       td.passed-some {color: red;}
   %body{:prefix => "earl: http://www.w3.org/ns/earl# doap: http://usefulinc.com/ns/doap# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"}
-    %section#abstract{:about => tests['@id'], :typeof => [tests['@type']].flatten.join(" ")}
+    %section#abstract{:about => tests['@id'], :typeof => Array(tests['@type']).join(" ")}
       %p
         This document report test subject conformance for and related specifications for
         %span{:property => "doap:name"}<=tests['name']
@@ -204,9 +204,9 @@
       - tests['entries'].each do |manifest|
         - test_cases = manifest['entries']
         %section{:typeof => manifest['@type'].join(" "), :resource => manifest['@id']}
-          %h2<=manifest['title']
-          - [manifest['description']].flatten.compact.each do |desc|
-            %p<
+          %h2{:property => "dc:title mf:name"}<=manifest['title']
+          - Array(manifest['description']).each do |desc|
+            %p{:property => "rdfs:comment"}<
               ~ CGI.escapeHTML desc
           %table.report
             - skip_subject = {}
@@ -260,7 +260,7 @@
           %dt{:id => subject_refs[subject['@id']]}
             %a{:href => subject['@id']}
               %span{:about => subject['@id'], :property => "doap:name"}<= subject['name']
-          %dd{:property => "earl:testSubjects", :resource => subject['@id'], :typeof => [subject['@type']].flatten.join(" "), :inlist => true}
+          %dd{:property => "earl:testSubjects", :resource => subject['@id'], :typeof => Array(subject['@type']).join(" "), :inlist => true}
             %dl
               - if subject['doapDesc']
                 %dt= "Description"
@@ -279,7 +279,7 @@
                 %dt= "Developer"
                 %dd{:rel => "doap:developer"}
                   - subject['developer'].each do |dev|
-                    %div{:resource => dev['@id'], :typeof => [dev['@type']].flatten.join(" ")}
+                    %div{:resource => dev['@id'], :typeof => Array(dev['@type']).join(" ")}
                       - if dev.has_key?('@id')
                         %a{:href => dev['@id']}
                           %span{:property => "foaf:name"}<
