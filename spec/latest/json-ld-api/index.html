@@ -184,7 +184,7 @@
     <li>Support relative IRIs in <code>@base</code></li>
     <li>Remove default value of <code class="idlMemberName"><a href="#idl-def-JsonLdOptions">JsonLdOption's</a></code>
       <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> member</li>
-    <li>Support lists of lists when converting from RDF to JSON-LD</li>
+    <li>Support lists of lists when serializing RDF as JSON-LD</li>
     <li>Support for relative URLs in <code>@base</code> and documents that
       do not have a base value</li>
   </ul>
@@ -193,19 +193,19 @@
     <a href="http://www.w3.org/TR/2013/WD-json-ld-api-20130516/">16&nbsp;May&nbsp;2013 Last Call Working Draft</a>:</p>
 
   <ul>
-    <li>Ensure determinism of the Convert to RDF Algorithm by specifying the processing order</li>
-    <li>Change the default value of the <em>use native types</em> flag in the Convert from RDF Algorithm
-      to <code>false</code></li>
+    <li>Ensure determinism of the Deserialize JSON-LD to RDF algorithm by specifying the processing order</li>
+    <li>Change the default value of the <em>use native types</em> flag in the Serialize RDF as JSON-LD
+      algorithm to <code>false</code></li>
     <li>Clarify that the <i>identifier map</i> and the <i>counter</i> used by the
       Generate Blank Node Identifier algorithm are reset before running the Flattening
-      and the Convert to RDF algorithms</li>
+      and the Deserialize JSON-LD to RDF algorithms</li>
     <li>Raise an error if a blank node is used as data type</li>
     <li>Clarify that blank node identifier are supported as value of <code>@vocab</code></li>
     <li>When generating RDF, exclude <tref title="rdf triple">triples</tref> containing a
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
       <i>produce generalized RDF</i> flag is set</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
-    <li>Fix bug in <a href="#convert-from-rdf-algorithm">Convert from RDF algorithm</a> to
+    <li>Fix bug in <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF to JSON-LD algorithm</a> to
       handle lists correctly</li>
     <li>Support processing of documents with a <code>+json</code> media type as defined in
       [[RFC6839]]</li>
@@ -269,7 +269,7 @@
     <tref>expansion</tref> and <tref>compaction</tref>, respectively.</p>
 
   <p>There are four major types of transformation that are discussed in this
-    document: expansion, compaction, flattening, and RDF conversion.</p>
+    document: expansion, compaction, flattening, and RDF serialization/deserialization.</p>
 
   <section class="informative">
     <h2>Expansion</h2>
@@ -556,9 +556,9 @@
   </section> <!-- end of Flattening -->
 
   <section class="informative">
-    <h2>RDF Conversion</h2>
+    <h2>RDF Serialization/Deserialization</h2>
 
-    <p>JSON-LD can be used to serialize data expressed in RDF as described in
+    <p>JSON-LD can be used to serialize RDF data as described in
       [[RDF11-CONCEPTS]]. This ensures that data can be round-tripped to and from
       any RDF syntax without any loss in fidelity.</p>
 
@@ -572,8 +572,8 @@
     -->
     </pre>
 
-    <p>Using the <a href="#convert-from-rdf-algorithm">Convert from RDF algorithm</a> a
-      developer could transform this document into expanded JSON-LD:</p>
+    <p>Using the <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF as JSON-LD algorithm</a>
+      a developer could transform this document into expanded JSON-LD:</p>
 
     <pre class="example" data-transform="updateExample"
          title="Sample Turtle document converted to JSON-LD">
@@ -593,9 +593,9 @@
     </pre>
 
     <p>Note that the output above could easily be compacted using the technique outlined
-      in the previous section. It is also possible to transform the JSON-LD document back
-      to RDF using the <a href="#convert-to-rdf-algorithm">Convert to RDF algorithm</a>.</p>
-  </section> <!-- end of RDF Conversion -->
+      in the previous section. It is also possible to deserialize the JSON-LD document back
+      to RDF using the <a href="#deserialize-json-ld-to-rdf-algorithm">Deserialize JSON-LD to RDF algorithm</a>.</p>
+  </section> <!-- end of RDF Serialization/Deserialization -->
 </section> <!-- end of Features section -->
 
 
@@ -613,7 +613,7 @@
   <p>There are three classes of products that can claim conformance to this
     specification: <tref title="JSON-LD Processor">JSON-LD Processors</tref>,
     <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>,
-    and <tref title="JSON-LD-RDF Converter">JSON-LD-RDF Converters</tref>.</p>
+    and <tref title="RDF Serializer/Deserializer">RDF Serializers/Deserializers</tref>.</p>
 
   <p>A conforming <tdef>JSON-LD Processor</tdef> is a system which can perform the
     <a href="#expansion-algorithm">Expansion</a>, <a href="#compaction-algorithm">Compaction</a>,
@@ -630,12 +630,13 @@
     <tref title="JSON-LD API Implementation">API Implementations</tref> MUST NOT
     attempt to correct malformed <tref title="IRI">IRIs</tref> or language tags;
     however, they MAY issue validation warnings. IRIs are not modified other
-    than converted between <tref title="relative IRI">relative</tref> and
+    than conversion between <tref title="relative IRI">relative</tref> and
     <tref title="absolute IRI">absolute IRIs</tref>.</p>
 
-  <p>A conforming <tdef>JSON-LD-RDF Converter</tdef> is a system that can perform
-    <a href="#convert-to-rdf-algorithm">Conversion to RDF</a> and
-    <a href="#convert-from-rdf-algorithm">Conversion from RDF</a>.</p>
+  <p>A conforming <tdef>RDF Serializer/Deserializer</tdef> is a system that can
+    <a href="#deserialize-json-ld-to-rdf-algorithm">deserialize JSON-LD to RDF</a> and
+    <a href="#serialize-rdf-as-json-ld-algorithm">serialize RDF as JSON-LD</a> as
+    defined in this specification.</p>
 
   <p>The algorithms in this specification are generally written with more concern for clarity
     than efficiency. Thus, <tref title="JSON-LD Processor">JSON-LD Processors</tref>
@@ -3106,9 +3107,9 @@
 
 
 <section>
-  <h1>RDF Conversion Algorithms</h1>
+  <h1>RDF Serialization/Deserialization Algorithms</h1>
 
-  <p>This section describes algorithms to transform a JSON-LD document to an
+  <p>This section describes algorithms to deserialize a JSON-LD document to an
     <tref>RDF dataset</tref> and vice versa. The algorithms are designed for in-memory
     implementations with random access to <tref>JSON object</tref> elements.</p>
 
@@ -3138,17 +3139,13 @@
   </table>
 
   <section>
-    <h2>Convert to RDF Algorithm</h2>
+    <h2>Deserialize JSON-LD to RDF algorithm</h2>
 
-    <p>This algorithms converts a JSON-LD document to an <tref>RDF dataset</tref>.
+    <p>This algorithm deserializes a JSON-LD document to an <tref>RDF dataset</tref>.
       Please note that RDF does not allow a <tref>blank node</tref> to be used
-      as a <tref>graph name</tref> or <tref>property</tref>, while JSON-LD does.
-      <tref title="JSON-LD-RDF Converter">JSON-LD-RDF Converters</tref> can work
-      around this restriction, when converting JSON-LD to RDF, by converting such
-      <tref title="blank node">blank nodes</tref> to <tref title="IRI">IRIs</tref>,
-      minting new "Skolem IRIs" as per
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#section-skolemization">Replacing Blank Nodes with IRIs</a></cite>
-      of [[RDF11-CONCEPTS]].</p>
+      as a <tref>property</tref>, while JSON-LD does.  Therefore, by default
+      RDF triples that would have contained blank nodes as properties are
+      discarded when interpreting JSON-LD as RDF.</p>
 
     <div class="issue atrisk" data-number="3" title="Allow blank nodes to be used as properties">
       <p class="atrisk-head">Note: This feature is
@@ -3263,7 +3260,7 @@
         <li>Return <i>dataset</i>.</li>
       </ol>
     </section>
-  </section> <!-- end of Convert to RDF Algorithm -->
+  </section> <!-- end of Deserialize JSON-LD to RDF algorithm -->
 
   <section>
     <h3>Object to RDF Conversion</h3>
@@ -3390,17 +3387,17 @@
   </section> <!-- end of List to RDF -->
 
   <section>
-    <h2>Convert from RDF Algorithm</h2>
+    <h2>Serialize RDF as JSON-LD Algorithm</h2>
 
-    <p>This algorithm converts an <tref>RDF dataset</tref> consisting of a
+    <p>This algorithm serializes an <tref>RDF dataset</tref> consisting of a
       <tref>default graph</tref> and zero or more
       <tref title="named graph">named graphs</tref> into a JSON-LD document.</p>
 
     <section class="informative">
       <h3>Overview</h3>
 
-      <p>Iterate through each graph in the dataset, converting
-        <tref title="rdf collection">RDF Collections</tref> into a <tref>list</tref>
+      <p>Iterate through each graph in the dataset, converting each
+        <tref title="rdf collection">RDF Collection</tref> into a <tref>list</tref>
         and generating a JSON-LD document in expanded form for all
         <tref title="RDF literal">RDF literals</tref>, <tref title="IRI">IRIs</tref>
         and <tref title="blank node identifier">blank node identifiers</tref>.
@@ -3591,7 +3588,7 @@
         <li>Return <i>result</i>.</li>
       </ol>
     </section>
-  </section> <!-- end of Convert from RDF algorithm -->
+  </section> <!-- end of Serialize RDF as JSON-LD Algorithm -->
 
   <section>
     <h2>RDF to Object Conversion</h2>
@@ -3686,7 +3683,7 @@
   <section>
     <h2>Data Round Tripping</h2>
 
-    <p>When <a href="#convert-to-rdf-algorithm">converting JSON-LD to RDF</a>
+    <p>When <a href="#deserialize-json-ld-to-rdf-algorithm">deserializing JSON-LD to RDF</a>
       JSON-native <tref title="number">numbers</tref> are automatically
       type-coerced to <code>xsd:integer</code> or <code>xsd:double</code>
       depending on whether the <tref>number</tref> has a non-zero fractional part
@@ -3729,7 +3726,7 @@
       <code>xsd:double</code>'s value space is defined by the IEEE
       double-precision 64-bit floating point type [[!IEEE-754-1985]] whereas
       the value space of JSON <tref title="number">numbers</tref> is not
-      specified; when converting JSON-LD to RDF the mantissa is rounded to
+      specified; when deserializing JSON-LD to RDF the mantissa is rounded to
       15&nbsp;digits after the decimal point. In JavaScript, implementers
       can use the following snippet of code to convert a double to
       <tref>canonical lexical form</tref>:</p>
@@ -3745,11 +3742,11 @@
       values <tref>true</tref> and <tref>false</tref> are the strings
       <code>true</code> and <code>false</code>.</p>
 
-    <p>When JSON-native <tref title="number">numbers</tref> are converted
-      to RDF, lossless data round-tripping can not be guaranteed as rounding
-      errors might occur. When converting
-      <a href="#convert-from-rdf-algorithm">RDF to JSON-LD</a>, similar
-      rounding errors might occur. Furthermore, the datatype or the lexical
+    <p>When JSON-native <tref title="number">numbers</tref> are deserialized
+      to RDF, lossless data round-tripping cannot be guaranteed, as rounding
+      errors might occur. When
+      <a href="#serialize-rdf-as-json-ld-algorithm">serializing RDF as JSON-LD</a>,
+      similar rounding errors might occur. Furthermore, the datatype or the lexical
       representation might be lost. An <code>xsd:double</code> with a value
       of <code>2.0</code> will, e.g., result in an <code>xsd:integer</code>
       with a value of <code>2</code> in <tref>canonical lexical form</tref>
@@ -3762,7 +3759,7 @@
       space.</p>
 
     <p>To ensure lossless round-tripping the
-      <a href="#convert-from-rdf-algorithm">Converting from RDF algorithm</a>
+      <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF as JSON-LD algorithm</a>
       specifies a <i>use native types</i> flag which controls whether
       <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">RDF literals</tref>
       with a <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri">datatype IRI</tref>
@@ -4160,8 +4157,7 @@
         <dd>The document could not be loaded or parsed as JSON.</dd>
         <dt>list of lists</dt>
         <dd>A list of lists was detected. List of lists are not supported in
-          this version of JSON-LD due to the algorithmic complexity associated
-          with conversion to RDF.</dd>
+          this version of JSON-LD due to the algorithmic complexity.</dd>
         <dt>invalid @index value</dt>
         <dd>An <code>@index</code> member was encountered whose value was
           not a <tref>string</tref>.</dd>
