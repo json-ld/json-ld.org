@@ -19,17 +19,17 @@
 	return o;
   };
 
-  $('#form-person .input-large').on('keydown', function(){
+  $('#form-person .input-large').on('change', function(){
 	var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject())
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
-  $('#form-event .input-large').on('keydown', function(){
+  $('#form-event .input-large').on('change', function(){
 	var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
-  $('#form-place .input-large').on('keydown', function(){
+  $('#form-place .input-large').on('change', function(){
 	var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject())
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
