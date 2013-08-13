@@ -87,7 +87,7 @@
       <br>
       <blockquote>The following specifications are sorted in most recent to least recent order.</blockquote>
       <br>
-
+      <div id="syntax">
       <h2>The JSON-LD Syntax</h2>
       <ul class="nav nav-list">
         <li><a href="latest/json-ld/">Latest</a></li>
@@ -160,7 +160,8 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </ul>
-
+               </div>
+               <div id="api">
                <h2>The JSON-LD API</h2>
                <ul class="nav nav-list">
                  <li><a href="latest/json-ld-api/">Latest</a></li>
@@ -174,7 +175,8 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </ul>
-
+               </div>
+               <div id="framing">
                <h2>JSON-LD Framing</h2>
                <ul class="nav nav-list">
                  <li><a href="latest/json-ld-framing/">Latest</a></li>
@@ -189,7 +191,8 @@ foreach ($drafts as $date => $dir) {
 ?>
                </ul>
 
-
+               </div>
+               <div id="normalization">
                <h2>RDF Graph Normalization</h2>
                <ul class="nav nav-list">
                  <li><a href="latest/rdf-graph-normalization/">Latest</a></li>
@@ -204,7 +207,7 @@ foreach ($drafts as $date => $dir) {
 ?>
                </ul>
 
-
+               </div>
                <h2>JSON-LD RDF API</h2>
                <ul class="nav nav-list">
                  <li><a href="latest/json-ld-rdf/">Latest</a></li>
