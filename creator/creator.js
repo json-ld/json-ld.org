@@ -21,17 +21,15 @@
 
   // Form Person
   
-  // Name
   $('#form-person .input-xlarge[name="name"]').on('keyup', function(e){
 	var extended_json = $.extend({},contexts,$(this).serializeObject());
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
-  // Image
   $('#form-person .input-xlarge[name="image"]').on('keyup', function(e){
   	var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
  	var regex = new RegExp(expression);
- 	if($(this).val().match(regex)) {
+ 	if($(this).val().match(regex) || $(this).val()=="") {
 	  var extended_json = $.extend({},contexts,$('#form-person').serializeObject());
 	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
 	}
@@ -45,7 +43,7 @@
   $('#form-person .input-xlarge[name="email"]').on('keyup', function(e){
 	var expression = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
  	var regex = new RegExp(expression);
- 	if($(this).val().match(regex)) {
+ 	if($(this).val().match(regex) || $(this).val()=="") {
 	  var extended_json = $.extend({},contexts,$('#form-person').serializeObject());
 	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
 	}
@@ -54,7 +52,7 @@
   $('#form-person .input-xlarge[name="phone"]').on('keyup', function(e){
 	var expression = /^[0-9]+$/;
  	var regex = new RegExp(expression);
- 	if($(this).val().match(regex)) {
+ 	if($(this).val().match(regex) || $(this).val()=="") {
 	  var extended_json = $.extend({},contexts,$('#form-person').serializeObject());
 	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
 	}
@@ -63,7 +61,7 @@
   $('#form-person .input-xlarge[name="gender"]').on('keyup', function(e){
 	var expression = /^(?:male|Male|female|Female)$/;
  	var regex = new RegExp(expression);
- 	if($(this).val().match(regex)) {
+ 	if($(this).val().match(regex) || $(this).val()=="") {
 	  var extended_json = $.extend({},contexts,$('#form-person').serializeObject());
 	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
 	}
@@ -97,33 +95,92 @@
   });
 
   // Form Event
-
-  $('#form-event .input-xlarge').on('keydown', function(e){
+  
+  $('#form-event .input-xlarge[name="name"]').on('keyup', function(e){
 	var extended_json = $.extend({},contexts,$('#form-event').serializeObject());
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
-  $('#form-event .input-xlarge[name="startDate"]').datepicker();
+  $('#form-event .input-xlarge[name="location"]').on('keyup', function(e){
+	var extended_json = $.extend({},contexts,$('#form-event').serializeObject());
+	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+  });
+
+  $('#form-event .input-xlarge[name="phone"]').on('keyup', function(e){
+	var expression = /^[0-9]+$/;
+ 	var regex = new RegExp(expression);
+ 	if($(this).val().match(regex) || $(this).val()=="") {
+	  var extended_json = $.extend({},contexts,$('#form-event').serializeObject());
+	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+	}
+  });
+
+  $(function() {
+    $( "#form-event .input-xlarge[name='startDate']" ).datepicker({
+      minDate: 0,
+      dateFormat: "dd-mm-yy",
+      defaultDate: "+1w",
+      changeMonth: true,
+      numberOfMonths: 1,
+      onClose: function( selectedDate ) {
+        $( "#form-event .input-xlarge[name='endDate']" ).datepicker( "option", "minDate", selectedDate );
+      }
+    });
+    $( "#form-event .input-xlarge[name='endDate']" ).datepicker({
+      dateFormat: "dd-mm-yy",
+      defaultDate: "+1w",
+      changeMonth: true,
+      numberOfMonths: 1,
+      onClose: function( selectedDate ) {
+        $( "#form-event .input-xlarge[name='startDate']" ).datepicker( "option", "maxDate", selectedDate );
+      }
+    });
+  });
 
   $('#form-event .input-xlarge[name="startDate"]').on('change', function(){
 	var extended_json = $.extend({},contexts,$('#form-event').serializeObject());
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
-  $('#form-event .input-xlarge[name="endDate"]').datepicker();
-
   $('#form-event .input-xlarge[name="endDate"]').on('change', function(){
 	var extended_json = $.extend({},contexts,$('#form-event').serializeObject());
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
-
+  
   // Form Place
   
-  $('#form-place .input-xlarge').on('keydown', function(e){
+  $('#form-place .input-xlarge[name="name"]').on('keyup', function(e){
 	var extended_json = $.extend({},contexts,$('#form-place').serializeObject());
 	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   });
 
+  $('#form-place .input-xlarge[name="image"]').on('keyup', function(e){
+	var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+ 	var regex = new RegExp(expression);
+ 	if($(this).val().match(regex) || $(this).val()=="") {
+	  var extended_json = $.extend({},contexts,$('#form-place').serializeObject());
+	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+	}
+  });
+
+  $('#form-place .input-xlarge[name="latitude"]').on('keyup', function(e){
+	var extended_json = $.extend({},contexts,$('#form-place').serializeObject());
+	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+  });
+
+  $('#form-place .input-xlarge[name="longitude"]').on('keyup', function(e){
+	var extended_json = $.extend({},contexts,$('#form-place').serializeObject());
+	$('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+  });
+
+  $('#form-place .input-xlarge[name="map"]').on('keyup', function(e){
+	var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+ 	var regex = new RegExp(expression);
+ 	if($(this).val().match(regex) || $(this).val()=="") {
+	  var extended_json = $.extend({},contexts,$('#form-place').serializeObject());
+	  $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+	}
+  });
 
   $('#form-person').show();
   $('#json-ld').css('height',parseInt($('#form-person').css('height'))-120);
