@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
   prefix="
-    xhv: http://www.w3.org/1999/xhtml/vocab# 
+    xhv: http://www.w3.org/1999/xhtml/vocab#
     xsd: http://www.w3.org/2001/XMLSchema#
     rdfs: http://www.w3.org/2000/01/rdf-schema#
     dc: http://purl.org/dc/terms/
@@ -15,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
-    <!-- Style Sheets -->  
+    <!-- Style Sheets -->
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
@@ -40,11 +40,11 @@
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="row-fluid">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
-          </a> 
+          </a>
           <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
           <div class="nav-collapse">
             <ul class="nav">
@@ -101,6 +101,7 @@ function getDrafts($spec)
     $ed = @scandir('ED/' . $spec);
     $fcgs = @scandir('FCGS/' . $spec);
     $wd = @scandir('WD/' . $spec);
+    $cr = @scandir('CR/' . $spec);
 
     $all = array();
 
@@ -132,6 +133,16 @@ function getDrafts($spec)
             }
 
             $all[$date] = 'WD/' . $spec . $date;
+        }
+    }
+
+    if ($cr) {
+        foreach ($cr as $date) {
+            if ('.' === $date[0]) {
+                continue;
+            }
+
+            $all[$date] = 'CR/' . $spec . $date;
         }
     }
 
@@ -219,9 +230,9 @@ foreach ($drafts as $date => $dir) {
     </div> <!-- /container -->
 
     <!-- script tags -->
-    <script type="text/javascript" src="../static/js/bootstrap/bootstrap.js"></script> 
+    <script type="text/javascript" src="../static/js/bootstrap/bootstrap.js"></script>
     <script type="text/javascript">
-      $('#markup,#context,#frame').bind('keyup', function() { 
+      $('#markup,#context,#frame').bind('keyup', function() {
         $('.btn-group > .btn').each(function () {
           $(this).removeClass('active')
         });
