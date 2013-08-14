@@ -18,6 +18,7 @@ function getDetails() {
 	.result(function(result) {		
 		user["name"] = result.values[0].firstName +' '+ result.values[0].lastName;
 		user["givenName"] = result.values[0].firstName;
+		user["familyName"] = result.values[0].lastName;
 		user["image"] = result.values[0].pictureUrl;
 		user["url"] = result.values[0].publicProfileUrl;
 		var extended_json = $.extend({},contexts,user);
