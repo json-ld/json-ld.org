@@ -1,5 +1,5 @@
 var contexts = {
-  "@context" : "http://w3id.org/schema"
+  "@context" : "https://w3id.org/schema"
 };
 
 var user = {};
