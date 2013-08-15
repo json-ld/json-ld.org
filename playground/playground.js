@@ -20,6 +20,16 @@
   // colorize delay
   playground.colorizeTimeout = null;
 
+  // map of original to modifed contexts
+  playground.contextMap = {
+    // FIXME: remove schema.org support once they serve a JSON-LD context
+    'http://schema.org': 'https://w3id.org/schema.org',
+    'http://schema.org/': 'https://w3id.org/schema.org'
+  };
+
+  // map of currently active mapped contexts for user feedback use
+  playground.activeContextMap = {};
+
   /**
    * Escapes text that will affect HTML markup.
    *
@@ -267,6 +277,9 @@
     $('#markup-errors').text('');
     $('#param-errors').text('');
     $('#processing-errors').text('');
+    $('#using-context-map').hide();
+    $('#using-context-map table tbody').empty();
+    playground.activeContextMap = {};
     var errors = false;
     var markup = $('#markup').val();
 
@@ -464,8 +477,24 @@
 
   // event handlers
   $(document).ready(function() {
-    // use jquery document loader
-    jsonld.useDocumentLoader('jquery', $);
+    // Add custom document loader that uses a context URL map.
+    var jqueryDocumentLoader = jsonld.documentLoaders.jquery($);
+    // FIXME: add UI to let users control and set context mapping
+    jsonld.documentLoader = function(url, callback) {
+      if(url in playground.contextMap) {
+        $('#using-context-map').show();
+        var modified = playground.contextMap[url];
+        if(!(modified in playground.activeContextMap)) {
+          var row = $('<tr>')
+            .append('<td>' + url + '</td>')
+            .append('<td>' + modified + '</td>');
+          $('#using-context-map table tbody').append(row);
+          playground.activeContextMap[url] = modified;
+        }
+        url = modified;
+      }
+      jqueryDocumentLoader(url, callback);
+    };
 
     // set up buttons to load examples
     $('.button').each(function(idx) {
