@@ -5,6 +5,18 @@ var contexts = {
 var user = {};
 
 $(function(){
+	$('#advanced-tab').hide();
+
+	$('#advanced').on('click', function(){
+	  if($('#advanced-tab').css('display') == 'none') {
+	  	$(this).text("Advanced <<<");
+		$('#advanced-tab').show();
+	  }
+	  else {
+	  	$(this).text("Advanced >>>");
+		$('#advanced-tab').hide();
+	  }
+	});
 	$('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
 });
 
