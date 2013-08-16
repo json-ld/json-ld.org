@@ -491,7 +491,10 @@
           $('#using-context-map table tbody').append(row);
           playground.activeContextMap[url] = modified;
         }
-        url = modified;
+
+        if($('#use-context-map').prop('checked')) {
+          url = modified;
+        }
       }
       jqueryDocumentLoader(url, callback);
     };
@@ -509,6 +512,10 @@
     $('.process').keyup(function() {
       clearTimeout(processTimer);
       processTimer = setTimeout(playground.process, 500);
+    });
+
+    $('#use-context-map').change(function() {
+      playground.process();
     });
   });
 
