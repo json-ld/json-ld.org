@@ -5,7 +5,7 @@ var contexts = {
 var user = {};
 
 $(function(){
-	$('#advanced-tab').hide();
+	// $('#advanced-tab').hide();
 
 	$('#advanced').on('click', function(){
 	  if($('#advanced-tab').css('display') == 'none') {
@@ -17,6 +17,7 @@ $(function(){
 		$('#advanced-tab').hide();
 	  }
 	});
+	
 	$('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
 });
 
@@ -26,7 +27,9 @@ function onLinkedInLoad() {
 
 function getDetails() {
 	IN.API.Profile("me")
-	.fields(["id", "firstName", "lastName", "pictureUrl", "publicProfileUrl","location","headline"])
+	.fields([
+	  "id", "firstName", "lastName", "pictureUrl", "publicProfileUrl","location","headline","summary","specialties","positions","emailAddress","interests","publications","patents","languages","skills","certifications","educations","courses","volunteer","following","dateOfBirth","memberUrlResources","phoneNumbers","twitterAccounts","connections","network"
+	])
 	.result(function(result) {		
 		user["name"] = result.values[0].firstName +' '+ result.values[0].lastName;
 		user["givenName"] = result.values[0].firstName;
