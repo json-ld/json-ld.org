@@ -36,61 +36,6 @@
     </script>
   </head>
 
-  <body>
-    <div class="navbar navbar-static-top">
-      <div class="navbar-inner">
-        <div class="row-fluid">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li>
-                <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
-              </li>
-              <li>
-                <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
-              </li>
-              <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                  <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu">
-                  <li class="nav-header"><strong>Latest</strong></li>
-                  <li><a href="../spec/latest/json-ld/">Syntax</a></li>
-                  <li><a href="../spec/latest/json-ld-api/">API</a></li>
-                  <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
-                  <li><a href="../spec/latest/rdf-graph-normalization/">Normalization</a></li>
-                  <li class="divider"></li>
-                  <li class="nav-header"><strong>Previous Drafts</strong></li>
-                  <li><a href="../spec#syntax">Syntax</a></li>
-                  <li><a href="../spec#api">API</a></li>
-                  <li><a href="../spec#framing">Framing</a></li>
-                  <li><a href="../spec#normalization">Normalization</a></li>
-                </ul>
-              </li>
-              <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
-            </ul>
-          </div>
-          <!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <br>
-      <h1>Specifications</h1>
-      <br>
-      <blockquote>The following specifications are sorted in most recent to least recent order.</blockquote>
-      <br>
-      <div id="syntax">
-      <h2>The JSON-LD Syntax</h2>
-      <ul class="nav nav-list">
-        <li><a href="latest/json-ld/">Latest</a></li>
 <?php
 
 function getDrafts($spec)
@@ -151,76 +96,161 @@ function getDrafts($spec)
 
     return $all;
 }
-
-$drafts = getDrafts('json-ld') + getDrafts('json-ld-syntax');
-
-foreach ($drafts as $date => $dir) {
-    print("                 <li><a href=\"$dir/\">$date</a></li>");
-}
-
 ?>
-               </ul>
+
+  <body>
+    <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="row-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li>
+                <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
+              </li>
+              <li>
+                <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
+              </li>
+              <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <li class="nav-header"><strong>Latest</strong></li>
+                  <li><a href="../spec/latest/json-ld/">Syntax</a></li>
+                  <li><a href="../spec/latest/json-ld-api/">API</a></li>
+                  <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                  <li><a href="../spec/latest/rdf-graph-normalization/">Normalization</a></li>
+                  <li class="divider"></li>
+                  <li class="nav-header"><strong>Previous Drafts</strong></li>
+                  <li><a href="../spec#syntax">Syntax</a></li>
+                  <li><a href="../spec#api">API</a></li>
+                  <li><a href="../spec#framing">Framing</a></li>
+                  <li><a href="../spec#normalization">Normalization</a></li>
+                </ul>
+              </li>
+              <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
+            </ul>
+          </div>
+          <!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <br>
+      <h1>Specifications</h1>
+      <p>
+JSON-LD has been designed to be a modular set of specifications. It consists of
+two base specifications: The JSON-LD Syntax and the JSON-LD API. All other
+JSON-LD specifications are layered upon the previous two specifications, 
+allowing the community to build experimental extensions on top of the base 
+specifications.
+      <p>
+      <div id="syntax">
+      <h2><a href="latest/json-ld/">The JSON-LD Syntax</a></h2>
+      <p>
+Defines JSON-LD, a JSON-based format to serialize Linked Data. The syntax is 
+designed to easily integrate into deployed systems that already use JSON, 
+and provides a smooth upgrade path from JSON to JSON-LD. It is primarily 
+intended to be a way to use Linked Data in Web-based programming environments, 
+to build interoperable Web services, and to store Linked Data in JSON-based 
+storage engines.
+      </p>
+      <p>
+Links to JSON-LD specifications: <a href="latest/json-ld/">Latest</a><?php>
+$drafts = getDrafts('json-ld') + getDrafts('json-ld-syntax');
+foreach ($drafts as $date => $dir) {
+   print(", <a href=\"$dir/\">$date</a>");
+}
+?>
                </div>
                <div id="api">
-               <h2>The JSON-LD API</h2>
-               <ul class="nav nav-list">
-                 <li><a href="latest/json-ld-api/">Latest</a></li>
-<?php
+               <h2><a href="latest/json-ld-api/">The JSON-LD API</a></h2>
+               <p>
+An Application Programming Interface (API) and a set of algorithms for 
+programmatic transformations of JSON-LD documents. This API defines algorithms
+for applying and removing JSON-LD contexts. 
+               </p>
+               <p>
+Links to JSON-LD API specifications: <a href="latest/json-ld-api/">Latest</a><?php>
 
 $drafts = getDrafts('json-ld-api');
 
 foreach ($drafts as $date => $dir) {
-    print("                 <li><a href=\"$dir/\">$date</a></li>");
+    print(", <a href=\"$dir/\">$date</a>");
 }
 
 ?>
-               </ul>
+               </p>
                </div>
                <div id="framing">
-               <h2>JSON-LD Framing</h2>
-               <ul class="nav nav-list">
-                 <li><a href="latest/json-ld-framing/">Latest</a></li>
-<?php
+               <h2><a href="latest/json-ld-framing/">JSON-LD Framing</a></h2>
+               <p>
+JSON-LD Framing allows developers to perform <em>query by example</em> 
+and force a specific tree layout to a JSON-LD document. It allows developers
+to restructure data retrieved from the Web according to the specific needs of 
+their application. Restructuring JSON-LD data before your application processes
+it leads to simpler code when processing data from external sources.
+               </p>
+               <p>
+Links to JSON-LD Framing specifications: <a href="latest/json-ld-framing/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-framing');
 
 foreach ($drafts as $date => $dir) {
-    print("                 <li><a href=\"$dir/\">$date</a></li>");
+    print(", <a href=\"$dir/\">$date</a>");
 }
 
 ?>
-               </ul>
+               </p>
 
                </div>
                <div id="normalization">
-               <h2>RDF Graph Normalization</h2>
-               <ul class="nav nav-list">
-                 <li><a href="latest/rdf-graph-normalization/">Latest</a></li>
-<?php
+               <h2><a href="latest/rdf-graph-normalization/">RDF Graph Normalization</a></h2>
+               <p>
+RDF describes a graph-based data model for making claims about the world and 
+provides the foundation for reasoning upon that graph of information. At times, 
+it becomes necessary to compare the differences between graphs, digitally 
+sign graphs, or generate short identifiers for graphs via hashing algorithms. 
+This document outlines an algorithm for normalizing RDF graphs such that 
+these operations can be performed on the normalized graphs.
+               </p>
+               <p>
+Links to RDF Graph Normalization specifications: <a href="latest/rdf-graph-normalization/">Latest</a><?php
+
+$drafts = getDrafts('rdf-graph-normalization/');
+
+foreach ($drafts as $date => $dir) {
+    print(", <a href=\"$dir/\">$date</a>");
+}
+
+?>
+               </p>
+
+               </div>
+               <h2><a href="latest/json-ld-rdf/">JSON-LD RDF API</a></h2>
+               <p>
+JSON-LD RDF API describes access methods for transforming and abstract RDF 
+represention into JSON-LD and back.
+               </p>
+               <p>
+Links to JSON-LD RDF API specifications: <a href="latest/json-ld-rdf/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-rdf');
 
 foreach ($drafts as $date => $dir) {
-    print("                 <li><a href=\"$dir/\">$date</a></li>");
+    print(", <a href=\"$dir/\">$date</a>");
 }
 
 ?>
-               </ul>
-
-               </div>
-               <h2>JSON-LD RDF API</h2>
-               <ul class="nav nav-list">
-                 <li><a href="latest/json-ld-rdf/">Latest</a></li>
-<?php
-
-$drafts = getDrafts('rdf-graph-normalization');
-
-foreach ($drafts as $date => $dir) {
-    print("                 <li><a href=\"$dir/\">$date</a></li>");
-}
-
-?>
-      </ul>
+      </p>
 
       <hr>
       <div id="footer">
