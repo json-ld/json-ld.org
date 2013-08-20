@@ -580,7 +580,8 @@ table.exceptions table {
     <li>Clarify that blank node identifier are supported as value of <code>@vocab</code></li>
     <li>When generating RDF, exclude <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">triples</a> containing a
       <a class="tref internalDFN" title="blank-node" href="#dfn-blank-node">blank node</a> <a class="tref internalDFN" title="rdf-predicate" href="#dfn-rdf-predicate">predicate</a>, unless the
-      <i>produce generalized RDF</i> flag is set</li>
+      <i>produce generalized RDF</i> flag is set; discard <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">triples</a>
+      containing relative IRIs and graphs with a relative <abbr title="Internationalized Resource Identifier">IRI</abbr> as graph name</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
     <li>Fix bug in <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF to JSON-LD algorithm</a> to
       handle lists correctly</li>
@@ -1274,6 +1275,23 @@ table.exceptions table {
         <i>remote contexts</i> which is used to detect cyclical context inclusions.
         If <i>remote contexts</i> is not passed, it is initialized to an empty
         <a class="tref internalDFN" title="array" href="#dfn-array">array</a>.</p>
+
+      <div class="issue atrisk"><div class="issue-title" role="heading" aria-level="5"><span>Feature at Risk 10</span>: Support for @base: null </div><div class="atrisk">
+        <p class="atrisk-head">Note: This feature is
+          <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+          be removed from this specification based on feedback. Please send feedback to
+          <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+          For the current status see
+          <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+       <p>Unlike many other serialization formats, JSON-LD allows to specify that
+        there is no base <abbr title="Internationalized Resource Identifier">IRI</abbr> from within the document (by setting <code>@base</code> to
+        <a class="tref internalDFN" title="null" href="#dfn-null">null</a>). The result is that the algorithm for establishing a base <abbr title="Internationalized Resource Identifier">IRI</abbr>
+        as specified in <a href="http://tools.ietf.org/html/rfc3986#section-5.1">RFC3986 section 5.1</a>
+        is overridden so relative IRIs remain relative IRIs even in the case that an <abbr title="Internationalized Resource Identifier">IRI</abbr>
+        would be available in one of the outer layers (e.g., the <abbr title="Internationalized Resource Identifier">IRI</abbr> used to retrieve
+        the document or an application supplied base <abbr title="Internationalized Resource Identifier">IRI</abbr>). Based on implementer feedback,
+        the Working Group may decide to remove this feature from JSON-LD 1.0.</p>
+      </div></div>
 
       <ol class="algorithm">
         <li>Initialize <i>result</i> to the result of cloning
@@ -3562,10 +3580,14 @@ table.exceptions table {
         <li>For each <i>graph name</i> and <i>graph</i> in <i>node map</i>
           ordered by <i>graph name</i>:
           <ol class="algorithm">
+            <li>If <i>graph name</i> is a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, continue
+              with the next <i>graph name</i>-<i>graph</i> pair.</li>
             <li>Initialize <i>triples</i> as an empty <a class="tref internalDFN" title="array" href="#dfn-array">array</a>.</li>
             <li>For each <i>subject</i> and <i>node</i> in <i>graph</i> ordered
               by <i>subject</i>:
               <ol class="algorithm">
+                <li>If <i>subject</i> is a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, continue
+                  with the next <i>subject</i>-<i>node</i> pair.</li>
                 <li>For each <i>property</i> and <i>values</i> in <i>node</i>
                   ordered by <i>property</i>:
                   <ol class="algorithm">
@@ -3574,11 +3596,13 @@ table.exceptions table {
                       composed of <i>subject</i>, <code>rdf:type</code>,
                       and <i>type</i> to <i>triples</i>.</li>
                     <li>Otherwise, if <i>property</i> is a <a class="tref internalDFN" title="keyword" href="#dfn-keyword">keyword</a>
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
                     <li>Otherwise, if <i>property</i> is a <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifier</a> and
                       the <i>produce generalized RDF</i> flag is not <a class="tref internalDFN" title="true" href="#dfn-true">true</a>,
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
-                    <li>Otherwise, <i>property</i> is an <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> or
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, if <i>property</i> is a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a>,
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, <i>property</i> is an <a class="tref internalDFN" title="absolute-iri" href="#dfn-absolute-iri">absolute <abbr title="Internationalized Resource Identifier">IRI</abbr></a> or
                       <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifier</a>. For each <i>item</i>
                       in <i>values</i>:
                       <ol class="algorithm">
@@ -3596,7 +3620,9 @@ table.exceptions table {
                           composed of <i>subject</i>, <i>property</i>, and
                           the result of using the
                           <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
-                          passing <i>item</i> to <i>triples</i>.</li>
+                          passing <i>item</i> to <i>triples</i>, unless the result is
+                          <a class="tref internalDFN" title="null" href="#dfn-null">null</a>, indicating a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a> that has
+                          to be ignored.</li>
                       </ol>
                     </li>
                   </ol>
@@ -3620,7 +3646,10 @@ table.exceptions table {
     <p>This algorithm takes a <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a> or <a class="tref internalDFN" title="value-object" href="#dfn-value-object">value object</a>
       and transforms it into an
       <a class="tref externalDFN" title="rdf-resource" href="http://www.w3.org/TR/rdf11-concepts/#dfn-resource">RDF resource</a>
-      to be used as the <a class="tref internalDFN" title="object" href="http://www.w3.org/TR/rdf11-concepts/#dfn-object">object</a> of an <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">RDF triple</a>.</p>
+      to be used as the <a class="tref internalDFN" title="object" href="http://www.w3.org/TR/rdf11-concepts/#dfn-object">object</a> of an <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">RDF triple</a>. If a
+      <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a> containing a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a> is passed to
+      the algorithm, <a class="tref internalDFN" title="null" href="#dfn-null">null</a> is returned which then causes the resulting
+      <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">RDF triple</a> to be ignored.</p>
 
     <section class="informative">
       <h4 id="overview-14">Overview</h4><p><em>This section is non-normative.</em></p>
@@ -3629,8 +3658,9 @@ table.exceptions table {
         <a class="tref internalDFN" title="rdf-literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">RDF literals</a> as described in
         <a class="sectionRef" href="#data-round-tripping">section 10.6 Data Round Tripping</a>
         whereas <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node objects</a> are transformed
-        to <a class="tref internalDFN" title="iri" href="#dfn-iri">IRIs</a> or
-        <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifiers</a>.</p>
+        to <a class="tref internalDFN" title="iri" href="#dfn-iri">IRIs</a>,
+        <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifiers</a>,
+        or <a class="tref internalDFN" title="null" href="#dfn-null">null</a>.</p>
     </section>
 
     <section>
@@ -3640,7 +3670,10 @@ table.exceptions table {
         either a <a class="tref internalDFN" title="value-object" href="#dfn-value-object">value object</a> or <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a>.</p>
 
       <ol class="algorithm">
-        <li>If <i>item</i> is a <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a> return the
+        <li>If <i>item</i> is a <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a> and the value of
+          its <code>@id</code> member is a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a>, return
+          <a class="tref internalDFN" title="null" href="#dfn-null">null</a>.</li>
+        <li>If <i>item</i> is a <a class="tref internalDFN" title="node-object" href="#dfn-node-object">node object</a>, return the
           <a class="tref internalDFN" title="iri" href="#dfn-iri"><abbr title="Internationalized Resource Identifier">IRI</abbr></a> or <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifier</a> associated
           with its <code>@id</code> member.</li>
         <li>Otherwise, <i>item</i> is a <a class="tref internalDFN" title="value-object" href="#dfn-value-object">value object</a>. Initialize
@@ -3704,7 +3737,8 @@ table.exceptions table {
         <code>rdf:rest</code> <a class="tref internalDFN" title="rdf-triple" href="#dfn-rdf-triple">triples</a>. The
         algorithm returns the list head, which is either the first allocated
         <a class="tref internalDFN" title="blank-node-identifier" href="#dfn-blank-node-identifier">blank node identifier</a> or <code>rdf:nil</code> if the
-        <a class="tref internalDFN" title="list" href="#dfn-list">list</a> is empty.</p>
+        <a class="tref internalDFN" title="list" href="#dfn-list">list</a> is empty. If a list element represents a <a class="tref internalDFN" title="relative-iri" href="#dfn-relative-iri">relative <abbr title="Internationalized Resource Identifier">IRI</abbr></a>,
+        the corresponding <code>rdf:first</code> triple is omitted.</p>
     </section>
 
     <section>
@@ -3722,10 +3756,11 @@ table.exceptions table {
         <li>Initialize an empty <a class="tref internalDFN" title="array" href="#dfn-array">array</a> <i>list triples</i>.</li>
         <li>For each pair of <i>subject</i> from <i>bnodes</i> and <i>item</i> from <i>list</i>:
           <ol class="algorithm">
-            <li>Append a <a class="tref internalDFN" title="triple" href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">triple</a> composed of <i>subject</i>,
-              <code>rdf:first</code>, and the result of using th
+            <li>Initialize <i>object</i> to the result of using the
               <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
               passing <i>item</i> to <i>list triples</i>.</li>
+            <li>Unless <i>object</i> is <a class="tref internalDFN" title="null" href="#dfn-null">null</a>, append a <a class="tref internalDFN" title="triple" href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">triple</a>
+              composed of <i>subject</i>, <code>rdf:first</code>, and <i>object</i>.</li>
             <li>Set <i>rest</i> as the next entry in <i>bnodes</i>, or if that
               does not exist, <code>rdf:nil</code>. Append a
               <a class="tref internalDFN" title="triple" href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">triple</a> composed of <i>subject</i>,
