@@ -205,7 +205,8 @@
     <li>Clarify that blank node identifier are supported as value of <code>@vocab</code></li>
     <li>When generating RDF, exclude <tref title="rdf triple">triples</tref> containing a
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
-      <i>produce generalized RDF</i> flag is set</li>
+      <i>produce generalized RDF</i> flag is set; discard <tref title="rdf triple">triples</tref>
+      containing relative IRIs and graphs with a relative IRI as graph name</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
     <li>Fix bug in <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF to JSON-LD algorithm</a> to
       handle lists correctly</li>
@@ -3215,10 +3216,14 @@
         <li>For each <i>graph name</i> and <i>graph</i> in <i>node map</i>
           ordered by <i>graph name</i>:
           <ol class="algorithm">
+            <li>If <i>graph name</i> is a <tref>relative IRI</tref>, continue
+              with the next <i>graph name</i>-<i>graph</i> pair.</li>
             <li>Initialize <i>triples</i> as an empty <tref>array</tref>.</li>
             <li>For each <i>subject</i> and <i>node</i> in <i>graph</i> ordered
               by <i>subject</i>:
               <ol class="algorithm">
+                <li>If <i>subject</i> is a <tref>relative IRI</tref>, continue
+                  with the next <i>subject</i>-<i>node</i> pair.</li>
                 <li>For each <i>property</i> and <i>values</i> in <i>node</i>
                   ordered by <i>property</i>:
                   <ol class="algorithm">
@@ -3227,11 +3232,13 @@
                       composed of <i>subject</i>, <code>rdf:type</code>,
                       and <i>type</i> to <i>triples</i>.</li>
                     <li>Otherwise, if <i>property</i> is a <tref>keyword</tref>
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
                     <li>Otherwise, if <i>property</i> is a <tref>blank node identifier</tref> and
                       the <i>produce generalized RDF</i> flag is not <tref>true</tref>,
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
-                    <li>Otherwise, <i>property</i> is an <tref>IRI</tref> or
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, if <i>property</i> is a <tref>relative IRI</tref>,
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, <i>property</i> is an <tref>absolute IRI</tref> or
                       <tref>blank node identifier</tref>. For each <i>item</i>
                       in <i>values</i>:
                       <ol class="algorithm">
@@ -3250,7 +3257,9 @@
                           composed of <i>subject</i>, <i>property</i>, and
                           the result of using the
                           <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
-                          passing <i>item</i> to <i>triples</i>.</li>
+                          passing <i>item</i> to <i>triples</i>, unless the result is
+                          <tref>null</tref>, indicating a <tref>relative IRI</tref> that has
+                          to be ignored.</li>
                       </ol>
                     </li>
                   </ol>
@@ -3274,7 +3283,10 @@
     <p>This algorithm takes a <tref>node object</tref> or <tref>value object</tref>
       and transforms it into an
       <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-resource">RDF resource</tref>
-      to be used as the <tref>object</tref> of an <tref>RDF triple</tref>.</p>
+      to be used as the <tref>object</tref> of an <tref>RDF triple</tref>. If a
+      <tref>node object</tref> containing a <tref>relative IRI</tref> is passed to
+      the algorithm, <tref>null</tref> is returned which then causes the resulting
+      <tref>RDF triple</tref> to be ignored.</p>
 
     <section class="informative">
       <h3>Overview</h3>
@@ -3283,8 +3295,9 @@
         <tref title="RDF literal">RDF literals</tref> as described in
         <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>
         whereas <tref title="node object">node objects</tref> are transformed
-        to <tref title="IRI">IRIs</tref> or
-        <tref title="blank node identifier">blank node identifiers</tref>.</p>
+        to <tref title="IRI">IRIs</tref>,
+        <tref title="blank node identifier">blank node identifiers</tref>,
+        or <tref>null</tref>.</p>
     </section>
 
     <section>
@@ -3294,7 +3307,10 @@
         either a <tref>value object</tref> or <tref>node object</tref>.</p>
 
       <ol class="algorithm">
-        <li>If <i>item</i> is a <tref>node object</tref> return the
+        <li>If <i>item</i> is a <tref>node object</tref> and the value of
+          its <code>@id</code> member is a <tref>relative IRI</tref>, return
+          <tref>null</tref>.</li>
+        <li>If <i>item</i> is a <tref>node object</tref>, return the
           <tref>IRI</tref> or <tref>blank node identifier</tref> associated
           with its <code>@id</code> member.</li>
         <li>Otherwise, <i>item</i> is a <tref>value object</tref>. Initialize
@@ -3358,7 +3374,8 @@
         <code>rdf:rest</code> <tref title="RDF triple">triples</tref>. The
         algorithm returns the list head, which is either the first allocated
         <tref>blank node identifier</tref> or <code>rdf:nil</code> if the
-        <tref>list</tref> is empty.</p>
+        <tref>list</tref> is empty. If a list element represents a <tref>relative IRI</tref>,
+        the corresponding <code>rdf:first</code> triple is omitted.</p>
     </section>
 
     <section>
@@ -3376,10 +3393,11 @@
         <li>Initialize an empty <tref>array</tref> <i>list triples</i>.</li>
         <li>For each pair of <i>subject</i> from <i>bnodes</i> and <i>item</i> from <i>list</i>:
           <ol class="algorithm">
-            <li>Append a <tref>triple</tref> composed of <i>subject</i>,
-              <code>rdf:first</code>, and the result of using th
+            <li>Initialize <i>object</i> to the result of using the
               <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
               passing <i>item</i> to <i>list triples</i>.</li>
+            <li>Unless <i>object</i> is <tref>null</tref>, append a <tref>triple</tref>
+              composed of <i>subject</i>, <code>rdf:first</code>, and <i>object</i>.</li>
             <li>Set <i>rest</i> as the next entry in <i>bnodes</i>, or if that
               does not exist, <code>rdf:nil</code>. Append a
               <tref>triple</tref> composed of <i>subject</i>,
