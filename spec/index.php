@@ -149,22 +149,22 @@ function getDrafts($spec)
       <p>
 JSON-LD has been designed to be a modular set of specifications. It consists of
 two base specifications: The JSON-LD Syntax and the JSON-LD API. All other
-JSON-LD specifications are layered upon the previous two specifications, 
-allowing the community to build experimental extensions on top of the base 
+JSON-LD specifications are layered upon the previous two specifications,
+allowing the community to build experimental extensions on top of the base
 specifications.
       <p>
       <div id="syntax">
       <h2><a href="latest/json-ld/">The JSON-LD Syntax</a></h2>
       <p>
-Defines JSON-LD, a JSON-based format to serialize Linked Data. The syntax is 
-designed to easily integrate into deployed systems that already use JSON, 
-and provides a smooth upgrade path from JSON to JSON-LD. It is primarily 
-intended to be a way to use Linked Data in Web-based programming environments, 
-to build interoperable Web services, and to store Linked Data in JSON-based 
+Defines JSON-LD, a JSON-based format to serialize Linked Data. The syntax is
+designed to easily integrate into deployed systems that already use JSON,
+and provides a smooth upgrade path from JSON to JSON-LD. It is primarily
+intended to be a way to use Linked Data in Web-based programming environments,
+to build interoperable Web services, and to store Linked Data in JSON-based
 storage engines.
       </p>
       <p>
-Links to JSON-LD specifications: <a href="latest/json-ld/">Latest</a><?php>
+Links to JSON-LD specifications: <a href="latest/json-ld/">Latest</a><?php
 $drafts = getDrafts('json-ld') + getDrafts('json-ld-syntax');
 foreach ($drafts as $date => $dir) {
    print(", <a href=\"$dir/\">$date</a>");
@@ -174,12 +174,12 @@ foreach ($drafts as $date => $dir) {
                <div id="api">
                <h2><a href="latest/json-ld-api/">The JSON-LD API</a></h2>
                <p>
-An Application Programming Interface (API) and a set of algorithms for 
+An Application Programming Interface (API) and a set of algorithms for
 programmatic transformations of JSON-LD documents. This API defines algorithms
-for applying and removing JSON-LD contexts. 
+for applying and removing JSON-LD contexts.
                </p>
                <p>
-Links to JSON-LD API specifications: <a href="latest/json-ld-api/">Latest</a><?php>
+Links to JSON-LD API specifications: <a href="latest/json-ld-api/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-api');
 
@@ -193,9 +193,9 @@ foreach ($drafts as $date => $dir) {
                <div id="framing">
                <h2><a href="latest/json-ld-framing/">JSON-LD Framing</a></h2>
                <p>
-JSON-LD Framing allows developers to perform <em>query by example</em> 
+JSON-LD Framing allows developers to perform <em>query by example</em>
 and force a specific tree layout to a JSON-LD document. It allows developers
-to restructure data retrieved from the Web according to the specific needs of 
+to restructure data retrieved from the Web according to the specific needs of
 their application. Restructuring JSON-LD data before your application processes
 it leads to simpler code when processing data from external sources.
                </p>
@@ -215,11 +215,11 @@ foreach ($drafts as $date => $dir) {
                <div id="normalization">
                <h2><a href="latest/rdf-graph-normalization/">RDF Graph Normalization</a></h2>
                <p>
-RDF describes a graph-based data model for making claims about the world and 
-provides the foundation for reasoning upon that graph of information. At times, 
-it becomes necessary to compare the differences between graphs, digitally 
-sign graphs, or generate short identifiers for graphs via hashing algorithms. 
-This document outlines an algorithm for normalizing RDF graphs such that 
+RDF describes a graph-based data model for making claims about the world and
+provides the foundation for reasoning upon that graph of information. At times,
+it becomes necessary to compare the differences between graphs, digitally
+sign graphs, or generate short identifiers for graphs via hashing algorithms.
+This document outlines an algorithm for normalizing RDF graphs such that
 these operations can be performed on the normalized graphs.
                </p>
                <p>
@@ -237,7 +237,7 @@ foreach ($drafts as $date => $dir) {
                </div>
                <h2><a href="latest/json-ld-rdf/">JSON-LD RDF API</a></h2>
                <p>
-JSON-LD RDF API describes access methods for transforming and abstract RDF 
+JSON-LD RDF API describes access methods for transforming and abstract RDF
 represention into JSON-LD and back.
                </p>
                <p>
