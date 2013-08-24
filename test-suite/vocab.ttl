@@ -1,0 +1,196 @@
+# Test vocabulary for the JSON-LD test suite.
+# This vocabulary defines classes an properties which extend
+# the test-manifest vocabulary at <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest>.
+
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dc:     <http://purl.org/dc/elements/1.1/> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix :       <http://json-ld.org/test-suite/vocab#> .
+
+: rdfs:comment     "Manifest vocabulary for JSON-LD test cases" ;
+  dc:creator       "Gregg Kellogg" ;
+  dc:publisher     "W3C Linked JSON Community Group" ;
+  dc:title         "Test case manifest vocabulary extensions" ;
+  dc:description   "Test case manifest vocabulary extensions" ;
+  dc:date          "2013-09-23" ;
+  dc:identifier    : ;
+
+## ---- Test Case Type ---
+
+:Test rdf:type rdfs:Class ;
+  rdfs:label "Superclass of all JSON-LD tests" .
+
+:PositiveEvaluationTest rdf:type rdfs:Class ;
+  rdfs:label "Positive Evaluation Test" ;
+  rdfs:subClassOf :Test ;
+  rdfs:comment """
+    A Positive Evaluation test is successful when the result of processing
+    the input file specified as mf:action exactly matches the output file
+    specified as mf:result using the comparison defined in
+    another class. The specifics of invoking test, including
+    the interpretation of options (:option) and other input files are
+    specified through another class.
+  """ .
+
+:NegativeEvaluationTest rdf:type rdfs:Class ;
+  rdfs:label "Positive Evaluation Test" ;
+  rdfs:subClassOf :Test ;
+  rdfs:comment """
+    A Negative Evaluation test is successful when the result of processing
+    the input file specified as mf:action results in the error identified
+    by the literal value of mf:result. The specifics of invoking test, including
+    the interpretation of options (:option) and other input files are
+    specified through another class.
+  """ .
+
+:PositiveSyntaxTest rdf:type rdfs:Class ;
+  rdfs:subClassOf :Test ;
+  rdfs:label "Positive Syntax Test" ;
+  rdfs:comment "A type of test specifically for syntax testing. Syntax tests are not required to have an associated result, only an action." .
+
+:NegativeSyntaxTest rdf:type rdfs:Class ;
+  rdfs:subClassOf :Test ;
+  rdfs:label "Negative Syntax Test" ;
+  rdfs:comment """
+    A type of test specifically for syntax testing.
+    Syntax tests are not required to have an associated result, only an action.
+    Negative syntax tests are tests of which the result should be a parser error.
+  """ .
+
+:CompactTest rdf:type rdfs:Class ;
+  rdfs:label "Compact Evaluation Test" ;
+  rdfs:comment """
+    A CompactTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the compact method
+    (http://json-ld.org/spec/latest/json-ld-api/index.html#widl-JsonLdProcessor-compact-Promise-any-input-JsonLdContext-context-JsonLdOptions-options)
+    with the input argument from mf:action referencing a JSON-LD file in expanded form, context from :input and optional options
+    from :option. The expected results for a PositiveEvaluationTest MUST be compared using JSON object comparison with the processor output.
+  """ .
+
+:ExpandTest rdf:type rdfs:Class ;
+  rdfs:label "Expand Evaluation Test" ;
+  rdfs:comment """
+    A ExpandTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the expand method
+    (http://json-ld.org/spec/latest/json-ld-api/index.html#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options)
+    with the input argument from mf:action referencing a JSON-LD file, and optional options
+    from :option. The expected results for a PositiveEvaluationTest MUST be compared using JSON object comparison with the processor output.
+  """ .
+
+:FlattenTest rdf:type rdfs:Class ;
+  rdfs:label "Flatten Evaluation Test" ;
+  rdfs:comment """
+    A FlattenTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the flatten method
+    (http://json-ld.org/spec/latest/json-ld-api/index.html#widl-JsonLdProcessor-flatten-Promise-any-input-JsonLdContext-context-JsonLdOptions-options)
+    with the input argument from mf:action referencing a JSON-LD file, optional context from :input and optional options
+    from :option. The expected results for a PositiveEvaluationTest MUST be compared using JSON object comparison with the processor output.
+  """ .
+
+:FrameTest rdf:type rdfs:Class ;
+  rdfs:label "Frame Evaluation Test" ;
+  rdfs:comment """
+    A FrameTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the frame method
+    (http://json-ld.org/spec/latest/json-ld-framing/#widl-JsonLdProcessor-frame-void-object-or-object---or-IRI-input-object-or-IRI-frame-JsonLdCallback-callback-JsonLdOptions-options)
+    with the input argument from mf:action referencing a JSON-LD file, frame from :input and optional options
+    from :option. The expected results for a PositiveEvaluationTest MUST be compared using JSON object comparison with the processor output.
+  """ .
+
+:FromRDFTest rdf:type rdfs:Class ;
+  rdfs:label "From RDF Evaluation Test" ;
+  rdfs:comment """
+    A FromRDFTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the "RDF to Object Conversion" algorithm
+    (http://json-ld.org/spec/latest/json-ld-api/index.html#rdf-to-object-conversion)
+    with the input argument from mf:action referencing an N-Quads file and optional options
+    from :option. The expected results for a PositiveEvaluationTest MUST be compared using JSON object comparison with the processor output.
+  """ .
+
+:NormalizeTest rdf:type rdfs:Class ;
+  rdfs:label "Normalization Evaluation Test" ;
+  rdfs:comment """
+    A NormalizeTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the "Normalization" algorithm
+    (http://json-ld.org/spec/latest/rdf-graph-normalization/#normalization-algorithm)
+    with the input argument from mf:action referencing an JSON-LD file and optional options
+    from :option. The expected results for a PositiveEvaluationTest are N-Quads serialized in lexographical order
+    and MUST be compared using string comparison.
+  """ .
+
+:ToRDFTest rdf:type rdfs:Class ;
+  rdfs:label "To RDF Evaluation Test" ;
+  rdfs:comment """
+    A ToRDFTest modifies either a PositiveEvaluationTest, NegativeEvaluationTest,
+    PositiveSyntaxTest or NegativeSyntaxTest. Tests are run using the "Deserialize JSON-LD to RDF algorithm" algorithm
+    (http://json-ld.org/spec/latest/json-ld-api/index.html#deserialize-json-ld-to-rdf-algorithm)
+    with the input argument from mf:action referencing an JSON-LD file and optional options
+    from :option. The expected results for a PositiveEvaluationTest are N-Quads serialized in lexographical order
+    and MUST be compared either string comparison or Dataset as defined
+    in [RDF11-CONCEPTS](http://www.w3.org/TR/rdf11-concepts/#section-dataset-isomorphism).
+  """ .
+
+:Option rdf:type rdfs:Class ;
+  rdfs:label "Processor Options" .
+  
+## ---- Property declarations for each test ----
+
+:input rdf:type rdf:Property ;
+    rdfs:comment "Secondary input file" ;
+    rdfs:domain	 :Test ;
+    rdfs:range   rdfs:Resource .
+
+:option rdf:type rdf:Property ;
+    rdfs:comment "Options affecting processing" ;
+    rdfs:domain	 :Test ;
+    rdfs:range   :Option .
+
+:base rdf:type rdf:Property ;
+    rdfs:comment "The base IRI to use when expanding or compacting the document. If set, this overrides the input document's IRI." ;
+    rdfs:domain	 :Test ;
+    rdfs:range   rdfs:Resource .
+
+:compactArrays rdf:type rdf:Property ;
+    rdfs:comment "If set to true, the JSON-LD processor replaces arrays with just one element with that element during compaction. If set to false, all arrays will remain arrays even if they have just one element." ;
+    rdfs:domain	 :Test ;
+    rdfs:range   xsd:boolean .
+
+:documentLoader rdf:type rdf:Property ;
+    rdfs:comment "The callback of the loader to be used to retrieve remote documents and contexts. If specified, it must be used to retrieve remote documents and contexts; otherwise, if not specified, the processor's built-in loader must be used." ;
+    rdfs:domain	 :Test ;
+    rdfs:range   xsd:string .
+
+:expandContext rdf:type rdf:Property ;
+    rdfs:comment "A context that is used to initialize the active context when expanding a document." ;
+    rdfs:domain	 :Test ;
+    rdfs:range   rdfs:Resource .
+
+:processingMode rdf:type rdf:Property ;
+    rdfs:comment """
+    If set to json-ld-1.0, the JSON-LD processor must produce exactly the same results as
+    the algorithms defined in this specification.
+    If set to another value, the JSON-LD processor is allowed to extend or modify
+    the algorithms defined in this specification to enable application-specific optimizations.
+    The definition of such optimizations is beyond the scope of this specification and thus not defined.
+    Consequently, different implementations may implement different optimizations.
+    Developers must not define modes beginning with json-ld as they are reserved for future versions of this specification.
+    """ ;
+    rdfs:domain	 :Test ;
+    rdfs:range   xsd:string .
+
+:produceGeneralizedRDF rdf:type rdf:Property ;
+    rdfs:comment "Unless the produce generalized RDF flag is set to true, RDF triples containing a blank node predicate are excluded from output." ;
+    rdfs:domain	 :ToRDFTest ;
+    rdfs:range   xsd:boolean .
+
+:useNativeTypes rdf:type rdf:Property ;
+    rdfs:comment """
+      If the use native types flag is set to true, RDF literals with a datatype IRI tha
+      equals xsd:integer or xsd:double are converted to a JSON numbers and RDF literals
+      with a datatype IRI that equals xsd:boolean are converted to true or false based
+      on their lexical form.
+      """ ;
+    rdfs:domain	 :FromRDFTest ;
+    rdfs:range   xsd:boolean .
