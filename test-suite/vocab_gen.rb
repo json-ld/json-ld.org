@@ -10,6 +10,11 @@ require 'haml'
 File.open("vocab.jsonld", "w") do |f|
   r = RDF::Repository.load("vocab.ttl")
   JSON::LD::API.fromRDF(r) do |expanded|
+    # Remove leading/trailing and multiple whitespace from rdf:comments
+    expanded.each do |o|
+      c = o[RDF::RDFS.comment.to_s].first['@value']
+      o[RDF::RDFS.comment.to_s].first['@value'] = c.strip.gsub(/\s+/m, ' ')
+    end
     JSON::LD::API.compact(expanded, File.open("vocab_context.jsonld")) do |compacted|
       # Create vocab.jsonld
       f.write(compacted.to_json(JSON::LD::JSON_STATE))
