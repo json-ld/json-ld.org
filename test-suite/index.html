@@ -17,8 +17,14 @@
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0-rc.3/handlebars.min.js"></script>
   <script id="manifest" tile="application/ld+json" src="manifest.jsonld"></script>
   <script id="manifest-template" type="text/x-handlebars-template">
-    <h3><a href="{{id}}">{{name}}</a> tests</h3>
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#manifest" href="#{{anchor}}">{{name}} tests</a>
+      </h3>
+    </div>
+    <div id="{{anchor}}" class="panel-collapse collapse {{in}}"><div class="panel-body">
     <p>{{description}}</p>
+    <p>Raw manifest: <a href="{{id}}">{{id}}</a>.</p>
     <dl class="test-description">
       {{#each sequence}}
       <dt>Test {{number this}}: {{this.name}}</dt>
@@ -41,6 +47,7 @@
       </dd>
       {{/each}}
     </dl>
+    </div></div>
   </script>
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -53,6 +60,8 @@
   </script>
   <style>
     li code, p code {display: inline;}
+
+    
   </style>
 </head>
 <body onload="load_manifests();">
@@ -204,7 +213,7 @@
         <h2 class="span12" style="text-align: center;">Test Manifests</h2>
       </div>
       <div class="row">
-        <section id="manifests" class="offset2 span8">
+        <section id="manifests" class="panel-group offset2 span8">
         </section>
       </div>
       <div id="footer">
@@ -234,8 +243,10 @@ function load_manifests() {
   var man_tmpl = Handlebars.compile($("#manifest-template").html());
   $.getJSON($("#manifest").attr("src"), null, function(data, status) {
     data.sequence.forEach(function(man, index) {
-      $("#manifests").append($("<section id='" + index + "'/>"));
-      $.getJSON(man, null, function(data, status) {
+      $("#manifests").append($("<section id='" + index + "' class='panel panel-default'/>"));
+      $.getJSON(man, null, function(data, status, xhv) {
+        if (data.name == "Compaction") {data['in'] = 'in'}
+        data.anchor = data.name.replace(' ', '-');
         $("#manifests section#" + index).append($(man_tmpl(data)));
       });
     });
