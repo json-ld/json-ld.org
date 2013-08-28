@@ -17,28 +17,30 @@
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0-rc.3/handlebars.min.js"></script>
   <script id="manifest" tile="application/ld+json" src="manifest.jsonld"></script>
   <script id="manifest-template" type="text/x-handlebars-template">
-    <section>
-      <h3><a href="tests/{{name}}-manifest.jsonld">{{name}}</a> tests</h3>
-      <p>{{description}}</p>
-      <dl class="test-description">
-        {{#each sequence}}
-        <dt>Test {{number this}}: {{this.name}}</dt>
-        <dd>
-          {{#if this.purpose}}
-          <div>Purpose: {{this.purpose}}</div>
-          {{/if}}
-          <div>Test input: <a href="tests/{{this.input}}">{{this.input}}</a></div>
-          {{#if this.context}}
-          <div>Context: <a href="tests/{{this.context}}">{{this.context}}</a></div>
-          {{/if}}
-          {{#if this.frame}}
-          <div>Frame: <a href="tests/{{this.frame}}">{{this.frame}}</a></div>
-          {{/if}}
-          <div>Expected output: <a href="tests/{{this.input}}">{{this.input}}</a></div>
-        </dd>
-        {{/each}}
-      </dl>
-    </section>
+    <h3><a href="{{id}}">{{name}}</a> tests</h3>
+    <p>{{description}}</p>
+    <dl class="test-description">
+      {{#each sequence}}
+      <dt>Test {{number this}}: {{this.name}}</dt>
+      <dd>
+        {{#if this.purpose}}
+        <div>Purpose: {{this.purpose}}</div>
+        {{/if}}
+        <div>Type: {{type this}}</div>
+        <div>Test input: <a href="tests/{{this.input}}">{{this.input}}</a></div>
+        {{#if this.context}}
+        <div>Context: <a href="tests/{{this.context}}">{{this.context}}</a></div>
+        {{/if}}
+        {{#if this.frame}}
+        <div>Frame: <a href="tests/{{this.frame}}">{{this.frame}}</a></div>
+        {{/if}}
+        {{#if this.option}}
+        <div>Options: {{options this}}</div>
+        {{/if}}
+        <div>Expected output: <a href="tests/{{this.input}}">{{this.input}}</a></div>
+      </dd>
+      {{/each}}
+    </dl>
   </script>
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -142,8 +144,12 @@
           </ul>
           <p>To run the tests, create a test runner which will run through each test manifest
             and execute the tests defined within the manifest using the rules associated with
-            each <code>@type</code> defined for the test case as defined in <a href="vocab">the test vocabulary</a>.
-            More details for running different types of tests are also defined in the test vocabulary.</p>
+            each <code>@type</code> defined for the test case as defined in <a href="vocab">the test vocabulary</a>.</p>
+          <p>Note that property values are typed, and those which are typed as <code>@id</code> must
+            be treated as IRIs relative to the manifest test base. In particular, this means that
+            <em>input</em>, </em>context</em>, <em>frame</em>, and <em>expandContext</em> are to be
+            passed as IRIs to the API methods being tested.</p>
+          <p>More details for running different types of tests are also defined in the test vocabulary.</p>
         </section>
       </div>
 
@@ -215,11 +221,22 @@ function load_manifests() {
   Handlebars.registerHelper('number', function(that) {
     return that['@id'].substring(2);
   });
+  Handlebars.registerHelper('type', function(that) {
+    return that['@type'].join(" ");
+  });
+  Handlebars.registerHelper('options', function(that) {
+    var pv = [];
+    for (var propt in that['option']) {
+      pv.push(propt + ': ' + that['option'][propt])
+    }
+    return pv.join(", ");
+  });
   var man_tmpl = Handlebars.compile($("#manifest-template").html());
   $.getJSON($("#manifest").attr("src"), null, function(data, status) {
-    data.sequence.forEach(function(man) {
+    data.sequence.forEach(function(man, index) {
+      $("#manifests").append($("<section id='" + index + "'/>"));
       $.getJSON(man, null, function(data, status) {
-        $("#manifests").append($(man_tmpl(data)));
+        $("#manifests section#" + index).append($(man_tmpl(data)));
       });
     });
   });
