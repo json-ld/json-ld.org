@@ -93,7 +93,7 @@ jsonld.compact = function(input, ctx, options, callback) {
     return jsonld.nextTick(function() {
       callback(new JsonLdError(
         'The compaction context must not be null.',
-        'jsonld.CompactError'));
+        'jsonld.CompactError', {code: 'invalid local context'}));
     });
   }
 
@@ -860,7 +860,8 @@ jsonld.relabelBlankNodes = function(input) {
 jsonld.documentLoader = function(url, callback) {
   return callback(new JsonLdError(
     'Could not retrieve a JSON-LD document from the URL. URL derefencing not ' +
-    'implemented.', 'jsonld.LoadDocumentError'),
+    'implemented.', 'jsonld.LoadDocumentError',
+    {code: 'loading document failed'}),
     {contextUrl: null, documentUrl: url, document: null});
 };
 
@@ -1209,7 +1210,8 @@ jsonld.documentLoaders['jquery'] = function($, options) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
         'the URL\'s scheme is not "https".',
-        'jsonld.InvalidUrl', {url: url}), url);
+        'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
+        {contextUrl: null, documentUrl: url, document: null});
     }
     var doc = cache.get(url);
     if(doc !== null) {
@@ -1231,7 +1233,8 @@ jsonld.documentLoaders['jquery'] = function($, options) {
             return callback(new JsonLdError(
               'URL could not be dereferenced, it has more than one ' +
               'associated HTTP Link Header.',
-              'jsonld.InvalidUrl', {url: url}), doc);
+              'jsonld.InvalidUrl',
+              {code: 'multiple context link headers', url: url}), doc);
           }
           doc.contextUrl = linkHeader.target;
         }
@@ -1242,7 +1245,8 @@ jsonld.documentLoaders['jquery'] = function($, options) {
       error: function(jqXHR, textStatus, err) {
         callback(new JsonLdError(
           'URL could not be dereferenced, an error occurred.',
-          'jsonld.LoadDocumentError', {url: url, cause: err}),
+          'jsonld.LoadDocumentError',
+          {code: 'loading document failed', url: url, cause: err}),
           {contextUrl: null, documentUrl: url, document: null});
       }
     });
@@ -1270,7 +1274,7 @@ jsonld.documentLoaders['node'] = function(options) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
         'the URL\'s scheme is not "https".',
-        'jsonld.InvalidUrl', {url: url}),
+        'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
         {contextUrl: null, documentUrl: url, document: null});
     }
     var doc = cache.get(url);
@@ -1288,14 +1292,18 @@ jsonld.documentLoaders['node'] = function(options) {
       if(err) {
         return callback(new JsonLdError(
           'URL could not be dereferenced, an error occurred.',
-          'jsonld.LoadDocumentError', {url: url, cause: err}), doc);
+          'jsonld.LoadDocumentError',
+          {code: 'loading document failed', url: url, cause: err}), doc);
       }
       var statusText = http.STATUS_CODES[res.statusCode];
       if(res.statusCode >= 400) {
         return callback(new JsonLdError(
           'URL could not be dereferenced: ' + statusText,
-          'jsonld.InvalidUrl', {url: url, httpStatusCode: res.statusCode}),
-          doc);
+          'jsonld.InvalidUrl', {
+            code: 'loading document failed',
+            url: url,
+            httpStatusCode: res.statusCode
+          }), doc);
       }
 
       // handle Link Header
@@ -1307,7 +1315,8 @@ jsonld.documentLoaders['node'] = function(options) {
           return callback(new JsonLdError(
             'URL could not be dereferenced, it has more than one associated ' +
             'HTTP Link Header.',
-            'jsonld.InvalidUrl', {url: url}), doc);
+            'jsonld.InvalidUrl',
+            {code: 'multiple context link headers', url: url}), doc);
         }
         doc.contextUrl = linkHeader.target;
       }
@@ -1318,16 +1327,22 @@ jsonld.documentLoaders['node'] = function(options) {
         if(redirects.length === maxRedirects) {
           return callback(new JsonLdError(
             'URL could not be dereferenced; there were too many redirects.',
-            'jsonld.TooManyRedirects',
-            {url: url, httpStatusCode: res.statusCode, redirects: redirects}),
-            doc);
+            'jsonld.TooManyRedirects', {
+              code: 'loading document failed',
+              url: url,
+              httpStatusCode: res.statusCode,
+              redirects: redirects
+            }), doc);
         }
         if(redirects.indexOf(url) !== -1) {
           return callback(new JsonLdError(
             'URL could not be dereferenced; infinite redirection was detected.',
-            'jsonld.InfiniteRedirectDetected',
-            {url: url, httpStatusCode: res.statusCode, redirects: redirects}),
-            doc);
+            'jsonld.InfiniteRedirectDetected', {
+              code: 'recursive context inclusion',
+              url: url,
+              httpStatusCode: res.statusCode,
+              redirects: redirects
+            }), doc);
         }
         redirects.push(url);
         return loadDocument(res.headers.location, redirects, callback);
@@ -1939,7 +1954,7 @@ Processor.prototype.compact = function(
               'rule but there is more than a single @list that matches ' +
               'the compacted term in the document. Compaction might mix ' +
               'unwanted items into the list.',
-              'jsonld.SyntaxError');
+              'jsonld.SyntaxError', {code: 'compaction to list of lists'});
           }
         }
 
@@ -2010,21 +2025,34 @@ Processor.prototype.expand = function(
     return null;
   }
 
+  if(!_isArray(element) && !_isObject(element)) {
+    // drop free-floating scalars that are not in lists
+    if(!insideList && (activeProperty === null ||
+      _expandIri(activeCtx, activeProperty, {vocab: true}) === '@graph')) {
+      return null;
+    }
+
+    // expand element according to value expansion rules
+    return _expandValue(activeCtx, activeProperty, element);
+  }
+
   // recursively expand array
   if(_isArray(element)) {
     var rval = [];
+    var container = jsonld.getContextValue(
+      activeCtx, activeProperty, '@container');
+    insideList = insideList || container === '@list';
     for(var i = 0; i < element.length; ++i) {
       // expand element
-      var e = self.expand(
-        activeCtx, activeProperty, element[i], options, insideList);
+      var e = self.expand(activeCtx, activeProperty, element[i], options);
       if(insideList && (_isArray(e) || _isList(e))) {
         // lists of lists are illegal
         throw new JsonLdError(
           'Invalid JSON-LD syntax; lists of lists are not permitted.',
-          'jsonld.SyntaxError');
+          'jsonld.SyntaxError', {code: 'list of lists'});
       }
       // drop null values
-      else if(e !== null) {
+      if(e !== null) {
         if(_isArray(e)) {
           rval = rval.concat(e);
         }
@@ -2036,344 +2064,340 @@ Processor.prototype.expand = function(
     return rval;
   }
 
-  // recursively expand object
-  if(_isObject(element)) {
-    // if element has a context, process it
-    if('@context' in element) {
-      activeCtx = self.processContext(activeCtx, element['@context'], options);
+  // recursively expand object:
+
+  // if element has a context, process it
+  if('@context' in element) {
+    activeCtx = self.processContext(activeCtx, element['@context'], options);
+  }
+
+  // expand the active property
+  var expandedActiveProperty = _expandIri(
+    activeCtx, activeProperty, {vocab: true});
+
+  var rval = {};
+  var keys = Object.keys(element).sort();
+  for(var ki = 0; ki < keys.length; ++ki) {
+    var key = keys[ki];
+    var value = element[key];
+    var expandedValue;
+
+    // skip @context
+    if(key === '@context') {
+      continue;
     }
 
-    // expand the active property
-    var expandedActiveProperty = _expandIri(
-      activeCtx, activeProperty, {vocab: true});
+    // expand property
+    var expandedProperty = _expandIri(activeCtx, key, {vocab: true});
 
-    var rval = {};
-    var keys = Object.keys(element).sort();
-    for(var ki = 0; ki < keys.length; ++ki) {
-      var key = keys[ki];
-      var value = element[key];
-      var expandedValue;
+    // drop non-absolute IRI keys that aren't keywords
+    if(expandedProperty === null ||
+      !(_isAbsoluteIri(expandedProperty) || _isKeyword(expandedProperty))) {
+      continue;
+    }
 
-      // skip @context
-      if(key === '@context') {
-        continue;
-      }
-
-      // expand key to IRI
-      var expandedProperty = _expandIri(activeCtx, key, {vocab: true});
-
-      // drop non-absolute IRI keys that aren't keywords
-      if(expandedProperty === null ||
-        !(_isAbsoluteIri(expandedProperty) || _isKeyword(expandedProperty))) {
-        continue;
-      }
-
-      if(_isKeyword(expandedProperty) &&
-        expandedActiveProperty === '@reverse') {
+    if(_isKeyword(expandedProperty)) {
+      if(expandedActiveProperty === '@reverse') {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; a keyword cannot be used as a @reverse ' +
-          'property.',
-          'jsonld.SyntaxError', {value: value});
+          'property.', 'jsonld.SyntaxError',
+          {code: 'invalid reverse property map', value: value});
       }
-
-      // syntax error if @id is not a string
-      if(expandedProperty === '@id' && !_isString(value)) {
-        if(!options.isFrame) {
-          throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@id" value must a string.',
-            'jsonld.SyntaxError', {value: value});
-        }
-        if(!_isObject(value)) {
-          throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@id" value must be a string or an ' +
-            'object.', 'jsonld.SyntaxError', {value: value});
-        }
-      }
-
-      // validate @type value
-      if(expandedProperty === '@type') {
-        _validateTypeValue(value);
-      }
-
-      // @graph must be an array or an object
-      if(expandedProperty === '@graph' &&
-        !(_isObject(value) || _isArray(value))) {
+      if(expandedProperty in rval) {
         throw new JsonLdError(
-          'Invalid JSON-LD syntax; "@value" value must not be an ' +
-          'object or an array.',
-          'jsonld.SyntaxError', {value: value});
+          'Invalid JSON-LD syntax; colliding keywords detected.',
+          'jsonld.SyntaxError',
+          {code: 'colliding keywords', keyword: expandedProperty});
       }
+    }
 
-      // @value must not be an object or an array
-      if(expandedProperty === '@value' &&
-        (_isObject(value) || _isArray(value))) {
+    // syntax error if @id is not a string
+    if(expandedProperty === '@id' && !_isString(value)) {
+      if(!options.isFrame) {
         throw new JsonLdError(
-          'Invalid JSON-LD syntax; "@value" value must not be an ' +
-          'object or an array.',
-          'jsonld.SyntaxError', {value: value});
+          'Invalid JSON-LD syntax; "@id" value must a string.',
+          'jsonld.SyntaxError', {code: 'invalid @id value', value: value});
+      }
+      if(!_isObject(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@id" value must be a string or an ' +
+          'object.', 'jsonld.SyntaxError',
+          {code: 'invalid @id value', value: value});
+      }
+    }
+
+    if(expandedProperty === '@type') {
+      _validateTypeValue(value);
+    }
+
+    // @graph must be an array or an object
+    if(expandedProperty === '@graph' &&
+      !(_isObject(value) || _isArray(value))) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; "@graph" value must not be an ' +
+        'object or an array.',
+        'jsonld.SyntaxError', {code: 'invalid @graph value', value: value});
+    }
+
+    // @value must not be an object or an array
+    if(expandedProperty === '@value' &&
+      (_isObject(value) || _isArray(value))) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; "@value" value must not be an ' +
+        'object or an array.',
+        'jsonld.SyntaxError',
+        {code: 'invalid value object value', value: value});
+    }
+
+    // @language must be a string
+    if(expandedProperty === '@language') {
+      if(!_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@language" value must be a string.',
+          'jsonld.SyntaxError',
+          {code: 'invalid language-tagged string', value: value});
+      }
+      // ensure language value is lowercase
+      value = value.toLowerCase();
+    }
+
+    // @index must be a string
+    if(expandedProperty === '@index') {
+      if(!_isString(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@index" value must be a string.',
+          'jsonld.SyntaxError',
+          {code: 'invalid @index value', value: value});
+      }
+    }
+
+    // @reverse must be an object
+    if(expandedProperty === '@reverse') {
+      if(!_isObject(value)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; "@reverse" value must be an object.',
+          'jsonld.SyntaxError', {code: 'invalid @reverse value', value: value});
       }
 
-      // @language must be a string
-      if(expandedProperty === '@language') {
-        if(!_isString(value)) {
-          throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@language" value must be a string.',
-            'jsonld.SyntaxError', {value: value});
-        }
-        // ensure language value is lowercase
-        value = value.toLowerCase();
-      }
+      expandedValue = self.expand(activeCtx, '@reverse', value, options);
 
-      // @index must be a string
-      if(expandedProperty === '@index') {
-        if(!_isString(value)) {
-          throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@index" value must be a string.',
-            'jsonld.SyntaxError', {value: value});
-        }
-      }
-
-      // @reverse must be an object
-      if(expandedProperty === '@reverse') {
-        if(!_isObject(value)) {
-          throw new JsonLdError(
-            'Invalid JSON-LD syntax; "@reverse" value must be an object.',
-            'jsonld.SyntaxError', {value: value});
-        }
-
-        expandedValue = self.expand(
-          activeCtx, '@reverse', value, options, insideList);
-
-        // properties double-reversed
-        if('@reverse' in expandedValue) {
-          for(var property in expandedValue['@reverse']) {
-            jsonld.addValue(
-              rval, property, expandedValue['@reverse'][property],
-              {propertyIsArray: true});
-          }
-        }
-
-        // FIXME: can this be merged with code below to simplify?
-        // merge in all reversed properties
-        var reverseMap = rval['@reverse'] || null;
-        for(var property in expandedValue) {
-          if(property === '@reverse') {
-            continue;
-          }
-          if(reverseMap === null) {
-            reverseMap = rval['@reverse'] = {};
-          }
-          jsonld.addValue(reverseMap, property, [], {propertyIsArray: true});
-          var items = expandedValue[property];
-          for(var ii = 0; ii < items.length; ++ii) {
-            var item = items[ii];
-            if(_isValue(item) || _isList(item)) {
-              throw new JsonLdError(
-                'Invalid JSON-LD syntax; "@reverse" value must not be a ' +
-                '@value or an @list.',
-                'jsonld.SyntaxError', {value: expandedValue});
-            }
-            jsonld.addValue(
-              reverseMap, property, item, {propertyIsArray: true});
-          }
-        }
-
-        continue;
-      }
-
-      var container = jsonld.getContextValue(activeCtx, key, '@container');
-
-      // handle language map container (skip if value is not an object)
-      if(container === '@language' && _isObject(value)) {
-        expandedValue = _expandLanguageMap(value);
-      }
-      // handle index container (skip if value is not an object)
-      else if(container === '@index' && _isObject(value)) {
-        expandedValue = (function _expandIndexMap(activeProperty) {
-          var rval = [];
-          var keys = Object.keys(value).sort();
-          for(var ki = 0; ki < keys.length; ++ki) {
-            var key = keys[ki];
-            var val = value[key];
-            if(!_isArray(val)) {
-              val = [val];
-            }
-            val = self.expand(activeCtx, activeProperty, val, options, false);
-            for(var vi = 0; vi < val.length; ++vi) {
-              var item = val[vi];
-              if(!('@index' in item)) {
-                item['@index'] = key;
-              }
-              rval.push(item);
-            }
-          }
-          return rval;
-        })(key);
-      }
-      else {
-        // recurse into @list or @set
-        var isList = (expandedProperty === '@list');
-        if(isList || expandedProperty === '@set') {
-          var nextActiveProperty = activeProperty;
-          if(isList && expandedActiveProperty === '@graph') {
-            nextActiveProperty = null;
-          }
-          expandedValue = self.expand(
-            activeCtx, nextActiveProperty, value, options, isList);
-          if(isList && _isList(expandedValue)) {
-            throw new JsonLdError(
-              'Invalid JSON-LD syntax; lists of lists are not permitted.',
-              'jsonld.SyntaxError');
-          }
-        }
-        else {
-          // recursively expand value with key as new active property
-          expandedValue = self.expand(activeCtx, key, value, options, false);
+      // properties double-reversed
+      if('@reverse' in expandedValue) {
+        for(var property in expandedValue['@reverse']) {
+          jsonld.addValue(
+            rval, property, expandedValue['@reverse'][property],
+            {propertyIsArray: true});
         }
       }
 
-      // drop null values if property is not @value
-      if(expandedValue === null && expandedProperty !== '@value') {
-        continue;
-      }
-
-      // convert expanded value to @list if container specifies it
-      if(expandedProperty !== '@list' && !_isList(expandedValue) &&
-        container === '@list') {
-        // ensure expanded value is an array
-        expandedValue = (_isArray(expandedValue) ?
-          expandedValue : [expandedValue]);
-        expandedValue = {'@list': expandedValue};
-      }
-
-      // FIXME: can this be merged with code above to simplify?
-      // merge in reverse properties
-      if(activeCtx.mappings[key] && activeCtx.mappings[key].reverse) {
-        var reverseMap = rval['@reverse'] = {};
-        if(!_isArray(expandedValue)) {
-          expandedValue = [expandedValue];
+      // FIXME: can this be merged with code below to simplify?
+      // merge in all reversed properties
+      var reverseMap = rval['@reverse'] || null;
+      for(var property in expandedValue) {
+        if(property === '@reverse') {
+          continue;
         }
-        for(var ii = 0; ii < expandedValue.length; ++ii) {
-          var item = expandedValue[ii];
+        if(reverseMap === null) {
+          reverseMap = rval['@reverse'] = {};
+        }
+        jsonld.addValue(reverseMap, property, [], {propertyIsArray: true});
+        var items = expandedValue[property];
+        for(var ii = 0; ii < items.length; ++ii) {
+          var item = items[ii];
           if(_isValue(item) || _isList(item)) {
             throw new JsonLdError(
               'Invalid JSON-LD syntax; "@reverse" value must not be a ' +
-              '@value or an @list.',
-              'jsonld.SyntaxError', {value: expandedValue});
+              '@value or an @list.', 'jsonld.SyntaxError',
+              {code: 'invalid reverse property value', value: expandedValue});
           }
           jsonld.addValue(
-            reverseMap, expandedProperty, item, {propertyIsArray: true});
+            reverseMap, property, item, {propertyIsArray: true});
         }
-        continue;
       }
 
-      // add value for property
-      // use an array except for certain keywords
-      var useArray =
-        ['@index', '@id', '@type', '@value', '@language'].indexOf(
-          expandedProperty) === -1;
-      jsonld.addValue(
-        rval, expandedProperty, expandedValue, {propertyIsArray: useArray});
+      continue;
     }
 
-    // get property count on expanded output
-    keys = Object.keys(rval);
-    var count = keys.length;
+    var container = jsonld.getContextValue(activeCtx, key, '@container');
 
-    if('@value' in rval) {
-      // @value must only have @language or @type
-      if('@type' in rval && '@language' in rval) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; an element containing "@value" may not ' +
-          'contain both "@type" and "@language".',
-          'jsonld.SyntaxError', {element: rval});
-      }
-      var validCount = count - 1;
-      if('@type' in rval) {
-        validCount -= 1;
-      }
-      if('@index' in rval) {
-        validCount -= 1;
-      }
-      if('@language' in rval) {
-        validCount -= 1;
-      }
-      if(validCount !== 0) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; an element containing "@value" may only ' +
-          'have an "@index" property and at most one other property ' +
-          'which can be "@type" or "@language".',
-          'jsonld.SyntaxError', {element: rval});
-      }
-      // drop null @values
-      if(rval['@value'] === null) {
-        rval = null;
-      }
-      // drop @language if @value isn't a string
-      else if('@language' in rval && !_isString(rval['@value'])) {
-        delete rval['@language'];
-      }
+    // handle language map container (skip if value is not an object)
+    if(container === '@language' && _isObject(value)) {
+      expandedValue = _expandLanguageMap(value);
     }
-    // convert @type to an array
-    else if('@type' in rval && !_isArray(rval['@type'])) {
-      rval['@type'] = [rval['@type']];
-    }
-    // handle @set and @list
-    else if('@set' in rval || '@list' in rval) {
-      if(count > 1 && (count !== 2 && '@index' in rval)) {
-        throw new JsonLdError(
-          'Invalid JSON-LD syntax; if an element has the property "@set" ' +
-          'or "@list", then it can have at most one other property that is ' +
-          '"@index".',
-          'jsonld.SyntaxError', {element: rval});
-      }
-      // optimize away @set
-      if('@set' in rval) {
-        rval = rval['@set'];
-        keys = Object.keys(rval);
-        count = keys.length;
-      }
-    }
-    // drop objects with only @language
-    else if(count === 1 && '@language' in rval) {
-      rval = null;
-    }
-
-    // drop certain top-level objects that do not occur in lists
-    if(_isObject(rval) &&
-      !options.keepFreeFloatingNodes && !insideList &&
-      (activeProperty === null || expandedActiveProperty === '@graph')) {
-      // drop empty object or top-level @value
-      if(count === 0 || ('@value' in rval)) {
-        rval = null;
-      }
-      else {
-        // drop nodes that generate no triples
-        var hasTriples = false;
-        var ignore = ['@graph', '@type'];
-        for(var ki = 0; !hasTriples && ki < keys.length; ++ki) {
-          if(!_isKeyword(keys[ki]) || ignore.indexOf(keys[ki]) !== -1) {
-            hasTriples = true;
+    // handle index container (skip if value is not an object)
+    else if(container === '@index' && _isObject(value)) {
+      expandedValue = (function _expandIndexMap(activeProperty) {
+        var rval = [];
+        var keys = Object.keys(value).sort();
+        for(var ki = 0; ki < keys.length; ++ki) {
+          var key = keys[ki];
+          var val = value[key];
+          if(!_isArray(val)) {
+            val = [val];
+          }
+          val = self.expand(activeCtx, activeProperty, val, options, false);
+          for(var vi = 0; vi < val.length; ++vi) {
+            var item = val[vi];
+            if(!('@index' in item)) {
+              item['@index'] = key;
+            }
+            rval.push(item);
           }
         }
-        if(!hasTriples) {
-          rval = null;
+        return rval;
+      })(key);
+    }
+    else {
+      // recurse into @list or @set
+      var isList = (expandedProperty === '@list');
+      if(isList || expandedProperty === '@set') {
+        var nextActiveProperty = activeProperty;
+        if(isList && expandedActiveProperty === '@graph') {
+          nextActiveProperty = null;
         }
+        expandedValue = self.expand(
+          activeCtx, nextActiveProperty, value, options, isList);
+        if(isList && _isList(expandedValue)) {
+          throw new JsonLdError(
+            'Invalid JSON-LD syntax; lists of lists are not permitted.',
+            'jsonld.SyntaxError', {code: 'list of lists'});
+        }
+      }
+      else {
+        // recursively expand value with key as new active property
+        expandedValue = self.expand(activeCtx, key, value, options, false);
       }
     }
 
-    return rval;
+    // drop null values if property is not @value
+    if(expandedValue === null && expandedProperty !== '@value') {
+      continue;
+    }
+
+    // convert expanded value to @list if container specifies it
+    if(expandedProperty !== '@list' && !_isList(expandedValue) &&
+      container === '@list') {
+      // ensure expanded value is an array
+      expandedValue = (_isArray(expandedValue) ?
+        expandedValue : [expandedValue]);
+      expandedValue = {'@list': expandedValue};
+    }
+
+    // FIXME: can this be merged with code above to simplify?
+    // merge in reverse properties
+    if(activeCtx.mappings[key] && activeCtx.mappings[key].reverse) {
+      var reverseMap = rval['@reverse'] = {};
+      if(!_isArray(expandedValue)) {
+        expandedValue = [expandedValue];
+      }
+      for(var ii = 0; ii < expandedValue.length; ++ii) {
+        var item = expandedValue[ii];
+        if(_isValue(item) || _isList(item)) {
+          throw new JsonLdError(
+            'Invalid JSON-LD syntax; "@reverse" value must not be a ' +
+            '@value or an @list.', 'jsonld.SyntaxError',
+            {code: 'invalid reverse property value', value: expandedValue});
+        }
+        jsonld.addValue(
+          reverseMap, expandedProperty, item, {propertyIsArray: true});
+      }
+      continue;
+    }
+
+    // add value for property
+    // use an array except for certain keywords
+    var useArray =
+      ['@index', '@id', '@type', '@value', '@language'].indexOf(
+        expandedProperty) === -1;
+    jsonld.addValue(
+      rval, expandedProperty, expandedValue, {propertyIsArray: useArray});
   }
 
-  // drop top-level scalars that are not in lists
-  if(!insideList &&
-    (activeProperty === null ||
-    _expandIri(activeCtx, activeProperty, {vocab: true}) === '@graph')) {
-    return null;
+  // get property count on expanded output
+  keys = Object.keys(rval);
+  var count = keys.length;
+
+  if('@value' in rval) {
+    // @value must only have @language or @type
+    if('@type' in rval && '@language' in rval) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; an element containing "@value" may not ' +
+        'contain both "@type" and "@language".',
+        'jsonld.SyntaxError', {code: 'invalid value object', element: rval});
+    }
+    var validCount = count - 1;
+    if('@type' in rval) {
+      validCount -= 1;
+    }
+    if('@index' in rval) {
+      validCount -= 1;
+    }
+    if('@language' in rval) {
+      validCount -= 1;
+    }
+    if(validCount !== 0) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; an element containing "@value" may only ' +
+        'have an "@index" property and at most one other property ' +
+        'which can be "@type" or "@language".',
+        'jsonld.SyntaxError', {code: 'invalid value object', element: rval});
+    }
+    // drop null @values
+    if(rval['@value'] === null) {
+      rval = null;
+    }
+    // if @language is present, @value must be a string
+    else if('@language' in rval && !_isString(rval['@value'])) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; only strings may be language-tagged.',
+        'jsonld.SyntaxError',
+        {code: 'invalid language-tagged value', element: rval});
+    }
+    else if('@type' in rval && (!_isAbsoluteIri(rval['@type']) ||
+      rval['@type'].indexOf('_:') === 0)) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; an element containing "@value" and "@type" ' +
+        'must have an absolute IRI for the value of "@type".',
+        'jsonld.SyntaxError', {code: 'invalid typed value', element: rval});
+    }
+  }
+  // convert @type to an array
+  else if('@type' in rval && !_isArray(rval['@type'])) {
+    rval['@type'] = [rval['@type']];
+  }
+  // handle @set and @list
+  else if('@set' in rval || '@list' in rval) {
+    if(count > 1 && !(count === 2 && '@index' in rval)) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; if an element has the property "@set" ' +
+        'or "@list", then it can have at most one other property that is ' +
+        '"@index".', 'jsonld.SyntaxError',
+        {code: 'invalid set or list object', element: rval});
+    }
+    // optimize away @set
+    if('@set' in rval) {
+      rval = rval['@set'];
+      keys = Object.keys(rval);
+      count = keys.length;
+    }
+  }
+  // drop objects with only @language
+  else if(count === 1 && '@language' in rval) {
+    rval = null;
   }
 
-  // expand element according to value expansion rules
-  return _expandValue(activeCtx, activeProperty, element);
+  // drop certain top-level objects that do not occur in lists
+  if(_isObject(rval) &&
+    !options.keepFreeFloatingNodes && !insideList &&
+    (activeProperty === null || expandedActiveProperty === '@graph')) {
+    // drop empty object, top-level @value/@list, or object with only @id
+    if(count === 0 || '@value' in rval || '@list' in rval ||
+      (count === 1 && '@id' in rval)) {
+      rval = null;
+    }
+  }
+
+  return rval;
 };
 
 /**
@@ -2749,9 +2773,8 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
       // 1. Be used only once in a list.
       // 2. Have an array for rdf:first that has 1 item.
       // 3. Have an array for rdf:rest that has 1 item.
-      // 4. Have no keys other than: @id, usages, rdf:first, rdf:rest and,
+      // 4. Have no keys other than: @id, usages, rdf:first, rdf:rest, and,
       //   optionally, @type where the value is rdf:List.
-      // 5. Not already be in a list (it is in the eliminated nodes map).
       var nodeKeyCount = Object.keys(node).length;
       while(property === RDF_REST && node.usages.length === 1 &&
         _isArray(node[RDF_FIRST]) && node[RDF_FIRST].length === 1 &&
@@ -2774,7 +2797,7 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
         }
       }
 
-      // the list is nested another list
+      // the list is nested in another list
       if(property === RDF_FIRST) {
         // empty list
         if(node['@id'] === RDF_NIL) {
@@ -2844,7 +2867,10 @@ Processor.prototype.toRDF = function(input, options) {
   var graphNames = Object.keys(nodeMap).sort();
   for(var i = 0; i < graphNames.length; ++i) {
     var graphName = graphNames[i];
-    dataset[graphName] = _graphToRDF(nodeMap[graphName], namer, options);
+    // skip relative IRIs
+    if(graphName === '@default' || _isAbsoluteIri(graphName)) {
+      dataset[graphName] = _graphToRDF(nodeMap[graphName], namer, options);
+    }
   }
   return dataset;
 };
@@ -2893,7 +2919,7 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
     if(!_isObject(ctx)) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; @context must be an object.',
-        'jsonld.SyntaxError', {context: ctx});
+        'jsonld.SyntaxError', {code: 'invalid local context', context: ctx});
     }
 
     // get context from cache if available
@@ -2927,13 +2953,13 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; the value of "@base" in a ' +
           '@context must be a string or null.',
-          'jsonld.SyntaxError', {context: ctx});
+          'jsonld.SyntaxError', {code: 'invalid base IRI', context: ctx});
       }
       else if(base !== '' && !_isAbsoluteIri(base)) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; the value of "@base" in a ' +
           '@context must be an absolute IRI or the empty string.',
-          'jsonld.SyntaxError', {context: ctx});
+          'jsonld.SyntaxError', {code: 'invalid base IRI', context: ctx});
       }
 
       base = jsonld.url.parse(base || '');
@@ -2951,13 +2977,13 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; the value of "@vocab" in a ' +
           '@context must be a string or null.',
-          'jsonld.SyntaxError', {context: ctx});
+          'jsonld.SyntaxError', {code: 'invalid vocab mapping', context: ctx});
       }
       else if(!_isAbsoluteIri(value)) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; the value of "@vocab" in a ' +
           '@context must be an absolute IRI.',
-          'jsonld.SyntaxError', {context: ctx});
+          'jsonld.SyntaxError', {code: 'invalid vocab mapping', context: ctx});
       }
       else {
         rval['@vocab'] = value;
@@ -2975,7 +3001,8 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; the value of "@language" in a ' +
           '@context must be a string or null.',
-          'jsonld.SyntaxError', {context: ctx});
+          'jsonld.SyntaxError',
+          {code: 'invalid default language', context: ctx});
       }
       else {
         rval['@language'] = value.toLowerCase();
@@ -3018,7 +3045,8 @@ function _expandLanguageMap(languageMap) {
       if(!_isString(item)) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; language map values must be strings.',
-          'jsonld.SyntaxError', {languageMap: languageMap});
+          'jsonld.SyntaxError',
+          {code: 'invalid language map value', languageMap: languageMap});
       }
       rval.push({
         '@value': item,
@@ -3161,10 +3189,20 @@ function _graphToRDF(graph, namer, options) {
         subject.type = (id.indexOf('_:') === 0) ? 'blank node' : 'IRI';
         subject.value = id;
 
+        // skip relative IRI subjects
+        if(!_isAbsoluteIri(id)) {
+          continue;
+        }
+
         // RDF predicate
         var predicate = {};
         predicate.type = (property.indexOf('_:') === 0) ? 'blank node' : 'IRI';
         predicate.value = property;
+
+        // skip relative IRI predicates
+        if(!_isAbsoluteIri(property)) {
+          continue;
+        }
 
         // skip blank node predicates unless producing generalized RDF
         if(predicate.type === 'blank node' && !options.produceGeneralizedRdf) {
@@ -3178,7 +3216,11 @@ function _graphToRDF(graph, namer, options) {
         // convert value or node object to triple
         else {
           var object = _objectToRDF(item);
-          rval.push({subject: subject, predicate: predicate, object: object});
+
+          // skip null objects (they are relative IRIs)
+          if(object) {
+            rval.push({subject: subject, predicate: predicate, object: object});
+          }
         }
       }
     }
@@ -3211,7 +3253,11 @@ function _listToRDF(list, namer, subject, predicate, triples) {
     subject = blankNode;
     predicate = first;
     var object = _objectToRDF(item);
-    triples.push({subject: subject, predicate: predicate, object: object});
+
+    // skip null objects (they are relative IRIs)
+    if(object) {
+      triples.push({subject: subject, predicate: predicate, object: object});
+    }
 
     predicate = rest;
   }
@@ -3265,6 +3311,11 @@ function _objectToRDF(item) {
     var id = _isObject(item) ? item['@id'] : item;
     object.type = (id.indexOf('_:') === 0) ? 'blank node' : 'IRI';
     object.value = id;
+  }
+
+  // skip relative IRIs
+  if(object.type === 'IRI' && !_isAbsoluteIri(object.value)) {
+    return null;
   }
 
   return object;
@@ -3683,7 +3734,8 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
       if(property === '@index' && '@index' in subject) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; conflicting @index property detected.',
-          'jsonld.SyntaxError', {subject: subject});
+          'jsonld.SyntaxError',
+          {code: 'conflicting indexes', subject: subject});
       }
       subject[property] = input[property];
       continue;
@@ -4558,7 +4610,8 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     // cycle detected
     throw new JsonLdError(
       'Cyclical context definition detected.',
-      'jsonld.CyclicalContext', {context: localCtx, term: term});
+      'jsonld.CyclicalContext',
+      {code: 'cyclic IRI mapping', context: localCtx, term: term});
   }
 
   // now defining term
@@ -4567,7 +4620,7 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
   if(_isKeyword(term)) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; keywords cannot be overridden.',
-      'jsonld.SyntaxError', {context: localCtx});
+      'jsonld.SyntaxError', {code: 'keyword redefinition', context: localCtx});
   }
 
   // remove old mapping
@@ -4594,7 +4647,8 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; @context property values must be ' +
       'strings or objects.',
-      'jsonld.SyntaxError', {context: localCtx});
+      'jsonld.SyntaxError',
+      {code: 'invalid term definition', context: localCtx});
   }
 
   // create new mapping
@@ -4605,19 +4659,26 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     if('@id' in value) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; a @reverse term definition must not ' +
-        'contain @id.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'contain @id.', 'jsonld.SyntaxError',
+        {code: 'invalid reverse property', context: localCtx});
     }
     var reverse = value['@reverse'];
     if(!_isString(reverse)) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; a @context @reverse value must be a string.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'jsonld.SyntaxError', {code: 'invalid IRI mapping', context: localCtx});
     }
 
     // expand and add @id mapping
-    mapping['@id'] = _expandIri(
+    var id = _expandIri(
       activeCtx, reverse, {vocab: true, base: false}, localCtx, defined);
+    if(!_isAbsoluteIri(id)) {
+      throw new JsonLdError(
+        'Invalid JSON-LD syntax; a @context @reverse value must be an IRI ' +
+        'or a blank node identifier.',
+        'jsonld.SyntaxError', {code: 'invalid IRI mapping', context: localCtx});
+    }
+    mapping['@id'] = id;
     mapping.reverse = true;
   }
   else if('@id' in value) {
@@ -4626,7 +4687,7 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; a @context @id value must be an array ' +
         'of strings or a string.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'jsonld.SyntaxError', {code: 'invalid IRI mapping', context: localCtx});
     }
     if(id !== term) {
       // expand and add @id mapping
@@ -4660,7 +4721,8 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
       if(!('@vocab' in activeCtx)) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; @context terms must define an @id.',
-          'jsonld.SyntaxError', {context: localCtx, term: term});
+          'jsonld.SyntaxError',
+          {code: 'invalid IRI mapping', context: localCtx, term: term});
       }
       // prepend vocab to term
       mapping['@id'] = activeCtx['@vocab'] + term;
@@ -4674,14 +4736,29 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     var type = value['@type'];
     if(!_isString(type)) {
       throw new JsonLdError(
-        'Invalid JSON-LD syntax; @context @type values must be strings.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'Invalid JSON-LD syntax; an @context @type values must be a string.',
+        'jsonld.SyntaxError',
+        {code: 'invalid type mapping', context: localCtx});
     }
 
-    if(type !== '@id') {
+    if(type !== '@id' && type !== '@vocab') {
       // expand @type to full IRI
       type = _expandIri(
-        activeCtx, type, {vocab: true, base: true}, localCtx, defined);
+        activeCtx, type, {vocab: true, base: false}, localCtx, defined);
+      if(!_isAbsoluteIri(type)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; an @context @type value must be an ' +
+          'absolute IRI.',
+          'jsonld.SyntaxError',
+          {code: 'invalid type mapping', context: localCtx});
+      }
+      if(type.indexOf('_:') === 0) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; an @context @type values must be an IRI, ' +
+          'not a blank node identifier.',
+          'jsonld.SyntaxError',
+          {code: 'invalid type mapping', context: localCtx});
+      }
     }
 
     // add @type to mapping
@@ -4695,14 +4772,15 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; @context @container value must be ' +
         'one of the following: @list, @set, @index, or @language.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'jsonld.SyntaxError',
+        {code: 'invalid container mapping', context: localCtx});
     }
     if(mapping.reverse && container !== '@index' && container !== '@set' &&
       container !== null) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; @context @container value for a @reverse ' +
-        'type definition must be @index or @set.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'type definition must be @index or @set.', 'jsonld.SyntaxError',
+        {code: 'invalid reverse property', context: localCtx});
     }
 
     // add @container to mapping
@@ -4714,8 +4792,8 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     if(language !== null && !_isString(language)) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; @context @language value must be ' +
-        'a string or null.',
-        'jsonld.SyntaxError', {context: localCtx});
+        'a string or null.', 'jsonld.SyntaxError',
+        {code: 'invalid language mapping', context: localCtx});
     }
 
     // add @language to mapping
@@ -4730,7 +4808,7 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
   if(id === '@context' || id === '@preserve') {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; @context and @preserve cannot be aliased.',
-      'jsonld.SyntaxError');
+      'jsonld.SyntaxError', {code: 'invalid keyword alias', context: localCtx});
   }
 }
 
@@ -4820,8 +4898,8 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
     if(!_isAbsoluteIri(rval)) {
       throw new JsonLdError(
         'Invalid JSON-LD syntax; a @context value does not expand to ' +
-        'an absolute IRI.',
-        'jsonld.SyntaxError', {context: localCtx, value: value});
+        'an absolute IRI.', 'jsonld.SyntaxError',
+        {code: 'invalid IRI mapping', context: localCtx, value: value});
     }
   }
 
@@ -5205,7 +5283,8 @@ function _validateTypeValue(v) {
   if(!isValid) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; "@type" value must a string, an array of ' +
-      'strings, or an empty object.', 'jsonld.SyntaxError', {value: v});
+      'strings, or an empty object.', 'jsonld.SyntaxError',
+      {code: 'invalid type value', value: v});
   }
 }
 
@@ -5499,7 +5578,8 @@ function _retrieveContextUrls(input, options, callback) {
     if(Object.keys(cycles).length > MAX_CONTEXT_URLS) {
       error = new JsonLdError(
         'Maximum number of @context URLs exceeded.',
-        'jsonld.ContextUrlError', {max: MAX_CONTEXT_URLS});
+        'jsonld.ContextUrlError',
+        {code: 'loading remote context failed', max: MAX_CONTEXT_URLS});
       return callback(error);
     }
 
@@ -5526,7 +5606,8 @@ function _retrieveContextUrls(input, options, callback) {
         // validate URL
         if(!regex.test(url)) {
           error = new JsonLdError(
-            'Malformed URL.', 'jsonld.InvalidUrl', {url: url});
+            'Malformed URL.', 'jsonld.InvalidUrl',
+            {code: 'loading remote context failed', url: url});
           return callback(error);
         }
         queue.push(url);
@@ -5541,7 +5622,8 @@ function _retrieveContextUrls(input, options, callback) {
         if(url in cycles) {
           error = new JsonLdError(
             'Cyclical @context URLs detected.',
-            'jsonld.ContextUrlError', {url: url});
+            'jsonld.ContextUrlError',
+            {code: 'recursive context inclusion', url: url});
           return callback(error);
         }
         var _cycles = _clone(cycles);
@@ -5574,13 +5656,15 @@ function _retrieveContextUrls(input, options, callback) {
               'using client-side JavaScript), too many redirects, a ' +
               'non-JSON response, or more than one HTTP Link Header was ' +
               'provided for a remote context.',
-              'jsonld.InvalidUrl', {url: url, cause: err});
+              'jsonld.InvalidUrl',
+              {code: 'loading remote context failed', url: url, cause: err});
           }
           else if(!_isObject(ctx)) {
             err = new JsonLdError(
               'Derefencing a URL did not result in a JSON object. The ' +
               'response was valid JSON, but it was not a JSON object.',
-              'jsonld.InvalidUrl', {url: url, cause: err});
+              'jsonld.InvalidUrl',
+              {code: 'invalid remote context', url: url, cause: err});
           }
           if(err) {
             error = err;
@@ -6662,7 +6746,7 @@ if(_nodejs) {
 }
 // export AMD API
 else if(typeof define === 'function' && define.amd) {
-  define('jsonld', [], function() {
+  define([], function() {
     return factory;
   });
 }
