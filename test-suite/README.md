@@ -9,7 +9,7 @@ comprehensive JSON-LD testing solution for developers creating JSON-LD Processor
 Design
 ------
 
-Tests are defined into _compact_, _expand_, _frame_, _normalize_, and _rdf_ sections:
+Tests are defined into _compact_, _expand_, _flatten_, _frame_, _normalize_, and _rdf_ sections:
 * _compact_ tests have _input_, _expected_ and _context_ documents. The _expected_ results
   can be compared using JSON object comparison with the processor output.
 * _expand_ tests have _input_ and _expected_ documents. The _expected_ results
@@ -60,3 +60,7 @@ and add tests as they see fit. This may mean that the test suite may become
 unstable from time to time, but this approach has been taken so that the
 long-term goal of having a comprehensive test suite for JSON-LD can be achieved
 by the JSON-LD community.
+
+Building Files
+==============
+The vocab.html and vocab.jsonld files are created from vocab.ttl using with `vocab_gen.rb`.

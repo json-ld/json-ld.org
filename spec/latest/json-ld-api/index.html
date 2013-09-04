@@ -14,6 +14,7 @@
       doRDFa: "1.1",
       // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
       specStatus:           "ED",
+      // publishDate:          "2013-08-22",
       // if you wish the publication date to be other than today, set this
       //publishDate:          "2012-12-25",
       copyrightStart:       "2010",
@@ -23,9 +24,9 @@
 
       // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
       // and its maturity status
-      previousPublishDate:  "2013-04-11",
+      previousPublishDate:  "2013-05-16",
       previousMaturity:     "LC",
-      previousURI:          "http://www.w3.org/TR/2013/WD-json-ld-api-20130411/",
+      previousURI:          "http://www.w3.org/TR/2013/WD-json-ld-api-20130516/",
 
       // if there a publicly available Editor's Draft, this is the link
       edDraftURI:           "http://json-ld.org/spec/latest/json-ld-api/index.html",
@@ -34,6 +35,7 @@
 
       // if this is a LCWD, uncomment and set the end of its review period
       // lcEnd: "2009-08-05",
+      crEnd: "2013-09-19",
 
       // if you want to have extra CSS, append them to this list
       // it is recommended that the respec.css stylesheet be kept
@@ -125,14 +127,14 @@
 </section>
 
 <section id="sotd">
-  <p>This document has been under development for over 25 months in the
+  <p>This document has been under development for over 30 months in the
     JSON for Linking Data Community Group. The document has recently been
     transferred to the RDF Working Group for review, improvement, and publication
     along the Recommendation track. The specification has undergone significant
-    development, review, and changes during the course of the last 25 months.</p>
+    development, review, and changes during the course of the last 30 months.</p>
 
   <p>There are several independent
-    <a href="http://json-ld.org/#impl">interoperable implementations</a> of
+    <a href="http://json-ld.org/test-suite/reports/">interoperable implementations</a> of
     this specification. There is a fairly complete test suite [[JSON-LD-TESTS]]
     and a <a href="http://json-ld.org/playground/">live JSON-LD editor</a>
     that is capable of demonstrating the features described in
@@ -140,7 +142,7 @@
     the test suite, and the live editor, they are believed to be mature enough
     to be integrated into a non-production system at this point in time. There
     is an expectation that they could be used in a production system within the
-    next six months.</p>
+    next three months.</p>
 
   <p>There are a number of ways that one may participate in the development of
     this specification:</p>
@@ -203,7 +205,8 @@
     <li>Clarify that blank node identifier are supported as value of <code>@vocab</code></li>
     <li>When generating RDF, exclude <tref title="rdf triple">triples</tref> containing a
       <tref>blank node</tref> <tref title="rdf predicate">predicate</tref>, unless the
-      <i>produce generalized RDF</i> flag is set</li>
+      <i>produce generalized RDF</i> flag is set; discard <tref title="rdf triple">triples</tref>
+      containing relative IRIs and graphs with a relative IRI as graph name</li>
     <li>Update reference to DOM Promises (have been called DOM Futures)</li>
     <li>Fix bug in <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF to JSON-LD algorithm</a> to
       handle lists correctly</li>
@@ -211,7 +214,17 @@
       [[RFC6839]]</li>
     <li>Use the <a>LoadDocumentCallback</a> (previously <code>LoadContextCallback</code>)
       to retrieve remote contexts and remote documents</li>
+    <li>Allow contexts to be passed into the API directly. Previously only context documents, i.e.,
+      objects having a <code>@context</code> member were allowed.</li>
+    <li>Clarify the usage of the
+      <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code> option.</li>
   </ul>
+
+  <p>Before this specification exits Candidate Recommendation, two or more
+    independent implementations must pass each test, although no single
+    implementation must pass each test. The working group will decide when
+    the test suite is of sufficient quality to test interoperability and will
+    produce an implementation report (hosted together with the test suite).</p>
 </section>
 
 
@@ -918,6 +931,23 @@
         If <i>remote contexts</i> is not passed, it is initialized to an empty
         <tref>array</tref>.</p>
 
+      <div class="issue atrisk" data-number="10" title="Support for @base: null ">
+        <p class="atrisk-head">Note: This feature is
+          <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+          be removed from this specification based on feedback. Please send feedback to
+          <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+          For the current status see
+          <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+       <p>Unlike many other serialization formats, JSON-LD allows to specify that
+        there is no base IRI from within the document (by setting <code>@base</code> to
+        <tref>null</tref>). The result is that the algorithm for establishing a base IRI
+        as specified in <a href="http://tools.ietf.org/html/rfc3986#section-5.1">RFC3986 section 5.1</a>
+        is overridden so relative IRIs remain relative IRIs even in the case that an IRI
+        would be available in one of the outer layers (e.g., the IRI used to retrieve
+        the document or an application supplied base IRI). Based on implementer feedback,
+        the Working Group may decide to remove this feature from JSON-LD 1.0.</p>
+      </div>
+
       <ol class="algorithm">
         <li>Initialize <i>result</i> to the result of cloning
           <tref>active context</tref>.</li>
@@ -933,7 +963,7 @@
               <tref>active context</tref> is set to the IRI of the currently being processed
               document (which might be different from the currently being processed context),
               if available; otherwise to <tref>null</tref>. If set, the
-              <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+              <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code>
               option of a <tref>JSON-LD API Implementation</tref> overrides the <tref>base IRI</tref>.</li>
             <li>If <i>context</i> is a <tref>string</tref>,
               <ol class="algorithm">
@@ -1415,11 +1445,7 @@
 
       <p>The algorithm takes three input variables: an <tref>active context</tref>,
         an <tref>active property</tref>, and an <i>element</i> to be expanded.
-        To begin, the <tref>active context</tref> is set to the result of performing,
-        <a href="#context-processing-algorithm">Context Processing</a> on the passed
-        <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>,
-        or empty if <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-        is <tref>null</tref>, <tref>active property</tref> is set to <tref>null</tref>,
+        To begin, the <tref>active property</tref> is set to <tref>null</tref>,
         and <i>element</i> is set to the <tref>JSON-LD input</tref>.</p>
 
       <ol class="algorithm">
@@ -2961,7 +2987,7 @@
               <code>@list</code> member for <i>element</i>, <tref>active graph</tref>,
               <tref>active subject</tref>, <tref>active property</tref>, and
               <i>result</i> for <i>list</i>.</li>
-            <li>Append <i>result</i> to the the value of the <tref>active property</tref> member
+            <li>Append <i>result</i> to the value of the <tref>active property</tref> member
               of <i>node</i>.</li>
           </ol>
         </li>
@@ -3209,10 +3235,14 @@
         <li>For each <i>graph name</i> and <i>graph</i> in <i>node map</i>
           ordered by <i>graph name</i>:
           <ol class="algorithm">
+            <li>If <i>graph name</i> is a <tref>relative IRI</tref>, continue
+              with the next <i>graph name</i>-<i>graph</i> pair.</li>
             <li>Initialize <i>triples</i> as an empty <tref>array</tref>.</li>
             <li>For each <i>subject</i> and <i>node</i> in <i>graph</i> ordered
               by <i>subject</i>:
               <ol class="algorithm">
+                <li>If <i>subject</i> is a <tref>relative IRI</tref>, continue
+                  with the next <i>subject</i>-<i>node</i> pair.</li>
                 <li>For each <i>property</i> and <i>values</i> in <i>node</i>
                   ordered by <i>property</i>:
                   <ol class="algorithm">
@@ -3221,11 +3251,13 @@
                       composed of <i>subject</i>, <code>rdf:type</code>,
                       and <i>type</i> to <i>triples</i>.</li>
                     <li>Otherwise, if <i>property</i> is a <tref>keyword</tref>
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
                     <li>Otherwise, if <i>property</i> is a <tref>blank node identifier</tref> and
                       the <i>produce generalized RDF</i> flag is not <tref>true</tref>,
-                      continue to the next <i>property</i>-<i>values</i> pair.</li>
-                    <li>Otherwise, <i>property</i> is an <tref>IRI</tref> or
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, if <i>property</i> is a <tref>relative IRI</tref>,
+                      continue with the next <i>property</i>-<i>values</i> pair.</li>
+                    <li>Otherwise, <i>property</i> is an <tref>absolute IRI</tref> or
                       <tref>blank node identifier</tref>. For each <i>item</i>
                       in <i>values</i>:
                       <ol class="algorithm">
@@ -3244,7 +3276,9 @@
                           composed of <i>subject</i>, <i>property</i>, and
                           the result of using the
                           <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
-                          passing <i>item</i> to <i>triples</i>.</li>
+                          passing <i>item</i> to <i>triples</i>, unless the result is
+                          <tref>null</tref>, indicating a <tref>relative IRI</tref> that has
+                          to be ignored.</li>
                       </ol>
                     </li>
                   </ol>
@@ -3268,7 +3302,10 @@
     <p>This algorithm takes a <tref>node object</tref> or <tref>value object</tref>
       and transforms it into an
       <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-resource">RDF resource</tref>
-      to be used as the <tref>object</tref> of an <tref>RDF triple</tref>.</p>
+      to be used as the <tref>object</tref> of an <tref>RDF triple</tref>. If a
+      <tref>node object</tref> containing a <tref>relative IRI</tref> is passed to
+      the algorithm, <tref>null</tref> is returned which then causes the resulting
+      <tref>RDF triple</tref> to be ignored.</p>
 
     <section class="informative">
       <h3>Overview</h3>
@@ -3277,8 +3314,9 @@
         <tref title="RDF literal">RDF literals</tref> as described in
         <a class="sectionRef" href="#data-round-tripping">Data Round Tripping</a>
         whereas <tref title="node object">node objects</tref> are transformed
-        to <tref title="IRI">IRIs</tref> or
-        <tref title="blank node identifier">blank node identifiers</tref>.</p>
+        to <tref title="IRI">IRIs</tref>,
+        <tref title="blank node identifier">blank node identifiers</tref>,
+        or <tref>null</tref>.</p>
     </section>
 
     <section>
@@ -3288,7 +3326,10 @@
         either a <tref>value object</tref> or <tref>node object</tref>.</p>
 
       <ol class="algorithm">
-        <li>If <i>item</i> is a <tref>node object</tref> return the
+        <li>If <i>item</i> is a <tref>node object</tref> and the value of
+          its <code>@id</code> member is a <tref>relative IRI</tref>, return
+          <tref>null</tref>.</li>
+        <li>If <i>item</i> is a <tref>node object</tref>, return the
           <tref>IRI</tref> or <tref>blank node identifier</tref> associated
           with its <code>@id</code> member.</li>
         <li>Otherwise, <i>item</i> is a <tref>value object</tref>. Initialize
@@ -3350,9 +3391,10 @@
       <p>For each element of the <tref>list</tref> a new <tref>blank node identifier</tref>
         is allocated which is used to generate <code>rdf:first</code> and
         <code>rdf:rest</code> <tref title="RDF triple">triples</tref>. The
-        algorithm returns the list head, which is either the the first allocated
+        algorithm returns the list head, which is either the first allocated
         <tref>blank node identifier</tref> or <code>rdf:nil</code> if the
-        <tref>list</tref> is empty.</p>
+        <tref>list</tref> is empty. If a list element represents a <tref>relative IRI</tref>,
+        the corresponding <code>rdf:first</code> triple is omitted.</p>
     </section>
 
     <section>
@@ -3370,10 +3412,11 @@
         <li>Initialize an empty <tref>array</tref> <i>list triples</i>.</li>
         <li>For each pair of <i>subject</i> from <i>bnodes</i> and <i>item</i> from <i>list</i>:
           <ol class="algorithm">
-            <li>Append a <tref>triple</tref> composed of <i>subject</i>,
-              <code>rdf:first</code>, and the result of using th
+            <li>Initialize <i>object</i> to the result of using the
               <a href="#object-to-rdf-conversion">Object to RDF Conversion algorithm</a>
               passing <i>item</i> to <i>list triples</i>.</li>
+            <li>Unless <i>object</i> is <tref>null</tref>, append a <tref>triple</tref>
+              composed of <i>subject</i>, <code>rdf:first</code>, and <i>object</i>.</li>
             <li>Set <i>rest</i> as the next entry in <i>bnodes</i>, or if that
               does not exist, <code>rdf:nil</code>. Append a
               <tref>triple</tref> composed of <i>subject</i>,
@@ -3470,8 +3513,8 @@
                   associated with the <i>predicate</i> member of <i>node</i>, append a
                   reference to <i>value</i> to the <tref>array</tref>. Two JSON objects
                   are considered equal if they have equivalent key-value pairs.</li>
-                <li>If <i>object</i> is a <tref>blank node identifier</tref>  or <tref>IRI</tref>,
-                  it might represent the a list node:
+                <li>If <i>object</i> is a <tref>blank node identifier</tref> or <tref>IRI</tref>,
+                  it might represent the list node:
                   <ol class="algorithm">
                     <li>If the <i>object</i> member of <i>node map</i> has no
                       <code>usages</code> member, create one and initialize it to
@@ -3506,7 +3549,7 @@
                   of <i>usage</i>.</li>
                 <li>Initialize two empty <tref title="array">arrays</tref> <i>list</i>
                   and <i>list nodes</i>.</li>
-                <li id="find-list-head">If <i>property</i> equals <code>rdf:rest</code>, the value
+                <li>While <i>property</i> equals <code>rdf:rest</code>, the value
                   associated to the <code>usages</code> member of <i>node</i> has
                   exactly 1 entry, <i>node</i> has a <code>rdf:first</code> and
                   <code>rdf:rest</code> property, both of which have as value an
@@ -3514,7 +3557,8 @@
                   has no other members apart from an optional <code>@type</code>
                   member whose value is an array with a single item equal to
                   <code>rdf:List</code>, <i>node</i> represents a well-formed list
-                  node. Continue with the following steps:
+                  node. Perform the following steps to traverse the list backwards
+                  towards its head:
                   <ol class="algorithm">
                     <li>Append the only item of <code>rdf:first</code> member of
                       <i>node</i> to the <i>list</i> <tref>array</tref>.</li>
@@ -3527,10 +3571,9 @@
                       <code>property</code> member of <i>node usage</i>, and
                       <i>head</i> to the value of the <code>value</code> member
                       of <i>node usage</i>.</li>
-                    <li>If the <code>@id</code> member of <i>node</i> is a
-                      <tref>blank node identifier</tref>, continue to look for
-                      the head of the list by jumping to
-                      <a href="#find-list-head">step 4.3.3</a>.</li>
+                    <li>If the <code>@id</code> member of <i>node</i> is an
+                      <tref>IRI</tref> instead of a <tref>blank node identifier</tref>,
+                      exit the while loop.</li>
                   </ol>
                 </li>
                 <li>If <i>property</i> equals <code>rdf:first</code>, i.e., the
@@ -3549,7 +3592,7 @@
                       member of <i>head</i>.</li>
                     <li>Set <i>head</i> to the value of the <i>head id</i> member of
                       <i>graph object</i> so that all it's properties can be accessed.</li>
-                    <li>Then, set <i>head</i> to the the only item in the value of the
+                    <li>Then, set <i>head</i> to the only item in the value of the
                       <code>rdf:rest</code> member of <i>head</i>.</li>
                     <li>Finally, remove the last item of the <i>list</i> <tref>array</tref>
                       and the last item of the <i>list nodes</i> <tref>array</tref>.</li>
@@ -3558,7 +3601,7 @@
                 <li>Remove the <code>@id</code> member from <i>head</i>.</li>
                 <li>Reverse the order of the <i>list</i> <tref>array</tref>.</li>
                 <li>Add a <code>@list</code> member to <i>head</i> and initialize
-                  its value to the the <i>list</i> <tref>array</tref>.</li>
+                  its value to the <i>list</i> <tref>array</tref>.</li>
                 <li>For each item <i>node id</i> in <i>list nodes</i>, remove the
                   <i>node id</i> member from <i>graph object</i>.</li>
               </ol>
@@ -3573,7 +3616,7 @@
               <ol class="algorithm">
                 <li>Add a <code>@graph</code> member to <i>node</i> and initialize
                   its value to an empty <tref>array</tref>.</li>
-                <li>For each key-value pair <i>s</i>-<i>n</i> in the the <i>subject</i>
+                <li>For each key-value pair <i>s</i>-<i>n</i> in the <i>subject</i>
                   member of <i>graph map</i> ordered by <i>s</i>, append <i>n</i>
                   to the <code>@graph</code> member of <i>node</i> after
                   removing its <code>usages</code> member, unless the only
@@ -3623,7 +3666,7 @@
         to a <tref>JSON object</tref> and a flag <i>use native types</i>.</p>
 
       <ol class="algorithm">
-        <li>If <i>value</i> is an an <tref>IRI</tref> or a
+        <li>If <i>value</i> is an <tref>IRI</tref> or a
           <tref>blank node identifier</tref>, return a new <tref>JSON object</tref>
           consisting of a single member <code>@id</code> whose value is set to
           <i>value</i>.</li>
@@ -3818,6 +3861,17 @@
       <code class="idlMemberName"><a href="#widl-JsonLdError-code">code</a></code>
       and processing is stopped.</p>
 
+    <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code>
+      option is specified, a conformant <tref>JSON-LD Processor</tref> MUST use it to dereference remote documents
+      and contexts. The <code class="idlMemberName"><a href="#widl-RemoteDocument-documentUrl">documentUrl</a></code>
+      in the returned <code class="idlMemberName"><a href="#idl-def-RemoteDocument">RemoteDocument</a></code>
+      is used as <tref>base IRI</tref> and the
+      <code class="idlMemberName"><a href="#widl-RemoteDocument-contextUrl">contextUrl</a></code>
+      is used instead of looking at the HTTP Link Header directly. For the sake of simplicity, none of the algorithms
+      in this document mention this directly. <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>
+      are not required to implement the
+      <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code> option.</p>
+
     <dl title="[Constructor] interface JsonLdProcessor" class="idl">
       <dt>Promise compact()</dt>
       <dd>
@@ -3839,14 +3893,16 @@
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
             of the <tref>active context</tref> is set to the IRI of the currently being processed
             document, if available; otherwise to <tref>null</tref>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
             overrides the <tref>base IRI</tref>.</li>
           <li>If an
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             has been passed, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <tref>local context</tref>.</li>
+            as <tref>local context</tref>. If
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            is a <tref>JSON object</tref> having a <code>@context</code> member, pass that member's value instead.</li>
           <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
             using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
             and a content type of <code>application/json</code> or any media type
@@ -3862,6 +3918,8 @@
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>If <i>context</i> is a <tref>JSON object</tref> having a <code>@context</code> member, set
+            <i>context</i> to that member's value.</li>
           <li>Set <i>compacted</i> to the result of using the
             <a href="#compaction-algorithm">Compaction algorithm</a>, passing
             <i>context</i>, <i>expanded</i> as <i>element</i>, and if passed, the
@@ -3903,14 +3961,16 @@
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
             of the <tref>active context</tref> is set to the IRI of the currently being processed
             document, if available; otherwise to <tref>null</tref>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
             overrides the <tref>base IRI</tref>.</li>
           <li>If an
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             has been passed, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <tref>local context</tref>.</li>
+            as <tref>local context</tref>. If
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            is a <tref>JSON object</tref> having a <code>@context</code> member, pass that member's value instead.</li>
           <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
             using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
             and a content type of <code>application/json</code> or any media type
@@ -3958,14 +4018,16 @@
           <li>Initialize a new empty <tref>active context</tref>. The <tref>base IRI</tref>
             of the <tref>active context</tref> is set to the IRI of the currently being processed
             document, if available; otherwise to <tref>null</tref>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
             overrides the <tref>base IRI</tref>.</li>
           <li>If an
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
             has been passed, update the <tref>active context</tref> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
             <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <tref>local context</tref>.</li>
+            as <tref>local context</tref>. If
+            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            is a <tref>JSON object</tref> having a <code>@context</code> member, pass that member's value instead.</li>
           <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
             using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
             and a content type of <code>application/json</code> or any media type
@@ -3981,6 +4043,8 @@
           <li>Set <i>expanded</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <tref>active context</tref> and <i>input</i> as <i>element</i>.</li>
+          <li>If <i>context</i> is a <tref>JSON object</tref> having a <code>@context</code> member, set
+            <i>context</i> to that member's value.</li>
           <li>Initialize an empty <i>identifier map</i> and a <i>counter</i> (set to <code>0</code>)
             to be used by the
             <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>.</li>
@@ -4013,9 +4077,9 @@
 
     <div class='idl' title='typedef (object or DOMString or (object or DOMString)[]) JsonLdContext'>
       <p>The <a>JsonLdContext</a> type is used to refer to a value that
-      that may be a <tref>JSON object</tref>, an <tref>IRI</tref>, or an
-      array of <tref>JSON object</tref>s and <tref>IRI</tref>s.
-      </p>
+        that may be a <tref>JSON object</tref>, a <tref>string</tref> representing an
+        <tref>IRI</tref>, or an array of <tref title="JSON object">JSON objects</tref>
+        and <tref title="string">strings</tref>.</p>
     </div>
   </section> <!-- end of JsonLdProcessor -->
 
@@ -4133,23 +4197,25 @@
       <p>The <a>JsonLdErrorCode</a> represents the collection of valid JSON-LD error
         codes.</p>
 
-      <div class="issue atrisk" title="Lists of lists and partial list conversion from RDF">
-      <p class="atrisk-head">Note: This feature is
-        <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
-        be removed from this specification based on feedback. Please send feedback to
-        <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
-        For the current status see
-        <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
-      <p>While this document asserts that lists of lists are not
-          allowed in JSON-LD, new updates to the JSON-LD algorithms do support
-          lists of lists. 
-          Implementors are asked to pay particular attention to the
-          feature and provide feedback on lists of lists and partial lists. 
-          The feature may remain in
-          the specification, or it may be removed after further implementation 
-          experience has been gathered. Similarly, partial list conversion in
-          the RDF algorithms have been marked as a feature at risk and may be 
-          removed from the specification based on implementation feedback.</p>
+      <div class="issue atrisk" data-number="4" title="Lists of lists and partial list conversion from RDF">
+        <p class="atrisk-head">Note: This feature is
+          <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+          be removed from this specification based on feedback. Please send feedback to
+          <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+          For the current status see
+          <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+       <p>The JSON-LD algorithms have been updated to support conversion of lists
+          of lists to <tref title="list object">list objects</tref> by preserving
+          the blank node head of the inner list. Lists of lists can, however, not be
+          represented directly in JSON-LD using the <code>@list</code> construct;
+          they have to be represented as a set of interlinked node objects using
+          RDF's rdf:first and rdf:rest properties. Implementors are asked to pay
+          particular attention to the feature and provide feedback on lists of lists
+          and partial lists. The feature may remain in the specification, or it may
+          be removed after further implementation experience has been gathered.
+          Similarly, partial list conversion in the RDF algorithms have been marked
+          as a feature at risk and may be removed from the specification based
+          on implementation feedback.</p>
       </div>
 
       <dl title="enum JsonLdErrorCode" class="idl">
@@ -4212,7 +4278,7 @@
           <tref>null</tref> and thus invalid.</dd>
         <dt>colliding keywords</dt>
         <dd>Two properties which expand to the same keyword have been detected.
-          This might occur if a <tref>keyword</tref> and an an alias thereof
+          This might occur if a <tref>keyword</tref> and an alias thereof
           are used at the same time.</dd>
         <dt>invalid container mapping</dt>
         <dd>An <code>@container</code> member was encountered whose value was
