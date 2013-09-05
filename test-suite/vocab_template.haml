@@ -1,0 +1,122 @@
+!!! 5
+%html{:prefix => "jld: http://jsonld.org/test-suite/vocab# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"}
+  %head
+    %meta{"http-equiv" => "Content-Type", :content => "text/html;charset=utf-8"}
+    %meta{:name => "viewport", :content => "width=device-width, initial-scale=1.0"}
+    %link{:rel => "stylesheet", :type => "text/css", :href => "../static/css/bootstrap/bootstrap.css"}
+    %link{:rel => "stylesheet", :type => "text/css", :href => "../static/css/bootstrap/bootstrap-responsive.css"}
+    %link{:rel => "stylesheet", :type => "text/css", :href => "../static/css/bootstrap/font-awesome.css"}
+    %script{:type => "text/javascript", :src => "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+    %script{:type => "text/javascript", :src => "//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0-rc.3/handlebars.min.js"}
+    :css
+      dd code {display: inline;}
+      footer {text-align: center;}
+    %title
+      = ontology['dc:title']
+  %body{:resource => ontology['@id']}
+    %meta{:property => "dc:creator", :value => ontology["dc:creator"]}
+    %link{:property => "dc:identifier", :href => ontology["@id"]}
+    %div.navbar.navbar-static-top
+      %div.navbar-inner
+        %div.row-fluid
+          %a.btn.btn-navbar{"data-toggle" => "collapse", "data-target" => ".nav-collapse"}
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.brand.active{:href => "../"}
+            %img{:src => "../images/json-ld-data-24.png", :alt => "JSON-LD logo"}
+            JSON-LD
+          %div.nav-collapse
+          %ul.nav
+            %li
+              %a{:href => "../playground/index.html"}
+                %span.icon-beer
+                Playground
+            %li
+              %a{:href => "../learn.html"}
+                %span.icon-book
+                Documentation
+            %li.dropdown
+              %a.dropdown-toggle{:href => "#", "data-toggle" => "dropdown"}
+                %span.icon-folder-open
+                Specifications
+                %b.caret
+              %ul.dropdown-menu
+                %li.nav-header
+                  %strong
+                    Latest
+                %li
+                  %a{:href => "../spec/latest/json-ld/"}
+                    Syntax
+                %li
+                  %a{:href => "../spec/latest/json-ld-api/"}
+                    API
+                %li
+                  %a{:href => "../spec/latest/json-ld-framing/"}
+                    Framing
+                %li
+                  %a{:href => "../spec/latest/rdf-graph-normalization/"}
+                    Normalization
+                %li.divider
+                %li.nav-header
+                  %strong
+                    Previous Drafts
+                %li
+                  %a{:href => "../spec#syntax"}
+                    Syntax
+                %li
+                  %a{:href => "../spec#api"}
+                    API
+                %li
+                  %a{:href => "../spec#framing"}
+                    Framing
+                %li
+                  %a{:href => "../spec#normalization"}
+                    Normalization
+            %li
+              %a{:href => "../images/index.html"}
+                %span.icon-picture
+                  Branding
+    %div.hero-unit
+      %h1{:property => "dc:title"}<= ontology["dc:title"]
+      %p{:property => "dc:description rdfs:comment"}<=ontology["dc:description"]
+
+    %div.container
+      %div.row
+        %h2.span12#classes{:style => "text-align: center;"}
+          Test Case Classes
+      %div.row
+        %section.offset2.span8
+          %dl
+            - classes.each do |cls|
+              %dt{:about => cls['@id'], :typeof => cls['@type'], :property => "rdfs:label"}<~cls["rdfs:label"]
+              %dd{:about => cls['@id'], :property => "rdfs:comment"}<
+                :markdown
+                  #{cls["rdfs:comment"].to_s.gsub(/^\s+/, '')}
+      %div.row
+        %h2.span12#classes{:style => "text-align: center;"}
+          Test Case Properties
+      %div.row
+        %section.offset2.span8
+          %dl
+            - properties.each do |prop|
+              %dt{:about => prop['@id'], :typeof => prop['@type'], :property => "rdfs:label"}<~prop["rdfs:label"]
+              %dd{:about => prop['@id']}
+                %span{:property => "rdfs:comment"}<
+                  :markdown
+                    #{prop["rdfs:comment"].to_s.gsub(/^\s+/, '')}
+                - if prop["rdfs:domain"]
+                  %div
+                    %strong
+                      domain:
+                    %code{:property => "rdfs:domain", :resource => prop["rdfs:domain"]}
+                      = prop["rdfs:domain"]
+                - if prop["rdfs:range"]
+                  %div
+                    %strong
+                      range:
+                    %code{:property => "rdfs:range", :resource => prop["rdfs:range"]}
+                      = prop["rdfs:range"]
+    %footer
+      %span{:property => "dc:publisher"}<= ontology["dc:publisher"]
+    %script{:type => "text/javascript", :src => "../static/js/bootstrap/bootstrap.js"}

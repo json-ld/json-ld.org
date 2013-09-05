@@ -13,9 +13,9 @@
 
       doRDFa: "1.1",
       // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
-      specStatus:           "CR",
+      specStatus:           "ED",
       // if you wish the publication date to be other than today, set this
-      publishDate:          "2013-08-22",
+      // publishDate:          "2013-08-22",
       copyrightStart:       "2010",
 
       // the specification's short name, as in http://www.w3.org/TR/short-name/
@@ -34,9 +34,9 @@
       // if this is a LCWD, uncomment and set the end of its review period
       lcEnd: "2009-08-05",
       crEnd: "2013-09-19",
-      
+
       issueBase: "https://github.com/json-ld/json-ld.org/issues/",
-      // atRiskBase: "https://github.com/json-ld/json-ld.org/issues/",
+      atRiskBase: "https://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk#",
 
       // if you want to have extra CSS, append them to this list
       // it is recommended that the respec.css stylesheet be kept
@@ -116,7 +116,7 @@
     during the course of the last 30 months.</p>
 
   <p>There are several independent
-    <a href="http://json-ld.org/#impl">interoperable implementations</a> of
+    <a href="http://json-ld.org/test-suite/reports/">interoperable implementations</a> of
     this specification. There is a fairly complete test suite [[JSON-LD-TESTS]]
     and a <a href="http://json-ld.org/playground/">live JSON-LD editor</a>
     that is capable of demonstrating the features described in
@@ -124,7 +124,7 @@
     and the live editor will continue, they are believed to be mature enough
     to be integrated into a non-production system at this point in time with
     the expectation that they could be used in a production system within the
-    next six months.</p>
+    next three months.</p>
 
   <p>There are a number of ways that one may participate in the development of
     this specification:</p>
@@ -155,6 +155,15 @@
       IRC channel is available for real-time discussion on irc.freenode.net.</li>
   </ul>
 
+  <p>The following features are at risk and may be removed:</p>
+
+  <ul>
+    <li><a href="#at-risk-10">Support for <code>@base: null</code></a></li>
+    <li><a href="#at-risk-9">Confusion related to context-sensitivity of <code>@type</code></a></li>
+    <li><a href="#at-risk-4">Lists of lists and partial list conversion from RDF</a></li>
+    <li><a href="#at-risk-3">Allow blank nodes to be used as properties</a></li>
+  </ul>
+
   <p>Changes since the
     <a href="http://www.w3.org/TR/2013/WD-json-ld-20130411/">11&nbsp;April&nbsp;2013 Last Call Working Draft</a>:</p>
 
@@ -170,9 +179,19 @@
     <li>Support processing of documents with a <code>+json</code> media type as defined in
       [[RFC6839]]</li>
     <li>Added a brief description of the data model to the introduction.</li>
-    <li>Fixed a number of document readability and flow issues related to all 
+    <li>Fixed a number of document readability and flow issues related to all
       of the updates made over the last several moths.</li>
   </ul>
+
+  <p>
+    Before this specification may exit the Candidate Recommendation phase,
+    at least two independent implementations must pass each test,
+    although no single implementation must pass every test. The
+    working group will decide when
+    the test suite is of sufficient quality to test interoperability and
+    will produce an implementation report hosted together with the test suite.
+  </p>
+
 </section>
 
 <section class="informative">
@@ -209,7 +228,7 @@
   <p>
    JSON-LD is designed to be usable directly as JSON, with no knowledge of RDF
    [[RDF11-CONCEPTS]]. It is also designed to be usable as RDF, if desired, for
-   use with other Linked Data technologies like SPARQL. Developers that
+   use with other Linked Data technologies like SPARQL. Developers who
    require any of the facilities listed above or need to serialize an RDF Graph
    or RDF Dataset in a JSON-based syntax will find JSON-LD of interest. People
    intending to use JSON-LD with RDF tools will find it can be used as another
@@ -248,14 +267,14 @@
 
     <p>To understand the basics in this specification you must first be familiar with
       JSON, which is detailed in [[!RFC4627]].</p>
-      
-    <p>This document almost exclusively uses the term IRI 
-    (<a href="http://www.w3.org/TR/ld-glossary/#internationalized-resource-identifier">Internationalized Resource Indicator</a>) 
-    when discussing hyperlinks. Many Web developers are more familiar with the 
-    URL (<a href="http://www.w3.org/TR/ld-glossary/#uniform-resource-locator">Uniform Resource Locator</a>) 
-    terminology. The document also uses, albeit rarely, the URI 
-    (<a href="http://www.w3.org/TR/ld-glossary/#uniform-resource-identifier">Uniform Resource Indicator</a>) 
-    terminology. While these terms are often used interchangeably among 
+
+    <p>This document almost exclusively uses the term IRI
+    (<a href="http://www.w3.org/TR/ld-glossary/#internationalized-resource-identifier">Internationalized Resource Indicator</a>)
+    when discussing hyperlinks. Many Web developers are more familiar with the
+    URL (<a href="http://www.w3.org/TR/ld-glossary/#uniform-resource-locator">Uniform Resource Locator</a>)
+    terminology. The document also uses, albeit rarely, the URI
+    (<a href="http://www.w3.org/TR/ld-glossary/#uniform-resource-identifier">Uniform Resource Indicator</a>)
+    terminology. While these terms are often used interchangeably among
     technical communities, they do have important distinctions from one
     another and the specification goes to great lengths to try and use the
     proper terminology at all times.
@@ -285,7 +304,7 @@
    <dd>The JSON-LD syntax is very terse and human readable, requiring as
     little effort as possible from the developer.</dd>
    <dt>Zero Edits, most of the time</dt>
-   <dd>JSON-LD ensures a smooth and simple transition from existing 
+   <dd>JSON-LD ensures a smooth and simple transition from existing
      JSON-based systems. In many cases,
      zero edits to the JSON document and the addition of one line to the HTTP response
      should suffice (see <a class="sectionRef" href="#interpreting-json-as-json-ld"></a>).
@@ -293,11 +312,11 @@
      already deployed large JSON-based infrastructure to use JSON-LD's features
      in a way that is not disruptive to their day-to-day operations and is
      transparent to their current customers. However, there are times where
-     mapping JSON to a graph representation is a complex undertaking. 
-     In these instances, rather than extending JSON-LD to support 
-     esoteric use cases, we chose not to support the use case. While Zero 
-     Edits is a design goal, it is not always possible without adding 
-     great complexity to the language. JSON-LD focuses on simplicity when 
+     mapping JSON to a graph representation is a complex undertaking.
+     In these instances, rather than extending JSON-LD to support
+     esoteric use cases, we chose not to support the use case. While Zero
+     Edits is a design goal, it is not always possible without adding
+     great complexity to the language. JSON-LD focuses on simplicity when
      possible.</dd>
     <dt>Usable as RDF</dt>
     <dd>JSON-LD is usable by developers as
@@ -357,27 +376,27 @@
 
   <section class="informative">
     <h2>Data Model Overview</h2>
-    
+
     <p>Generally speaking, the data model used for JSON-LD is a labeled,
-      directed <tref>graph</tref>. The graph contains 
-      <tref title="node">nodes</tref>, which are connected by 
-      <tref title="edge">edges</tref>. A <tref>node</tref> is typically data 
-      such as a <tref>string</tref>, <tref>number</tref>, 
-      <tref title="typed value">typed values</tref> (like dates and times) 
-      or an <tref>IRI</tref>. 
+      directed <tref>graph</tref>. The graph contains
+      <tref title="node">nodes</tref>, which are connected by
+      <tref title="edge">edges</tref>. A <tref>node</tref> is typically data
+      such as a <tref>string</tref>, <tref>number</tref>,
+      <tref title="typed value">typed values</tref> (like dates and times)
+      or an <tref>IRI</tref>.
       There is also a special class of <tref>node</tref> called a
       <tref>blank node</tref>, which is typically used to express data that does
-      not have a global identifier like an <tref>IRI</tref>. 
-      <tref title="blank node">Blank nodes</tref> are identified using a 
+      not have a global identifier like an <tref>IRI</tref>.
+      <tref title="blank node">Blank nodes</tref> are identified using a
       <tref>blank node identifier</tref>. This simple data model is incredibly
-      flexible and powerful, capable of modeling almost any kind of 
+      flexible and powerful, capable of modeling almost any kind of
       data. For a deeper explanation of the data model, see
       section <a href="#data-model"></a>.
     </p>
-    
-    <p>Developers that are familar with Linked Data technologies will 
+
+    <p>Developers who are familiar with Linked Data technologies will
     recognize the data model as the RDF Data Model. To dive deeper into how
-    JSON-LD and RDF are related, see 
+    JSON-LD and RDF are related, see
     section <a href="#relationship-to-rdf"></a>.
     </p>
   </section>
@@ -474,8 +493,8 @@
     It is easy to parse and easy to generate. However, it is difficult to integrate JSON
     from different sources as the data may contain keys that conflict with other
     data sources. Furthermore, JSON has no
-    built-in support for hyperlinks, which are a fundamental building block on 
-    the Web. Let's start by looking at an example that we will be using for the 
+    built-in support for hyperlinks, which are a fundamental building block on
+    the Web. Let's start by looking at an example that we will be using for the
     rest of this section:</p>
 
   <pre class="example" data-transform="updateExample"
@@ -489,7 +508,7 @@
   -->
   </pre>
 
-  <p>It's obvious to humans that the data is about a person whose 
+  <p>It's obvious to humans that the data is about a person whose
     <code>name</code> is "Manu Sporny"
     and that the <code>homepage</code> property contains the URL of that person's homepage.
     A machine doesn't have such an intuitive understanding and sometimes,
@@ -499,9 +518,9 @@
 
   <p>Linked Data, and the Web in general, uses <tref title="IRI">IRIs</tref>
     (Internationalized Resource Identifiers as described in [[!RFC3987]]) for unambiguous
-    identification. The idea is to use <tref title="IRI">IRIs</tref> 
+    identification. The idea is to use <tref title="IRI">IRIs</tref>
     to assign unambiguous identifiers to data that may be of use to other developers.
-    It is useful for <tref title="term">terms</tref>, 
+    It is useful for <tref title="term">terms</tref>,
     like <code>name</code> and <code>homepage</code>, to expand to <tref title="IRI">IRIs</tref>
     so that developers don't accidentally step on each other's terms. Furthermore, developers and
     machines are able to use this <tref>IRI</tref> (by using a web browser, for instance) to go to
@@ -533,8 +552,8 @@
     <h2>The Context</h2>
 
     <p>When two people communicate with one another, the conversation takes
-    place in a shared environment, typically called 
-    "the context of the conversation". This shared context allows the 
+    place in a shared environment, typically called
+    "the context of the conversation". This shared context allows the
     individuals to use shortcut terms, like the first name of a mutual friend,
     to communicate more quickly but without losing accuracy. A context in
     JSON-LD works in the same way. It allows two applications to use shortcut
@@ -558,11 +577,11 @@
         "name": "http://schema.org/name", **** ← This means that 'name' is shorthand for 'http://schema.org/name' ****
         "image": {
           "@id": "http://schema.org/image", **** ← This means that 'image' is shorthand for 'http://schema.org/image' ****
-          "@type": "@id" **** ← This means that the value associated with 'image' should be interpreted as an identifier that is an IRI ****
+          "@type": "@id" **** ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI ****
         },
         "homepage": {
           "@id": "http://schema.org/url", **** ← This means that 'homepage' is shorthand for 'http://schema.org/url' ****
-          "@type": "@id" **** ← This means that the value associated with 'homepage' should be interpreted as an identifier that is an IRI **** 
+          "@type": "@id" **** ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI ****
         }
       }****
     }
@@ -575,7 +594,8 @@
 
     <p>When a <tref>JSON object</tref> is associated with a term, it is called
       an <tdef>expanded term definition</tdef>. The example above specifies that
-      the values of <code>image</code> and <code>homepage</code> terms are
+      the values of <code>image</code> and <code>homepage</code>, if they are
+      strings, are to be interpreted as
       <tref title="IRI">IRIs</tref>. <tref title="expanded term definition">Expanded term definitions</tref>
       also allow terms to be used for <a href="#data-indexing">index maps</a>
       and to specify whether <tref title="array">array</tref> values are to be
@@ -605,8 +625,9 @@
     </pre>
 
     <p>The referenced context not only specifies how the terms map to
-      <tref title="IRI">IRIs</tref> in the Schema.org vocabulary but also specifies that
-      the values of the <code>homepage</code> and <code>image</code> property
+      <tref title="IRI">IRIs</tref> in the Schema.org vocabulary but also
+      specifies that string values associated with
+      the <code>homepage</code> and <code>image</code> property
       can be interpreted as an <tref>IRI</tref> (<code>"@type": "@id"</code>,
       see <a class="sectionRef" href="#iris"></a> for more details). This information allows developers
       to re-use each other's data without having to agree to how their data will interoperate
@@ -649,9 +670,9 @@
     }
     -->
     </pre>
-    
+
     <p>This section only covers the most basic features of the JSON-LD
-    Context. More advanced features related to the JSON-LD Context are covered 
+    Context. More advanced features related to the JSON-LD Context are covered
     in section <a href="#advanced-concepts"></a>.
     </p>
   </section>
@@ -765,9 +786,9 @@
   -->
   </pre>
 
-  <p>In the example above, even though the value <code>http://manu.sporny.org/</code>
+  <p>In the example above, since the value <code>http://manu.sporny.org/</code>
     is expressed as a JSON <tref>string</tref>, the type <tref>coercion</tref>
-    rules will transform the value into an IRI when processing the data. 
+    rules will transform the value into an IRI when processing the data.
     See <a class="sectionRef" href="#type-coercion"></a> for more
     details about this feature.</p>
 
@@ -786,10 +807,10 @@
   </ol>
 
   <p>This section only covers the most basic features associated with IRIs
-  in JSON-LD. More advanced features related to IRIs are covered in 
+  in JSON-LD. More advanced features related to IRIs are covered in
   section <a href="#advanced-concepts"></a>.
   </p>
-  
+
 </section>
 
 <section class="informative">
@@ -826,8 +847,8 @@
   <p>The example above contains a <tref>node object</tref> identified by the IRI
     <code>http://me.markus-lanthaler.com/</code>.</p>
 
-  <p>This section only covers the most basic features associated with 
-  node identifiers in JSON-LD. More advanced features related to 
+  <p>This section only covers the most basic features associated with
+  node identifiers in JSON-LD. More advanced features related to
   node identifiers are covered in section <a href="#advanced-concepts"></a>.
   </p>
 
@@ -883,8 +904,8 @@
 -->
 </pre>
 
-<p>This section only covers the most basic features associated with 
-types in JSON-LD. More advanced features related to 
+<p>This section only covers the most basic features associated with
+types in JSON-LD. More advanced features related to
 types are covered in section <a href="#advanced-concepts"></a>.
 </p>
 
@@ -945,7 +966,25 @@ types are covered in section <a href="#advanced-concepts"></a>.
     <tref title="relative IRI">relative IRIs</tref> to be expanded to
     <tref title="absolute IRI">absolute IRIs</tref>.</p>
 
-  <p>Please note that the <code>@base</code> will be ignored if used in external contexts.</p>
+  <div class="issue atrisk" id="at-risk-10" data-number="10" title="Support for @base: null">
+    <p class="atrisk-head">Note: This feature is
+      <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+      be removed from this specification based on feedback. Please send feedback to
+      <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+      For the current status see
+      <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+   <p>Unlike many other serialization formats, JSON-LD allows to specify that
+    there is no base IRI from within the document (by setting <code>@base</code> to
+    <tref>null</tref>). The result is that the algorithm for establishing a base IRI
+    as specified in <a href="http://tools.ietf.org/html/rfc3986#section-5.1">RFC3986 section 5.1</a>
+    is overridden so relative IRIs remain relative IRIs even in the case that an IRI
+    would be available in one of the outer layers (e.g., the IRI used to retrieve
+    the document or an application supplied base IRI). Based on implementer feedback,
+    the Working Group may decide to remove this feature from JSON-LD 1.0.</p>
+  </div>
+
+  <p>Please note that the <code>@base</code> will be ignored if used in
+    external contexts.</p>
 </section>
 
 <section class="informative">
@@ -1366,6 +1405,31 @@ the data type to be specified with each piece of data.</p>
   example above, that means that type coercion is done looking for <code>foaf:age</code>
   in the <tref>active context</tref> and not for the corresponding, expanded
   <tref>IRI</tref> <code>http://xmlns.com/foaf/0.1/age</code>.</p>
+
+<div class="issue atrisk" id="at-risk-9" data-number="9" title="Confusion related to context-sensitivity of @type">
+  <p class="atrisk-head">Note: This feature is
+    <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+    be removed from this specification based on feedback. Please send feedback to
+    <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+    For the current status see
+    <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+ <p>A number of JSON-LD document authors have been confused with the context
+  sensitivity of @type. When used in the context, it means
+  "coerce the string value associated with the term to the following datatype."
+  When used in the body of a document in a JSON-LD object that represents a
+  node in the graph, it means "the rdf:type of the subject identified by @id
+  is the one that is the value associated with the @type keyword". When used
+  in expanded literal form, it means "the datatype of the value associated with
+  @value is the value associated with the @type keyword". This shifting of usage
+  has led to confusion that may be easily remedied by reading a tutorial or
+  the specification. It may also be that further modifications for declaring a
+  datatype may be required, such as introducing a "@coerce" or "@literalType"
+  keyword. Implementors are asked to pay particular attention to the
+  feature and provide feedback on alternative ways to express the functionality
+  described above. The feature may remain in the specification as-is, or it may
+  be modified heavily after further implementation experience has been gathered.
+ </p>
+</div>
 
 <p class="note">Keys in the context are treated as <tref title="term">terms</tref> for the purpose of
   expansion and value coercion. At times, this may result in multiple representations for the same expanded IRI.
@@ -2063,23 +2127,25 @@ specified. The full <tref>IRI</tref> for
   This decision was made due to the extreme amount of added complexity when
   processing lists of lists.</p>
 
-<div class="issue atrisk" title="Lists of lists and partial list conversion from RDF">
-<p class="atrisk-head">Note: This feature is
-  <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
-  be removed from this specification based on feedback. Please send feedback to
-  <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
-  For the current status see
-  <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
-<p>While this document asserts that lists of lists are not
-    allowed in JSON-LD, new updates to the JSON-LD algorithms do support
-    lists of lists. 
-    Implementors are asked to pay particular attention to the
-    feature and provide feedback on lists of lists and partial lists. 
-    The feature may remain in
-    the specification, or it may be removed after further implementation 
-    experience has been gathered. Similarly, partial list conversion in
-    the RDF algorithms have been marked as a feature at risk and may be 
-    removed from the specification based on implementation feedback.</p>
+<div class="issue atrisk" id="at-risk-4" data-number="4" title="Lists of lists and partial list conversion from RDF">
+  <p class="atrisk-head">Note: This feature is
+    <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
+    be removed from this specification based on feedback. Please send feedback to
+    <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
+    For the current status see
+    <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
+ <p>The JSON-LD algorithms have been updated to support conversion of lists
+    of lists to <tref title="list object">list objects</tref> by preserving
+    the blank node head of the inner list. Lists of lists can, however, not be
+    represented directly in JSON-LD using the <code>@list</code> construct;
+    they have to be represented as a set of interlinked node objects using
+    RDF's rdf:first and rdf:rest properties. Implementors are asked to pay
+    particular attention to the feature and provide feedback on lists of lists
+    and partial lists. The feature may remain in the specification, or it may
+    be removed after further implementation experience has been gathered.
+    Similarly, partial list conversion in the RDF algorithms have been marked
+    as a feature at risk and may be removed from the specification based
+    on implementation feedback.</p>
 </div>
 
 <p>While <code>@list</code> is used to describe <em>ordered lists</em>,
@@ -2881,7 +2947,7 @@ specified. The full <tref>IRI</tref> for
       <a href="http://www.w3.org/TR/rdf11-mt/#rdf-collections" class="externalDFN">RDF list structures</a> [[RDF11-MT]].</li>
   </ul>
 
-  <div class="issue atrisk" data-number="3" title="Allow blank nodes to be used as properties">
+  <div class="issue atrisk" id="at-risk-3" data-number="3" title="Allow blank nodes to be used as properties">
     <p class="atrisk-head">Note: This feature is
       <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
       be removed from this specification based on feedback. Please send feedback to
@@ -3270,11 +3336,12 @@ specified. The full <tref>IRI</tref> for
 
   <p>JSON-LD is a
     <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-concrete-rdf-syntax">concrete RDF syntax</tref>
-    as described in [[RDF11-CONCEPTS]]. Hence, a JSON-LD document is an
-    RDF document and a JSON document and correspondingly represents an
-    instance of an RDF data model, namely
-    <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-generalized-rdf-dataset">generalized RDF Datasets</tref>.
-    The extensions to the RDF data model are:</p>
+    as described in [[RDF11-CONCEPTS]]. Hence, a JSON-LD document is both an
+    RDF document <em>and</em> a JSON document and correspondingly represents an
+    instance of an RDF data model. However, JSON-LD also extends the RDF data
+    model to optionally allow JSON-LD to serialize
+    <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-generalized-rdf-dataset">Generalized RDF Datasets</tref>.
+    The JSON-LD extensions to the RDF data model are:</p>
 
   <ul>
     <li>In JSON-LD <tref title="property">properties</tref> can be
