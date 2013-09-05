@@ -32,13 +32,13 @@ var contexts = {};
   var contextsPersonInnerObject ={};
 
   contextsPersonInnerObject["xsd"] = "http://www.w3.org/2001/XMLSchema#"
-  $.each(Event.fields, function(objectKey, objectValue) {
-    if (objectValue.inputType.indexOf('text') != -1) {
+  $.each(Person.fields, function(objectKey, objectValue) {
+    if (objectValue.expectedType.indexOf('text') != -1) {
         if(contextsPersonInnerObject[objectValue.jsonLdProperty] == undefined) {
             contextsPersonInnerObject[objectValue.jsonLdProperty] = "http://schema.org/"+objectValue.jsonLdProperty
         }
     }
-    else if (objectValue.inputType.indexOf('date') != -1 || objectValue.inputType.indexOf('Date') != -1 ) {
+    else if (objectValue.expectedType.indexOf('date') != -1 || objectValue.expectedType.indexOf('Date') != -1 ) {
         if(contextsPersonInnerObject[objectValue.jsonLdProperty] == undefined) {
             contextsPersonInnerObject[objectValue.jsonLdProperty] = {
                 "@id":"http://schema.org/"+objectValue.jsonLdProperty,
@@ -66,12 +66,12 @@ var contexts = {};
 
   contextsEventInnerObject["xsd"] = "http://www.w3.org/2001/XMLSchema#"
   $.each(Event.fields, function(objectKey, objectValue) {
-    if (objectValue.inputType.indexOf('text') != -1) {
+    if (objectValue.expectedType.indexOf('text') != -1) {
         if(contextsEventInnerObject[objectValue.jsonLdProperty] == undefined) {
             contextsEventInnerObject[objectValue.jsonLdProperty] = "http://schema.org/"+objectValue.jsonLdProperty
         }
     }
-    else if (objectValue.inputType.indexOf('date') != -1 || objectValue.inputType.indexOf('Date') != -1 ) {
+    else if (objectValue.expectedType.indexOf('date') != -1 || objectValue.expectedType.indexOf('Date') != -1 ) {
         if(contextsEventInnerObject[objectValue.jsonLdProperty] == undefined) {
             contextsEventInnerObject[objectValue.jsonLdProperty] = {
                 "@id":"http://schema.org/"+objectValue.jsonLdProperty,

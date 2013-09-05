@@ -7,30 +7,35 @@ Person = {
         {
             "label" : "Name",
             "jsonLdProperty" : "name",
+            "expectedType" : "text",
             "inputType" : "text",
             "inputHint" : "Full Name of the person"
         },
         {
             "label" : "Image",
             "jsonLdProperty" : "image",
+            "expectedType" : "url",
             "inputType" : "text",
             "inputHint" : "Enter Image Url..."
         },
         {
             "label" : "Address",
             "jsonLdProperty" : "address",
+            "expectedType" : "Postal Address",
             "inputType" : "text",
             "inputHint" : "Enter Your address"
         },
         {
             "label" : "email",
-            "jsonLdProperty" : "text",
-            "inputType" : "text",
+            "jsonLdProperty" : "email",
+            "expectedType" : "text",
+            "inputType" : "url",
             "inputHint" : "mail@example.com"
         },
         {
             "label" : "Url",
             "jsonLdProperty" : "url",
+            "expectedType" : "URL",
             "inputType" : "text",
             "inputHint" : "Enter Url..."
         }
@@ -50,24 +55,28 @@ Event = {
         {
             "label" : "Name",
             "jsonLdProperty" : "name",
+            "expectedType" : "text",
             "inputType" : "text",
             "inputHint" : "Full Name of the person"
         },
         {
             "label" : "Location",
             "jsonLdProperty" : "location",
+            "expectedType" : "Place",
             "inputType" : "text",
             "inputHint" : "Enter the Location of Event"
         },
         {
             "label" : "Start Date",
             "jsonLdProperty" : "startDate",
+            "expectedType" : "Date",
             "inputType" : "date",
             "inputHint" : "Enter the start date of event"
         },
         {
             "label" : "End Date",
             "jsonLdProperty" : "endDate",
+            "expectedType" : "Date",
             "inputType" : "date",
             "inputHint" : "Enter end date of the event"
         }
