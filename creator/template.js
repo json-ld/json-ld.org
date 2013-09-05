@@ -12,7 +12,7 @@ Person = {
         },
         {
             "label" : "Image",
-            "jsonLdProperty" : "url",
+            "jsonLdProperty" : "image",
             "inputType" : "text",
             "inputHint" : "Enter Image Url..."
         },

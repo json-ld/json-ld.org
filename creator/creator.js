@@ -23,8 +23,41 @@ var contexts = {};
 
 
   /********************************
-    Schema Generation Starts Here
+    Context Generation Starts Here
   ********************************/
+
+  // Person Block Starts Here //
+
+  contexts.person = {};
+  var contextsPersonInnerObject ={};
+
+  contextsPersonInnerObject["xsd"] = "http://www.w3.org/2001/XMLSchema#"
+  $.each(Event.fields, function(objectKey, objectValue) {
+    if (objectValue.inputType.indexOf('text') != -1) {
+        if(contextsPersonInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPersonInnerObject[objectValue.jsonLdProperty] = "http://schema.org/"+objectValue.jsonLdProperty
+        }
+    }
+    else if (objectValue.inputType.indexOf('date') != -1 || objectValue.inputType.indexOf('Date') != -1 ) {
+        if(contextsPersonInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPersonInnerObject[objectValue.jsonLdProperty] = {
+                "@id":"http://schema.org/"+objectValue.jsonLdProperty,
+                "@type": "xsd:date"
+            }
+        }
+    }
+    else {
+        if(contextsPersonInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPersonInnerObject[objectValue.jsonLdProperty] = {
+                "@id":"http://schema.org/"+objectValue.jsonLdProperty,
+                "@type": "@id"
+            }
+        }
+    }
+    contexts.person["@context"] = contextsPersonInnerObject;  
+  });
+
+  // Person Block Ends Here //
 
   // Event Block Starts Here //
 
@@ -60,7 +93,7 @@ var contexts = {};
   // Event Block Ends Here //
 
   /********************************
-    Schema Generation Ends Here
+    Context Generation Ends Here
   ********************************/
 
 
