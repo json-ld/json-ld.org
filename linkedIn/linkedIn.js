@@ -32,8 +32,8 @@ var contexts = {
         },
         "jobTitle": "http://schema.org/jobTitle",
         "name": "http://schema.org/name",
-        "owns": {
-            "@id": "http://schema.org/owns",
+        "OwnershipInfo": {
+            "@id": "http://schema.org/OwnershipInfo",
             "@type": "@id"
         },
         "pastWorksFor": {
@@ -150,6 +150,7 @@ function getDetails() {
         if (result.values[0].educations) { 
             for (var i = result.values[0].educations._total-1; i >= 0; i--) {
               var alumniOfObject = {
+                "@id" : "http://www.linkedin.com/edu/school?id="+ result.values[0].educations.values[i].id,
               "name" : result.values[0].educations.values[i].schoolName}
                 alumniOf.push(alumniOfObject);
             };
@@ -161,8 +162,16 @@ function getDetails() {
             if (result.values[0].following.companies) {
                 if (result.values[0].following.companies._total > 0) {
                     for (var i = result.values[0].following.companies._total - 1; i >= 0; i--) {
-                        var followsPersonObject = {
-                            "name" : result.values[0].following.companies.values[i].name
+                        if(result.values[0].following.companies.values[i].id !== undefined) {
+                            var followsPersonObject = {
+                                "@id" : 'http://linkedin.com/companies/' + result.values[0].following.companies.values[i].id,
+                                "name" : result.values[0].following.companies.values[i].name
+                            }
+                        }
+                        else {
+                            var followsPersonObject = {
+                                "name" : result.values[0].following.companies.values[i].name
+                            }
                         }
                         followsCompanies.push(followsPersonObject);
                     }
@@ -187,12 +196,12 @@ function getDetails() {
             if (result.values[0].memberUrlResources._total > 0) {
                 for (var i = result.values[0].memberUrlResources._total - 1; i >= 0; i--) {
                     var memberUrlResourcesObject = {
-                        "@type" : "http://schema.org/url",
-                        "name" : result.values[0].memberUrlResources.values[i].url
+                        "@id" : result.values[0].memberUrlResources.values[i].url,
+                        "name" : result.values[0].memberUrlResources.values[i].name
                     }
 
                     memberUrlResources.push(memberUrlResourcesObject);
-                }
+                }   
             }
 
             if (memberUrlResources.length > 0) owns.push(memberUrlResources);
@@ -241,7 +250,7 @@ function getDetails() {
             if (patents.length > 0) owns.push(patents);
         }
 
-        if (owns.length > 0) user["owns"] = owns;
+        if (owns.length > 0) user["OwnershipInfo"] = owns;
 
         if (result.values[0].skills) {
             if (result.values[0].skills._total > 0) {
@@ -260,16 +269,31 @@ function getDetails() {
             if (result.values[0].positions._total > 0) {
                 for (var i = result.values[0].positions._total - 1; i >= 0; i--) {
                     if (result.values[0].positions.values[i].isCurrent === true) {
-                        var worksForObject = {
-                            "name" : result.values[0].positions.values[i].company.name
+                        if(result.values[0].positions.values[i].company.id) {
+                            var worksForObject = {
+                                "@id" : 'http://linkedin.com/company/' + result.values[0].positions.values[i].company.id,
+                                "name" : result.values[0].positions.values[i].company.name
+                            }
+                        }
+                        else {
+                            var worksForObject = {
+                                "name" : result.values[0].positions.values[i].company.name
+                            }
                         }
                         worksFor.push(worksForObject);
                     }
 
                     else {
-                        var pastWorksForObject = {
-                            "@type" : "http://schema.org/Organization",
+                        if (result.values[0].positions.values[i].company.id) {
+                            var pastWorksForObject = {
+                                "@id" : 'http://linkedin.com/company/' + result.values[0].positions.values[i].company.id,
+                                "name" : result.values[0].positions.values[i].company.name
+                            }
+                        }
+                        else {
+                            var pastWorksForObject = {
                             "name" : result.values[0].positions.values[i].company.name
+                        }
                         }
                         pastWorksFor.push(pastWorksForObject);
                     }
@@ -308,11 +332,11 @@ function getDetails() {
             }
         }
             if (result.values[0].specialties) {
-                user["specialties"] = result.values[0].volunteer.specialties;
+                user["specialties"] = result.values[0].specialties;
             }
 
             if (result.values[0].summary) {
-                user["summary"] = result.values[0].volunteer.summary;
+                user["summary"] = result.values[0].summary;
             }
 
             if (result.values[0].twitterAccounts._total > 0) {
