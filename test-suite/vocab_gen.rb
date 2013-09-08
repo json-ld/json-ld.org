@@ -9,7 +9,7 @@ require 'haml'
 
 File.open("vocab.jsonld", "w") do |f|
   r = RDF::Repository.load("vocab.ttl")
-  JSON::LD::API.fromRDF(r) do |expanded|
+  JSON::LD::API.fromRDF(r, :useNativeTypes => true) do |expanded|
     # Remove leading/trailing and multiple whitespace from rdf:comments
     expanded.each do |o|
       c = o[RDF::RDFS.comment.to_s].first['@value']
