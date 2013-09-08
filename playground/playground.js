@@ -480,7 +480,7 @@
     // Add custom document loader that uses a context URL map.
     var jqueryDocumentLoader = jsonld.documentLoaders.jquery($);
     // FIXME: add UI to let users control and set context mapping
-    jsonld.documentLoader = function(url, callback) {
+    jsonld.documentLoader = function(url) {
       if(url in playground.contextMap) {
         $('#using-context-map').show();
         var modified = playground.contextMap[url];
@@ -496,7 +496,7 @@
           url = modified;
         }
       }
-      jqueryDocumentLoader(url, callback);
+      return jqueryDocumentLoader(url);
     };
 
     // set up buttons to load examples
