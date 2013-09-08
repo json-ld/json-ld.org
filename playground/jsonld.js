@@ -257,9 +257,6 @@ jsonld.expand = function(input, options, callback) {
   options = options || {};
 
   // set default options
-  if(!('base' in options)) {
-    options.base = (typeof input === 'string') ? input : '';
-  }
   if(!('documentLoader' in options)) {
     options.documentLoader = jsonld.loadDocument;
   }
@@ -270,18 +267,46 @@ jsonld.expand = function(input, options, callback) {
   jsonld.nextTick(function() {
     // if input is a string, attempt to dereference remote document
     if(typeof input === 'string') {
-      return options.documentLoader(input, function(err, remoteDoc) {
+      var done = function(err, remoteDoc) {
         if(err) {
           return callback(err);
         }
+        try {
+          if(!remoteDoc.document) {
+            throw new JsonLdError(
+              'No remote document found at the given URL.',
+              'jsonld.NullRemoteDocument');
+          }
+          if(typeof remoteDoc.document === 'string') {
+            remoteDoc.document = JSON.parse(remoteDoc.document);
+          }
+        }
+        catch(ex) {
+          return callback(new JsonLdError(
+            'Could not retrieve a JSON-LD document from the URL. URL ' +
+            'derefencing not implemented.', 'jsonld.LoadDocumentError', {
+              code: 'loading document failed',
+              cause: ex,
+              remoteDoc: remoteDoc
+          }));
+        }
         expand(remoteDoc);
-      });
+      };
+      var promise = options.documentLoader(input, done);
+      if(promise && 'then' in promise) {
+        promise.then(done.bind(null, null), done);
+      }
+      return;
     }
     // nothing to load
     expand({contextUrl: null, documentUrl: null, document: input});
   });
 
   function expand(remoteDoc) {
+    // set default base
+    if(!('base' in options)) {
+      options.base = remoteDoc.documentUrl || '';
+    }
     // build meta-object and retrieve all @context URLs
     var input = {
       document: _clone(remoteDoc.document),
@@ -456,12 +481,36 @@ jsonld.frame = function(input, frame, options, callback) {
   jsonld.nextTick(function() {
     // if frame is a string, attempt to dereference remote document
     if(typeof frame === 'string') {
-      return options.documentLoader(frame, function(err, remoteDoc) {
+      var done = function(err, remoteDoc) {
         if(err) {
           return callback(err);
         }
+        try {
+          if(!remoteDoc.document) {
+            throw new JsonLdError(
+              'No remote document found at the given URL.',
+              'jsonld.NullRemoteDocument');
+          }
+          if(typeof remoteDoc.document === 'string') {
+            remoteDoc.document = JSON.parse(remoteDoc.document);
+          }
+        }
+        catch(ex) {
+          return callback(new JsonLdError(
+            'Could not retrieve a JSON-LD document from the URL. URL ' +
+            'derefencing not implemented.', 'jsonld.LoadDocumentError', {
+              code: 'loading document failed',
+              cause: ex,
+              remoteDoc: remoteDoc
+          }));
+        }
         doFrame(remoteDoc);
-      });
+      };
+      var promise = options.documentLoader(frame, done);
+      if(promise && 'then' in promise) {
+        promise.then(done.bind(null, null), done);
+      }
+      return;
     }
     // nothing to load
     doFrame({contextUrl: null, documentUrl: null, document: frame});
@@ -852,17 +901,27 @@ jsonld.relabelBlankNodes = function(input) {
 };
 
 /**
- * The default document loader for external documents.
+ * The default document loader for external documents. If the environment
+ * is node.js, a callback-continuation-style document loader is used; otherwise,
+ * a promises-style document loader is used. *
  *
  * @param url the URL to load.
- * @param callback(err, remoteDoc) called once the operation completes.
+ * @param callback(err, remoteDoc) called once the operation completes,
+ *          if using a non-promises API.
+ *
+ * @return a promise, if using a promises API.
  */
 jsonld.documentLoader = function(url, callback) {
-  return callback(new JsonLdError(
+  var err = new JsonLdError(
     'Could not retrieve a JSON-LD document from the URL. URL derefencing not ' +
     'implemented.', 'jsonld.LoadDocumentError',
-    {code: 'loading document failed'}),
-    {contextUrl: null, documentUrl: url, document: null});
+    {code: 'loading document failed'});
+  if(_nodejs) {
+    return callback(err, {contextUrl: null, documentUrl: url, document: null});
+  }
+  return jsonld.promisify(function(callback) {
+    callback(err);
+  });
 };
 
 /**
@@ -870,62 +929,28 @@ jsonld.documentLoader = function(url, callback) {
  * instead.
  */
 jsonld.loadDocument = function(url, callback) {
-  jsonld.documentLoader(url, callback);
+  var promise = jsonld.documentLoader(url, callback);
+  if(promise && 'then' in promise) {
+    promise.then(callback.bind(null, null), callback);
+  }
 };
 
 /* Promises API */
 
 jsonld.promises = function() {
-  var Promise = _nodejs ? require('./Promise').Promise : global.Promise;
   var slice = Array.prototype.slice;
-
-  // converts a node.js async op into a promise w/boxed resolved value(s)
-  function promisify(op) {
-    var args = slice.call(arguments, 1);
-    return new Promise(function(resolver) {
-      op.apply(null, args.concat(function(err, value) {
-        if(err) {
-          resolver.reject(err);
-        }
-        else {
-          resolver.resolve(value);
-        }
-      }));
-    });
-  }
-
-  // converts a load document promise callback to a node-style callback
-  function createDocumentLoader(promise) {
-    return function(url, callback) {
-      promise(url).then(
-        // success
-        function(remoteDocument) {
-          callback(null, remoteDocument);
-        },
-        // failure
-        callback
-      );
-    };
-  }
+  var promisify = jsonld.promisify;
 
   var api = {};
   api.expand = function(input) {
     if(arguments.length < 1) {
       throw new TypeError('Could not expand, too few arguments.');
     }
-    var options = (arguments.length > 1) ? arguments[1] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
-    }
     return promisify.apply(null, [jsonld.expand].concat(slice.call(arguments)));
   };
   api.compact = function(input, ctx) {
     if(arguments.length < 2) {
       throw new TypeError('Could not compact, too few arguments.');
-    }
-    var options = (arguments.length > 2) ? arguments[2] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
     }
     var compact = function(input, ctx, options, callback) {
       // ensure only one value is returned in callback
@@ -939,20 +964,12 @@ jsonld.promises = function() {
     if(arguments.length < 1) {
       throw new TypeError('Could not flatten, too few arguments.');
     }
-    var options = (arguments.length > 2) ? arguments[2] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
-    }
     return promisify.apply(
       null, [jsonld.flatten].concat(slice.call(arguments)));
   };
   api.frame = function(input, frame) {
     if(arguments.length < 2) {
       throw new TypeError('Could not frame, too few arguments.');
-    }
-    var options = (arguments.length > 2) ? arguments[2] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
     }
     return promisify.apply(null, [jsonld.frame].concat(slice.call(arguments)));
   };
@@ -967,24 +984,38 @@ jsonld.promises = function() {
     if(arguments.length < 1) {
       throw new TypeError('Could not convert to RDF, too few arguments.');
     }
-    var options = (arguments.length > 1) ? arguments[1] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
-    }
     return promisify.apply(null, [jsonld.toRDF].concat(slice.call(arguments)));
   };
   api.normalize = function(input) {
     if(arguments.length < 1) {
       throw new TypeError('Could not normalize, too few arguments.');
     }
-    var options = (arguments.length > 1) ? arguments[1] : {};
-    if('documentLoader' in options) {
-      options.documentLoader = createDocumentLoader(options.documentLoader);
-    }
     return promisify.apply(
       null, [jsonld.normalize].concat(slice.call(arguments)));
   };
   return api;
+};
+
+/**
+ * Converts a node.js async op into a promise w/boxed resolved value(s).
+ *
+ * @param op the operation to convert.
+ *
+ * @return the promise.
+ */
+jsonld.promisify = function(op) {
+  var Promise = _nodejs ? require('./Promise').Promise : global.Promise;
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function(resolver) {
+    op.apply(null, args.concat(function(err, value) {
+      if(err) {
+        resolver.reject(err);
+      }
+      else {
+        resolver.resolve(value);
+      }
+    }));
+  });
 };
 
 /* WebIDL API */
@@ -1100,7 +1131,7 @@ jsonld.parseLinkHeader = function(header) {
     while(match = rParams.exec(params)) {
       result[match[1]] = (match[2] === undefined) ? match[3] : match[2];
     }
-    var rel = result['rel'];
+    var rel = result['rel'] || '';
     if(_isArray(rval[rel])) {
       rval[rel].push(result);
     }
@@ -1194,18 +1225,20 @@ jsonld.cache = {
 jsonld.documentLoaders = {};
 
 /**
- * The built-in jquery document loader.
+ * Creates a built-in jquery document loader.
  *
  * @param $ the jquery instance to use.
  * @param options the options to use:
  *          secure: require all URLs to use HTTPS.
+ *          usePromise: true to use a promises API, false for a
+ *            callback-continuation-style API; true by default.
  *
  * @return the jquery document loader.
  */
-jsonld.documentLoaders['jquery'] = function($, options) {
+jsonld.documentLoaders.jquery = function($, options) {
   options = options || {};
   var cache = new jsonld.DocumentCache();
-  return function(url, callback) {
+  var loader = function(url, callback) {
     if(options.secure && url.indexOf('https') !== 0) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
@@ -1225,8 +1258,9 @@ jsonld.documentLoaders['jquery'] = function($, options) {
         var doc = {contextUrl: null, documentUrl: url, document: data};
 
         // handle Link Header
+        var contentType = jqXHR.getResponseHeader('Content-Type');
         var linkHeader = jqXHR.getResponseHeader('Link');
-        if(linkHeader) {
+        if(linkHeader && contentType !== 'application/ld+json') {
           // only 1 related link header permitted
           linkHeader = jsonld.parseLinkHeader(linkHeader)[LINK_HEADER_REL];
           if(_isArray(linkHeader)) {
@@ -1236,7 +1270,9 @@ jsonld.documentLoaders['jquery'] = function($, options) {
               'jsonld.InvalidUrl',
               {code: 'multiple context link headers', url: url}), doc);
           }
-          doc.contextUrl = linkHeader.target;
+          if(linkHeader) {
+            doc.contextUrl = linkHeader.target;
+          }
         }
 
         cache.set(url, doc);
@@ -1251,19 +1287,28 @@ jsonld.documentLoaders['jquery'] = function($, options) {
       }
     });
   };
+
+  if(!('usePromise' in options) || options.usePromise) {
+    return function(url) {
+      return jsonld.promisify(loader, url);
+    };
+  }
+  return loader;
 };
 
 /**
- * The built-in node document loader.
+ * Creates a built-in node document loader.
  *
  * @param options the options to use:
  *          secure: require all URLs to use HTTPS.
  *          maxRedirects: the maximum number of redirects to permit, none by
  *            default.
+ *          usePromise: true to use a promises API, false for a
+ *            callback-continuation-style API; false by default.
  *
  * @return the node document loader.
  */
-jsonld.documentLoaders['node'] = function(options) {
+jsonld.documentLoaders.node = function(options) {
   options = options || {};
   var maxRedirects = ('maxRedirects' in options) ? options.maxRedirects : -1;
   var request = require('request');
@@ -1307,7 +1352,8 @@ jsonld.documentLoaders['node'] = function(options) {
       }
 
       // handle Link Header
-      if(res.headers.link) {
+      if(res.headers.link &&
+        res.headers['content-type'] !== 'application/ld+json') {
         // only 1 related link header permitted
         var linkHeader = jsonld.parseLinkHeader(
           res.headers.link)[LINK_HEADER_REL];
@@ -1318,7 +1364,9 @@ jsonld.documentLoaders['node'] = function(options) {
             'jsonld.InvalidUrl',
             {code: 'multiple context link headers', url: url}), doc);
         }
-        doc.contextUrl = linkHeader.target;
+        if(linkHeader) {
+          doc.contextUrl = linkHeader.target;
+        }
       }
 
       // handle redirect
@@ -1358,16 +1406,22 @@ jsonld.documentLoaders['node'] = function(options) {
     });
   }
 
-  return function(url, callback) {
+  var loader = function(url, callback) {
     loadDocument(url, [], callback);
   };
+  if(options.usePromise) {
+    return function(url) {
+      return jsonld.promisify(loader, url);
+    };
+  }
+  return loader;
 };
 
 /**
  * Assigns the default document loader for external document URLs to a built-in
  * default. Supported types currently include: 'jquery' and 'node'.
  *
- * To use the jquery document loader, the 'data' parameter must be a reference
+ * To use the jquery document loader, the first parameter must be a reference
  * to the main jquery object.
  *
  * @param type the type to set.
@@ -4674,8 +4728,8 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
       activeCtx, reverse, {vocab: true, base: false}, localCtx, defined);
     if(!_isAbsoluteIri(id)) {
       throw new JsonLdError(
-        'Invalid JSON-LD syntax; a @context @reverse value must be an IRI ' +
-        'or a blank node identifier.',
+        'Invalid JSON-LD syntax; a @context @reverse value must be an ' +
+        'absolute IRI or a blank node identifier.',
         'jsonld.SyntaxError', {code: 'invalid IRI mapping', context: localCtx});
     }
     mapping['@id'] = id;
@@ -4691,8 +4745,16 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     }
     if(id !== term) {
       // expand and add @id mapping
-      mapping['@id'] = _expandIri(
+      id = _expandIri(
         activeCtx, id, {vocab: true, base: false}, localCtx, defined);
+      if(!_isAbsoluteIri(id) && !_isKeyword(id)) {
+        throw new JsonLdError(
+          'Invalid JSON-LD syntax; a @context @id value must be an ' +
+          'absolute IRI, a blank node identifier, or a keyword.',
+          'jsonld.SyntaxError',
+          {code: 'invalid IRI mapping', context: localCtx});
+      }
+      mapping['@id'] = id;
     }
   }
 
@@ -4891,16 +4953,6 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
   var rval = value;
   if(relativeTo.base) {
     rval = _prependBase(activeCtx['@base'], rval);
-  }
-
-  if(localCtx) {
-    // value must now be an absolute IRI
-    if(!_isAbsoluteIri(rval)) {
-      throw new JsonLdError(
-        'Invalid JSON-LD syntax; a @context value does not expand to ' +
-        'an absolute IRI.', 'jsonld.SyntaxError',
-        {code: 'invalid IRI mapping', context: localCtx, value: value});
-    }
   }
 
   return rval;
@@ -5628,8 +5680,7 @@ function _retrieveContextUrls(input, options, callback) {
         }
         var _cycles = _clone(cycles);
         _cycles[url] = true;
-
-        documentLoader(url, function(err, remoteDoc) {
+        var done = function(err, remoteDoc) {
           // short-circuit if there was an error with another URL
           if(error) {
             return;
@@ -5698,7 +5749,11 @@ function _retrieveContextUrls(input, options, callback) {
               finished();
             }
           });
-        });
+        };
+        var promise = documentLoader(url, done);
+        if(promise && 'then' in promise) {
+          promise.then(done.bind(null, null), done);
+        }
       }(queue[i]));
     }
   };
