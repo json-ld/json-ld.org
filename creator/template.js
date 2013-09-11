@@ -38,7 +38,71 @@ Person = {
             "expectedType" : "URL",
             "inputType" : "text",
             "inputHint" : "Enter Url..."
+        },
+        {
+            "label" : "Affiliation",
+            "jsonLdProperty" : "affiliation",
+            "expectedType" : "URL",
+            "inputType" : "PostalAddress",
+            "inputHint" : "Enter organization User is affialiated to"
+        },
+        {
+            "label" : "Alumni Of",
+            "jsonLdProperty" : "alumniOf",
+            "expectedType" : "EducationalOrganization",
+            "inputType" : "text",
+            "inputHint" : "Alumni of EducationalOrganization"
+        },
+        {
+            "label" : "Award",
+            "jsonLdProperty" : "award",
+            "expectedType" : "text",
+            "inputType" : "text",
+            "inputHint" : "Awards and Achievements"
+        },
+        {
+            "label" : "Date of birth",
+            "jsonLdProperty" : "birthDate",
+            "expectedType" : "Date",
+            "inputType" : "date",
+            "inputHint" : "Date of Birth"
+        },
+        {
+            "label" : "Children",
+            "jsonLdProperty" : "Children",
+            "expectedType" : "Person",
+            "inputType" : "text",
+            "inputHint" : "Children of the user"
+        },
+        {
+            "label" : "Honorific Prefix",
+            "jsonLdProperty" : "honorificPrefix",
+            "expectedType" : "text",
+            "inputType" : "text",
+            "inputHint" : "Dr/Mrs/Mr."
+        },
+        {
+            "label" : "Honorific Suffix",
+            "jsonLdProperty" : "honorificSuffix",
+            "expectedType" : "text",
+            "inputType" : "text",
+            "inputHint" : "M.D./PhD/MSCSW"
+        },
+        {
+            "label" : "Member Of",
+            "jsonLdProperty" : "memberOf",
+            "expectedType" : "organization",
+            "inputType" : "text",
+            "inputHint" : "Member of organization"
+        },
+        {
+            "label" : "Spose",
+            "jsonLdProperty" : "spose",
+            "expectedType" : "Person",
+            "inputType" : "text",
+            "inputHint" : "Spouse of User"
         }
+
     ]
 }
 
