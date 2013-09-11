@@ -12,6 +12,7 @@ var contexts = {
             "@id": "http://schema.org/Date",
             "@type": "xsd:date"
         },
+        "email" : "http://schema.org/email",
         "familyName": "http://schema.org/familyName",
         "follows": {
             "@id": "http://schema.org/follows",
@@ -93,6 +94,9 @@ var pastWorksFor = [];
 var owns = [];
 var twitterAccounts = [];
 var extended_json = {};
+var firstName = "";
+var lastName = "";
+var email = "";
 
 $(function(){
     $('#advanced-tab').hide();
@@ -109,6 +113,16 @@ $(function(){
     });
     
     $('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
+
+    $('#check')
+    .off('click')
+    .on('click', function(){
+        if($('#publicEmail').is(':checked'))
+           user["email"] = extended_json.values[0].emailAddress;
+        else
+            delete user.email;
+        displayJsonLd();
+    });
 });
 
 function onLinkedInLoad() {
@@ -121,10 +135,13 @@ function getDetails() {
       "id", "firstName", "lastName", "pictureUrl", "publicProfileUrl","location","headline","summary","specialties","positions","emailAddress","interests","publications","patents","languages","skills","certifications","educations","courses","volunteer","following","dateOfBirth","memberUrlResources","phoneNumbers","twitterAccounts","connections","network"
     ])
     .result(function(result) {
+        extended_json = $.extend({},result);
 
         if (result.values[0].firstName) user["givenName"] = result.values[0].firstName;
+        firstName = result.values[0].firstName;
 
         if (result.values[0].lastName) user["familyName"] = result.values[0].lastName;
+        lastName = result.values[0].lastName;
 
         if (result.values[0].pictureUrl) user["image"] = result.values[0].pictureUrl;
 
@@ -348,17 +365,21 @@ function getDetails() {
                 }
                 if (twitterAccounts.length > 0) user["twitterAccounts"] = twitterAccounts;
             }
-
+        email = user["email"] = result.values[0].emailAddress;
         user["@context"] = contexts;
 
-        jsonld.compact (user, contexts, function(err, extended_json){
-            $('#pane1 textarea').val(js_beautify(JSON.stringify(result),{'indent_size': 2}));
-            $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-            $('#SaveJsonLd').attr('href','data:Application/octet-stream,' + encodeURIComponent(js_beautify(JSON.stringify(extended_json),{'indent_size': 2})));
-            $('#SaveJsonLd').removeProp('disabled');
-            });
+        displayJsonLd();
     })
     .error(function(err) {
         alert(err);
     });   
+}
+
+function displayJsonLd () {
+    jsonld.compact (user, contexts, function(err, extended_json){
+        $('#pane1 textarea').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+        $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+        $('#SaveJsonLd').attr('href','data:application/ld+json,' + encodeURIComponent(js_beautify(JSON.stringify(extended_json),{'indent_size': 2})));
+        $('#SaveJsonLd').removeProp('disabled');
+    });
 }
