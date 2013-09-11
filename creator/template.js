@@ -134,11 +134,39 @@ Place = {
         "inputHint" : "Enter link for a map"
     },
     {
-        "label" : "Image",
-        "jsonLdProperty" : "image",
+        "label" : "Address",
+        "jsonLdProperty" : "address",
+        "expectedType" : "PostalAddress",
+        "inputType" : "text",
+        "inputHint" : "Enter Address..."
+    },
+    {
+        "label" : "Event",
+        "jsonLdProperty" : "event",
+        "expectedType" : "Event",
+        "inputType" : "text",
+        "inputHint" : "Upcoming Events"
+    },
+    {
+        "label" : "Geo Coordinats",
+        "jsonLdProperty" : "geo",
+        "expectedType" : "GeoCoordinats",
+        "inputType" : "text",
+        "inputHint" : "Geo - Coordinats of the place"
+    },
+    {
+        "label" : "photo",
+        "jsonLdProperty" : "Photograph",
         "expectedType" : "url",
         "inputType" : "text",
-        "inputHint" : "Enter Image Url..."
+        "inputHint" : "Photograph of the place"
+    },
+    {
+        "label" : "Telephone",
+        "jsonLdProperty" : "telephone",
+        "expectedType" : "text",
+        "inputType" : "text",
+        "inputHint" : "Telephone Number"
     }
     
     ]

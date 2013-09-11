@@ -92,6 +92,39 @@ var contexts = {};
 
   // Event Block Ends Here //
 
+  // Place Block Starts Here //
+
+  contexts.place = {};
+  var contextsPlaceInnerObject ={};
+
+  contextsPlaceInnerObject["xsd"] = "http://www.w3.org/2001/XMLSchema#"
+  $.each(Place.fields, function(objectKey, objectValue) {
+    if (objectValue.expectedType.indexOf('text') != -1) {
+        if(contextsPlaceInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPlaceInnerObject[objectValue.jsonLdProperty] = "http://schema.org/"+objectValue.jsonLdProperty
+        }
+    }
+    else if (objectValue.expectedType.indexOf('date') != -1 || objectValue.expectedType.indexOf('Date') != -1 ) {
+        if(contextsPlaceInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPlaceInnerObject[objectValue.jsonLdProperty] = {
+                "@id":"http://schema.org/"+objectValue.jsonLdProperty,
+                "@type": "xsd:date"
+            }
+        }
+    }
+    else {
+        if(contextsPlaceInnerObject[objectValue.jsonLdProperty] == undefined) {
+            contextsPlaceInnerObject[objectValue.jsonLdProperty] = {
+                "@id":"http://schema.org/"+objectValue.jsonLdProperty,
+                "@type": "@id"
+            }
+        }
+    }
+    contexts.place["@context"] = contextsPlaceInnerObject;  
+  });
+
+  // Person Block Ends Here //
+
   /********************************
     Context Generation Ends Here
   ********************************/
@@ -124,6 +157,18 @@ var contexts = {};
   $('#form-event').append(divString);
 
   // Event Block End //
+
+  // Place Block Start //
+  divString = '<fieldset><legend>'+Place.label+'</legend>'
+  $.each(Place.fields, function(objectKey, objectValue) {
+    divString += '<div class="control-group"><label class="control-label">'+ objectValue.label +'</label>';
+    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-large" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
+  });
+  divString += '</fieldset>';
+
+  $('#form-place').append(divString);
+
+  // Person Block End //
 
 
   /********************************
