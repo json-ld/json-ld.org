@@ -1,80 +1,8 @@
-var contexts = {
-    "@context": {
-        "alumniOf": {
-            "@id": "http://schema.org/alumniOf",
-            "@type": "@id"
-        },
-        "date": {
-            "@id": "http://schema.org/Date",
-            "@type": "xsd:date"
-        },
-        "dateCreated": {
-            "@id": "http://schema.org/Date",
-            "@type": "xsd:date"
-        },
-        "email" : "http://schema.org/email",
-        "familyName": "http://schema.org/familyName",
-        "follows": {
-            "@id": "http://schema.org/follows",
-            "@type": "@id"
-        },
-        "followsCompanies": {
-            "@id": "http://linkedin.com/vocab#followsCompanies",
-            "@type": "@id"
-        },
-        "givenName": "http://schema.org/givenName",
-        "homeLocation": {
-            "@id": "http://schema.org/Place",
-            "@type": "@id"
-        },
-        "image": {
-            "@id": "http://schema.org/image",
-            "@type": "@id"
-        },
-        "jobTitle": "http://schema.org/jobTitle",
-        "name": "http://schema.org/name",
-        "OwnershipInfo": {
-            "@id": "http://schema.org/OwnershipInfo",
-            "@type": "@id"
-        },
-        "pastWorksFor": {
-            "@id": "http://linkedin.com/vocab#pastWorksFor",
-            "@type": "@id"
-        },
-        "skills": {
-            "@id": "http://linkedin.com/vocab#skills",
-            "@type": "@id"
-        },
-        "specialties": {
-            "@id": "http://linkedin.com/vocab#specialties",
-            "@type": "@id"
-        },
-        "summary": {
-            "@id": "http://linkedin.com/vocab#summary",
-            "@type": "@id"
-        },
-        "twitterAccounts": {
-            "@id": "http://schema.org/ProfilePage",
-            "@type": "@id"
-        },
-        "url": {
-            "@id": "http://schema.org/url",
-            "@type": "@id"
-        },
-        "volunteerCauses": {
-            "@id": "http://linkedin.com/vocab#volunteerCauses",
-            "@type": "@id"
-        },
-        "volunteerExperiences": {
-            "@id": "http://linkedin.com/vocab#volunteerExperiences",
-            "@type": "@id"
-        },
-        "worksFor": {
-            "@id": "http://schema.org/worksFor",
-            "@type": "@id"
-        }
-    }
-};
+var contexts;
+
+$.getJSON('linkedIn.jsonld',function(data){
+    contexts = data;
+});
 
 var user = {};
 var linkedInData = {};
@@ -97,6 +25,7 @@ var extended_json = {};
 var firstName = "";
 var lastName = "";
 var email = "";
+var response;
 
 $(function(){
     $('#advanced-tab').hide();
@@ -111,14 +40,12 @@ $(function(){
         $('#advanced-tab').hide();
       }
     });
-    
-    $('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
 
     $('#check')
     .off('click')
     .on('click', function(){
         if($('#publicEmail').is(':checked'))
-           user["email"] = extended_json.values[0].emailAddress;
+           user["email"] = response.values[0].emailAddress;
         else
             delete user.email;
         displayJsonLd();
@@ -135,7 +62,7 @@ function getDetails() {
       "id", "firstName", "lastName", "pictureUrl", "publicProfileUrl","location","headline","summary","specialties","positions","emailAddress","interests","publications","patents","languages","skills","certifications","educations","courses","volunteer","following","dateOfBirth","memberUrlResources","phoneNumbers","twitterAccounts","connections","network"
     ])
     .result(function(result) {
-        extended_json = $.extend({},result);
+        response = $.extend({},result);
 
         if (result.values[0].firstName) user["givenName"] = result.values[0].firstName;
         firstName = result.values[0].firstName;
@@ -273,7 +200,6 @@ function getDetails() {
             if (result.values[0].skills._total > 0) {
                 for (var i = result.values[0].skills._total - 1; i >= 0; i--) {
                     var skillsObject = {
-                        "@type" : "http://schema.org/CreativeWork",
                         "name" : result.values[0].skills.values[i].skill.name
                     }
                     skills.push(skillsObject);
@@ -377,9 +303,10 @@ function getDetails() {
 
 function displayJsonLd () {
     jsonld.compact (user, contexts, function(err, extended_json){
-        $('#pane1 textarea').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+        $('#pane1 textarea').val(js_beautify(JSON.stringify(response),{'indent_size': 2}));
+        $('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
         $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-        $('#SaveJsonLd').attr('href','data:application/ld+json,' + encodeURIComponent(js_beautify(JSON.stringify(extended_json),{'indent_size': 2})));
+        $('#SaveJsonLd').attr('href','data:application/ld+json,' + encodeURIComponent(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}))).attr("download",firstName+'_'+lastName+'.jsonld');
         $('#SaveJsonLd').removeProp('disabled');
     });
 }
