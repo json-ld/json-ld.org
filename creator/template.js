@@ -43,7 +43,41 @@ Person = {
 }
 
 Place = {
-
+    "@context" : "http://json-ld.org/contexts/schema.org.jsonld",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "@type" : "http://schema.org/Person",
+    "label" : "Person",
+    "fields" : [
+    {
+        "label" : "Name",
+        "jsonLdProperty" : "name",
+        "expectedType" : "text",
+        "inputType" : "text",
+        "inputHint" : "Full Name of the person"
+    },
+    {
+        "label" : "Image",
+        "jsonLdProperty" : "image",
+        "expectedType" : "url",
+        "inputType" : "text",
+        "inputHint" : "Enter Image Url..."
+    },
+    {
+        "label" : "Map",
+        "jsonLdProperty" : "map",
+        "expectedType" : "url",
+        "inputType" : "text",
+        "inputHint" : "Enter link for a map"
+    },
+    {
+        "label" : "Image",
+        "jsonLdProperty" : "image",
+        "expectedType" : "url",
+        "inputType" : "text",
+        "inputHint" : "Enter Image Url..."
+    }
+    
+    ]
 }
 
 Event = {
