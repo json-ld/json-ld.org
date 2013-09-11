@@ -72,7 +72,7 @@ function getDetails() {
 
         if (result.values[0].pictureUrl) user["image"] = result.values[0].pictureUrl;
 
-        if (result.values[0].publicProfileUrl) user["url"] = result.values[0].publicProfileUrl;
+        if (result.values[0].publicProfileUrl) user["profilePage"] = result.values[0].publicProfileUrl;
 
         if (result.values[0].location.name) user["homeLocation"] = result.values[0].location.name;
 
@@ -284,9 +284,8 @@ function getDetails() {
 
             if (result.values[0].twitterAccounts._total > 0) {
                  for (var i = result.values[0].twitterAccounts._total - 1; i >= 0; i--) {
-                    var twitterAccountsObject = {
-                        "url" : 'http://twitter.com/'+result.values[0].twitterAccounts.values[i].providerAccountName
-                    }
+                    var twitterAccountsObject = 'http://twitter.com/'+result.values[0].twitterAccounts.values[i].providerAccountName
+                    
                     twitterAccounts.push(twitterAccountsObject);
                 }
                 if (twitterAccounts.length > 0) user["twitterAccounts"] = twitterAccounts;
