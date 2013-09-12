@@ -117,7 +117,7 @@ Place = {
         "jsonLdProperty" : "name",
         "expectedType" : "text",
         "inputType" : "text",
-        "inputHint" : "Full Name of the person"
+        "inputHint" : "Name of the Place"
     },
     {
         "label" : "Image",
@@ -183,7 +183,7 @@ Event = {
             "jsonLdProperty" : "name",
             "expectedType" : "text",
             "inputType" : "text",
-            "inputHint" : "Full Name of the person"
+            "inputHint" : "Event Name"
         },
         {
             "label" : "Location",

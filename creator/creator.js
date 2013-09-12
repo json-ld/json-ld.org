@@ -54,7 +54,7 @@ var contexts = {};
             }
         }
     }
-    contexts.person["@context"] = contextsPersonInnerObject;  
+    contexts.person["@context"] = "http://json-ld.org/contexts/schema.org.jsonld";  
   });
 
   // Person Block Ends Here //
@@ -87,7 +87,7 @@ var contexts = {};
             }
         }
     }
-    contexts.events["@context"] = contextsEventInnerObject;  
+    contexts.events["@context"] = "http://json-ld.org/contexts/schema.org.jsonld";  
   });
 
   // Event Block Ends Here //
@@ -120,7 +120,7 @@ var contexts = {};
             }
         }
     }
-    contexts.place["@context"] = contextsPlaceInnerObject;  
+    contexts.place["@context"] = "http://json-ld.org/contexts/schema.org.jsonld";  
   });
 
   // Person Block Ends Here //
