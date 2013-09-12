@@ -69,7 +69,7 @@ Person = {
         },
         {
             "label" : "Children",
-            "jsonLdProperty" : "Children",
+            "jsonLdProperty" : "children",
             "expectedType" : "Person",
             "inputType" : "text",
             "inputHint" : "Children of the user"
@@ -96,8 +96,8 @@ Person = {
             "inputHint" : "Member of organization"
         },
         {
-            "label" : "Spose",
-            "jsonLdProperty" : "spose",
+            "label" : "Spouse",
+            "jsonLdProperty" : "spouse",
             "expectedType" : "Person",
             "inputType" : "text",
             "inputHint" : "Spouse of User"
