@@ -309,6 +309,6 @@ function displayJsonLd () {
         $('#pane2 textarea').val(js_beautify(JSON.stringify(contexts),{'indent_size': 2}));
         $('#json-ld').val(js_beautify(JSON.stringify(user),{'indent_size': 2}));
         $('#SaveJsonLd').attr('href','data:application/ld+json,' + encodeURIComponent(js_beautify(JSON.stringify(user),{'indent_size': 2}))).attr("download",firstName+'_'+lastName+'.jsonld');
-        $('#SaveJsonLd').removeProp('disabled');
+        $('#SaveJsonLd').removeClass('disabled');
     });
 }
