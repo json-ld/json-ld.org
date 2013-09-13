@@ -144,7 +144,7 @@ Place = {
         "label" : "Event",
         "jsonLdProperty" : "event",
         "expectedType" : "Event",
-        "inputType" : "url      ",
+        "inputType" : "url",
         "inputHint" : "Enter URL of upcoming events"
     },
     {
