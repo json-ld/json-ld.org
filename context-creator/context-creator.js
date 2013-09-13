@@ -145,7 +145,6 @@ function generateContext (checkboxChecked) {
             (objectValue[i].search('Duration') >= 0) )
             {
               schema[objectKey] = {
-                "@id" : baseURI+objectKey,
                 "@type" : "xsd:dateTime"
               }
             }
