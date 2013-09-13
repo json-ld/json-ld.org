@@ -193,7 +193,7 @@ var contexts = {};
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
   })
-  off('change')
+  .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));

@@ -29,7 +29,7 @@ Person = {
             "label" : "email",
             "jsonLdProperty" : "email",
             "expectedType" : "text",
-            "inputType" : "url",
+            "inputType" : "email",
             "inputHint" : "mail@example.com"
         },
         {
@@ -131,7 +131,7 @@ Place = {
         "jsonLdProperty" : "map",
         "expectedType" : "url",
         "inputType" : "text",
-        "inputHint" : "Enter link for a map"
+        "inputHint" : "Enter URL for a map"
     },
     {
         "label" : "Address",
