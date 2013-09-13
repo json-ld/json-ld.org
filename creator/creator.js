@@ -123,7 +123,7 @@ var contexts = {};
     contexts.place["@context"] = "http://json-ld.org/contexts/schema.org.jsonld";  
   });
 
-  // Person Block Ends Here //
+  // Place Block Ends Here //
 
   /********************************
     Context Generation Ends Here
@@ -168,7 +168,7 @@ var contexts = {};
 
   $('#form-place').append(divString);
 
-  // Person Block End //
+  // Place Block End //
 
 
   /********************************
