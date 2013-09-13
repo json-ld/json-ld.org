@@ -10,7 +10,10 @@ $(document)
         if(response = "success") {
           $('#fetchedHTML').append(data);
           $('#error').html('');
-          generateContext();
+          if ($('#vocab').prop('checked') == false)
+            generateContext(false);
+          else if ($('#vocab').prop('checked') == true)
+            generateContext(true);
         }
         else
         {
@@ -20,77 +23,141 @@ $(document)
     });
   });
 });
-
-function generateContext () {
+var intermediateSchema = {};
+function generateContext (checkboxChecked) {
   var baseURI = $('#baseIRI').val();
   var schema = {};
   var schemaWithContext = {};
   schemaWithContext["@context"] = {};
-  var intermediateSchema = {};
+  
   var count = 0;
-  var divClass = []
-  // var divClass = document.getElementsByType('rdf:Property');
-  // var divClass = $('#fetchedHTML')[0].getElementsByType('rdf:Property');
+  var divClass = [];
   var divClass = $('#fetchedHTML').find('div[typeof="rdf:Property"]');
 
   divClass.each(function (objectKey, objectValue) {
     // console.log($(this).find('span[property="rdfs:label"]').text());
     // console.log($(this).find('a[property="http://schema.org/rangeIncludes"]').text());
+    if($(this).find('a[property="http://schema.org/rangeIncludes"]').length == 1)
     intermediateSchema[$(this).find('span[property="rdfs:label"]').text()] = $(this).find('a[property="http://schema.org/rangeIncludes"]').text();
+    else 
+    {
+      var tempList = [];
+      $(this).find('a[property="http://schema.org/rangeIncludes"]').each(function (k,v) {
+        tempList.push(v.innerHTML);
+      })
+      intermediateSchema[$(this).find('span[property="rdfs:label"]').text()] = tempList;
+    }
   });
 
-  $.each(intermediateSchema, function(objectKey, objectValue){
-    for (var i = objectValue.length - 1; i >= 0; i--) {
-      if (objectValue[i].search(/\/Text$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = baseURI+objectKey;
-        }
+  if (checkboxChecked == false) {
+    $.each(intermediateSchema, function(objectKey, objectValue){
+      if(typeof objectValue == "string") {
+
+        if ((objectValue.search('Text') >= 0) ||
+            (objectValue.search('Number') >= 0) ||
+            (objectValue.search('Integer') >= 0) )
+            {
+              schema[objectKey] = baseURI+objectKey;
+            }
+        else if ((objectValue.search('Date') >= 0) ||
+            (objectValue.search('DateTime') >= 0) ||
+            (objectValue.search('Duration') >= 0) )
+            {
+              schema[objectKey] = {
+                "@id" : baseURI+objectKey,
+                "@type" : "xsd:dateTime"
+              }
+            }
+          else {
+            schema[objectKey] = {
+              "@id" : baseURI+objectKey,
+              "@type" : "@id"
+            }
+          }
       }
-      else if (objectValue[i].search(/\/Number$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = baseURI+objectKey;
-        }
-      }
-      else if (objectValue[i].search(/\/Date$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = {
-            "@id" : baseURI+objectKey,
-            "@type" : "xsd:date"
+
+      else if(typeof objectValue == "object") {
+        for (var i=0; i < objectValue.length; i++) {
+          if ((objectValue[i].search('Text') >= 0) ||
+            (objectValue[i].search('Number') >= 0) ||
+            (objectValue[i].search('Integer') >= 0) )
+            {
+              schema[objectKey] = baseURI+objectKey;
+            }
+        else if ((objectValue[i].search('Date') >= 0) ||
+            (objectValue[i].search('DateTime') >= 0) ||
+            (objectValue[i].search('Duration') >= 0) )
+            {
+              schema[objectKey] = {
+                "@id" : baseURI+objectKey,
+                "@type" : "xsd:dateTime"
+              }
+            }
+          else {
+            schema[objectKey] = {
+              "@id" : baseURI+objectKey,
+              "@type" : "@id"
+            }
           }
         }
       }
-      else if (objectValue[i].search(/\/DateTime$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = {
-            "@id" : baseURI+objectKey,
-            "@type" : "xsd:dateTime"
+    });
+  }
+
+  else
+  {
+    schema["@vocab"] = $('#vocabURL').val();
+    // console.log(intermediateSchema);
+    $.each(intermediateSchema, function(objectKey, objectValue){
+      if(typeof objectValue == "string") {
+
+        if ((objectValue.search('Text') >= 0) ||
+            (objectValue.search('Number') >= 0) ||
+            (objectValue.search('Integer') >= 0) )
+            {
+              // schema[objectKey] = baseURI+objectKey;
+            }
+        else if ((objectValue.search('Date') >= 0) ||
+            (objectValue.search('DateTime') >= 0) ||
+            (objectValue.search('Duration') >= 0) )
+            {
+              schema[objectKey] = {
+                "@type" : "xsd:dateTime"
+              }
+            }
+          else {
+            schema[objectKey] = {
+              "@type" : "@id"
+            }
+          }
+      }
+
+      else if(typeof objectValue == "object") {
+        for (var i=0; i < objectValue.length; i++) {
+          if ((objectValue[i].search('Text') >= 0) ||
+            (objectValue[i].search('Number') >= 0) ||
+            (objectValue[i].search('Integer') >= 0) )
+            {
+              // schema[objectKey] = baseURI+objectKey;
+            }
+        else if ((objectValue[i].search('Date') >= 0) ||
+            (objectValue[i].search('DateTime') >= 0) ||
+            (objectValue[i].search('Duration') >= 0) )
+            {
+              schema[objectKey] = {
+                "@id" : baseURI+objectKey,
+                "@type" : "xsd:dateTime"
+              }
+            }
+          else {
+            schema[objectKey] = {
+              "@type" : "@id"
+            }
           }
         }
       }
-      else if (objectValue[i].search(/\/Duration$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = {
-            "@id" : baseURI+objectKey,
-            "@type" : "xsd:dateTime"
-          }
-        }
-      }
-      else if (objectValue[i].search(/\/Integer$/) > 0) {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = baseURI+objectKey;
-        }
-      }
-      else 
-      {
-        if(schema.objectKey === undefined) {
-          schema[objectKey] = {
-            "@id" : baseURI+objectKey,
-            "@type" : "@id"
-          }
-        }
-      }
-    };
-  });
+    });
+  }
   schema["xsd"] = "http://www.w3.org/2001/XMLSchema#";
   schemaWithContext["@context"] = schema;
 
