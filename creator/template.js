@@ -159,7 +159,7 @@ Place = {
         "jsonLdProperty" : "Photograph",
         "expectedType" : "url",
         "inputType" : "url",
-        "inputHint" : "Enter URL of a photogra[h"
+        "inputHint" : "Enter URL of a photograph"
     },
     {
         "label" : "Telephone",
