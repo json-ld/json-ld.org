@@ -36,7 +36,7 @@ Person = {
             "label" : "Url",
             "jsonLdProperty" : "url",
             "expectedType" : "URL",
-            "inputType" : "text",
+            "inputType" : "url",
             "inputHint" : "Enter Url..."
         },
         {
@@ -44,14 +44,14 @@ Person = {
             "jsonLdProperty" : "affiliation",
             "expectedType" : "URL",
             "inputType" : "PostalAddress",
-            "inputHint" : "Enter organization User is affialiated to"
+            "inputHint" : "Enter URL of organization User is affialiated to"
         },
         {
             "label" : "Alumni Of",
             "jsonLdProperty" : "alumniOf",
             "expectedType" : "EducationalOrganization",
             "inputType" : "text",
-            "inputHint" : "Alumni of EducationalOrganization"
+            "inputHint" : "Enter URL of Educational Organization user is alumni of"
         },
         {
             "label" : "Award",
@@ -72,7 +72,7 @@ Person = {
             "jsonLdProperty" : "children",
             "expectedType" : "Person",
             "inputType" : "text",
-            "inputHint" : "Children of the user"
+            "inputHint" : "URL of Children of user"
         },
         {
             "label" : "Honorific Prefix",
@@ -93,14 +93,14 @@ Person = {
             "jsonLdProperty" : "memberOf",
             "expectedType" : "organization",
             "inputType" : "text",
-            "inputHint" : "Member of organization"
+            "inputHint" : "Enter URL of organization user is member of"
         },
         {
             "label" : "Spouse",
             "jsonLdProperty" : "spouse",
             "expectedType" : "Person",
             "inputType" : "text",
-            "inputHint" : "Spouse of User"
+            "inputHint" : "Enter URL of spuse"
         }
 
     ]
@@ -145,7 +145,7 @@ Place = {
         "jsonLdProperty" : "event",
         "expectedType" : "Event",
         "inputType" : "text",
-        "inputHint" : "Upcoming Events"
+        "inputHint" : "Enter URL of upcoming events"
     },
     {
         "label" : "Geo Coordinats",
@@ -158,8 +158,8 @@ Place = {
         "label" : "photo",
         "jsonLdProperty" : "Photograph",
         "expectedType" : "url",
-        "inputType" : "text",
-        "inputHint" : "Photograph of the place"
+        "inputType" : "url",
+        "inputHint" : "Enter URL of a photogra[h"
     },
     {
         "label" : "Telephone",
@@ -190,7 +190,7 @@ Event = {
             "jsonLdProperty" : "location",
             "expectedType" : "Place",
             "inputType" : "text",
-            "inputHint" : "Enter the Location of Event"
+            "inputHint" : "Enter URL of Location"
         },
         {
             "label" : "Start Date",
@@ -208,9 +208,3 @@ Event = {
         }
     ]
 }
-
-var objects = {
-    "Person" : Person,
-    "Event" : Event,
-    "Place" : Place
-};
