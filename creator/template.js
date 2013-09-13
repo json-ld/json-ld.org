@@ -15,8 +15,8 @@ Person = {
             "label" : "Image",
             "jsonLdProperty" : "image",
             "expectedType" : "url",
-            "inputType" : "text",
-            "inputHint" : "Enter Image Url..."
+            "inputType" : "url",
+            "inputHint" : "URL of image for Person"
         },
         {
             "label" : "Address",
@@ -37,21 +37,21 @@ Person = {
             "jsonLdProperty" : "url",
             "expectedType" : "URL",
             "inputType" : "url",
-            "inputHint" : "Enter Url..."
+            "inputHint" : "Enter an Url"
         },
         {
             "label" : "Affiliation",
             "jsonLdProperty" : "affiliation",
             "expectedType" : "URL",
-            "inputType" : "PostalAddress",
-            "inputHint" : "Enter URL of organization User is affialiated to"
+            "inputType" : "url",
+            "inputHint" : "URL of organization person is afiiliated to"
         },
         {
             "label" : "Alumni Of",
             "jsonLdProperty" : "alumniOf",
             "expectedType" : "EducationalOrganization",
-            "inputType" : "text",
-            "inputHint" : "Enter URL of Educational Organization user is alumni of"
+            "inputType" : "url",
+            "inputHint" : "URL of Educational Organization"
         },
         {
             "label" : "Award",
@@ -71,8 +71,8 @@ Person = {
             "label" : "Children",
             "jsonLdProperty" : "children",
             "expectedType" : "Person",
-            "inputType" : "text",
-            "inputHint" : "URL of Children of user"
+            "inputType" : "url",
+            "inputHint" : "URL of a Child for Person"
         },
         {
             "label" : "Honorific Prefix",
@@ -92,15 +92,15 @@ Person = {
             "label" : "Member Of",
             "jsonLdProperty" : "memberOf",
             "expectedType" : "organization",
-            "inputType" : "text",
-            "inputHint" : "Enter URL of organization user is member of"
+            "inputType" : "url",
+            "inputHint" : "URL of organization Person is member of"
         },
         {
             "label" : "Spouse",
             "jsonLdProperty" : "spouse",
             "expectedType" : "Person",
-            "inputType" : "text",
-            "inputHint" : "Enter URL of spuse"
+            "inputType" : "url",
+            "inputHint" : "Enter URL of spouse for Person"
         }
 
     ]
@@ -110,7 +110,7 @@ Place = {
     "@context" : "http://json-ld.org/contexts/schema.org.jsonld",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "@type" : "http://schema.org/Person",
-    "label" : "Person",
+    "label" : "Place",
     "fields" : [
     {
         "label" : "Name",
@@ -123,14 +123,14 @@ Place = {
         "label" : "Image",
         "jsonLdProperty" : "image",
         "expectedType" : "url",
-        "inputType" : "text",
+        "inputType" : "url",
         "inputHint" : "Enter Image Url..."
     },
     {
         "label" : "Map",
         "jsonLdProperty" : "map",
         "expectedType" : "url",
-        "inputType" : "text",
+        "inputType" : "url",
         "inputHint" : "Enter URL for a map"
     },
     {
@@ -144,13 +144,13 @@ Place = {
         "label" : "Event",
         "jsonLdProperty" : "event",
         "expectedType" : "Event",
-        "inputType" : "text",
+        "inputType" : "url      ",
         "inputHint" : "Enter URL of upcoming events"
     },
     {
-        "label" : "Geo Coordinats",
+        "label" : "Geo Coordinates",
         "jsonLdProperty" : "geo",
-        "expectedType" : "GeoCoordinats",
+        "expectedType" : "GeoCoordinates",
         "inputType" : "text",
         "inputHint" : "Geo - Coordinats of the place"
     },
@@ -189,7 +189,7 @@ Event = {
             "label" : "Location",
             "jsonLdProperty" : "location",
             "expectedType" : "Place",
-            "inputType" : "text",
+            "inputType" : "url",
             "inputHint" : "Enter URL of Location"
         },
         {

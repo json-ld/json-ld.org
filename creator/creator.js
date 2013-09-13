@@ -138,7 +138,7 @@ var contexts = {};
   divString = '<fieldset><legend>'+Person.label+'</legend>'
   $.each(Person.fields, function(objectKey, objectValue) {
     divString += '<div class="control-group"><label class="control-label">'+ objectValue.label +'</label>';
-    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-large" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
+    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-xlarge" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
   });
   divString += '</fieldset>';
 
@@ -150,7 +150,7 @@ var contexts = {};
   divString = '<fieldset><legend>'+Event.label+'</legend>'
   $.each(Event.fields, function(objectKey, objectValue) {
     divString += '<div class="control-group"><label class="control-label">'+ objectValue.label +'</label>';
-    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-large" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
+    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-xlarge" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
   });
   divString += '</fieldset>';
 
@@ -162,7 +162,7 @@ var contexts = {};
   divString = '<fieldset><legend>'+Place.label+'</legend>'
   $.each(Place.fields, function(objectKey, objectValue) {
     divString += '<div class="control-group"><label class="control-label">'+ objectValue.label +'</label>';
-    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-large" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
+    divString += '<div class="controls"><input type="'+objectValue.inputType+'" class="input-xlarge" placeholder="'+objectValue.inputHint+'" name="'+objectValue.jsonLdProperty+'"></div></div>';
   });
   divString += '</fieldset>';
 
@@ -175,57 +175,65 @@ var contexts = {};
     Form Generation Ends Here
   ********************************/
 
-  $('#form-person .input-large')
+  $('#form-person .input-xlarge')
   .off('keyup')
   .on('keyup', function(){
-    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject())
+    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
-    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject())
+    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
-    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject())
+    var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   });
   
-  $('#form-event .input-large')
+  $('#form-event .input-xlarge')
   .off('keyup')
   .on('keyup', function(){
-    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
+    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
-    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
+    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
-    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject())
+    var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   });
 
-  $('#form-place .input-large')
+  $('#form-place .input-xlarge')
   .off('keyup')
   .on('keyup', function(){
-    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject())
+    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
-    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject())
+    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
-    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject())
+    var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
+    validateURLText($(this), $(this).val());
   });
-
 
   $('#form-person').show();
   $('#json-ld').css('height',parseInt($('#form-person').css('height'))-120);
@@ -262,3 +270,19 @@ var contexts = {};
   });
 
 })();
+
+function validateURLText(element, string)
+{
+  if (element.attr('type') == "url") {
+    var urlregex = new RegExp( "^(http|https|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(\:[0-9]+)*(/($|[a-zA-Z0-9\.\,\?\'\\\+&amp;%\$#\=~_\-]+))*$");
+   
+    if(!urlregex.test(string))
+    {
+      element.css('border-color','#d9230f');
+    }
+    else
+    {
+      element.css('border-color','#68afeb');
+    }
+  }
+}
