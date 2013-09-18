@@ -1,3 +1,50 @@
+/**
+ * Template.js
+ * -----------
+ * Template.js is used by JSON-LD creator tool to auto-generate creator form
+ * and context.
+ * The templates are stored in javascript objects eg Person, Place, Events etc.
+ * 
+ * Key's and their meaning
+ * -----------------------
+ *
+ * @context - defines the referencing of context in JSON-LD document. For
+ * http://schema.org it is referenced to 
+ * http://json-ld.org/contexts/schema.org.jsonld.
+ *
+ * @type - defines the type of the Object and the class.
+ *
+ * label - defines the text to be used in <legend> in the generated form.
+ *
+ * fields - defines the data that is being used by creator.js to auto-generate.
+ *
+ * fields.label - defines the label that should be displayed with the input 
+ * box in the form to the user.
+ *
+ * fields.jsonLdProperty - defines the propery for the JSON-LD term.
+ * 
+ * fields.expectedType - defines the expected type of the property in JSON-LD 
+ * document.
+ *
+ * fields.inputType - defines the input type of the property in the form. 
+ * For example, text, date, email etc.
+ *
+ * fields.inputHint - defines the placeholder's text in the form.
+ *
+ * HOW TO EXTEND THIS TEMPLATE
+ * ---------------------------
+ *
+ * To extend this template, you can add more objects within fields as per
+ * your need, or make a new object with the similar structure and keep
+ * adding into that.
+ * So, when existing fields in Person, Places or Events is added, creator.js
+ * will automatically reflect those.
+ * Incase where new Objects are made altogether for those, new blocks under
+ * `Context Generation` and `Form Generation` will have to be added necessarily.
+ *
+ *
+ * @author : Vikash Agrawal <vikashagrawal1990@gmail.com>
+ */
 Person = {
     "@context" : "http://json-ld.org/contexts/schema.org.jsonld",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
