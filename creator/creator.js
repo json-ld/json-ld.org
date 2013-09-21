@@ -1,5 +1,15 @@
+/* Creator.js
+ * -----------
+ *
+ * This converts template.js to contexts and generate the form.
+ *
+ * @author vikashagrawal1990@gmail.com
+*/
+
 var divString = "";
 var contexts = {};
+
+// This function serializes the form 
 (function() {
   
   $.fn.serializeObject = function()
@@ -25,6 +35,9 @@ var contexts = {};
   /********************************
     Context Generation Starts Here
   ********************************/
+
+  // This section generates the context for each objects defined in template.js
+  // Individual objects are treated in individual blocks 
 
   // Person Block Starts Here //
 
@@ -129,6 +142,7 @@ var contexts = {};
     Context Generation Ends Here
   ********************************/
 
+  // This generates the form from template.js
 
   /********************************
     Form Generation Starts Here
@@ -143,6 +157,7 @@ var contexts = {};
   divString += '</fieldset>';
 
   $('#form-person').append(divString);
+  AddDatePicker();
 
   // Person Block End //
 
@@ -155,6 +170,7 @@ var contexts = {};
   divString += '</fieldset>';
 
   $('#form-event').append(divString);
+  AddDatePicker();
 
   // Event Block End //
 
@@ -167,6 +183,7 @@ var contexts = {};
   divString += '</fieldset>';
 
   $('#form-place').append(divString);
+  AddDatePicker();
 
   // Place Block End //
 
@@ -180,19 +197,22 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   });
   
   $('#form-event .input-xlarge')
@@ -200,19 +220,22 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   });
 
   $('#form-place .input-xlarge')
@@ -220,19 +243,22 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    validateURLText($(this), $(this).val());
+    if($(this).val().length > 0)
+      validateURLText($(this), $(this).val());
   });
 
   $('#form-person').show();
@@ -285,4 +311,11 @@ function validateURLText(element, string)
       element.css('border-color','#68afeb');
     }
   }
+}
+
+// This function adds JQuery UI datepicker to all the input fields and
+// changes their input type to text. This is important because input type="date" uses local lang settings
+function AddDatePicker () {
+  $('input[type="date"]').datepicker({ dateFormat: "yy-mm-dd" });
+  $('input[type="date"]').attr('type','text');
 }

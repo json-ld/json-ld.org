@@ -10,7 +10,7 @@
  *
  * @context - defines the referencing of context in JSON-LD document. For
  * http://schema.org it is referenced to 
- * http://json-ld.org/contexts/schema.org.jsonld.
+ * http://json-ld.org/contexts/schema.org.jsonld
  *
  * @type - defines the type of the Object and the class.
  *
@@ -56,24 +56,24 @@ Person = {
             "jsonLdProperty" : "name",
             "expectedType" : "text",
             "inputType" : "text",
-            "inputHint" : "Full Name of the person"
+            "inputHint" : "Full name of the person"
         },
         {
             "label" : "Image",
             "jsonLdProperty" : "image",
             "expectedType" : "url",
             "inputType" : "url",
-            "inputHint" : "URL of image for Person"
+            "inputHint" : "URL of image for person"
         },
         {
             "label" : "Address",
             "jsonLdProperty" : "address",
             "expectedType" : "Postal Address",
             "inputType" : "text",
-            "inputHint" : "Enter Your address"
+            "inputHint" : "Enter your address"
         },
         {
-            "label" : "email",
+            "label" : "Email",
             "jsonLdProperty" : "email",
             "expectedType" : "text",
             "inputType" : "email",
@@ -84,42 +84,42 @@ Person = {
             "jsonLdProperty" : "url",
             "expectedType" : "URL",
             "inputType" : "url",
-            "inputHint" : "Enter an Url"
+            "inputHint" : "Enter an url"
         },
         {
             "label" : "Affiliation",
             "jsonLdProperty" : "affiliation",
             "expectedType" : "URL",
             "inputType" : "url",
-            "inputHint" : "URL of organization person is afiiliated to"
+            "inputHint" : "Url of organization person is afiiliated to"
         },
         {
             "label" : "Alumni Of",
             "jsonLdProperty" : "alumniOf",
             "expectedType" : "EducationalOrganization",
             "inputType" : "url",
-            "inputHint" : "URL of Educational Organization"
+            "inputHint" : "Url of educational organization"
         },
         {
             "label" : "Award",
             "jsonLdProperty" : "award",
             "expectedType" : "text",
             "inputType" : "text",
-            "inputHint" : "Awards and Achievements"
+            "inputHint" : "Awards and achievements"
         },
         {
-            "label" : "Date of birth",
+            "label" : "Date of Birth",
             "jsonLdProperty" : "birthDate",
             "expectedType" : "Date",
             "inputType" : "date",
-            "inputHint" : "Date of Birth"
+            "inputHint" : "Date of birth"
         },
         {
             "label" : "Children",
             "jsonLdProperty" : "children",
             "expectedType" : "Person",
             "inputType" : "url",
-            "inputHint" : "URL of a Child for Person"
+            "inputHint" : "URL of a child for person"
         },
         {
             "label" : "Honorific Prefix",
@@ -140,14 +140,14 @@ Person = {
             "jsonLdProperty" : "memberOf",
             "expectedType" : "organization",
             "inputType" : "url",
-            "inputHint" : "URL of organization Person is member of"
+            "inputHint" : "Url of organization person is member of"
         },
         {
             "label" : "Spouse",
             "jsonLdProperty" : "spouse",
             "expectedType" : "Person",
             "inputType" : "url",
-            "inputHint" : "Enter URL of spouse for Person"
+            "inputHint" : "Enter url of spouse for person"
         }
 
     ]
@@ -164,56 +164,56 @@ Place = {
         "jsonLdProperty" : "name",
         "expectedType" : "text",
         "inputType" : "text",
-        "inputHint" : "Name of the Place"
+        "inputHint" : "Name of the place"
     },
     {
         "label" : "Image",
         "jsonLdProperty" : "image",
         "expectedType" : "url",
         "inputType" : "url",
-        "inputHint" : "Enter Image Url..."
+        "inputHint" : "Enter image url"
     },
     {
         "label" : "Map",
         "jsonLdProperty" : "map",
         "expectedType" : "url",
         "inputType" : "url",
-        "inputHint" : "Enter URL for a map"
+        "inputHint" : "Enter url for a map"
     },
     {
         "label" : "Address",
         "jsonLdProperty" : "address",
         "expectedType" : "PostalAddress",
         "inputType" : "text",
-        "inputHint" : "Enter Address..."
+        "inputHint" : "Enter address"
     },
     {
         "label" : "Event",
         "jsonLdProperty" : "event",
         "expectedType" : "Event",
         "inputType" : "url",
-        "inputHint" : "Enter URL of upcoming events"
+        "inputHint" : "Enter url of upcoming events"
     },
     {
         "label" : "Geo Coordinates",
         "jsonLdProperty" : "geo",
         "expectedType" : "GeoCoordinates",
         "inputType" : "text",
-        "inputHint" : "Geo - Coordinats of the place"
+        "inputHint" : "Geo - coordinats of the place"
     },
     {
-        "label" : "photo",
+        "label" : "Photo",
         "jsonLdProperty" : "Photograph",
         "expectedType" : "url",
         "inputType" : "url",
-        "inputHint" : "Enter URL of a photograph"
+        "inputHint" : "Enter url of a photograph"
     },
     {
         "label" : "Telephone",
         "jsonLdProperty" : "telephone",
         "expectedType" : "text",
         "inputType" : "text",
-        "inputHint" : "Telephone Number"
+        "inputHint" : "Telephone number"
     }
     
     ]
@@ -230,14 +230,14 @@ Event = {
             "jsonLdProperty" : "name",
             "expectedType" : "text",
             "inputType" : "text",
-            "inputHint" : "Event Name"
+            "inputHint" : "Event name"
         },
         {
             "label" : "Location",
             "jsonLdProperty" : "location",
             "expectedType" : "Place",
             "inputType" : "url",
-            "inputHint" : "Enter URL of Location"
+            "inputHint" : "Enter url of location"
         },
         {
             "label" : "Start Date",
