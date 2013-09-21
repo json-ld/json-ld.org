@@ -197,22 +197,19 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.person,$('#form-person').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   });
   
   $('#form-event .input-xlarge')
@@ -220,22 +217,19 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.events,$('#form-event').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   });
 
   $('#form-place .input-xlarge')
@@ -243,22 +237,19 @@ var contexts = {};
   .on('keyup', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('change')
   .on('change', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   })
   .off('input')
   .on('input', function(){
     var extended_json = $.extend({},contexts.place,$('#form-place').serializeObject());
     $('#json-ld').val(js_beautify(JSON.stringify(extended_json),{'indent_size': 2}));
-    if($(this).val().length > 0)
-      validateURLText($(this), $(this).val());
+    validateURLText($(this), $(this).val());
   });
 
   $('#form-person').show();
@@ -310,6 +301,8 @@ function validateURLText(element, string)
     {
       element.css('border-color','#68afeb');
     }
+    if (string.length == 0)
+      element.css('border-color','#ccc');
   }
 }
 
