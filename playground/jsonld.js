@@ -773,6 +773,7 @@ jsonld.normalize = function(input, options, callback) {
  * @param [options] the options to use:
  *          [format] the format if input is not an array:
  *            'application/nquads' for N-Quads (default).
+ *          [rdfParser] a custom RDF-parser to use to parse the input.
  *          [useRdfType] true to use rdf:type, false to use @type
  *            (default: false).
  *          [useNativeTypes] true to convert XSD types into native types
@@ -812,19 +813,38 @@ jsonld.fromRDF = function(dataset, options, callback) {
   jsonld.nextTick(function() {
     // handle special format
     if(options.format) {
-      // supported formats
-      if(options.format in _rdfParsers) {
-        dataset = _rdfParsers[options.format](dataset);
-      }
-      else {
+      // check supported formats
+      var rdfParser = options.rdfParser || _rdfParsers[options.format];
+      if(!rdfParser) {
         throw new JsonLdError(
           'Unknown input format.',
           'jsonld.UnknownFormat', {format: options.format});
       }
+
+      // rdf parser may be async or sync, always pass callback
+      dataset = rdfParser(dataset, function(err, dataset) {
+        if(err) {
+          return callback(err);
+        }
+        fromRDF(dataset, options, callback);
+      });
+      // handle synchronous or promise-based parser
+      if(dataset) {
+        // if dataset is actually a promise
+        if('then' in dataset) {
+          return dataset.then(function(dataset) {
+            fromRDF(dataset, options, callback);
+          }, callback);
+        }
+        // parser is synchronous
+        fromRDF(dataset, options, callback);
+      }
     }
 
-    // convert from RDF
-    new Processor().fromRDF(dataset, options, callback);
+    function fromRDF(dataset, options, callback) {
+      // convert from RDF
+      new Processor().fromRDF(dataset, options, callback);
+    }
   });
 };
 
@@ -1231,7 +1251,8 @@ jsonld.documentLoaders = {};
  * @param options the options to use:
  *          secure: require all URLs to use HTTPS.
  *          usePromise: true to use a promises API, false for a
- *            callback-continuation-style API; true by default.
+ *            callback-continuation-style API; defaults to true if Promise
+ *            is globally defined, false if not.
  *
  * @return the jquery document loader.
  */
@@ -1288,7 +1309,11 @@ jsonld.documentLoaders.jquery = function($, options) {
     });
   };
 
-  if(!('usePromise' in options) || options.usePromise) {
+  var usePromise = (typeof Promise !== 'undefined');
+  if('usePromise' in options) {
+    usePromise = options.usePromise;
+  }
+  if(usePromise) {
     return function(url) {
       return jsonld.promisify(loader, url);
     };
@@ -1423,7 +1448,8 @@ jsonld.documentLoaders.node = function(options) {
  * @param options the options to use:
  *          secure: require all URLs to use HTTPS.
  *          usePromise: true to use a promises API, false for a
- *            callback-continuation-style API; true by default.
+ *            callback-continuation-style API; defaults to true if Promise
+ *            is globally defined, false if not.
  *          [xhr]: the XMLHttpRequest API to use.
  *
  * @return the XMLHttpRequest document loader.
@@ -1480,7 +1506,11 @@ jsonld.documentLoaders.xhr = function(options) {
     req.send();
   };
 
-  if(!('usePromise' in options) || options.usePromise) {
+  var usePromise = (typeof Promise !== 'undefined');
+  if('usePromise' in options) {
+    usePromise = options.usePromise;
+  }
+  if(usePromise) {
     return function(url) {
       return jsonld.promisify(loader, url);
     };
@@ -1809,11 +1839,24 @@ var _rdfParsers = {};
 
 /**
  * Registers an RDF dataset parser by content-type, for use with
- * jsonld.fromRDF.
+ * jsonld.fromRDF. An RDF dataset parser will always be given two parameters,
+ * a string of input and a callback. An RDF dataset parser can be synchronous
+ * or asynchronous.
+ *
+ * If the parser function returns undefined or null then it will be assumed to
+ * be asynchronous w/a continuation-passing style and the callback parameter
+ * given to the parser MUST be invoked.
+ *
+ * If it returns a Promise, then it will be assumed to be asynchronous, but the
+ * callback parameter MUST NOT be invoked. It should instead be ignored.
+ *
+ * If it returns an RDF dataset, it will be assumed to be synchronous and the
+ * callback parameter MUST NOT be invoked. It should instead be ignored.
  *
  * @param contentType the content-type for the parser.
- * @param parser(input) the parser function (takes a string as a parameter
- *          and returns an RDF dataset).
+ * @param parser(input, callback(err, dataset)) the parser function (takes a
+ *          string as a parameter and either returns null/undefined and uses
+ *          the given callback, returns a Promise, or returns an RDF dataset).
  */
 jsonld.registerRDFParser = function(contentType, parser) {
   _rdfParsers[contentType] = parser;
@@ -2851,7 +2894,7 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
         nodeMap[o.value] = {'@id': o.value};
       }
 
-      if(p === RDF_TYPE && objectIsId) {
+      if(p === RDF_TYPE && !options.useRdfType && objectIsId) {
         jsonld.addValue(node, '@type', o.value, {propertyIsArray: true});
         continue;
       }
