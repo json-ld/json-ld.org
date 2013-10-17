@@ -160,6 +160,7 @@ function updateExample(doc, content) {
   content = content.replace(/<!--/, '');
   content = content.replace(/-->/, '');
   content = _esc(content);
-  content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="diff">$1</span>') ;
+  content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="highlight">$1</span>');
+  content = content.replace(/####([^#]*)####/g, '<span class="comment">$1</span>');
   return content ;
 }
