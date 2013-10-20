@@ -104,9 +104,6 @@
     border-bottom:  1px dotted #ff4500;
     text-decoration: none;
   }
-  .atrisk-head {
-    font-style: italic;
-  }
   ol.algorithm {
     counter-reset: numsection;
     list-style-type: none;
@@ -124,10 +121,11 @@
 
 <body>
 <section id="abstract">
-  <p>This specification defines an Application Programming Interface (API)
-    and a set of algorithms for programmatic transformations of JSON-LD
-    documents. Restructuring data according to the defined transformations
-    often dramatically simplifies its usage.</p>
+  <p>This specification defines a set of algorithms for programmatic transformations
+    of JSON-LD documents. Restructuring data according to the defined transformations
+    often dramatically simplifies its usage. Furthermore, this document proposes
+    an Application Programming Interface (API) for developers implementing the
+    specified algorithms.</p>
 </section>
 
 <section id="sotd">
@@ -230,6 +228,7 @@
   <ul>
     <li>Fixed a bug that relabeled blank node identifiers used with reverse properties inconsistently when
       creating a node map .</li>
+    <li>Made the API non-normative given that Promises are still not properly specified.</li>
   </ul>
 </section>
 
@@ -237,17 +236,15 @@
 <section class="informative">
   <h1>Introduction</h1>
 
-  <p>This document is a detailed specification for an Application Programming
-    Interface for the JSON-LD syntax. The document is primarily intended for
-    the following audiences:</p>
+  <p>This document is a detailed specification of the JSON-LD processing algorithms.
+    The document is primarily intended for the following audiences:</p>
 
   <ul>
-    <li>Developers who want an overview of the JSON-LD API.</li>
-    <li>Web authors and developers who want a very detailed view of how
-      a <tref>JSON-LD Processor</tref> or a <tref>JSON-LD API Implementation</tref>
-      operates.</li>
     <li>Software developers who want to implement the algorithms to transform
       JSON-LD documents.</li>
+    <li>Web authors and developers who want a very detailed view of how
+      a <tref>JSON-LD Processor</tref> operates.</li>
+    <li>Developers who want an overview of the proposed JSON-LD API.</li>
   </ul>
 
   <p>To understand the basics in this specification you must first be familiar with
@@ -629,24 +626,15 @@
     MAY, and OPTIONAL in this specification are to be interpreted as described
     in [[!RFC2119]].</p>
 
-  <p>There are three classes of products that can claim conformance to this
+  <p>There are two classes of products that can claim conformance to this
     specification: <tref title="JSON-LD Processor">JSON-LD Processors</tref>,
-    <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>,
     and <tref title="RDF Serializer/Deserializer">RDF Serializers/Deserializers</tref>.</p>
 
   <p>A conforming <tdef>JSON-LD Processor</tdef> is a system which can perform the
     <a href="#expansion-algorithm">Expansion</a>, <a href="#compaction-algorithm">Compaction</a>,
     and <a href="#flattening-algorithm">Flattening</a> operations defined in this specification.</p>
 
-  <p>A conforming <tdef>JSON-LD API Implementation</tdef> is a conforming <tref>JSON-LD Processor</tref>
-    that exposes the <a href="#the-application-programming-interface">Application Programming Interface (API)</a>
-    defined in this specification. It MUST implement the <code>json-ld-1.0</code>
-    processing mode (for further details, see the
-    <code class="idlMemberName"><a href="#widl-JsonLdOptions-processingMode">processingMode</a></code>
-    option of <a>JsonLdOptions</a>).</p>
-
-  <p><tref title="JSON-LD Processor">JSON-LD Processors</tref> and
-    <tref title="JSON-LD API Implementation">API Implementations</tref> MUST NOT
+  <p><tref title="JSON-LD Processor">JSON-LD Processors</tref> MUST NOT
     attempt to correct malformed <tref title="IRI">IRIs</tref> or language tags;
     however, they MAY issue validation warnings. IRIs are not modified other
     than conversion between <tref title="relative IRI">relative</tref> and
@@ -658,8 +646,7 @@
     defined in this specification.</p>
 
   <p>The algorithms in this specification are generally written with more concern for clarity
-    than efficiency. Thus, <tref title="JSON-LD Processor">JSON-LD Processors</tref>
-    and <tref title="JSON-LD API Implementation">API Implementations</tref> may
+    than efficiency. Thus, <tref title="JSON-LD Processor">JSON-LD Processors</tref> may
     implement the algorithms given in this specification in any way desired,
     so long as the end result is indistinguishable from the result that would
     be obtained by the specification's algorithms.</p>
@@ -953,7 +940,7 @@
               document (which might be different from the currently being processed context),
               if available; otherwise to <tref>null</tref>. If set, the
               <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code>
-              option of a <tref>JSON-LD API Implementation</tref> overrides the <tref>base IRI</tref>.</li>
+              option of a JSON-LD API Implementation overrides the <tref>base IRI</tref>.</li>
             <li>If <i>context</i> is a <tref>string</tref>,
               <ol class="algorithm">
                 <li>Set <i>context</i> to the result of resolving <i>value</i> against
@@ -3820,54 +3807,39 @@
 </section>
 
 
-<section>
+<section class="informative">
   <h2>The Application Programming Interface</h2>
 
   <p>This API provides a clean mechanism that enables developers to convert
     JSON-LD data into a variety of output formats that are often easier to
-    work with. A conformant <tref>JSON-LD API Implementation</tref> MUST
-    implement the entirety of the following API.</p>
+    work with.</p>
 
   <p>The JSON-LD API uses <tref title="Promise">Promises</tref> to represent
     the result of the various asynchronous operations.
-    <tdef title="Promise">Promises</tdef> are defined in
-    <cite><a href="http://dom.spec.whatwg.org/#promises">section&nbsp;4 Promises</a></cite>
-    of [[!DOM-WHATWG]].</p>
+    <tdef title="Promise">Promises</tdef> are temporarily being drafted on
+    <cite><a href="https://github.com/domenic/promises-unwrapping/blob/master/README.md">GitHub</a></cite>
+    [[!PROMISES]] but are expected to be standardized as part of ECMAScript&nbsp;6.</p>
 
-    <div class="issue atrisk" id="at-risk-8" data-number="8" title="Properly referencing the DOM Promises spec">
-      <p class="atrisk-head">Note: This feature is
-        <a href="http://www.w3.org/2005/10/Process-20051014/tr#cfi">"at risk"</a> and may
-        be removed or modified heavily from the feature described in this specification
-        based on reviewer feedback. Please send feedback to
-        <a href="mailto:public-rdf-comments@w3.org">public-rdf-comments@w3.org</a>.
-        For the current status see
-        <a href="http://www.w3.org/2011/rdf-wg/wiki/JSON-LD_Features_at_Risk">features "at risk" in JSON-LD 1.0</a></p>
-      <p>The JSON-LD API specification currently only refers to the "Promise" interface and does not attempt to provide any details on the specific implementation of Promises. That is, it does not reference whether or not '.then()' must be specified. This is done in order to allow for some implementation flexibility in the event the DOM Promises spec changes. The editors of the WHATWG DOM specification have asserted that the Promise interface is ready to be incorporated into specifications. The issue relates to how to properly refer to a spec living in the WHATWG as a living standard as well as how to ensure that the interface provided by the spec is stable.</p>
-    </div>
-
-  <section>
+  <section class="informative">
     <h3>The <a>JsonLdProcessor</a> Interface</h3>
 
     <p>The <a>JsonLdProcessor</a> interface is the high-level programming structure
       that developers use to access the JSON-LD transformation methods.</p>
 
-    <p>It is important to highlight that conformant
-      <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>
-      MUST NOT modify the input parameters. If an error is detected, the Promise is
+    <p>It is important to highlight that implementations do not modify the input parameters.
+      If an error is detected, the Promise is
       rejected passing a <a>JsonLdError</a> with the corresponding error
       <code class="idlMemberName"><a href="#widl-JsonLdError-code">code</a></code>
       and processing is stopped.</p>
 
     <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code>
-      option is specified, a conformant <tref>JSON-LD Processor</tref> MUST use it to dereference remote documents
-      and contexts. The <code class="idlMemberName"><a href="#widl-RemoteDocument-documentUrl">documentUrl</a></code>
+      option is specified, it is used to dereference remote documents and contexts.
+      The <code class="idlMemberName"><a href="#widl-RemoteDocument-documentUrl">documentUrl</a></code>
       in the returned <code class="idlMemberName"><a href="#idl-def-RemoteDocument">RemoteDocument</a></code>
       is used as <tref>base IRI</tref> and the
       <code class="idlMemberName"><a href="#widl-RemoteDocument-contextUrl">contextUrl</a></code>
       is used instead of looking at the HTTP Link Header directly. For the sake of simplicity, none of the algorithms
-      in this document mention this directly. <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>
-      are not required to implement the
-      <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code> option.</p>
+      in this document mention this directly.</p>
 
     <dl title="[Constructor] interface JsonLdProcessor" class="idl">
       <dt>Promise compact()</dt>
@@ -4080,7 +4052,7 @@
     </div>
   </section> <!-- end of JsonLdProcessor -->
 
-  <section>
+  <section class="informative">
     <h3>The <a>JsonLdOptions</a> Type</h3>
 
     <p>The <a>JsonLdOptions</a> type is used to pass various options to the
@@ -4097,33 +4069,32 @@
       </dd>
       <dt>LoadDocumentCallback documentLoader = null</dt>
       <dd>The callback of the loader to be used to retrieve remote documents and contexts.
-        If specified, it MUST be used to retrieve remote documents and contexts; otherwise,
-        if not specified, the processor's built-in loader MUST be used.</dd>
+        If specified, it is used to retrieve remote documents and contexts; otherwise,
+        if not specified, the processor's built-in loader is used.</dd>
       <dt>(object? or DOMString) expandContext = null</dt>
       <dd>A context that is used to initialize the active context when expanding a document.</dd>
       <dt>DOMString processingMode = "json-ld-1.0"</dt>
-      <dd>If set to <code>json-ld-1.0</code>, the JSON-LD processor MUST produce
+      <dd>If set to <code>json-ld-1.0</code>, the implementation has to produce
         exactly the same results as the algorithms defined in this specification.
         If set to another value, the JSON-LD processor is allowed to extend
         or modify the algorithms defined in this specification to enable
         application-specific optimizations. The definition of such
         optimizations is beyond the scope of this specification and thus
-        not defined. Consequently, different implementations MAY implement
-        different optimizations. Developers MUST NOT define modes beginning
+        not defined. Consequently, different implementations may implement
+        different optimizations. Developers must not define modes beginning
         with <code>json-ld</code> as they are reserved for future versions
         of this specification.</dd>
     </dl>
   </section> <!-- end JsonLdOptions -->
 
-  <section>
+  <section class="informative">
     <h3>Remote Document and Context Retrieval</h3>
 
-    <p>Developers can utilize a callback to control how remote documents and contexts are retrieved
-      by <tref title="JSON-LD API Implementation">JSON-LD API Implementations</tref>.
-      This section details the parameters of that callback and the data structure
-      used to return the retrieved context.</p>
+    <p>Users of an API implementation can utilize a callback to control how remote
+      documents and contexts are retrieved. This section details the parameters of
+      that callback and the data structure used to return the retrieved context.</p>
 
-    <section>
+    <section class="informative">
       <h3>LoadDocumentCallback</h3>
 
       <p>The <a>LoadDocumentCallback</a> defines a callback that custom document loaders
@@ -4134,14 +4105,14 @@
         <dd>The URL of the remote document or context to load.</dd>
       </dl>
 
-      <p>All errors MUST result in the <tref>Promise</tref> being rejected with
+      <p>All errors result in the <tref>Promise</tref> being rejected with
         a <a>JsonLdError</a> whose code is set to
         <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
         or <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
         as described in the next section.</p>
     </section>
 
-    <section>
+    <section class="informative">
       <h3>RemoteDocument</h3>
 
       <p>The <a>RemoteDocument</a> type is used by a <a>LoadDocumentCallback</a>
@@ -4152,9 +4123,9 @@
         <dd>If available, the value of the HTTP Link Header [[!RFC5988]] using the
           <code>http://www.w3.org/ns/json-ld#context</code> link relation in the
           response. If the response's content type is <code>application/ld+json</code>,
-          the HTTP Link Header MUST be ignored. If multiple HTTP Link Headers using
+          the HTTP Link Header is ignored. If multiple HTTP Link Headers using
           the <code>http://www.w3.org/ns/json-ld#context</code> link relation are found,
-          the <tref>Promise</tref> of the <a>LoadDocumentCallback</a> MUST be rejected with
+          the <tref>Promise</tref> of the <a>LoadDocumentCallback</a> is rejected with
           a <a>JsonLdError</a> whose code is set to
           <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>.</dd>
         <dt>DOMString documentUrl</dt>
@@ -4167,7 +4138,7 @@
     </section>
   </section> <!-- end of Remote Document and Context Retrieval -->
 
-  <section>
+  <section class="informative">
     <h3>Error Handling</h3>
 
     <p>This section describes the datatype definitions used within the
@@ -4189,7 +4160,7 @@
       </dl>
     </section>
 
-    <section>
+    <section class="informative">
       <h4>JsonLdErrorCode</h4>
       <p>The <a>JsonLdErrorCode</a> represents the collection of valid JSON-LD error
         codes.</p>
