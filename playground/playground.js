@@ -9,6 +9,13 @@
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
+  
+  // the codemirror editors
+  playground.editors = {
+    markup: null,
+    frame: null,
+    context: null
+  };
 
   // set the active tab to the compacted view
   playground.activeTab = 'tab-compacted';
@@ -159,6 +166,26 @@
     if(window.location.search) {
       playground.processQueryParameters();
     }
+    
+    var processTimer = null;
+    
+    $.each(playground.editors, function(key){
+      playground.editors[key] = CodeMirror.fromTextArea(document.getElementById(key), {
+        lineNumbers: true,
+        matchBrackets: true,
+        lineWrapping: true,
+        mode: "application/json",
+        gutters: ["CodeMirror-lint-markers"],
+        lint: true
+      });
+      
+    // set up 'process' areas to process JSON-LD after typing
+    playground.editors[key].on("change",
+      function() {
+        clearTimeout(processTimer);
+        processTimer = setTimeout(playground.process, 500);
+      });
+    });
   };
 
   /**
@@ -172,9 +199,8 @@
     if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
       ui.tab.id === 'tab-framed') {
       // these options require more UI inputs, so compress UI space
-     $('#markup').addClass('compressed');
-     $('#markup').removeClass('span12');
-     $('#markup').addClass('span6');
+     $('#markup-div').removeClass('span12');
+     $('#markup-div').addClass('span6');
 
       if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
@@ -191,9 +217,8 @@
       // else no input textarea required
       $('#context-div').hide();
       $('#frame-div').hide();
-      $('#markup-div').removeClass('compressed');
-      $('#markup').removeClass('span6');
-      $('#markup').addClass('span12');
+      $('#markup-div').removeClass('span6');
+      $('#markup-div').addClass('span12');
       $('#param-type').html('');
     }
 
@@ -281,7 +306,7 @@
     $('#using-context-map table tbody').empty();
     playground.activeContextMap = {};
     var errors = false;
-    var markup = $('#markup').val();
+    var markup = playground.editors.markup.getValue();
 
     // nothing to process
     if(markup === '') {
@@ -304,11 +329,11 @@
 
     if(playground.activeTab === 'tab-compacted' ||
       playground.activeTab === 'tab-flattened') {
-      jsonParam = $('#context').val();
+      jsonParam = playground.editors.context.getValue();
       needParam = true;
     }
     else if(playground.activeTab === 'tab-framed') {
-      jsonParam = $('#frame').val();
+      jsonParam = playground.editors.frame.getValue();
       needParam = true;
     }
 
@@ -335,11 +360,11 @@
     playground.performAction(input, param).then(function() {
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if($('#frame').val().length > 0) {
-        link += '&frame=' + encodeURIComponent($('#frame').val());
+      if(playground.editors.frame.getValue().length > 0) {
+        link += '&frame=' + encodeURIComponent(playground.editors.frame.getValue());
       }
-      if($('#context').val().length > 0) {
-        link += '&context=' + encodeURIComponent($('#context').val());
+      if(playground.editors.context.getValue().length > 0) {
+        link += '&context=' + encodeURIComponent(playground.editors.context.getValue());
       }
 
       // Start at the currently active tab
@@ -406,28 +431,28 @@
     if('markup' in data && data.markup !== null) {
       hasData = true;
       // fill the markup box with the example
-      $('#markup').val(js_beautify(
+      playground.editors.markup.setValue(js_beautify(
         data.markup, {'indent_size': 2, 'brace_style': 'expand'}));
     }
 
     if('frame' in data && data.frame !== null) {
       hasData = true;
       // fill the frame input box with the given frame
-      $('#frame').val(js_beautify(
+      playground.editors.frame.setValue(js_beautify(
         data.frame, {'indent_size': 2, 'brace_style': 'expand'}));
     }
     else {
-      $('#frame').val('{}');
+      playground.editors.frame.setValue('{}');
     }
 
     if('context' in data && data.context !== null) {
       hasData = true;
       // fill the context input box with the given context
-      $('#context').val(js_beautify(
+      playground.editors.context.setValue(js_beautify(
         data.context, {'indent_size': 2, 'brace_style': 'expand'}));
     }
     else {
-      $('#context').val('{}');
+      playground.editors.context.setValue('{}');
     }
 
     if(hasData) {
@@ -507,12 +532,6 @@
       });
     });
 
-    // set up 'process' areas to process JSON-LD after typing
-    var processTimer = null;
-    $('.process').keyup(function() {
-      clearTimeout(processTimer);
-      processTimer = setTimeout(playground.process, 500);
-    });
 
     $('#use-context-map').change(function() {
       playground.process();
