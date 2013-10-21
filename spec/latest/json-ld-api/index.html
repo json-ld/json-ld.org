@@ -224,11 +224,13 @@
       <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code> option.</li>
   </ul>
 
-  <p>Before this specification exits Candidate Recommendation, two or more
-    independent implementations must pass each test, although no single
-    implementation must pass each test. The working group will decide when
-    the test suite is of sufficient quality to test interoperability and will
-    produce an implementation report (hosted together with the test suite).</p>
+  <p>Changes since the
+    <a href="http://www.w3.org/TR/2013/CR-json-ld-api-20130910/">10&nbsp;September&nbsp;2013 Candidate Recommendation</a>:</p>
+
+  <ul>
+    <li>Fixed a bug that relabeled blank node identifiers used with reverse properties inconsistently when
+      creating a node map .</li>
+  </ul>
 </section>
 
 
@@ -2993,7 +2995,23 @@
             <li>If <i>graph</i> does not contain a member <i>id</i>, create one and initialize
               its value to a <tref>JSON object</tref> consisting of a single member <code>@id</code> whose
               value is <i>id</i>.</li>
-            <li>If <tref>active property</tref> is not <tref>null</tref>, perform the following steps:
+            <li>Reference the value of the <i>id</i> member of <i>graph</i> using the
+              variable <i>node</i>.</li>
+            <li>If <tref>active subject</tref> is a <tref>JSON object</tref>, a reverse property relationship
+              is being processed. Perform the following steps:
+              <ol class="algorithm">
+                <li>If <i>node</i> does not have an <tref>active property</tref> member,
+                  create one and initialize its value to an <tref>array</tref>
+                  containing <tref>active subject</tref>.</li>
+                <li>Otherwise, compare <tref>active subject</tref> against every item in the
+                  <tref>array</tref> associated with the <tref>active property</tref>
+                  member of <i>node</i>. If there is no item equivalent to <tref>active subject</tref>,
+                  append <tref>active subject</tref> to the <tref>array</tref>. Two
+                  <tref title="JSON object">JSON objects</tref> are considered
+                  equal if they have equivalent key-value pairs.</li>
+              </ol>
+            </li>
+            <li>Otherwise, if <tref>active property</tref> is not <tref>null</tref>, perform the following steps:
               <ol class="algorithm">
                 <li>Create a new <tref>JSON object</tref> <i>reference</i> consisting of a single member
                   <code>@id</code> whose value is <i>id</i>.</li>
@@ -3013,8 +3031,6 @@
                 <li>Otherwise, append <i>element</i> to the <code>@list</code> member of <i>list</i>.</li>
               </ol>
             </li>
-            <li>Reference the value of the <i>id</i> member of <i>graph</i> using the
-              variable <i>node</i>.</li>
             <li>If <i>element</i> has an <code>@type</code> key, append
               each item of its associated <tref>array</tref> to the
               <tref>array</tref> associated with the <code>@type</code> key of
@@ -3036,11 +3052,12 @@
                   <ol class="algorithm">
                     <li>For each <i>value</i> of <i>values</i>:
                       <ol class="algorithm">
-                        <li>If <i>value</i> has a <i>property</i> member, append <i>referenced node</i> to
-                          its value; otherwise create a <i>property</i> member whose value is an
-                          <tref>array</tref> containing <i>referenced node</i>.</li>
                         <li>Recursively invoke this algorithm passing <i>value</i> for
-                          <i>element</i>, <i>node map</i>, and <tref>active graph</tref>.</li>
+                          <i>element</i>, <i>node map</i>, <tref>active graph</tref>,
+                          <i>referenced node</i> for <tref>active subject</tref>, and
+                          <i>property</i> for <tref>active property</tref>. Passing a
+                          <tref>JSON object</tref> for <tref>active subject</tref> indicates to the
+                          algorithm that a reverse property relationship is being processed.</li>
                       </ol>
                     </li>
                   </ol>
