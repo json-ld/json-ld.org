@@ -176,6 +176,7 @@
         lineWrapping: true,
         mode: "application/json",
         gutters: ["CodeMirror-lint-markers"],
+        theme: "elegant",
         lint: true
       });
       
@@ -532,9 +533,23 @@
       });
     });
 
-
     $('#use-context-map').change(function() {
       playground.process();
+    });
+    
+    $('#theme-select a').click(function(evt){
+      var theme = evt.currentTarget.text;
+      
+      $("#theme-name").text(theme);
+      
+      $('#theme-stylesheet').prop("href",
+        "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
+        theme + ".css" 
+      );
+      
+      for(var key in playground.editors){
+        playground.editors[key].setOption("theme", theme);
+      }
     });
   });
 
