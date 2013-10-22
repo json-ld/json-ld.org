@@ -393,6 +393,11 @@ jsonld.flatten = function(input, ctx, options, callback) {
     callback = options;
     options = {};
   }
+  else if(typeof ctx === 'function') {
+    callback = ctx;
+    ctx = null;
+    options = {};
+  }
   options = options || {};
 
   // set default options
@@ -3883,10 +3888,14 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
         var items = reverseMap[reverseProperty];
         for(var ii = 0; ii < items.length; ++ii) {
           var item = items[ii];
+          var itemName = item['@id'];
+          if(_isBlankNode(item)) {
+            itemName = namer.getName(itemName);
+          }
+          _createNodeMap(item, graphs, graph, namer, itemName);
           jsonld.addValue(
-            item, reverseProperty, referencedNode,
+            subjects[itemName], reverseProperty, referencedNode,
             {propertyIsArray: true, allowDuplicate: false});
-          _createNodeMap(item, graphs, graph, namer);
         }
       }
       continue;
