@@ -205,10 +205,10 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
           ch = stream.peek();
           
           if(ch === "@" && stream.match(ldKeywordRE)){
-            ty_st = ret("jsonld-keyword", "keyword");
+            ty_st = ret("jsonld-keyword", "meta");
           }
           else if(ch === "h" && stream.match(ldUriRE)){
-            ty_st = ret("jsonld-uri", "string-2");
+            ty_st = ret("jsonld-uri", "link");
           }
           
           // consume the quote, reset the tokenizer
