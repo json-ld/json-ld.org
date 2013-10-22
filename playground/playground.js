@@ -174,7 +174,7 @@
         lineNumbers: true,
         matchBrackets: true,
         lineWrapping: true,
-        mode: "application/json",
+        mode: "application/ld+json",
         gutters: ["CodeMirror-lint-markers"],
         theme: "elegant",
         lint: true

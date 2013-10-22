@@ -28,7 +28,8 @@
 CodeMirror.defineMode("javascript", function(config, parserConfig) {
   var indentUnit = config.indentUnit;
   var statementIndent = parserConfig.statementIndent;
-  var jsonMode = parserConfig.json;
+  var jsonldMode = parserConfig.jsonld;
+  var jsonMode = parserConfig.json || jsonldMode;
   var isTS = parserConfig.typescript;
 
   // Tokenizer
@@ -161,6 +162,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
       return ret("string", "string");
     };
   }
+  
 
   function jsTokenComment(stream, state) {
     var maybeEnd = false, ch;
@@ -177,6 +179,46 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   // Parser
 
   var atomicTypes = {"atom": true, "number": true, "variable": true, "string": true, "regexp": true, "this": true};
+
+
+  // patches for JSON-LD
+  if(jsonldMode){
+    (function(){
+      var ldAtomicTypes = ["jsonld-keyword", "jsonld-uri"],
+        ldKeywords = "context|id|value|language|type|container|list|"+
+          "set|reverse|index|base|vocab|graph",
+        ldEndQuote = "(?=\")",
+        ldKeywordRE = new RegExp("^@(" + ldKeywords + ")" + ldEndQuote),
+        ldUriRE = new RegExp("https?://[^\"]+" + ldEndQuote);
+      
+      for(var atom in ldAtomicTypes){
+        atomicTypes[atom] = true;
+      }
+      
+      jsTokenString = function(quote){
+        var ty_st, ch;
+        return function(stream, state) {
+          ty_st = null;
+          
+          // check out the first character to avoid doing regex every time
+          ch = stream.peek();
+          
+          if(ch === "@" && stream.match(ldKeywordRE)){
+            ty_st = ret("jsonld-keyword", "keyword");
+          }
+          else if(ch === "h" && stream.match(ldUriRE)){
+            ty_st = ret("jsonld-uri", "string-2");
+          }
+          
+          // consume the quote, reset the tokenizer
+          if (!nextUntilUnescaped(stream, quote))
+            state.tokenize = jsTokenBase;
+          
+          return ty_st || ret("string", "string");
+        };
+      };
+    })();
+  }
 
   function JSLexical(indented, column, type, align, prev, info) {
     this.indented = indented;
@@ -501,5 +543,6 @@ CodeMirror.defineMIME("application/javascript", "javascript");
 CodeMirror.defineMIME("application/ecmascript", "javascript");
 CodeMirror.defineMIME("application/json", {name: "javascript", json: true});
 CodeMirror.defineMIME("application/x-json", {name: "javascript", json: true});
+CodeMirror.defineMIME("application/ld+json", {name: "javascript", jsonld: true});
 CodeMirror.defineMIME("text/typescript", { name: "javascript", typescript: true });
 CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript: true });
