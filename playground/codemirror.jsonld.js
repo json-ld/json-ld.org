@@ -184,12 +184,16 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   // patches for JSON-LD
   if(jsonldMode){
     (function(){
-      var ldAtomicTypes = ["jsonld-keyword", "jsonld-uri"],
+      // introduce new string atomic types
+      var ldAtomicTypes = ["jsonld-keyword", "jsonld-iri"],
+        // JSON-LD keywords
+        // http://json-ld.org/spec/latest/json-ld/#syntax-tokens-and-keywords
         ldKeywords = "context|id|value|language|type|container|list|"+
           "set|reverse|index|base|vocab|graph",
-        ldEndQuote = "(?=\")",
-        ldKeywordRE = new RegExp("^@(" + ldKeywords + ")" + ldEndQuote),
-        ldUriRE = new RegExp("https?://[^\"]+" + ldEndQuote),
+        ldKeywordRE = new RegExp("^@(" + ldKeywords + ")(?=\")"),
+        // This is not an implementation of an IRI.
+        // http://www.ietf.org/rfc/rfc3987.txt
+        ldIriRE = new RegExp("([\.\/]|https?://)[^\"]*(?=\")"),
         i = ldAtomicTypes.length;
       
       while(i--){
@@ -204,11 +208,13 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
           // check out the first character to avoid doing regex every time
           ch = stream.peek();
           
+          // match keywords
           if(ch === "@" && stream.match(ldKeywordRE)){
             ty_st = ret("jsonld-keyword", "meta");
           }
-          else if(ch === "h" && stream.match(ldUriRE)){
-            ty_st = ret("jsonld-uri", "link");
+          // match 
+          else if(~("h/.".indexOf(ch)) && stream.match(ldIriRE)){
+            ty_st = ret("jsonld-iri", "link");
           }
           
           // consume the quote, reset the tokenizer
