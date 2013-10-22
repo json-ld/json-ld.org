@@ -47,6 +47,7 @@ function getDrafts($spec)
     $fcgs = @scandir('FCGS/' . $spec);
     $wd = @scandir('WD/' . $spec);
     $cr = @scandir('CR/' . $spec);
+    $pr = @scandir('PR/' . $spec);
 
     $all = array();
 
@@ -88,6 +89,16 @@ function getDrafts($spec)
             }
 
             $all[$date] = 'CR/' . $spec . $date;
+        }
+    }
+
+    if ($pr) {
+        foreach ($pr as $date) {
+            if ('.' === $date[0]) {
+                continue;
+            }
+
+            $all[$date] = 'PR/' . $spec . $date;
         }
     }
 
