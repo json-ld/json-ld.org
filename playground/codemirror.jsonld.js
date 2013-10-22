@@ -189,10 +189,11 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
           "set|reverse|index|base|vocab|graph",
         ldEndQuote = "(?=\")",
         ldKeywordRE = new RegExp("^@(" + ldKeywords + ")" + ldEndQuote),
-        ldUriRE = new RegExp("https?://[^\"]+" + ldEndQuote);
+        ldUriRE = new RegExp("https?://[^\"]+" + ldEndQuote),
+        i = ldAtomicTypes.length;
       
-      for(var atom in ldAtomicTypes){
-        atomicTypes[atom] = true;
+      while(i--){
+        atomicTypes[ldAtomicTypes[i]] = true;
       }
       
       jsTokenString = function(quote){
