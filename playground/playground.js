@@ -16,6 +16,13 @@
     frame: null,
     context: null
   };
+  
+  // the last parsed version of same
+  playground.lastParsed = {
+    markup: null,
+    frame: null,
+    context: null
+  };
 
   // set the active tab to the compacted view
   playground.activeTab = 'tab-compacted';
@@ -167,26 +174,52 @@
       playground.processQueryParameters();
     }
     
-    var processTimer = null;
+    $('.popover-info').popover({
+      placement: "bottom",
+      html: true,
+      content: $(".popover-info-content").html()
+    });
+    
+    var processTimer;
+    
+    CodeMirror.commands.autocomplete = function(cm) {
+      CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
+        lastParsed: playground.lastParsed[cm.options._playground_key]
+      });
+    };
+    
+    CodeMirror.commands.at_autocomplete = function(cm){
+      CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
+        isAt: true,
+        lastParsed: playground.lastParsed[cm.options._playground_key]
+      });
+    };
     
     $.each(playground.editors, function(key){
-      playground.editors[key] = CodeMirror.fromTextArea(document.getElementById(key), {
-        lineNumbers: true,
-        matchBrackets: true,
-        lineWrapping: true,
-        mode: "application/ld+json",
-        gutters: ["CodeMirror-lint-markers"],
-        theme: "elegant",
-        lint: true
-      });
+      var editor = playground.editors[key] = CodeMirror.fromTextArea(
+        $("#" + key)[0], {
+          lineNumbers: true,
+          matchBrackets: true,
+          autoCloseBrackets: true,
+          lineWrapping: true,
+          mode: "application/ld+json",
+          gutters: ["CodeMirror-lint-markers"],
+          theme: "elegant",
+          lint: true,
+          extraKeys: {
+            "Ctrl-Space": "autocomplete",
+            "Shift-2": "at_autocomplete"
+          },
+          _playground_key: key
+        });
       
-    // set up 'process' areas to process JSON-LD after typing
-    playground.editors[key].on("change",
-      function() {
-        clearTimeout(processTimer);
-        processTimer = setTimeout(playground.process, 500);
-      });
-    });
+      // set up 'process' areas to process JSON-LD after typing
+      editor
+        .on("change", function() {
+          clearTimeout(processTimer);
+          processTimer = setTimeout(playground.process, 500);
+        });
+    }); // each
   };
 
   /**
@@ -317,6 +350,7 @@
     // check to see if the JSON-LD markup is valid JSON
     try {
       var input = JSON.parse(markup);
+      playground.lastParsed.markup = input;
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
@@ -327,20 +361,24 @@
     var needParam = false;
     var param = null;
     var jsonParam = null;
+    var paramType = null;
 
     if(playground.activeTab === 'tab-compacted' ||
       playground.activeTab === 'tab-flattened') {
       jsonParam = playground.editors.context.getValue();
       needParam = true;
+      paramType = "context";
     }
     else if(playground.activeTab === 'tab-framed') {
       jsonParam = playground.editors.frame.getValue();
       needParam = true;
+      paramType = "frame";
     }
 
     if(needParam) {
       try {
         param = JSON.parse(jsonParam);
+        playground.lastParsed[paramType] = param;
       }
       catch(e) {
         $('#param-errors').text($('#param-type').text() + ' - ' + e);
@@ -538,13 +576,14 @@
     });
     
     $('#theme-select a').click(function(evt){
-      var theme = evt.currentTarget.text;
+      var theme = evt.currentTarget.text,
+        file = evt.currentTarget.title ? evt.currentTarget.title : theme;
       
       $("#theme-name").text(theme);
       
       $('#theme-stylesheet').prop("href",
         "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
-        theme + ".css" 
+        file + ".css" 
       );
       
       for(var key in playground.editors){
