@@ -206,10 +206,7 @@
           gutters: ["CodeMirror-lint-markers"],
           theme: "elegant",
           lint: true,
-          extraKeys: {
-            "Ctrl-Space": "autocomplete",
-            "Shift-2": "at_autocomplete"
-          },
+          extraKeys: {"Ctrl-Space": "autocomplete"},
           _playground_key: key
         });
       

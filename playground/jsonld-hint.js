@@ -31,7 +31,7 @@
   function keywordsLike(str){
     str = str ? String(str).trim() : "";
     var result = accum(ldKeywords, function(_, kw, i){
-      !str || ~kw.indexOf(str) ? _('"@' + kw + '"') : null;
+      !str || ~kw.indexOf(str) ? _('@' + kw) : null;
     });
     
     if(str){ result.sort(relevanceComparator(str)); }
@@ -47,7 +47,7 @@
     if(doc && (ctx = doc["@context"])){
       for(key in ctx){
         if(!ctx.hasOwnProperty(key)){ return; }
-        !str || ~key.indexOf(str) ? result.push("\"" + key + "\"") : null;
+        !str || ~key.indexOf(str) ? result.push(key) : null;
       }
     }
     return result;
@@ -76,14 +76,14 @@
       
       word = token.string,
       start = token.start,
-      end = token.end,
+      end = token.end + -1 * (word.slice(-1) === '"'),
       
       match;
       
     function suggest(suggestions){
       return {
         list: suggestions,
-        from: Pos(cur.line, start),
+        from: Pos(cur.line, start + 1),
         to: Pos(cur.line, end)
       }; 
     }
@@ -111,7 +111,7 @@
       return suggest(keywordsLike(match[1]));
     }
     
-    return suggest(keywordsLike(word).concat(contextLike(word, lastParsed)));
+    return suggest(contextLike(word, lastParsed).concat(keywordsLike(word)));
 
   });
 }).call(this, CodeMirror, CodeMirror.Pos);
