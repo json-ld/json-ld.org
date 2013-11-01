@@ -78,7 +78,8 @@
       start = token.start,
       end = token.end + -1 * (word.slice(-1) === '"'),
       
-      match;
+      match,
+      stripped = false;
       
     function suggest(suggestions){
       return {
@@ -95,9 +96,11 @@
       // i just made an empty list and typed "@"...
       word = "";
       start++;
+      stripped = true;
     }else if(word.match(/^"/)){
       // i just started a quoted string...
       word = word.replace(/(^"|"$)/g, "");
+      stripped = true;
     }
     
     if(isAt){
@@ -105,6 +108,8 @@
       if(!~word.indexOf("@")){
         // and the user is expecting a @
         editor.replaceSelection("@", "end", "+input");
+      }else if(!stripped){
+        start--;
       }
       return suggest(keywordsLike(word.replace("@", "")));
     }else if(match = word.match(/^"?@(.*)/)){
