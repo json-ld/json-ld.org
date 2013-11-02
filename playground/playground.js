@@ -207,18 +207,26 @@
           theme: "elegant",
           lint: true,
           extraKeys: {
-            "Ctrl-Space": "autocomplete",
-            "Shift-2": "at_autocomplete"
+            "Ctrl-Space": "autocomplete"
           },
           _playground_key: key
         });
       
       // set up 'process' areas to process JSON-LD after typing
-      editor
-        .on("change", function() {
-          clearTimeout(processTimer);
-          processTimer = setTimeout(playground.process, 500);
-        });
+      editor.on("change", function() {
+        clearTimeout(processTimer);
+        processTimer = setTimeout(playground.process, 500);
+      });
+      
+      // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
+      editor.on("keyup", function(editor, evt){
+        var cursor = editor.getCursor(),
+          token = editor.getTokenAt(cursor),
+          chr = token.string[cursor.ch - token.start - 1];
+        if(chr === "@"){
+          CodeMirror.commands.at_autocomplete(editor, evt);
+        }
+      });
     }); // each
   };
 
