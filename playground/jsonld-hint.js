@@ -30,12 +30,15 @@
   
   function keywordsLike(str){
     str = str ? String(str).trim() : "";
-    var result = accum(ldKeywords, function(_, kw, i){
+    var result = accum(ldKeywords, function(_, kw){
       !str || ~kw.indexOf(str) ? _('@' + kw) : null;
     });
     
     if(str){ result.sort(relevanceComparator(str)); }
-    return result;
+    
+    return accum(result, function(_, kw){
+      _({text: kw, className: "cm-meta"});
+    });
   }
   
   function contextLike(str, doc){
