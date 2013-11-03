@@ -195,6 +195,16 @@
       });
     };
     
+    // these are the keys that move the cursor
+    var noHint = [
+      8, // backspace
+      9, // hey! where's my tab?
+      33, 34, 35, 46, // pg/home/end
+      37, 38, 39, 40, // arrows
+      12, // enter
+      27 //escape
+    ];
+    
     $.each(playground.editors, function(key){
       var editor = playground.editors[key] = CodeMirror.fromTextArea(
         $("#" + key)[0], {
@@ -207,7 +217,8 @@
           theme: "elegant",
           lint: true,
           extraKeys: {
-            "Ctrl-Space": "autocomplete"
+            "Ctrl-Space": "autocomplete",
+            "U+0040": "at_autocomplete"
           },
           _playground_key: key
         });
@@ -220,6 +231,7 @@
       
       // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
       editor.on("keyup", function(editor, evt){
+        if(noHint.indexOf(evt.keyCode) >= 0){ return; }
         var cursor = editor.getCursor(),
           token = editor.getTokenAt(cursor),
           chr = token.string[cursor.ch - token.start - 1];
