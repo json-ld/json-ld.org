@@ -217,8 +217,7 @@
           theme: "elegant",
           lint: true,
           extraKeys: {
-            "Ctrl-Space": "autocomplete",
-            "U+0040": "at_autocomplete"
+            "Ctrl-Space": "autocomplete"
           },
           _playground_key: key
         });
