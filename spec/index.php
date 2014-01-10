@@ -40,65 +40,22 @@
 
 function getDrafts($spec)
 {
-    $spec .= '/';
+    $specStatuses = array('ED', 'FCGS', 'WD', 'CR', 'PR', 'REC');
+    $spec .= DIRECTORY_SEPARATOR;
 
-    // Find all drafts
-    $ed = @scandir('ED/' . $spec);
-    $fcgs = @scandir('FCGS/' . $spec);
-    $wd = @scandir('WD/' . $spec);
-    $cr = @scandir('CR/' . $spec);
-    $pr = @scandir('PR/' . $spec);
-
+    // Find all drafts and store them in date -> directory form
     $all = array();
+    foreach ($specStatuses as $status) {
+        $dates = @scandir($status . DIRECTORY_SEPARATOR . $spec);
 
-    // Transform the arrays to date -> directory form
-    if ($ed) {
-        foreach ($ed as $date) {
-            if ('.' === $date[0]) {
-                continue;
+        if ($dates) {
+            foreach ($dates as $date) {
+                if ('.' === $date[0]) {
+                    continue;
+                }
+
+                $all[$date] = $status . DIRECTORY_SEPARATOR . $spec . $date;
             }
-
-            $all[$date] = 'ED/' . $spec . $date;
-        }
-    }
-
-    if ($fcgs) {
-        foreach ($fcgs as $date) {
-            if ('.' === $date[0]) {
-                continue;
-            }
-
-            $all[$date] = 'FCGS/' . $spec . $date;
-        }
-    }
-
-    if ($wd) {
-        foreach ($wd as $date) {
-            if ('.' === $date[0]) {
-                continue;
-            }
-
-            $all[$date] = 'WD/' . $spec . $date;
-        }
-    }
-
-    if ($cr) {
-        foreach ($cr as $date) {
-            if ('.' === $date[0]) {
-                continue;
-            }
-
-            $all[$date] = 'CR/' . $spec . $date;
-        }
-    }
-
-    if ($pr) {
-        foreach ($pr as $date) {
-            if ('.' === $date[0]) {
-                continue;
-            }
-
-            $all[$date] = 'PR/' . $spec . $date;
         }
     }
 
