@@ -147,9 +147,10 @@ jsonld.compact = function(input, ctx, options, callback) {
           'jsonld.CompactError', {cause: err}));
       }
 
+      var compacted;
       try {
         // do compaction
-        var compacted = new Processor().compact(
+        compacted = new Processor().compact(
           activeCtx, null, expanded, options);
       }
       catch(ex) {
@@ -326,6 +327,7 @@ jsonld.expand = function(input, options, callback) {
         return callback(err);
       }
 
+      var expanded;
       try {
         var processor = new Processor();
         var activeCtx = _getInitialContext(options);
@@ -345,7 +347,7 @@ jsonld.expand = function(input, options, callback) {
         }
 
         // expand document
-        var expanded = processor.expand(
+        expanded = processor.expand(
           activeCtx, null, document, options, false);
 
         // optimize away @graph with no other properties
@@ -416,9 +418,10 @@ jsonld.flatten = function(input, ctx, options, callback) {
         'jsonld.FlattenError', {cause: err}));
     }
 
+    var flattened;
     try {
       // do flattening
-      var flattened = new Processor().flatten(_input);
+      flattened = new Processor().flatten(_input);
     }
     catch(ex) {
       return callback(ex);
@@ -524,14 +527,15 @@ jsonld.frame = function(input, frame, options, callback) {
   function doFrame(remoteFrame) {
     // preserve frame context and add any Link header context
     var frame = remoteFrame.document;
+    var ctx;
     if(frame) {
-      var ctx = frame['@context'] || {};
+      ctx = frame['@context'] || {};
       if(remoteFrame.contextUrl) {
         if(!ctx) {
           ctx = remoteFrame.contextUrl;
         }
         else if(_isArray(ctx)) {
-          ctx.push[remoteFrame.contextUrl];
+          ctx.push(remoteFrame.contextUrl);
         }
         else {
           ctx = [ctx, remoteFrame.contextUrl];
@@ -562,9 +566,10 @@ jsonld.frame = function(input, frame, options, callback) {
             'jsonld.FrameError', {cause: err}));
         }
 
+        var framed;
         try {
           // do framing
-          var framed = new Processor().frame(expanded, expandedFrame, opts);
+          framed = new Processor().frame(expanded, expandedFrame, opts);
         }
         catch(ex) {
           return callback(ex);
@@ -625,9 +630,10 @@ jsonld.objectify = function(input, ctx, options, callback) {
         'jsonld.FrameError', {cause: err}));
     }
 
+    var flattened;
     try {
       // flatten the graph
-      var flattened = new Processor().flatten(_input);
+      flattened = new Processor().flatten(_input);
     }
     catch(ex) {
       return callback(ex);
@@ -776,9 +782,9 @@ jsonld.normalize = function(input, options, callback) {
  * @param dataset a serialized string of RDF in a format specified by the
  *          format option or an RDF dataset to convert.
  * @param [options] the options to use:
- *          [format] the format if input is not an array:
+ *          [format] the format if dataset param must first be parsed:
  *            'application/nquads' for N-Quads (default).
- *          [rdfParser] a custom RDF-parser to use to parse the input.
+ *          [rdfParser] a custom RDF-parser to use to parse the dataset.
  *          [useRdfType] true to use rdf:type, false to use @type
  *            (default: false).
  *          [useNativeTypes] true to convert XSD types into native types
@@ -817,33 +823,40 @@ jsonld.fromRDF = function(dataset, options, callback) {
 
   jsonld.nextTick(function() {
     // handle special format
+    var rdfParser;
     if(options.format) {
       // check supported formats
-      var rdfParser = options.rdfParser || _rdfParsers[options.format];
+      rdfParser = options.rdfParser || _rdfParsers[options.format];
       if(!rdfParser) {
         throw new JsonLdError(
           'Unknown input format.',
           'jsonld.UnknownFormat', {format: options.format});
       }
+    }
+    else {
+      // no-op parser, assume dataset already parsed
+      rdfParser = function() {
+        return dataset;
+      };
+    }
 
-      // rdf parser may be async or sync, always pass callback
-      dataset = rdfParser(dataset, function(err, dataset) {
-        if(err) {
-          return callback(err);
-        }
-        fromRDF(dataset, options, callback);
-      });
-      // handle synchronous or promise-based parser
-      if(dataset) {
-        // if dataset is actually a promise
-        if('then' in dataset) {
-          return dataset.then(function(dataset) {
-            fromRDF(dataset, options, callback);
-          }, callback);
-        }
-        // parser is synchronous
-        fromRDF(dataset, options, callback);
+    // rdf parser may be async or sync, always pass callback
+    dataset = rdfParser(dataset, function(err, dataset) {
+      if(err) {
+        return callback(err);
       }
+      fromRDF(dataset, options, callback);
+    });
+    // handle synchronous or promise-based parser
+    if(dataset) {
+      // if dataset is actually a promise
+      if('then' in dataset) {
+        return dataset.then(function(dataset) {
+          fromRDF(dataset, options, callback);
+        }, callback);
+      }
+      // parser is synchronous
+      fromRDF(dataset, options, callback);
     }
 
     function fromRDF(dataset, options, callback) {
@@ -897,9 +910,10 @@ jsonld.toRDF = function(input, options, callback) {
         'jsonld.RdfError', {cause: err}));
     }
 
+    var dataset;
     try {
       // output RDF dataset
-      var dataset = Processor.prototype.toRDF(expanded, options);
+      dataset = Processor.prototype.toRDF(expanded, options);
       if(options.format) {
         if(options.format === 'application/nquads') {
           return callback(null, _toNQuads(dataset));
@@ -3139,7 +3153,9 @@ Processor.prototype.processContext = function(activeCtx, localCtx, options) {
           'jsonld.SyntaxError', {code: 'invalid base IRI', context: ctx});
       }
 
-      base = jsonld.url.parse(base || '');
+      if(base !== null) {
+        base = jsonld.url.parse(base || '');
+      }
       rval['@base'] = base;
       defined['@base'] = true;
     }
@@ -3312,7 +3328,7 @@ function _expandValue(activeCtx, activeProperty, value) {
     return value;
   }
 
-  rval = {};
+  var rval = {};
 
   // other type
   if(type !== null) {
@@ -5096,6 +5112,10 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
  * @return the absolute IRI.
  */
 function _prependBase(base, iri) {
+  // skip IRI processing
+  if(base === null) {
+    return iri;
+  }
   // already an absolute IRI
   if(iri.indexOf(':') !== -1) {
     return iri;
@@ -5167,6 +5187,11 @@ function _prependBase(base, iri) {
  * @return the relative IRI if relative to base, otherwise the absolute IRI.
  */
 function _removeBase(base, iri) {
+  // skip IRI processing
+  if(base === null) {
+    return iri;
+  }
+
   if(_isString(base)) {
     base = jsonld.url.parse(base || '');
   }
@@ -5916,7 +5941,7 @@ if(!Object.keys) {
 function _parseNQuads(input) {
   // define partial regexes
   var iri = '(?:<([^:]+:[^>]*)>)';
-  var bnode = '(_:(?:[A-Za-z][A-Za-z0-9]*))';
+  var bnode = '(_:(?:[A-Za-z0-9]+))';
   var plain = '"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"';
   var datatype = '(?:\\^\\^' + iri + ')';
   var language = '(?:@([a-z]+(?:-[a-z0-9]+)*))';
@@ -6275,7 +6300,7 @@ function UniqueNamer(prefix) {
   this.prefix = prefix;
   this.counter = 0;
   this.existing = {};
-};
+}
 
 /**
  * Copies this UniqueNamer.
@@ -6332,7 +6357,7 @@ UniqueNamer.prototype.isNamed = function(oldName) {
  *
  * @param list the array of elements to iterate over.
  */
-Permutator = function(list) {
+var Permutator = function(list) {
   // original array
   this.list = list.sort();
   // indicates whether there are more permutations
@@ -6765,9 +6790,9 @@ _sha1.update = function(s, w, input) {
 
 if(!XMLSerializer) {
 
-function _defineXMLSerializer() {
+var _defineXMLSerializer = function() {
   XMLSerializer = require('xmldom').XMLSerializer;
-}
+};
 
 } // end _defineXMLSerializer
 
