@@ -185,15 +185,12 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   if(jsonldMode){
     (function(){
       // introduce new string atomic types
-      var ldAtomicTypes = ["jsonld-keyword", "jsonld-iri"],
+      var ldAtomicTypes = ["jsonld-keyword"],
         // JSON-LD keywords
         // http://json-ld.org/spec/latest/json-ld/#syntax-tokens-and-keywords
         ldKeywords = "context|id|value|language|type|container|list|"+
           "set|reverse|index|base|vocab|graph",
         ldKeywordRE = new RegExp("^@(" + ldKeywords + ")(?=\")"),
-        // This is not an implementation of an IRI.
-        // http://www.ietf.org/rfc/rfc3987.txt
-        ldIriRE = new RegExp("([\.\/]|https?://)[^\"]*(?=\")"),
         i = ldAtomicTypes.length;
       
       while(i--){
@@ -211,10 +208,6 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
           // match keywords
           if(ch === "@" && stream.match(ldKeywordRE)){
             ty_st = ret("jsonld-keyword", "meta");
-          }
-          // match 
-          else if(~("h/.".indexOf(ch)) && stream.match(ldIriRE)){
-            ty_st = ret("jsonld-iri", "link");
           }
           
           // consume the quote, reset the tokenizer
@@ -401,7 +394,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
       cx.marked = "property";
       if (value == "get" || value == "set") return cont(getterSetter);
     } else if (type == "number" || type == "string") {
-      cx.marked = type + " property";
+      cx.marked = "property";
     }
     if (atomicTypes.hasOwnProperty(type)) return cont(expect(":"), expressionNoComma);
   }
