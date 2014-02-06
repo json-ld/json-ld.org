@@ -9,17 +9,26 @@
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
+  
+  // the codemirror editors
+  playground.editors = {};
+  
+  // ... and outputs
+  playground.outputs = {};
+  
+  // default theme
+  playground.theme = "neat";
+  
+  // the last parsed version of same
+  playground.lastParsed = {
+    markup: null,
+    frame: null,
+    context: null
+  };
 
   // set the active tab to the compacted view
   playground.activeTab = 'tab-compacted';
-
-  // the counter is used to throttle colorization requests in milliseconds
-  playground.colorizeDelay = 500;
-
-  // the colorize timeout is used to keep track of the timeout object of the
-  // colorize delay
-  playground.colorizeTimeout = null;
-
+  
   // map of original to modifed contexts
   playground.contextMap = {
     // FIXME: remove schema.org support once they serve a JSON-LD context
@@ -29,18 +38,6 @@
 
   // map of currently active mapped contexts for user feedback use
   playground.activeContextMap = {};
-
-  /**
-   * Escapes text that will affect HTML markup.
-   *
-   * @param text the string to re-encode as HTML.
-   */
-  playground.htmlEscape = function(text) {
-    // replace each special HTML character in the string
-    return text.replace(/([&<>])/g, function (c) {
-      return '&' + {'&': 'amp', '<': 'lt', '>': 'gt'}[c] + ';';
-    });
-  };
 
   /**
    * Get a query parameter by name.
@@ -56,6 +53,20 @@
     var match = RegExp('[?&]' + name + '=([^&]*)')
       .exec(window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+  };
+  
+  /**
+   * Consistent human-readable JSON formatting
+   *
+   * @param the object or string to humanize
+   *
+   * @return a string containing the humanized string
+   */
+  playground.humanize = function(value) {
+    return js_beautify(
+      $.type(value) === "string" ? value : JSON.stringify(value),
+      {'indent_size': 2, 'brace_style': 'expand'}
+    );
   };
 
   /**
@@ -132,7 +143,8 @@
 
     var startTab = getParameterByName('startTab');
     if(startTab) {
-       $('#' + startTab).trigger('click')
+      // strip 'tab-' to get the tab's panel's ID
+      //$('#tabs').tabs('select', '#' + startTab.substr(4));
     }
 
     // wait for ajax if needed
@@ -153,29 +165,109 @@
    * Used to initialize the UI, call once on document load.
    */
   playground.init = function() {
-    $('#tabs').tabs();
-    $('#tabs').bind('tabsselect', playground.tabSelected);
+    // enable bootstrap tabs
+    $('#tabs a').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    }).on("show", playground.tabSelected);
+    
+    // show keybaord shortcuts
+    $('.popover-info').popover({
+      placement: "left",
+      html: true,
+      content: $(".popover-info-content").html()
+    });
+    
+    
+    CodeMirror.commands.autocomplete = function(cm) {
+      CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
+        lastParsed: playground.lastParsed[cm.options._playground_key]
+      });
+    };
+    
+    CodeMirror.commands.at_autocomplete = function(cm) {
+      CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
+        isAt: true,
+        lastParsed: playground.lastParsed[cm.options._playground_key]
+      });
+    };
+    
+    $(".codemirror-input").each(playground.init.editor);
+    $(".codemirror-output").each(playground.init.output);
+    
     if(window.location.search) {
       playground.processQueryParameters();
     }
+  };
+  
+  playground.init.editor = function(){
+    var key = this.id,
+      editor = playground.editors[key] = CodeMirror.fromTextArea(this, {
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        lineWrapping: true,
+        mode: "application/ld+json",
+        gutters: ["CodeMirror-lint-markers"],
+        theme: playground.theme,
+        lint: true,
+        extraKeys: {
+          "Ctrl-Space": "autocomplete"
+        },
+        _playground_key: key
+      });
+    
+    // set up 'process' areas to process JSON-LD after typing
+    editor.on("change", playground.process);
+    
+    // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
+    editor.on("keyup", function(editor, evt) {
+      // these are the keys that move the cursor
+      var noHint = [
+        8, // backspace
+        9, // hey! where's my tab?
+        33, 34, 35, 46, // pg/home/end
+        37, 38, 39, 40, // arrows
+        12, // enter
+        27 //escape
+      ];
+      
+      if(noHint.indexOf(evt.keyCode) >= 0) { return; }
+      
+      var cursor = editor.getCursor(),
+        token = editor.getTokenAt(cursor),
+        chr = token.string[cursor.ch - token.start - 1];
+      if(chr === "@") {
+        CodeMirror.commands.at_autocomplete(editor, evt);
+      }
+    });
+  };
+  
+  playground.init.output = function() {      
+    var key = this.id,
+      output = playground.outputs[key] = CodeMirror.fromTextArea(this, {
+        readOnly: true,
+        lineWrapping: true,
+        mode: ["normalized", "nquads"].indexOf(key) > -1
+          ? "text/n-triples"
+          : "application/ld+json",
+        theme: playground.theme
+      });
   };
 
   /**
    * Callback for when tabs are selected in the UI.
    *
    * @param event the event that fired when the tab was selected.
-   * @param ui the ui tab object that was selected
    */
-  playground.tabSelected = function(event, ui) {
-    playground.activeTab = ui.tab.id;
-    if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened' ||
-      ui.tab.id === 'tab-framed') {
+  playground.tabSelected = function(evt) {
+    
+    var id = playground.activeTab = evt.target.id;
+    
+    if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
-     $('#markup').addClass('compressed');
-     $('#markup').removeClass('span12');
-     $('#markup').addClass('span6');
+     $('#markup-div').removeClass('span12').addClass('span6');
 
-      if(ui.tab.id === 'tab-compacted' || ui.tab.id === 'tab-flattened') {
+      if(id !== 'tab-framed') {
         $('#param-type').html('JSON-LD Context');
         $('#context-div').show();
         $('#frame-div').hide();
@@ -188,19 +280,13 @@
     }
     else {
       // else no input textarea required
-      $('#context-div').hide();
-      $('#frame-div').hide();
-      $('#markup-div').removeClass('compressed');
-      $('#markup').removeClass('span6');
-      $('#markup').addClass('span12');
+      $('#context-div, #frame-div').hide();
+      $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
 
     // perform processing on the data provided in the input boxes
     playground.process();
-
-    // apply the syntax colorization
-    prettyPrint();
   };
 
   /**
@@ -216,53 +302,58 @@
 
       // set base IRI
       var options = {base: document.baseURI};
-
+      
       if(playground.activeTab === 'tab-compacted') {
         processor.compact(input, param, options).then(function(compacted) {
-          $('#compacted').html(js_beautify(
-            playground.htmlEscape(JSON.stringify(compacted)),
-            {'indent_size': 2}).replace(/\n/g, '<br>'));
+          
+          playground.outputs["compacted"]
+            .setValue(playground.humanize(compacted));
+            
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-expanded') {
         processor.expand(input, options).then(function(expanded) {
-          $('#expanded').html(js_beautify(
-            playground.htmlEscape(JSON.stringify(expanded)),
-            {'indent_size': 2}).replace(/\n/g, '<br>'));
+          
+          playground.outputs["expanded"]
+            .setValue(playground.humanize(expanded));
+            
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-flattened') {
         processor.flatten(input, param, options).then(function(flattened) {
-          $('#flattened').html(js_beautify(
-            playground.htmlEscape(JSON.stringify(flattened)),
-            {'indent_size': 2}).replace(/\n/g, '<br>'));
+          
+          playground.outputs["flattened"]
+            .setValue(playground.humanize(flattened));
+            
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-framed') {
         processor.frame(input, param, options).then(function(framed) {
-          $('#framed').html(js_beautify(
-            playground.htmlEscape(JSON.stringify(framed)),
-            {'indent_size': 2}).replace(/\n/g, '<br>'));
+          
+          playground.outputs["framed"]
+            .setValue(playground.humanize(framed));
+            
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-nquads') {
         options.format = 'application/nquads';
         processor.toRDF(input, options).then(function(nquads) {
-          $('#nquads').html(
-            playground.htmlEscape(nquads).replace(/\n/g, '<br>'));
+          
+          playground.outputs["nquads"].setValue(nquads);
+          
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-normalized') {
         options.format = 'application/nquads';
         processor.normalize(input, options).then(function(normalized) {
-          $('#normalized').html(
-            playground.htmlEscape(normalized).replace(/\n/g, '<br>'));
-          resolver.resolve();
+          
+          playground.outputs["normalized"].setValue(normalized);
+            
         }, resolver.reject);
       }
     });
@@ -280,7 +371,7 @@
     $('#using-context-map table tbody').empty();
     playground.activeContextMap = {};
     var errors = false;
-    var markup = $('#markup').val();
+    var markup = playground.editors.markup.getValue();
 
     // nothing to process
     if(markup === '') {
@@ -290,6 +381,7 @@
     // check to see if the JSON-LD markup is valid JSON
     try {
       var input = JSON.parse(markup);
+      playground.lastParsed.markup = input;
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
@@ -300,20 +392,24 @@
     var needParam = false;
     var param = null;
     var jsonParam = null;
+    var paramType = null;
 
     if(playground.activeTab === 'tab-compacted' ||
       playground.activeTab === 'tab-flattened') {
-      jsonParam = $('#context').val();
+      jsonParam = playground.editors.context.getValue();
       needParam = true;
+      paramType = "context";
     }
     else if(playground.activeTab === 'tab-framed') {
-      jsonParam = $('#frame').val();
+      jsonParam = playground.editors.frame.getValue();
       needParam = true;
+      paramType = "frame";
     }
 
     if(needParam) {
       try {
         param = JSON.parse(jsonParam);
+        playground.lastParsed[paramType] = param;
       }
       catch(e) {
         $('#param-errors').text($('#param-type').text() + ' - ' + e);
@@ -324,9 +420,6 @@
     // errors detected
     if(errors) {
       $('#permalink').hide();
-
-      // start the colorization delay
-      playground.checkColorizeDelay(true);
       return;
     }
 
@@ -334,11 +427,11 @@
     playground.performAction(input, param).then(function() {
       // generate a link for current data
       var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if($('#frame').val().length > 0) {
-        link += '&frame=' + encodeURIComponent($('#frame').val());
+      if(playground.editors.frame.getValue().length > 0) {
+        link += '&frame=' + encodeURIComponent(playground.editors.frame.getValue());
       }
-      if($('#context').val().length > 0) {
-        link += '&context=' + encodeURIComponent($('#context').val());
+      if(playground.editors.context.getValue().length > 0) {
+        link += '&context=' + encodeURIComponent(playground.editors.context.getValue());
       }
 
       // Start at the currently active tab
@@ -354,42 +447,10 @@
       $('#permalink')
         .html(permalink)
         .show();
-
-      // start the colorization delay
-      playground.checkColorizeDelay(true);
     }, function(err) {
       // FIXME: add better error handling output
       $('#processing-errors').text(JSON.stringify(err));
     });
-  };
-
-  /**
-   * Performs a check on the colorize delay. If the delay hits 0, the
-   * markup is colorized.
-   *
-   * @param reset true if the colorization timeout should be reset
-   */
-  playground.checkColorizeDelay = function(reset) {
-    // if the counter reset flag is set, reset the counter
-    if(reset) {
-      playground.colorizeDelay = 500;
-    }
-    else {
-      playground.colorizeDelay -= 250;
-    }
-
-    if(playground.colorizeDelay <= 0) {
-      // if the delay has expired, perform colorization
-      prettyPrint();
-    }
-    else {
-      // if the delay has not expired, continue counting down
-      if(playground.colorizeTimeout) {
-        clearTimeout(playground.colorizeTimeout);
-      }
-      playground.colorizeTimeout =
-        setTimeout(playground.checkColorizeDelay, 250);
-    }
   };
 
   /**
@@ -405,36 +466,30 @@
     if('markup' in data && data.markup !== null) {
       hasData = true;
       // fill the markup box with the example
-      $('#markup').val(js_beautify(
-        data.markup, {'indent_size': 2, 'brace_style': 'expand'}));
+      playground.editors.markup.setValue(playground.humanize(data.markup));
     }
 
     if('frame' in data && data.frame !== null) {
       hasData = true;
       // fill the frame input box with the given frame
-      $('#frame').val(js_beautify(
-        data.frame, {'indent_size': 2, 'brace_style': 'expand'}));
+      playground.editors.frame.setValue(playground.humanize(data.frame));
     }
     else {
-      $('#frame').val('{}');
+      playground.editors.frame.setValue('{}');
     }
 
     if('context' in data && data.context !== null) {
       hasData = true;
       // fill the context input box with the given context
-      $('#context').val(js_beautify(
-        data.context, {'indent_size': 2, 'brace_style': 'expand'}));
+      playground.editors.context.setValue(playground.humanize(data.context));
     }
     else {
-      $('#context').val('{}');
+      playground.editors.context.setValue('{}');
     }
 
     if(hasData) {
       // perform processing on the data provided in the input boxes
       playground.process();
-
-      // apply the syntax colorization
-      prettyPrint();
     }
   };
 
@@ -506,16 +561,29 @@
       });
     });
 
-    // set up 'process' areas to process JSON-LD after typing
-    var processTimer = null;
-    $('.process').keyup(function() {
-      clearTimeout(processTimer);
-      processTimer = setTimeout(playground.process, 500);
-    });
-
     $('#use-context-map').change(function() {
       playground.process();
     });
+    
+    $('#theme-select a').click(function(evt) {
+      var theme = evt.currentTarget.text,
+        file = evt.currentTarget.title ? evt.currentTarget.title : theme,
+        key;
+      
+      $("#theme-name").text(theme);
+      
+      $('#theme-stylesheet').prop("href",
+        "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
+        file + ".css" 
+      );
+      
+      for(key in playground.editors) {
+        playground.editors[key].setOption("theme", theme);
+      }
+      
+      for(key in playground.outputs) {
+        playground.outputs[key].setOption("theme", theme);
+      }
+    });
   });
-
 })(jQuery);
