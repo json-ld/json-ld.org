@@ -173,11 +173,10 @@
     
     // show keybaord shortcuts
     $('.popover-info').popover({
-      placement: "left",
+      placement: "bottom",
       html: true,
       content: $(".popover-info-content").html()
     });
-    
     
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
