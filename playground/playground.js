@@ -240,6 +240,7 @@
         CodeMirror.commands.at_autocomplete(editor, evt);
       }
     });
+    playground.makeResizer(this.parentNode, editor);
   };
   
   playground.init.output = function() {      
@@ -252,8 +253,36 @@
           : "application/ld+json",
         theme: playground.theme
       });
+    playground.makeResizer(this.parentNode, output);
   };
-
+  
+  /**
+   * Make a CodeMirror editor resizeable.
+   *
+   * @param parent the dom element to which the button should be attached
+   * @param target the CodeMirror instance which should become resizeble
+   */
+  playground.makeResizer = function(parent, target){
+    var start_y,
+      start_height,
+      handlers = {},
+      btn = $("<button/>", {"class": "btn btn-mini pull-right"})
+        .css({"width": "100%", "border-radius": "0"})
+        .mousedown(handlers.mousedown = function(evt){
+          start_y = evt.screenY;
+          start_height = target.display.wrapper.clientHeight;
+          $(window)
+            .bind("mousemove.resizer", function(evt){
+              target.setSize(null, start_height - (start_y - evt.screenY));
+            })
+            .bind("mouseup.resizer", function(){
+              $(window).unbind(".resizer");
+              btn.blur();
+            });
+        })
+        .appendTo(parent);
+  };
+  
   /**
    * Callback for when tabs are selected in the UI.
    *
