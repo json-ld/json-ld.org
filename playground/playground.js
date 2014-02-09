@@ -194,6 +194,8 @@
     
     $(".codemirror-input").each(playground.init.editor);
     $(".codemirror-output").each(playground.init.output);
+    playground.makeResizer($("#markup-container"), playground.editors);
+    playground.makeResizer($("#output-container"), playground.outputs);
     
     if(window.location.search) {
       playground.processQueryParameters();
@@ -240,7 +242,6 @@
         CodeMirror.commands.at_autocomplete(editor, evt);
       }
     });
-    playground.makeResizer(this.parentNode, editor);
   };
   
   playground.init.output = function() {      
@@ -253,27 +254,28 @@
           : "application/ld+json",
         theme: playground.theme
       });
-    playground.makeResizer(this.parentNode, output);
   };
   
   /**
-   * Make a CodeMirror editor resizeable.
+   * Make one or more CodeMirror editor resizeable.
    *
    * @param parent the dom element to which the button should be attached
-   * @param target the CodeMirror instance which should become resizeble
+   * @param target the CodeMirror instances to be resized
    */
-  playground.makeResizer = function(parent, target){
+  playground.makeResizer = function(parent, targets){
+    targets = $.map(targets, function(val, key){ return val; });
     var start_y,
       start_height,
       handlers = {},
-      btn = $("<button/>", {"class": "btn btn-mini pull-right"})
-        .css({"width": "100%", "border-radius": "0"})
+      btn = $("<button/>", {"class": "btn resizer"})
         .mousedown(handlers.mousedown = function(evt){
           start_y = evt.screenY;
-          start_height = target.display.wrapper.clientHeight;
+          start_height = targets[0].display.wrapper.clientHeight;
           $(window)
             .bind("mousemove.resizer", function(evt){
-              target.setSize(null, start_height - (start_y - evt.screenY));
+             targets.map(function(tgt){
+                tgt.setSize(null, start_height - (start_y - evt.screenY));
+              });
             })
             .bind("mouseup.resizer", function(){
               $(window).unbind(".resizer");
