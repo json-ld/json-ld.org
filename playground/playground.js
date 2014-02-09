@@ -173,11 +173,10 @@
     
     // show keybaord shortcuts
     $('.popover-info').popover({
-      placement: "left",
+      placement: "bottom",
       html: true,
       content: $(".popover-info-content").html()
     });
-    
     
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
@@ -194,6 +193,8 @@
     
     $(".codemirror-input").each(playground.init.editor);
     $(".codemirror-output").each(playground.init.output);
+    
+    $("button.fullscreen").click(playground.fullScreen.toggle);
     
     if(window.location.search) {
       playground.processQueryParameters();
@@ -287,6 +288,46 @@
 
     // perform processing on the data provided in the input boxes
     playground.process();
+  };
+
+
+  /**
+   * Handler to resize the page to include only the editor
+   * http://davidwalsh.name/fullscreen
+   */
+  playground.fullScreen = {
+    toggle: function(){
+      playground.fullScreen.current() ?
+        playground.fullScreen.exit() :
+        playground.fullScreen.enter($("#fullscreen-content")[0]);
+    },
+    enter: function(element){
+      // Find the right method, call on correct element
+      if(element.requestFullscreen) {
+        return element.requestFullscreen();
+      } else if(element.mozRequestFullScreen) {
+        return element.mozRequestFullScreen();
+      } else if(element.webkitRequestFullscreen) {
+        return element.webkitRequestFullscreen();
+      } else if(element.msRequestFullscreen) {
+        return element.msRequestFullscreen();
+      }
+    },
+    exit: function(){
+      if(document.exitFullscreen) {
+        return document.exitFullscreen();
+      } else if(document.mozCancelFullScreen) {
+        return document.mozCancelFullScreen();
+      } else if(document.webkitExitFullscreen) {
+        return document.webkitExitFullscreen();
+      }
+    },
+    current: function(){
+      return document.fullscreenElement ||
+        document.mozFullScreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement;
+    }
   };
 
   /**
