@@ -25,7 +25,7 @@ File.open("vocab.jsonld", "w") do |f|
       html = Haml::Engine.new(template, :format => :html5).render(self,
         :ontology => compacted['@graph'].detect {|o| o['@id'] == "http://json-ld.org/test-suite/vocab#"},
         :classes => compacted['@graph'].select {|o| o['@type'] == "rdfs:Class"}.sort_by {|o| o['rdfs:label']},
-        :properties => compacted['@graph'].select {|o| o['@type'] == "rdfs:Property"}.sort_by {|o| o['rdfs:label']}
+        :properties => compacted['@graph'].select {|o| o['@type'] == "rdf:Property"}.sort_by {|o| o['rdfs:label']}
       )
       File.open("vocab.html", "w") {|fh| fh.write html}
     end
