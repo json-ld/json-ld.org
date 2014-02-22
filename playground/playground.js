@@ -293,7 +293,6 @@
   playground.tabSelected = function(evt) {
     
     var id = playground.activeTab = evt.target.id;
-
     
     if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
