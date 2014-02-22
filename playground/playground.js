@@ -334,7 +334,7 @@
       var processor = new jsonld.JsonLdProcessor();
 
       // set base IRI
-      var options = {base: document.baseURI};
+      var options = {base: (document.baseURI || document.URL)};
 
       if(playground.activeTab === 'tab-compacted') {
         processor.compact(input, param, options).then(function(compacted) {
