@@ -315,6 +315,8 @@
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
+    
+    $.each(playground.editors, function(id, editor){ editor.refresh(); });
 
     // perform processing on the data provided in the input boxes
     playground.process();
