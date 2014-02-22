@@ -9,16 +9,16 @@
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
-  
+
   // the codemirror editors
   playground.editors = {};
-  
+
   // ... and outputs
   playground.outputs = {};
-  
+
   // default theme
   playground.theme = "neat";
-  
+
   // the last parsed version of same
   playground.lastParsed = {
     markup: null,
@@ -28,7 +28,7 @@
 
   // set the active tab to the compacted view
   playground.activeTab = 'tab-compacted';
-  
+
   // map of original to modifed contexts
   playground.contextMap = {
     // FIXME: remove schema.org support once they serve a JSON-LD context
@@ -54,7 +54,7 @@
       .exec(window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
   };
-  
+
   /**
    * Consistent human-readable JSON formatting
    *
@@ -170,38 +170,38 @@
       e.preventDefault();
       $(this).tab('show');
     }).on("show", playground.tabSelected);
-    
+
     // show keybaord shortcuts
     $('.popover-info').popover({
       placement: "left",
       html: true,
       content: $(".popover-info-content").html()
     });
-    
-    
+
+
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         lastParsed: playground.lastParsed[cm.options._playground_key]
       });
     };
-    
+
     CodeMirror.commands.at_autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         isAt: true,
         lastParsed: playground.lastParsed[cm.options._playground_key]
       });
     };
-    
+
     $(".codemirror-input").each(playground.init.editor);
     $(".codemirror-output").each(playground.init.output);
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
-    
+
     if(window.location.search) {
       playground.processQueryParameters();
     }
   };
-  
+
   playground.init.editor = function(){
     var key = this.id,
       editor = playground.editors[key] = CodeMirror.fromTextArea(this, {
@@ -217,10 +217,10 @@
         },
         _playground_key: key
       });
-    
+
     // set up 'process' areas to process JSON-LD after typing
     editor.on("change", playground.process);
-    
+
     // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
     editor.on("keyup", function(editor, evt) {
       // these are the keys that move the cursor
@@ -232,9 +232,9 @@
         12, // enter
         27 //escape
       ];
-      
+
       if(noHint.indexOf(evt.keyCode) >= 0) { return; }
-      
+
       var cursor = editor.getCursor(),
         token = editor.getTokenAt(cursor),
         chr = token.string[cursor.ch - token.start - 1];
@@ -243,8 +243,8 @@
       }
     });
   };
-  
-  playground.init.output = function() {      
+
+  playground.init.output = function() {
     var key = this.id,
       output = playground.outputs[key] = CodeMirror.fromTextArea(this, {
         readOnly: true,
@@ -255,7 +255,7 @@
         theme: playground.theme
       });
   };
-  
+
   /**
    * Make one or more CodeMirror editor resizeable.
    *
@@ -284,16 +284,16 @@
         })
         .appendTo(parent);
   };
-  
+
   /**
    * Callback for when tabs are selected in the UI.
    *
    * @param event the event that fired when the tab was selected.
    */
   playground.tabSelected = function(evt) {
-    
+
     var id = playground.activeTab = evt.target.id;
-    
+
     if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
      $('#markup-div').removeClass('span12').addClass('span6');
@@ -335,58 +335,58 @@
 
       // set base IRI
       var options = {base: document.baseURI};
-      
+
       if(playground.activeTab === 'tab-compacted') {
         processor.compact(input, param, options).then(function(compacted) {
-          
+
           playground.outputs["compacted"]
             .setValue(playground.humanize(compacted));
-            
+
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-expanded') {
         processor.expand(input, options).then(function(expanded) {
-          
+
           playground.outputs["expanded"]
             .setValue(playground.humanize(expanded));
-            
+
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-flattened') {
         processor.flatten(input, param, options).then(function(flattened) {
-          
+
           playground.outputs["flattened"]
             .setValue(playground.humanize(flattened));
-            
+
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-framed') {
         processor.frame(input, param, options).then(function(framed) {
-          
+
           playground.outputs["framed"]
             .setValue(playground.humanize(framed));
-            
+
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-nquads') {
         options.format = 'application/nquads';
         processor.toRDF(input, options).then(function(nquads) {
-          
+
           playground.outputs["nquads"].setValue(nquads);
-          
+
           resolver.resolve();
         }, resolver.reject);
       }
       else if(playground.activeTab === 'tab-normalized') {
         options.format = 'application/nquads';
         processor.normalize(input, options).then(function(normalized) {
-          
+
           playground.outputs["normalized"].setValue(normalized);
-            
+
         }, resolver.reject);
       }
     });
@@ -597,23 +597,23 @@
     $('#use-context-map').change(function() {
       playground.process();
     });
-    
+
     $('#theme-select a').click(function(evt) {
       var theme = evt.currentTarget.text,
         file = evt.currentTarget.title ? evt.currentTarget.title : theme,
         key;
-      
+
       $("#theme-name").text(theme);
-      
+
       $('#theme-stylesheet').prop("href",
         "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
-        file + ".css" 
+        file + ".css"
       );
-      
+
       for(key in playground.editors) {
         playground.editors[key].setOption("theme", theme);
       }
-      
+
       for(key in playground.outputs) {
         playground.outputs[key].setOption("theme", theme);
       }
