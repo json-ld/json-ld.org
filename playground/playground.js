@@ -293,6 +293,7 @@
   playground.tabSelected = function(evt) {
     
     var id = playground.activeTab = evt.target.id;
+
     
     if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
@@ -315,6 +316,8 @@
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
+    
+    $.each(playground.editors, function(id, editor){ editor.refresh(); });
 
     // perform processing on the data provided in the input boxes
     playground.process();
