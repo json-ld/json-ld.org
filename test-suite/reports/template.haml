@@ -124,6 +124,7 @@
       td.passed-all {color: green;}
       td.passed-most {color: darkorange;}
       td.passed-some {color: red;}
+      td.passed-none {color: gray;}
   %body{:prefix => "earl: http://www.w3.org/ns/earl# doap: http://usefulinc.com/ns/doap# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"}
     %section#abstract{:about => tests['@id'], :typeof => Array(tests['@type']).join(" ")}
       %p
@@ -291,14 +292,14 @@
                   %tbody
                     - tests['entries'].each do |manifest|
                       - passed = manifest['entries'].select {|t| t['assertions'][index]['result']['outcome'] == 'earl:passed' }.length
-                      - next if passed == 0
                       - total = manifest['entries'].length
                       - pct = (passed * 100.0) / total
+                      - cls = (pct == 100.0 ? 'passed-all' : (pct >= 85.0) ? 'passed-most' : (pct == 0.0 ? 'passed-none' : 'passed-some'))
                       %tr
                         %td
                           ~ manifest['title']
-                        %td{:class => (pct == 100.0 ? 'passed-all' : (pct >= 85.0 ? 'passed-most' : 'passed-some'))}
-                          = "#{passed}/#{total} (#{'%.1f' % pct}%)"
+                        %td{:class => cls}
+                          = pct == 0.0 ? "Untested" : "#{passed}/#{total} (#{'%.1f' % pct}%)"
     - unless tests['assertions'].empty?
       %section.appendix{:rel => "earl:assertions"}
         %h2
