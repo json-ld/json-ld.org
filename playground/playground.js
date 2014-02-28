@@ -330,65 +330,43 @@
    * @param param the JSON-LD param to use.
    */
   playground.performAction = function(input, param) {
-    return new Promise(function(resolver) {
-      var processor = new jsonld.JsonLdProcessor();
+    var processor = new jsonld.JsonLdProcessor();
 
-      // set base IRI
-      var options = {base: (document.baseURI || document.URL)};
-
-      if(playground.activeTab === 'tab-compacted') {
-        processor.compact(input, param, options).then(function(compacted) {
-
-          playground.outputs["compacted"]
-            .setValue(playground.humanize(compacted));
-
-          resolver.resolve();
-        }, resolver.reject);
+    // set base IRI
+    var options = {base: (document.baseURI || document.URL)};
+    
+    var promise;
+    if(playground.activeTab === 'tab-compacted') {
+      promise = processor.compact(input, param, options);
+    }
+    else if(playground.activeTab === 'tab-expanded') {
+      promise = processor.expand(input, options);
+    }
+    else if(playground.activeTab === 'tab-flattened') {
+      promise = processor.flatten(input, param, options);
+    }
+    else if(playground.activeTab === 'tab-framed') {
+      promise = processor.frame(input, param, options);
+    }
+    else if(playground.activeTab === 'tab-nquads') {
+      options.format = 'application/nquads';
+      promise = processor.toRDF(input, options);
+    }
+    else if(playground.activeTab === 'tab-normalized') {
+      options.format = 'application/nquads';
+      promise = processor.normalize(input, options);
+    }
+    else {
+      promise = Promise.reject(new Error('Invalid tab selection.'));
+    }
+    
+    return promise.then(function(result) {
+      var outputTab = playground.activeTab.substr('tab-'.length);
+      if(['compacted', 'expanded', 'flattened', 'framed']
+        .indexOf(outputTab) !== -1) {
+        result = playground.humanize(result);
       }
-      else if(playground.activeTab === 'tab-expanded') {
-        processor.expand(input, options).then(function(expanded) {
-
-          playground.outputs["expanded"]
-            .setValue(playground.humanize(expanded));
-
-          resolver.resolve();
-        }, resolver.reject);
-      }
-      else if(playground.activeTab === 'tab-flattened') {
-        processor.flatten(input, param, options).then(function(flattened) {
-
-          playground.outputs["flattened"]
-            .setValue(playground.humanize(flattened));
-
-          resolver.resolve();
-        }, resolver.reject);
-      }
-      else if(playground.activeTab === 'tab-framed') {
-        processor.frame(input, param, options).then(function(framed) {
-
-          playground.outputs["framed"]
-            .setValue(playground.humanize(framed));
-
-          resolver.resolve();
-        }, resolver.reject);
-      }
-      else if(playground.activeTab === 'tab-nquads') {
-        options.format = 'application/nquads';
-        processor.toRDF(input, options).then(function(nquads) {
-
-          playground.outputs["nquads"].setValue(nquads);
-
-          resolver.resolve();
-        }, resolver.reject);
-      }
-      else if(playground.activeTab === 'tab-normalized') {
-        options.format = 'application/nquads';
-        processor.normalize(input, options).then(function(normalized) {
-
-          playground.outputs["normalized"].setValue(normalized);
-
-        }, resolver.reject);
-      }
+      playground.outputs[outputTab].setValue(result);
     });
   };
 
