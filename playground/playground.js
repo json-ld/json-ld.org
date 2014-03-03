@@ -143,7 +143,7 @@
 
     var startTab = getParameterByName('startTab');
     if(startTab) {
-      $('#' + startTab.slice(0, -1)).tab('show');
+       $('#' + startTab).tab('show');
     }
 
     // wait for ajax if needed
@@ -314,7 +314,7 @@
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
-    
+
     $.each(playground.editors, function(id, editor){ editor.refresh(); });
 
     // perform processing on the data provided in the input boxes
@@ -333,7 +333,7 @@
 
     // set base IRI
     var options = {base: (document.baseURI || document.URL)};
-    
+
     var promise;
     if(playground.activeTab === 'tab-compacted') {
       promise = processor.compact(input, param, options);
@@ -358,7 +358,7 @@
     else {
       promise = Promise.reject(new Error('Invalid tab selection.'));
     }
-    
+
     return promise.then(function(result) {
       var outputTab = playground.activeTab.substr('tab-'.length);
       if(['compacted', 'expanded', 'flattened', 'framed']
