@@ -143,8 +143,7 @@
 
     var startTab = getParameterByName('startTab');
     if(startTab) {
-      // strip 'tab-' to get the tab's panel's ID
-      //$('#tabs').tabs('select', '#' + startTab.substr(4));
+      $('#' + startTab.slice(0, -1)).tab('show');
     }
 
     // wait for ajax if needed
