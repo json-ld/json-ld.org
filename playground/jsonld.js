@@ -529,7 +529,7 @@ jsonld.frame = function(input, frame, options, callback) {
     var frame = remoteFrame.document;
     var ctx;
     if(frame) {
-      ctx = frame['@context'] || {};
+      ctx = frame['@context'];
       if(remoteFrame.contextUrl) {
         if(!ctx) {
           ctx = remoteFrame.contextUrl;
@@ -541,6 +541,9 @@ jsonld.frame = function(input, frame, options, callback) {
           ctx = [ctx, remoteFrame.contextUrl];
         }
         frame['@context'] = ctx;
+      }
+      else {
+        ctx = ctx || {};
       }
     }
     else {
@@ -1044,7 +1047,7 @@ jsonld.promises = function() {
  */
 jsonld.promisify = function(op) {
   try {
-    var Promise = global.Promise || require('./Promise').Promise;
+    var Promise = global.Promise || require('es6-promise').Promise;
   }
   catch(e) {
     throw new Error('Unable to find a Promise implementation.');
@@ -1122,7 +1125,7 @@ if(typeof process === 'undefined' || !process.nextTick) {
   if(typeof setImmediate === 'function') {
     jsonld.setImmediate = jsonld.nextTick = function(callback) {
       return setImmediate(callback);
-    }
+    };
   }
   else {
     jsonld.setImmediate = function(callback) {
@@ -1603,8 +1606,7 @@ jsonld.processContext = function(activeCtx, localCtx) {
 
   // retrieve URLs in localCtx
   localCtx = _clone(localCtx);
-  if(_isString(localCtx) ||
-    (_isObject(localCtx) && !('@context' in localCtx))) {
+  if(!(_isObject(localCtx) && '@context' in localCtx)) {
     localCtx = {'@context': localCtx};
   }
   _retrieveContextUrls(localCtx, options, function(err, ctx) {
@@ -5767,7 +5769,7 @@ function _findContextUrls(input, urls, replace, base) {
 }
 
 /**
- * Retrieves external @context URLs using the given context loader. Every
+ * Retrieves external @context URLs using the given document loader. Every
  * instance of @context in the input that refers to a URL will be replaced
  * with the JSON @context found at that URL.
  *
