@@ -65,10 +65,9 @@
    * @return a string containing the humanized string
    */
   playground.humanize = function(value) {
-    return js_beautify(
-      $.type(value) === "string" ? value : JSON.stringify(value),
-      {'indent_size': 2, 'brace_style': 'expand'}
-    );
+    return ($.type(value) === "string")
+      ? value
+      : JSON.stringify(value, null, '  ');
   };
 
   /**
@@ -106,8 +105,13 @@
       // check 'json-ld' parameter
       if(param !== null) {
         if(param.length === 0 || param[0] === '{' || param[0] === '[') {
-          // param looks like JSON
-          queryData[fieldName] = param;
+          // param looks like JSON, try to parse it
+          try {
+            queryData[fieldName] = JSON.parse(param);
+          }
+          catch(e) {
+            queryData[fieldName] = param;
+          }
         }
         else {
           // treat param as a URL
@@ -467,8 +471,7 @@
 
   /**
    * Populate the UI with markup, frame, and context JSON. The data parameter
-   * should have a 'markup' field and optional 'frame' and 'context' fields
-   * that contain a serialized JSON string.
+   * should have a 'markup' field and optional 'frame' and 'context' fields.
    *
    * @param data object with optional 'markup', 'frame' and 'context' fields.
    */
@@ -519,21 +522,20 @@
 
     if(name in playground.examples) {
       // fill the markup with the example
-      data.markup = JSON.stringify(playground.examples[name]);
+      data.markup = playground.examples[name];
 
       if(name in playground.frames) {
         // fill the frame with the example
-        data.frame = JSON.stringify(playground.frames[name]);
+        data.frame = playground.frames[name];
       }
 
       if(name in playground.contexts) {
         // fill the context with the example
-        data.contexts = JSON.stringify(playground.contexts[name]);
+        data.contexts = playground.contexts[name];
       }
       else if('@context' in playground.examples[name]) {
         // use context from markup as default
-        var ctx = { '@context': playground.examples[name]['@context'] };
-        data.context = JSON.stringify(ctx);
+        data.context = { '@context': playground.examples[name]['@context'] };
       }
     }
 
