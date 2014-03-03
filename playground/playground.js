@@ -4,6 +4,8 @@
  *
  * @author Manu Sporny <msporny@digitalbazaar.com>
  * @author Dave Longley <dlongley@digitalbazaar.com>
+ * @author Nicholas Bollweg
+ * @author Markus Lanthaler
  */
 (function($) {
   // create the playground instance if it doesn't already exist
@@ -26,8 +28,8 @@
     context: null
   };
 
-  // set the active tab to the compacted view
-  playground.activeTab = 'tab-compacted';
+  // set the active tab to the expanded view
+  playground.activeTab = 'tab-expanded';
 
   // map of original to modifed contexts
   playground.contextMap = {
