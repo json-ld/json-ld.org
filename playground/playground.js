@@ -58,16 +58,16 @@
   };
 
   /**
-   * Consistent human-readable JSON formatting
+   * Consistent human-readable JSON formatting.
    *
-   * @param the object or string to humanize
+   * @param the object or string to humanize.
    *
-   * @return a string containing the humanized string
+   * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === "string")
+    return ($.type(value) === 'string')
       ? value
-      : JSON.stringify(value, null, '  ');
+      : JSON.stringify(value, null, 2);
   };
 
   /**
@@ -367,10 +367,7 @@
 
     return promise.then(function(result) {
       var outputTab = playground.activeTab.substr('tab-'.length);
-      if(['compacted', 'expanded', 'flattened', 'framed']
-        .indexOf(outputTab) !== -1) {
-        result = playground.humanize(result);
-      }
+      result = playground.humanize(result);
       playground.outputs[outputTab].setValue(result);
     });
   };
