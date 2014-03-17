@@ -42,12 +42,16 @@ http://json-ld.org/playground/
 The Specification
 -----------------
 
-If you are a developer, you may be interested in the latest JSON-LD specification:
+If you are a developer, you may be interested in the official JSON-LD W3C
+specifications:
 
-http://json-ld.org/spec/latest/
+* `JSON-LD 1.0 - A JSON-based Serialization for Linked Data`_
+* `JSON-LD 1.0 Processing Algorithms and API`_
 
 A list of all previous specification drafts is also available.
 
 http://json-ld.org/spec/
 
 .. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
+.. _JSON-LD 1.0 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/
+.. _JSON-LD 1.0 Processing Algorithms and API: http://www.w3.org/TR/json-ld-api/
