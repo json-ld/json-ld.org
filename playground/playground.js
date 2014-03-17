@@ -7,7 +7,7 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-(function($) {
+(function($, CodeMirror) {
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
@@ -40,6 +40,9 @@
 
   // map of currently active mapped contexts for user feedback use
   playground.activeContextMap = {};
+
+  // JSON schema for JSON-LD documents
+  playground.schema = null;
 
   /**
    * Get a query parameter by name.
@@ -202,6 +205,19 @@
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
 
+
+    // load the schema
+    $.ajax({
+        url: "./jsonld-schema.json",
+        dataType: "json"
+      })
+      .done(function(schema){
+        playground.schema = schema;
+      })
+      .fail(function(xhr){
+        console.warn("Schema could not be loaded. Schema validation disabled.");
+      });
+
     if(window.location.search) {
       playground.processQueryParameters();
     }
@@ -216,7 +232,13 @@
         mode: "application/ld+json",
         gutters: ["CodeMirror-lint-markers"],
         theme: playground.theme,
-        lint: true,
+        lintWith: {
+          getAnnotations: CodeMirror.lint.jsonSchema,
+          async: true,
+          schemata: function(){
+            return playground.schema ? [playground.schema] : [];
+          }
+        },
         extraKeys: {
           "Ctrl-Space": "autocomplete"
         },
@@ -597,4 +619,4 @@
       }
     });
   });
-})(jQuery);
+})(jQuery, CodeMirror);
