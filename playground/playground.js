@@ -186,17 +186,22 @@
       content: $(".popover-info-content").html()
     });
 
-
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
-        lastParsed: playground.lastParsed[cm.options._playground_key]
+        lastParsed: playground.lastParsed[cm.options._playground_key],
+        schemata: function(){
+          return playground.schema ? [playground.schema] : [];
+        }
       });
     };
 
     CodeMirror.commands.at_autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         isAt: true,
-        lastParsed: playground.lastParsed[cm.options._playground_key]
+        lastParsed: playground.lastParsed[cm.options._playground_key],
+        schemata: function(){
+          return playground.schema ? [playground.schema] : [];
+        }
       });
     };
 
