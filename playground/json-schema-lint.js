@@ -37,7 +37,8 @@ CodeMirror.registerHelper("lint", "jsonSchema",
           found.push({
             from: CodeMirror.Pos(loc, loc.first_column),
             to: CodeMirror.Pos(loc, loc.last_column),
-            message: err.schemaPath + ": " + err.message
+            message: err.schemaPath + ": " + err.message,
+            severity: "warning"
           });
         });
       });

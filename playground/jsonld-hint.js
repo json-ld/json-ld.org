@@ -75,19 +75,23 @@
         prefixed,
         val,
         title,
-        content;
+        content,
+        types,
+        i;
 
-      for(var i = 0; i < ldKeywords.length; i++){
+      for(i = 0; i < ldKeywords.length; i++){
         if(ldKeywords[i].key === hint.text){
           hintObj = ldKeywords[i];
         }
       }
 
       if(!hintObj && doc && (ctx = doc["@context"])){
+        prefixed = hint.text.split(":");
+
+
         if(ctx.hasOwnProperty(hint.text)){
           val = ctx[hint.text];
-          if(hint.text.indexOf(":") !== -1){
-            prefixed = hint.text.split(":");
+          if(prefixed.length === 2){
             // some kind of prefix?
             hintObj = {
               type: val["@type"] || undefined,
@@ -105,22 +109,42 @@
               description: val
             };
           }
+        }else if(ctx.hasOwnProperty(prefixed[0])){
+          hintObj = {
+            description: (ctx[prefixed[0]] || "") + prefixed[1]
+          };
         }
       }
 
       if(!hintObj){ return; }
 
-      title = hintObj.type ?
-        (hintObj.type.pop ?
-          hintObj.type.join(", ") :
-          hintObj.type) :
-        undefined;
+      types = hintObj.type || undefined;
+
+      if(types){
+        title = "";
+        if(typeof types === "string"){
+          types = [types];
+        }
+        types = types.concat(hintObj.enum || [],
+          hintObj.format ? [hintObj.format] : []
+        );
+        for(i = 0; i < types.length; i++){
+          title += '<span class="label' +
+            (!types[i].indexOf("@") ? " label-info" : "") + 
+            (types[i] === hintObj.format ? " label-success" : "") + 
+            '">' +
+            types[i].replace(/<.*>/g, '') +
+            '</span>';
+        }
+
+      }
       content =  hintObj.description || "";
 
       previousHint.popover({
-        content: content,
+        content: content.replace(/<.*>/g, ''),
         title: title,
-        container: "body"
+        container: "body",
+        html: true
       });
       previousHint.popover("show");
     };
@@ -144,7 +168,8 @@
               key: prop_key,
               description: prop.description,
               type: prop.type,
-              format: prop.format
+              format: prop.format,
+              enum: prop.enum
             });
           }
         }
@@ -172,7 +197,9 @@
       end = token.end + -1 * (word.slice(-1) === '"'),
 
       match,
-      stripped = false;
+      stripped = false,
+
+      result;
 
     if(!ldKeywords.length && schemata.length){
       findLdKeywords(schemata);
@@ -194,32 +221,41 @@
 
     token.state = CodeMirror.innerMode(editor.getMode(), token.state).state;
 
-    // clean up words, move pointers
-    if(word.match(/^[\{\[]/)){
-      // i just made an empty list and typed "@"...
-      word = "";
-      start++;
-      stripped = true;
-    }else if(word.match(/^"/)){
-      // i just started a quoted string...
-      word = word.replace(/(^"|"$)/g, "");
-      stripped = true;
-    }
-
-    if(isAt){
-      // this was started by pressing @..
-      if(!~word.indexOf("@")){
-        // and the user is expecting a @
-        editor.replaceSelection("@", "end", "+input");
-      }else if(!stripped){
-        start--;
+    function finish(word){
+      // clean up words, move pointers
+      if(word.match(/^[\{\[]/)){
+        // i just made an empty list and typed "@"...
+        word = "";
+        start++;
+        stripped = true;
+      }else if(word.match(/^"/)){
+        // i just started a quoted string...
+        word = word.replace(/(^"|"$)/g, "");
+        stripped = true;
       }
-      return suggest(keywordsLike(word.replace("@", "")));
-    }else if(match = word.match(/^"?@(.*)/)){
-      return suggest(keywordsLike(match[1]));
+
+      if(isAt){
+        // this was started by pressing @..
+        if(!~word.indexOf("@")){
+          // and the user is expecting a @
+          editor.replaceSelection("@", "end", "+input");
+        }else if(!stripped){
+          start--;
+        }
+        return suggest(keywordsLike(word.replace("@", "")));
+      }else if(match = word.match(/^"?@(.*)/)){
+        return suggest(keywordsLike(match[1]));
+      }
+
+      return suggest(contextLike(word, lastParsed).concat(keywordsLike(word)));
     }
 
-    return suggest(contextLike(word, lastParsed).concat(keywordsLike(word)));
-
+    result = finish(word);
+    if(!result.list.length && word.indexOf(":") !== -1 && word.indexOf("://") === -1){
+      // try again with the prefix
+      result = finish(word.split(":")[0]);
+      result.list.unshift({text: word.replace(/"/g, "")});
+    }
+    return result;
   });
 }).call(this, CodeMirror, CodeMirror.Pos, $);
