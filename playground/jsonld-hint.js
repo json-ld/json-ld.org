@@ -74,9 +74,7 @@
         hintObj,
         prefixed,
         val,
-        title,
-        content,
-        types,
+        content = "",
         i;
 
       for(i = 0; i < ldKeywords.length; i++){
@@ -94,13 +92,13 @@
           if(prefixed.length === 2){
             // some kind of prefix?
             hintObj = {
-              type: val["@type"] || undefined,
+              type: val["@type"] ? [val["@type"]] : undefined,
               description: (ctx[prefixed[0]] || "") + prefixed[1]
             };
           }else if(typeof val === "object"){
             // some complex thing?
             hintObj = {
-              type: val["@type"] || undefined,
+              type: val["@type"] ? [val["@type"]] : undefined,
               description: val["@id"]
             };
           }else{
@@ -118,36 +116,45 @@
 
       if(!hintObj){ return; }
 
-      types = hintObj.type || undefined;
-
-      if(types){
-        title = "";
-        if(typeof types === "string"){
-          types = [types];
-        }
-        types = types.concat(hintObj.enum || [],
-          hintObj.format ? [hintObj.format] : []
-        );
-        for(i = 0; i < types.length; i++){
-          title += '<span class="label' +
-            (!types[i].indexOf("@") ? " label-info" : "") + 
-            (types[i] === hintObj.format ? " label-success" : "") + 
-            '">' +
-            types[i].replace(/<.*>/g, '') +
-            '</span>';
-        }
-
+      if(hintObj.description){
+        content += '<p><em>' +
+          hintObj.description.replace(/<.*>/g, '') +
+          '</em></p>';
       }
-      content =  hintObj.description || "";
+
+      if(hintObj.type && hintObj.type.length){
+        content += "<p>Expects ";
+        for(i = 0; i < hintObj.type.length; i++){
+          content += label(hintObj.type[i]);
+        }
+        content += "</p>";
+      }
+
+      if(hintObj.enum && hintObj.enum.length){
+        content += "<p>Can be ";
+        for(i = 0; i < hintObj.enum.length; i++){
+          content += label(hintObj.enum[i]);
+        }
+        content += "</p>";
+      }
+
+      if(hintObj.format){
+        content += "<p>Format " + label(hintObj.format) + "</p>";
+      }
 
       previousHint.popover({
-        content: content.replace(/<.*>/g, ''),
-        title: title,
+        content: content,
         container: "body",
         html: true
       });
       previousHint.popover("show");
     };
+  }
+
+  function label(value, cls){
+    return '<span class="label ' + (cls || "") + '">' +
+      value.replace(/<.*>/g, '') +
+      '</span>';
   }
 
   function findLdKeywords(schemata){
@@ -167,9 +174,10 @@
             ldKeywords.push({
               key: prop_key,
               description: prop.description,
-              type: prop.type,
+              type: typeof prop.type === "string" ?
+                [prop.type] : (prop.type || []),
               format: prop.format,
-              enum: prop.enum
+              enum: prop.enum || []
             });
           }
         }
