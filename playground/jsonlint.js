@@ -1,7 +1,4 @@
-/* Copyright (C) 2012 Zachary Carter */
-/* MIT License https://github.com/zaach/jsonlint#mit-license */
-/* https://rawgithub.com/zaach/jsonlint/79b553fb65c192add9066da64043458981b3972b/lib/jsonlint.js */
-
+/* https://github.com/pmseltmann/jsonlint/blob/105ad968a5f212dfce8fafdabb360976c02ebeb7/lib/jsonlint.js */
 /* Jison generated parser */
 var jsonlint = (function(){
 var parser = {trace: function trace() { },
@@ -69,10 +66,17 @@ parse: function parse(input) {
         yyleng = 0,
         recovering = 0,
         TERROR = 2,
-        EOF = 1;
+        EOF = 1,
+        keyPath=[],
+        lineIndex={},
+        arrays = [],
+        depth =0,
+        arrayDepth =0;
 
     //this.reductionCount = this.shiftCount = 0;
-
+    this.arrays = [];
+    this.depth =0;
+    this.arrayDepth=0;
     this.lexer.setInput(input);
     this.lexer.yy = this.yy;
     this.yy.lexer = this.lexer;
@@ -80,7 +84,8 @@ parse: function parse(input) {
         this.lexer.yylloc = {};
     var yyloc = this.lexer.yylloc;
     lstack.push(yyloc);
-
+    this.keyPath=[];
+    this.lineIndex={};
     if (typeof this.yy.parseError === 'function')
         this.parseError = this.yy.parseError;
 
@@ -93,13 +98,59 @@ parse: function parse(input) {
     function lex() {
         var token;
         token = self.lexer.lex() || 1; // $end = 1
+
+        var tokenString = self.terminals_[token];
+        var tokenStringLB = vstack[vstack.length-1];
+        var tokenStringLBB = vstack[vstack.length-2];
+        var tokenStringLBBB = vstack[vstack.length-3];
+        var lastArray = arrays[arrays.length-1];
+        if(arrays.length && lastArray['depth'] == depth && tokenString=="STRING") {
+            self.keyPath.pop();
+            self.keyPath.push(lastArray.name+"[" + lastArray.index+ "]");
+            self.lineIndex[self.keyPath.join(".")] = lstack[lstack.length-1].first_line;
+            lastArray.index +=1;
+        }
+
+        switch(tokenStringLB) {
+            case ":":
+                self.keyPath.push(tokenStringLBB);
+                   self.lineIndex[self.keyPath.join(".")] = lstack[lstack.length-1].first_line;
+                if(tokenString !== "{" ) {
+                    self.keyPath.pop();
+                }
+                break;
+            case "{":
+                depth++;
+                break;
+            case "}":
+                depth--;
+                if (arrays.length && lastArray.depth == depth) {
+                }
+                else {
+                    self.keyPath.pop();
+                }
+                break;
+            case "[":
+                depth++;
+                arrayDict = {"depth": depth, "index": 0, "name": tokenStringLBBB};
+                arrays.push(arrayDict);
+                var lastArray = arrays[arrays.length-1];
+                self.keyPath.push(tokenStringLBBB+"[" + lastArray.index + "]");
+                break;
+            case "]":
+                depth--;
+                self.keyPath.pop();
+                arrays.pop();
+                break;        
+        }
+
+
         // if token isn't its numeric value, convert
         if (typeof token !== 'number') {
             token = self.symbols_[token] || token;
         }
         return token;
     }
-
     var symbol, preErrorSymbol, state, action, a, r, yyval={},p,len,newState, expected;
     while (true) {
         // retreive state number from top of stack
@@ -216,7 +267,7 @@ parse: function parse(input) {
                 r = this.performAction.call(yyval, yytext, yyleng, yylineno, this.yy, action[1], vstack, lstack);
 
                 if (typeof r !== 'undefined') {
-                    return r;
+                    return {"parsedObject": r, "lineIndex": self.lineIndex};
                 }
 
                 // pop off stack
@@ -237,9 +288,7 @@ parse: function parse(input) {
             case 3: // accept
                 return true;
         }
-
     }
-
     return true;
 }};
 /* Jison generated lexer */
@@ -259,6 +308,7 @@ setInput:function (input) {
         this.yytext = this.matched = this.match = '';
         this.conditionStack = ['INITIAL'];
         this.yylloc = {first_line:1,first_column:0,last_line:1,last_column:0};
+        this.keyPath = "";
         return this;
     },
 input:function () {
@@ -337,7 +387,9 @@ next:function () {
             this._more = false;
             this._input = this._input.slice(match[0].length);
             this.matched += match[0];
+
             token = this.performAction.call(this, this.yy, this, rules[index],this.conditionStack[this.conditionStack.length-1]);
+
             if (this.done && this._input) this.done = false;
             if (token) return token;
             else return;

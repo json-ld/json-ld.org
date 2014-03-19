@@ -7,7 +7,7 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-(function($) {
+(function($, CodeMirror) {
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
@@ -27,6 +27,12 @@
     frame: null,
     context: null
   };
+  
+  playground.lineIndex = {
+    markup: null,
+    frame: null,
+    context: null
+  };
 
   // set the active tab to the expanded view
   playground.activeTab = 'tab-expanded';
@@ -40,6 +46,9 @@
 
   // map of currently active mapped contexts for user feedback use
   playground.activeContextMap = {};
+
+  // JSON schema for JSON-LD documents
+  playground.schema = null;
 
   /**
    * Get a query parameter by name.
@@ -183,17 +192,26 @@
       content: $(".popover-info-content").html()
     });
 
-
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
-        lastParsed: playground.lastParsed[cm.options._playground_key]
+        lastParsed: playground.lastParsed[cm.options._playground_key],
+        lineIndex: playground.lineIndex[cm.options._playground_key],
+        completeSingle: false,
+        schemata: function(){
+          return playground.schema ? [playground.schema] : [];
+        }
       });
     };
 
     CodeMirror.commands.at_autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         isAt: true,
-        lastParsed: playground.lastParsed[cm.options._playground_key]
+        completeSingle: false,
+        lastParsed: playground.lastParsed[cm.options._playground_key],
+        lineIndex: playground.lineIndex[cm.options._playground_key],
+        schemata: function(){
+          return playground.schema ? [playground.schema] : [];
+        }
       });
     };
 
@@ -201,6 +219,19 @@
     $(".codemirror-output").each(playground.init.output);
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
+
+
+    // load the schema
+    $.ajax({
+        url: "../schemas/jsonld-schema.json",
+        dataType: "json"
+      })
+      .done(function(schema){
+        playground.schema = schema;
+      })
+      .fail(function(xhr){
+        console.warn("Schema could not be loaded. Schema validation disabled.");
+      });
 
     if(window.location.search) {
       playground.processQueryParameters();
@@ -216,7 +247,13 @@
         mode: "application/ld+json",
         gutters: ["CodeMirror-lint-markers"],
         theme: playground.theme,
-        lint: true,
+        lintWith: {
+          getAnnotations: CodeMirror.lint.jsonSchema,
+          async: true,
+          schemata: function(){
+            return playground.schema ? [playground.schema] : [];
+          }
+        },
         extraKeys: {
           "Ctrl-Space": "autocomplete"
         },
@@ -393,8 +430,10 @@
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      var input = JSON.parse(markup);
-      playground.lastParsed.markup = input;
+      var input = jsonlint.parse(markup);
+      playground.lastParsed.markup = input.parsedObject;
+      playground.lineIndex.markup = input.lineIndex;
+      input = input.parsedObject;
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
@@ -421,8 +460,10 @@
 
     if(needParam) {
       try {
-        param = JSON.parse(jsonParam);
-        playground.lastParsed[paramType] = param;
+        param = jsonlint.parse(jsonParam);
+        playground.lastParsed[paramType] = param.parsedObject;
+        playground.lineIndex[paramType] = param.lineIndex;
+        param = param.parsedObject;
       }
       catch(e) {
         $('#param-errors').text($('#param-type').text() + ' - ' + e);
@@ -597,4 +638,4 @@
       }
     });
   });
-})(jQuery);
+})(jQuery, CodeMirror);
