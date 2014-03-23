@@ -20,7 +20,7 @@
 
   // default theme
   playground.theme = "neat";
-
+  
   // the last parsed version of same
   playground.lastParsed = {
     markup: null,
@@ -49,6 +49,16 @@
 
   // JSON schema for JSON-LD documents
   playground.schema = null;
+
+  // copy context from the input
+  playground.copyInputContext = false;
+
+  // copy context from the input
+  playground.remoteUrl = {
+    markup: {document: null, context: null},
+    frame: null,
+    context: null
+  };
 
   /**
    * Get a query parameter by name.
@@ -220,6 +230,10 @@
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
 
+    $("#copy-context").click(function(){
+      playground.copyInputContext = !playground.copyInputContext;
+      playground.process();
+    });
 
     // load the schema
     $.ajax({
@@ -261,7 +275,22 @@
       });
 
     // set up 'process' areas to process JSON-LD after typing
-    editor.on("change", playground.process);
+    editor.on("change", function(){
+      if(playground.copyInputContext && key === "markup"){
+        var context;
+        
+        try{
+          context = JSON.parse(editor.getValue())["@context"];
+        } catch(err){
+          context = playground.lastParsed.markup["@context"]
+        }
+         
+        playground.editors.context.setValue(
+          playground.humanize({"@context": context})
+        );
+      }
+      playground.process();
+    });
 
     // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
     editor.on("keyup", function(editor, evt) {
