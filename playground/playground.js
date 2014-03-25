@@ -50,7 +50,6 @@
   // currently-active urls
   playground.remoteUrl = {
     markup: null,
-    inputcontext: null,
     frame: null,
     context: null
   };
@@ -100,7 +99,6 @@
     // data from the query
     var queryData = {
       markup: null,
-      inputcontext: null,
       frame: null,
       context: null
     };
@@ -251,7 +249,13 @@
     if(window.location.search || window.location.hash) {
       playground.processQueryParameters();
     }
+    $(".loading").fadeOut(function(){
+      $(".loaded").fadeIn();
+      playground.editor.refresh();
+      playground.editor.refresh(playground.outputs);
+    });
   };
+
 
   /**
    * Initialize a CodeMirror editor
@@ -352,7 +356,7 @@
     val = arguments.length ? val : !playground.copyContext;
 
     playground.copyContext = val;
-    playground.setReadOnly(editor, val);
+    playground.editor.setReadOnly(editor, val);
 
     if(val){
        return playground.toggleCopyContext.copy();
@@ -394,7 +398,7 @@
 
     playground.remoteUrl[key] = value = value ? value : null;
 
-    playground.setReadOnly(editor, value);
+    playground.editor.setReadOnly(editor, value);
 
     btn.removeClass("btn-danger btn-info");
     if(value === null){
@@ -417,22 +421,6 @@
            .text('Error loading ' + key + ' URL: ' + value);
       }
     });
-  };
-
-
-  /**
-   * Make a CodeMirror editor (temporarily) read-only.
-   *
-   * @param a CodeMirror editor
-   * @param whether the CodeMirror editor should be editable
-   * 
-   * @return the new value of the read-only setting
-   */
-  playground.setReadOnly = function(editor, value){
-    value = Boolean(value);
-    editor.setOption("readOnly", value);
-    $(editor.getWrapperElement()).toggleClass("read-only", value);
-    return value;
   };
 
 
@@ -468,6 +456,65 @@
     return btn[0];
   };
 
+
+  /** 
+   * Namespace for editor functions, and utility for doing things against them
+   *
+   * @param a keyed object of editors, the name of an editor, an editor
+   *        or a list of editors. or nothing, which assumes all of them. 
+   * @param the action to peform, of the form `function(editor, key)`
+   *
+   * @return the result of the action
+   */
+  playground.editor = function(editors, action){
+    var key,
+      editor;
+    if($.type(editors) === "string"){
+      key = editors;
+      editors = {};
+      editors[key] = playground.editors[key];
+    }else if(editors instanceof CodeMirror){
+      key = editors.getTextArea().id;
+      editor = editors;
+      editors = {};
+      editors[key] = editor;
+    }else if(!editors){
+      editors = playground.editors;
+    }
+    return $.map(editors, action);
+  };
+
+
+  /**
+   * Make a CodeMirror editor (temporarily) read-only.
+   *
+   * @param see `playground.editor`
+   * @param whether the CodeMirror editor should be editable
+   * 
+   * @return the new value of the read-only setting
+   */
+  playground.editor.setReadOnly = function(editors, value){
+    value = Boolean(value);
+    playground.editor(editors, function(editor){
+      editor.setOption("readOnly", value);
+      $(editor.getWrapperElement()).toggleClass("read-only", value);
+    });
+    return value;
+  };
+
+
+  /**
+  * Refresh one or more CodeMirror editors, such as after being revealed.
+  * 
+  * @param see `playground.editor`
+  */
+  playground.editor.refresh = function(editor){
+    return playground.editor(editor, function(editor, key){
+      editor.refresh();
+    });
+  };
+
+
   /**
    * Callback for when tabs are selected in the UI.
    *
@@ -500,7 +547,9 @@
       $('#param-type').html('');
     }
 
-    $.each(playground.editors, function(id, editor){ editor.refresh(); });
+    // refresh all the editors
+    playground.editor.refresh();
+    playground.editor.refresh(playground.outputs);
 
     // perform processing on the data provided in the input boxes
     return playground.process();
@@ -752,10 +801,11 @@
       }
     }
 
+    playground.editor.setReadOnly(null, false);
+
     // clean up any remote URLs
     $.each(playground.editors, function(key, editor){
       playground.setRemoteUrl(key, null);
-      playground.setReadOnly(editor, false);
       $("#remote-" + key)
         .val(null)
       .parent()
