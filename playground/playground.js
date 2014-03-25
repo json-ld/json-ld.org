@@ -7,7 +7,7 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-(function($, CodeMirror) {
+;(function($, CodeMirror) {
   // create the playground instance if it doesn't already exist
   window.playground = window.playground || {};
   var playground = window.playground;
@@ -20,15 +20,9 @@
 
   // default theme
   playground.theme = "neat";
-  
+
   // the last parsed version of same
   playground.lastParsed = {
-    markup: null,
-    frame: null,
-    context: null
-  };
-  
-  playground.lineIndex = {
     markup: null,
     frame: null,
     context: null
@@ -51,11 +45,12 @@
   playground.schema = null;
 
   // copy context from the input
-  playground.copyInputContext = false;
+  playground.copyContext = false;
 
-  // copy context from the input
+  // currently-active urls
   playground.remoteUrl = {
-    markup: {document: null, context: null},
+    markup: null,
+    inputcontext: null,
     frame: null,
     context: null
   };
@@ -71,10 +66,11 @@
    * @return the value of the parameter or null if it does not exist
    */
   function getParameterByName(name) {
-    var match = RegExp('[?&]' + name + '=([^&]*)')
-      .exec(window.location.search);
+    var match = RegExp('[#?&]' + name + '=([^&]*)')
+      .exec(window.location.hash || window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-  };
+  }
+
 
   /**
    * Consistent human-readable JSON formatting.
@@ -84,16 +80,17 @@
    * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === 'string')
-      ? value
-      : JSON.stringify(value, null, 2);
+    return ($.type(value) === 'string') ? 
+      value :
+      JSON.stringify(value, null, 2);
   };
+
 
   /**
    * Handle URL query parameters.
    *
-   * Checks 'json-ld', 'context', and 'frame' parameters.  If they look like
-   * JSON then interpret as JSON strings else interpret as URLs of remote
+   * Checks 'json-ld', 'context', and 'frame' parameters.  If they look
+   * like JSON then interpret as JSON strings else interpret as URLs of remote
    * resources.  Note: URLs must be CORS enabled to load due to browser same
    * origin policy issues.
    *
@@ -103,6 +100,7 @@
     // data from the query
     var queryData = {
       markup: null,
+      inputcontext: null,
       frame: null,
       context: null
     };
@@ -127,31 +125,23 @@
           // param looks like JSON, try to parse it
           try {
             queryData[fieldName] = JSON.parse(param);
+            playground.setRemoteUrl(fieldName, null);
           }
           catch(e) {
             queryData[fieldName] = param;
           }
         }
         else {
-          // treat param as a URL
-          rval = $.ajax({
-            url: param,
-            dataType: 'text',
-            crossDomain: true,
-            success: function(data, textStatus, jqXHR) {
-               queryData[fieldName] = data;
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-               // FIXME: better error handling
-               $('#processing-errors')
-                  .text('Error loading ' + msgName + ' URL: ' + param);
-            }
-          });
+          $("#remote-" + fieldName).val(param);
+          rval = playground.setRemoteUrl(fieldName, param)
+            .then(function(data){
+              queryData[fieldName] = data;
+            });
         }
-      };
+      }
 
       return rval;
-    };
+    }
 
     // build deferreds
     var jsonLdDeferred = handleParameter(
@@ -171,19 +161,21 @@
        $('#' + startTab).tab('show');
     }
 
+    playground.copyContext = getParameterByName('copyContext') === "true";
+
     // wait for ajax if needed
     // failures handled in AJAX calls
     $.when(jsonLdDeferred, frameDeferred, contextDeferred, paramDeferred)
       .done(function() {
         // Maintain backwards permalink compatability
-        if(queryData['param'] &&
-          !(queryData['frame'] || queryData['context'])) {
-          queryData['frame'] = queryData['context'] = queryData['param'];
+        if(queryData.param && !(queryData.frame || queryData.context)) {
+          queryData.frame = queryData.context = queryData.param;
         }
         // populate UI with data
         playground.populateWithJSON(queryData);
       });
   };
+
 
   /**
    * Used to initialize the UI, call once on document load.
@@ -205,7 +197,6 @@
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         lastParsed: playground.lastParsed[cm.options._playground_key],
-        lineIndex: playground.lineIndex[cm.options._playground_key],
         completeSingle: false,
         schemata: function(){
           return playground.schema ? [playground.schema] : [];
@@ -218,22 +209,32 @@
         isAt: true,
         completeSingle: false,
         lastParsed: playground.lastParsed[cm.options._playground_key],
-        lineIndex: playground.lineIndex[cm.options._playground_key],
         schemata: function(){
           return playground.schema ? [playground.schema] : [];
         }
       });
     };
 
-    $(".codemirror-input").each(playground.init.editor);
-    $(".codemirror-output").each(playground.init.output);
+    $(".codemirror-input").each(function(){ playground.init.editor(this); });
+    $(".codemirror-output").each(function(){ playground.init.output(this); });
+
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
 
     $("#copy-context").click(function(){
-      playground.copyInputContext = !playground.copyInputContext;
-      playground.process();
+      playground.toggleCopyContext();
     });
+
+    $(".editor-option input").bind("input", function(){
+      playground.setRemoteUrl(
+        this.id.replace("remote-",""),
+        this.value
+      );
+    });
+
+    $("[title]").tooltip();
+
+    $(window).bind("hashchange", playground.processQueryParameters);
 
     // load the schema
     $.ajax({
@@ -247,14 +248,21 @@
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
 
-    if(window.location.search) {
+    if(window.location.search || window.location.hash) {
       playground.processQueryParameters();
     }
   };
 
-  playground.init.editor = function(){
-    var key = this.id,
-      editor = playground.editors[key] = CodeMirror.fromTextArea(this, {
+  /**
+   * Initialize a CodeMirror editor
+   *
+   * @param a `<textarea>`
+   * 
+   * @return the CodeMirror editor
+   */
+  playground.init.editor = function(node){
+    var key = node.id,
+      editor = playground.editors[key] = CodeMirror.fromTextArea(node, {
         matchBrackets: true,
         autoCloseBrackets: true,
         lineWrapping: true,
@@ -276,18 +284,10 @@
 
     // set up 'process' areas to process JSON-LD after typing
     editor.on("change", function(){
-      if(playground.copyInputContext && key === "markup"){
-        var context;
-        
-        try{
-          context = JSON.parse(editor.getValue())["@context"];
-        } catch(err){
-          context = playground.lastParsed.markup["@context"]
+      if(playground.copyContext && key === "markup"){
+        if(playground.toggleCopyContext.copy()){
+          return;
         }
-         
-        playground.editors.context.setValue(
-          playground.humanize({"@context": context})
-        );
       }
       playground.process();
     });
@@ -313,25 +313,136 @@
         CodeMirror.commands.at_autocomplete(editor, evt);
       }
     });
+
+    return editor;
   };
 
-  playground.init.output = function() {
-    var key = this.id,
-      output = playground.outputs[key] = CodeMirror.fromTextArea(this, {
-        readOnly: true,
-        lineWrapping: true,
-        mode: ["normalized", "nquads"].indexOf(key) > -1
-          ? "text/n-triples"
-          : "application/ld+json",
-        theme: playground.theme
-      });
-  };
 
   /**
-   * Make one or more CodeMirror editor resizeable.
+   * Initialize a read-only CodeMirror viewer
+   *
+   * @param a `<textarea>`
+   *
+   * @return the CodeMirror editor
+   */
+  playground.init.output = function(node) {
+    var key = node.id,
+      output = playground.outputs[key] = CodeMirror.fromTextArea(node, {
+        readOnly: true,
+        lineWrapping: true,
+        mode: ["normalized", "nquads"].indexOf(key) > -1 ?
+          "text/n-triples" :
+          "application/ld+json",
+        theme: playground.theme
+      });
+    return output;
+  };
+
+
+  /**
+   * Toggle whether the output context will be updated from the input
+   *
+   * @param the new value of the setting. If not provided, invert current
+   *
+   * @return the JSON that was actually set, or `undefined` if nothing was set
+   */
+  playground.toggleCopyContext = function(val){
+    var editor = playground.editors.context;
+
+    val = arguments.length ? val : !playground.copyContext;
+
+    playground.copyContext = val;
+    playground.setReadOnly(editor, val);
+
+    if(val){
+       return playground.toggleCopyContext.copy();
+    }
+  };
+
+
+  /**
+   * Copy the context right now.
+   *
+   * @return the JSON that was set, or `undefined` if nothing was set
+   */
+  playground.toggleCopyContext.copy = function(){
+    var editor = playground.editors.context,
+      json = playground.humanize({
+        "@context": playground.lastParsed.markup ?
+          playground.lastParsed.markup["@context"] :
+          {}});
+    if(json !== editor.getValue()){
+      playground.editors.context.setValue(json);
+      return json;
+    }
+  };
+
+
+  /**
+   * Set one of the inputs to be a remote document.
    *
    * @param parent the dom element to which the button should be attached
    * @param target the CodeMirror instances to be resized
+   *
+   * @return jQuery deferred
+   */
+  playground.setRemoteUrl = function(key, value){
+    var editor = playground.editors[key],
+      btn = $("#remote-" + key).parent().find(".btn");
+
+    if(!editor){ return; }
+
+    playground.remoteUrl[key] = value = value ? value : null;
+
+    playground.setReadOnly(editor, value);
+
+    btn.removeClass("btn-danger btn-info");
+    if(value === null){
+      return;
+    }
+
+    return $.ajax({
+      url: value,
+      dataType: 'json',
+      crossDomain: true,
+      success: function(data) {
+        btn.addClass("btn-info");
+        // setValue always triggers a .process()
+        editor.setValue(playground.humanize(data));
+        return data;
+      },
+      error: function(jqXHR) {
+        btn.addClass("btn-danger");
+        $('#processing-errors')
+           .text('Error loading ' + key + ' URL: ' + value);
+      }
+    });
+  };
+
+
+  /**
+   * Make a CodeMirror editor (temporarily) read-only.
+   *
+   * @param a CodeMirror editor
+   * @param whether the CodeMirror editor should be editable
+   * 
+   * @return the new value of the read-only setting
+   */
+  playground.setReadOnly = function(editor, value){
+    value = Boolean(value);
+    editor.setOption("readOnly", value);
+    $(editor.getWrapperElement()).toggleClass("read-only", value);
+    return value;
+  };
+
+
+  /**
+   * Make one or more editor resizeable together.
+   *
+   * @param parent the dom element to which the button should be attached
+   * @param an object or list of CodeMirror instances to be resized together
+   *
+   * @return the resizer button DOM
    */
   playground.makeResizer = function(parent, targets){
     targets = $.map(targets, function(val, key){ return val; });
@@ -354,15 +465,17 @@
             });
         })
         .appendTo(parent);
+    return btn[0];
   };
 
   /**
    * Callback for when tabs are selected in the UI.
    *
    * @param event the event that fired when the tab was selected.
+   *
+   * @return the process() promise
    */
   playground.tabSelected = function(evt) {
-
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
@@ -390,8 +503,9 @@
     $.each(playground.editors, function(id, editor){ editor.refresh(); });
 
     // perform processing on the data provided in the input boxes
-    playground.process();
+    return playground.process();
   };
+
 
   /**
    * Returns a Promise to performs the JSON-LD API action based on the active
@@ -399,6 +513,8 @@
    *
    * @param input the JSON-LD object input or null no error.
    * @param param the JSON-LD param to use.
+   *
+   * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
     var processor = new jsonld.JsonLdProcessor();
@@ -438,11 +554,14 @@
     });
   };
 
+
   /**
    * Process the JSON-LD markup that has been input and display the output
    * in the active tab.
+   * 
+   * @return a promise to process
    */
-  playground.process = function() {
+  playground.process = function(){
     $('#markup-errors').text('');
     $('#param-errors').text('');
     $('#processing-errors').text('');
@@ -451,6 +570,7 @@
     playground.activeContextMap = {};
     var errors = false;
     var markup = playground.editors.markup.getValue();
+    var input;
 
     // nothing to process
     if(markup === '') {
@@ -459,10 +579,7 @@
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      var input = jsonlint.parse(markup);
-      playground.lastParsed.markup = input.parsedObject;
-      playground.lineIndex.markup = input.lineIndex;
-      input = input.parsedObject;
+      input = playground.lastParsed.markup = JSON.parse(markup);
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
@@ -489,10 +606,7 @@
 
     if(needParam) {
       try {
-        param = jsonlint.parse(jsonParam);
-        playground.lastParsed[paramType] = param.parsedObject;
-        playground.lineIndex[paramType] = param.lineIndex;
-        param = param.parsedObject;
+        playground.lastParsed[paramType] = param = JSON.parse(jsonParam);
       }
       catch(e) {
         $('#param-errors').text($('#param-type').text() + ' - ' + e);
@@ -500,85 +614,115 @@
       }
     }
 
-    // errors detected
-    if(errors) {
-      $('#permalink').hide();
-      return;
-    }
-
     // no errors, perform the action and display the output
-    playground.performAction(input, param).then(function() {
-      // generate a link for current data
-      var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if(playground.editors.frame.getValue().length > 0) {
-        link += '&frame=' + encodeURIComponent(playground.editors.frame.getValue());
-      }
-      if(playground.editors.context.getValue().length > 0) {
-        link += '&context=' + encodeURIComponent(playground.editors.context.getValue());
-      }
-
-      // Start at the currently active tab
-      link += '&startTab=' + encodeURIComponent(playground.activeTab);
-
-      var permalink = '<a href="' + link + '">permalink</a>';
-      // size warning for huge links
-      if((window.location.protocol.length + 2 +
-        window.location.host.length + window.location.pathname.length +
-        link.length) > 2048) {
-        permalink += ' (2KB+)';
-      }
-      $('#permalink')
-        .html(permalink)
-        .show();
-    }, function(err) {
-      // FIXME: add better error handling output
-      $('#processing-errors').text(JSON.stringify(err));
-    });
+    return playground.performAction(input, param)
+      .then(
+        function(){
+          playground.permalink();
+        },
+        function(err){
+          // FIXME: add better error handling output
+          $('#processing-errors').text(JSON.stringify(err));
+          playground.permalink(err);
+        }
+      );
   };
+
+
+  /**
+   * Update the permalink button with a `#` link to the current playground
+   * 
+   * @param the error object, string or object
+   *
+   * @return the current permalink URL
+   */
+  playground.permalink = function(errors) {
+    // generate a hash link for current data, starting with the tab
+    var loc = window.location.href.replace(/[#\?].*$/, ""),
+      hash = "",
+      params = {
+        startTab: playground.activeTab,
+        copyContext: playground.copyContext
+      },
+      val,
+      messages;
+
+    // check the editors for inputs/remotes
+    $.each(playground.editors, function(key, editor){
+      if(key === "context" && params.copyContext){ return; }
+      val = playground.remoteUrl[key];
+      val = val ? val : JSON.stringify(playground.lastParsed[key]);
+      if(val && val !== "null"){
+        params[key] = val;
+      }
+    });
+
+    // encode and concat the hash components
+    $.each(params, function(key, val){
+      if(!val){ return; }
+      hash += (hash ? "&" : "#") +
+        (key === "markup" ? "json-ld" : key) + "=" + encodeURIComponent(val);
+    });
+
+    messages = {
+      danger: errors === void 0 ? "" :
+        "This link will show the current errors.",
+      warning: (loc + hash).length < 2048 ? "" :
+        "This link longer than 2K, and may not work."
+    };
+
+    $("#permalink")
+      .attr({
+        title: messages.danger + " " + messages.warning,
+        href: loc + hash
+      })
+      .toggleClass("btn-danger", status.danger.length === 0)
+      .toggleClass("btn-warn", status.warning.length === 0)
+    .find("span")
+      .text("Permalink");
+
+    return loc + hash;
+  };
+
 
   /**
    * Populate the UI with markup, frame, and context JSON. The data parameter
    * should have a 'markup' field and optional 'frame' and 'context' fields.
    *
    * @param data object with optional 'markup', 'frame' and 'context' fields.
+   *
+   * @return the process promise, or `undefined` if no data was found
    */
   playground.populateWithJSON = function(data) {
     var hasData = false;
 
-    if('markup' in data && data.markup !== null) {
-      hasData = true;
-      // fill the markup box with the example
-      playground.editors.markup.setValue(playground.humanize(data.markup));
-    }
+    $.each(playground.editors, function(key, editor){
+      if(key in data && data[key] !== null){
+        hasData = true;
+        editor.setValue(playground.humanize(data[key]));
+      }else{
+        editor.setValue("{}");
+      }
+    });
 
-    if('frame' in data && data.frame !== null) {
-      hasData = true;
-      // fill the frame input box with the given frame
-      playground.editors.frame.setValue(playground.humanize(data.frame));
-    }
-    else {
-      playground.editors.frame.setValue('{}');
-    }
-
-    if('context' in data && data.context !== null) {
-      hasData = true;
-      // fill the context input box with the given context
-      playground.editors.context.setValue(playground.humanize(data.context));
-    }
-    else {
-      playground.editors.context.setValue('{}');
+    if(playground.copyContext){
+      $("#copy-context:not(.active)").button("toggle");
+      playground.toggleCopyContext(true);
     }
 
     if(hasData) {
       // perform processing on the data provided in the input boxes
-      playground.process();
+      return playground.process();
     }
   };
+
 
   /**
    * Populate the UI with a named example.
    *
    * @param name the name of the example to pre-populate the input boxes.
+   *
+   * @return a promise to process the data, or `undefined`
    */
   playground.populateWithExample = function(name) {
     var data = {
@@ -606,9 +750,21 @@
       }
     }
 
+    // clean up any remote URLs
+    $.each(playground.editors, function(key, editor){
+      playground.setRemoteUrl(key, null);
+      playground.setReadOnly(editor, false);
+      $("#remote-" + key)
+        .val(null)
+      .parent()
+        .find(".btn")
+        .removeClass("btn-info btn-danger");
+    });
+
     // populate with the example
-    playground.populateWithJSON(data);
+    return playground.populateWithJSON(data);
   };
+
 
   // event handlers
   $(document).ready(function() {
@@ -644,27 +800,6 @@
 
     $('#use-context-map').change(function() {
       playground.process();
-    });
-
-    $('#theme-select a').click(function(evt) {
-      var theme = evt.currentTarget.text,
-        file = evt.currentTarget.title ? evt.currentTarget.title : theme,
-        key;
-
-      $("#theme-name").text(theme);
-
-      $('#theme-stylesheet').prop("href",
-        "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
-        file + ".css"
-      );
-
-      for(key in playground.editors) {
-        playground.editors[key].setOption("theme", theme);
-      }
-
-      for(key in playground.outputs) {
-        playground.outputs[key].setOption("theme", theme);
-      }
     });
   });
 })(jQuery, CodeMirror);
