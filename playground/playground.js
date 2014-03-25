@@ -520,7 +520,9 @@
     var processor = new jsonld.JsonLdProcessor();
 
     // set base IRI
-    var options = {base: (document.baseURI || document.URL)};
+    var options = {
+      base: playground.remoteUrl.markup || document.baseURI || document.URL
+    };
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
