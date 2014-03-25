@@ -250,6 +250,7 @@
       playground.processQueryParameters();
     }
     $(".loading").fadeOut(function(){
+      $(this).remove();
       $(".loaded").fadeIn();
       playground.editor.refresh();
       playground.editor.refresh(playground.outputs);
@@ -722,13 +723,18 @@
         "This link longer than 2K, and may not work."
     };
 
+    playground.permalink.title =  messages.danger + " " + messages.warning;
+
+    $("#permalink").tooltip({title: function(){
+      return playground.permalink.title.trim() || "A link for sharing";
+    }});
+
     $("#permalink")
       .attr({
-        title: messages.danger + " " + messages.warning,
         href: loc + hash
       })
-      .toggleClass("btn-danger", status.danger.length === 0)
-      .toggleClass("btn-warn", status.warning.length === 0)
+      .toggleClass("btn-danger", messages.danger.length !== 0)
+      .toggleClass("btn-warning", messages.warning.length !== 0)
     .find("span")
       .text("Permalink");
 
