@@ -7,18 +7,25 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-;(function($, CodeMirror) {
-  // create the playground instance if it doesn't already exist
-  window.playground = window.playground || {};
-  var playground = window.playground;
+;(function($, CodeMirror, jsonld, Promise){
+  "use strict";
+  // assume nothing
+  var window = this,
+    console = window.console,
+    setTimeout = window.setTimeout,
+    document = window.document,
 
-  var docs = function(){
-    return {
-      markup: null,
-      frame: null,
-      context: null
+    // create the playground instance if it doesn't already exist
+    playground = window.playground = {},
+
+    // given this is needed, we probably need a `Document` class...
+    docs = function(){
+      return {
+        markup: null,
+        frame: null,
+        context: null
+      };
     };
-  };
 
   // the codemirror editors
   playground.editors = docs();
@@ -69,7 +76,7 @@
    * @return the value of the parameter or null if it does not exist
    */
   function getParameterByName(name) {
-    var match = RegExp('[#?&]' + name + '=([^&]*)')
+    var match = new RegExp('[#?&]' + name + '=([^&]*)')
       .exec(window.location.hash || window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
   }
@@ -113,7 +120,7 @@
      *
      * @return jQuery Deferred or null.
      */
-    function handleParameter(param, fieldName, msgName) {
+    function handleParameter(param, fieldName) {
       // the ajax deferred or null
       var rval = null;
 
@@ -131,8 +138,8 @@
         }
         else {
           playground.toggleRemote(fieldName, true);
-
-          if(rval = playground.setRemoteUrl(fieldName, param)){
+          rval = playground.setRemoteUrl(fieldName, param);
+          if(rval){
             rval.then(function(data){
               queryData[fieldName] = data;
             });
@@ -248,7 +255,7 @@
       .done(function(schema){
         playground.schema = schema;
       })
-      .fail(function(xhr){
+      .fail(function(){
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
 
@@ -360,13 +367,18 @@
   playground.toggleCopyContext = function(val){
     var editor = playground.editors.context;
 
-    val = arguments.length ? val : !playground.copyContext;
+    playground.copyContext =  val = arguments.length ?
+      Boolean(val) :
+      !playground.copyContext;
 
-    playground.copyContext = val;
     playground.editor.setReadOnly(editor, val);
 
+    setTimeout(function(){
+      $("#copy-context").toggleClass("toggle", val);
+    }, 1);
+
     if(val){
-       return playground.toggleCopyContext.copy();
+      return playground.toggleCopyContext.copy();
     }
   };
 
@@ -398,8 +410,7 @@
    * @return jQuery deferred, or `undefined`
    */
   playground.setRemoteUrl = function(key, val){
-    var editor = playground.editors[key],
-      opt = $("[data-editor=" + key + "]"),
+    var opt = $("[data-editor=" + key + "]"),
       btn = opt.find("button"),
       inp = opt.find("input");
 
@@ -425,8 +436,7 @@
    * @return jQuery deferred, or `undefined`
    */
   playground.toggleRemote = function(key, val){
-    var editor = playground.editors[key],
-      btn = $("[data-editor=" + key + "] button");
+    var btn = $("[data-editor=" + key + "] button");
 
     playground.useRemote[key] = val = arguments.length === 2 ?
       Boolean(val) :
@@ -464,7 +474,7 @@
         playground.editors[key].setValue(playground.humanize(data));
         return data;
       },
-      error: function(jqXHR) {
+      error: function() {
         btn.addClass("btn-danger active");
         $('#processing-errors')
            .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
@@ -482,7 +492,7 @@
    * @return the resizer button DOM
    */
   playground.makeResizer = function(parent, targets){
-    targets = $.map(targets, function(val, key){ return val; });
+    targets = $.map(targets, function(val){ return val; });
     var start_y,
       start_height,
       handlers = {},
@@ -558,7 +568,7 @@
   * @param see `playground.editor`
   */
   playground.editor.refresh = function(editor){
-    return playground.editor(editor, function(editor, key){
+    return playground.editor(editor, function(editor){
       editor.refresh();
     });
   };
@@ -723,7 +733,7 @@
         },
         function(err){
           // FIXME: add better error handling output
-          $('#processing-errors').text(JSON.stringify(err));
+          $('#processing-errors').text(playground.humanize(err));
           playground.permalink(err);
         }
       );
@@ -749,7 +759,7 @@
       messages;
 
     // check the editors for inputs/remotes
-    $.each(playground.editors, function(key, editor){
+    $.each(playground.editors, function(key){
       if(key === "context" && params.copyContext){ return; }
       val = playground.useRemote[key] ? playground.remoteUrl[key] : null;
       val = val ? val : JSON.stringify(playground.lastParsed[key]);
@@ -774,9 +784,28 @@
 
     playground.permalink.title =  messages.danger + " " + messages.warning;
 
-    $("#permalink").tooltip({title: function(){
-      return playground.permalink.title.trim() || "A link for sharing";
-    }});
+    $("#permalink").tooltip({
+      title: function(){
+        var tip = $("<p/>"),
+          inp = $("<input/>", {
+            "class": "span2",
+            value: loc + hash,
+            autofocus: true
+          });
+        tip.append(
+          $("<span/>")
+            .text(playground.permalink.title.trim() + " Press Ctrl+C to copy."),
+          inp
+        );
+
+        setTimeout(function(){
+          inp[0].select();
+        });
+
+        return tip[0];
+      },
+      html: true
+    });
 
     $("#permalink")
       .attr({
@@ -812,7 +841,6 @@
     });
 
     if(playground.copyContext){
-      $("#copy-context:not(.active)").button("toggle");
       playground.toggleCopyContext(true);
     }
 
@@ -853,10 +881,11 @@
     }
 
     // clean up any remote URLs
-    $.each(playground.editors, function(key, editor){
+    $.each(playground.editors, function(key){
       playground.toggleRemote(key, false);
       playground.setRemoteUrl(key, null);
     });
+    playground.toggleCopyContext(false);
 
     // populate with the example
     return playground.populateWithJSON(data);
@@ -888,7 +917,7 @@
     };
 
     // set up buttons to load examples
-    $('.button').each(function(idx) {
+    $('.button').each(function() {
       var button = $(this);
       button.click(function() {
         playground.populateWithExample(button.find('span').text());
@@ -899,4 +928,5 @@
       playground.process();
     });
   });
-})(jQuery, CodeMirror);
+  return playground;
+}).call(this, this.jQuery, this.CodeMirror, this.jsonld, this.Promise);
