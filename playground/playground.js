@@ -779,7 +779,7 @@
       danger: errors === void 0 ? "" :
         "This link will show the current errors.",
       warning: (loc + hash).length < 2048 ? "" :
-        "This link longer than 2K, and may not work."
+        "This link is longer than 2kb, and may not work."
     };
 
     playground.permalink.title =  messages.danger + " " + messages.warning;
