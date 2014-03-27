@@ -12,8 +12,16 @@
   window.playground = window.playground || {};
   var playground = window.playground;
 
+  var docs = function(){
+    return {
+      markup: null,
+      frame: null,
+      context: null
+    };
+  };
+
   // the codemirror editors
-  playground.editors = {};
+  playground.editors = docs();
 
   // ... and outputs
   playground.outputs = {};
@@ -22,11 +30,7 @@
   playground.theme = "neat";
 
   // the last parsed version of same
-  playground.lastParsed = {
-    markup: null,
-    frame: null,
-    context: null
-  };
+  playground.lastParsed = docs();
 
   // set the active tab to the expanded view
   playground.activeTab = 'tab-expanded';
@@ -48,11 +52,11 @@
   playground.copyContext = false;
 
   // currently-active urls
-  playground.remoteUrl = {
-    markup: null,
-    frame: null,
-    context: null
-  };
+  playground.remoteUrl = docs();
+
+  // whether a remote document should be used
+  playground.useRemote = docs();
+
 
   /**
    * Get a query parameter by name.
@@ -79,7 +83,7 @@
    * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === 'string') ? 
+    return ($.type(value) === 'string') ?
       value :
       JSON.stringify(value, null, 2);
   };
@@ -97,11 +101,7 @@
    */
   playground.processQueryParameters = function() {
     // data from the query
-    var queryData = {
-      markup: null,
-      frame: null,
-      context: null
-    };
+    var queryData = docs();
 
     /**
      * Read a parameter as JSON or create an jQuery AJAX Deferred call
@@ -130,11 +130,13 @@
           }
         }
         else {
-          $("#remote-" + fieldName).val(param);
-          rval = playground.setRemoteUrl(fieldName, param)
-            .then(function(data){
+          playground.toggleRemote(fieldName, true);
+
+          if(rval = playground.setRemoteUrl(fieldName, param)){
+            rval.then(function(data){
               queryData[fieldName] = data;
             });
+          }
         }
       }
 
@@ -223,11 +225,15 @@
       playground.toggleCopyContext();
     });
 
-    $(".editor-option input").bind("input", function(){
-      playground.setRemoteUrl(
-        this.id.replace("remote-",""),
-        this.value
-      );
+    $(".editor-option").each(function(){
+      var option = $(this),
+        key = option.data("editor");
+      option.find("input").bind("input", function(){
+        playground.setRemoteUrl(key, this.value);
+      });
+      option.find("button").bind("click", function(){
+        playground.toggleRemote(key);
+      });
     });
 
     $("[title]").tooltip();
@@ -262,7 +268,7 @@
    * Initialize a CodeMirror editor
    *
    * @param a `<textarea>`
-   * 
+   *
    * @return the CodeMirror editor
    */
   playground.init.editor = function(node){
@@ -384,42 +390,84 @@
 
 
   /**
-   * Set one of the inputs to be a remote document.
+   * Set the remote URL for an editor, then fetch (if enabled).
    *
-   * @param parent the dom element to which the button should be attached
-   * @param target the CodeMirror instances to be resized
+   * @param the key for the editor
+   * @param the value
    *
-   * @return jQuery deferred
+   * @return jQuery deferred, or `undefined`
    */
-  playground.setRemoteUrl = function(key, value){
+  playground.setRemoteUrl = function(key, val){
     var editor = playground.editors[key],
-      btn = $("#remote-" + key).parent().find(".btn");
+      opt = $("[data-editor=" + key + "]"),
+      btn = opt.find("button"),
+      inp = opt.find("input");
 
-    if(!editor){ return; }
+    playground.remoteUrl[key] = val ? val : null;
 
-    playground.remoteUrl[key] = value = value ? value : null;
-
-    playground.editor.setReadOnly(editor, value);
-
-    btn.removeClass("btn-danger btn-info");
-    if(value === null){
-      return;
+    if(inp.val() != val){
+      inp.val(val);
     }
 
+    // the button state is no longer valid
+    btn.removeClass("btn-danger btn-info");
+
+    return playground.fetchRemote(key);
+  };
+
+
+  /**
+   * Toggle (or set) whether a remote document will be used for an editor.
+   *
+   * @param the key for the editor
+   * @param the value: omit to toggle
+   *
+   * @return jQuery deferred, or `undefined`
+   */
+  playground.toggleRemote = function(key, val){
+    var editor = playground.editors[key],
+      btn = $("[data-editor=" + key + "] button");
+
+    playground.useRemote[key] = val = arguments.length === 2 ?
+      Boolean(val) :
+      !playground.useRemote[key];
+
+    playground.editor.setReadOnly(key, val);
+
+    // the button state is no longer valid
+    setTimeout(function(){
+      btn.removeClass("btn-danger btn-info" + (!val ? " active" : ""));
+    }, 1);
+    return playground.fetchRemote(key);
+  };
+
+
+  /**
+   * Fetch a remote document and populate an editor.
+   *
+   * @param the key for the editor
+   *
+   * @return jQuery deferred, or `undefined`
+   */
+  playground.fetchRemote = function(key){
+    if(!playground.useRemote[key]){ return; }
+
+    var btn = $("[data-editor=" + key + "] button");
+
     return $.ajax({
-      url: value,
+      url: playground.remoteUrl[key],
       dataType: 'json',
       crossDomain: true,
       success: function(data) {
-        btn.addClass("btn-info");
+        btn.addClass("btn-info active");
         // setValue always triggers a .process()
-        editor.setValue(playground.humanize(data));
+        playground.editors[key].setValue(playground.humanize(data));
         return data;
       },
       error: function(jqXHR) {
-        btn.addClass("btn-danger");
+        btn.addClass("btn-danger active");
         $('#processing-errors')
-           .text('Error loading ' + key + ' URL: ' + value);
+           .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
       }
     });
   };
@@ -458,11 +506,11 @@
   };
 
 
-  /** 
+  /**
    * Namespace for editor functions, and utility for doing things against them
    *
    * @param a keyed object of editors, the name of an editor, an editor
-   *        or a list of editors. or nothing, which assumes all of them. 
+   *        or a list of editors. or nothing, which assumes all of them.
    * @param the action to peform, of the form `function(editor, key)`
    *
    * @return the result of the action
@@ -491,7 +539,7 @@
    *
    * @param see `playground.editor`
    * @param whether the CodeMirror editor should be editable
-   * 
+   *
    * @return the new value of the read-only setting
    */
   playground.editor.setReadOnly = function(editors, value){
@@ -506,7 +554,7 @@
 
   /**
   * Refresh one or more CodeMirror editors, such as after being revealed.
-  * 
+  *
   * @param see `playground.editor`
   */
   playground.editor.refresh = function(editor){
@@ -571,7 +619,8 @@
 
     // set base IRI
     var options = {
-      base: playground.remoteUrl.markup || document.baseURI || document.URL
+      base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
+        document.baseURI || document.URL
     };
 
     var promise;
@@ -610,7 +659,7 @@
   /**
    * Process the JSON-LD markup that has been input and display the output
    * in the active tab.
-   * 
+   *
    * @return a promise to process
    */
   playground.process = function(){
@@ -683,7 +732,7 @@
 
   /**
    * Update the permalink button with a `#` link to the current playground
-   * 
+   *
    * @param the error object, string or object
    *
    * @return the current permalink URL
@@ -702,7 +751,7 @@
     // check the editors for inputs/remotes
     $.each(playground.editors, function(key, editor){
       if(key === "context" && params.copyContext){ return; }
-      val = playground.remoteUrl[key];
+      val = playground.useRemote[key] ? playground.remoteUrl[key] : null;
       val = val ? val : JSON.stringify(playground.lastParsed[key]);
       if(val && val !== "null"){
         params[key] = val;
@@ -782,11 +831,7 @@
    * @return a promise to process the data, or `undefined`
    */
   playground.populateWithExample = function(name) {
-    var data = {
-      markup: null,
-      context: null,
-      frame: null
-    };
+    var data = docs();
 
     if(name in playground.examples) {
       // fill the markup with the example
@@ -807,16 +852,10 @@
       }
     }
 
-    playground.editor.setReadOnly(null, false);
-
     // clean up any remote URLs
     $.each(playground.editors, function(key, editor){
+      playground.toggleRemote(key, false);
       playground.setRemoteUrl(key, null);
-      $("#remote-" + key)
-        .val(null)
-      .parent()
-        .find(".btn")
-        .removeClass("btn-info btn-danger");
     });
 
     // populate with the example
