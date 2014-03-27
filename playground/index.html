@@ -20,15 +20,15 @@
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
 
     <!-- CodeMirror -->
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/g/bootstrap@2.3.1(css/bootstrap-responsive.min.css),codemirror@3.22.0(codemirror.css+addon/lint/lint.css+addon/hint/show-hint.css+theme/neat.css)">    
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/fontawesome/3.0.2/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/g/bootstrap@2.3.1(css/bootstrap-responsive.min.css),codemirror@3.22.0(codemirror.css+addon/lint/lint.css+addon/hint/show-hint.css+theme/neat.css)">
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/fontawesome/3.2.1/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="./playground.css">
 
 
     <link rel="shortcut icon" href="../favicon.ico" />
   </head>
 
-  <body onload="playground.init();">
+  <body id="page-playground" onload="playground.init();">
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="row-fluid">
@@ -84,134 +84,236 @@
         is a work in progress.
       </p>
       <br/>
+    </div>
 
-      <div class="btn-group" data-toggle="buttons-radio">
-        <button class="btn disabled btn-primary">Examples:</button>
-        <button id="btn-person" class="btn button"><span>Person</span></button>
-        <button id="btn-event" class="btn button"><span>Event</span></button>
-        <button id="btn-place" class="btn button"><span>Place</span></button>
-        <button id="btn-product" class="btn button"><span>Product</span></button>
-        <button id="btn-recipe" class="btn button"><span>Recipe</span></button>
-        <button id="btn-library" class="btn button"><span>Library</span></button>
-      </div>
+    <div class="loading hero">
+      <h1><i class="icon-spinner icon-spin icon-large"></i> Loading the Playground...
+    </div>
+    <div class="loaded hide">
+      <div class="container">
+        <div class="btn-group" data-toggle="buttons-radio">
+          <button class="btn disabled btn-primary">Examples:</button>
+          <button id="btn-person" class="btn button">
+            <i class="icon icon-user"></i>
+            <span>Person</span>
+          </button>
+          <button id="btn-event" class="btn button">
+            <i class="icon icon-calendar"></i>
+            <span>Event</span>
+          </button>
+          <button id="btn-place" class="btn button">
+            <i class="icon icon-map-marker"></i>
+            <span>Place</span>
+          </button>
+          <button id="btn-product" class="btn button">
+            <i class="icon icon-barcode"></i>
+            <span>Product</span>
+          </button>
+          <button id="btn-recipe" class="btn button">
+            <i class="icon icon-food"></i>
+            <span>Recipe</span>
+          </button>
+          <button id="btn-library" class="btn button">
+            <i class="icon icon-book"></i>
+            <span>Library</span>
+          </button>
+        </div>
 
-      <div class="pull-right">
-        <button class="btn popover-info">
-          <i class="icon-magic"></i> Shortcuts
-        </button>
-        <div class="popover-info-content hide">
-          <table class="table table-striped">
+        <div class="pull-right">
+          <a class="btn" id="permalink">
+            <i class="icon icon-link"></i>
+            <span>Permalink</span>
+          </a>
+          <button class="btn popover-info" title="Keyboard shortcuts">
+            <i class="icon icon-keyboard"></i> Shortcuts
+          </button>
+          <div class="popover-info-content hide">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Autocomplete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><label class="label">@</label></td>
+                  <td>all of the <b>@</b> keywords</td>
+                </tr>
+                <tr>
+                  <td><label class="label">Ctrl+Space</label></td>
+                  <td>available keys in <b>@context</b></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <br/><br/>
+        <div class="container" id="markup-container">
+          <div class="row">
+            <div id="markup-div" class="span12">
+              <div class="pull-right editor-options">
+                <div class="input-prepend editor-option" title="Use remote document" data-editor="markup">
+                  <button class="btn" type="button" data-toggle="button">
+                    <span class="icon-stack">
+                      <i class="icon-cloud icon-stack-base icon-muted"></i>
+                      <i class="icon-file"></i>
+                    </span>
+                  </button>
+                  <input class="span2" type="text" placeholder="Document URL"/>
+                </div>
+              </div>
+              <h3>JSON-LD Input</h3>
+              <textarea id="markup" class="compressed process span6 codemirror-input"
+              placeholder="Enter your JSON-LD markup here..." rows="10"></textarea>
+            </div>
+
+            <div id="context-div" class="span6">
+              <div class="pull-right editor-options">
+                <div class="input-prepend editor-option" title="Use remote context" data-editor="context">
+                  <button class="btn" type="button" data-toggle="button">
+                    <span class="icon-stack">
+                      <i class="icon-cloud icon-stack-base icon-muted"></i>
+                      <i class="icon-bullseye"></i>
+                    </span>
+                  </button>
+                  <input class="span2" type="text" placeholder="Context URL"/>
+                </div>
+              </div>
+              <h3>New JSON-LD Context</h3>
+              <button class="btn" data-toggle="button" id="copy-context" title='Copy context from "JSON-LD Input"'>
+                <i class="icon-circle-arrow-right"></i>
+              </button>
+              
+              <textarea id="context" class="compressed process span6 codemirror-input"
+              placeholder="Enter the new JSON-LD context to compact to here..." rows="10">{}</textarea>
+            </div>
+
+            <div id="frame-div" class="span6">
+              <h3>
+                JSON-LD Frame
+                <div class="pull-right editor-options">
+                  <div class="input-prepend editor-option" title="Use remote frame" data-editor="frame">
+                    <button class="btn" type="button" data-toggle="button">
+                      <span class="icon-stack">
+                        <i class="icon-cloud icon-stack-base icon-muted"></i>
+                        <i class="icon-crop"></i>
+                      </span>
+                    </button>
+                    <input class="span2" type="text" placeholder="Frame URL" />
+                  </div>
+                </div>
+              </h3>
+              <textarea id="frame" class="compressed process span6 codemirror-input"
+              placeholder="Enter your JSON-LD frame here..." rows="10">{}</textarea>
+            </div>
+          </div>
+        </div>
+        <div id="markup-errors" class="text-error"></div>
+        <div id="param-errors" class="text-error"></div>
+        <div id="using-context-map" class="hide alert alert-note">
+          <p>NOTE: Schema.org's remote context was detected in your input but, unfortunately,
+            it doesn't resolve to a proper context document yet. The Schema.org team is
+            already working on this issue and it is expected to be resolved in a couple
+            of weeks.</p>
+          <p>In the meantime, if you wish, you can use an alternative context created by
+            the JSON-LD community to process your document.</p>
+          <label class="checkbox">
+            <input type="checkbox" id="use-context-map" value="1"> Use alternative context
+          </label>
+          <table class="table table-condensed">
             <thead>
               <tr>
-                <th>Key</th>
-                <th>Autocomplete</th>
+                <td>Original</td>
+                <td>Alternative</td>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><label class="label">@</label></td>
-                <td>all of the <b>@</b> keywords</td>
-              </tr>
-              <tr>
-                <td><label class="label">Ctrl+Space</label></td>
-                <td>available keys in <b>@context</b></td>
-              </tr>
+              <!-- dynamic rows -->
             </tbody>
           </table>
         </div>
-      </div>
+        <p id="processing-errors" class="text-error"></p>
 
-      <br/><br/>
-      <div class="container" id="markup-container">
-        <div class="row">
-          <div id="markup-div" class="span12">
-            <h3>JSON-LD Input</h3>
-            <textarea id="markup" class="compressed process span6 codemirror-input"
-            placeholder="Enter your JSON-LD markup here..." rows="10"></textarea>
-          </div>
-          <div id="context-div" class="span6">
-            <h3>New JSON-LD Context</h3>
-            <textarea id="context" class="compressed process span6 codemirror-input"
-            placeholder="Enter the new JSON-LD context to compact to here..." rows="10">{}</textarea>
-          </div>
-          <div id="frame-div" class="span6">
-            <h3>JSON-LD Frame</h3>
-            <textarea id="frame" class="compressed process span6 codemirror-input"
-            placeholder="Enter your JSON-LD frame here..." rows="10">{}</textarea>
-          </div>
+        <div id="output-container">
+          <ul id="tabs" class="nav nav-tabs">
+            <li class="active">
+              <a id="tab-expanded" href="#pane1" data-toggle="tab" name="tab-expanded">
+                <i class="icon-resize-full"></i>
+                <span>Expanded</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-compacted" href="#pane2" data-toggle="tab" name="tab-compacted">
+                <i class="icon-resize-small"></i>
+                <span>Compacted</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-flattened" href="#pane3" data-toggle="tab" name="tab-flattened">
+                <i class="icon-reorder"></i>
+                <span>Flattened</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-framed" href="#pane4" data-toggle="tab" name="tab-framed">
+                <i class="icon-crop"></i>
+                <span>Framed</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-nquads" href="#pane5" data-toggle="tab" name="tab-nquads">
+                <img src="../images/rdf_flyer.svg" width="13"/>
+                <span>N-Quads</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-normalized" href="#pane6" data-toggle="tab" name="tab-normalized">
+                <i class="icon-archive"></i>
+                <span>Normalized</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div id="pane1" class="tab-pane active">
+              <textarea id="expanded" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane2" class="tab-pane">
+              <textarea id="compacted" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane3" class="tab-pane">
+              <textarea id="flattened" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane4" class="tab-pane">
+              <textarea id="framed" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane5" class="tab-pane">
+              <textarea id="nquads" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane6" class="tab-pane">
+              <textarea id="normalized" class="codemirror-output"></textarea>
+            </div>
+          </div><!-- /.tab-content -->
         </div>
-      </div>
-      <div id="permalink"></div>
-      <div id="markup-errors" class="text-error"></div>
-      <div id="param-errors" class="text-error"></div>
-      <div id="using-context-map" class="hide alert alert-note">
-        <p>NOTE: Schema.org's remote context was detected in your input but, unfortunately,
-          it doesn't resolve to a proper context document yet. The Schema.org team is
-          already working on this issue and it is expected to be resolved in a couple
-          of weeks.</p>
-        <p>In the meantime, if you wish, you can use an alternative context created by
-          the JSON-LD community to process your document.</p>
-        <label class="checkbox">
-          <input type="checkbox" id="use-context-map" value="1"> Use alternative context
-        </label>
-        <table class="table table-condensed">
-          <thead>
-            <tr>
-              <td>Original</td>
-              <td>Alternative</td>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-      <p id="processing-errors" class="text-error"></p>
 
-      <div id="output-container">
-        <ul id="tabs" class="nav nav-tabs">
-          <li class="active"><a id="tab-expanded" href="#pane1" data-toggle="tab"><span>Expanded</span></a></li>
-          <li><a id="tab-compacted" href="#pane2" data-toggle="tab"><span>Compacted</span></a></li>
-          <li><a id="tab-flattened" href="#pane3" data-toggle="tab"><span>Flattened</span></a></li>
-          <li><a id="tab-framed" href="#pane4" data-toggle="tab"><span>Framed</span></a></li>
-          <li><a id="tab-nquads" href="#pane5" data-toggle="tab"><span>N-Quads</span></a></li>
-          <li><a id="tab-normalized" href="#pane6" data-toggle="tab"><span>Normalized</span></a></li>
-        </ul>
-        <div class="tab-content">
-          <div id="pane1" class="tab-pane active">
-            <textarea id="expanded" class="codemirror-output"></textarea>
-          </div>
-          <div id="pane2" class="tab-pane">
-            <textarea id="compacted" class="codemirror-output"></textarea>
-          </div>
-          <div id="pane3" class="tab-pane">
-            <textarea id="flattened" class="codemirror-output"></textarea>
-          </div>
-          <div id="pane4" class="tab-pane">
-            <textarea id="framed" class="codemirror-output"></textarea>
-          </div>
-          <div id="pane5" class="tab-pane">
-            <textarea id="nquads" class="codemirror-output"></textarea>
-          </div>
-          <div id="pane6" class="tab-pane">
-            <textarea id="normalized" class="codemirror-output"></textarea>
-          </div>
-        </div><!-- /.tab-content -->
-      </div>
+        <hr/>
+      </div> <!-- /.container -->
+    </div> <!-- /.loading -->
 
-      <hr>
+    <div class="container">
       <div id="footer">
         <p id="copyright">
          Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
          Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
         </p>
       </div>
-    </div> <!-- /container -->
-
+    </div>
 
     <!-- sccdn scripts -->
     <script src="//cdn.jsdelivr.net/g/jquery@1.11.0,es6-promise@0.1.1,bootstrap@2.3.2,codemirror@3.22.0(codemirror.min.js+addon/lint/lint.js+addon/edit/matchbrackets.js+addon/edit/closebrackets.js+addon/display/placeholder.js+addon/hint/show-hint.js+mode/ntriples/ntriples.js+mode/javascript/javascript.js)"></script>
-    
+
     <!-- local scripts -->
     <script src="./jsonld.js"></script>
     <script src="./jsonlint.js"></script>
