@@ -7,13 +7,28 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-(function($, CodeMirror) {
-  // create the playground instance if it doesn't already exist
-  window.playground = window.playground || {};
-  var playground = window.playground;
+;(function($, CodeMirror, jsonld, Promise){
+  "use strict";
+  // assume nothing
+  var window = this,
+    console = window.console,
+    setTimeout = window.setTimeout,
+    document = window.document,
+
+    // create the playground instance if it doesn't already exist
+    playground = window.playground = {},
+
+    // given this is needed, we probably need a `Document` class...
+    docs = function(){
+      return {
+        markup: null,
+        frame: null,
+        context: null
+      };
+    };
 
   // the codemirror editors
-  playground.editors = {};
+  playground.editors = docs();
 
   // ... and outputs
   playground.outputs = {};
@@ -22,17 +37,7 @@
   playground.theme = "neat";
 
   // the last parsed version of same
-  playground.lastParsed = {
-    markup: null,
-    frame: null,
-    context: null
-  };
-  
-  playground.lineIndex = {
-    markup: null,
-    frame: null,
-    context: null
-  };
+  playground.lastParsed = docs();
 
   // set the active tab to the expanded view
   playground.activeTab = 'tab-expanded';
@@ -50,6 +55,16 @@
   // JSON schema for JSON-LD documents
   playground.schema = null;
 
+  // copy context from the input
+  playground.copyContext = false;
+
+  // currently-active urls
+  playground.remoteUrl = docs();
+
+  // whether a remote document should be used
+  playground.useRemote = docs();
+
+
   /**
    * Get a query parameter by name.
    *
@@ -61,10 +76,11 @@
    * @return the value of the parameter or null if it does not exist
    */
   function getParameterByName(name) {
-    var match = RegExp('[?&]' + name + '=([^&]*)')
-      .exec(window.location.search);
+    var match = new RegExp('[#?&]' + name + '=([^&]*)')
+      .exec(window.location.hash || window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-  };
+  }
+
 
   /**
    * Consistent human-readable JSON formatting.
@@ -74,16 +90,17 @@
    * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === 'string')
-      ? value
-      : JSON.stringify(value, null, 2);
+    return ($.type(value) === 'string') ?
+      value :
+      JSON.stringify(value, null, 2);
   };
+
 
   /**
    * Handle URL query parameters.
    *
-   * Checks 'json-ld', 'context', and 'frame' parameters.  If they look like
-   * JSON then interpret as JSON strings else interpret as URLs of remote
+   * Checks 'json-ld', 'context', and 'frame' parameters.  If they look
+   * like JSON then interpret as JSON strings else interpret as URLs of remote
    * resources.  Note: URLs must be CORS enabled to load due to browser same
    * origin policy issues.
    *
@@ -91,11 +108,7 @@
    */
   playground.processQueryParameters = function() {
     // data from the query
-    var queryData = {
-      markup: null,
-      frame: null,
-      context: null
-    };
+    var queryData = docs();
 
     /**
      * Read a parameter as JSON or create an jQuery AJAX Deferred call
@@ -107,7 +120,7 @@
      *
      * @return jQuery Deferred or null.
      */
-    function handleParameter(param, fieldName, msgName) {
+    function handleParameter(param, fieldName) {
       // the ajax deferred or null
       var rval = null;
 
@@ -117,31 +130,25 @@
           // param looks like JSON, try to parse it
           try {
             queryData[fieldName] = JSON.parse(param);
+            playground.setRemoteUrl(fieldName, null);
           }
           catch(e) {
             queryData[fieldName] = param;
           }
         }
         else {
-          // treat param as a URL
-          rval = $.ajax({
-            url: param,
-            dataType: 'text',
-            crossDomain: true,
-            success: function(data, textStatus, jqXHR) {
-               queryData[fieldName] = data;
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-               // FIXME: better error handling
-               $('#processing-errors')
-                  .text('Error loading ' + msgName + ' URL: ' + param);
-            }
-          });
+          playground.toggleRemote(fieldName, true);
+          rval = playground.setRemoteUrl(fieldName, param);
+          if(rval){
+            rval.then(function(data){
+              queryData[fieldName] = data;
+            });
+          }
         }
-      };
+      }
 
       return rval;
-    };
+    }
 
     // build deferreds
     var jsonLdDeferred = handleParameter(
@@ -161,19 +168,21 @@
        $('#' + startTab).tab('show');
     }
 
+    playground.copyContext = getParameterByName('copyContext') === "true";
+
     // wait for ajax if needed
     // failures handled in AJAX calls
     $.when(jsonLdDeferred, frameDeferred, contextDeferred, paramDeferred)
       .done(function() {
         // Maintain backwards permalink compatability
-        if(queryData['param'] &&
-          !(queryData['frame'] || queryData['context'])) {
-          queryData['frame'] = queryData['context'] = queryData['param'];
+        if(queryData.param && !(queryData.frame || queryData.context)) {
+          queryData.frame = queryData.context = queryData.param;
         }
         // populate UI with data
         playground.populateWithJSON(queryData);
       });
   };
+
 
   /**
    * Used to initialize the UI, call once on document load.
@@ -195,7 +204,6 @@
     CodeMirror.commands.autocomplete = function(cm) {
       CodeMirror.showHint(cm, CodeMirror.hint.jsonld, {
         lastParsed: playground.lastParsed[cm.options._playground_key],
-        lineIndex: playground.lineIndex[cm.options._playground_key],
         completeSingle: false,
         schemata: function(){
           return playground.schema ? [playground.schema] : [];
@@ -208,18 +216,36 @@
         isAt: true,
         completeSingle: false,
         lastParsed: playground.lastParsed[cm.options._playground_key],
-        lineIndex: playground.lineIndex[cm.options._playground_key],
         schemata: function(){
           return playground.schema ? [playground.schema] : [];
         }
       });
     };
 
-    $(".codemirror-input").each(playground.init.editor);
-    $(".codemirror-output").each(playground.init.output);
+    $(".codemirror-input").each(function(){ playground.init.editor(this); });
+    $(".codemirror-output").each(function(){ playground.init.output(this); });
+
     playground.makeResizer($("#markup-container"), playground.editors);
     playground.makeResizer($("#output-container"), playground.outputs);
 
+    $("#copy-context").click(function(){
+      playground.toggleCopyContext();
+    });
+
+    $(".editor-option").each(function(){
+      var option = $(this),
+        key = option.data("editor");
+      option.find("input").bind("input", function(){
+        playground.setRemoteUrl(key, this.value);
+      });
+      option.find("button").bind("click", function(){
+        playground.toggleRemote(key);
+      });
+    });
+
+    $("[title]").tooltip();
+
+    $(window).bind("hashchange", playground.processQueryParameters);
 
     // load the schema
     $.ajax({
@@ -229,18 +255,32 @@
       .done(function(schema){
         playground.schema = schema;
       })
-      .fail(function(xhr){
+      .fail(function(){
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
 
-    if(window.location.search) {
+    if(window.location.search || window.location.hash) {
       playground.processQueryParameters();
     }
+    $(".loading").fadeOut(function(){
+      $(this).remove();
+      $(".loaded").fadeIn();
+      playground.editor.refresh();
+      playground.editor.refresh(playground.outputs);
+    });
   };
 
-  playground.init.editor = function(){
-    var key = this.id,
-      editor = playground.editors[key] = CodeMirror.fromTextArea(this, {
+
+  /**
+   * Initialize a CodeMirror editor
+   *
+   * @param a `<textarea>`
+   *
+   * @return the CodeMirror editor
+   */
+  playground.init.editor = function(node){
+    var key = node.id,
+      editor = playground.editors[key] = CodeMirror.fromTextArea(node, {
         matchBrackets: true,
         autoCloseBrackets: true,
         lineWrapping: true,
@@ -261,7 +301,14 @@
       });
 
     // set up 'process' areas to process JSON-LD after typing
-    editor.on("change", playground.process);
+    editor.on("change", function(){
+      if(playground.copyContext && key === "markup"){
+        if(playground.toggleCopyContext.copy()){
+          return;
+        }
+      }
+      playground.process();
+    });
 
     // check on every keyup for `@`: doesn't get caught by (extra|custom)Keys
     editor.on("keyup", function(editor, evt) {
@@ -284,28 +331,168 @@
         CodeMirror.commands.at_autocomplete(editor, evt);
       }
     });
+
+    return editor;
   };
 
-  playground.init.output = function() {
-    var key = this.id,
-      output = playground.outputs[key] = CodeMirror.fromTextArea(this, {
-        readOnly: true,
-        lineWrapping: true,
-        mode: ["normalized", "nquads"].indexOf(key) > -1
-          ? "text/n-triples"
-          : "application/ld+json",
-        theme: playground.theme
-      });
-  };
 
   /**
-   * Make one or more CodeMirror editor resizeable.
+   * Initialize a read-only CodeMirror viewer
+   *
+   * @param a `<textarea>`
+   *
+   * @return the CodeMirror editor
+   */
+  playground.init.output = function(node) {
+    var key = node.id,
+      output = playground.outputs[key] = CodeMirror.fromTextArea(node, {
+        readOnly: true,
+        lineWrapping: true,
+        mode: ["normalized", "nquads"].indexOf(key) > -1 ?
+          "text/n-triples" :
+          "application/ld+json",
+        theme: playground.theme
+      });
+    return output;
+  };
+
+
+  /**
+   * Toggle whether the output context will be updated from the input
+   *
+   * @param the new value of the setting. If not provided, invert current
+   *
+   * @return the JSON that was actually set, or `undefined` if nothing was set
+   */
+  playground.toggleCopyContext = function(val){
+    var editor = playground.editors.context;
+
+    playground.copyContext =  val = arguments.length ?
+      Boolean(val) :
+      !playground.copyContext;
+
+    playground.editor.setReadOnly(editor, val);
+
+    setTimeout(function(){
+      $("#copy-context").toggleClass("toggle", val);
+    }, 1);
+
+    if(val){
+      return playground.toggleCopyContext.copy();
+    }
+  };
+
+
+  /**
+   * Copy the context right now.
+   *
+   * @return the JSON that was set, or `undefined` if nothing was set
+   */
+  playground.toggleCopyContext.copy = function(){
+    var editor = playground.editors.context,
+      json = playground.humanize({
+        "@context": playground.lastParsed.markup ?
+          playground.lastParsed.markup["@context"] :
+          {}});
+    if(json !== editor.getValue()){
+      playground.editors.context.setValue(json);
+      return json;
+    }
+  };
+
+
+  /**
+   * Set the remote URL for an editor, then fetch (if enabled).
+   *
+   * @param the key for the editor
+   * @param the value
+   *
+   * @return jQuery deferred, or `undefined`
+   */
+  playground.setRemoteUrl = function(key, val){
+    var opt = $("[data-editor=" + key + "]"),
+      btn = opt.find("button"),
+      inp = opt.find("input");
+
+    playground.remoteUrl[key] = val ? val : null;
+
+    if(inp.val() != val){
+      inp.val(val);
+    }
+
+    // the button state is no longer valid
+    btn.removeClass("btn-danger btn-info");
+
+    return playground.fetchRemote(key);
+  };
+
+
+  /**
+   * Toggle (or set) whether a remote document will be used for an editor.
+   *
+   * @param the key for the editor
+   * @param the value: omit to toggle
+   *
+   * @return jQuery deferred, or `undefined`
+   */
+  playground.toggleRemote = function(key, val){
+    var btn = $("[data-editor=" + key + "] button");
+
+    playground.useRemote[key] = val = arguments.length === 2 ?
+      Boolean(val) :
+      !playground.useRemote[key];
+
+    playground.editor.setReadOnly(key, val);
+
+    // the button state is no longer valid
+    setTimeout(function(){
+      btn.removeClass("btn-danger btn-info" + (!val ? " active" : ""));
+    }, 1);
+    return playground.fetchRemote(key);
+  };
+
+
+  /**
+   * Fetch a remote document and populate an editor.
+   *
+   * @param the key for the editor
+   *
+   * @return jQuery deferred, or `undefined`
+   */
+  playground.fetchRemote = function(key){
+    if(!playground.useRemote[key]){ return; }
+
+    var btn = $("[data-editor=" + key + "] button");
+
+    return $.ajax({
+      url: playground.remoteUrl[key],
+      dataType: 'json',
+      crossDomain: true,
+      success: function(data) {
+        btn.addClass("btn-info active");
+        // setValue always triggers a .process()
+        playground.editors[key].setValue(playground.humanize(data));
+        return data;
+      },
+      error: function() {
+        btn.addClass("btn-danger active");
+        $('#processing-errors')
+           .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
+      }
+    });
+  };
+
+
+  /**
+   * Make one or more editor resizeable together.
    *
    * @param parent the dom element to which the button should be attached
-   * @param target the CodeMirror instances to be resized
+   * @param an object or list of CodeMirror instances to be resized together
+   *
+   * @return the resizer button DOM
    */
   playground.makeResizer = function(parent, targets){
-    targets = $.map(targets, function(val, key){ return val; });
+    targets = $.map(targets, function(val){ return val; });
     var start_y,
       start_height,
       handlers = {},
@@ -325,15 +512,76 @@
             });
         })
         .appendTo(parent);
+    return btn[0];
   };
+
+
+  /**
+   * Namespace for editor functions, and utility for doing things against them
+   *
+   * @param a keyed object of editors, the name of an editor, an editor
+   *        or a list of editors. or nothing, which assumes all of them.
+   * @param the action to peform, of the form `function(editor, key)`
+   *
+   * @return the result of the action
+   */
+  playground.editor = function(editors, action){
+    var key,
+      editor;
+    if($.type(editors) === "string"){
+      key = editors;
+      editors = {};
+      editors[key] = playground.editors[key];
+    }else if(editors instanceof CodeMirror){
+      key = editors.getTextArea().id;
+      editor = editors;
+      editors = {};
+      editors[key] = editor;
+    }else if(!editors){
+      editors = playground.editors;
+    }
+    return $.map(editors, action);
+  };
+
+
+  /**
+   * Make a CodeMirror editor (temporarily) read-only.
+   *
+   * @param see `playground.editor`
+   * @param whether the CodeMirror editor should be editable
+   *
+   * @return the new value of the read-only setting
+   */
+  playground.editor.setReadOnly = function(editors, value){
+    value = Boolean(value);
+    playground.editor(editors, function(editor){
+      editor.setOption("readOnly", value);
+      $(editor.getWrapperElement()).toggleClass("read-only", value);
+    });
+    return value;
+  };
+
+
+  /**
+  * Refresh one or more CodeMirror editors, such as after being revealed.
+  *
+  * @param see `playground.editor`
+  */
+  playground.editor.refresh = function(editor){
+    return playground.editor(editor, function(editor){
+      editor.refresh();
+    });
+  };
+
 
   /**
    * Callback for when tabs are selected in the UI.
    *
    * @param event the event that fired when the tab was selected.
+   *
+   * @return the process() promise
    */
   playground.tabSelected = function(evt) {
-
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
@@ -358,11 +606,14 @@
       $('#param-type').html('');
     }
 
-    $.each(playground.editors, function(id, editor){ editor.refresh(); });
+    // refresh all the editors
+    playground.editor.refresh();
+    playground.editor.refresh(playground.outputs);
 
     // perform processing on the data provided in the input boxes
-    playground.process();
+    return playground.process();
   };
+
 
   /**
    * Returns a Promise to performs the JSON-LD API action based on the active
@@ -370,12 +621,17 @@
    *
    * @param input the JSON-LD object input or null no error.
    * @param param the JSON-LD param to use.
+   *
+   * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
     var processor = new jsonld.JsonLdProcessor();
 
     // set base IRI
-    var options = {base: (document.baseURI || document.URL)};
+    var options = {
+      base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
+        document.baseURI || document.URL
+    };
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
@@ -409,11 +665,14 @@
     });
   };
 
+
   /**
    * Process the JSON-LD markup that has been input and display the output
    * in the active tab.
+   *
+   * @return a promise to process
    */
-  playground.process = function() {
+  playground.process = function(){
     $('#markup-errors').text('');
     $('#param-errors').text('');
     $('#processing-errors').text('');
@@ -422,6 +681,7 @@
     playground.activeContextMap = {};
     var errors = false;
     var markup = playground.editors.markup.getValue();
+    var input;
 
     // nothing to process
     if(markup === '') {
@@ -430,10 +690,7 @@
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      var input = jsonlint.parse(markup);
-      playground.lastParsed.markup = input.parsedObject;
-      playground.lineIndex.markup = input.lineIndex;
-      input = input.parsedObject;
+      input = playground.lastParsed.markup = JSON.parse(markup);
     }
     catch(e) {
       $('#markup-errors').text('JSON markup - ' + e);
@@ -460,10 +717,7 @@
 
     if(needParam) {
       try {
-        param = jsonlint.parse(jsonParam);
-        playground.lastParsed[paramType] = param.parsedObject;
-        playground.lineIndex[paramType] = param.lineIndex;
-        param = param.parsedObject;
+        playground.lastParsed[paramType] = param = JSON.parse(jsonParam);
       }
       catch(e) {
         $('#param-errors').text($('#param-type').text() + ' - ' + e);
@@ -471,92 +725,141 @@
       }
     }
 
-    // errors detected
-    if(errors) {
-      $('#permalink').hide();
-      return;
-    }
-
     // no errors, perform the action and display the output
-    playground.performAction(input, param).then(function() {
-      // generate a link for current data
-      var link = '?json-ld=' + encodeURIComponent(JSON.stringify(input));
-      if(playground.editors.frame.getValue().length > 0) {
-        link += '&frame=' + encodeURIComponent(playground.editors.frame.getValue());
-      }
-      if(playground.editors.context.getValue().length > 0) {
-        link += '&context=' + encodeURIComponent(playground.editors.context.getValue());
-      }
-
-      // Start at the currently active tab
-      link += '&startTab=' + encodeURIComponent(playground.activeTab);
-
-      var permalink = '<a href="' + link + '">permalink</a>';
-      // size warning for huge links
-      if((window.location.protocol.length + 2 +
-        window.location.host.length + window.location.pathname.length +
-        link.length) > 2048) {
-        permalink += ' (2KB+)';
-      }
-      $('#permalink')
-        .html(permalink)
-        .show();
-    }, function(err) {
-      // FIXME: add better error handling output
-      $('#processing-errors').text(JSON.stringify(err));
-    });
+    return playground.performAction(input, param)
+      .then(
+        function(){
+          playground.permalink();
+        },
+        function(err){
+          // FIXME: add better error handling output
+          $('#processing-errors').text(playground.humanize(err));
+          playground.permalink(err);
+        }
+      );
   };
+
+
+  /**
+   * Update the permalink button with a `#` link to the current playground
+   *
+   * @param the error object, string or object
+   *
+   * @return the current permalink URL
+   */
+  playground.permalink = function(errors) {
+    // generate a hash link for current data, starting with the tab
+    var loc = window.location.href.replace(/[#\?].*$/, ""),
+      hash = "",
+      params = {
+        startTab: playground.activeTab,
+        copyContext: playground.copyContext
+      },
+      val,
+      messages;
+
+    // check the editors for inputs/remotes
+    $.each(playground.editors, function(key){
+      if(key === "context" && params.copyContext){ return; }
+      val = playground.useRemote[key] ? playground.remoteUrl[key] : null;
+      val = val ? val : JSON.stringify(playground.lastParsed[key]);
+      if(val && val !== "null"){
+        params[key] = val;
+      }
+    });
+
+    // encode and concat the hash components
+    $.each(params, function(key, val){
+      if(!val){ return; }
+      hash += (hash ? "&" : "#") +
+        (key === "markup" ? "json-ld" : key) + "=" + encodeURIComponent(val);
+    });
+
+    messages = {
+      danger: errors === void 0 ? "" :
+        "This link will show the current errors.",
+      warning: (loc + hash).length < 2048 ? "" :
+        "This link is longer than 2kb, and may not work."
+    };
+
+    playground.permalink.title =  messages.danger + " " + messages.warning;
+
+    $("#permalink").tooltip({
+      title: function(){
+        var tip = $("<p/>"),
+          inp = $("<input/>", {
+            "class": "span2",
+            value: loc + hash,
+            autofocus: true
+          });
+        tip.append(
+          $("<span/>")
+            .text(playground.permalink.title.trim() + " Press Ctrl+C to copy."),
+          inp
+        );
+
+        setTimeout(function(){
+          inp[0].select();
+        });
+
+        return tip[0];
+      },
+      html: true
+    });
+
+    $("#permalink")
+      .attr({
+        href: loc + hash
+      })
+      .toggleClass("btn-danger", messages.danger.length !== 0)
+      .toggleClass("btn-warning", messages.warning.length !== 0)
+    .find("span")
+      .text("Permalink");
+
+    return loc + hash;
+  };
+
 
   /**
    * Populate the UI with markup, frame, and context JSON. The data parameter
    * should have a 'markup' field and optional 'frame' and 'context' fields.
    *
    * @param data object with optional 'markup', 'frame' and 'context' fields.
+   *
+   * @return the process promise, or `undefined` if no data was found
    */
   playground.populateWithJSON = function(data) {
     var hasData = false;
 
-    if('markup' in data && data.markup !== null) {
-      hasData = true;
-      // fill the markup box with the example
-      playground.editors.markup.setValue(playground.humanize(data.markup));
-    }
+    $.each(playground.editors, function(key, editor){
+      if(key in data && data[key] !== null){
+        hasData = true;
+        editor.setValue(playground.humanize(data[key]));
+      }else{
+        editor.setValue("{}");
+      }
+    });
 
-    if('frame' in data && data.frame !== null) {
-      hasData = true;
-      // fill the frame input box with the given frame
-      playground.editors.frame.setValue(playground.humanize(data.frame));
-    }
-    else {
-      playground.editors.frame.setValue('{}');
-    }
-
-    if('context' in data && data.context !== null) {
-      hasData = true;
-      // fill the context input box with the given context
-      playground.editors.context.setValue(playground.humanize(data.context));
-    }
-    else {
-      playground.editors.context.setValue('{}');
+    if(playground.copyContext){
+      playground.toggleCopyContext(true);
     }
 
     if(hasData) {
       // perform processing on the data provided in the input boxes
-      playground.process();
+      return playground.process();
     }
   };
+
 
   /**
    * Populate the UI with a named example.
    *
    * @param name the name of the example to pre-populate the input boxes.
+   *
+   * @return a promise to process the data, or `undefined`
    */
   playground.populateWithExample = function(name) {
-    var data = {
-      markup: null,
-      context: null,
-      frame: null
-    };
+    var data = docs();
 
     if(name in playground.examples) {
       // fill the markup with the example
@@ -577,9 +880,17 @@
       }
     }
 
+    // clean up any remote URLs
+    $.each(playground.editors, function(key){
+      playground.toggleRemote(key, false);
+      playground.setRemoteUrl(key, null);
+    });
+    playground.toggleCopyContext(false);
+
     // populate with the example
-    playground.populateWithJSON(data);
+    return playground.populateWithJSON(data);
   };
+
 
   // event handlers
   $(document).ready(function() {
@@ -606,7 +917,7 @@
     };
 
     // set up buttons to load examples
-    $('.button').each(function(idx) {
+    $('.button').each(function() {
       var button = $(this);
       button.click(function() {
         playground.populateWithExample(button.find('span').text());
@@ -616,26 +927,6 @@
     $('#use-context-map').change(function() {
       playground.process();
     });
-
-    $('#theme-select a').click(function(evt) {
-      var theme = evt.currentTarget.text,
-        file = evt.currentTarget.title ? evt.currentTarget.title : theme,
-        key;
-
-      $("#theme-name").text(theme);
-
-      $('#theme-stylesheet').prop("href",
-        "//cdnjs.cloudflare.com/ajax/libs/codemirror/3.16.0/theme/" +
-        file + ".css"
-      );
-
-      for(key in playground.editors) {
-        playground.editors[key].setOption("theme", theme);
-      }
-
-      for(key in playground.outputs) {
-        playground.outputs[key].setOption("theme", theme);
-      }
-    });
   });
-})(jQuery, CodeMirror);
+  return playground;
+}).call(this, this.jQuery, this.CodeMirror, this.jsonld, this.Promise);
