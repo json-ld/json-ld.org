@@ -11,21 +11,21 @@
   "use strict";
   // assume nothing
   var window = this,
-    console = window.console,
-    setTimeout = window.setTimeout,
-    document = window.document,
+  console = window.console,
+  setTimeout = window.setTimeout,
+  document = window.document,
 
-    // create the playground instance if it doesn't already exist
-    playground = window.playground = {},
+  // create the playground instance if it doesn't already exist
+  playground = window.playground = {},
 
-    // given this is needed, we probably need a `Document` class...
-    docs = function(){
-      return {
-        markup: null,
-        frame: null,
-        context: null
-      };
+  // given this is needed, we probably need a `Document` class...
+  docs = function(){
+    return {
+      markup: null,
+      frame: null,
+      context: null
     };
+  };
 
   // the codemirror editors
   playground.editors = docs();
@@ -45,8 +45,11 @@
   // map of original to modifed contexts
   playground.contextMap = {
     // FIXME: remove schema.org support once they serve a JSON-LD context
-    'http://schema.org': 'https://w3id.org/schema.org',
-    'http://schema.org/': 'https://w3id.org/schema.org'
+    // FIXME: can't use https://w3id.org/schema.org as chrome (not firefox)
+    // will drop Accept: application/ld+json in the request after redirecting
+    // which causes HTML to be returned (invalid context)
+    'http://schema.org': 'http://sdo-context-test.appspot.com/',
+    'http://schema.org/': 'http://sdo-context-test.appspot.com/'
   };
 
   // map of currently active mapped contexts for user feedback use
