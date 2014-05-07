@@ -494,6 +494,10 @@
   };
 
 
+  // Cache of fetched remote urls
+  playground.fetchRemoteCache = {};
+  playground.fetchRemoteFails = {};
+
   /**
    * Fetch a remote document and populate an editor.
    *
@@ -505,28 +509,36 @@
     if(!playground.useRemote[key]){ return; }
 
     var btn = $("[data-editor=" + key + "] button"),
-      debounced = playground.fetchRemote !== playground._fetchRemote;
-
-    return $.ajax({
-      url: playground.remoteUrl[key],
-      dataType: 'json',
-      crossDomain: true,
-      success: function(data) {
+      debounced = playground.fetchRemote !== playground._fetchRemote,
+      url = playground.remoteUrl[key],
+      hit = playground.fetchRemoteCache[url],
+      fail = playground.fetchRemoteFails[url],
+      success = function(data){
+        playground.fetchRemoteCache[url] = data;
         btn.addClass("btn-info active");
         // setValue always triggers a .process()
         playground.editors[key].setValue(playground.humanize(data));
         playground.fetchRemote = playground._fetchRemote;
-        return data;
       },
-      error: function() {
+      error = function(err) {
+        playground.fetchRemoteFails[url] = err;
         btn.addClass("btn-danger active");
         $('#processing-errors')
            .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
         playground.fetchRemote = debounced ?
           playground.fetchRemote :
           playground.debounce(playground._fetchRemote, 500);
-      }
-    });
+      };
+
+    return hit ? success(hit) :
+      fail ? error(fail) :
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        crossDomain: true,
+        success: success,
+        error: error
+      });
   };
 
 
