@@ -276,22 +276,39 @@
 
   /**
    * return a debounced copy of a function
-   * thanks to remy sharp
-   * http://remysharp.com/2010/07/21/throttling-function-calls/
+   * thanks to @cwarden
+   * https://github.com/cwarden/promising-debounce/blob/master/src/debounce.js
    *
    * @param a function
    * @param a number of milliseconds
    *
-   * @return the function, which will only be called every `delay` milliseconds
+   * @return the function, which will only be called every `delay` milliseconds,
+   *         which will then, in turn, return a $.Deferred
    */
-  playground.debounce = function(fn, delay) {
-    var timer = null;
-    return function () {
+  playground.debounce = function(func, wait, immediate) {
+    var timeout;
+    var deferred = $.Deferred();
+    return function() {
       var context = this, args = arguments;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(function () {
-        fn.apply(context, args);
-      }, delay);
+      var later = function() {
+        timeout = null;
+        if (!immediate) {
+          $.when(func.apply(context, args))
+            .then(deferred.resolve, deferred.reject, deferred.notify);
+          deferred = $.Deferred();
+        }
+      };
+      var callNow = immediate && !timeout;
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      timeout = setTimeout(later, wait);
+      if (callNow) {
+        deferred = $.Deferred();
+        $.when(func.apply(context, args))
+          .then(deferred.resolve, deferred.reject, deferred.notify);
+      }
+      return deferred.promise();
     };
   };
 
