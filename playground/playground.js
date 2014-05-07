@@ -275,6 +275,28 @@
 
 
   /**
+   * return a debounced copy of a function
+   * thanks to remy sharp
+   * http://remysharp.com/2010/07/21/throttling-function-calls/
+   *
+   * @param a function
+   * @param a number of milliseconds
+   *
+   * @return the function, which will only be called every `delay` milliseconds
+   */
+  playground.debounce = function(fn, delay) {
+    var timer = null;
+    return function () {
+      var context = this, args = arguments;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () {
+        fn.apply(context, args);
+      }, delay);
+    };
+  };
+
+
+  /**
    * Initialize a CodeMirror editor
    *
    * @param a `<textarea>`
@@ -462,10 +484,11 @@
    *
    * @return jQuery deferred, or `undefined`
    */
-  playground.fetchRemote = function(key){
+  playground.fetchRemote = playground._fetchRemote = function(key){
     if(!playground.useRemote[key]){ return; }
 
-    var btn = $("[data-editor=" + key + "] button");
+    var btn = $("[data-editor=" + key + "] button"),
+      debounced = playground.fetchRemote !== playground._fetchRemote;
 
     return $.ajax({
       url: playground.remoteUrl[key],
@@ -475,12 +498,16 @@
         btn.addClass("btn-info active");
         // setValue always triggers a .process()
         playground.editors[key].setValue(playground.humanize(data));
+        playground.fetchRemote = playground._fetchRemote;
         return data;
       },
       error: function() {
         btn.addClass("btn-danger active");
         $('#processing-errors')
            .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
+        playground.fetchRemote = debounced ?
+          playground.fetchRemote :
+          playground.debounce(playground._fetchRemote, 500);
       }
     });
   };
@@ -675,7 +702,7 @@
    *
    * @return a promise to process
    */
-  playground.process = function(){
+  playground.process = playground._process = function(){
     $('#markup-errors').text('');
     $('#param-errors').text('');
     $('#processing-errors').text('');
@@ -728,16 +755,23 @@
       }
     }
 
+    var debounced = playground.process !== playground._process;
+
     // no errors, perform the action and display the output
     return playground.performAction(input, param)
       .then(
         function(){
           playground.permalink();
+          playground.process = playground._process;
         },
         function(err){
           // FIXME: add better error handling output
           $('#processing-errors').text(playground.humanize(err));
           playground.permalink(err);
+          playground.process = debounced ?
+            playground.process :
+            playground.debounce(playground._process, 500);
+          return err;
         }
       );
   };
