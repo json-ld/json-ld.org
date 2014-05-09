@@ -285,30 +285,34 @@
    * @return the function, which will only be called every `delay` milliseconds,
    *         which will then, in turn, return a $.Deferred
    */
-  playground.debounce = function(func, wait, immediate) {
-    var timeout;
-    var deferred = $.Deferred();
-    return function() {
-      var context = this, args = arguments;
-      var later = function() {
-        timeout = null;
-        if (!immediate) {
-          $.when(func.apply(context, args))
-            .then(deferred.resolve, deferred.reject, deferred.notify);
-          deferred = $.Deferred();
-        }
+  playground.debounce = function(func, wait, immediate){
+    var timeout, args, context, callNow, resolve, reject,
+      promise = new Promise (function(_resolve, _reject) {
+        resolve = _resolve;
+        reject = _reject;
+      }),
+      complete = function(){
+        func.apply(context, args).then(resolve, reject);
       };
-      var callNow = immediate && !timeout;
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-      timeout = setTimeout(later, wait);
-      if (callNow) {
-        deferred = $.Deferred();
-        $.when(func.apply(context, args))
-          .then(deferred.resolve, deferred.reject, deferred.notify);
-      }
-      return deferred.promise();
+
+    return function(){
+      args = arguments;
+      context = this;
+
+      callNow = !!immediate && !timeout;
+
+      if(timeout){ clearTimeout(timeout); }
+
+      timeout = setTimeout(function(){
+        timeout = null;
+        if(!immediate){
+          complete();
+        }
+      }, wait);
+
+      if(callNow){ complete(); }
+
+      return promise;
     };
   };
 
