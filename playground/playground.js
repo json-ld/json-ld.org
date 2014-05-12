@@ -275,6 +275,45 @@
 
 
   /**
+   * return a debounced copy of a function
+   * thanks to @cwarden
+   * https://github.com/cwarden/promising-debounce/blob/master/src/debounce.js
+   *
+   * @param a function
+   * @param a number of milliseconds
+   *
+   * @return the function, which will only be called every `delay` milliseconds,
+   *         which will then, in turn, return a $.Deferred
+   */
+  playground.debounce = function(fn, wait, immediate) {
+    var timer = null;
+    return function() {
+      var context = this;
+      var args = arguments;
+      var resolve;
+      var promise = new Promise(function(_resolve) {
+        resolve = _resolve;
+      }).then(function() {
+        return fn.apply(context, args);
+      });
+      if(!!immediate && !timer) {
+        resolve();
+      }
+      if(timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(function() {
+        timer = null;
+        if(!immediate) {
+          resolve();
+        }
+      }, wait);
+      return promise;
+    };
+  };
+
+
+  /**
    * Initialize a CodeMirror editor
    *
    * @param a `<textarea>`
@@ -455,6 +494,10 @@
   };
 
 
+  // Cache of fetched remote urls
+  playground.fetchRemoteCache = {};
+  playground.fetchRemoteFails = {};
+
   /**
    * Fetch a remote document and populate an editor.
    *
@@ -462,27 +505,40 @@
    *
    * @return jQuery deferred, or `undefined`
    */
-  playground.fetchRemote = function(key){
+  playground.fetchRemote = playground._fetchRemote = function(key){
     if(!playground.useRemote[key]){ return; }
 
-    var btn = $("[data-editor=" + key + "] button");
-
-    return $.ajax({
-      url: playground.remoteUrl[key],
-      dataType: 'json',
-      crossDomain: true,
-      success: function(data) {
+    var btn = $("[data-editor=" + key + "] button"),
+      debounced = playground.fetchRemote !== playground._fetchRemote,
+      url = playground.remoteUrl[key],
+      hit = playground.fetchRemoteCache[url],
+      fail = playground.fetchRemoteFails[url],
+      success = function(data){
+        playground.fetchRemoteCache[url] = data;
         btn.addClass("btn-info active");
         // setValue always triggers a .process()
         playground.editors[key].setValue(playground.humanize(data));
-        return data;
+        playground.fetchRemote = playground._fetchRemote;
       },
-      error: function() {
+      error = function(err) {
+        playground.fetchRemoteFails[url] = err;
         btn.addClass("btn-danger active");
         $('#processing-errors')
            .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
-      }
-    });
+        playground.fetchRemote = debounced ?
+          playground.fetchRemote :
+          playground.debounce(playground._fetchRemote, 500);
+      };
+
+    return hit ? success(hit) :
+      fail ? error(fail) :
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        crossDomain: true,
+        success: success,
+        error: error
+      });
   };
 
 
@@ -675,7 +731,7 @@
    *
    * @return a promise to process
    */
-  playground.process = function(){
+  playground.process = playground._process = function(){
     $('#markup-errors').text('');
     $('#param-errors').text('');
     $('#processing-errors').text('');
@@ -728,16 +784,23 @@
       }
     }
 
+    var debounced = playground.process !== playground._process;
+
     // no errors, perform the action and display the output
     return playground.performAction(input, param)
       .then(
         function(){
           playground.permalink();
+          playground.process = playground._process;
         },
         function(err){
           // FIXME: add better error handling output
           $('#processing-errors').text(playground.humanize(err));
           playground.permalink(err);
+          playground.process = debounced ?
+            playground.process :
+            playground.debounce(playground._process, 500);
+          return err;
         }
       );
   };
