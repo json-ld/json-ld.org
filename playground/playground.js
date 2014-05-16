@@ -850,19 +850,28 @@
 
     playground.permalink.title =  messages.danger + " " + messages.warning;
 
-    $("#permalink").tooltip({
+    $("#permalink").popover({
+      placement: "left",
       title: function(){
+        var title = $("<span/>");
+        title.append(
+          $("<span/>").text("Share this "),
+          $("<a/>", {
+            href: "http://tinyurl.com/create.php?url=" + loc +
+              hash.replace("#", "?"),
+              target: "_blank",
+              "class": "pull-right"
+          }).text("Shorten"));
+        return title[0];
+      },
+      content: function(){
         var tip = $("<p/>"),
           inp = $("<input/>", {
             "class": "span2",
             value: loc + hash,
             autofocus: true
           });
-        tip.append(
-          $("<span/>")
-            .text(playground.permalink.title.trim() + " Press Ctrl+C to copy."),
-          inp
-        );
+        tip.append(inp);
 
         setTimeout(function(){
           inp[0].select();
