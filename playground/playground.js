@@ -44,12 +44,8 @@
 
   // map of original to modifed contexts
   playground.contextMap = {
-    // FIXME: remove schema.org support once they serve a JSON-LD context
-    // FIXME: can't use https://w3id.org/schema.org as chrome (not firefox)
-    // will drop Accept: application/ld+json in the request after redirecting
-    // which causes HTML to be returned (invalid context)
-    'http://schema.org': 'http://sdo-context-test.appspot.com/',
-    'http://schema.org/': 'http://sdo-context-test.appspot.com/'
+    // be careful when working with redirectors as as Chrome (not firefox)
+    // will drop Accept: application/ld+json after redirecting
   };
 
   // map of currently active mapped contexts for user feedback use
