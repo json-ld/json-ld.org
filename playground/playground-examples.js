@@ -15,13 +15,7 @@
 
   // add the example of a Person
   playground.examples["Person"] = {
-    "@context": {
-      "name": "http://xmlns.com/foaf/0.1/name",
-      "homepage": {
-        "@id": "http://xmlns.com/foaf/0.1/homepage",
-        "@type": "@id"
-      }
-    },
+    "@context": "http://xmlns.com/foaf/context",
     "name": "Manu Sporny",
     "homepage": "http://manu.sporny.org/"
   };
