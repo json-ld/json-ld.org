@@ -955,6 +955,11 @@ jsonld.loadDocument = function(url, callback) {
 /* Promises API */
 
 jsonld.promises = function() {
+  try {
+    jsonld.Promise = global.Promise || require('es6-promise').Promise;
+  } catch(e) {
+    throw new Error('Unable to find a Promise implementation.');
+  }
   var slice = Array.prototype.slice;
   var promisify = jsonld.promisify;
 
@@ -1021,13 +1026,15 @@ jsonld.promises = function() {
  * @return the promise.
  */
 jsonld.promisify = function(op) {
-  try {
-    var Promise = global.Promise || require('es6-promise').Promise;
-  } catch(e) {
-    throw new Error('Unable to find a Promise implementation.');
+  if(!jsonld.Promise) {
+    try {
+      jsonld.Promise = global.Promise || require('es6-promise').Promise;
+    } catch(e) {
+      throw new Error('Unable to find a Promise implementation.');
+    }
   }
   var args = Array.prototype.slice.call(arguments, 1);
-  return new Promise(function(resolve, reject) {
+  return new jsonld.Promise(function(resolve, reject) {
     op.apply(null, args.concat(function(err, value) {
       if(!err) {
         resolve(value);
@@ -1325,6 +1332,8 @@ jsonld.documentLoaders.jquery = function($, options) {
  *
  * @param options the options to use:
  *          secure: require all URLs to use HTTPS.
+ *          strictSSL: true to require SSL certificates to be valid,
+ *            false not to (default: true).
  *          maxRedirects: the maximum number of redirects to permit, none by
  *            default.
  *          usePromise: true to use a promises API, false for a
@@ -1334,6 +1343,7 @@ jsonld.documentLoaders.jquery = function($, options) {
  */
 jsonld.documentLoaders.node = function(options) {
   options = options || {};
+  var strictSSL = ('strictSSL' in options) ? options.strictSSL : true;
   var maxRedirects = ('maxRedirects' in options) ? options.maxRedirects : -1;
   var request = require('request');
   var http = require('http');
@@ -1355,7 +1365,7 @@ jsonld.documentLoaders.node = function(options) {
       headers: {
         'Accept': 'application/ld+json, application/json'
       },
-      strictSSL: true,
+      strictSSL: strictSSL,
       followRedirect: false
     }, function(err, res, body) {
       doc = {contextUrl: null, documentUrl: url, document: body || null};
@@ -2455,7 +2465,7 @@ Processor.prototype.expand = function(
     // FIXME: can this be merged with code above to simplify?
     // merge in reverse properties
     if(activeCtx.mappings[key] && activeCtx.mappings[key].reverse) {
-      var reverseMap = rval['@reverse'] = {};
+      var reverseMap = rval['@reverse'] = rval['@reverse'] || {};
       if(!_isArray(expandedValue)) {
         expandedValue = [expandedValue];
       }
@@ -4734,6 +4744,13 @@ function _createTermDefinition(activeCtx, localCtx, term, defined) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; keywords cannot be overridden.',
       'jsonld.SyntaxError', {code: 'keyword redefinition', context: localCtx});
+  }
+
+  if(term === '') {
+    throw new JsonLdError(
+      'Invalid JSON-LD syntax; a term cannot be an empty string.',
+      'jsonld.SyntaxError',
+      {code: 'invalid term definition', context: localCtx});
   }
 
   // remove old mapping
