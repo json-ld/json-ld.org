@@ -244,7 +244,12 @@
 
     $("[title]").tooltip();
 
-    $(window).bind("hashchange", playground.processQueryParameters);
+    $(window).bind("hashchange", function(){
+      if(window.location.href !== playground.permalink.url){
+        playground.processQueryParameters();
+        $("#permalink").popover("hide");
+      };
+    });
 
     // load the schema
     $.ajax({
@@ -811,8 +816,7 @@
    */
   playground.permalink = function(errors) {
     // generate a hash link for current data, starting with the tab
-    var loc = window.location.href.replace(/[#\?].*$/, ""),
-      hash = "",
+    var hash = "",
       params = {
         startTab: playground.activeTab,
         copyContext: playground.copyContext
@@ -836,58 +840,55 @@
       hash += (hash ? "&" : "#") +
         (key === "markup" ? "json-ld" : key) + "=" + encodeURIComponent(val);
     });
+    
+    playground.permalink.url = window.location.href.replace(/[#\?].*$/, "") +
+      hash;
 
     messages = {
       danger: errors === void 0 ? "" :
         "This link will show the current errors.",
-      warning: (loc + hash).length < 2048 ? "" :
+      warning: playground.permalink.url.length < 2048 ? "" :
         "This link is longer than 2kb, and may not work."
     };
 
-    playground.permalink.title =  messages.danger + " " + messages.warning;
-
-    $("#permalink").popover({
-      placement: "left",
-      title: function(){
-        var title = $("<span/>");
-        title.append(
-          $("<span/>").text("Share this "),
-          $("<a/>", {
-            href: "http://tinyurl.com/create.php?url=" + loc +
-              hash.replace("#", "?"),
-              target: "_blank",
-              "class": "pull-right"
-          }).text("Shorten"));
-        return title[0];
-      },
-      content: function(){
-        var tip = $("<p/>"),
-          inp = $("<input/>", {
-            "class": "span2",
-            value: loc + hash,
-            autofocus: true
-          });
-        tip.append(inp);
-
-        setTimeout(function(){
-          inp[0].select();
-        });
-
-        return tip[0];
-      },
-      html: true
-    });
-
     $("#permalink")
-      .attr({
-        href: loc + hash
-      })
+      .popover("hide")
+      .attr({href: playground.permalink.url})
       .toggleClass("btn-danger", messages.danger.length !== 0)
       .toggleClass("btn-warning", messages.warning.length !== 0)
     .find("span")
       .text("Permalink");
 
-    return loc + hash;
+    return playground.permalink.url;
+  };
+  
+  playground.permalink.title = function(){
+    var title = $("<span/>");
+    title.append(
+      $("<span/>").text("Share this "),
+      $("<a/>", {
+        href: "http://tinyurl.com/create.php?url=" +
+            playground.permalink.url.replace(/#/, "?"),
+          target: "_blank",
+          "class": "pull-right"
+      }).text("Shorten"));
+    return title[0];
+  };
+      
+  playground.permalink.content = function(){
+    var tip = $("<p/>"),
+      inp = $("<input/>", {
+        "class": "span2",
+        autofocus: true
+      })
+      .val(playground.permalink.url);
+    tip.append(inp);
+
+    setTimeout(function(){
+      inp[0].select();
+    });
+
+    return tip[0];
   };
 
 
@@ -997,6 +998,13 @@
 
     $('#use-context-map').change(function() {
       playground.process();
+    });
+ 
+    $("#permalink").popover({
+      placement: "left",
+      title: playground.permalink.title,
+      content: playground.permalink.content,
+      html: true
     });
   });
   return playground;
