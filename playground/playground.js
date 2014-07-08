@@ -854,6 +854,7 @@
     $("#permalink")
       .popover("hide")
       .attr({href: playground.permalink.url})
+      .removeClass("hide")
       .toggleClass("btn-danger", messages.danger.length !== 0)
       .toggleClass("btn-warning", messages.warning.length !== 0)
     .find("span")
