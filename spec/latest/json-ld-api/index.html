@@ -24,19 +24,14 @@
 
       // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
       // and its maturity status
-      previousPublishDate:  "2013-09-10",
-      previousMaturity:     "CR",
-      previousDiffURI:      "http://www.w3.org/TR/2013/CR-json-ld-api-20130910/",
+      previousPublishDate:  "2014-01-16",
+      previousMaturity:     "REC",
+      previousDiffURI:      "http://www.w3.org/TR/2014/REC-json-ld-api-20140116/",
 
       // if there a publicly available Editor's Draft, this is the link
-      edDraftURI:           "http://dvcs.w3.org/hg/json-ld/raw-file/default/spec/latest/json-ld-api/index.html",
+      edDraftURI:           "http://www.w3.org/TR/json-ld-api/",
 
-      testSuiteURI:         "http://www.w3.org/2013/json-ld-tests/",
-
-      // if this is a LCWD, uncomment and set the end of its review period
-      lcEnd: "2013-06-06",
-      crEnd: "2013-10-01",
-      prEnd: "2013-12-05",
+      testSuiteURI:         "http://json-ld.org/test-suite/",
 
       // if you want to have extra CSS, append them to this list
       // it is recommended that the respec.css stylesheet be kept
@@ -3406,6 +3401,7 @@
         <li>Initialize <i>graph map</i> to a <tref>JSON object</tref> consisting
           of a single member <code>@default</code> whose value references
           <i>default graph</i>.</li>
+        <li>Initialize <i>node usages map</i> to an empty <tref>JSON object</tref>.</li>
         <li>For each <i>graph</i> in <tref>RDF dataset</tref>:
           <ol class="algorithm">
             <li>If <i>graph</i> is the <tref>default graph</tref>,
@@ -3455,6 +3451,10 @@
                 <li>If <i>object</i> is a <tref>blank node identifier</tref> or <tref>IRI</tref>,
                   it might represent the list node:
                   <ol class="algorithm">
+                    <li>If the <i>object</i> member of <i>node usages map</i> does not exist,
+                      initialize it to a new empty <tref>array</tref>.</li>
+                    <li>Append the value of the <code>@id</code> member of <code>node</code> to
+                      the <i>object</i> member of <i>node usages map</i>, unless it already exists.</li>
                     <li>If the <i>object</i> member of <i>node map</i> has no
                       <code>usages</code> member, create one and initialize it to
                       an empty <tref>array</tref>.</li>
@@ -3488,16 +3488,18 @@
                   of <i>usage</i>.</li>
                 <li>Initialize two empty <tref title="array">arrays</tref> <i>list</i>
                   and <i>list nodes</i>.</li>
-                <li>While <i>property</i> equals <code>rdf:rest</code>, the value
-                  associated to the <code>usages</code> member of <i>node</i> has
-                  exactly 1 entry, <i>node</i> has a <code>rdf:first</code> and
-                  <code>rdf:rest</code> property, both of which have as value an
-                  <tref>array</tref> consisting of a single element, and <i>node</i>
-                  has no other members apart from an optional <code>@type</code>
+                <li>While <i>property</i> equals <code>rdf:rest</code>,
+                  the <tref>array</tref> value of the member of <i>node usages map</i> associated with the <code>@id</code>
+                  member of <code>node</code> has only one member,
+                  the value associated to the <code>usages</code> member of <i>node</i> has
+                  exactly 1 entry,
+                  <i>node</i> has a <code>rdf:first</code> and <code>rdf:rest</code> property,
+                  both of which have as value an <tref>array</tref> consisting of a single element,
+                  and <i>node</i> has no other members apart from an optional <code>@type</code>
                   member whose value is an array with a single item equal to
-                  <code>rdf:List</code>, <i>node</i> represents a well-formed list
-                  node. Perform the following steps to traverse the list backwards
-                  towards its head:
+                  <code>rdf:List</code>,
+                  <i>node</i> represents a well-formed list node.
+                  Perform the following steps to traverse the list backwards towards its head:
                   <ol class="algorithm">
                     <li>Append the only item of <code>rdf:first</code> member of
                       <i>node</i> to the <i>list</i> <tref>array</tref>.</li>
