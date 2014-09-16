@@ -29,6 +29,13 @@ To create multi-size ../favicon.ico:
     # select the 32 and 16 files
     # export to favicon.ico
 
+Fonts
+-----
+
+* The "{}" text uses Bitstream Vera Sans Mono with Normal style.
+* The "JSON-LD" text uses Roboto with Bold style.
+  https://www.google.com/fonts#UsePlace:use/Collection:Roboto:700
+
 Editing
 -------
 
@@ -36,3 +43,13 @@ If you use Inkscape to edit the SVGs, you may want to check if your
 saved files have Inkscape cruft in them. You can clean things up with:
 
     $ inkscape --export-plain-svg=output.svg input.svg
+
+ChangeLog
+---------
+
+* 2013:
+  * Created.
+* 2014-09-15:
+  * Fixed "{" and "}" to use the same font (Bitstream Vera Sans Mono).
+  * Changed "JSON-LD" to use Roboto font.
+  * Made json-ld-logo square.
