@@ -1261,18 +1261,20 @@ jsonld.documentLoaders = {};
  */
 jsonld.documentLoaders.jquery = function($, options) {
   options = options || {};
-  var cache = new jsonld.DocumentCache();
   var loader = function(url, callback) {
+    if(url.indexOf('http:') !== 0 && url.indexOf('https:') !== 0) {
+      return callback(new JsonLdError(
+        'URL could not be dereferenced; only "http" and "https" URLs are ' +
+        'supported.',
+        'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
+        {contextUrl: null, documentUrl: url, document: null});
+    }
     if(options.secure && url.indexOf('https') !== 0) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
         'the URL\'s scheme is not "https".',
         'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
         {contextUrl: null, documentUrl: url, document: null});
-    }
-    var doc = cache.get(url);
-    if(doc !== null) {
-      return callback(null, doc);
     }
     $.ajax({
       url: url,
@@ -1306,7 +1308,6 @@ jsonld.documentLoaders.jquery = function($, options) {
           }
         }
 
-        cache.set(url, doc);
         callback(null, doc);
       },
       error: function(jqXHR, textStatus, err) {
@@ -1353,6 +1354,13 @@ jsonld.documentLoaders.node = function(options) {
   var http = require('http');
   var cache = new jsonld.DocumentCache();
   function loadDocument(url, redirects, callback) {
+    if(url.indexOf('http:') !== 0 && url.indexOf('https:') !== 0) {
+      return callback(new JsonLdError(
+        'URL could not be dereferenced; only "http" and "https" URLs are ' +
+        'supported.',
+        'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
+        {contextUrl: null, documentUrl: url, document: null});
+    }
     if(options.secure && url.indexOf('https') !== 0) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
@@ -1473,18 +1481,20 @@ jsonld.documentLoaders.node = function(options) {
 jsonld.documentLoaders.xhr = function(options) {
   var rlink = /(^|(\r\n))link:/i;
   options = options || {};
-  var cache = new jsonld.DocumentCache();
   var loader = function(url, callback) {
+    if(url.indexOf('http:') !== 0 && url.indexOf('https:') !== 0) {
+      return callback(new JsonLdError(
+        'URL could not be dereferenced; only "http" and "https" URLs are ' +
+        'supported.',
+        'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
+        {contextUrl: null, documentUrl: url, document: null});
+    }
     if(options.secure && url.indexOf('https') !== 0) {
       return callback(new JsonLdError(
         'URL could not be dereferenced; secure mode is enabled and ' +
         'the URL\'s scheme is not "https".',
         'jsonld.InvalidUrl', {code: 'loading document failed', url: url}),
         {contextUrl: null, documentUrl: url, document: null});
-    }
-    var doc = cache.get(url);
-    if(doc !== null) {
-      return callback(null, doc);
     }
     var xhr = options.xhr || XMLHttpRequest;
     var req = new xhr();
@@ -1522,7 +1532,6 @@ jsonld.documentLoaders.xhr = function(options) {
         }
       }
 
-      cache.set(url, doc);
       callback(null, doc);
     };
     req.onerror = function() {
@@ -2870,8 +2879,7 @@ Processor.prototype.normalize = function(dataset, options, callback) {
 Processor.prototype.fromRDF = function(dataset, options, callback) {
   var defaultGraph = {};
   var graphMap = {'@default': defaultGraph};
-  // TODO: seems like 'usages' could be replaced with this single map
-  var nodeReferences = {};
+  var referencedOnce = {};
 
   for(var name in dataset) {
     var graph = dataset[name];
@@ -2911,17 +2919,28 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
       // object may be an RDF list/partial list node but we can't know easily
       // until all triples are read
       if(objectIsId) {
-        jsonld.addValue(
-          nodeReferences, o.value, node['@id'], {propertyIsArray: true});
-        var object = nodeMap[o.value];
-        if(!('usages' in object)) {
-          object.usages = [];
+        if(o.value === RDF_NIL) {
+          // track rdf:nil uniquely per graph
+          var object = nodeMap[o.value];
+          if(!('usages' in object)) {
+            object.usages = [];
+          }
+          object.usages.push({
+            node: node,
+            property: p,
+            value: value
+          });
+        } else if(o.value in referencedOnce) {
+          // object referenced more than once
+          referencedOnce[o.value] = false;
+        } else {
+          // keep track of single reference
+          referencedOnce[o.value] = {
+            node: node,
+            property: p,
+            value: value
+          };
         }
-        object.usages.push({
-          node: node,
-          property: p,
-          value: value
-        });
       }
     }
   }
@@ -2946,25 +2965,23 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
       var listNodes = [];
 
       // ensure node is a well-formed list node; it must:
-      // 1. Be referenced only once and used only once in a list.
+      // 1. Be referenced only once.
       // 2. Have an array for rdf:first that has 1 item.
       // 3. Have an array for rdf:rest that has 1 item.
-      // 4. Have no keys other than: @id, usages, rdf:first, rdf:rest, and,
+      // 4. Have no keys other than: @id, rdf:first, rdf:rest, and,
       //   optionally, @type where the value is rdf:List.
       var nodeKeyCount = Object.keys(node).length;
       while(property === RDF_REST &&
-        nodeReferences[node['@id']] &&
-        nodeReferences[node['@id']].length === 1 &&
-        node.usages.length === 1 &&
+        _isObject(referencedOnce[node['@id']]) &&
         _isArray(node[RDF_FIRST]) && node[RDF_FIRST].length === 1 &&
         _isArray(node[RDF_REST]) && node[RDF_REST].length === 1 &&
-        (nodeKeyCount === 4 || (nodeKeyCount === 5 && _isArray(node['@type']) &&
+        (nodeKeyCount === 3 || (nodeKeyCount === 4 && _isArray(node['@type']) &&
           node['@type'].length === 1 && node['@type'][0] === RDF_LIST))) {
         list.push(node[RDF_FIRST][0]);
         listNodes.push(node['@id']);
 
         // get next node, moving backwards through list
-        usage = node.usages[0];
+        usage = referencedOnce[node['@id']];
         node = usage.node;
         property = usage.property;
         head = usage.value;
@@ -2998,6 +3015,8 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
         delete graphObject[listNodes[j]];
       }
     }
+
+    delete nil.usages;
   }
 
   var result = [];
@@ -3011,14 +3030,12 @@ Processor.prototype.fromRDF = function(dataset, options, callback) {
       var subjects_ = Object.keys(graphObject).sort();
       for(var si = 0; si < subjects_.length; ++si) {
         var node_ = graphObject[subjects_[si]];
-        delete node_.usages;
         // only add full subjects to top-level
         if(!_isSubjectReference(node_)) {
           graph.push(node_);
         }
       }
     }
-    delete node.usages;
     // only add full subjects to top-level
     if(!_isSubjectReference(node)) {
       result.push(node);
@@ -5750,7 +5767,6 @@ function _findContextUrls(input, urls, replace, base) {
 function _retrieveContextUrls(input, options, callback) {
   // if any error occurs during URL resolution, quit
   var error = null;
-  var regex = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
 
   // recursive document loader
   var documentLoader = options.documentLoader;
@@ -5783,13 +5799,6 @@ function _retrieveContextUrls(input, options, callback) {
     var queue = [];
     for(var url in urls) {
       if(urls[url] === false) {
-        // validate URL
-        if(!regex.test(url)) {
-          error = new JsonLdError(
-            'Malformed URL.', 'jsonld.InvalidUrl',
-            {code: 'loading remote context failed', url: url});
-          return callback(error);
-        }
         queue.push(url);
       }
     }
