@@ -533,13 +533,32 @@
 
     return hit ? success(hit) :
       fail ? error(fail) :
-      $.ajax({
-        url: url,
-        dataType: 'json',
-        crossDomain: true,
-        success: success,
-        error: error
-      });
+      jsonld.documentLoader(url).then(function(remoteDoc) {
+        /* Note: Do injection of Link header @context; this could possibly
+        be done in a less obfuscated way (to the user) or use the expandContext
+        API option, or better integrate debouncing in the remote document
+        loader defined elsewhere. However, this approach was the least
+        intrusive to do now to restore Link header functionality and has the
+        advantage of allowing the document to be edited inline w/the
+        injected @context. */
+        if(remoteDoc.contextUrl) {
+          // TODO: flash link header injection notice on UI
+          if(Array.isArray(remoteDoc.document)) {
+            remoteDoc.document = {
+              '@context': remoteDoc.contextUrl,
+              '@graph': remoteDoc.document
+            };
+          } else if(typeof remoteDoc.document === 'object') {
+            // inject @context as first key
+            var obj = {'@context': remoteDoc.contextUrl};
+            for(var key in remoteDoc.document) {
+              obj[key] = remoteDoc.document[key];
+            }
+            remoteDoc.document = obj;
+          }
+        }
+        success(remoteDoc.document);
+      }).catch(error);
   };
 
 
@@ -840,7 +859,7 @@
       hash += (hash ? "&" : "#") +
         (key === "markup" ? "json-ld" : key) + "=" + encodeURIComponent(val);
     });
-    
+
     playground.permalink.url = window.location.href.replace(/[#\?].*$/, "") +
       hash;
 
@@ -862,7 +881,7 @@
 
     return playground.permalink.url;
   };
-  
+
   playground.permalink.title = function(){
     var title = $("<span/>");
     title.append(
@@ -875,7 +894,7 @@
       }).text("Shorten"));
     return title[0];
   };
-      
+
   playground.permalink.content = function(){
     var tip = $("<p/>"),
       inp = $("<input/>", {
@@ -1000,7 +1019,7 @@
     $('#use-context-map').change(function() {
       playground.process();
     });
- 
+
     $("#permalink").popover({
       placement: "left",
       title: playground.permalink.title,
