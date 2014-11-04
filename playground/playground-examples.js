@@ -15,9 +15,12 @@
 
   // add the example of a Person
   playground.examples["Person"] = {
-    "@context": "http://xmlns.com/foaf/context",
-    "name": "Manu Sporny",
-    "homepage": "http://manu.sporny.org/"
+    "@context": "http://schema.org/",
+    "@type": "Person",
+    "name": "Jane Doe",
+    "jobTitle": "Professor",
+    "telephone": "(425) 123-4567",
+    "url": "http://www.janedoe.com"
   };
 
   // add the example of a Place
