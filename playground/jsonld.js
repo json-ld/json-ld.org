@@ -440,7 +440,8 @@ jsonld.flatten = function(input, ctx, options, callback) {
  * @param [options] the framing options.
  *          [base] the base IRI to use.
  *          [expandContext] a context to expand with.
- *          [embed] default @embed flag (default: true).
+ *          [embed] default @embed flag: '@last', '@always', '@never'
+ *            (default: '@last').
  *          [explicit] default @explicit flag (default: false).
  *          [requireAll] default @requireAll flag (default: true).
  *          [omitDefault] default @omitDefault flag (default: false).
@@ -584,6 +585,8 @@ jsonld.frame = function(input, frame, options, callback) {
 };
 
 /**
+ * **Experimental**
+ *
  * Performs JSON-LD objectification.
  *
  * @param input the JSON-LD input to objectify.
@@ -912,12 +915,187 @@ jsonld.toRDF = function(input, options, callback) {
 };
 
 /**
+ * **Experimental**
+ *
+ * Recursively flattens the nodes in the given JSON-LD input into a map of
+ * node ID => node.
+ *
+ * @param input the JSON-LD input.
+ * @param [options] the options to use:
+ *          [base] the base IRI to use.
+ *          [expandContext] a context to expand with.
+ *          [namer] a jsonld.UniqueNamer to use to label blank nodes.
+ *          [documentLoader(url, callback(err, remoteDoc))] the document loader.
+ * @param callback(err, nodeMap) called once the operation completes.
+ */
+jsonld.createNodeMap = function(input, options, callback) {
+  if(arguments.length < 1) {
+    return jsonld.nextTick(function() {
+      callback(new TypeError('Could not create node map, too few arguments.'));
+    });
+  }
+
+  // get arguments
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+
+  // set default options
+  if(!('base' in options)) {
+    options.base = (typeof input === 'string') ? input : '';
+  }
+  if(!('documentLoader' in options)) {
+    options.documentLoader = jsonld.loadDocument;
+  }
+
+  // expand input
+  jsonld.expand(input, options, function(err, _input) {
+    if(err) {
+      return callback(new JsonLdError(
+        'Could not expand input before creating node map.',
+        'jsonld.CreateNodeMapError', {cause: err}));
+    }
+
+    var nodeMap;
+    try {
+      nodeMap = new Processor().createNodeMap(_input, options);
+    } catch(ex) {
+      return callback(ex);
+    }
+
+    callback(null, nodeMap);
+  });
+};
+
+/**
+ * **Experimental**
+ *
+ * Merges two or more JSON-LD documents into a single flattened document.
+ *
+ * @param docs the JSON-LD documents to merge together.
+ * @param ctx the context to use to compact the merged result, or null.
+ * @param [options] the options to use:
+ *          [base] the base IRI to use.
+ *          [expandContext] a context to expand with.
+ *          [namer] a jsonld.UniqueNamer to use to label blank nodes.
+ *          [documentLoader(url, callback(err, remoteDoc))] the document loader.
+ * @param callback(err, merged) called once the operation completes.
+ */
+jsonld.merge = function(docs, ctx, options, callback) {
+  if(arguments.length < 1) {
+    return jsonld.nextTick(function() {
+      callback(new TypeError('Could not merge, too few arguments.'));
+    });
+  }
+  if(!_isArray(docs)) {
+    return jsonld.nextTick(function() {
+      callback(new TypeError('Could not merge, "docs" must be an array.'));
+    });
+  }
+
+  // get arguments
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
+  } else if(typeof ctx === 'function') {
+    callback = ctx;
+    ctx = null;
+    options = {};
+  }
+  options = options || {};
+
+  // expand all documents
+  var expanded = [];
+  var error = null;
+  var count = docs.length;
+  for(var i = 0; i < docs.length; ++i) {
+    var opts = {};
+    for(var key in options) {
+      opts[key] = options[key];
+    }
+    jsonld.expand(docs[i], opts, expandComplete);
+  }
+
+  function expandComplete(err, _input) {
+    if(error) {
+      return;
+    }
+    if(err) {
+      error = err;
+      return callback(new JsonLdError(
+        'Could not expand input before flattening.',
+        'jsonld.FlattenError', {cause: err}));
+    }
+    expanded.push(_input);
+    if(--count === 0) {
+      merge(expanded);
+    }
+  }
+
+  function merge(expanded) {
+    var namer = options.namer || new UniqueNamer('_:b');
+    var graphs = {'@default': {}};
+
+    var defaultGraph;
+    try {
+      for(var i = 0; i < expanded.length; ++i) {
+        // uniquely relabel blank nodes
+        var doc = expanded[i];
+        doc = jsonld.relabelBlankNodes(doc, {
+          namer: new UniqueNamer('_:b' + i + '-')
+        });
+        // add nodes to the shared node map graphs
+        _createNodeMap(doc, graphs, '@default', namer);
+      }
+
+      // add all non-default graphs to default graph
+      defaultGraph = _mergeNodeMaps(graphs);
+    } catch(ex) {
+      return callback(ex);
+    }
+
+    // produce flattened output
+    var flattened = [];
+    var keys = Object.keys(defaultGraph).sort();
+    for(var ki = 0; ki < keys.length; ++ki) {
+      var node = defaultGraph[keys[ki]];
+      // only add full subjects to top-level
+      if(!_isSubjectReference(node)) {
+        flattened.push(node);
+      }
+    }
+
+    if(ctx === null) {
+      return callback(null, flattened);
+    }
+
+    // compact result (force @graph option to true, skip expansion)
+    options.graph = true;
+    options.skipExpansion = true;
+    jsonld.compact(flattened, ctx, options, function(err, compacted) {
+      if(err) {
+        return callback(new JsonLdError(
+          'Could not compact merged output.',
+          'jsonld.MergeError', {cause: err}));
+      }
+      callback(null, compacted);
+    });
+  }
+};
+
+/**
  * Relabels all blank nodes in the given JSON-LD input.
  *
  * @param input the JSON-LD input.
+ * @param [options] the options to use:
+ *          [namer] a jsonld.UniqueNamer to use.
  */
-jsonld.relabelBlankNodes = function(input) {
-  _labelBlankNodes(new UniqueNamer('_:b', input));
+jsonld.relabelBlankNodes = function(input, options) {
+  options = options || {};
+  var namer = options.namer || new UniqueNamer('_:b');
+  return _labelBlankNodes(namer, input);
 };
 
 /**
@@ -957,16 +1135,32 @@ jsonld.loadDocument = function(url, callback) {
 
 /* Promises API */
 
-jsonld.promises = function() {
-  try {
-    jsonld.Promise = global.Promise || require('es6-promise').Promise;
-  } catch(e) {
-    throw new Error('Unable to find a Promise implementation.');
-  }
+/**
+ * Creates a new promises API object.
+ *
+ * @param [options] the options to use:
+ *          [api] an object to attach the API to.
+ *          [version] 'json-ld-1.0' to output a standard JSON-LD 1.0 promises
+ *            API, 'jsonld.js' to output the same with augmented proprietary
+ *            methods (default: 'jsonld.js')
+ *
+ * @return the promises API object.
+ */
+jsonld.promises = function(options) {
+  options = options || {};
   var slice = Array.prototype.slice;
   var promisify = jsonld.promisify;
 
-  var api = {};
+  // handle 'api' option as version, set defaults
+  var api = options.api || {};
+  var version = options.version || 'jsonld.js';
+  if(typeof options.api === 'string') {
+    if(!options.version) {
+      version = options.api;
+    }
+    api = {};
+  }
+
   api.expand = function(input) {
     if(arguments.length < 1) {
       throw new TypeError('Could not expand, too few arguments.');
@@ -1018,6 +1212,33 @@ jsonld.promises = function() {
     return promisify.apply(
       null, [jsonld.normalize].concat(slice.call(arguments)));
   };
+
+  if(version === 'jsonld.js') {
+    api.objectify = function(input) {
+      return promisify.apply(
+        null, [jsonld.objectify].concat(slice.call(arguments)));
+    };
+    api.createNodeMap = function(input) {
+      return promisify.apply(
+        null, [jsonld.createNodeMap].concat(slice.call(arguments)));
+    };
+    api.merge = function(input) {
+      return promisify.apply(
+        null, [jsonld.merge].concat(slice.call(arguments)));
+    };
+  }
+
+  try {
+    jsonld.Promise = global.Promise || require('es6-promise').Promise;
+  } catch(e) {
+    var f = function() {
+      throw new Error('Unable to find a Promise implementation.');
+    };
+    for(var method in api) {
+      api[method] = f;
+    }
+  }
+
   return api;
 };
 
@@ -1048,10 +1269,13 @@ jsonld.promisify = function(op) {
   });
 };
 
+// extend jsonld.promises w/jsonld.js methods
+jsonld.promises({api: jsonld.promises});
+
 /* WebIDL API */
 
 function JsonLdProcessor() {}
-JsonLdProcessor.prototype = jsonld.promises();
+JsonLdProcessor.prototype = jsonld.promises({version: 'json-ld-1.0'});
 JsonLdProcessor.prototype.toString = function() {
   if(this instanceof JsonLdProcessor) {
     return '[object JsonLdProcessor]';
@@ -2598,6 +2822,27 @@ Processor.prototype.expand = function(
 };
 
 /**
+ * Creates a JSON-LD node map (node ID => node).
+ *
+ * @param input the expanded JSON-LD to create a node map of.
+ * @param [options] the options to use:
+ *          [namer] the UniqueNamer to use.
+ *
+ * @return the node map.
+ */
+Processor.prototype.createNodeMap = function(input, options) {
+  options = options || {};
+
+  // produce a map of all subjects and name each bnode
+  var namer = options.namer || new UniqueNamer('_:b');
+  var graphs = {'@default': {}};
+  _createNodeMap(input, graphs, '@default', namer);
+
+  // add all non-default graphs to default graph
+  return _mergeNodeMaps(graphs);
+};
+
+/**
  * Performs JSON-LD flattening.
  *
  * @param input the expanded JSON-LD to flatten.
@@ -2605,39 +2850,7 @@ Processor.prototype.expand = function(
  * @return the flattened output.
  */
 Processor.prototype.flatten = function(input) {
-  // produce a map of all subjects and name each bnode
-  var namer = new UniqueNamer('_:b');
-  var graphs = {'@default': {}};
-  _createNodeMap(input, graphs, '@default', namer);
-
-  // add all non-default graphs to default graph
-  var defaultGraph = graphs['@default'];
-  var graphNames = Object.keys(graphs).sort();
-  for(var i = 0; i < graphNames.length; ++i) {
-    var graphName = graphNames[i];
-    if(graphName === '@default') {
-      continue;
-    }
-    var nodeMap = graphs[graphName];
-    var subject = defaultGraph[graphName];
-    if(!subject) {
-      defaultGraph[graphName] = subject = {
-        '@id': graphName,
-        '@graph': []
-      };
-    } else if(!('@graph' in subject)) {
-      subject['@graph'] = [];
-    }
-    var graph = subject['@graph'];
-    var ids = Object.keys(nodeMap).sort();
-    for(var ii = 0; ii < ids.length; ++ii) {
-      var node = nodeMap[ids[ii]];
-      // only add full subjects
-      if(!_isSubjectReference(node)) {
-        graph.push(node);
-      }
-    }
-  }
+  var defaultGraph = this.createNodeMap(input);
 
   // produce flattened output
   var flattened = [];
@@ -2665,7 +2878,8 @@ Processor.prototype.frame = function(input, frame, options) {
   // create framing state
   var state = {
     options: options,
-    graphs: {'@default': {}, '@merged': {}}
+    graphs: {'@default': {}, '@merged': {}},
+    subjectStack: []
   };
 
   // produce a map of all graphs and name each bnode
@@ -2742,7 +2956,7 @@ Processor.prototype.normalize = function(dataset, options, callback) {
 
       // hash unnamed bnode
       var bnode = unnamed[i];
-      var hash = _hashQuads(bnode, bnodes, namer);
+      var hash = _hashQuads(bnode, bnodes);
 
       // store hash as unique or a duplicate
       if(hash in duplicates) {
@@ -3528,7 +3742,7 @@ function _RDFToObject(o, useNativeTypes) {
   var rval = {'@value': o.value};
 
   // add language
-  if(o['language']) {
+  if(o.language) {
     rval['@language'] = o.language;
   } else {
     var type = o.datatype;
@@ -3545,7 +3759,7 @@ function _RDFToObject(o, useNativeTypes) {
         }
       } else if(_isNumeric(rval['@value'])) {
         if(type === XSD_INTEGER) {
-          var i = parseInt(rval['@value']);
+          var i = parseInt(rval['@value'], 10);
           if(i.toFixed(0) === rval['@value']) {
             rval['@value'] = i;
           }
@@ -3596,11 +3810,10 @@ function _compareRDFTriples(t1, t2) {
  *
  * @param id the ID of the bnode to hash quads for.
  * @param bnodes the mapping of bnodes to quads.
- * @param namer the canonical bnode namer.
  *
  * @return the new hash.
  */
-function _hashQuads(id, bnodes, namer) {
+function _hashQuads(id, bnodes) {
   // return cached hash
   if('hash' in bnodes[id]) {
     return bnodes[id].hash;
@@ -3671,7 +3884,7 @@ function _hashPaths(id, bnodes, namer, pathNamer, callback) {
       } else if(pathNamer.isNamed(bnode)) {
         name = pathNamer.getName(bnode);
       } else {
-        name = _hashQuads(bnode, bnodes, namer);
+        name = _hashQuads(bnode, bnodes);
       }
 
       // hash direction, property, and bnode name/hash
@@ -3974,6 +4187,38 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
   }
 }
 
+function _mergeNodeMaps(graphs) {
+  // add all non-default graphs to default graph
+  var defaultGraph = graphs['@default'];
+  var graphNames = Object.keys(graphs).sort();
+  for(var i = 0; i < graphNames.length; ++i) {
+    var graphName = graphNames[i];
+    if(graphName === '@default') {
+      continue;
+    }
+    var nodeMap = graphs[graphName];
+    var subject = defaultGraph[graphName];
+    if(!subject) {
+      defaultGraph[graphName] = subject = {
+        '@id': graphName,
+        '@graph': []
+      };
+    } else if(!('@graph' in subject)) {
+      subject['@graph'] = [];
+    }
+    var graph = subject['@graph'];
+    var ids = Object.keys(nodeMap).sort();
+    for(var ii = 0; ii < ids.length; ++ii) {
+      var node = nodeMap[ids[ii]];
+      // only add full subjects
+      if(!_isSubjectReference(node)) {
+        graph.push(node);
+      }
+    }
+  }
+  return defaultGraph;
+}
+
 /**
  * Frames subjects according to the given frame.
  *
@@ -3985,7 +4230,7 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
  */
 function _frame(state, subjects, frame, parent, property) {
   // validate the frame
-  _validateFrame(state, frame);
+  _validateFrame(frame);
   frame = frame[0];
 
   // get flags for current frame
@@ -3995,7 +4240,6 @@ function _frame(state, subjects, frame, parent, property) {
     explicit: _getFrameFlag(frame, options, 'explicit'),
     requireAll: _getFrameFlag(frame, options, 'requireAll')
   };
-  var embedOn = (flags.embed !== '@never');
 
   // filter out subjects that match the frame
   var matches = _filterSubjects(state, subjects, frame, flags);
@@ -4004,59 +4248,40 @@ function _frame(state, subjects, frame, parent, property) {
   var ids = Object.keys(matches).sort();
   for(var idx in ids) {
     var id = ids[idx];
+    var subject = matches[id];
 
     /* Note: In order to treat each top-level match as a compartmentalized
-    result, create an independent copy of the embedded subjects map when the
-    property is null, which only occurs at the top-level. */
+    result, clear the unique embedded subjects map when the property is null,
+    which only occurs at the top-level. */
     if(property === null) {
-      state.embeds = {};
+      state.uniqueEmbeds = {};
     }
 
-    // start output
+    // start output for subject
     var output = {};
     output['@id'] = id;
 
-    // prepare embed meta info
-    var embed = {parent: parent, property: property};
-
-    // if embed mode is 'once' and there is an existing embed
-    if(embedOn && flags.embed === '@once' && (id in state.embeds)) {
-      // only overwrite an existing embed if it has already been added to its
-      // parent -- otherwise its parent is somewhere up the tree from this
-      // embed and the embed would occur twice once the tree is added
-      embedOn = false;
-
-      // existing embed's parent is an array
-      var existing = state.embeds[id];
-      if(_isArray(existing.parent)) {
-        for(var i = 0; i < existing.parent.length; ++i) {
-          if(jsonld.compareValues(output, existing.parent[i])) {
-            embedOn = true;
-            break;
-          }
-        }
-      } else if(jsonld.hasValue(existing.parent, existing.property, output)) {
-        // existing embed's parent is an object
-        embedOn = true;
-      }
-
-      // existing embed has already been added, so allow an overwrite
-      if(embedOn) {
-        _removeEmbed(state, id);
-      }
-    }
-
-    // not embedding, add output without any other properties
-    if(!embedOn) {
-      _addFrameOutput(state, parent, property, output);
+    // if embed is @never or if a circular reference would be created by an
+    // embed, the subject cannot be embedded
+    if(flags.embed === '@never' ||
+      _createsCircularReference(subject, state.subjectStack)) {
+      _addFrameOutput(parent, property, output);
       continue;
     }
 
-    // add embed meta info
-    state.embeds[id] = embed;
+    // if only the last match should be embedded
+    if(flags.embed === '@last') {
+      // remove any existing embed
+      if(id in state.uniqueEmbeds) {
+        _removeEmbed(state, id);
+      }
+      state.uniqueEmbeds[id] = {parent: parent, property: property};
+    }
+
+    // push matching subject onto stack to enable circular embed checks
+    state.subjectStack.push(subject);
 
     // iterate over subject properties
-    var subject = matches[id];
     var props = Object.keys(subject).sort();
     for(var i = 0; i < props.length; i++) {
       var prop = props[i];
@@ -4067,12 +4292,8 @@ function _frame(state, subjects, frame, parent, property) {
         continue;
       }
 
-      // if property isn't in the frame
-      if(!(prop in frame)) {
-        // if explicit is off, embed values
-        if(!flags.explicit) {
-          _embedValues(state, subject, prop, output);
-        }
+      // explicit is on and property isn't in the frame, skip processing
+      if(flags.explicit && !(prop in frame)) {
         continue;
       }
 
@@ -4085,35 +4306,34 @@ function _frame(state, subjects, frame, parent, property) {
         if(_isList(o)) {
           // add empty list
           var list = {'@list': []};
-          _addFrameOutput(state, output, prop, list);
+          _addFrameOutput(output, prop, list);
 
           // add list objects
           var src = o['@list'];
           for(var n in src) {
             o = src[n];
-            // only recurse if not embedding always and circular ref detected
-            if(_isSubjectReference(o) &&
-              !(flags.embed === '@always' &&
-                _createsCircularReference(id, o, state.embeds))) {
+            if(_isSubjectReference(o)) {
+              var subframe = (prop in frame ?
+                frame[prop][0]['@list'] : _createImplicitFrame(flags));
               // recurse into subject reference
-              _frame(state, [o['@id']], frame[prop][0]['@list'], list, '@list');
+              _frame(state, [o['@id']], subframe, list, '@list');
             } else {
               // include other values automatically
-              _addFrameOutput(state, list, '@list', _clone(o));
+              _addFrameOutput(list, '@list', _clone(o));
             }
           }
           continue;
         }
 
         // only recurse if not embedding always and circular ref detected
-        if(_isSubjectReference(o) &&
-          !(flags.embed === '@always' &&
-            _createsCircularReference(id, o, state.embeds))) {
+        if(_isSubjectReference(o)) {
           // recurse into subject reference
-          _frame(state, [o['@id']], frame[prop], output, prop);
+          var subframe = (prop in frame ?
+            frame[prop] : _createImplicitFrame(flags));
+          _frame(state, [o['@id']], subframe, output, prop);
         } else {
           // include other values automatically
-          _addFrameOutput(state, output, prop, _clone(o));
+          _addFrameOutput(output, prop, _clone(o));
         }
       }
     }
@@ -4145,17 +4365,47 @@ function _frame(state, subjects, frame, parent, property) {
     }
 
     // add output to parent
-    _addFrameOutput(state, parent, property, output);
+    _addFrameOutput(parent, property, output);
+
+    // pop matching subject from circular ref-checking stack
+    state.subjectStack.pop();
   }
 }
 
-function _createsCircularReference(embedId, nodeToEmbed, idToEmbeddedNode) {
-  var reference = idToEmbeddedNode[embedId];
-  while(reference !== undefined) {
-    if(reference.parent['@id'] === nodeToEmbed['@id']) {
+/**
+ * Creates an implicit frame when recursing through subject matches. If
+ * a frame doesn't have an explicit frame for a particular property, then
+ * a wildcard child frame will be created that uses the same flags that the
+ * parent frame used.
+ *
+ * @param flags the current framing flags.
+ *
+ * @return the implicit frame.
+ */
+function _createImplicitFrame(flags) {
+  var frame = {};
+  for(var key in flags) {
+    if(flags[key] !== undefined) {
+      frame['@' + key] = [flags[key]];
+    }
+  }
+  return [frame];
+}
+
+/**
+ * Checks the current subject stack to see if embedding the given subject
+ * would cause a circular reference.
+ *
+ * @param subjectToEmbed the subject to embed.
+ * @param subjectStack the current stack of subjects.
+ *
+ * @return true if a circular reference would be created, false if not.
+ */
+function _createsCircularReference(subjectToEmbed, subjectStack) {
+  for(var i = subjectStack.length - 1; i >= 0; --i) {
+    if(subjectStack[i]['@id'] === subjectToEmbed['@id']) {
       return true;
     }
-    reference = idToEmbeddedNode[reference.parent['@id']];
   }
   return false;
 }
@@ -4173,16 +4423,16 @@ function _getFrameFlag(frame, options, name) {
   var flag = '@' + name;
   var rval = (flag in frame ? frame[flag][0] : options[name]);
   if(name === 'embed') {
-    // default is "once"
+    // default is "@last"
     // backwards-compatibility support for "embed" maps:
-    // true => "once"
-    // false => "never"
+    // true => "@last"
+    // false => "@never"
     if(rval === true) {
-      rval = '@once';
+      rval = '@last';
     } else if(rval === false) {
       rval = '@never';
     } else if(rval !== '@always' && rval !== '@never') {
-      rval = '@once';
+      rval = '@last';
     }
   }
   return rval;
@@ -4191,10 +4441,9 @@ function _getFrameFlag(frame, options, name) {
 /**
  * Validates a JSON-LD frame, throwing an exception if the frame is invalid.
  *
- * @param state the current frame state.
  * @param frame the frame to validate.
  */
-function _validateFrame(state, frame) {
+function _validateFrame(frame) {
   if(!_isArray(frame) || frame.length !== 1 || !_isObject(frame[0])) {
     throw new JsonLdError(
       'Invalid JSON-LD syntax; a JSON-LD frame must be a single object.',
@@ -4294,58 +4543,6 @@ function _filterSubject(subject, frame, flags) {
 }
 
 /**
- * Embeds values for the given subject and property into the given output
- * during the framing algorithm.
- *
- * @param state the current framing state.
- * @param subject the subject.
- * @param property the property.
- * @param output the output.
- */
-function _embedValues(state, subject, property, output) {
-  // embed subject properties in output
-  var objects = subject[property];
-  for(var i = 0; i < objects.length; ++i) {
-    var o = objects[i];
-
-    // recurse into @list
-    if(_isList(o)) {
-      var list = {'@list': []};
-      _addFrameOutput(state, output, property, list);
-      return _embedValues(state, o, '@list', list['@list']);
-    }
-
-    // handle subject reference
-    if(_isSubjectReference(o)) {
-      var id = o['@id'];
-
-      // embed full subject if isn't already embedded
-      if(!(id in state.embeds)) {
-        // add embed
-        var embed = {parent: output, property: property};
-        state.embeds[id] = embed;
-
-        // recurse into subject
-        o = {};
-        var s = state.subjects[id];
-        for(var prop in s) {
-          // copy keywords
-          if(_isKeyword(prop)) {
-            o[prop] = _clone(s[prop]);
-            continue;
-          }
-          _embedValues(state, s, prop, o);
-        }
-      }
-      _addFrameOutput(state, output, property, o);
-    } else {
-      // copy non-subject value
-      _addFrameOutput(state, output, property, _clone(o));
-    }
-  }
-}
-
-/**
  * Removes an existing embed.
  *
  * @param state the current framing state.
@@ -4353,7 +4550,7 @@ function _embedValues(state, subject, property, output) {
  */
 function _removeEmbed(state, id) {
   // get existing embed
-  var embeds = state.embeds;
+  var embeds = state.uniqueEmbeds;
   var embed = embeds[id];
   var parent = embed.parent;
   var property = embed.property;
@@ -4396,12 +4593,11 @@ function _removeEmbed(state, id) {
 /**
  * Adds framing output to the given parent.
  *
- * @param state the current framing state.
  * @param parent the parent to add to.
  * @param property the parent property.
  * @param output the output to add.
  */
-function _addFrameOutput(state, parent, property, output) {
+function _addFrameOutput(parent, property, output) {
   if(_isObject(parent)) {
     jsonld.addValue(parent, property, output, {propertyIsArray: true});
   } else {
@@ -5295,8 +5491,8 @@ function _removeBase(base, iri) {
 /**
  * Gets the initial context.
  *
- * @param options the options to use.
- *          base the document base IRI.
+ * @param options the options to use:
+ *          [base] the document base IRI.
  *
  * @return the initial context.
  */
@@ -5764,8 +5960,8 @@ function _findContextUrls(input, urls, replace, base) {
               if(_isArray(_ctx)) {
                 // add flattened context
                 Array.prototype.splice.apply(ctx, [i, 1].concat(_ctx));
-                i += _ctx.length;
-                length += _ctx.length;
+                i += _ctx.length - 1;
+                length = ctx.length;
               } else {
                 ctx[i] = _ctx;
               }
@@ -6294,6 +6490,7 @@ function UniqueNamer(prefix) {
   this.counter = 0;
   this.existing = {};
 }
+jsonld.UniqueNamer = UniqueNamer;
 
 /**
  * Copies this UniqueNamer.
