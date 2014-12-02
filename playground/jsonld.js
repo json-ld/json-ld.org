@@ -118,6 +118,14 @@ jsonld.compact = function(input, ctx, options, callback) {
   if(!('documentLoader' in options)) {
     options.documentLoader = jsonld.loadDocument;
   }
+  if(!('link' in options)) {
+    options.link = false;
+  }
+  if(options.link) {
+    // force skip expansion when linking, "link" is not part of the public
+    // API, it should only be called from framing
+    options.skipExpansion = true;
+  }
 
   var expand = function(input, options, callback) {
     jsonld.nextTick(function() {
@@ -440,7 +448,7 @@ jsonld.flatten = function(input, ctx, options, callback) {
  * @param [options] the framing options.
  *          [base] the base IRI to use.
  *          [expandContext] a context to expand with.
- *          [embed] default @embed flag: '@last', '@always', '@never'
+ *          [embed] default @embed flag: '@last', '@always', '@never', '@link'
  *            (default: '@last').
  *          [explicit] default @explicit flag (default: false).
  *          [requireAll] default @requireAll flag (default: true).
@@ -470,7 +478,7 @@ jsonld.frame = function(input, frame, options, callback) {
     options.documentLoader = jsonld.loadDocument;
   }
   if(!('embed' in options)) {
-    options.embed = 'once';
+    options.embed = '@last';
   }
   options.explicit = options.explicit || false;
   if(!('requireAll' in options)) {
@@ -564,9 +572,11 @@ jsonld.frame = function(input, frame, options, callback) {
           return callback(ex);
         }
 
-        // compact result (force @graph option to true, skip expansion)
+        // compact result (force @graph option to true, skip expansion,
+        // check for linked embeds)
         opts.graph = true;
         opts.skipExpansion = true;
+        opts.link = {};
         jsonld.compact(framed, ctx, opts, function(err, compacted, ctx) {
           if(err) {
             return callback(new JsonLdError(
@@ -576,6 +586,7 @@ jsonld.frame = function(input, frame, options, callback) {
           // get graph alias
           var graph = _compactIri(ctx, '@graph');
           // remove @preserve from results
+          opts.link = {};
           compacted[graph] = _removePreserve(ctx, compacted[graph], opts);
           callback(null, compacted);
         });
@@ -587,18 +598,41 @@ jsonld.frame = function(input, frame, options, callback) {
 /**
  * **Experimental**
  *
- * Performs JSON-LD objectification.
+ * Links a JSON-LD document's nodes in memory.
  *
- * @param input the JSON-LD input to objectify.
+ * @param input the JSON-LD document to link.
  * @param ctx the JSON-LD context to apply.
- * @param [options] the framing options.
+ * @param [options] the options to use:
  *          [base] the base IRI to use.
  *          [expandContext] a context to expand with.
  *          [documentLoader(url, callback(err, remoteDoc))] the document loader.
- * @param callback(err, objectified) called once the operation completes.
+ * @param callback(err, linked) called once the operation completes.
+ */
+jsonld.link = function(input, ctx, options, callback) {
+  // API matches running frame with a wildcard frame and embed: '@link'
+  // get arguments
+  var frame = {};
+  if(ctx) {
+    frame['@context'] = ctx;
+    frame['@embed'] = '@link';
+  }
+  jsonld.frame(input, frame, options, callback);
+};
+
+/**
+ * **Deprecated**
+ *
+ * Performs JSON-LD objectification.
+ *
+ * @param input the JSON-LD document to objectify.
+ * @param ctx the JSON-LD context to apply.
+ * @param [options] the options to use:
+ *          [base] the base IRI to use.
+ *          [expandContext] a context to expand with.
+ *          [documentLoader(url, callback(err, remoteDoc))] the document loader.
+ * @param callback(err, linked) called once the operation completes.
  */
 jsonld.objectify = function(input, ctx, options, callback) {
-  // get arguments
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -617,8 +651,8 @@ jsonld.objectify = function(input, ctx, options, callback) {
   jsonld.expand(input, options, function(err, _input) {
     if(err) {
       return callback(new JsonLdError(
-        'Could not expand input before framing.',
-        'jsonld.FrameError', {cause: err}));
+        'Could not expand input before linking.',
+        'jsonld.LinkError', {cause: err}));
     }
 
     var flattened;
@@ -635,14 +669,11 @@ jsonld.objectify = function(input, ctx, options, callback) {
     jsonld.compact(flattened, ctx, options, function(err, compacted, ctx) {
       if(err) {
         return callback(new JsonLdError(
-          'Could not compact flattened output.',
-          'jsonld.FrameError', {cause: err}));
+          'Could not compact flattened output before linking.',
+          'jsonld.LinkError', {cause: err}));
       }
       // get graph alias
       var graph = _compactIri(ctx, '@graph');
-      // remove @preserve from results (named graphs?)
-      compacted[graph] = _removePreserve(ctx, compacted[graph], options);
-
       var top = compacted[graph][0];
 
       var recurse = function(subject) {
@@ -980,6 +1011,11 @@ jsonld.createNodeMap = function(input, options, callback) {
  *          [base] the base IRI to use.
  *          [expandContext] a context to expand with.
  *          [namer] a jsonld.UniqueNamer to use to label blank nodes.
+ *          [mergeNodes] true to merge properties for nodes with the same ID,
+ *            false to ignore new properties for nodes with the same ID once
+ *            the ID has been defined; note that this may not prevent merging
+ *            new properties where a node is in the `object` position
+ *            (default: true).
  *          [documentLoader(url, callback(err, remoteDoc))] the document loader.
  * @param callback(err, merged) called once the operation completes.
  */
@@ -1035,6 +1071,11 @@ jsonld.merge = function(docs, ctx, options, callback) {
   }
 
   function merge(expanded) {
+    var mergeNodes = true;
+    if('mergeNodes' in options) {
+      mergeNodes = options.mergeNodes;
+    }
+
     var namer = options.namer || new UniqueNamer('_:b');
     var graphs = {'@default': {}};
 
@@ -1046,8 +1087,28 @@ jsonld.merge = function(docs, ctx, options, callback) {
         doc = jsonld.relabelBlankNodes(doc, {
           namer: new UniqueNamer('_:b' + i + '-')
         });
-        // add nodes to the shared node map graphs
-        _createNodeMap(doc, graphs, '@default', namer);
+
+        // add nodes to the shared node map graphs if merging nodes, to a
+        // separate graph set if not
+        var _graphs = (mergeNodes || i === 0) ? graphs : {'@default': {}};
+        _createNodeMap(doc, _graphs, '@default', namer);
+
+        if(_graphs !== graphs) {
+          // merge document graphs but don't merge existing nodes
+          for(var graphName in _graphs) {
+            var _nodeMap = _graphs[graphName];
+            if(!(graphName in graphs)) {
+              graphs[graphName] = _nodeMap;
+              continue;
+            }
+            var nodeMap = graphs[graphName];
+            for(var key in _nodeMap) {
+              if(!(key in nodeMap)) {
+                nodeMap[key] = _nodeMap[key];
+              }
+            }
+          }
+        }
       }
 
       // add all non-default graphs to default graph
@@ -1214,6 +1275,13 @@ jsonld.promises = function(options) {
   };
 
   if(version === 'jsonld.js') {
+    api.link = function(input, ctx) {
+      if(arguments.length < 2) {
+        throw new TypeError('Could not link, too few arguments.');
+      }
+      return promisify.apply(
+        null, [jsonld.link].concat(slice.call(arguments)));
+    };
     api.objectify = function(input) {
       return promisify.apply(
         null, [jsonld.objectify].concat(slice.call(arguments)));
@@ -2182,6 +2250,8 @@ var JsonLdError = function(msg, type, details) {
   if(_nodejs) {
     Error.call(this);
     Error.captureStackTrace(this, this.constructor);
+  } else if(typeof Error !== 'undefined') {
+    this.stack = (new Error()).stack;
   }
   this.name = type || 'jsonld.Error';
   this.message = msg || 'An unspecified JSON-LD error occurred.';
@@ -2189,6 +2259,8 @@ var JsonLdError = function(msg, type, details) {
 };
 if(_nodejs) {
   require('util').inherits(JsonLdError, Error);
+} else if(typeof Error !== 'undefined') {
+  JsonLdError.prototype = new Error();
 }
 
 /**
@@ -2234,17 +2306,44 @@ Processor.prototype.compact = function(
 
   // recursively compact object
   if(_isObject(element)) {
+    if(options.link && '@id' in element && element['@id'] in options.link) {
+      // check for a linked element to reuse
+      var linked = options.link[element['@id']].filter(function(e) {
+        return (e.expanded === element);
+      });
+      if(linked.length > 0) {
+        return linked[0].compacted;
+      }
+    }
+
     // do value compaction on @values and subject references
     if(_isValue(element) || _isSubjectReference(element)) {
-      return _compactValue(activeCtx, activeProperty, element);
+      var rval = _compactValue(activeCtx, activeProperty, element);
+      if(options.link && _isSubjectReference(element)) {
+        // store linked element
+        if(!(element['@id'] in options.link)) {
+          options.link[element['@id']] = [];
+        }
+        options.link[element['@id']].push({expanded: element, compacted: rval});
+      }
+      return rval;
     }
 
     // FIXME: avoid misuse of active property as an expanded property?
     var insideReverse = (activeProperty === '@reverse');
 
+    var rval = {};
+
+    if(options.link && '@id' in element) {
+      // store linked element
+      if(!(element['@id'] in options.link)) {
+        options.link[element['@id']] = [];
+      }
+      options.link[element['@id']].push({expanded: element, compacted: rval});
+    }
+
     // process element keys in order
     var keys = Object.keys(element).sort();
-    var rval = {};
     for(var ki = 0; ki < keys.length; ++ki) {
       var expandedProperty = keys[ki];
       var expandedValue = element[expandedProperty];
@@ -2879,7 +2978,8 @@ Processor.prototype.frame = function(input, frame, options) {
   var state = {
     options: options,
     graphs: {'@default': {}, '@merged': {}},
-    subjectStack: []
+    subjectStack: [],
+    link: {}
   };
 
   // produce a map of all graphs and name each bnode
@@ -4250,6 +4350,16 @@ function _frame(state, subjects, frame, parent, property) {
     var id = ids[idx];
     var subject = matches[id];
 
+    if(flags.embed === '@link' && id in state.link) {
+      // TODO: may want to also match an existing linked subject against
+      // the current frame ... so different frames could produce different
+      // subjects that are only shared in-memory when the frames are the same
+
+      // add existing linked subject
+      _addFrameOutput(parent, property, state.link[id]);
+      continue;
+    }
+
     /* Note: In order to treat each top-level match as a compartmentalized
     result, clear the unique embedded subjects map when the property is null,
     which only occurs at the top-level. */
@@ -4260,9 +4370,12 @@ function _frame(state, subjects, frame, parent, property) {
     // start output for subject
     var output = {};
     output['@id'] = id;
+    state.link[id] = output;
 
     // if embed is @never or if a circular reference would be created by an
-    // embed, the subject cannot be embedded
+    // embed, the subject cannot be embedded, just add the reference;
+    // note that a circular reference won't occur when the embed flag is
+    // `@link` as the above check will short-circuit before reaching this point
     if(flags.embed === '@never' ||
       _createsCircularReference(subject, state.subjectStack)) {
       _addFrameOutput(parent, property, output);
@@ -4431,7 +4544,7 @@ function _getFrameFlag(frame, options, name) {
       rval = '@last';
     } else if(rval === false) {
       rval = '@never';
-    } else if(rval !== '@always' && rval !== '@never') {
+    } else if(rval !== '@always' && rval !== '@never' && rval !== '@link') {
       rval = '@last';
     }
   }
@@ -4644,6 +4757,25 @@ function _removePreserve(ctx, input, options) {
     if(_isList(input)) {
       input['@list'] = _removePreserve(ctx, input['@list'], options);
       return input;
+    }
+
+    // handle in-memory linked nodes
+    var idAlias = _compactIri(ctx, '@id');
+    if(idAlias in input) {
+      var id = input[idAlias];
+      if(id in options.link) {
+        var idx = options.link[id].indexOf(input);
+        if(idx === -1) {
+          // prevent circular visitation
+          options.link[id].push(input);
+        } else {
+          // already visited
+          return options.link[id][idx];
+        }
+      } else {
+        // prevent circular visitation
+        options.link[id] = [input];
+      }
     }
 
     // recurse through properties
@@ -5364,46 +5496,64 @@ function _prependBase(base, iri) {
   // parse given IRI
   var rel = jsonld.url.parse(iri);
 
-  // start hierarchical part
-  var hierPart = (base.protocol || '');
+  // per RFC3986 5.2.2
+  var transform = {
+    hierPart: base.protocol || ''
+  };
+
   if(rel.authority) {
-    hierPart += '//' + rel.authority;
-  } else if(base.href !== '') {
-    hierPart += '//' + base.authority;
-  }
-
-  // per RFC3986 normalize
-  var path;
-
-  // IRI represents an absolute path
-  if(rel.pathname.indexOf('/') === 0) {
-    path = rel.pathname;
+    transform.hierPart += '//' + rel.authority;
+    transform.path = rel.pathname;
+    transform.query = rel.query;
   } else {
-    path = base.pathname;
+    if(base.href !== '') {
+      transform.hierPart += '//' + base.authority;
+    }
 
-    // append relative path to the end of the last directory from base
-    if(rel.pathname !== '') {
-      path = path.substr(0, path.lastIndexOf('/') + 1);
-      if(path.length > 0 && path.substr(-1) !== '/') {
-        path += '/';
+    if(rel.pathname === '') {
+      transform.path = base.pathname;
+      if(rel.query) {
+        transform.query = rel.query;
+      } else {
+        transform.query = base.query;
       }
-      path += rel.pathname;
+    } else {
+      if(rel.pathname.indexOf('/') === 0) {
+        // IRI represents an absolute path
+        transform.path = rel.pathname;
+      } else {
+        // merge paths
+        var path = base.pathname;
+
+        // append relative path to the end of the last directory from base
+        if(rel.pathname !== '') {
+          path = path.substr(0, path.lastIndexOf('/') + 1);
+          if(path.length > 0 && path.substr(-1) !== '/') {
+            path += '/';
+          }
+          path += rel.pathname;
+        }
+
+        transform.path = path;
+      }
+      transform.query = rel.query;
     }
   }
 
   // remove slashes and dots in path
-  path = _removeDotSegments(path, hierPart !== '');
+  transform.path = _removeDotSegments(
+    transform.path, transform.hierPart !== '');
 
-  // add query and hash
-  if(rel.query) {
-    path += '?' + rel.query;
+  // construct URL
+  var rval = transform.hierPart + transform.path;
+  if(transform.query) {
+    rval += '?' + transform.query;
   }
   if(rel.hash) {
-    path += rel.hash;
+    rval += rel.hash;
   }
 
-  var rval = hierPart + path;
-
+  // handle empty base case
   if(rval === '') {
     rval = './';
   }
