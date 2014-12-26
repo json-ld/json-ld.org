@@ -614,8 +614,8 @@ jsonld.link = function(input, ctx, options, callback) {
   var frame = {};
   if(ctx) {
     frame['@context'] = ctx;
-    frame['@embed'] = '@link';
   }
+  frame['@embed'] = '@link';
   jsonld.frame(input, frame, options, callback);
 };
 
@@ -1471,7 +1471,7 @@ jsonld.DocumentCache = function(size) {
   this.order = [];
   this.cache = {};
   this.size = size || 50;
-  this.expires = 30*1000;
+  this.expires = 30 * 1000;
 };
 jsonld.DocumentCache.prototype.get = function(url) {
   if(url in this.cache) {
@@ -2308,11 +2308,11 @@ Processor.prototype.compact = function(
   if(_isObject(element)) {
     if(options.link && '@id' in element && element['@id'] in options.link) {
       // check for a linked element to reuse
-      var linked = options.link[element['@id']].filter(function(e) {
-        return (e.expanded === element);
-      });
-      if(linked.length > 0) {
-        return linked[0].compacted;
+      var linked = options.link[element['@id']];
+      for(var i = 0; i < linked.length; ++i) {
+        if(linked[i].expanded === element) {
+          return linked[i].compacted;
+        }
       }
     }
 
@@ -3795,6 +3795,9 @@ function _objectToRDF(item) {
       object.value = value.toString();
       object.datatype = datatype || XSD_BOOLEAN;
     } else if(_isDouble(value) || datatype === XSD_DOUBLE) {
+      if(!_isDouble(value)) {
+        value = parseFloat(value);
+      }
       // canonical double representation
       object.value = value.toExponential(15).replace(/(\d)0*e\+?/, '$1E');
       object.datatype = datatype || XSD_DOUBLE;
@@ -4438,7 +4441,6 @@ function _frame(state, subjects, frame, parent, property) {
           continue;
         }
 
-        // only recurse if not embedding always and circular ref detected
         if(_isSubjectReference(o)) {
           // recurse into subject reference
           var subframe = (prop in frame ?
@@ -5512,8 +5514,7 @@ function _prependBase(base, iri) {
       transform.path = base.path;
       if(rel.query !== null) {
         transform.query = rel.query;
-      }
-      else {
+      } else {
         transform.query = base.query;
       }
     } else {
@@ -7225,6 +7226,11 @@ if(_nodejs) {
           'jsonld.UnknownExtension', {extension: extension});
     }
   };
+
+  // expose version
+  var _module = {exports: {}};
+  require('pkginfo')(_module, 'version');
+  jsonld.version = _module.exports.version;
 }
 
 // end of jsonld API factory
