@@ -91,113 +91,108 @@
 
 <body>
 <section id="abstract">
-  <p>
-  RDF [[RDF-CONCEPTS]] describes a graph-based data model for making claims about
-  the world and provides the foundation for reasoning upon that graph of
-  information. At times, it becomes necessary to compare the differences between
-  datasets of graphs, digitally sign them, or generate short identifiers for
-  graphs via hashing algorithms. This document outlines an algorithm for
-  normalizing RDF datasets such that these operations can be performed.
-  </p>
+  <p>RDF [[RDF-CONCEPTS]] describes a graph-based data model for making claims
+    about the world and provides the foundation for reasoning upon that graph
+    of information. At times, it becomes necessary to compare the differences
+    between datasets of graphs, digitally sign them, or generate short
+    identifiers for graphs via hashing algorithms. This document outlines an
+    algorithm for normalizing RDF datasets such that these operations can be
+    performed.</p>
 </section>
 
 <section id="sotd">
   <p>This document is an experimental work in progress.</p>
-  <!-- <p>
-  This document has been reviewed by W3C Members, by software
-  developers, and by other W3C groups and interested parties, and is
-  endorsed by the Director as a W3C Recommendation. It is a stable
-  document and may be used as reference material or cited from another
-  document. W3C's role in making the Recommendation is to draw attention
-  to the specification and to promote its widespread deployment. This
-  enhances the functionality and interoperability of the Web.
-  </p> -->
+  <!-- <p>This document has been reviewed by W3C Members, by software
+    developers, and by other W3C groups and interested parties, and is
+    endorsed by the Director as a W3C Recommendation. It is a stable
+    document and may be used as reference material or cited from another
+    document. W3C's role in making the Recommendation is to draw attention
+    to the specification and to promote its widespread deployment. This
+    enhances the functionality and interoperability of the Web.</p> -->
 </section>
 
 <section>
   <h1>Introduction</h1>
 
   <p>When data scientists discuss normalization, they do so in the context of
-  achieving a particular set of goals. Since the same information may sometimes
-  be expressed in a variety of different ways, it often becomes necessary to be
-  able to transform each of these different ways into a single, standard format.
-  With a standard format, the differences between two different sets of data
-  can be easily determined, a cryptographically-strong hash identifier can be
-  generated for a particular set of data, and a particular set of data may
-  be digitally-signed for later verification.</p>
+    achieving a particular set of goals. Since the same information may
+    sometimes be expressed in a variety of different ways, it often becomes
+    necessary to be able to transform each of these different ways into a
+    single, standard format. With a standard format, the differences between
+    two different sets of data can be easily determined, a
+    cryptographically-strong hash identifier can be generated for a particular
+    set of data, and a particular set of data may be digitally-signed for later
+    verification.</p>
 
   <p>In particular, this specification is about normalizing
-  <tref>RDF dataset</tref>s, which are collections of graphs. Since
-  a directed graph can express the same information in more than one
-  way, it requires normalization to achieve the aforementioned goals
-  and any others that may arise via surrendipity.</p>
+    <tref>RDF dataset</tref>s, which are collections of graphs. Since
+    a directed graph can express the same information in more than one
+    way, it requires normalization to achieve the aforementioned goals
+    and any others that may arise via surrendipity.</p>
 
   <p>Most <tref>RDF dataset</tref> can be normalized fairly quickly, in terms
-  of algorithmic time complexity. However, those that contain nodes that do
-  not have globally unique identifiers pose a greater challenge. Normalizing
-  these datasets presents the <tdef>graph isomorphism</tdef> problem, a problem
-  that is believed to be difficult to solve quickly. More formally, it is
-  believed to be an NP-Intermediate problem, that is, neither known to be
-  solvable in polynomial time nor NP-complete. Fortunately, existing real world
-  data is rarely modeled in a way that manifests this problem and new data can
-  be modeled to avoid it. In fact, software systems can detect a problematic
-  dataset and may choose to assume it's an attempted denial of service attack,
-  rather than a real input, and abort.</p>
+    of algorithmic time complexity. However, those that contain nodes that do
+    not have globally unique identifiers pose a greater challenge. Normalizing
+    these datasets presents the <tdef>graph isomorphism</tdef> problem, a
+    problem that is believed to be difficult to solve quickly. More formally,
+    it is believed to be an NP-Intermediate problem, that is, neither known to
+    be solvable in polynomial time nor NP-complete. Fortunately, existing real
+    world data is rarely modeled in a way that manifests this problem and new
+    data can be modeled to avoid it. In fact, software systems can detect a
+    problematic dataset and may choose to assume it's an attempted denial of
+    service attack, rather than a real input, and abort.</p>
 
   <p>This document outlines an algorithm for generating a normalized
-  <tref>RDF dataset</tref> given an <tref>RDF dataset</tref> as input. The
-  algorithm is called the
-  <strong>Universal RDF Dataset Normalization Algorithm 2015</strong> or
-  <strong>URDNA2015</strong>.</p>
+    <tref>RDF dataset</tref> given an <tref>RDF dataset</tref> as input. The
+    algorithm is called the
+    <strong>Universal RDF Dataset Normalization Algorithm 2015</strong> or
+    <strong>URDNA2015</strong>.</p>
 
   <section>
     <h2>How to Read this Document</h2>
 
-    <p>
-    This document is a detailed specification for an RDF graph normalization
-    algorithm. The document is primarily intended for the following audiences:
-    </p>
+    <p>This document is a detailed specification for an <tref>RDF dataset</tref>
+      normalization algorithm. The document is primarily intended for the
+      following audiences:</p>
 
     <ul>
-      <li>Software developers that want to implement an RDF graph normalization
-    algorithm.</li>
+      <li>Software developers that want to implement an <tref>RDF dataset</tref>
+        normalization algorithm.</li>
       <li>Masochists.</li>
     </ul>
 
-    <p>
-    To understand the basics in this specification you must be familiar with basic
-    RDF concepts [[!RDF-CONCEPTS]]. A working knowledge of
-    <a href="http://en.wikipedia.org/wiki/Graph_theory">graph theory</a> and
-    <a href="http://en.wikipedia.org/wiki/Graph_isomorphism">graph isomorphisms</a>
-    is also recommended.</p>
+    <p>To understand the basics in this specification you must be familiar with
+      basic RDF concepts [[!RDF-CONCEPTS]]. A working knowledge of
+      <a href="http://en.wikipedia.org/wiki/Graph_theory">graph theory</a> and
+      <a href="http://en.wikipedia.org/wiki/Graph_isomorphism">graph isomorphism</a>
+      is also recommended.</p>
   </section>
 
   <section>
     <h2>Contributing</h2>
 
-    <p>There are a number of ways that one may participate in the development of
-    this specification:</p>
+    <p>There are a number of ways that one may participate in the development
+      of this specification:</p>
 
     <ul>
-    <li>Technical discussion typically occurs on the public mailing list:
-    <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a>
-    </li>
+      <li>Technical discussion typically occurs on the public mailing list:
+        <a href="http://lists.w3.org/Archives/Public/public-linked-json/">public-linked-json@w3.org</a></li>
 
-    <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are held
-    on Tuesdays at 1500UTC on the second and fourth week of each month.
-    </li>
+      <li><a href="http://json-ld.org/minutes/">Public teleconferences</a> are
+        held on Tuesdays at 1500UTC on the second and fourth week of each
+        month.</li>
 
-    <li>Specification bugs and issues should be reported in the
-    <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
+      <li>Specification bugs and issues should be reported in the
+        <a href="https://github.com/json-ld/json-ld.org/issues">issue tracker</a>.</li>
 
-    <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
-    specification can be found on Github.</li>
+      <li><a href="https://github.com/json-ld/json-ld.org/tree/master/spec">Source code</a> for the
+        specification can be found on Github.</li>
 
-    <li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
-    IRC channel is available for real-time discussion on irc.freenode.net.</li>
+      <li>The <a href="http://webchat.freenode.net/?channels=#json-ld">#json-ld</a>
+        IRC channel is available for real-time discussion on
+        <a href="irc.freenode.net">irc.freenode.net.</a></li>
     </ul>
   </section>
-
 </section>
 
 <section class="normative">
@@ -205,6 +200,8 @@
 
   <section class="normative">
     <h2>General Terminology</h2>
+
+    <!-- FIXME: remove any unnecessary JSON terminology -->
 
     <p>This document uses the following terms as defined in JSON [[!RFC4627]]. Refer
       to the <em>JSON Grammar</em> section in [[!RFC4627]] for formal definitions.</p>
@@ -241,74 +238,74 @@
 <section>
   <h1>Normalization</h1>
 
-  <p class="issue">This algorithm is a work in progress, do not implement it.
-  There is a newer, simpler to implement algorithm that has not yet been
-  described here. The algorithm below is obsolete.</p>
+  <p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
-  <p>Normalization is the process of taking <tref>input graph</tref> and
-  performing a transformation on that input that results in all
-  aspects of the graph being arranged in a deterministic way in the
-  <tref>output graph</tref>. That is, for two <tref>input graph</tref>s
-  containing the same
-  information, regardless of their arrangement, the <tref>output graph</tref>s
-  will be identical. The problem is a fairly difficult technical
-  problem to solve because it requires a directed graph to be ordered into a
-  set of nodes and edges in a deterministic way. This is easy to do when all of
-  the nodes have unique names, but very difficult to do when some of the nodes
-  are not labeled and thus names must be generated for those nodes in a
-  deterministic fashion.
-  </p>
+  <p>Normalization is the process of transforming an <tref>input dataset</tref>
+    to a <tref>standard dataset</tref>. That is, for two
+    <tref>input dataset</tref>s containing the same information, regardless
+    of their arrangement, will be transformed into identical
+    <tref>standard dataset</tref>s. The problem is a fairly difficult technical
+    problem to solve because it requires directed graphs to be deterministically
+    ordered into sets of nodes and edges. This is easy to do when all of the
+    nodes have globally unique names, but difficult to do when some of the nodes
+    are not labeled. Any unlabeled nodes must be deterministically labeled.</p>
 
-  <p>In time, there may be more than one normalization algorithm that will need
-  to be identified. For identification purposes, this algorithm is named the
-  "Universal RDF Graph Normalization Algorithm 2011"
-  (<abbr title="Universal RDF Graph Normalization Algorithm 2011">URGNA2011</abbr>).
-  </p>
+  <p>In time, there may be more than one normalization algorithm and,
+    therefore, for identification purposes, this algorithm is named the
+    "Universal RDF Datset Normalization Algorithm 2015"
+    (<abbr title="Universal RDF Dataset Normalization Algorithm 2015">URDNA2015</abbr>).</p>
 
   <section>
     <h3>Normalization Algorithm Terms</h3>
-     <dl>
-       <dt><tdef>input graph</tdef></dt>
-       <dd>
-         The data structure that is provided as input to the algorithm.
-       </dd>
-       <dt><tdef>output graph</tdef></dt>
-       <dd>
-         The data structure that is produced as output by the algorithm.
-       </dd>
-       <dt><tdef>label</tdef></dt>
-       <dd>
-         The subject IRI associated with a graph node.
-       </dd>
-       <dt><tdef>list of expanded nodes</tdef></dt>
-       <dd>
-         A list of all nodes in the <tref>input graph</tref>.
-       </dd>
-       <dt><tdef>alpha</tdef> and <tdef>beta</tdef> values</dt>
-       <dd>
-         The words <tref>alpha</tref> and <tref>beta</tref> refer to the first and
-         second nodes or values being examined in an algorithm. The names are
-         merely used to refer to each input value to a comparison algorithm.
-       </dd>
-       <dt><tdef>renaming counter</tdef></dt>
-       <dd>
-         A counter that is used during the
-         <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. The
-         counter typically starts at one (1) and counts up for every node that is
-         relabeled. There will be two such renaming counters in an implementation
-         of the normalization algorithm. The first is the
-         <tref>labeling counter</tref> and the second is the
-         <tdef>deterministic labeling counter</tdef>.
-       </dd>
-       <dt><tdef>serialization label</tdef></dt>
-       <dd>
-         An identifier that is created to aid in the normalization process in the
-         <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>. The
-         value typically takes the form of <code>s&lt;NUMBER&gt;</code> or
-         <code>c&lt;NUMBER&gt;</code>.
-       </dd>
-       <dt><tdef>serialization labels map</tdef></dt>
-       <dd></dd>
+    <dl>
+      <dt><tdef>input dataset</tdef></dt>
+      <dd>
+        The <tref>RDF dataset</tref> that is provided as input to the
+        algorithm.
+      </dd>
+      <dt><tdef>standard dataset</tdef></dt>
+      <dd>
+        The <tref>RDF dataset</tref> that is produced as output by the
+        algorithm.
+      </dd>
+      <!-- FIXME: old terminology follows -->
+      <dt><tdef>input graph</tdef></dt>
+      <dd></dd>
+      <dt><tdef>output graph</tdef></dt>
+      <dd></dd>
+      <dt><tdef>label</tdef></dt>
+      <dd>
+        The subject IRI associated with a graph node.
+      </dd>
+      <dt><tdef>list of expanded nodes</tdef></dt>
+      <dd>
+        A list of all nodes in the <tref>input graph</tref>.
+      </dd>
+      <dt><tdef>alpha</tdef> and <tdef>beta</tdef> values</dt>
+      <dd>
+        The words <tref>alpha</tref> and <tref>beta</tref> refer to the first and
+        second nodes or values being examined in an algorithm. The names are
+        merely used to refer to each input value to a comparison algorithm.
+      </dd>
+      <dt><tdef>renaming counter</tdef></dt>
+      <dd>
+        A counter that is used during the
+        <a href="#node-relabeling-algorithm">Node Relabeling Algorithm</a>. The
+        counter typically starts at one (1) and counts up for every node that is
+        relabeled. There will be two such renaming counters in an implementation
+        of the normalization algorithm. The first is the
+        <tref>labeling counter</tref> and the second is the
+        <tdef>deterministic labeling counter</tdef>.
+      </dd>
+      <dt><tdef>serialization label</tdef></dt>
+      <dd>
+        An identifier that is created to aid in the normalization process in the
+        <a href="#deep-comparison-algorithm">Deep Comparison Algorithm</a>. The
+        value typically takes the form of <code>s&lt;NUMBER&gt;</code> or
+        <code>c&lt;NUMBER&gt;</code>.
+      </dd>
+      <dt><tdef>serialization labels map</tdef></dt>
+      <dd></dd>
     </dl>
   </section>
 
@@ -428,6 +425,51 @@
 
   <section>
     <h3>Normalization Algorithm</h3>
+
+    <ol class="algorithm">
+      <li>If <tref>RDF dataset</tref> is serialized, convert to abstract quads.</li>
+      <li>Map each blank node to all quads in which it is mentioned.</li>
+      <li>While the number of unlabeled blank nodes is decreasing:</li>
+        <ol class="algorithm">
+          <li>For each unlabeled blank node:</li>
+            <ol class="algorithm">
+              <li>Hash the *special serialization* of all of its related quads.</li>
+              <li>Store whether the resulting hash is unique or not.</li>
+            </ol>
+          <li>Sort the blank nodes by hash and label each blank node that has a
+            unique hash.</li>
+        </ol>
+      </li>
+      <li>For each group of duplicate hashes in sorted order:</li>
+        <ol class="algorithm">
+          <li>For each unlabeled blank node in the group:</li>
+            <ol class="algorithm">
+              <li>Group adjacent blank nodes by a hash of relationship and
+                quad hash.</li>
+              <li>For each group:</li>
+              <ol class="algorithm">
+                <li>Digest the group hash.</li>
+                <li>Build the shortest, lexicographically least *path* of
+                  blank nodes in the group that visits all nodes in the group
+                  without cycling and that serializes them using the hash that
+                  results from recursively calling this algorithm. Track the order
+                  the blank nodes were visited.
+                </li>
+                <li>Digest the chosen path.</li>
+              </ol>
+              <li>Process the resulting group hashes in sorted order,
+                labeling any remaining blank nodes by using the order in which
+                the nodes were visited when constructing the associated
+                shortest *path*.</li>
+            </ol>
+        </ol>
+      </li>
+      <li>Return the abstract quads with now-labeled blank nodes as the
+        <tref>standard dataset</tref>.</li>
+    </ol>
+
+    <!-- FIXME: old below -->
+    <p class="issue">The information below is out-of-date.</p>
 
     <p>The normalization algorithm expands the <tref>input graph</tref>,
     flattens the data structure, and creates an initial set of names for all
