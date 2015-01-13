@@ -256,7 +256,7 @@
     (<abbr title="Universal RDF Dataset Normalization Algorithm 2015">URDNA2015</abbr>).</p>
 
   <section>
-    <h3>Normalization Algorithm Terms</h3>
+    <h1>Normalization Algorithm Terms</h1>
     <dl>
       <dt><tdef>input dataset</tdef></dt>
       <dd>
@@ -325,7 +325,7 @@
   </section>
 
   <section>
-    <h3>Normalization State</h3>
+    <h1>Normalization State</h1>
 
     <p>When performing the steps required by the normalization algorithm,
       it is helpful to track state in a data structure called the
@@ -454,7 +454,7 @@
   </section>
 
   <section>
-    <h3>Normalization Algorithm</h3>
+    <h2>Normalization Algorithm</h2>
 
     <p>The normalization algorithm converts an <tref>input dataset</tref>
       into a <tref>standard dataset</tref>. This algorithm will assign
@@ -464,89 +464,118 @@
     <p class="issue">Documenting the algorithm is a WIP, various steps will
       become more detailed in time.</p>
 
-    <ol class="algorithm">
-      <li>Create the <tref>normalization state</tref>.</li>
-      <li>For every <tref>quad</tref> in <tref>input dataset</tref>:
-        <ol class="algorithm">
-          <li>For each <tref>blank node</tref> that occurs in the
-            <tref>quad</tref>'s <tref>subject</tref>, <tref>object</tref>, or
-            <tref>graph name</tref> position, add a reference to the
-            <tref>quad</tref> using the <tref>blank node</tref>'s
-            identifier in the <tref>blank node to quads map</tref>, creating a
-            new entry in the map if necessary.
-          </li>
-        </ol>
-      </li>
-      <li>Populate the <tref>list of non-normalized blank nodes</tref> using
-        the keys from the <tref>blank node to quads map</tref>.</li>
-      <li>Initialize a <tdef>easy label</tdef> flag to <code>true</code>.</li>
-      <li>While the <tref>easy label</tref> flag is <code>true</code>,
-        canonically-label the easy-to-label <tref>blank node</tref>s:</li>
-        <ol class="algorithm">
-          <li>Set the <tref>easy label</tref> flag to <code>false</code>.</li>
-          <li>Clear the <tref>hash to blank nodes map</tref>.</li>
-          <li>For each <tref>blank node</tref> identifier in
-            <tref>list of non-normalized blank nodes</tref>:</li>
-            <ol class="algorithm">
-              <li>Create a hash according to the according to the
-                <a href="#hash-quads">Hash Quads algorithm</a>.</li>
-              <li>Add the hash and <tref>blank node</tref> identifier to the
-                <tref>hash to blank nodes map</tref>, creating a new entry
-                if necessary.</li>
-            </ol>
-          <li>For each entry in the <tref>hash to blank nodes map</tref> in
-            lexicographically-sorted order:
-            <ol class="algorithm">
-              <li>If the length of the list of
-                <tref>blank node</tref> identifiers is greater than
-                <code>1</code>, continue to the next entry.</li>
-              <li>Create the canonical label for the single
-                <tref>blank node</tref> identifier in the list of
-                <tref>blank node</tref> identifiers using the
-                  <a href="#node-relabeling">Node Relabeling algorithm</a>.</li>
-              <li>Remove the entry from the
-                <tref>hash to blank nodes map</tref>.</li>
-              <li>Set the <tref>easy label</tref> flag to
-                <code>true</code>.</li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-      <li>For each entry in the <tref>hash to blank nodes map</tref> in
-        lexicographically-sorted order:</li>
-        <ol class="algorithm">
-          <li>For each <tref>blank node</tref> identifier in the entry's
-            list:</li>
-            <ol class="algorithm">
-              <li>Group adjacent blank nodes by a hash of relationship and
-                quad hash.</li>
-              <li>For each group:</li>
+    <section class="informative">
+      <h3>Overview</h3>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <ol class="algorithm">
+        <li>Create the <tref>normalization state</tref>.</li>
+        <li>For every <tref>quad</tref> in <tref>input dataset</tref>:
+          <ol class="algorithm">
+            <li>For each <tref>blank node</tref> that occurs in the
+              <tref>quad</tref>'s <tref>subject</tref>, <tref>object</tref>, or
+              <tref>graph name</tref> position, add a reference to the
+              <tref>quad</tref> using the <tref>blank node</tref>'s
+              identifier in the <tref>blank node to quads map</tref>, creating a
+              new entry in the map if necessary.
+            </li>
+          </ol>
+        </li>
+        <li>Populate the <tref>list of non-normalized blank nodes</tref> using
+          the keys from the <tref>blank node to quads map</tref>.</li>
+        <li>Initialize an <tdef>easy label</tdef> flag to
+          <code>true</code>.</li>
+        <li>While the <tref>easy label</tref> flag is <code>true</code>,
+          canonically-label the easy-to-label <tref>blank node</tref>s:</li>
+          <ol class="algorithm">
+            <li>Set the <tref>easy label</tref> flag to <code>false</code>.</li>
+            <li>Clear the <tref>hash to blank nodes map</tref>.</li>
+            <li>For each <tref>blank node</tref> identifier in
+              <tref>list of non-normalized blank nodes</tref>:</li>
               <ol class="algorithm">
-                <li>Digest the group hash.</li>
-                <li>Build the shortest, lexicographically least *path* of
-                  blank nodes in the group that visits all nodes in the group
-                  without cycling and that serializes them using the hash that
-                  results from recursively calling this algorithm. Track the order
-                  the blank nodes were visited.
-                </li>
-                <li>Digest the chosen path.</li>
+                <li>Create a hash according to the according to the
+                  <a href="#hash-quads">Hash Quads algorithm</a>.</li>
+                <li>Add the hash and <tref>blank node</tref> identifier to the
+                  <tref>hash to blank nodes map</tref>, creating a new entry
+                  if necessary.</li>
               </ol>
-              <li>Process the resulting group hashes in sorted order,
-                labeling any remaining blank nodes by using the order in which
-                the nodes were visited when constructing the associated
-                shortest *path*.</li>
-            </ol>
-        </ol>
-      </li>
-      <li>Return the abstract quads with now-labeled blank nodes as the
-        <tref>standard dataset</tref>.</li>
-    </ol>
+            <li>For each entry in the <tref>hash to blank nodes map</tref> in
+              lexicographically-sorted order:
+              <ol class="algorithm">
+                <li>If the length of the list of
+                  <tref>blank node</tref> identifiers is greater than
+                  <code>1</code>, continue to the next entry.</li>
+                <li>Create the canonical label for the single
+                  <tref>blank node</tref> identifier in the list of
+                  <tref>blank node</tref> identifiers using the
+                    <a href="#node-relabeling">Node Relabeling algorithm</a>.
+                </li>
+                <li>Remove the entry from the
+                  <tref>hash to blank nodes map</tref>.</li>
+                <li>Set the <tref>easy label</tref> flag to
+                  <code>true</code>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>For each entry in the <tref>hash to blank nodes map</tref> in
+          lexicographically-sorted order:</li>
+          <ol class="algorithm">
+            <li>Create a <tdef>hash path list</tdef>.</li>
+            <li>For each <tref>blank node</tref> identifier in the entry's
+              list:</li>
+              <ol class="algorithm">
+                <li>If the <tref>blank node</tref> identifier has already
+                  been mapped to a canonical label, continue to the next
+                  <tref>blank node</tref>.</li>
+                <li>Create a blank node labeler using the prefix
+                  <code>_:b</code>.</li>
+                <li>Assign the <tref>blank node</tref> identifier a new
+                  label using the blank node labeler.</li>
+                <li>Run the <a href="#hash-paths">Hash Paths algorithm</a>,
+                  passing the blank node labeler, and append the result to the
+                  <tref>hash path list</tref>.</li>
+              </ol>
+            </li>
+            <li>For each entry in the <tref>hash path list</tref>, sorted
+              by hash:</li>
+              <ol class="algorithm">
+                <li>Assign a canonical label to each <tref>blank node</tref>
+                  identifier in the entry's blank node labeler, in the order in
+                  which they were assigned temporary labels.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>For each <tref>quad</tref> in <tref>input dataset</tref>:
+          <ol class="algorithm">
+            <li>Create a copy the <tref>quad</tref> and replace any
+              <tref>blank node</tref> identifiers using the
+              <tref>canonical labeler</tref>.</li>
+            <li>Add the copied <tref>quad</tref> to the
+            <tref>standard dataset</tref>.</li>
+          </ol>
+        </li>
+        <li>Return the <tref>standard dataset</tref>.</li>
+      </ol>
+    </section>
   </section>
 
   <section>
-    <h4>Node Relabeling Algorithm</h4>
+    <h2>Node Relabeling Algorithm</h2>
 
     <p class="issue">This algorithm is out-of-date, don't implement it.</p>
+
+    <section class="informative">
+      <h3>Overview</h3>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+    </section>
 
     <!--
 
@@ -582,11 +611,51 @@
   </section>
 
   <section>
+    <h2>Hash Quads</h2>
+
+    <p class="issue">TODO</p>
+
+    <section class="informative">
+      <h3>Overview</h3>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+    </section>
+  </section>
+
+  <section>
+    <h2>Hash Paths</h2>
+
+    <p class="issue">TODO</p>
+
+    <section class="informative">
+      <h3>Overview</h3>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <!-- <ol class="algorithm">
+        <li>Digest the group hash.</li>
+        <li>Build the shortest, lexicographically least *path* of
+          blank nodes in the group that visits all nodes in the group
+          without cycling and that serializes them using the hash that
+          results from recursively calling this algorithm. Track the order
+          the blank nodes were visited.
+         </li>
+         <li>Digest the chosen path.</li>
+      </ol>
+      <li>Process the resulting group hashes in sorted order,
+        labeling any remaining blank nodes by using the order in which
+        the nodes were visited when constructing the associated
+        shortest *path*.</li> -->
+  </section>
+
+  <!-- <section>
     <h4>Deterministic Labeling Algorithm</h4>
 
     <p class="issue">This algorithm is out-of-date, don't implement it.</p>
-
-    <!--
 
     <p>The deterministic labeling algorithm takes the
     <tref>normalization state</tref>
@@ -659,15 +728,13 @@
         determine the sort order.</li>
     </ol>
 
-    -->
-  </section>
+  </section> -->
 
-  <section>
+  <!-- <section>
     <h4>Node Serialization Algorithm</h4>
 
     <p class="issue">This algorithm is out-of-date, don't implement it.</p>
 
-<!--
     <p>
     The node serialization algorithm takes a <tref>node state</tref>, a
     <tref>mapping state</tref>, and a <tdef>direction</tdef> (either
@@ -723,15 +790,13 @@
       <tref>adjacent unserialized labels list</tref>.
       Decrement the <tref>maximum serialization combinations</tref> by
       <code>1</code> for each iteration.
-    </ol> -->
-  </section>
+    </ol>
+  </section> -->
 
-  <section>
+  <!-- <section>
     <h4>Serialization Label Generation Algorithm</h4>
 
     <p class="issue">This algorithm is out-of-date, don't implement it.</p>
-
-    <!--
 
     <p>
     The algorithm generates a <tref>serialization label</tref> given a
@@ -757,8 +822,8 @@
         where the key is the <tref>label</tref> and the value is the
         generated <tref>serialization label</tref>.
       </li>
-    </ol> -->
-  </section>
+    </ol>
+  </section> -->
 </section>
 
 <section class="appendix">
