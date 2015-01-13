@@ -281,8 +281,11 @@
       <dt><tdef>blank node</tdef></dt>
       <dd>TODO</dd>
       <dt><tdef>blank node labeler</tdef></dt>
-      <dd>A blank node labeler maintains a mapping of existing blank node
-        labels to new ones.</dd>
+      <dd>
+        A blank node labeler maintains a mapping of existing blank node
+        labels to new ones. It also tracks the order in which new labels
+        were assigned.
+      </dd>
       <!--
       <dt><tdef>input graph</tdef></dt>
       <dd></dd>
@@ -334,12 +337,12 @@
 
     <dl>
       <dt><tdef>blank node to quads map</tdef></dt>
-      <dd>A data structure that maps <tref>blank node</tref> identifiers to
+      <dd>A data structure that maps <tref>blank node</tref> labels to
         the <tref>quad</tref>s in which they appear in the
         <tref>input dataset</tref>.</dd>
       <dt><tdef>hash to blank nodes map</tdef></dt>
       <dd>A data structure that maps a hash to a list of <tref>blank node</tref>
-        identifiers.</dd>
+        labels.</dd>
       <dt><tdef>canonical labeler</tdef></dt>
       <dd>A unique labeler that uses the prefix <code>_:c14n</code> to
         assign labels to <tref>blank node</tref>s.
@@ -479,7 +482,7 @@
               <tref>quad</tref>'s <tref>subject</tref>, <tref>object</tref>, or
               <tref>graph name</tref> position, add a reference to the
               <tref>quad</tref> using the <tref>blank node</tref>'s
-              identifier in the <tref>blank node to quads map</tref>, creating a
+              label in the <tref>blank node to quads map</tref>, creating a
               new entry in the map if necessary.
             </li>
           </ol>
@@ -493,12 +496,12 @@
           <ol class="algorithm">
             <li>Set the <tref>easy label</tref> flag to <code>false</code>.</li>
             <li>Clear the <tref>hash to blank nodes map</tref>.</li>
-            <li>For each <tref>blank node</tref> identifier in
+            <li>For each <tref>blank node</tref> label in
               <tref>list of non-normalized blank nodes</tref>:</li>
               <ol class="algorithm">
                 <li>Create a hash according to the according to the
                   <a href="#hash-quads">Hash Quads algorithm</a>.</li>
-                <li>Add the hash and <tref>blank node</tref> identifier to the
+                <li>Add the hash and <tref>blank node</tref> label to the
                   <tref>hash to blank nodes map</tref>, creating a new entry
                   if necessary.</li>
               </ol>
@@ -506,11 +509,11 @@
               lexicographically-sorted order:
               <ol class="algorithm">
                 <li>If the length of the list of
-                  <tref>blank node</tref> identifiers is greater than
+                  <tref>blank node</tref> labels is greater than
                   <code>1</code>, continue to the next entry.</li>
                 <li>Create the canonical label for the single
-                  <tref>blank node</tref> identifier in the list of
-                  <tref>blank node</tref> identifiers using the
+                  <tref>blank node</tref> label in the list of
+                  <tref>blank node</tref> labels using the
                     <a href="#node-relabeling">Node Relabeling algorithm</a>.
                 </li>
                 <li>Remove the entry from the
@@ -525,15 +528,14 @@
           lexicographically-sorted order:</li>
           <ol class="algorithm">
             <li>Create a <tdef>hash path list</tdef>.</li>
-            <li>For each <tref>blank node</tref> identifier in the entry's
-              list:</li>
+            <li>For each <tref>blank node</tref> label in the entry's list:</li>
               <ol class="algorithm">
-                <li>If the <tref>blank node</tref> identifier has already
+                <li>If the <tref>blank node</tref> label has already
                   been mapped to a canonical label, continue to the next
                   <tref>blank node</tref>.</li>
                 <li>Create a blank node labeler using the prefix
                   <code>_:b</code>.</li>
-                <li>Assign the <tref>blank node</tref> identifier a new
+                <li>Assign the <tref>blank node</tref> label a new
                   label using the blank node labeler.</li>
                 <li>Run the <a href="#hash-paths">Hash Paths algorithm</a>,
                   passing the blank node labeler, and append the result to the
@@ -544,7 +546,7 @@
               by hash:</li>
               <ol class="algorithm">
                 <li>Assign a canonical label to each <tref>blank node</tref>
-                  identifier in the entry's blank node labeler, in the order in
+                  label in the entry's blank node labeler, in the order in
                   which they were assigned temporary labels.</li>
               </ol>
             </li>
@@ -553,7 +555,7 @@
         <li>For each <tref>quad</tref> in <tref>input dataset</tref>:
           <ol class="algorithm">
             <li>Create a copy the <tref>quad</tref> and replace any
-              <tref>blank node</tref> identifiers using the
+              <tref>blank node</tref> labels using the
               <tref>canonical labeler</tref>.</li>
             <li>Add the copied <tref>quad</tref> to the
             <tref>standard dataset</tref>.</li>
