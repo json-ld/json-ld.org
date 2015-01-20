@@ -633,7 +633,64 @@
 
     <section class="informative">
       <h3>Overview</h3>
+
+      <p>This algorithm works in concert with the main normalization algorithm
+        to produce a unique, deterministic identifier for a particular blank
+        node. This hash incorporates all of the information that connected to
+        the blank node and how it is connected. It does by creating
+        deterministic paths that emanate out from the blank node through any
+        other adjacent blank nodes. The process is as follows:</p>
+
+      <ul>
+        <li>Start by taking the perspective that the <tref>blank node</tref> is
+          at the center of the graph. This is the starting point for which all
+          paths will radiate outward.</li>
+        <li>Create a <tref>blank node labeler</tref> and assign a label
+          to the starting <tref>blank node</tref>.</li>
+        <li>Start the main message digest hash.</li>
+        <li>For each adjacent <tref>blank node</tref>, determine a label for
+          it, first using the canonical label if already assigned, second
+          using the label from the local <tref>blank node labeler</tref> if
+          already assigned, and lastly, use the result of the
+          <a href="#hash-quads">Hash Quads algorithm</a> as the label.</li>
+        <li>Create a group message digest hash, digesting data representing
+          the direction of the <tref>blank node</tref> relationship (subject
+          to object or object from subject) relative to the original
+          <tref>blank node</tref>, the predicate, and the
+          <tref>blank node</tref> label. Store a record of this group hash
+          and its matching <tref>blank node</tref>.</li>
+        <li>Now iterate over each of the group hashes and related
+          <tref>blank node</tref>s. For each group, use the main hash to
+          digest the group hash and create a copy of the
+          <tref>blank node labeler</tref> to be used in case recursion is
+          needed. Then, proceed to construct a path. For each permutation of
+          <tref>blank node</tref>s in the group, concatenate the canonical
+          label for it, if already assigned, to the path. If not, and the
+          <tref>blank node labeler</tref> has not assigned it a label, take
+          note of this and then assign it one. If a path has already been
+          selected as the canonical path, stop permutating.</li>
+        <li>If no path has been chosen as the canonical one, recurse into
+          each of the <tref>blank node</tref>s that was assigned a label
+          in the previous step, passing the copy of the
+          <tref>blank node labeler</tref> to use in the algorithm. Append the
+          resulting hash of the recursion to the path and update the reference
+          to the copy of the <tref>blank node labeler</tref> to the one
+          given in the result of the algorithm.</li>
+        <li>If no path has been chosen or the current path is shorter than
+          the currently chosen path, update the chosen path to the current
+          path. Set the chosen namer to match the one used to produce the
+          path.</li>
+        <li>Use the main hash to digest the chosen path and return it
+          and the chosen namer as the result of the algorithm.</li>
+      </ul>
     </section>
+
+    <p class="issue">When processing adjacent blank nodes, can they be skipped
+      if they've already been canonically labeled?</p>
+
+    <p class="issue">When creating group hashes, does the graph name also
+      need to be digested (not just direction of relationship, predicate,
+      and blank node label)?</p>
 
     <section>
       <h3>Algorithm</h3>
