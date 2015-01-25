@@ -172,8 +172,9 @@
   };
 
   // add an Activity Streams 2.0 Example
+  // currently uses the temporary dev location for the context document.
   playground.examples["Activity"] = {
-    "@context": "http://www.w3.org/ns/activitystreams#",
+    "@context": "http://asjsonld.mybluemix.net",
     "@type": "Post",
     "actor": {
       "@type": "Person",
