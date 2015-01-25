@@ -914,8 +914,8 @@
             copyContext: "playground:copyContext",
 
             markup: {"@id": "playground:markup", "@type": "@id"},
-            context: {"@id": "playground:markup", "@type": "@id"},
-            frame: {"@id": "playground:markup", "@type": "@id"}
+            context: {"@id": "playground:context", "@type": "@id"},
+            frame: {"@id": "playground:frame", "@type": "@id"}
           },
           "description": description,
           "startTab": playground.activeTab,
