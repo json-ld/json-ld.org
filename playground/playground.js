@@ -149,6 +149,60 @@
       return rval;
     }
 
+    function handleGist(gist){
+      /**
+       * Turn the contents of a gist into the equivalent of the legacy URL
+       * scheme
+       * @param gist: a gist id
+      */
+      var deferreds = [],
+        manifest = JSON.parse(gist.files["playground.jsonld"].content),
+        done = function(){
+          $('#' + manifest["startTab"]).tab('show');
+          playground.populateWithJSON(queryData);
+        };
+
+      playground.copyContext = manifest["copyContext"];
+
+      $.each(queryData, function(key, val){
+        val = manifest[key];
+        if(val){
+          // is within this gist?
+          if(val[0] === "."){
+            var file = gist.files[val.slice(2)];
+            if(!file.truncated){
+              queryData[key] = JSON.parse(file.content);
+              playground.setRemoteUrl(key, null);
+            }else{
+              deferreds.push($.get(file.raw_url).done(function(data){
+                queryData[fieldName] = JSON.parse(data);
+              }));
+            }
+          }else{
+            playground.toggleRemote(key, true);
+            var rval = playground.setRemoteUrl(key, val);
+            if(rval){
+              rval.then(function(data){
+                queryData[fieldName] = data;
+              });
+              deferreds.push(rval);
+            }
+          }
+        }
+      });
+
+      return deferreds.length ?
+        $.when.apply($, deferreds).done(done) :
+        done();
+    }
+
+    var gistId = new RegExp('^#/gist/(.*)').exec(window.location.hash);
+
+    if(gistId){
+      playground.gist(gistId[1]).done(handleGist);
+      return;
+    }
+
     // build deferreds
     var jsonLdDeferred = handleParameter(
       getParameterByName('json-ld'), 'markup', 'JSON-LD');
@@ -825,6 +879,144 @@
       );
   };
 
+  playground.gist = function(gistId, description){
+    var gistUrl = "https://api.github.com/gists";
+
+    if(gistId){
+      var xhr = $.get(gistUrl + "/" + gistId);
+
+      playground.lastGist = null;
+
+      xhr.done(function(gist){
+        playground.lastGist = gist;
+      });
+
+      return xhr;
+    }else{
+      var files = {
+          "README.md": {
+            content:
+              "# " + description + "\n\n" +
+              "> This gist was automatically created by the [JSON-LD" +
+              " Playground](http://json-ld.org/playground). You can see it" +
+              " loaded there by visiting:\n" +
+              "```\nhttp://json-ld.org/playground#/gist/<gist id>\n```"
+          }
+        },
+        manifest = {
+          "@context": {
+            rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+            playground: "http://json-ld.org/playground#",
+
+            description: "rdfs:label",
+
+            startTab: "playground:startTab",
+            copyContext: "playground:copyContext",
+
+            markup: {"@id": "playground:markup", "@type": "@id"},
+            context: {"@id": "playground:markup", "@type": "@id"},
+            frame: {"@id": "playground:markup", "@type": "@id"}
+          },
+          "description": description,
+          "startTab": playground.activeTab,
+          "copyContext": playground.copyContext
+        };
+
+      // check the editors for inputs/remotes
+      $.each(playground.editors, function(key){
+        if(key === "context" && playground.copyContext){ return; }
+        if(playground.useRemote[key]){
+          manifest[key] = playground.remoteUrl[key];
+        }else if(playground.lastParsed[key]){
+          manifest[key] = "./" + key + ".jsonld";
+          files[key + ".jsonld"] = {
+            content: playground.humanize(playground.lastParsed[key])
+          };
+        }
+      });
+
+      files["playground.jsonld"] = {
+        content: playground.humanize(manifest)
+      };
+
+      var gist = {
+        description: "JSON-LD Playground: " + description,
+        public: true,
+        files: files
+      };
+
+      return $.ajax({
+        type: "POST",
+        url: gistUrl,
+        contentType: "application/json",
+        dataType: "json",
+        data: playground.humanize(gist)
+      });
+    }
+  };
+
+  playground.gist.title = function(){
+    return $("<div/>").text("Gist");
+  };
+
+  playground.gist.content = function(){
+    var content = $("<div/>").css({width: 320});
+
+
+    content.append($("<p/>").text("Try to load a gist into the playground."));
+
+    var idWrap = $("<div/>", {"class": "input-append"})
+      .appendTo(content);
+
+    content.append($("<p/>").text(
+      "Create a public forkable, commentable version of the current playground configuration."
+    ));
+
+    var descWrap = $("<div/>", {"class": "input-append"})
+      .appendTo(content);
+
+    var gistId = $("<input/>", {
+          "type": "text",
+          "placeholder": "<gist id> or <user>/<gist id>"
+        })
+        .appendTo(idWrap),
+
+      gistDesc = $("<input/>", {
+          "type": "text",
+          "placeholder": "New Gist description"
+        })
+        .appendTo(descWrap);
+
+    $("<button/>", {"class": "btn btn-info"})
+      .css({width: 100})
+      .append(
+        $("<i/>", {"class": "icon icon-cloud-download pull-left"}),
+        $("<span/>").text("Load")
+      )
+      .click(function(){
+        playground.gist(gistId.val()).done(function(gist){
+          gistDesc.val(gist.description);
+          window.location.hash = "/gist/" + gist.id;
+        });
+      })
+      .appendTo(idWrap);
+
+    $("<button/>", {"class": "btn btn-primary"})
+      .css({width: 100})
+      .append(
+        $("<i/>", {"class": "icon icon-cloud-upload pull-left"}),
+        $("<span/>").text("Create")
+      )
+      .click(function(){
+        playground.gist(null, gistDesc.val()).done(function(gist){
+          gistDesc.val(null);
+          gistId.val(gist.id);
+        });
+      })
+      .appendTo(descWrap);
+
+    return content;
+  };
 
   /**
    * Update the permalink button with a `#` link to the current playground
@@ -1024,6 +1216,13 @@
       placement: "left",
       title: playground.permalink.title,
       content: playground.permalink.content,
+      html: true
+    });
+
+    $("#gist").popover({
+      placement: "left",
+      title: playground.gist.title,
+      content: playground.gist.content,
       html: true
     });
   });
