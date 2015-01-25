@@ -171,4 +171,20 @@
     }
   };
 
+  // add an Activity Streams 2.0 Example
+  playground.examples["Activity"] = {
+    "@context": "http://www.w3.org/ns/activitystreams#",
+    "@type": "Post",
+    "actor": {
+      "@type": "Person",
+      "@id": "acct:sally@example.org",
+      "displayName": "Sally"
+    },
+    "object": {
+      "@type": "Note",
+      "content": "This is a simple note"
+    },
+    "published": "2015-01-25T12:34:56Z"
+  }
+
 })(jQuery);
