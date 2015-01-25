@@ -46,6 +46,7 @@
   playground.contextMap = {
     // be careful when working with redirectors as as Chrome (not firefox)
     // will drop Accept: application/ld+json after redirecting
+    'http://www.w3.org/ns/activitystreams#': 'http://asjsonld.mybluemix.net'
   };
 
   // map of currently active mapped contexts for user feedback use
