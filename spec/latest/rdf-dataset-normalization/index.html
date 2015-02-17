@@ -271,22 +271,18 @@
     <h1>Normalization Algorithm Terms</h1>
     <dl>
       <dt><tdef>input RDF dataset</tdef></dt>
-      <dd>
-        The abstract <tref>RDF dataset</tref> that is provided as input to the
-        algorithm.
-      </dd>
+      <dd>The abstract <tref>RDF dataset</tref> that is provided as input to
+        the algorithm.</dd>
       <dt><tdef>standard RDF dataset</tdef></dt>
-      <dd>
-        The abstract <tref>RDF dataset</tref> and normalized
+      <dd>The abstract <tref>RDF dataset</tref> and normalized
         <tref>RDF blank node identifier</tref>s that are produced as output by
-        the algorithm.
-      </dd>
+        the algorithm.</dd>
       <dt><tdef>blank node labeler</tdef></dt>
-      <dd>
-        A blank node labeler maintains a mapping of existing
+      <dd>A blank node labeler maintains a mapping of existing
         <tref>RDF blank node identifier</tref>s to new ones. It also tracks the
-        order in which new identifiers were assigned.
-      </dd>
+        order in which new identifiers were assigned.</dd>
+      <dt><tdef>hash algorithm</tdef></dt>
+      <dd>The hash algorithm used by URDNA2015; namely SHA-256.</dd>
     </dl>
   </section>
 
@@ -307,48 +303,43 @@
       <dd>A data structure that maps a hash to a list of
         <tref>RDF blank node identifier</tref>s.</dd>
       <dt><tdef>canonical labeler</tdef></dt>
-      <dd>A unique labeler that uses the prefix <code>_:c14n</code> to
-        assign identifiers to <tref>RDF blank node</tref>s.
+      <dd>A <tref>blank node labeler</tref>, initialized with the
+        prefix <code>_:c14n</code>, for assigning canonical
+        <tref>RDF blank node identifier</tref>s.
       </dd>
-      <dt><tdef>list of non-normalized blank nodes</tdef></dt>
-      <dd>A list of <tref>RDF blank node identifier</tref>s from the
-        <tref>input RDF dataset</tref> that haven't yet been assigned
-        canonical identifiers.</dd>
     </dl>
   </section>
 
   <section>
     <h1>Blank Node Labeler State</h1>
 
-    <p>When relabeling <tref>RDF blank node</tref>s during the normalization
-      algorithm, <tref>blank node labeler</tref>s need to keep track of
-      state. The information they need to track is described below.</p>
+    <p>During the normalization algorithm, it is sometimes necessary to
+      assign identifiers, or labels, to <tref>RDF blank node</tref>s. The
+      <a href="#node-relabeling">Node Relabeling algorithm</a> uses a
+      <tref>blank node labeler</tref> to accomplish this task. The information
+      a <tref>blank node labeler</tref> needs to keep track of is described
+      below.</p>
 
     <dl>
-      <dt><tdef>labeling prefix</tdef></dt>
-      <dd>
-        The labeling prefix is a string that is used as the beginning of an
+      <dt><tdef>identifier prefix</tdef></dt>
+      <dd>The identifier prefix is a string that is used at the beginning of an
         <tref>RDF blank node identifier</tref>. It should be initialized to a
-        string that is specified by the normalization algorithm. The prefix is
-        used to help generate unique new
-        <tref>RDF blank node identifier</tref>s. This is done by concatenating
-        it with a <tref>labeling counter</tref>. For example,
+        string that is specified by the normalization algorithm. When
+        generating a new <tref>RDF blank node identifier</tref>, the prefix
+        is concatenated with a <tref>identifier counter</tref>. For example,
         <code>_:c14n</code> is a proper initial value for the
-        <tref>labeling prefix</tref> that would produce
-        <tref>RDF blank node identifier</tref>s like <code>_:c14n1</code>.
-      </dd>
-      <dt><tdef>labeling counter</tdef></dt>
-      <dd>
-        A counter that is appended to the <tref>labeling prefix</tref> to
+        <tref>identifier prefix</tref> that would produce
+        <tref>RDF blank node identifier</tref>s like <code>_:c14n1</code>.</dd>
+      <dt><tdef>identifier counter</tdef></dt>
+      <dd>A counter that is appended to the <tref>identifier prefix</tref> to
         create an <tref>RDF blank node identifier</tref>. It is initialized to
-        <code>1</code>.
-      </dd>
+        <code>1</code>.</dd>
       <dt><tdef>labeler ordering list</tdef></dt>
-      <dd>
-        A list that tracks the order in which existing
-        <tref>RDF blank node identifier</tref>s were mapped.
-      </dd>
-    </dl>
+      <dd>A list that tracks previous identifier assignments in the order in
+        which they occurred. Each entry in the list maps the input
+        <tref>RDF blank node identifier</tref> and its newly assigned
+        identifier. This list also ensures only one new identifier is assigned
+        to a given input.</dd>
   </section>
 
   <section>
@@ -382,10 +373,9 @@
             </li>
           </ol>
         </li>
-        <li>Create the canonical <tref>blank node labeler</tref>,
-          <i>canonical labeler</i>, using the prefix <code>_:c14n</code>.</li>
-        <li>Populate the <tref>list of non-normalized blank nodes</tref> using
-          the keys from the <tref>blank node to quads map</tref>.</li>
+        <li>Create a list of non-normalized <tref>blank node identifier</tref>s
+          <i>non-normalized identifiers</i> and populate it using the keys
+          from the <tref>blank node to quads map</tref>.</li>
         <li>Initialize an <tdef>easy label</tdef> flag to
           <code>true</code>.</li>
         <li>While the <tref>easy label</tref> flag is <code>true</code>,
@@ -394,8 +384,7 @@
             <li>Set the <tref>easy label</tref> flag to <code>false</code>.</li>
             <li>Clear the <tref>hash to blank nodes map</tref>.</li>
             <li>For each <tref>RDF blank node identifier</tref>
-              <i>identifier</i>in
-              <tref>list of non-normalized blank nodes</tref>:</li>
+              <i>identifier</i> in <i>non-normalized identifiers</i>:</li>
               <ol class="algorithm">
                 <li>Create a <i>hash</i> according to the
                   <a href="#hash-quads">Hash Quads algorithm</a>.</li>
@@ -403,8 +392,9 @@
                   <tref>hash to blank nodes map</tref>, creating a new entry if
                   necessary.</li>
               </ol>
-            <li>For each entry in the <tref>hash to blank nodes map</tref> in
-              lexicographically-sorted order:
+            <li>For each <i>hash</i> to <i>identifier list</i> mapping in the
+              <tref>hash to blank nodes map</tref>, lexicographically-sorted by
+              <i>hash</i>:
               <ol class="algorithm">
                 <li>If the length of the entry's list of
                   <tref>RDF blank node identifier</tref>s is greater than
@@ -415,7 +405,9 @@
                   <tref>RDF blank node identifier</tref> in the entry's list,
                   <i>identifier</i>, to generate a canonical label for
                   <i>identifier</i>.</li>
-                <li>Remove the entry from the
+                <li>Remove <i>identifier</i> from
+                  <i>non-normalized identifiers</i>.</li>
+                <li>Remove <i>hash</i> from the
                   <tref>hash to blank nodes map</tref>.</li>
                 <li>Set the <tref>easy label</tref> flag to
                   <code>true</code>.</li>
@@ -507,9 +499,9 @@
       <li>Append the existing <tref>RDF blank node identifier</tref> to the
         <tref>labeler ordering list</tref>.</li>
       <li>Generate the <tdef>new identifier</tdef> by concatenating the
-        <tref>labeling prefix</tref> with the string value of the
-        <tref>labeling counter</tref>.</li>
-      <li>Increment the <tref>labeling counter</tref>.</li>
+        <tref>identifier prefix</tref> with the string value of the
+        <tref>identifier counter</tref>.</li>
+      <li>Increment the <tref>identifier counter</tref>.</li>
       <li>Return the <tref>new identifier</tref>.</li>
     </ol>
   </section>
@@ -529,21 +521,31 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>This algorithm takes a <tdef>reference blank node identifier</tdef>
-        and the set of all quads that contain the
-        <tref>reference blank node identifier</tref>.</p>
+      <p>This algorithm takes the <tref>normalization state</tref> and a
+        <tdef>reference blank node identifier</tdef> as inputs.</p>
 
       <ul>
         <li>Initialize <tdef>nquads</tdef> to an empty list. It will be
           used to store quads in N-Quads format.</li>
-        <li>For each <tref>RDF quad</tref> <i>quad</i> in quads:
+        <li>Get the list of quads <i>quads</i> associated with the
+          <tref>reference blank node identifier</tref> in the
+          <tref>blank node to quads map</tref>.</li>
+        <li>For each <tref>RDF quad</tref> <i>quad</i> in <i>quads</i>:
           <ol class="algorithm">
             <li>Serialize the <tref>RDF quad</tref> in N-Quads format with the
               following special rule:
               <ol class="algorithm">
                 <li>If any component in <i>quad</i> is an
                   <tref>RDF blank node</tref>, then serialize it using a
-                  special identifier: if its existing
+                  special identifier as follows:
+                  <ol class="algorithm">
+                    <li>If the <tref>blank node</tref>'s existing
+                  <tref>RDF blank node identifier</tref> matches the
+                  <tref>reference blank node identifier</tref> then use the
+                  <tref>RDF blank node identifier</tref> <code>_:a</code>,
+                  otherwise, use the <tref>RDF blank node identifier</tref>
+                  <code>_:z</code>.</li>
+                  </ol>if its existing
                   <tref>RDF blank node identifier</tref> matches the
                   <tref>reference blank node identifier</tref> then use the
                   <tref>RDF blank node identifier</tref> <code>_:a</code>,
@@ -554,7 +556,9 @@
           </ol>
         </li>
         <li>Sort <tref>nquads</tref> in lexicographical order.</li>
-        <li>Join <tref>nquads</tref> set and return the hash of it.</li>
+        <li>Return the lowercase, hexadecimal representation of the
+          message digest that results from passing the sorted, joined
+          <tref>nquads</tref> through the <tref>hash algorithm</tref>.</li>
       </ul>
     </section>
   </section>
