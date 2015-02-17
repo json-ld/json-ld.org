@@ -201,8 +201,7 @@
 
     <dl>
       <dt><tdef>string</tdef></dt><dd>
-        A string is a sequence of zero or more Unicode characters,
-        wrapped in double quotes, using backslash escapes (if necessary).</dd>
+        A string is a sequence of zero or more Unicode characters.</dd>
       <dt><tdef>true</tdef> and <tdef>false</tdef></dt><dd>
         Values that are used to express one of two possible boolean states.</dd>
       <dt><tdef><abbr title="Internationalized Resource Identifier">IRI</abbr></tdef></dt>
@@ -220,7 +219,8 @@
       <dt><tdef>RDF triple</tdef></dt>
       <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">triple</tref>
         as specified by [[RDF11-CONCEPTS]].</dd>
-      <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</tref>
+      <dt><tdef>RDF graph</tdef></dt>
+      <dd>An <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</tref>
         as specified by [[RDF11-CONCEPTS]].</dd>
       <dt><tdef>RDF graph name</tdef></dt>
       <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-dataset">graph name</tref>
@@ -231,14 +231,13 @@
       <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-dataset">dataset</tref>
         as specified by [[RDF11-CONCEPTS]].</dd>
       <dt><tdef>RDF blank node</tdef></dt>
-      http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes
       <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#section-blank-nodes">blank node</tref>
-        as specified by [[RDF11-CONCEPTS]]. In short, a node in a graph that is
+        as specified by [[RDF11-CONCEPTS]]. In short, it is a node in a graph that is
         neither an <tref>IRI</tref>, nor a
         <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">literal</tref>.</dd>
       <dt><tdef>RDF blank node identifier</tdef></dt>
       <dd>A <tref href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node-identifier">blank node identifier</tref>
-        as specified by [[RDF11-CONCEPTS]]. In short, a string that begins
+        as specified by [[RDF11-CONCEPTS]]. In short, it is a string that begins
         with <code>_:</code> that is used as an identifier for an
         <tref>RDF blank node</tref>. <tref>RDF blank node identifier</tref>s
         are typically implementation-specific local identifiers; this document
@@ -253,14 +252,14 @@
   <p class="issue">This algorithm is a work in progress, do not implement it.</p>
 
   <p>Normalization is the process of transforming an
-    <tref>input RDF dataset</tref> to a <tref>standard RDF dataset</tref>. That
+    <tref>input RDF dataset</tref> to a <tref>normalized RDF dataset</tref>. That
     is, any two <tref>input RDF dataset</tref>s that contain the same
     information, regardless of their arrangement, will be transformed into
-    identical <tref>standard RDF dataset</tref>s. The problem requires directed
+    identical <tref>normalized RDF dataset</tref>s. The problem requires directed
     graphs to be deterministically ordered into sets of nodes and edges. This
-    is easy to do when all of the nodes have globally unique names, but can be
-    difficult to do when some of the nodes are not labeled. Any unlabeled nodes
-    must be deterministically labeled.</p>
+    is easy to do when all of the nodes have globally-unique identifiers, but
+    can be difficult to do when some of the nodes do not. Any nodes without
+    globally-unique identifiers must be issued deteriministic identifiers.</p>
 
   <p>In time, there may be more than one normalization algorithm and,
     therefore, for identification purposes, this algorithm is named the
@@ -273,16 +272,18 @@
       <dt><tdef>input RDF dataset</tdef></dt>
       <dd>The abstract <tref>RDF dataset</tref> that is provided as input to
         the algorithm.</dd>
-      <dt><tdef>standard RDF dataset</tdef></dt>
+      <dt><tdef>normalized RDF dataset</tdef></dt>
       <dd>The abstract <tref>RDF dataset</tref> and normalized
         <tref>RDF blank node identifier</tref>s that are produced as output by
         the algorithm.</dd>
-      <dt><tdef>blank node labeler</tdef></dt>
-      <dd>A blank node labeler maintains a mapping of existing
-        <tref>RDF blank node identifier</tref>s to new ones. It also tracks the
-        order in which new identifiers were assigned.</dd>
+      <dt><tdef>identifier issuer</tdef></dt>
+      <dd>An identifier issuer is used to issue new <tref>RDF blank node identifier</tref>s. It
+        maintains a
+        <a href="#blank-node-identifier-issuer-state">blank node identifier issuer state</a>.</dd>
+      <dt><tdef>hash</tdef></dt>
+      <dd>The lowercase, hexadecimal representation of a message digest.</dd>
       <dt><tdef>hash algorithm</tdef></dt>
-      <dd>The hash algorithm used by URDNA2015; namely SHA-256.</dd>
+      <dd>The hash algorithm used by URDNA2015, namely, SHA-256.</dd>
     </dl>
   </section>
 
@@ -300,24 +301,24 @@
         the <tref>RDF quad</tref>s in which they appear in the
         <tref>input RDF dataset</tref>.</dd>
       <dt><tdef>hash to blank nodes map</tdef></dt>
-      <dd>A data structure that maps a hash to a list of
+      <dd>A data structure that maps a <tref>hash</tref> to a list of
         <tref>RDF blank node identifier</tref>s.</dd>
-      <dt><tdef>canonical labeler</tdef></dt>
-      <dd>A <tref>blank node labeler</tref>, initialized with the
-        prefix <code>_:c14n</code>, for assigning canonical
+      <dt><tdef>canonical issuer</tdef></dt>
+      <dd>An <tref>identifier issuer</tref>, initialized with the
+        prefix <code>_:c14n</code>, for issuing canonical
         <tref>RDF blank node identifier</tref>s.
       </dd>
     </dl>
   </section>
 
   <section>
-    <h1>Blank Node Labeler State</h1>
+    <h1>Blank Node Identifier Issuer State</h1>
 
     <p>During the normalization algorithm, it is sometimes necessary to
-      assign identifiers, or labels, to <tref>RDF blank node</tref>s. The
-      <a href="#node-relabeling">Node Relabeling algorithm</a> uses a
-      <tref>blank node labeler</tref> to accomplish this task. The information
-      a <tref>blank node labeler</tref> needs to keep track of is described
+      issue new identifiers to <tref>RDF blank node</tref>s. The
+      <a href="#issue-identifier-algorithm">Issue Identifier algorithm</a> uses an
+      <tref>identifier issuer</tref> to accomplish this task. The information
+      an <tref>identifier issuer</tref> needs to keep track of is described
       below.</p>
 
     <dl>
@@ -334,19 +335,20 @@
       <dd>A counter that is appended to the <tref>identifier prefix</tref> to
         create an <tref>RDF blank node identifier</tref>. It is initialized to
         <code>1</code>.</dd>
-      <dt><tdef>labeler ordering list</tdef></dt>
-      <dd>A list that tracks previous identifier assignments in the order in
-        which they occurred. Each entry in the list maps the input
-        <tref>RDF blank node identifier</tref> and its newly assigned
-        identifier. This list also ensures only one new identifier is assigned
-        to a given input.</dd>
+      <dt><tdef>issued identifiers list</tdef></dt>
+      <dd>A list that tracks previously issued identifiers in the order in
+        which they were issued. It also tracks the existing identifier that
+        triggered the issuance, to prevent issuing more than one new identifier
+        per existing identifier, and to allow <tref>RDF blank node</tref>s to
+        be reassigned identifiers some time after issuance.</dd>
+    </dl>
   </section>
 
   <section>
     <h2>Normalization Algorithm</h2>
 
     <p>The normalization algorithm converts an <tref>input RDF dataset</tref>
-      into a <tref>standard RDF dataset</tref>. This algorithm will assign
+      into a <tref>normalized RDF dataset</tref>. This algorithm will assign
       deterministic identifiers to any <tref>RDF blank node</tref>s in the
       <tref>input RDF dataset</tref>.</p>
 
@@ -376,106 +378,102 @@
         <li>Create a list of non-normalized <tref>blank node identifier</tref>s
           <i>non-normalized identifiers</i> and populate it using the keys
           from the <tref>blank node to quads map</tref>.</li>
-        <li>Initialize an <tdef>easy label</tdef> flag to
+        <li>Initialize <i>simple</i>, a boolean flag, to
           <code>true</code>.</li>
-        <li>While the <tref>easy label</tref> flag is <code>true</code>,
-          canonically-label the easy-to-label <tref>RDF blank node</tref>s:</li>
+        <li>While <i>simple</i> is <code>true</code>,
+          issue canonical identifiers for <tref>RDF blank node</tref>s:</li>
           <ol class="algorithm">
-            <li>Set the <tref>easy label</tref> flag to <code>false</code>.</li>
-            <li>Clear the <tref>hash to blank nodes map</tref>.</li>
+            <li>Set <i>simple</i> to <code>false</code>.</li>
+            <li>Clear <tref>hash to blank nodes map</tref>.</li>
             <li>For each <tref>RDF blank node identifier</tref>
               <i>identifier</i> in <i>non-normalized identifiers</i>:</li>
               <ol class="algorithm">
-                <li>Create a <i>hash</i> according to the
+                <li>Create a <tref>hash</tref>, <i>hash</i>, according to the
                   <a href="#hash-quads">Hash Quads algorithm</a>.</li>
-                <li>Add <i>hash</i> and <i>identifier</i> to the
+                <li>Add <i>hash</i> and <i>identifier</i> to
                   <tref>hash to blank nodes map</tref>, creating a new entry if
                   necessary.</li>
               </ol>
-            <li>For each <i>hash</i> to <i>identifier list</i> mapping in the
+            <li>For each <i>hash</i> to <i>identifier list</i> mapping in
               <tref>hash to blank nodes map</tref>, lexicographically-sorted by
               <i>hash</i>:
               <ol class="algorithm">
-                <li>If the length of the entry's list of
-                  <tref>RDF blank node identifier</tref>s is greater than
-                  <code>1</code>, continue to the next entry.</li>
+                <li>If the length of <i>identifier list</i> is greater than
+                  <code>1</code>, continue to the next mapping.</li>
                 <li>Use the
-                  <a href="#node-relabeling">Node Relabeling algorithm</a>,
-                  passing <i>canonical labeler</i> and the single
-                  <tref>RDF blank node identifier</tref> in the entry's list,
-                  <i>identifier</i>, to generate a canonical label for
-                  <i>identifier</i>.</li>
+                  <a href="#issue-identifier">Issue Identifier algorithm</a>,
+                  passing <tref>canonical issuer</tref> and the
+                  single <tref>RDF blank node identifier</tref> in
+                  <i>identifier list</i>, <i>identifier</i>, to issue a
+                  canonical replacment identifier for <i>identifier</i>.</li>
                 <li>Remove <i>identifier</i> from
                   <i>non-normalized identifiers</i>.</li>
                 <li>Remove <i>hash</i> from the
                   <tref>hash to blank nodes map</tref>.</li>
-                <li>Set the <tref>easy label</tref> flag to
-                  <code>true</code>.</li>
+                <li>Set <i>simple</i> to <code>true</code>.</li>
               </ol>
             </li>
           </ol>
         </li>
-        <li>For each entry in the <tref>hash to blank nodes map</tref> in
-          lexicographically-sorted order:</li>
+        <li>For each <i>hash</i> to <i>identifier list</i> mapping in
+          <tref>hash to blank nodes map</tref>, lexicographically-sorted by
+          <i>hash</i>:
           <ol class="algorithm">
-            <li>Create a <tdef>hash path list</tdef>.</li>
+            <li>Create <i>hash path list</i> where each item will be a result
+              of running the <a href="#hash-paths">Hash Paths algorithm</a>.</li>
             <li>For each <tref>RDF blank node identifier</tref>
-              <i>identifier</i> in the entry's list:</li>
+              <i>identifier</i> in <i>identifier list</i>:</li>
               <ol class="algorithm">
-                <li>If <i>identifier</i> has already been assigned a canonical
-                  label, continue to the next
-                  <tref>RDF blank node identifier</tref>.</li>
-                <li>Create a temporary <tref>blank node labeler</tref>,
-                  <i>temporary labeler</i>, using the prefix
+                <li>If a canonical identifier has already been issued for
+                  <i>identifier</i>, continue to the next
+                  <i>identifier</i>.</li>
+                <li>Create <i>temporary issuer</i>, an
+                  <tref>identifier issuer</tref> initialized with the prefix
                   <code>_:b</code>.</li>
                 <li>Use the
-                  <a href="#node-relabeling">Node Relabeling algorithm</a>,
-                  passing <i>temporary labeler</i> and
-                  <i>identifier</i>, to assign
-                  a new temporary <tref>RDF blank node identifier</tref> for
-                  <i>identifier</i>.</li>
+                  <a href="#issue-identifier">Issue Identifier algorithm</a>,
+                  passing <i>temporary issuer</i> and <i>identifier</i>, to
+                  issue a new temporary <tref>RDF blank node identifier</tref>
+                  for <i>identifier</i>.</li>
                 <li>Run the <a href="#hash-paths">Hash Paths algorithm</a>,
-                  passing <i>temporary labeler</i>, and append the
-                  result to the <tref>hash path list</tref>.</li>
+                  passing <i>temporary issuer</i>, and append the
+                  result to the <i>hash path list</i>.</li>
               </ol>
             </li>
-            <li>For each entry in the <tref>hash path list</tref>,
-              lexicographically-sorted by hash:</li>
+            <li>For each <i>result</i> in the <i>hash path list</i>,
+              lexicographically-sorted by the <i>hash</i> in <i>result</i>:</li>
               <ol class="algorithm">
-                <li>For each <tref>RDF blank node identifier</tref> that
-                  was assigned a temporary identifier by the entry's
-                  <tref>blank node labeler</tref>, in the order in which they
-                  were assigned, assign canonical labels using the
-                  <a href="#node-relabeling">Node Relabeling algorithm</a>,
-                  passing <tref>canonical labeler</tref> and the
-                  <tref>RDF blank node identifier</tref>.
+                <li>For each <tref>RDF blank node identifier</tref>,
+                  <i>existing identifier</i>, that was issued a temporary
+                  identifier by <i>identifier issuer</i> in <i>result</i>, issue
+                  a canonical identifier, in the same order, using the
+                  <a href="#issue-identifier">Issue Identifier algorithm</a>,
+                  passing <tref>canonical issuer</tref> and
+                  <i>existing identifier</i>.
               </ol>
             </li>
           </ol>
         </li>
-        <li>For each <tref>RDF quad</tref> <i>quad</i> in
+        <li>For each <tref>RDF quad</tref>, <i>quad</i>, in
           <tref>input RDF dataset</tref>:
           <ol class="algorithm">
             <li>Create a copy, <i>quad copy</i>, of <i>quad</i> and replace any
-              <tref>RDF blank node identifier</tref>s using the
-              <a href="#node-relabeling">Node Relabeling algorithm</a>,
-              passing the <tref>canonical labeler</tref> and the
-              <tref>RDF blank node identifier</tref>.</li>
+              existing <tref>RDF blank node identifier</tref>s using the
+              canonical identifiers previously issued
+              by <tref>canonical issuer</tref>.</li>
             <li>Add <i>quad copy</i> to the
-              <tref>standard RDF dataset</tref>.</li>
+              <tref>normalized RDF dataset</tref>.</li>
           </ol>
         </li>
-        <li>Return the <tref>standard RDF dataset</tref>.</li>
+        <li>Return the <tref>normalized RDF dataset</tref>.</li>
       </ol>
     </section>
   </section>
 
   <section>
-    <h2>Node Relabeling Algorithm</h2>
+    <h2>Issue Identifier Algorithm</h2>
 
-    <p class="issue">WIP; perhaps change name to Node Label
-      Generation/Assignment Algorithm as the actual relabeling occurs
-      elsewhere.</p>
+    <p class="issue">WIP</p>
 
     <section class="informative">
       <h3>Overview</h3>
@@ -485,24 +483,26 @@
       <h3>Algorithm</h3>
     </section>
 
-    <p>This algorithm generates a mapping from an existing
-      <tref>RDF blank node identifier</tref> to a new unique
-      <tref>RDF blank node identifier</tref>. It also tracks the order in
-      which <tref>RDF blank node identifier</tref>s were assigned.</p>
+    <p>This algorithm issues a new <tref>RDF blank node identifier</tref> for
+      a given existing <tref>RDF blank node identifier</tref>. It also updates
+      state information that tracks the order in which new
+      <tref>RDF blank node identifier</tref>s were issued.</p>
 
-    <p>The node relabeling algorithm is as follows:</p>
+    <p>This algorithm takes an <tref>identifier issuer</tref> and an
+      <i>existing identifier</i> as inputs. The output is a new
+      <i>issued identifier</i>. The steps of the algorithm are:</p>
 
     <ol class="algorithm">
-      <li>If the <tref>RDF blank node identifier</tref> has already been
-        assigned, return the same unique new identifier that was returned
-        previously.</li>
-      <li>Append the existing <tref>RDF blank node identifier</tref> to the
-        <tref>labeler ordering list</tref>.</li>
-      <li>Generate the <tdef>new identifier</tdef> by concatenating the
-        <tref>identifier prefix</tref> with the string value of the
+      <li>If there is already an issued identifier for
+        <i>existing identifier</i> in <tref>issued identifiers list</tref>,
+        return it.</li>
+      <li>Generate <i>issued identifier</i> by concatenating
+        <tref>identifier prefix</tref> with the string value of
         <tref>identifier counter</tref>.</li>
-      <li>Increment the <tref>identifier counter</tref>.</li>
-      <li>Return the <tref>new identifier</tref>.</li>
+      <li>Append an item to <tref>issued identifiers list</tref> that maps
+        <i>existing identifier</i> to <i>issued identifier</i>.</li>
+      <li>Increment <tref>identifier counter</tref>.</li>
+      <li>Return <i>issued identifier</i>.</li>
     </ol>
   </section>
 
@@ -585,53 +585,59 @@
         equivalent. This algorithm essentially defines a determinitsic way to
         draw a graph where, if you begin with a particular node, the graph
         will always be drawn the same way. If two graphs are drawn the same way
-        with two different nodes, then the nodes are equivalent. A hash is used
-        to indicate a particular way that the graph has been drawn and can
-        be used to compare nodes.</p>
+        with two different nodes, then the nodes are equivalent. A
+        <tref>hash</tref> is used to indicate a particular way that the graph
+        has been drawn and can be used to compare nodes.</p>
 
       <p>This algorithm works in concert with the main normalization algorithm
         to produce a unique, deterministic identifier for a particular blank
-        node. This hash incorporates all of the information that is connected
-        to the blank node as well as how it is connected. It does this by
-        creating deterministic paths that emanate out from the blank node
-        through any other adjacent blank nodes. The process is as follows:</p>
+        node. This <tref>hash</tref> incorporates all of the information that
+        is connected to the blank node as well as how it is connected. It does
+        this by creating deterministic paths that emanate out from the blank
+        node through any other adjacent blank nodes. The process is as
+        follows:</p>
+
+      <p class="issue">Probably just convert below into the algorithm
+        to actually be implemented; don't state the algorithm details twice in
+        two different ways.</p>
 
       <ul>
         <li>Start by taking the perspective that the
           <tref>RDF blank node</tref> is at the center of the graph. This is
           the starting point for which all paths will radiate outward.</li>
-        <li>Create a <tref>blank node labeler</tref> and assign a label
+        <li>Create an <tref>identifier issuer</tref> and issue an identifier
           to the starting <tref>RDF blank node</tref>.</li>
         <li>Start the main message digest hash.</li>
-        <li>For each adjacent <tref>RDF blank node</tref>, determine a label for
-          it, first using the canonical label if already assigned, second
-          using the label from the local <tref>blank node labeler</tref> if
-          already assigned, and lastly, use the result of the
-          <a href="#hash-quads">Hash Quads algorithm</a> as the label.</li>
+        <li>For each adjacent <tref>RDF blank node</tref>, determine an
+          identifier for it, first using the canonical identifier if already
+          assigned, second using the identifier from the local
+          <tref>identifier issuer</tref> if already issued, and lastly, use the
+          result of the <a href="#hash-quads">Hash Quads algorithm</a> as the
+          identifier.</li>
         <li>Create a group message digest hash, digesting data representing
           the direction of the <tref>RDF blank node</tref> relationship
           (<tref>RDF subject</tref> to <tref>RDF object</tref> or
           <tref>RDF object</tref> from <tref>RDF subject</tref>) relative to
           the original <tref>RDF blank node</tref>, the
-          <tref>RDF predicate</tref>, and the <tref>RDF blank node</tref>
-          label. Store a record of this group hash and its matching
-          <tref>RDF blank node</tref>.</li>
+          <tref>RDF predicate</tref>, and the determined identifier for the
+          <tref>RDF blank node</tref>. Store a record of this group hash and
+          its matching <tref>RDF blank node</tref>.</li>
         <li>Now iterate over each of the group hashes and related
           <tref>RDF blank node</tref>s. For each group, use the main hash to
           digest the group hash and create a copy of the
-          <tref>blank node labeler</tref> to be used in case recursion is
+          <tref>identifier issuer</tref> to be used in case recursion is
           needed. Then, proceed to construct a path. For each permutation of
           <tref>RDF blank node</tref>s in the group, concatenate the canonical
-          label for it, if already assigned, to the path. If not, and the
-          <tref>blank node labeler</tref> has not assigned it a label, take
-          note of this and then assign it one. If a path has already been
+          identifier for it, if already assigned, to the path. If not, and the
+          <tref>identifier issuer</tref> has not issued it an identifier, take
+          note of this and then issue it one. If a path has already been
           selected as the canonical path, stop permutating.</li>
         <li>If no path has been chosen as the canonical one, recurse into
-          each of the <tref>RDF blank node</tref>s that was assigned a label
-          in the previous step, passing the copy of the
-          <tref>blank node labeler</tref> to use in the algorithm. Append the
+          each of the <tref>RDF blank node</tref>s that was assigned an
+          identifier in the previous step, passing the copy of the
+          <tref>identifier issuer</tref> to use in the algorithm. Append the
           resulting hash of the recursion to the path and update the reference
-          to the copy of the <tref>blank node labeler</tref> to the one
+          to the copy of the <tref>identifier issuer</tref> to the one
           given in the result of the algorithm.</li>
         <li>If no path has been chosen or the current path is shorter than
           the currently chosen path, update the chosen path to the current
@@ -643,11 +649,11 @@
     </section>
 
     <p class="issue">When processing adjacent blank nodes, can they be skipped
-      if they've already been canonically labeled?</p>
+      if they've already been canonically identified?</p>
 
     <p class="issue">When creating group hashes, does the graph name also
       need to be digested (not just direction of relationship, predicate,
-      and blank node label)? It may not be necessary as any structural
+      and blank node identifier)? It may not be necessary as any structural
       differences would get picked up by the Hash Quads algorithm or by
       recursion. If there are no differences then it won't matter because
       the same hash will be produced anyway.
@@ -667,7 +673,7 @@
          <li>Digest the chosen path.</li>
       </ol>
       <li>Process the resulting group hashes in sorted order,
-        labeling any remaining blank nodes by using the order in which
+        identifying any remaining blank nodes by using the order in which
         the nodes were visited when constructing the associated
         shortest *path*.</li> -->
   </section>
