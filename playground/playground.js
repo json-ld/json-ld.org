@@ -303,7 +303,7 @@
       if(window.location.href !== playground.permalink.url){
         playground.processQueryParameters();
         $("#permalink").popover("hide");
-      };
+      }
     });
 
     // load the schema
