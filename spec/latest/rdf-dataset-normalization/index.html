@@ -524,7 +524,7 @@
       <p>This algorithm takes the <tref>normalization state</tref> and a
         <tdef>reference blank node identifier</tdef> as inputs.</p>
 
-      <ul>
+      <ol class="algorithm">
         <li>Initialize <tdef>nquads</tdef> to an empty list. It will be
           used to store quads in N-Quads format.</li>
         <li>Get the list of quads <i>quads</i> associated with the
@@ -556,17 +556,66 @@
           </ol>
         </li>
         <li>Sort <tref>nquads</tref> in lexicographical order.</li>
-        <li>Return the lowercase, hexadecimal representation of the
-          message digest that results from passing the sorted, joined
-          <tref>nquads</tref> through the <tref>hash algorithm</tref>.</li>
-      </ul>
+        <li>Return the <tref>hash</tref> that results from passing the sorted,
+          joined <tref>nquads</tref> through the
+          <tref>hash algorithm</tref>.</li>
+      </ol>
+    </section>
+  </section>
+
+  <section>
+    <h2>Hash Related Blank Node</h2>
+
+    <p class="issue">WIP</p>
+
+    <section class="informative">
+      <h3>Overview</h3>
+    </section>
+
+    <section>
+      <h3>Algorithm</h3>
+
+      <p>This algorithm creates a <tref>hash</tref> to identify how one
+        <tref>RDF blank node</tref> is related to another. It takes the
+        <tref>normalization state</tref>, a <i>target</i>
+        <tref>RDF blank node identifier</tref>, a <i>related</i>
+        <tref>RDF blank node identifier</tref>, a <i>quad</i>, an
+        <tref>identifier issuer</tref>, <i>issuer</i>, and a
+        <tref>string</tref> <i>position</i> as inputs.</p>
+
+      <ol class="algorithm">
+        <li>Set the <i>identifier</i> to use for <i>related</i>, preferring
+          first the canonical identifier for <i>related</i> if issued, second
+          the identifier issued by <i>issuer</i> if issued, and last, if
+          necessary, the result of the
+          <a href="#hash-quads">Hash Quads algorithm</a>, passing
+          <i>related</i>.
+        </li>
+        <li>Initialize a <tref>string</tref> <i>input</i> to the value of
+          <i>position</i>.</li>
+        <li>If <i>position</i> is not <code>g</code>, append
+          <code>&lt;</code>, the value of the <tref>RDF predicate</tref> in
+          <i>quad</i>, and <code>&gt;</code> to <i>input</i>.</li>
+        <li>Append <i>identifier</i> to <i>input</i>.</li>
+        <li>Return the <tref>hash</tref> that results from passing <i>input</i>
+          through the <tref>hash algorithm</tref>.</li>
+      </ol>
     </section>
   </section>
 
   <section>
     <h2>Hash Paths</h2>
 
-    <p class="issue">WIP</p>
+    <p class="issue">WIP; algorithm could perhaps be renamed to either better
+      capture what it achieves or how it's doing something different
+      from the hash quads algorithm, eg: hash quads only hashes immediate
+      connections, hash paths hashes all connections that permuate out. Maybe
+      it should just be "Hash Quads Recursive". Another idea would be to rename
+      both algorithms to something like "Hash 1-Degree Quads" and
+      "Hash N-Degree Quads". The "path" terminology could also be changed
+      to better indicate that a particular deterministic serialization is
+      being produced for subgraphs/dataset of nodes without globally-unique
+      identifiers.</p>
 
     <section class="informative">
       <h3>Overview</h3>
@@ -594,88 +643,121 @@
         node. This <tref>hash</tref> incorporates all of the information that
         is connected to the blank node as well as how it is connected. It does
         this by creating deterministic paths that emanate out from the blank
-        node through any other adjacent blank nodes. The process is as
-        follows:</p>
-
-      <p class="issue">Probably just convert below into the algorithm
-        to actually be implemented; don't state the algorithm details twice in
-        two different ways.</p>
-
-      <ul>
-        <li>Start by taking the perspective that the
-          <tref>RDF blank node</tref> is at the center of the graph. This is
-          the starting point for which all paths will radiate outward.</li>
-        <li>Create an <tref>identifier issuer</tref> and issue an identifier
-          to the starting <tref>RDF blank node</tref>.</li>
-        <li>Start the main message digest hash.</li>
-        <li>For each adjacent <tref>RDF blank node</tref>, determine an
-          identifier for it, first using the canonical identifier if already
-          assigned, second using the identifier from the local
-          <tref>identifier issuer</tref> if already issued, and lastly, use the
-          result of the <a href="#hash-quads">Hash Quads algorithm</a> as the
-          identifier.</li>
-        <li>Create a group message digest hash, digesting data representing
-          the direction of the <tref>RDF blank node</tref> relationship
-          (<tref>RDF subject</tref> to <tref>RDF object</tref> or
-          <tref>RDF object</tref> from <tref>RDF subject</tref>) relative to
-          the original <tref>RDF blank node</tref>, the
-          <tref>RDF predicate</tref>, and the determined identifier for the
-          <tref>RDF blank node</tref>. Store a record of this group hash and
-          its matching <tref>RDF blank node</tref>.</li>
-        <li>Now iterate over each of the group hashes and related
-          <tref>RDF blank node</tref>s. For each group, use the main hash to
-          digest the group hash and create a copy of the
-          <tref>identifier issuer</tref> to be used in case recursion is
-          needed. Then, proceed to construct a path. For each permutation of
-          <tref>RDF blank node</tref>s in the group, concatenate the canonical
-          identifier for it, if already assigned, to the path. If not, and the
-          <tref>identifier issuer</tref> has not issued it an identifier, take
-          note of this and then issue it one. If a path has already been
-          selected as the canonical path, stop permutating.</li>
-        <li>If no path has been chosen as the canonical one, recurse into
-          each of the <tref>RDF blank node</tref>s that was assigned an
-          identifier in the previous step, passing the copy of the
-          <tref>identifier issuer</tref> to use in the algorithm. Append the
-          resulting hash of the recursion to the path and update the reference
-          to the copy of the <tref>identifier issuer</tref> to the one
-          given in the result of the algorithm.</li>
-        <li>If no path has been chosen or the current path is shorter than
-          the currently chosen path, update the chosen path to the current
-          path. Set the chosen namer to match the one used to produce the
-          path.</li>
-        <li>Use the main hash to digest the chosen path and return it
-          and the chosen namer as the result of the algorithm.</li>
-      </ul>
+        node through any other adjacent blank nodes.</p>
     </section>
-
-    <p class="issue">When processing adjacent blank nodes, can they be skipped
-      if they've already been canonically identified?</p>
-
-    <p class="issue">When creating group hashes, does the graph name also
-      need to be digested (not just direction of relationship, predicate,
-      and blank node identifier)? It may not be necessary as any structural
-      differences would get picked up by the Hash Quads algorithm or by
-      recursion. If there are no differences then it won't matter because
-      the same hash will be produced anyway.
-    </p>
 
     <section>
       <h3>Algorithm</h3>
 
-      <!-- <ol class="algorithm">
-        <li>Digest the group hash.</li>
-        <li>Build the shortest, lexicographically least *path* of
-          blank nodes in the group that visits all nodes in the group
-          without cycling and that serializes them using the hash that
-          results from recursively calling this algorithm. Track the order
-          the blank nodes were visited.
-         </li>
-         <li>Digest the chosen path.</li>
+      <p>The inputs to this algorithm are the <tref>normalization state</tref>,
+        the <i>identifier</i> for the <tref>RDF blank node</tref> to
+        recursively hash quads for, and <i>path identifier issuer</i> which is
+        an <tref>identifier issuer</tref> that issues temporary
+        <tref>RDF blank node identifier</tref>s. The output from this algorithm
+        will be a <tref>hash</tref> and the <tref>identifier issuer</tref> used
+        to help generate it.</p>
+
+      <ol class="algorithm">
+        <li>Create an <i>hash to related blank nodes map</i> for storing
+          hashes that identify related <tref>RDF blank node</tref>s.</li>
+        <li>Get a reference, <i>quads</i>, to the list of <tref>RDF quad</tref>s
+          in the <tref>blank node to quads map</tref> for the key
+          <i>identifier</i>.</li>
+        <li>For each <i>quad</i> in <i>quads</i>:
+          <ol class="algorithm">
+            <li>For each <i>component</i> in <i>quad</i>, if <i>component</i>
+              is the <tref>RDF subject</tref>, <tref>RDF object</tref>, and
+              <tref>RDF graph name</tref> and it is an
+              <tref>RDF blank node</tref> that is not identified by
+              <i>identifier</i>:
+              <ol class="algorithm">
+                <li>Set <i>hash</i> to the result of the
+                  <a href="#hash-related-blank-node">Hash Related Blank Node algorithm</a>,
+                  passing the <i>identifier</i> as <i>target</i>, the
+                  <tref>RDF blank node identifier</tref> for <i>component</i>
+                  as <i>related</i>, <i>quad</i>, <i>path identifier issuer</i>
+                  as <i>issuer</i>, and <i>position</i> as either
+                  <code>s</code>, <code>o</code>, or <code>g</code> based on
+                  whether <i>component</i> is an <tref>RDF subject</tref>,
+                  <tref>RDF object</tref>, <tref>RDF graph name</tref>,
+                  respectively.</li>
+                <li>Add a mapping of <i>hash</i> to the
+                  <tref>RDF blank node identifier</tref> for <i>component</i>
+                  <i>hash to related blank nodes map</i>, adding an entry
+                  as necessary.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+        <li>For each <i>related hash</i> to <i>blank node list</i> mapping in
+          <i>hash to related blank nodes map</i>, sorted lexicographically
+          by <i>related hash</i>:
+          <ol class="algorithm">
+            <li>Create a <tref>string</tref> <i>chosen path</i>.</li>
+            <li>Create an unset <i>chosen issuer</i> variable.</li>
+            <li>For each <i>permutation</i> of <i>blank node list</i>:
+              <ol class="algorithm">
+                <li>Create a copy of <i>issuer</i>, <i>issuer copy</i>.</li>
+                <li>Create a <tref>string</tref> <i>path</i>.</li>
+                <li>Create a <i>recursion list</i>, to store
+                  <tref>RDF blank node identifier</tref>s that must be
+                  recursively processed by this algorithm.</li>
+                <li>For each <i>related</i> in <i>permutation</i>:
+                  <ol class="algorithm">
+                    <li>If a canonical identifier has been issued for
+                      <i>related</i>, append it to <i>path</i>.</li>
+                    <li>Otherwise, if <i>issuer copy</i> has not issued
+                      an identifier for <i>related</i>, append <i>related</i>
+                      to <i>recursion list</i>. Use the
+                      <a href="#issue-identifier">Issue Identifier algorithm</a>,
+                      passing <i>issuer copy</i> and <i>related</i> and
+                      append the result to <i>path</i>.
+                    </li>
+                    <li>If <i>chosen path</i> is not empty and the length
+                      of <i>path</i> is greater than or equal to the length
+                      of <i>chosen path</i> and <i>path</i> is lexicographically
+                      greater than <i>chosen path</i>, then skip to the next
+                      <i>permutation</i>.
+                    </li>
+                  </ol>
+                </li>
+                <li>For each <i>related</i> in <i>recursion list</i>:
+                  <ol class="algorithm">
+                    <li>Set <i>result</i> to the result of recursively executing
+                      the <a href="#hash-paths">Hash Paths algorithm</a>,
+                      passing <i>related</i> for <i>identifier</i> and
+                      <i>issuer copy</i> for <i>path identifier issuer</i>.</li>
+                    <li>Use the
+                      <a href="#issue-identifier">Issue Identifier algorithm</a>,
+                      passing <i>issuer copy</i> and <i>related</i> and
+                      append the result to <i>path</i>.</li>
+                    <li>Append <code>&lt;</code>, the <tref>hash</tref> in
+                      <i>result</i>, and <code>&gt;</code> to <i>path</i>.</li>
+                    <li>Set <i>issuer copy</i> to the
+                      <tref>identifier issuer</tref> in result.</li>
+                    <li>If <i>chosen path</i> is not empty and the length
+                      of <i>path</i> is greater than or equal to the length
+                      of <i>chosen path</i> and <i>path</i> is lexicographically
+                      greater than <i>chosen path</i>, then skip to the next
+                      <i>permutation</i>.
+                    </li>
+                  </ol>
+                </li>
+                <li>If <i>chosen path</i> is empty or <i>path</i> is
+                  lexicographically less than <i>chosen path</i>, set
+                  <i>chosen path</i> to <i>path</i> and <i>chosen issuer</i>
+                  to <i>issuer copy</i>.</li>
+              </ol>
+            </li>
+            <li>Return the <i>chosen issuer</i> and the <tref>hash</tref> that
+              results from passing the lexicographically-sorted
+              <i>related hash</i>es in <i>hash to related blank nodes map</i>
+              and the joined <i>chosen path</i> through the
+              <tref>hash algorithm</tref>.</li>
+          </ol>
+        </li>
       </ol>
-      <li>Process the resulting group hashes in sorted order,
-        identifying any remaining blank nodes by using the order in which
-        the nodes were visited when constructing the associated
-        shortest *path*.</li> -->
+    </section>
   </section>
 </section>
 
