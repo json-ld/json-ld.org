@@ -94,13 +94,11 @@ function getDrafts($spec)
                   <li><a href="../spec/latest/json-ld/">Syntax</a></li>
                   <li><a href="../spec/latest/json-ld-api/">API</a></li>
                   <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
-                  <li><a href="../spec/latest/rdf-graph-normalization/">Normalization</a></li>
                   <li class="divider"></li>
                   <li class="nav-header"><strong>Previous Drafts</strong></li>
                   <li><a href="../spec#syntax">Syntax</a></li>
                   <li><a href="../spec#api">API</a></li>
                   <li><a href="../spec#framing">Framing</a></li>
-                  <li><a href="../spec#normalization">Normalization</a></li>
                 </ul>
               </li>
               <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
@@ -171,29 +169,6 @@ it leads to simpler code when processing data from external sources.
 Links to JSON-LD Framing specifications: <a href="latest/json-ld-framing/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-framing');
-
-foreach ($drafts as $date => $dir) {
-    print(", <a href=\"$dir/\">$date</a>");
-}
-
-?>
-               </p>
-
-               </div>
-               <div id="normalization">
-               <h2><a href="latest/rdf-graph-normalization/">RDF Graph Normalization</a></h2>
-               <p>
-RDF describes a graph-based data model for making claims about the world and
-provides the foundation for reasoning upon that graph of information. At times,
-it becomes necessary to compare the differences between graphs, digitally
-sign graphs, or generate short identifiers for graphs via hashing algorithms.
-This document outlines an algorithm for normalizing RDF graphs such that
-these operations can be performed on the normalized graphs.
-               </p>
-               <p>
-Links to RDF Graph Normalization specifications: <a href="latest/rdf-graph-normalization/">Latest</a><?php
-
-$drafts = getDrafts('rdf-graph-normalization/');
 
 foreach ($drafts as $date => $dir) {
     print(", <a href=\"$dir/\">$date</a>");
