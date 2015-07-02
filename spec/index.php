@@ -79,7 +79,7 @@ function getDrafts($spec)
           <div class="nav-collapse">
             <ul class="nav">
               <li>
-                <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
+                <a href="../playground/index.html"><span class="icon-beer"></span> Playground</a>
               </li>
               <li>
                 <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
