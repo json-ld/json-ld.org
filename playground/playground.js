@@ -580,7 +580,9 @@
         playground.fetchRemoteFails[url] = err;
         btn.addClass("btn-danger active");
         $('#processing-errors')
-           .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key]);
+          .text('Error loading ' + key + ' URL: ' + playground.remoteUrl[key])
+          .show();
+
         playground.fetchRemote = debounced ?
           playground.fetchRemote :
           playground.debounce(playground._fetchRemote, 500);
@@ -807,9 +809,9 @@
    * @return a promise to process
    */
   playground.process = playground._process = function(){
-    $('#markup-errors').text('');
-    $('#param-errors').text('');
-    $('#processing-errors').text('');
+    $('#markup-errors').hide().empty();
+    $('#param-errors').hide().empty();
+    $('#processing-errors').hide().empty();
     $('#using-context-map').hide();
     $('#using-context-map table tbody').empty();
     playground.activeContextMap = {};
@@ -827,7 +829,9 @@
       input = playground.lastParsed.markup = JSON.parse(markup);
     }
     catch(e) {
-      $('#markup-errors').text('JSON markup - ' + e);
+      $('#markup-errors')
+        .text('JSON markup - ' + e)
+        .show();
       errors = true;
     }
 
@@ -854,7 +858,9 @@
         playground.lastParsed[paramType] = param = JSON.parse(jsonParam);
       }
       catch(e) {
-        $('#param-errors').text($('#param-type').text() + ' - ' + e);
+        $('#param-errors')
+          .text($('#param-type').text() + ' - ' + e)
+          .show();
         errors = true;
       }
     }
@@ -870,7 +876,11 @@
         },
         function(err){
           // FIXME: add better error handling output
-          $('#processing-errors').text(playground.humanize(err));
+          $('#processing-errors')
+            .append('Processing error:')
+            .append(
+              $('<pre>').text(playground.humanize(err)))
+            .show();
           playground.permalink(err);
           playground.process = debounced ?
             playground.process :
