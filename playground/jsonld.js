@@ -731,7 +731,7 @@ jsonld.objectify = function(input, ctx, options, callback) {
         if(!_isArray(types)) {
           types = [types];
         }
-        for(var t in types) {
+        for(var t = 0; t < types.length; ++t) {
           if(!(types[t] in compacted.of_type)) {
             compacted.of_type[types[t]] = [];
           }
@@ -3134,7 +3134,7 @@ Processor.prototype.normalize = function(dataset, options, callback) {
             b = b.hash;
             return (a < b) ? -1 : ((a > b) ? 1 : 0);
           });
-          for(var r in results) {
+          for(var r = 0; r < results.length; ++r) {
             // name all bnodes in path namer in key-entry order
             // Note: key-order is preserved in javascript
             for(var key in results[r].pathNamer.existing) {
@@ -4244,7 +4244,9 @@ function _createNodeMap(input, graphs, graph, namer, name, list) {
 
     // copy non-@type keywords
     if(property !== '@type' && _isKeyword(property)) {
-      if(property === '@index' && '@index' in subject) {
+      if(property === '@index' && property in subject &&
+        (input[property] !== subject[property] ||
+        input[property]['@id'] !== subject[property]['@id'])) {
         throw new JsonLdError(
           'Invalid JSON-LD syntax; conflicting @index property detected.',
           'jsonld.SyntaxError',
@@ -4362,7 +4364,7 @@ function _frame(state, subjects, frame, parent, property) {
 
   // add matches to output
   var ids = Object.keys(matches).sort();
-  for(var idx in ids) {
+  for(var idx = 0; idx < ids.length; ++idx) {
     var id = ids[idx];
     var subject = matches[id];
 
@@ -5423,6 +5425,9 @@ function _expandIri(activeCtx, value, relativeTo, localCtx, defined) {
   if(value === null || _isKeyword(value)) {
     return value;
   }
+
+  // ensure value is interpreted as a string
+  value = String(value);
 
   // define term dependency if not defined
   if(localCtx && value in localCtx && defined[value] !== true) {
@@ -7270,10 +7275,13 @@ if(!_nodejs && (typeof define === 'function' && define.amd)) {
   // wrap the main jsonld API instance
   wrapper(factory);
 
-  if(_nodejs) {
-    // export nodejs API
+  if(typeof require === 'function' &&
+    typeof module !== 'undefined' && module.exports) {
+    // export CommonJS/nodejs API
     module.exports = factory;
-  } else if(_browser) {
+  }
+
+  if(_browser) {
     // export simple browser API
     if(typeof jsonld === 'undefined') {
       jsonld = jsonldjs = factory;
@@ -7282,5 +7290,7 @@ if(!_nodejs && (typeof define === 'function' && define.amd)) {
     }
   }
 }
+
+return factory;
 
 })();

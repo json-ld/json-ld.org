@@ -75,11 +75,11 @@ function getDrafts($spec)
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="../index.html"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
+          <a class="brand" href="../"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
           <div class="nav-collapse">
             <ul class="nav">
               <li>
-                <a href="../playground/index.html"><span class="icon-beer"></span> Play</a>
+                <a href="../playground/"><span class="icon-beer"></span> Playground</a>
               </li>
               <li>
                 <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
@@ -101,7 +101,7 @@ function getDrafts($spec)
                   <li><a href="../spec#framing">Framing</a></li>
                 </ul>
               </li>
-              <li><a href="../images/index.html"><span class="icon-picture"></span> Branding</a></li>
+              <li><a href="../images/"><span class="icon-picture"></span> Branding</a></li>
             </ul>
           </div>
           <!--/.nav-collapse -->
