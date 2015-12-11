@@ -814,7 +814,7 @@
 
       promise = new Promise(function(resolve, reject) {
         var jsigs = window.jsigs;
-        var pkey = $(playground.editors.privatekey.getTextArea()).text();
+        var pkey = playground.editors.privatekey.getValue();
 
         // add security context to input
         if(!Array.isArray(input['@context'])) {
