@@ -817,11 +817,13 @@
         var pkey = playground.editors.privatekey.getValue();
 
         // add security context to input
-        if(!Array.isArray(input['@context'])) {
+        if(!('@context' in input)) {
+          input['@context'] = 'https://w3id.org/security/v1';
+        } else if(Array.isArray(input['@context'])) {
+          input['@context'].push('https://w3id.org/security/v1');
+        } else {
           input['@context'] =
             [input['@context'], 'https://w3id.org/security/v1'];
-        } else {
-          input['@context'].push('https://w3id.org/security/v1');
         }
 
         jsigs.sign(input, {
