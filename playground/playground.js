@@ -90,9 +90,11 @@
    * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === 'string') ?
-      value :
-      JSON.stringify(value, null, 2);
+    switch($.type(value)) {
+      case 'string': return value;
+      case 'error': return value.toString();
+      default: return JSON.stringify(value, null, 2);
+    }
   };
 
 
