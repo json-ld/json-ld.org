@@ -812,32 +812,25 @@
     else if(playground.activeTab === 'tab-signed') {
       options.format = 'application/ld+json';
 
-      promise = new Promise(function(resolve, reject) {
-        var jsigs = window.jsigs;
-        var pkey = playground.editors.privatekey.getValue();
+      var jsigs = window.jsigs;
+      var pkey = playground.editors.privatekey.getValue();
 
-        // add security context to input
-        if(!('@context' in input)) {
-          input['@context'] = 'https://w3id.org/security/v1';
-        } else if(Array.isArray(input['@context'])) {
-          input['@context'].push('https://w3id.org/security/v1');
-        } else {
-          input['@context'] =
-            [input['@context'], 'https://w3id.org/security/v1'];
-        }
+      // add security context to input
+      if(!('@context' in input)) {
+        input['@context'] = 'https://w3id.org/security/v1';
+      } else if(Array.isArray(input['@context'])) {
+        input['@context'].push('https://w3id.org/security/v1');
+      } else {
+        input['@context'] =
+          [input['@context'], 'https://w3id.org/security/v1'];
+      }
 
-        jsigs.sign(input, {
-          privateKeyPem: pkey,
-          algorithm: 'LinkedDataSignature2015',
-          nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
-          domain: 'json-ld.org',
-          creator: 'https://example.com/jdoe/keys/1'
-        }, function(err, signedDocument) {
-          if(err) {
-            reject(err);
-          }
-          resolve(signedDocument);
-        });
+      promise = jsigs.promises.sign(input, {
+        privateKeyPem: pkey,
+        algorithm: 'LinkedDataSignature2015',
+        nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
+        domain: 'json-ld.org',
+        creator: 'https://example.com/jdoe/keys/1'
       });
     }
     else {
