@@ -825,6 +825,8 @@
         jsigs.sign(input, {
           privateKeyPem: pkey,
           algorithm: 'LinkedDataSignature2015',
+          nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
+          domain: 'json-ld.org',
           creator: 'https://example.com/jdoe/keys/1'
         }, function(err, signedDocument) {
           if(err) {
