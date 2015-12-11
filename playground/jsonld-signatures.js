@@ -802,19 +802,29 @@ function _verifyLinkedDataSignature2015(input, options, callback) {
 var _createSignature = (function() {
   if(_nodejs) {
     return function(input, options, callback) {
-      var crypto = api.use('crypto');
-      var signer = crypto.createSign('RSA-SHA256');
-      signer.update(_getDataToHash(input, options), 'utf8');
-      var signature = signer.sign(options.privateKeyPem, 'base64');
+      var signature;
+      try {
+        var crypto = api.use('crypto');
+        var signer = crypto.createSign('RSA-SHA256');
+        signer.update(_getDataToHash(input, options), 'utf8');
+        signature = signer.sign(options.privateKeyPem, 'base64');
+      } catch(err) {
+        return callback(err);
+      }
       callback(null, signature);
     };
   } else if(_browser) {
     return function(input, options, callback) {
-      var forge = api.use('forge');
-      var privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
-      var md = forge.md.sha256.create();
-      md.update(_getDataToHash(input, options), 'utf8');
-      var signature = forge.util.encode64(privateKey.sign(md));
+      var signature;
+      try {
+        var forge = api.use('forge');
+        var privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
+        var md = forge.md.sha256.create();
+        md.update(_getDataToHash(input, options), 'utf8');
+        signature = forge.util.encode64(privateKey.sign(md));
+      } catch(err) {
+        return callback(err);
+      }
       callback(null, signature);
     };
   }
@@ -968,7 +978,14 @@ api.promises = function(options) {
     papi = {};
   }
 
-  papi.verify = function(input, options) {
+  papi.sign = function() {
+    if(arguments.length < 2) {
+      throw new TypeError('Could not sign, too few arguments.');
+    }
+    return promisify.apply(null, [api.sign].concat(slice.call(arguments)));
+  };
+
+  papi.verify = function() {
     if(arguments.length < 2) {
       throw new TypeError('Could not verify, too few arguments.');
     }
@@ -988,6 +1005,11 @@ api.promises = function(options) {
 
   return papi;
 };
+
+// extend default promises call w/promise API
+try {
+  api.promises({api: api.promises});
+} catch(e) {}
 
 return api;
 
