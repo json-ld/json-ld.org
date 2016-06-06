@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Building JSON-LD APIs: Best Practices</title>
+    <meta charset='utf-8'>
+    <script class="remove" src="local-biblio.js"></script>
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+        localBiblio: localBibliography,
+        specStatus: "CG-DRAFT",
+        shortName:  "json-ld-api-best-practices",
+        edDraftURI: "http://json-ld.org/spec/latest/json-ld-api-best-practices/",
+        issueBase: "https://github.com/json-ld/json-ld.org/issues/",
+        editors: [{
+          name: "Gregg Kellogg",
+          url: "http://greggkellogg.net/",
+          company: "Spec-Ops",
+          companyURL: "https://spec-ops.io/",
+          w3cid: "44770"
+        }],
+        //previousMaturity: "FPWD",
+        //previousPublishDate: "1977-03-15",
+        wg:           "Linking Data in JSON Community Group",
+        wgURI:        "http://json-ld.org/",
+        wgPublicList: "public-linked-json@w3c.org"
+        //wgPatentURI: "http://www.w3.org/2004/01/pp-impl/424242/status",
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        Developers share a common problem: they want a simple, but extensible way to create an API for a web service that gets the job done, doesn't design them into a corner, and allows developers to easily interact with their service without reinventing the wheel. JSON-LD [[json-ld]] has become an important solution, as it bridges the gap between formally data and more coloquial JSON interfaces used in APIs from numerous providers. This guide attempts to define certain best practices for publishing data using JSON-LD, and interacting with such services.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This is an unofficial document of the Linking Data in JSON Community Group.
+      </p>
+    </section>
+
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        Coming up with a data format for your API is a common problem. It can be hard to choose between different data representations, what names you want to pick and even harder if you want to leave room for extensibility. How do you make all these decisions? How do make your API easy to use so people can use short strings to reference common things, but URLs to enable people to come up with their own so it isn't limiting? How can you make it easy for other people to add their own data in and make it interoperable? How do you consume data from other similar apps? There are technologies that can help you do this. EXAMPLES. Now, it isn't perfect – sometimes it won't solve your problem, but it could maybe solve a lot of them.
+      </p>
+      <p>
+        The use of JSON on the web has grown immensely in the last decade, particularly with the explosion of APIs that eschew XML in favor of what is considered to be a more developer friendly format which is directly compatible with JavaScript. As a result, different sites have chosen their own proprietary representations for interacting with their sites, sometimes described using frameworks such as [[swagger]] which imply a particular URI composition for interacting with their services. This practice leads to vendor-specific semantic silos, where the meaning of a particular JSON document makes sense only by programming directly to the API documentation for a given service.
+      </p>
+      <p class="ednote">
+        show examples from GitHub, Twitter, …?
+      </p>
+      <p>
+        As services grow the often introduce incompatible changes leading to a Version 2 or Version 3 of their API requiring developers to update client code to properly handle JSON documents. In many cases, even small changes can lead to incompatibilities. Additionally, composing information from multiple APIs becomes problematic, due to namespace or document format conventions that may differ between API endpoints. Moreover, the same principles are often repeated across different endpoints using arbitrary identifiers (name, email, website, etc.); the community needs to learn to stop repeating itself (DRY concept) and reuse common conventions, although this does not necessarily have to mean using exactly the same identifiers within the JSON itself (see <a>JSON-LD Context</a>).
+      </p>
+      <p>
+        This Note proposes to outline a number of best practices for API designers JSON developers based on the principles of separation of data model from syntax, the use of discoverable identifiers describing document contents, and general organizing principles that allow documents to be machine understandable (read, interpreted as <a>JSON-LD</a> using <a>Linked Data</a>, RDF and RDFS vocabulary and data model principles).
+      </p>
+      <p>
+        Key among these is the notion of vocabulary re-use, so that each endpoint does not need to separately describe the properties and structure of their JSON documents. Schema.org provides a great example of doing this, and includes an extension mechanism that may already be familiar to API designers.
+      </p>
+      <p>
+        This note expands on <cite><a href="http://www.w3.org/TR/dwbp/">Data on the Web Best Practices</a></cite> [[dwbp]].
+      </p>
+    </section>
+
+    <section id='bp-summary'></section>
+
+    <section>
+    <h2>Terminology</h2>
+    <dl class="termlist">
+      <dt><dfn>JSON-LD</dfn></dt>
+      <dd>
+        JSON-LD [[json-ld]] is a lightweight <a>Linked Data</a> format. It is easy for humans to read and write. It is based on the already successful JSON format and provides a way to help JSON data interoperate at Web-scale. JSON-LD is an ideal data format for programming environments, REST Web services, and unstructured databases such as CouchDB and MongoDB.
+      </dd>
+      <dt><dfn>JSON-LD Context</dfn></dt>
+      <dd>
+        In <a>JSON-LD</a>, a <a class="externalDFN" href="http://www.w3.org/TR/json-ld/#dfn-context">context</a> is used to map terms, i.e., properties with associated values in an JSON document, to URLs. A term is a short word that expands to a URL. Terms may be defined as any valid JSON string other than a JSON-LD keyword.
+      </dd>
+      <dt><dfn>Linked Data</dfn></dt>
+      <dd>
+        Linked Data [[LINKED-DATA]] is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
+      </dd>
+    </dl>
+    </section>
+
+    <section>
+      <h2>Notes</h2>
+      <p class="ednote">
+        <strong>dlongley</strong>: all of these things are just common dev things ... and if people saw JSON-LD as a solution to those problems instead of this thing that they don't understand at all and is maybe related to something scary they heard of once then we could get people using it and saying "oh hey, this will solve our problem, let's use it" ... and then we can finally get things modeled properly and hooked up to everything else (be that RDFa stuff or whatever!) we need that to be the document we point people to – and it needs to be a super popular primer that shows how to use this tech to solve basic dev data definition and integration problems, no Linked Data nothing.
+        once they understand that first part ... that it will just help with interop and figuring out how to define things in a nice way ... the rest will just be gravy.
+      </p>
+      <div class="ednote">
+        <p>
+          <strong>gkellogg</strong>: Sure, I’ve designed some JSON APIs that use JSON-LD but in a way that makes it accessible for JSON programmers not needing to know or care about the “-LD” part. Note that schema.org has sort of tackled the problem, themselves, with their Action class, with examples on how to poke things using JSON-LD as a descriptor embedded in websites or emails.
+        </p>
+        <p>
+          The key is that payloads need to look like reasonable JSON, but also be self describing as RDF for those who care. Affording REST operations is where it gets more challenging (see Hydra).
+        </p>
+      </div>
+      <div class="ednote">
+        <p>
+          <strong>dlongley</strong>: I don't think we'd involve REST (or HTTP) at all in this document. This is just about the actual payloads/messages being passed around, not the protocol it travels in. This is just about telling people how they ought to model their data in a sane way and how others can extend that model easily. We don't want to focus on whether these messages are being passed to a function, travelling over HTTP, or using some other protocol.
+        </p>
+      </div>
+      <div class="ednote">
+        <p>
+          <strong>gkellogg</strong>: We need to scope out who the target audience is, what the use cases are, and what kind of document we want to produce (i.e., spec for a specific API, general best practices on designing APIs for JSON developers using JSON-LD, or what).
+        </p>
+        <p>
+          Also, note that Markus is engaged in his long and drawn-out problem of “solving” the self describing API mechanism with Hydra. This becomes more important when payloads really describe linked data and you need to understand how to communicate REST operations, performing paging, and deal with collections from an API.
+        </p>
+      </div>
+      <div class="ednote">
+        <p>
+          <strong>dlongley</strong>: So this came up because of what people are doing with the payment request API in the Web Payments WG right now. They are looking at designing what information gets passed into a JS API for requesting payment. That information is pretty much modeled as a payment request message that can list a number of different payment methods that a merchant supports along with price information, etc.
+        </p>
+        <p>
+          The basic idea for the API is that the browser can read the supported payment methods and show the user a list of payment apps they have installed that match those methods. Then the browser hands the message off to those apps and they can do custom things based on the payment methods.
+        </p>
+        <p>
+          The group is spending a lot of time trying to decide things like whether or not payment method IDs will be short strings or URLs -- and if they are both, how we could support them or map them as needed. The group also isn't sure how to make this stuff extensible so people can define their own payment methods and put whatever machine-readable information they want to into payment-method specific sections of the message.
+        </p>
+        <p>
+          It never dawned on them that there's a technology that can help them with this stuff already.
+        </p>
+        <p>
+          We need to show people that there's a technology that can help them solve these problems in an interoperable, decentralized way -- that people can model their information and use a syntax that can carry all of that stuff together in a single message that doesn't require them to update the spec whenever something new comes along.
+        </p>
+        <p>
+          This is just a general modeling problem for people who do all of their modeling with JSON/JavaScript Objects. Another, related, general problem is how people go about writing applications that consume JSON data from multiple similar sources. Demonstrating to them the power of JSON-LD compaction by showing them that they can recompact data from N sources to a context their application understands would be very useful.
+        </p>
+        <p>
+          We want this to be a semi-informal, colloquial document that is just like "Hey, a common problem devs have to solve is deciding what to name their properties in the JSON they pass to their APIs. Sometimes you want to even let other people extend your JSON -- but how can you do that in a sane way? Sometimes you want your application to consume JSON that someone else wrote, but it's a little different. How can you solve that problem in a general way? There's a technology that can help you do this and it's called JSON-LD."
+        </p>
+      </div>
+      <div class="ednote">
+        <p>
+          <strong>gkellogg</strong>: I don’t think we can do this without talking about the strong data model RDF provides, and how JSON is a projection of that model. This includes the ability for the publisher to shape the data for the intended consumers, but also allows consumers to re-shape the data for their own purposes. Common things are simple, complex things are possible.
+        </p>
+        <p>
+          Also, any discussion of API needs to consider REST and container semantics. This could include a survey of different techniques, but really should include LDP and Hydra as well.
+        </p>
+        <p>
+          Seems to me this is a document describing different use cases and best practices for managing them. But, it does need a focus, which I presume to be either payments, products, or credentials.
+        </p>
+        <p>
+          Vocabulary is important, and we can’t ignore schema.org, and it’s Action sub-vocabulary in particular. But clearly needs to consider application-specific vocabularies for the important use cases.
+        </p>
+        <p>
+          What group would likely publish this note? There is a Data on the <a href="https://www.w3.org/2013/dwbp/wiki/Main_Page">Web Best Practices WG</a>, which this would seem to suit.
+        </p>
+      </div>
+    </section>
+    <section>
+      <h2>Resource Representation</h2>
+      <div class="practice">
+        <p><span id="use-json" class="practicelab">Publish data using developer friendly JSON</span></p>
+        <p class="practicedesc">JSON [[json]] is the most popular format for publishing data through APIs; developers like it, it is easy to parse, and it is supported natively in most programming languages.</p>
+        <pre class="example" title="Example JSON representing a Person">
+          {
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+      </div>
+
+      <div class="practice">
+        <p><span id="use-json-ld" class="practicelab">Use well-known identifiers when describing data</span></p>
+        <p class="practicedesc">By sticking to basic JSON data expression, and providing a <a>JSON-LD Context</a>, all keys used within a JSON document can have unambigious meaning, as they bind to URLs which describe their meaning.</p>
+        <pre class="example" title="Example JSON-LD identifying a person">
+          {
+            "@context": "http://schema.org",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+      </div>
+
+      <div class="practice">
+        <p><span id="cache-context" class="practicelab">Cache JSON-LD Contexts</span></p>
+        <p class="practicedesc">While most use of JSON-LD should not require a client to change the data representation, JSON-LD does allow the use of various algorithms to re-shape a JSON-LD document. These require the use of the <a>JSON-LD Context</a>, which is typically represented using a link to a remote document. Because it is remote, processing time can be severely impacted by the time it takes to retrieve this context. Services providing a <a>JSON-LD Context</a> SHOULD set HTTP cache-control headers to allow liberal caching of such contexts, and clients SHOULD attempt to use a locally cached version of these documents. Typically, libraries used to process JSON-LD documents should do this for you. (See also [[json-ld-best-practice-caching]]).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="top-level-object" class="practicelab">Use a top-level object</span></p>
+        <p class="practicedesc">JSON documents may be in the form of a object, or an array of objects. For most purposes, develpers need a single entrypoint, so the JSON should be in the form of a single top-level object</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="native-values" class="practicelab">Use native values</span></p>
+        <p class="practicedesc">When possible, property values should use native JSON datatypes such as numbers (<em>integer</em>, <em>decimal</em> and <em>floating point</em>) and booleans (<code>true</code> and <code>false</code>).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="unordered values" class="practicelab">Assume arrays are unordered</span></p>
+        <p class="practicedesc">JSON specifies that the values in an array are ordered, however in many cases arrays are also used for values which are unordered. Unless specified within the <a>JSON-LD Context</a>, multiple array values should be presumed to be unordered. (See <cite><a href="http://www.w3.org/TR/json-ld/#lists-and-sets">Lists and Sets</a></cite> in [[json-ld]]).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="typed-objects" class="practicelab">Provide one or more types for JSON objects</span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <div class="practice">
+        <p><span id="use-ids" class="practicelab">Identify objects with a unique identifier</span></p>
+        <p class="practicedesc">Entities described in JSON objects often describe web resources having a URL. In this case, using the resource location as the identity of the object is consistent with this practice.</p>
+        <pre class="example" title="Example JSON-LD identifying a person">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+        <p class="note">There is often ambiguous if an identifier is about the entity being described, or directly represents that entity. As an example, Barak Obama may have a Wikidata entry <code>https://www.wikidata.org/wiki/Q76</code>, but it would be a mistake to say that <code>https://www.wikidata.org/wiki/Q76</code> <em>is</em> Barak Obama. However, it is common to use this pattern, particularly if the <strong>type</strong> of the entity describes a Person, rather than a WebPage.</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="type-links" class="practicelab">External references should use datatyped term</span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <div class="practice">
+        <p><span id="embed-objects" class="practicelab">Referenced objects provided inline should be </span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <div class="practice">
+        <p><span id="xxx" class="practicelab"></span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <div class="practice">
+        <p><span id="xxx" class="practicelab"></span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <div class="practice">
+        <p><span id="xxx" class="practicelab"></span></p>
+        <p class="practicedesc"></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Serializing Large Collections</h2>
+      <p class="ednote">Describe schema.org extension using Role sub-class, Hydra collections, and LDP collections.</p>
+    </section>
+
+    <section>
+      <h2>Reuse Vocabularies</h2>
+      <p class="ednote">Focus on schema.org?</p>
+    </section>
+
+    <section>
+      <h2>Describe API affordances</h2>
+      <p class="ednote">Describe the use of schema.org Actions and work in Hydra.</p>
+      <p class="ednote">Describe anti-pattern of URI construction emphasizing affordances.</p>
+    </section>
+  </body>
+</html>
