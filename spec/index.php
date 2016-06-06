@@ -93,8 +93,8 @@ function getDrafts($spec)
                   <li class="nav-header"><strong>Latest</strong></li>
                   <li><a href="../spec/latest/json-ld/">Syntax</a></li>
                   <li><a href="../spec/latest/json-ld-api/">API</a></li>
-                  <li><a href="../spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
                   <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                  <li><a href="../spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
                   <li><a href="../spec/latest/rdf-graph-normalization/">Normalization</a></li>
                   <li class="divider"></li>
                   <li class="nav-header"><strong>Previous Drafts</strong></li>
@@ -167,7 +167,7 @@ Best practices for publishing JSON-LD and building APIs.
                <p>
 Links to JSON-LD API specifications: <a href="latest/json-ld-api-best-practices/">Latest</a><?php
 
-$drafts = getDrafts('json-ld-api');
+$drafts = getDrafts('json-ld-api-best-practices');
 
 foreach ($drafts as $date => $dir) {
     print(", <a href=\"$dir/\">$date</a>");
