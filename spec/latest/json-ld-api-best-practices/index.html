@@ -107,7 +107,7 @@
         <p class="practicedesc">By sticking to basic JSON data expression, and providing a <a>JSON-LD Context</a>, all keys used within a JSON document can have unambigious meaning, as they bind to URLs which describe their meaning.</p>
         <pre class="example" title="Example JSON-LD identifying a person">
           {
-            "@context": "http://schema.org",
+            <strong>"@context": "http://schema.org"</strong>,
             "name": "Barak Obama",
             "givenName": "Barak",
             "familyName": "Obama",
@@ -123,31 +123,71 @@
 
       <div class="practice">
         <p><span id="top-level-object" class="practicelab">Use a top-level object</span></p>
-        <p class="practicedesc">JSON documents may be in the form of a object, or an array of objects. For most purposes, develpers need a single entrypoint, so the JSON should be in the form of a single top-level object</p>
+        <p class="practicedesc">JSON documents may be in the form of a object, or an array of objects. For most purposes, develpers need a single entrypoint, so the JSON SHOULD be in the form of a single top-level object</p>
       </div>
 
       <div class="practice">
         <p><span id="native-values" class="practicelab">Use native values</span></p>
-        <p class="practicedesc">When possible, property values should use native JSON datatypes such as numbers (<em>integer</em>, <em>decimal</em> and <em>floating point</em>) and booleans (<code>true</code> and <code>false</code>).</p>
+        <p class="practicedesc">When possible, property values SHOULD use native JSON datatypes such as numbers (<em>integer</em>, <em>decimal</em> and <em>floating point</em>) and booleans (<code>true</code> and <code>false</code>).</p>
       </div>
 
       <div class="practice">
         <p><span id="unordered-values" class="practicelab">Assume arrays are unordered</span></p>
-        <p class="practicedesc">JSON specifies that the values in an array are ordered, however in many cases arrays are also used for values which are unordered. Unless specified within the <a>JSON-LD Context</a>, multiple array values should be presumed to be unordered. (See <cite><a href="http://www.w3.org/TR/json-ld/#lists-and-sets">Lists and Sets</a></cite> in [[json-ld]]).</p>
+        <p class="practicedesc">JSON specifies that the values in an array are ordered, however in many cases arrays are also used for values which are unordered. Unless specified within the <a>JSON-LD Context</a>, multiple array values SHOULD be presumed to be unordered. (See <cite><a href="http://www.w3.org/TR/json-ld/#lists-and-sets">Lists and Sets</a></cite> in [[json-ld]]).</p>
       </div>
 
       <div class="practice">
         <p><span id="typed-objects" class="practicelab">Provide one or more types for JSON objects</span></p>
-        <p class="practicedesc"></p>
+        <p class="practicedesc">Principles of <a>Linked Data</a> dictate that messages SHOULD be self describing, which includes adding a <code>type</code> to such messages.</p>
+        <p>Many APIs use JSON messages where the type of information being conveyed is inferred from the retreaval endpoint. For example, when retrieving information about a Github Commit, you might see the following response:</p>
+        <pre class="example" title="Github Commit message">
+          {
+            "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+            "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
+            "author": {
+              "date": "2014-11-07T22:01:45Z",
+              "name": "Scott Chacon",
+              "email": "schacon@gmail.com"
+            },
+            "committer": {
+              "date": "2014-11-07T22:01:45Z",
+              "name": "Scott Chacon",
+              "email": "schacon@gmail.com"
+            },
+            "message": "added readme, because im a good github citizen\n",
+            "tree": {
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
+              "sha": "691272480426f78a0138979dd3ce63b77f706feb"
+            },
+            "parents": [
+              {
+                "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+                "sha": "1acc419d4d6a9ce985db7be48c6349a0475975b5"
+              }
+            ]
+          }
+        </pre>
+        <p>The only way to know this is a commit is to infer it based on the published API documentation, and the fact that it was returned from an endpoint defined for retrieving information about commits.</p>
+        <pre class="example" title="Example message of type Person">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            <strong>"type": "Person"</strong>,
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
       </div>
 
       <div class="practice">
         <p><span id="use-ids" class="practicelab">Identify objects with a unique identifier</span></p>
-        <p class="practicedesc">Entities described in JSON objects often describe web resources having a URL. In this case, using the resource location as the identity of the object is consistent with this practice.</p>
+        <p class="practicedesc">Entities described in JSON objects often describe web resources having a URL; entity descriptions SHOULD use an identifier uniquely identifying that entity. In this case, using the resource location as the identity of the object is consistent with this practice.</p>
         <pre class="example" title="Example JSON-LD identifying a person">
           {
             "@context": "http://schema.org",
-            "id": "https://www.wikidata.org/wiki/Q76",
+            <strong>"id": "https://www.wikidata.org/wiki/Q76"</strong>,
             "type": "Person",
             "name": "Barak Obama",
             "givenName": "Barak",
@@ -160,21 +200,94 @@
 
       <div class="practice">
         <p><span id="type-links" class="practicelab">External references should use datatyped term</span></p>
-        <p class="practicedesc"></p>
+        <p class="practicedesc">When using a property intended to reference another entity, properties SHOULD be defined to type string values as being references.</p>
+        <p>For example, the <code>schema:image</code> property a Thing to an Image:</p>
+        <pre class="example" title="Example typed relationship">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"image": "https://commons.wikimedia.org/wiki/File:President_Barack_Obama.jpg"</strong>
+          }
+        </pre>
+        <p>This will be interpreted as a reference, rather than a string literal, because (at the time of publication), the schema.org JSON-LD Context defines <code>image</code> to be of type <code>@id</code>:</p>
+        <pre class="example" title="schema.org context snippet for image">
+          {
+            "@context": {
+              ...
+              "image": { "@id": "schema:image", <strong>"@type": "@id"</strong>},
+              ...
+            }
+          }
+        </pre>
+        <p>If note defined as such in a remote context, terms may be (re-) defined in a local context:</p>
+        <pre class="example" title="Example typed relationship">
+          {
+            "@context": ["http://schema.org", <strong>{
+              "image": { "@id": "schema:image", "@type": "@id"}
+            }</strong>],
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            "image": "https://commons.wikimedia.org/wiki/File:President_Barack_Obama.jpg"
+          }
+        </pre>
       </div>
 
       <div class="practice">
-        <p><span id="embed-objects" class="practicelab">Referenced objects provided inline should be </span></p>
-        <p class="practicedesc"></p>
+        <p><span id="embed-objects" class="practicelab">Referenced objects provided inline SHOULD be nested</span></p>
+        <p class="practicedesc">When multiple related entity descriptions are provided inline, related entities SHOULD be nested.</p>
+        <p>For example, when relating one entity to another, where the related entity is described in the same message:</p>
+        <pre class="example" title="Nested relationships">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"spouse": {
+              "id": "https://www.wikidata.org/wiki/Q13133",
+              "type": "Person",
+              "name": "Michelle Obama",
+              "spouse": "https://www.wikidata.org/wiki/Q76"
+            }</strong>
+          }
+        </pre>
+        <p class="note">In this example, the <code>spouse</code> relationship is bi-directional, we have arbitrarily rooted the message with Barak Obama, and created a symetric relationship from Michelle back to Barak by reference, rather than by nesting.</p>
       </div>
 
       <div class="practice">
-        <p><span id="xxx" class="practicelab"></span></p>
-        <p class="practicedesc"></p>
+        <p><span id="things-not-strings" class="practicelab">Things not strings</span></p>
+        <p class="practicedesc">When describing attributes, entity references SHOULD be used instead of string literals.</p>
+        <p>In some cases, when describing an attribute of an entity, it is tempting to using string values which have no independent meaning. Such values often are used for well known things. A JSON-LD context can define a term for such values, which allow them to appear as strings within the message, but be associated with specific identifiers. In this case, the property must be defined with type <code>@vocab</code> so that values will be interpreted relative to a vocabulary rather than the file location.</p>
+        <pre class="example" title="Example enumerated value">
+          {
+            "@context": ["http://schema.org", <strong>{
+              <strong>"gender": {"@id": "schema:gender", "@type": "@vocab"}</strong>
+            }</strong>],
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barak Obama",
+            "givenName": "Barak",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"gender": "Male"</strong>
+          }
+        </pre>
+        <p>See article in SEO Skeptic [[seo-strings-to-things]] for further elaboration on the advantages of using <em>things</em> instead of <em>strings</em>.</p>
       </div>
 
       <div class="practice">
-        <p><span id="xxx" class="practicelab"></span></p>
+        <p><span id="reverse-references" class="practicelab">When describing an inverse relationship, use a referce referenced property</span></p>
         <p class="practicedesc"></p>
       </div>
 
