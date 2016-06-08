@@ -63,7 +63,7 @@
         Key among these is the notion of vocabulary re-use, so that each endpoint does not need to separately describe the properties and structure of their JSON documents. Schema.org provides a great example of doing this, and includes an extension mechanism that may already be familiar to API designers.
       </p>
       <p>
-        This note expands on <cite><a href="http://www.w3.org/TR/dwbp/">Data on the Web Best Practices</a></cite> [[dwbp]].
+        This note expands on <cite><a href="http://www.w3.org/TR/dwbp/">Data on the Web Best Practices</a></cite> [[dwbp]] and <cite><a href="http://www.w3.org/TR/ld-bp/">Best Practices for Publishing Linked Data</a></cite> [[ld-bp]].
       </p>
     </section>
 
@@ -82,7 +82,7 @@
       </dd>
       <dt><dfn>Linked Data</dfn></dt>
       <dd>
-        Linked Data [[LINKED-DATA]] is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
+        Linked Data [[linked-data]] is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
       </dd>
     </dl>
     </section>
@@ -114,6 +114,20 @@
             "jobTitle": "44th President of the United States"
           }
         </pre>
+        <div class="note">
+          <p>When expanding such a data representation, a JSON-LD processor replaces these terms with the URIs they expand to (as well as making property values unambiguous):</p>
+          <pre class="example" title="Example JSON-LD identifying a person (expanded)">
+            [
+              {
+                "http://schema.org/familyName": [{"@value": "Obama"}],
+                "http://schema.org/givenName": [{"@value": "Barak"}],
+                "http://schema.org/jobTitle": [{"@value": "44th President of the United States"}],
+                "http://schema.org/name": [{"@value": "Barak Obama"}]
+              }
+            ]
+          </pre>
+          <p>Expanded form is not useful as is, but is necessary for performing furhter algorithmic transformaions of JSON-LD data and is useful when validating that JSON-LD entity descriptions say what the publisher means.</p>
+        </div>
       </div>
 
       <div class="practice">
@@ -199,7 +213,13 @@
       </div>
 
       <div class="practice">
-        <p><span id="type-links" class="practicelab">External references should use datatyped term</span></p>
+        <p><span id="dereferencable-entities" class="practicelab">Provide a representation of the entity related by URL</span></p>
+        <p class="practicedesc">When dereferencing an entity related via a URL, the location SHOULD provide a representation of that entity. (This practices replicates that described in [[ld-bp]] <cite><a href="http://www.w3.org/TR/ld-bp/#uri-design-principles">Provide at least one machine-readable representation of the resource identified by the URI</a></cite>)</p>
+        <p>Corollaries to this best practice is that Cool URIs don't change [[cooluris]], meaning that URLs describing entities SHOULD be stable and not depend on variable information. Also, the URL used to identify an entity is the best API endpoint of that entity (see also <a href="#api-versioning" class="sectionRef"></a>).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="type-links" class="practicelab">External references should use typed term</span></p>
         <p class="practicedesc">When using a property intended to reference another entity, properties SHOULD be defined to type string values as being references.</p>
         <p>For example, the <code>schema:image</code> property a Thing to an Image:</p>
         <pre class="example" title="Example typed relationship">
@@ -242,7 +262,7 @@
       </div>
 
       <div class="practice">
-        <p><span id="embed-objects" class="practicelab">Referenced objects provided inline SHOULD be nested</span></p>
+        <p><span id="embed-objects" class="practicelab">Nest referenced inline objects</span></p>
         <p class="practicedesc">When multiple related entity descriptions are provided inline, related entities SHOULD be nested.</p>
         <p>For example, when relating one entity to another, where the related entity is described in the same message:</p>
         <pre class="example" title="Nested relationships">
@@ -287,14 +307,16 @@
       </div>
 
       <div class="practice">
-        <p><span id="reverse-references" class="practicelab">When describing an inverse relationship, use a referce referenced property</span></p>
+        <p><span id="reverse-references" class="practicelab">When describing an inverse relationship, use a referenced property</span></p>
         <p class="practicedesc"></p>
       </div>
 
+      <!--
       <div class="practice">
         <p><span id="xxx" class="practicelab"></span></p>
         <p class="practicedesc"></p>
       </div>
+      -->
     </section>
 
     <section>
@@ -311,6 +333,12 @@
       <h2>Describe API affordances</h2>
       <p class="ednote">Describe the use of schema.org Actions and work in Hydra.</p>
       <p class="ednote">Describe anti-pattern of URI construction emphasizing affordances.</p>
+    </section>
+
+    <section>
+      <h2>API Versioning</h2>
+      <p class="ednote">Remember that Cool URIs don't change [cooluris]; correctly modeling data allows changes data representation to be limited.</p>
+      <p class="ednote">Describe the use of API keys for controlling API versions, rather than the use of different versioned URLs.</p>
     </section>
   </body>
 </html>
