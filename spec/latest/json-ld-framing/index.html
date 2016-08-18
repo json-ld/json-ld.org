@@ -171,7 +171,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><dfn>array</dfn></dt>
     <dd>An array is represented as square brackets surrounding zero or more
       values that are separated by commas.</dd>
-    <dt><dfn>string</dfn></dt>
+    <dt><dfn data-lt="strings">string</dfn></dt>
     <dd>A string is a sequence of zero or more Unicode (UTF-8) characters,
       wrapped in double quotes, using backslash escapes (if necessary). A
       character is represented as a single character string.</dd>
@@ -234,7 +234,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><dfn>literal</dfn></dt>
     <dd>An <a>object</a> expressed as a value such as a string, number or in expanded form.</dd>
   </dl>
-</p>
 </section>
 
 <section>
@@ -280,45 +279,34 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       use to access the JSON-LD transformation methods. The definition below is an experimental
       extension of the interface defined in the [[JSON-LD-API]].</p>
 
-    <dl title="[NoInterfaceObject] interface JsonLdProcessor" class="idl">
-
-      <dt>void frame()</dt>
-      <dd>
-        <a href="#framing">Frames</a> the given <code>input</code> using the
-        <code>frame</code> according to the steps in the
-        <a href="#framing-algorithm">Framing Algorithm</a>. The <code>input</code>
-        is used to build the framed output and is returned if there are no errors.
-        If there are no matches for the frame, <a>null</a> MUST be
-        returned. Exceptions MUST be thrown if there are errors.
-
-        <dl class="parameters">
-          <dt>object or object[] or IRI input</dt>
-           <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
-            <a>IRI</a> referencing the JSON-LD document to frame.</dd>
-          <dt>object or IRI frame</dt>
-          <dd>The frame to use when re-arranging the data of <code>input</code>; either
-            in the form of an <a>JSON object</a> or as <a>IRI</a>.</dd>
-          <dt>JsonLdCallback callback</dt>
-          <dd>A callback that is called when processing is complete on
-            the given <code>input</code>.</dd>
-          <dt>optional JsonLdOptions? options</dt>
-          <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
-            input document's base <a>IRI</a>.</dd>
-        </dl>
-      </dd>
-
+    <pre class="idl">
+      [NoInterfaceObject]
+      interface JsonLdProcessor {
+          Promise frame(any input,
+            (object or IRI) frame,
+            JsonLdContext? context,
+            optional JsonLdOptions? options);
+      };
+    </pre>
+    <p>The <dfn>JsonLdProcessor</dfn> interface <a href="#framing">Frames</a>
+      the given <code>input</code> using <a>JsonLdProcessor.frame</a> according
+      to the steps in the <a href="#framing-algorithm">Framing Algorithm</a>.
+      The <a>JsonLdProcessor.frame.input</a> parameter is used to build the
+      framed output and is returned if there are no errors. If there are no
+      matches for the frame, <a>null</a> MUST be returned. Exceptions MUST be
+      thrown if there are errors.</p>
+    <dl class="parameters">
+      <dt><dfn>JsonLdProcessor.frame.input</dfn></dt>
+       <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
+        <a>IRI</a> referencing the JSON-LD document to frame.</dd>
+      <dt><dfn>JsonLdProcessor.frame.frame</dfn></dt>
+      <dd>The frame to use when re-arranging the data of <code>input</code>; either
+        in the form of an <a>JSON object</a> or as <a>IRI</a>.</dd>
+      <dt><dfn>JsonLdProcessor.frame.options</dfn></dt>
+      <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
+        input document's base <a>IRI</a>.</dd>
     </dl>
 
-  </section>
-
-  <section>
-    <h3>Callbacks</h3>
-  <section>
-    <h3>JsonLdCallback</h3>
-    <p>The <a>JsonLdCallback</a> is used to return a processed JSON-LD representation
-      as the result of processing an API method.</p>
-    <p>See <dtref>JsonLdCallback</dtref> definition in [[!JSON-LD-API]].</p>
-  </section>
   </section>
 
   <section>
@@ -326,9 +314,18 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <p>This section describes datatype definitions used within the JSON-LD API.</p>
 
     <section>
+    <h3>JsonLdContext</h3>
+    <p>The <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdContext</a> type is used to refer to a value that
+        that may be a <a>JSON object</a>, a <a>string</a> representing an
+        <a>IRI</a>, or an array of <a>JSON objects</a>
+        and <a>strings</a>.</p>
+    <p>See <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
+    </section>
+
+    <section>
     <h3>JsonLdOptions</h3>
-    <p>The <a>JsonLdOptions</a> type is used to convert a set of options to an interface method.</p>
-    <p>See <dtref>JsonLdOptions</dtref> definition in [[!JSON-LD-API]].</p>
+    <p>The <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> type is used to convert a set of options to an interface method.</p>
+    <p>See <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
     </section>
   </section>
 
