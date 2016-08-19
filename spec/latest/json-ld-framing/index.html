@@ -4,12 +4,12 @@
 <title>JSON-LD Framing 1.0</title>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
 <script type="text/javascript" src="https://www.w3.org/Tools/respec/respec-w3c-common" class="remove"></script>
-<script type="text/javascript" src="../respec-w3c-extensions.js" class="remove"></script>
+<script type="text/javascript" src="../common/common.js" class="remove"></script>
 <script type="text/javascript" class="remove">
 //<![CDATA[
   var respecConfig = {
       // extend the bibliography entries
-      "localBiblio": localBibliography,
+      localBiblio:          jsonld.localBiblio,
 
       // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
       specStatus:           "CG-DRAFT",
@@ -82,8 +82,7 @@
       // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
       // Team Contact.
       wgPatentURI:  "",
-      maxTocLevel: 4,
-      preProcess: [ preProc ],
+      maxTocLevel: 4
       //alternateFormats: [ {uri: "diff-20120524.html", label: "diff to previous version"} ],
   };
 //]]>
@@ -153,87 +152,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <section>
   <h3>General Terminology</h3>
 
-  <p class="issue">The intent of the Working Group and the Editors of this
-    specification is to eventually align terminology used in this document
-    with the terminology used in the RDF Concepts document to the extent to
-    which it makes sense to do so. In general, if there is an analogue to
-    terminology used in this document in the RDF Concepts document, the
-    preference is to use the terminology in the RDF Concepts document.
-  </p>
+  <div data-include="../common/terms.html"
+      data-oninclude="restrictReferences">
 
-  <p>The following is an explanation of the general terminology used in this document:</p>
-  <dl>
-    <dt><dfn data-lt="JSON objects">JSON object</dfn></dt>
-    <dd>An object structure is represented as a pair of curly brackets surrounding zero or
-      more name-value pairs. A name is a <a>string</a>. A single colon comes after
-      each name, separating the name from the value. A single comma separates a value
-      from a following name. The names within an object SHOULD be unique.</dd>
-    <dt><dfn>array</dfn></dt>
-    <dd>An array is represented as square brackets surrounding zero or more
-      values that are separated by commas.</dd>
-    <dt><dfn data-lt="strings">string</dfn></dt>
-    <dd>A string is a sequence of zero or more Unicode (UTF-8) characters,
-      wrapped in double quotes, using backslash escapes (if necessary). A
-      character is represented as a single character string.</dd>
-    <dt><dfn>number</dfn></dt>
-    <dd>A number is similar to that used in most programming languages, except
-      that the octal and hexadecimal formats are not used and that leading
-      zeros are not allowed.</dd>
-    <dt><dfn>true</dfn> and <dfn>false</dfn></dt>
-    <dd>Values that are used to express one of two possible boolean states.</dd>
-    <dt><dfn>null</dfn></dt>
-    <dd>The use of the <a>null</a> value within JSON-LD is used to ignore or reset values.</dd>
-    <dt><dfn data-lt="keywords">keyword</dfn></dt>
-    <dd>A JSON key that is specific to JSON-LD, specified in the JSON-LD Syntax specification [[!JSON-LD]]
-      in the section titled <cite><a href="../json-ld/#syntax-tokens-and-keywords">Syntax Tokens and Keywords</a></cite>.</dd>
-    <dt><dfn>context</dfn></dt>
-    <dd>A a set of rules for interpreting a JSON-LD document as specified in
-      <cite><a href="../json-ld/#the-context">The Context</a></cite> of the [[JSON-LD]] specification.</dd>
-    <dt><dfn data-lt="IRIs|Internationalized Resource Identifier"><abbr title="Internationalized Resource Identifier">IRI</abbr></dfn></dt>
-    <dd>An Internationalized Resource Identifier as described in [[!RFC3987]].</dd>
-    <dt><dfn>Linked Data</dfn></dt>
-    <dd>A set of documents, each containing a representation of a <a>linked data graph</a>.</dd>
-    <dt><dfn>linked data graph</dfn> or <dfn>dataset</dfn></dt>
-    <dd>An unordered labeled directed graph, where <a>nodes</a> are
-      <a>IRIs</a> or <a>Blank Nodes</a>, or other values.
-      A <a>linked data graph</a> is a generalized representation of a
-      <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graph</a></cite>
-      as defined in [[!RDF-CONCEPTS]].</dd>
-    <dt><dfn>named graph</dfn></dt>
-    <dd>A <a>linked data graph</a> that is identified by an <a>IRI</a>.</dd>
-    <dt><dfn>graph name</dfn></dt>
-    <dd>The <a>IRI</a> identifying a <a>named graph</a>.</dd>
-    <dt><dfn>default graph</dfn></dt>
-    <dd>When executing an algorithm, the graph where data should be placed
-      if a <a>named graph</a> is not specified.</dd>
-    <dt><dfn data-lt="nodes">node</dfn></dt>
-    <dd>A piece of information that is represented in a <a>linked data graph</a>.</dd>
-    <dt><dfn>node definition</dfn></dt>
-    <dd>A <a>JSON object</a> used to represent a <a>node</a> and
-      one or more properties of that node. A <a>JSON object</a> is a
-      node definition if it does not contain the keys <code>@value</code>,
-      <code>@list</code> or <code>@set</code> and it has one or more keys
-      other than <code>@id</code>.</dd>
-    <dt><dfn>node reference</dfn></dt>
-    <dd>A <a>JSON object</a> used to reference a node having only the
-      <code>@id</code> key.</dd>
-    <dt><dfn data-lt="blank nodes">blank node</dfn></dt>
-    <dd>A <a>node</a> in the <a>linked data graph</a> that does not contain a de-referenceable
-      identifier because it is either ephemeral in nature or does not contain information that needs to be
-      linked to from outside of the linked data graph. A blank node is assigned an identifier starting with
-      the prefix <code>_:</code>.</dd>
-    <dt><dfn>property</dfn></dt>
-    <dd>The <a>IRI</a> label of an edge in a <a>linked data graph</a>.</dd>
-    <dt><dfn>subject</dfn></dt>
-    <dd>A <a>node</a> in a <a>linked data graph</a> with at least one outgoing edge, related to an <a>object</a> node through a <a>property</a>.</dd>
-    <dt><dfn>object</dfn></dt>
-    <dd>A <a>node</a> in a <a>linked data graph</a> with at least one incoming edge.</dd>
-    <dt><dfn>quad</dfn></dt>
-    <dd>A piece of information that contains four items; a <a>subject</a>, a <a>property</a>,
-      an <a>object</a>, and a <a>graph name</a>.</dd>
-    <dt><dfn>literal</dfn></dt>
-    <dd>An <a>object</a> expressed as a value such as a string, number or in expanded form.</dd>
-  </dl>
 </section>
 
 <section>
