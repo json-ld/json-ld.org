@@ -130,7 +130,7 @@ enhances the functionality and interoperability of the Web.
   exactly the same information. Developers typically work with trees, represented as
   <a>JSON objects</a>. While mapping a graph to
   a tree can be done, the layout of the end result must be specified in advance.
-  A <dfn>Frame</dfn> can be used by a developer on a JSON-LD document to
+  A <a>Frame</a> can be used by a developer on a JSON-LD document to
   specify a deterministic layout for a graph.</p>
 
 <section>
@@ -162,7 +162,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </section>
 
 <section>
-  <h3>General Terminology</h3>
+  <h3>Terminology</h3>
 
   <div data-include="../common/terms.html"
       data-oninclude="restrictReferences">
@@ -233,80 +233,6 @@ language-native data structures MUST be used where applicable.</p>
 </section>
 
 <section>
-  <h2>Algorithm Terms</h2>
-  <dl>
-    <dt><dfn>active subject</dfn></dt>
-    <dd>
-      the currently active subject that the processor should use when
-      processing.
-    </dd>
-    <dt><dfn>active property</dfn></dt>
-    <dd>
-      the currently active property that the processor should use when
-      processing. The active property is represented in the original lexical form, which
-      is used for finding coercion mappings in the <a>active context</a>.
-    </dd>
-    <dt><dfn>active object</dfn></dt>
-    <dd>
-      the currently active object that the processor should use when
-      processing.
-    </dd>
-    <dt><dfn>active context</dfn></dt>
-    <dd>
-      a context that is used to resolve <a>term</a>s while the processing
-      algorithm is running. The <a>active context</a> is the context
-      contained within the <a>processor state</a>.
-    </dd>
-    <dt><dfn>compact IRI</dfn></dt>
-    <dd>
-      a compact IRI is has the form of <a>prefix</a> and <em>suffix</em> and is used as a way
-      of expressing an IRI without needing to define separate <a>term</a> definitions for
-      each IRI contained within a common vocabulary identified by <a>prefix</a>.
-    </dd>
-    <dt><dfn>local context</dfn></dt>
-    <dd>
-      a context that is specified within a <a>JSON object</a>,
-      specified via the <code>@context</code> <a>keyword</a>.
-    </dd>
-    <dt><dfn>processor state</dfn></dt>
-    <dd>
-      the <a>processor state</a>, which includes the <a>active
-      context</a>, <a>active subject</a>, and
-      <a>active property</a>. The <a>processor state</a> is managed
-      as a stack with elements from the previous <a>processor state</a>
-      copied into a new <a>processor state</a> when entering a new
-      <a>JSON object</a>.
-    </dd>
-    <dt><dfn>JSON-LD input</dfn></dt>
-    <dd>
-      The JSON-LD data structure that is provided as input to the algorithm.
-    </dd>
-    <dt><dfn>JSON-LD output</dfn></dt>
-    <dd>
-      The JSON-LD data structure that is produced as output by the algorithm.
-    </dd>
-    <dt><dfn>term</dfn></dt><dd>
-      A <a>term</a> is a short word defined in a context that MAY be expanded to an <a>IRI</a>
-    </dd>
-    <dt><dfn>prefix</dfn></dt><dd>
-      A <a>prefix</a> is a <a>term</a> that expands to a vocabulary base IRI. It
-      is typically used along with a <em>suffix</em> to form a <a>compact IRI</a> to create an IRI
-      within a vocabulary.
-    </dd>
-    <dt><dfn>language-tagged string</dfn></dt><dd>
-      A <a>language-tagged string</a> is a <a>literal</a> without a datatype, including
-      a language. See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-language-tagged-string">languaged-tagged string</a></cite>
-      in [[!RDF-CONCEPTS]].
-    </dd>
-    <dt><dfn>typed literal</dfn></dt><dd>
-      A <a>typed literal</a> is a <a>literal</a> with an associated <a>IRI</a>
-      which indicates the literal's datatype.
-      See <cite><a href="http://www.w3.org/TR/rdf11-concepts/#dfn-typed-literal">languaged-tagged literal</a></cite> in [[!RDF-CONCEPTS]].
-    </dd>
-  </dl>
-</section>
-
-<section>
 <h2>Framing</h2>
 <p>Framing is the process of taking a JSON-LD document, which expresses a
   graph of information, and applying a specific graph layout
@@ -315,38 +241,6 @@ language-native data structures MUST be used where applicable.</p>
 <p>Framing makes use of the <a href="https://www.w3.org/TR/json-ld-api/#node-map-generation">Node Map Generation</a> algorithm
   to place each object defined in the JSON-LD document into a flat list of objects, allowing
   them to be operated upon by the framing algorithm.</p>
-
-<section id='framing-algorithm'>
-<h3>Framing Algorithm Terms</h3>
-
-<dl>
-  <dt><dfn>input frame</dfn></dt>
-  <dd>the initial <a>Frame</a> provided to the framing algorithm.</dd>
-  <dt><dfn>framing context</dfn></dt>
-  <dd>a context containing a <a>map of embeds</a>, the
-    <a>object embed flag</a>, the
-    <a>explicit inclusion flag</a> and the
-    <a>omit default flag</a>.</dd>
-  <dt><dfn>map of embeds</dfn></dt>
-  <dd>a map that tracks if a subject is to be embedded in the output of the
-    <a href="#framing-algorithm">Framing Algorithm</a>; it maps a subject
-    <code>@id</code> to a parent <a>JSON object</a> and property
-    or parent array.</dd>
-  <dt><dfn>object embed flag</dfn></dt>
-  <dd>a flag specifying that objects should be directly embedded in the output,
-    instead of being referred to by their IRI.</dd>
-  <dt><dfn>explicit inclusion flag</dfn></dt>
-  <dd>a flag specifying that for properties to be included in the output, they
-    must be explicitly declared in the <a>framing context</a>.</dd>
-  <dt><dfn>omit default flag</dfn></dt>
-  <dd>a flag specifying that properties that are missing from the
-    <a>JSON-LD input</a>, but present in the <a>input frame</a>
-    should be omitted from the output.</dd>
-  <dt><dfn>map of flattened subjects</dfn></dt>
-  <dd>a map of subjects that is the result of the
-    <a href="https://www.w3.org/TR/json-ld-api/#node-map-generation">Node Map Generation algorithm</a>.</dd>
-</dl>
-</section>
 
 <section>
 <h3>Framing Algorithm</h3>
