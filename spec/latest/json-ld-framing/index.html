@@ -257,7 +257,8 @@ language-native data structures MUST be used where applicable.</p>
 <p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>)
   and an <a>input frame</a> (<strong>expanded frame</strong>) that have been expanded
   according to the <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>,
-  and a number of options and produces <a>JSON-LD output</a>.</p>
+  and a number of options and produces <a>JSON-LD output</a>. When expanding the
+  <a>input frame</a>, pass <em>frame</em> set to <code>false</code>.</p>
 
 <p>Create <a>framing context</a> using <a>null</a> for the <a>map of embeds</a>,
     the <a>object embed flag</a> set to <a>true</a>, the
@@ -481,6 +482,35 @@ language-native data structures MUST be used where applicable.</p>
     append a copy of <em>item</em> to <a>active property</a> in <em>output</em>.</li>
 </ol>
 </section>
+
+<section>
+  <h2>Framing Extensions to the Expansion Algorithm</h2>
+  <p>To support the specifics of framing, the
+    <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>
+    is extended to support <dfn data-lt="free-floating node">free-floating nodes</dfn>.
+    A <a>free-floating node</a> is a <a>node reference</a> which is not used as an <a>object</a>.</p>
+  <p>When provided the <i>framing</i> boolean flag, the algorithm is modified as follows:</p>
+
+  <ul>
+    <li>In step <strong>7.4.3</strong>: if <em>value</em> is a <a>JSON object</a> an
+      error has not been detected, and <i>expanded value</i> is set to the result of
+      performing the
+      <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>
+      on <em>value</em> recursively, passing <a>active context</a>, <a>active property</a>,
+      and <em>value</em> for <em>element</em>.
+      <span class="ednote">dlongley: I think this is expanded, but not sure.</span></li>
+    <li>In step <strong>7.4.4</strong>: if <em>value</em> is an empty <a>JSON object</a> an
+      error has not been detected, and <i>expanded value</i> to <em>value</em>.</li>
+    <li>After step <strong>7.4.11</strong>: If <em>expanded property</em> is any other
+      framing keyword (<code>@explicit</code>, <code>@default</code>,
+      <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>,
+      <code>@preserve</code>, <code>@requireAll</code>),
+      set <em>expanded value</em> to the result of performing the <a
+      href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion
+      Algorithm</a> recursively, passing <a>active context</a>, <a>active
+      property</a>, and <em>value</em> for <em>element</em>.</li>
+    <li>Skip step <strong>12</strong>: <a>free-floating nodes</a> are retained.</li>
+  </ul>
 </section>
 
 </section>
