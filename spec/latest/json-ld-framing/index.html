@@ -530,26 +530,78 @@ language-native data structures MUST be used where applicable.</p>
   <section>
     <h3>JsonLdProcessor</h3>
 
-    <p>The JSON-LD processor interface is the high-level programming structure that developers
+    <p>The <a href="https://www.w3.org/TR/json-ld-api/#dfn-json-ld-processor" class="externalDFN">JSON-LD Processor</a> interface is the high-level programming structure that developers
       use to access the JSON-LD transformation methods. The definition below is an experimental
       extension of the interface defined in the [[JSON-LD-API]].</p>
 
     <pre class="idl">
       [NoInterfaceObject]
       interface JsonLdProcessor {
-          Promise frame(any input,
-            (object or IRI) frame,
-            JsonLdContext? context,
+          Promise<dictionary> frame(
+            Promise<(dictionary or sequence<dictionary> or DOMString)> input,
+            Promise<(dictionary or DOMString)> frame,
             optional JsonLdOptions? options);
       };
     </pre>
     <p>The <dfn>JsonLdProcessor</dfn> interface <a href="#framing">Frames</a>
       the given <code>input</code> using <a>JsonLdProcessor.frame.frame</a>
       according to the steps in the <a href="#framing-algorithm">Framing
-      Algorithm</a>. The <a>JsonLdProcessor.frame.input</a> parameter is used
-      to build the framed output and is returned if there are no errors. If
-      there are no matches for the frame, <a>null</a> MUST be returned.
-      Exceptions MUST be thrown if there are errors.</p>
+      Algorithm</a>:</p>
+    <ol class="algorithm">
+      <li>Create a new <a>Promise</a> <i>promise</i> and return it. The
+        following steps are then executed asynchronously.</li>
+      <li>If the passed <a>JsonLdProcessor.frame.input</a> is a <span class="idlParamType">DOMString</span>
+        representing the <a>IRI</a> of a remote document, dereference it.
+        If the retrieved document's content type is neither <code>application/json</code>,
+        nor <code>application/ld+json</code>, nor any other media type using a
+        <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
+        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+        error.</li>
+      <li>Initialize a new empty <a>active context</a>. The <a href="http://www.w3.org/TR/json-ld-api/#dfn-base-iri" class="externalDFN">base IRI</a>
+        of the <a>active context</a> is set to the IRI of the currently being processed
+        document, if available; otherwise to <a>null</a>. If set, the
+        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-base">base</a></code> option
+        overrides the <a href="http://www.w3.org/TR/json-ld-api/#dfn-base-iri" class="externalDFN">base IRI</a>.</li>
+      <li>If an
+        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
+        has been passed, update the <a>active context</a> using the
+        <a href="http://www.w3.org/TR/json-ld-api/#context-processing-algorithm">Context Processing algorithm</a>, passing the
+        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
+        as <a>local context</a>. If
+        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
+        is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
+      <li>If the <a>JsonLdProcessor.frame.input</a> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
+        using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
+        and a content type of <code>application/json</code> or any media type
+        with a <code>+json</code> suffix as defined in [[RFC6839]] except
+        <code>application/ld+json</code>, update the <a>active context</a> using the
+        <a href="http://www.w3.org/TR/json-ld-api/#context-processing-algorithm">Context Processing algorithm</a>, passing the
+        context referenced in the HTTP Link Header as <a>local context</a>. The
+        HTTP Link Header is ignored for documents served as <code>application/ld+json</code> If
+        multiple HTTP Link Headers using the <code>http://www.w3.org/ns/json-ld#context</code>
+        link relation are found, the <i>promise</i> is rejected with a
+        <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdError">JsonLdError</a> whose code is set to
+        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
+        and processing is terminated.</li>
+      <li>If the passed <a>JsonLdProcessor.frame.frame</a> is a <span class="idlParamType">DOMString</span>
+        representing the <a>IRI</a> of a remote document, dereference it.
+        If the retrieved document's content type is not <code>application/ld+json</code>,
+        reject the <i>promise</i> passing an
+        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+        error.</li>
+      <li>Set <i>expanded input</i> to the result of using the
+        <a href="http://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion algorithm</a>, passing the
+        <a>active context</a> and <a>JsonLdProcessor.frame.input</a> as <i>element</i>.</li>
+      <li>Once <a>JsonLdProcessor.frame.frame</a> has been retrieved, set <i>expanded frame</i> to the result of using the
+        <a href="http://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion algorithm</a>,
+        passing <a>JsonLdProcessor.frame.frame</a> as <i>element</i>, and a new
+        empty <a>context</a> along with the <em>framing</em> flag set to <strong>true</strong>.</li>
+      <li>Set <i>framed</i> to the result of using the
+        <a href="#framing-algorithm">Framing algorithm</a>, passing
+        <strong>expanded input</strong>, and  <strong>expanded frame</strong>.</li>
+      <li>Fulfill the <i>promise</i> passing <i>framed</i>.</li>
+    </ol>
+
     <dl class="parameters">
       <dt><dfn>JsonLdProcessor.frame.input</dfn></dt>
        <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
@@ -562,6 +614,20 @@ language-native data structures MUST be used where applicable.</p>
         input document's base <a>IRI</a>.</dd>
     </dl>
 
+  </section>
+
+  <section>
+    <h3>Error Handling</h3>
+    <pre class="idl">
+      dictionary JsonLdFramingError {
+        JsonLdFramingErrorCode code;
+        DOMString? message = null;
+      };
+      enum JsonLdFramingErrorCode {
+      };
+    </pre>
+    <p>JSON-LD Framing extends the error interface and codes defined in
+      <cite><a href="http://www.w3.org/TR/json-ld-api/#error-handling"></a></cite> [[JSON-LD-API]].
   </section>
 
   <section>
