@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<title>JSON-LD Framing 1.0</title>
+<title>JSON-LD Framing 1.1</title>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
 <script type="text/javascript" src="https://www.w3.org/Tools/respec/respec-w3c-common" class="remove"></script>
 <script type="text/javascript" src="../common/common.js" class="remove"></script>
@@ -101,6 +101,23 @@
 </script>
 <style type="text/css">
   .diff { font-weight:bold; color:#0a3; }
+  .error a {
+    color:  #ff4500;
+    border-bottom:  1px dotted #ff4500;
+    text-decoration: none;
+  }
+  ol.algorithm {
+    counter-reset: numsection;
+    list-style-type: none;
+  }
+  ol.algorithm li {
+    margin: 0.5em 0;
+  }
+  ol.algorithm li:before {
+    font-weight: bold;
+    counter-increment: numsection;
+    content: counters(numsection, ".") ") ";
+  }
 </style>
 </head>
 
@@ -150,7 +167,7 @@ Data in JSON. The document is primarily intended for the following audiences:
 
 <p>
 To understand the basics in this specification you must first be familiar with
-JSON, which is detailed in [[!RFC4627]]. You must also understand the
+JSON, which is detailed in [[!RFC7159]]. You must also understand the
 JSON-LD Syntax [[!JSON-LD]], which is the base syntax used by all of the
 algorithms in this document,
 and the JSON-LD API [[!JSON-LD-API]]. To understand the API and how it is
@@ -200,9 +217,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <h1>Algorithms</h1>
 
 <p>All algorithms described in this section are intended to operate on
-language-native data structures. That is, the serialization to a text-based
-JSON document isn't required as input or output to any of these algorithms and
-language-native data structures MUST be used where applicable.</p>
+  language-native data structures. That is, the serialization to a text-based
+  JSON document isn't required as input or output to any of these algorithms and
+  language-native data structures MUST be used where applicable.</p>
+
+<p>Reference to JSON data structures are interpreted using their <em>abstract representation</em> for the purpose
+  of describing algorithms.</p>
 
 <section>
   <h2>Syntax Tokens and Keywords</h2>
@@ -216,12 +236,36 @@ language-native data structures MUST be used where applicable.</p>
       an output property when the framed <a>node definition</a> does not include such a property.</dd>
     <dt><code>@embed</code></dt>
     <dd>Used in <a href="#framing">Framing</a> to override the
-      value of <a>object embed flag</a> within a specific frame.</dd>
+      value of <a>object embed flag</a> within a specific frame. Valid values for
+      <code>@embed</code> as the following:
+      <dl>
+        <dt><code>@always</code></dt><dd>
+          Always embed <a>node definitions</a> as property values, unless this would
+          cause a circular reference.
+        </dd>
+        <dt><code>@last</code></dt><dd>
+          Only the last value within a given <a>node definition</a> should be embedded,
+          previous values of other properties use a <a>node reference</a>. This is the
+          default value if neither <code>@embed</code> nor <a>object embed flag</a>
+          is not specified.
+        </dd>
+        <dt><code>@link</code></dt><dd>
+          In the in-memory <em>abstract representation</em>, nodes are linked directly,
+          which allows for circular references.
+          Always use a <a>node reference</a> when serializing matching values.
+          <span class="ednote">Do we want to describe this here? Or, perhaps
+            in a separate JSON-LD Linking document?</span>
+        </dd>
+        <dt><code>@never</code></dt><dd>
+          Always use a <a>node reference</a> when serializing matching values.
+        </dd>
+      </dl>
+    </dd>
     <dt><code>@explicit</code></dt>
     <dd>Used in <a href="#framing">Framing</a> to override the
       value of <a>explicit inclusion flag</a> within a specific frame.</dd>
     <dt><code>@null</code></dt>
-    <dd>Used in <a href="#framing">Framing</a> when a value of <a>null</a>
+    <dd>Used in <a href="#framing">Framing</a> when a value of <code>null</code>
       should be returned, which would otherwise be removed when
       <a href="https://www.w3.org/TR/json-ld-api/#compaction">Compacting</a>.</dd>
     <dt><code>@omitDefault</code></dt>
@@ -254,42 +298,38 @@ language-native data structures MUST be used where applicable.</p>
   <ul>
     <li>Framing adds the following <a>keywords</a> used as keys, which MUST be preserved when expanding:
       <ul>
-        <li><code>@default</code></li>
-        <li><code>@embed</code></li>
-        <li><code>@explicit</code></li>
-        <li><code>@omitDefault</code></li>
-        <li><code>@preserve</code></li>
+        <li><code>@default</code>,</li>
+        <li><code>@embed</code>,</li>
+        <li><code>@explicit</code>,</li>
+        <li><code>@omitDefault</code>,</li>
+        <li><code>@preserve</code>, and</li>
         <li><code>@requireAll</code></li>
       </ul>
       <p>Additionally, values of the <code>@embed</code> key MUST only be one of
         the following keyword values, or an <a>array</a> containing only one of
         these values:</p>
       <ul>
-        <li><code>@always</code></li>
-        <li><code>@last</code></li>
-        <li><code>@link</code></li>
-        <li><code>@never</code></li>
+        <li><code>@always</code>,</li>
+        <li><code>@last</code>,</li>
+        <li><code>@link</code>,</li>
+        <li><code>@never</code>,</li>
+        <li><code>true</code> (equivalent to <code>@last</code>), or</li>
+        <li><code>false</code> (equivalent to <code>@never</code>)</li>
       </ul>
       <p>Otherwise, an
         <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-embed-value">invalid @embed value</a></code>
         error has been detected and processing is aborted.</p>
-      <ul>
-        <li><code>@null</code></li>
-      </ul>
-      <p>Additionally, the <code>@default</code> may include the value <code>@null</code>,
-        or an <a>array</a> containing only <code>@null</code>.</p>
+      <p>Additionally, values of <code>@default</code> may include the value <code>@null</code>,
+        or an <a>array</a> containing only <code>@null</code> in addition to other values
+        allowed in the grammar for <a>absolute IRIs</a>.</p>
     </li>
   </ul>
 
   <p>The values of <code>@id</code> and <code>@type</code> may also be an empty <a>JSON object</a>, or an <a>array</a>
     containing only an empty <a>JSON object</a>. Processors MUST preserve this value
     when expanding.</p>
-
-  <p class="ednote">Describe normative requirements for processing a document and frame.
-    This should allow the algorithm to be informative, rather than normative.</p>
-</p>
-<p>A <a href="https://www.w3.org/TR/json-ld-api/#dfn-json-ld-processor" class="externalDFN">JSON-LD Processor</a> has a number of objective requirements to allow 
 </section>
+
 <section>
 <h3>Framing Algorithm</h3>
 
@@ -302,147 +342,148 @@ language-native data structures MUST be used where applicable.</p>
   does not allow to be more specific about the types of values selected. Allowing this is currently
   being discussed.</p>
 
-<p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>)
-  and an <a>input frame</a> (<strong>expanded frame</strong>) that have been expanded
-  according to the <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>,
-  and a number of options and produces <a>JSON-LD output</a>. When expanding the
-  <a>input frame</a>, pass <em>frame</em> set to <code>false</code>.</p>
+<p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>),
+  which  MUST be a <a>JSON-LD document</a> in
+  <a href="http://www.w3.org/TR/json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
+  and an <a>input frame</a> (<strong>expanded frame</strong>),
+  which  MUST be a <a>JSON-LD document</a> in
+    <a href="http://www.w3.org/TR/json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
+  and a number of options and produces <a>JSON-LD output</a>.</p>
 
-<p>Create <a>framing context</a> using <a>null</a> for the <a>map of embeds</a>,
-    the <a>object embed flag</a> set to <strong>true</strong>,
-    the <a>explicit inclusion flag</a> set to <code>false</code>,
-    the <a>require all flag</a> set to <strong>true</strong>
-    and the <a>omit default flag</a> set to <code>false</code>
-    along with <a>map of flattened subjects</a>
-    set to the <code>@merged</code> property of the result of performing the
-    <a href="https://www.w3.org/TR/json-ld-api/#node-map-generation">Node Map Generation</a> algorithm on
-    <strong>expanded input</strong>. Also create <em>results</em> as an empty <a>array</a>.</p>
+<p>If an error is detected in the <strong>expanded frame</strong>, a processor MUST
+  generate a <a>JsonLdFramingError</a> with <a>JsonLdFramingError.code</a> set to "invalid frame".
+  <span class="ednote">Need more specifics as to what consititues a valid frame.</span></p>
+
+<p>The recursive algorithm operates with a <a>framing context</a> (<em>state</em>),
+  created initially using
+  the <a>object embed flag</a> set to <code>true</code>,
+  the <a>explicit inclusion flag</a> set to <code>false</code>,
+  the <a>require all flag</a> set to <code>true</code>,
+  and the <a>omit default flag</a> set to <code>false</code>
+  along with <a>map of flattened subjects</a>
+  set to the <code>@merged</code> property of the result of performing the
+  <a href="https://www.w3.org/TR/json-ld-api/#node-map-generation">Node Map Generation</a> algorithm on
+  <strong>expanded input</strong>,
+  <em>subjectStack</em> set to an empty <a>array</a>,
+  <em>link</em> set to an empty <a>dictionary</a>.
+  Also initialize <em>results</em> as an empty <a>array</a>.</p>
 
 <p>Invoke the recursive algorithm using <a>framing context</a> (<em>state</em>),
   the keys from the <a>map of flattened subjects</a> as <em>subjects</em>,
   <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
-  <a>null</a> as <a>active property</a>.</p>
+  <code>null</code> as <a>active property</a>.</p>
+
+<p>The recursive algorithm adds elements to <em>parent</em> either by appending
+  the element to <em>parent</em>, if it is an <a>array</a>, or by appending it
+  to an array associated with <em>active property</em> in <em>parent</em>, if it is a <a>dictionary</a>.
+  Note that if <em>parent</em> is an <a>array</a>, <em>active property</em> MUST be <code>null</code>,
+  and if it is a <a>dictionary</a>, it MUST NOT be <code>null</code>.</p>
 
 <p>The following series of steps is the recursive
   portion of the framing algorithm:</p>
 
 <ol class="algorithm">
-  <li>Validate <em>frame</em>.</li>
-  <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>:
+  <li>If <em>frame</em> is an <a>array</a>, set <em>frame</em> to the first member of the <a>array</a>, which MUST be a valid <a>frame</a>.</li>
+  <li>Initialize flags <em>embed</em>, <em>explicit</em>, and <em>requireAll</em> from
+    <a>object embed flag</a>, <a>explicit inclusion flag</a>, and
+    <a>require all flag</a> in <em>state</em> overriding from any property values
+    for <code>@embed</code>, <code>@explicit</code>, and <code>@requireAll</code> in <em>frame</em>.</li>
+  <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>.
+    A <a>node definition</a> (<em>node</em>) associated with a subject from the <a>map of flattened subjects</a>
+    matches <em>frame</em> in the following circumstances:
     <ol class="algorithm">
-      <li>Let <em>node</em> be the <a>node definition</a> from the
-        <a>map of flattened subjects</a> for the subject to check.</li>
-      <li>If <em>frame</em> has a <code>@type</code> property containing
-        one or more <a>IRIs</a> match <em>node</em> if it has
-        a <code>@type</code> property including any of those <a>IRIs</a>.</li>
-      <li>Otherwise, if <em>frame</em> has a <code>@type</code> property containing only
-        a empty <a>JSON object</a> it matches <em>node</em> if it has
-        a <code>@type</code> property, regardless of the actual values.</li>
-      <li>Otherwise, match if <em>frame</em> has a string value for <code>@id</code> which
-        equals the same value in <em>node</em>.
-      <li>Otherwise, match if the <a>node definition</a> contains all of the
-        non-<a>keyword</a> properties in <em>frame</em>.</li>
+      <li>A subject MUST match if <em>node</em> has a <code>@type</code> property including any <em>IRI</em> from the corresponding <code>@type</code> property in <em>frame</em>.</li>
+      <li>Otherwise, a subject MUST match if <em>node</em> has a <code>@type</code> any property and <em>frame</em> has a <code>@type</code> property containing only an empty <a>JSON object</a>.</li>
+      <li>Otherwise, a subject MUST match if <em>node</em> and <em>frame</em> both have the same <code>@id</code> property.</li>
+      <li>Otherwise, a subject MUST NOT match if <em>node</em> has a non-null property value where <em>frame</em> has an empty <a>array</a> for that same property.</li>
+      <li>Otherwise, a subject MUST match if <em>requireAll</em> is <code>false</code> and both node and frame contain
+        common non-<a>keyword</a> properties of any value.
+        <span class="ednote">Having any value might not be adequate, as contained nodes might have other matching
+          critera that could fail to match.</span></li>
+      <li>Otherwise, a subject MUST match if <em>requireAll</em> is <code>false</code> and frame contains
+        a non-keyword key not present in node, where the value is a JSON object
+        containing only the key <code>@default</code> with any value.</li>
+      <li>Otherwise, a subject MUST match if <em>requireAll</em> is <code>true</code>
+        and all the non-<a>keyword</a> properties in <em>node</em> and <em>frame</em> match either if the previous conditions.</li>
+      <li>Otherwise, a subject MUST NOT match.</li>
     </ol>
   </li>
-  <li>Get values for <em>embedOn</em> and <em>explicitOn</em> by looking in <em>frame</em>
-    for the keys <code>@embed</code> and <code>@explicit</code> using the current values
-    for <a>object embed flag</a> and <a>explicit inclusion flag</a> from <em>state</em> if not found.</li>
-  <li>For each <em>id</em> and <em>subject</em> from the set of matched subjects, ordered by <em>id</em>:
+  <li>For each <em>id</em> and associated <a>node definition</a> <em>node</em>
+    from the set of matched subjects, ordered by <em>id</em>:
+    <p class="ednote">Can we remove sorting, or make it subject to a processing
+      flag? In general, sorting is a performance problem for JSON-LD, and
+      inhibits stream processing.</p>
     <ol class="algorithm">
-      <li>If the <a>active property</a> is <a>null</a>, set the <a>map of embeds</a> in
-        <em>state</em> to an empty map.</li>
-      <li>Initialize <em>output</em> with <code>@id</code> and <em>id</em>.</li>
-      <li>Initialize <em>embed</em> with <em>parent</em> and <a>active property</a> to
-        <em>property</em>.</li>
-      <li>If <em>embedOn</em> is <strong>true</strong>, and <em>id</em> is in <a>map of embeds</a>
-        from <em>state</em>:
+      <li>Initialize <em>output</em> to a new <a>dictionary</a> with <code>@id</code> and <em>id</em>
+        and add <em>output</em> to <em>link</em> associated with <em>id</em>.</li>
+      <li>If <em>embed</em> is <code>@link</code> and <em>id</em> is in <em>link</em>,
+        <em>node</em> already exists in <em>results</em>. Processors MUST add
+        the associated <a>node definition</a> from <em>link</em> to <em>parent</em>
+        and MUST NOT perform additional processing for this <em>node</em>.</li>
+      <li>Otherwise, if <em>embed</em> is <code>@never</code> or if a
+        circular reference would be created by an embed,
+        processors MUST add <em>output</em> to <em>parent</em>
+        and MUST NOT perform additional processing for this <em>node</em>.</li>
+      <li>Otherwise, if <em>embed</em> is <code>@last</code>,
+        any existing embedded node MUST be removed from <em>parent</em>.
+        <span class="ednote">Requires sorting of subjects. We could consider <code>@sample</code>, to embed
+          just the first matched node. With sorting, we could also consider <code>@first</code>.</span></li>
+      <li>If <em>embed</em> is <code>@last</code> or <code>@always</code>
         <ol class="algorithm">
-          <li>Set <em>existing</em> to the value of <em>id</em> in <a>map of embeds</a>
-            and set <em>embedOn</em> to <code>false</code>.</li>
-          <li>If <em>existing</em> has a <em>parent</em> which is an <a>array</a> containing a
-            <a>JSON object</a> with <code>@id</code> equal to <em>id</em>, <em>element</em> has
-            already been embedded and can be overwritten, so set <em>embedOn</em> to <strong>true</strong>.</li>
-          <li>Otherwise, <em>existing</em> has a <em>parent</em> which is a <a>node definition</a>.
-            Set <em>embedOn</em> to <strong>true</strong> if any of the items in <em>parent</em> <em>property</em>
-            is a <a>node definition</a>
-            or <a>node reference</a> for <em>id</em> because the embed can be overwritten.
-          </li>
-          <li>If <em>embedOn</em> is <strong>true</strong>, <em>existing</em> is already embedded but
-            can be overwritten, so <a href="#remove-embed">Remove Embedded Definition</a> for <em>id</em>.
-          </li>
-        </ol>
-      </li>
-      <li>If <em>embedOn</em> is <code>false</code>, add <em>output</em> to <em>parent</em>
-        by either appending to <em>parent</em> if it is an <a>array</a>, or appending
-        to <a>active property</a> in <em>parent</em> otherwise.</li>
-      <li>Otherwise:
-        <ol class="algorithm">
-          <li>Add <em>embed</em> to <a>map of embeds</a> for <em>id</em>.</li>
-          <li>Process each <em>property</em> and <em>value</em> in the matched <em>subject</em>, ordered
-            by <em>property</em>:
+          <li>For each <em>property</em> and <em>objects</em> in <em>node</em>, ordered by <em>property</em>:
             <ol class="algorithm">
-              <li>If <em>property</em> is a <a>keyword</a>, add <em>property</em> and a copy of <em>value</em>
-                to <em>output</em> and continue with the next property from <em>subject</em>.</li>
-              <li>If <em>property</em> is not in <em>frame</em>:
+              <li>If <em>property</em> is a <a>keyword</a>, processors MUST add <em>property</em> and <em>objects</em>
+                to <em>output</em>.</li>
+              <li>Otherwise, if <em>property</em> is not in <em>frame</em>, and <em>explicit</em> is <code>false</code>,
+                processors MUST NOT add any values for <em>property</em> to <em>output</em>.</li>
+              <li>For each <em>item</em> in <em>objects</em>:
                 <ol class="algorithm">
-                  <li>If <em>explicitOn</em> is <code>false</code>, <a href="#embed-values">Embed values</a>
-                    from <em>subject</em> in <em>output</em> using <em>subject</em> as <em>element</em> and
-                    <em>property</em> as <em>active property</em>.</li>
-                  <li>Continue to next property.</li>
-                </ol>
-              </li>
-              <li id="frm-process-prop-item">Process each <em>item</em> from <em>value</em> as follows:
-                <ol class="algorithm">
-                  <li>If <em>item</em> is a <a>JSON object</a> with the key <code>@list</code>, then
-                    create a <a>JSON object</a> named <em>list</em> with the key <code>@list</code> and
-                    the value of an empty array. Append <em>list</em> to <em>property</em> in
-                    <em>output</em>. Process each <em>listitem</em> in the <code>@list</code> array as follows:
+                  <li>If <em>item</em> is a <a>dictionary</a> with the property <code>@list</code>, then each
+                    <em>listitem</em> in the list is processed in sequence and added to a new list <a>dictionary</a>
+                    in output:
                     <ol class="algorithm">
-                      <li>If <em>listitem</em> is a <a>node reference</a>
-                        process <em>listitem</em> recursively using this algorithm passing a new map of
-                        <em>subjects</em> that contains the <code>@id</code> of <em>listitem</em> as the key
-                        and the <a>node definition</a> from the original <a>map of flattened subjects</a>
-                        as the value. Pass the first value from
-                        <em>frame</em> for <em>property</em> as <em>frame</em>, <em>list</em>
-                        as <em>parent</em>, and <code>@list</code> as <a>active property</a>.</li>
+                      <li>If <em>listitem</em> is a <a>node reference</a>, processors MUST
+                        invoke the recursive algorithm using <em>state</em>,
+                        the value of <code>@id</code> from <em>listitem</em>
+                        as the sole member of a new <em>subjects</em> <a>array</a>,
+                        the first value from <code>@list</code> in <em>frame</em> as <em>frame</em>,
+                        <em>list</em> as <em>parent</em>, and <code>@list</code> as <em>active property</em>.
+                        <span class="ednote">Could this use the <em>list</em> <a>array</a>, and <code>null</code> for <em>active property</em>?</span></li>
                       <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
                     </ol>
                   </li>
-                  <li>If <em>item</em> is a <a>node reference</a>
-                    process <em>item</em> recursively using this algorithm passing a new map as
-                    <em>subjects</em> that contains the <code>@id</code> of <em>item</em> as the key and
-                    the <a>node definition</a> from the original <a>map of flattened subjects</a>
-                    as the value. Pass the first value from
-                    <em>frame</em> for <em>property</em> as <em>frame</em>, <em>output</em>
-                    as <em>parent</em>, and <em>property</em> as <a>active property</a>.
-                  <div class="issue">Passing a <a>node reference</a> doesn't work if this map
-                    is used recursively. Presently pass <a>node definition</a> from original
-                    <a>map of flattened subjects</a>.</div></li>
+                  <li>If <em>item</em> is a <a>node reference</a>, processors MUST
+                    invoke the recursive algorithm using <em>state</em>,
+                    the value of <code>@id</code> from <em>item</em>
+                    as the sole member of a new <em>subjects</em> <a>array</a>,
+                    the first value from <em>property</em> in <em>frame</em> as <em>frame</em>,
+                    <em>output</em> as <em>parent</em>, and <em>property</em> as <em>active property</em>.</li>
                   <li>Otherwise, append a copy of <em>item</em> to <a>active property</a> in
                     <em>output</em>.</li>
                 </ol>
               </li>
             </ol>
           </li>
-          <li>Process each <em>property</em> and <em>value</em> in <em>frame</em>,
-            where <em>property</em> is not a <em>keyword</em>, ordered by <em>property</em>:
+
+          <li>For each non-<a>keyword</a> <em>property</em> and <em>objects</em> in <em>frame</em> that is not in <em>output</em>:
             <ol class="algorithm">
-              <li>Set <em>property frame</em> to the first item in <em>value</em> or a newly created
-                <a>JSON object</a> if <em>value</em> is empty.</li>
-              <li>Skip to the next property in <em>frame</em> if <em>property</em> is in <em>output</em>
-                or if <em>property frame</em> contains
-                <code>@omitDefault</code> which is <a>true</a> or if it does not contain
-                <code>@omitDefault</code> but the value of <a>omit default flag</a>
-                <strong>true</strong>.</li>
-              <li>Set the value of <em>property</em> in <em>output</em> to a new <a>JSON object</a>
-                with a property <code>@preserve</code> and a value that is a copy of the value
-                of <code>@default</code> in <em>frame</em> if it exists, or the string
-                <code>@null</code> otherwise.</li>
+              <li>Let <em>item</em> be the first element in <em>objects</em>, which MUST be a <a>dictionary</a>.</li>
+              <li>Set <em>property frame</em> to the first item in <em>objects</em> or a newly created <a>dictionary</a> if value is <em>objects</em>.
+                <em>property frame</em> MUST be a dictionary.</li>
+              <li>Processors MUST skip <em>property</em> and <em>property frame</em> if <em>property frame</em> contains
+                <code>@omitDefault</code> with a value of <code>true</code>,
+                or does not contain <code>@omitDefault</code> and the value of
+                the <a>omit default flag</a> is <code>true</code>.</li>
+              <li>Set the value of <em>property</em> in <em>output</em> to a
+                new <a>dictionary</a> with a property <code>@preserve</code> and
+                a value that is a copy of the value of <code>@default</code> in
+                <em>frame</em> if it exists, or the string <code>@null</code>
+                otherwise.</li>
             </ol>
           </li>
           <li>Add <em>output</em> to <em>parent</em>.
             If <em>parent</em> is an <a>array</a>, append <em>output</em>, otherwise
-            append <em>output</em> to <a>active property</a> in <em>parent</em>.</li>
+          <li>Add <em>output</em> to <em>parent</em>.</li>
         </ol>
       </li>
     </ol>
@@ -459,81 +500,10 @@ language-native data structures MUST be used where applicable.</p>
   the <code>@graph</code> keyword at the top-level, even if the context is empty or if there
   is only one element to put in the <code>@graph</code> array. Subsequently, replace all key-value
   pairs where the key is <code>@preserve</code> with the value from the key-pair. If the value
-  from the key-pair is <code>@null</code>, replace the value with <a>null</a>. If,
+  from the key-pair is <code>@null</code>, replace the value with <code>null</code>. If,
   after replacement, an array contains only the value <a>null</a> remove the value, leaving
   an empty array. The resulting value is the final <a>JSON-LD output</a>.</p>
 
-</section>
-
-<section id="remove-embed">
-<h3>Remove Embedded Definition</h3>
-<p>This algorithm replaces an already embedded <a>node definition</a> with a
-  <a>node reference</a>. It then recursively removes any entries in the
-  <a>map of embeds</a> that had the removed <a>node definition</a> in
-  their parent chain.</p>
-<p class="issue">About as clear as mud</p>
-<p class="issue" data-number="119">The current behaviour avoids embedding the same data
-  multiple times in the result makes it difficult to work with the output. A proposal
-  to change this to "agressive re-embedding" is currently being discussed.</p>
-<p>The algorithm is invoked with a <a>framing context</a> and subject id <em>id</em>.</p>
-<ol class="algorithm">
-  <li>Find <em>embed</em> from <a>map of embeds</a> for <em>id</em>.</li>
-  <li>Let <em>parent</em> and <em>property</em> be from <em>embed</em>.</li>
-  <li>If <em>parent</em> is an array, replace the <a>node definition</a> that matches
-    <em>id</em> with a <a>node reference</a>. If parent is a <a>JSON object</a>,
-    replace the <a>node definition</a> for <em>property</em> that matches <em>id</em>
-    with a <a>node reference</a>.</li>
-  <li>Remove dependents for <em>id</em> in <a>map of embeds</a>
-    by scanning the map for entries with <em>parent</em> that have an <code>@id</code> of <em>id</em>,
-    removing that definition from the map, and then removing the dependents for the <em>parent</em> id
-    recursively by repeating this step. This step will terminate when there are no more embed
-    entries containing the removed <a>node definition</a>'s <code>@id</code> in their
-    parent chain.</li>
-</ol>
-</section>
-
-<section id="embed-values">
-<h3>Embed Values</h3>
-<p>This algorithm recursively embeds property values in <a>node definition</a> <em>output</em>, given a
-  <a>framing context</a>, input <a>node definition</a> <em>element</em>, <a>active property</a>,
-  and <em>output</em>.</p>
-<ol class="algorithm">
-  <li>For each <em>item</em> in <a>active property</a> of <em>element</em>:
-    <ol class="algorithm">
-      <li>If <em>item</em> is a <a>JSON object</a> with the key <code>@list</code>,
-        then create a new <a>JSON object</a> with a key <code>@list</code> and
-        a value of an empty array and add it to <em>output</em>, appending if <em>output</em>
-        is an array, and appending to <a>active property</a> otherwise. Recursively call this
-        algorithm passing <em>item</em> as <em>element</em>, <code>@list</code> as <a>active property</a>,
-        and the new array as <em>output</em>. Continue to the next <em>item</em>.</li>
-      <li>If <em>item</em> is a <a>node reference</a>:
-        <ol class="algorithm">
-          <li>If <a>map of embeds</a> does not contain an entry for the <code>@id</code> of <em>item</em>:
-            <ol class="algorithm">
-              <li>Initialize <em>embed</em> with <em>output</em> as <em>parent</em> and
-                <a>active property</a> as <em>property</em>
-                and add to <a>map of embeds</a>.</li>
-              <li>Initialize a new <a>node definition</a> <em>o</em> to act as the
-                embedded <a>node definition</a>.</li>
-              <li>For each <em>property</em> and <em>value</em> in the expanded definition for
-                <em>item</em> in <em>subjects</em>:
-                <ol class="algorithm">
-                  <li>Add <em>property</em> and a copy of <em>value</em> to <em>o</em> if <em>property</em>
-                    is a <a>keyword</a>.</li>
-                  <li>Otherwise, recursively call this algorithm passing <em>value</em> as <em>element</em>,
-                    <em>property</em> as <a>active property</a> and <em>o</em> as <em>output</em>.</li>
-                </ol>
-              </li>
-            </ol>
-          </li>
-          <li>Set <em>item</em> to <em>o</em>.</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-  <li>If <em>output</em> is an <a>array</a>, append a copy of <em>item</em>, otherwise
-    append a copy of <em>item</em> to <a>active property</a> in <em>output</em>.</li>
-</ol>
 </section>
 
 <section>
@@ -542,18 +512,18 @@ language-native data structures MUST be used where applicable.</p>
     <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>
     is extended to support <dfn data-lt="free-floating node">free-floating nodes</dfn>.
     A <a>free-floating node</a> is a <a>node reference</a> which is not used as an <a>object</a>.</p>
-  <p>When provided the <i>framing</i> boolean flag, the algorithm is modified as follows:</p>
+  <p>When run in the <strong>json-ld-framing-1.1-expand-frame</strong> processing mode, the algorithm is modified as follows:</p>
 
   <ul>
     <li>In step <strong>7.4.3</strong>: if <em>value</em> is a <a>JSON object</a> an
-      error has not been detected, and <i>expanded value</i> is set to the result of
+      error has not been detected, and <em>expanded value</em> is set to the result of
       performing the
       <a href="https://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion Algorithm</a>
       on <em>value</em> recursively, passing <a>active context</a>, <a>active property</a>,
       and <em>value</em> for <em>element</em>.
       <span class="ednote">dlongley: I think this is expanded, but not sure.</span></li>
     <li>In step <strong>7.4.4</strong>: if <em>value</em> is an empty <a>JSON object</a> an
-      error has not been detected, and <i>expanded value</i> to <em>value</em>.</li>
+      error has not been detected, and <em>expanded value</em> to <em>value</em>.</li>
     <li>After step <strong>7.4.11</strong>: If <em>expanded property</em> is any other
       framing keyword (<code>@explicit</code>, <code>@default</code>,
       <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>,
@@ -598,58 +568,20 @@ language-native data structures MUST be used where applicable.</p>
       according to the steps in the <a href="#framing-algorithm">Framing
       Algorithm</a>:</p>
     <ol class="algorithm">
-      <li>Create a new <a>Promise</a> <i>promise</i> and return it. The
+      <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
         following steps are then executed asynchronously.</li>
-      <li>If the passed <a>JsonLdProcessor.frame.input</a> is a <span class="idlParamType">DOMString</span>
-        representing the <a>IRI</a> of a remote document, dereference it.
-        If the retrieved document's content type is neither <code>application/json</code>,
-        nor <code>application/ld+json</code>, nor any other media type using a
-        <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
-        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-        error.</li>
-      <li>Initialize a new empty <a>active context</a>. The <a href="http://www.w3.org/TR/json-ld-api/#dfn-base-iri" class="externalDFN">base IRI</a>
-        of the <a>active context</a> is set to the IRI of the currently being processed
-        document, if available; otherwise to <a>null</a>. If set, the
-        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-base">base</a></code> option
-        overrides the <a href="http://www.w3.org/TR/json-ld-api/#dfn-base-iri" class="externalDFN">base IRI</a>.</li>
-      <li>If an
-        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
-        has been passed, update the <a>active context</a> using the
-        <a href="http://www.w3.org/TR/json-ld-api/#context-processing-algorithm">Context Processing algorithm</a>, passing the
-        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
-        as <a>local context</a>. If
-        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code>
-        is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
-      <li>If the <a>JsonLdProcessor.frame.input</a> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
-        using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
-        and a content type of <code>application/json</code> or any media type
-        with a <code>+json</code> suffix as defined in [[RFC6839]] except
-        <code>application/ld+json</code>, update the <a>active context</a> using the
-        <a href="http://www.w3.org/TR/json-ld-api/#context-processing-algorithm">Context Processing algorithm</a>, passing the
-        context referenced in the HTTP Link Header as <a>local context</a>. The
-        HTTP Link Header is ignored for documents served as <code>application/ld+json</code> If
-        multiple HTTP Link Headers using the <code>http://www.w3.org/ns/json-ld#context</code>
-        link relation are found, the <i>promise</i> is rejected with a
-        <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdError">JsonLdError</a> whose code is set to
-        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
-        and processing is terminated.</li>
-      <li>If the passed <a>JsonLdProcessor.frame.frame</a> is a <span class="idlParamType">DOMString</span>
-        representing the <a>IRI</a> of a remote document, dereference it.
-        If the retrieved document's content type is not <code>application/ld+json</code>,
-        reject the <i>promise</i> passing an
-        <code class="error"><a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-        error.</li>
-      <li>Set <i>expanded input</i> to the result of using the
-        <a href="http://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion algorithm</a>, passing the
-        <a>active context</a> and <a>JsonLdProcessor.frame.input</a> as <i>element</i>.</li>
-      <li>Once <a>JsonLdProcessor.frame.frame</a> has been retrieved, set <i>expanded frame</i> to the result of using the
-        <a href="http://www.w3.org/TR/json-ld-api/#expansion-algorithm">Expansion algorithm</a>,
-        passing <a>JsonLdProcessor.frame.frame</a> as <i>element</i>, and a new
-        empty <a>context</a> along with the <em>framing</em> flag set to <strong>true</strong>.</li>
-      <li>Set <i>framed</i> to the result of using the
+      <li>Set <em>expanded input</em> to the result of using the
+        <a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a>
+        method using <a>JsonLdProcessor.frame.input</a> and <a>JsonLdProcessor.frame.options</a>.
+      <li>Set <em>expanded frame</em> to the result of using the
+        <a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a> method using
+        <a>JsonLdProcessor.frame.frame</a> and <a>JsonLdProcessor.frame.options</a> with
+        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code> set to <code>null</code>
+        and <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-processingMode">processingMode</a></code> set to <strong>"json-ld-framing-1.1-expand-frame"</strong>.
+      <li>Set <em>framed</em> to the result of using the
         <a href="#framing-algorithm">Framing algorithm</a>, passing
-        <strong>expanded input</strong>, and  <strong>expanded frame</strong>.</li>
-      <li>Fulfill the <i>promise</i> passing <i>framed</i>.</li>
+        <em>expanded input</em>, and  <em>expanded frame</em>.</li>
+      <li>Fulfill the <em>promise</em> passing <em>framed</em>.</li>
     </ol>
 
     <dl class="parameters">
@@ -674,6 +606,7 @@ language-native data structures MUST be used where applicable.</p>
         DOMString? message = null;
       };
       enum JsonLdFramingErrorCode {
+        "invalid frame"
       };
     </pre>
     <p>JSON-LD Framing extends the error interface and codes defined in
