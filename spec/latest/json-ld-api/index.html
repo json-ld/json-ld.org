@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>JSON-LD 1.0 Processing Algorithms and API</title>
+<title>JSON-LD 1.1 Processing Algorithms and API</title>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
 <script type="text/javascript" src="https://www.w3.org/Tools/respec/respec-w3c-common" class="remove"></script>
 <script type="text/javascript" src="../common/common.js" class="remove"></script>
@@ -178,7 +178,7 @@
     of the algorithms in this document. To understand the API and how it is
     intended to operate in a programming environment, it is useful to have working
     knowledge of the JavaScript programming language [[ECMA-262]] and
-    WebIDL [[WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
+    WebIDL [[WebIDL-2]]. To understand how JSON-LD maps to RDF, it is helpful to be
     familiar with the basic RDF concepts [[RDF11-CONCEPTS]].</p>
 </section> <!-- end of Introduction -->
 
@@ -276,7 +276,7 @@
       and regular way of expressing of values in JSON-LD; all contextual
       information from the document is instead stored locally with each value.
       Running the <a href="#expansion-algorithm">Expansion algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options">expand</a></code>
+      (<a data-link-for="JsonLdProcessor">expand</a>)
       operation) against the above examples results in the following output:</p>
 
     <pre class="example" data-transform="updateExample"
@@ -311,7 +311,7 @@
     <h2>Compaction</h2>
 
     <p>While <a>expansion</a> removes <a>context</a> from a given
-      input, <dfn data-lt="compact|compacting|compacted">compaction</dfn>'s primary function is to
+      input, <dfn data-lt="compact|compacting|compacted|compacts">compaction</dfn>'s primary function is to
       perform the opposite operation: to express a given input according to
       a particular <a>context</a>. <a>Compaction</a> applies a
       <a>context</a> that specifically tailors the way information is
@@ -364,7 +364,7 @@
     </pre>
 
     <p>Running the <a href="#compaction-algorithm">Compaction Algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-compact-Promise-any-input-JsonLdContext-context-JsonLdOptions-options">compact</a></code>
+      (<a data-link-for="JsonLdProcessor">compact</a>)
       operation) given the context supplied above against the JSON-LD input
       document provided above would result in the following output:</p>
 
@@ -431,7 +431,7 @@
     </pre>
 
     <p>Running the <a href="#flattening-algorithm">Flattening Algorithm</a>
-      (<code class="idlMemberName"><a href="#widl-JsonLdProcessor-flatten-Promise-any-input-JsonLdContext-context-JsonLdOptions-options">flatten</a></code>
+      (<a data-link-for="JsonLdProcessor">flatten</a>)
       operation) with a context set to <a>null</a> to prevent compaction
       returns the following document:</p>
 
@@ -637,8 +637,9 @@
       <p>If <a>context</a> is a <a>string</a>, it represents a reference to
         a remote context. We dereference the remote context and replace <a>context</a>
         with the value of the <code>@context</code> key of the top-level object in the
-        retrieved JSON-LD document. If there's no such key, an invalid remote context has
-        been detected. Otherwise, we process <a>context</a> by recursively using
+        retrieved JSON-LD document. If there's no such key, an
+        <a data-link-for="JsonLdErrorCode">invalid remote context</a>
+        has been detected. Otherwise, we process <a>context</a> by recursively using
         this algorithm ensuring that there is no cyclical reference.</p>
 
       <p>If <a>context</a> is a <a>JSON object</a>, we first update the
@@ -688,7 +689,7 @@
               <a>active context</a> is set to the IRI of the currently being processed
               document (which might be different from the currently being processed context),
               if available; otherwise to <code>null</code>. If set, the
-              <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code>
+              <a data-link-for="JsonLdOptions">base</a>
               option of a JSON-LD API Implementation overrides the <code>base IRI</code>.</li>
             <li>If <i>context</i> is a <a>string</a>,
               <ol class="algorithm">
@@ -706,14 +707,14 @@
                   <cite><a href="http://tools.ietf.org/html/rfc3987#section-6.5">section 6.5</a></cite>
                   of [[!RFC3987]].</li>
                 <li>If <i>context</i> is in the <i>remote contexts</i> array, a
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.recursive-context-inclusion">recursive context inclusion</a></code>
+                  <a data-link-for="JsonLdErrorCode">recursive context inclusion</a>
                   error has been detected and processing is aborted;
                   otherwise, add <i>context</i> to <i>remote contexts</i>.</li>
                 <li>Dereference <i>context</i>. If <i>context</i> cannot be dereferenced, a
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-remote-context-failed">loading remote context failed</a></code>
+                  <a data-link-for="JsonLdErrorCode">loading remote context failed</a>
                   error has been detected and processing is aborted. If the dereferenced document has no
                   top-level <a>JSON object</a> with an <code>@context</code> member, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-remote-context">invalid remote context</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid remote context</a>
                   has been detected and processing is aborted; otherwise,
                   set <i>context</i> to the value of that member.</li>
                 <li>Set <i>result</i> to the result of recursively calling this algorithm,
@@ -723,7 +724,7 @@
               </ol>
             </li>
             <li>If <i>context</i> is not a <a>JSON object</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-local-context">invalid local context</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid local context</a>
               error has been detected and processing is aborted.</li>
             <li>If <i>context</i> has an <code>@base</code> key and <i>remote contexts</i> is empty, i.e., the currently
               being processed context is not a remote context:
@@ -740,7 +741,7 @@
                   resolving <i>value</i> against the current <a>base IRI</a>
                   of <i>result</i>.</li>
                 <li>Otherwise, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-base-IRI">invalid base IRI</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid base IRI</a>
                   error has been detected and processing is aborted.</li>
               </ol>
             </li>
@@ -754,7 +755,7 @@
                   or <a>blank node identifier</a>, the <a>vocabulary mapping</a>
                   of <i>result</i> is set to <i>value</i>. If it is not an
                   <a>absolute IRI</a> or <a>blank node identifier</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-vocab-mapping">invalid vocab mapping</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid vocab mapping</a>
                   error has been detected and processing is aborted.</li>
               </ol>
             </li>
@@ -767,7 +768,7 @@
                 <li>Otherwise, if <i>value</i> is <a>string</a>, the
                   <a>default language</a> of <i>result</i> is set to
                   lowercased <i>value</i>. If it is not a <a>string</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-default-language">invalid default language</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid default language</a>
                   error has been detected and processing is aborted.</li>
               </ol>
             </li>
@@ -834,14 +835,14 @@
           value is <code>true</code> (indicating that the
           <a>term definition</a> has already been created), return. Otherwise,
           if the value is <code>false</code>, a
-          <code class="error"><a href="#idl-def-JsonLdErrorCode.cyclic-IRI-mapping">cyclic IRI mapping</a></code>
+          <a data-link-for="JsonLdErrorCode">cyclic IRI mapping</a>
           error has been detected and processing is aborted.</li>
         <li>Set the value associated with <i>defined</i>'s <i>term</i> key to
           <code>false</code>. This indicates that the <a>term definition</a>
           is now being created but is not yet complete.</li>
         <li>Since <a>keywords</a> cannot be overridden,
           <i>term</i> must not be a <a>keyword</a>. Otherwise, a
-          <code class="error"><a href="#idl-def-JsonLdErrorCode.keyword-redefinition">keyword redefinition</a></code>
+          <a data-link-for="JsonLdErrorCode">keyword redefinition</a>
           error has been detected and processing is aborted.</li>
         <li>Remove any existing <a>term definition</a> for <i>term</i> in
           <a>active context</a>.</li>
@@ -857,14 +858,14 @@
           to a <a>JSON object</a> consisting of a single member whose
           key is <code>@id</code> and whose value is <i>value</i>.</li>
         <li>Otherwise, <i>value</i> must be a <a>JSON object</a>, if not, an
-          <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-term-definition">invalid term definition</a></code>
+          <a data-link-for="JsonLdErrorCode">invalid term definition</a>
           error has been detected and processing is aborted.</li>
         <li>Create a new <a>term definition</a>, <i>definition</i>.</li>
         <li>If <i>value</i> contains the key <code>@type</code>:
           <ol class="algorithm">
             <li>Initialize <i>type</i> to the value associated with the
               <code>@type</code> key, which must be a <a>string</a>. Otherwise, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid type mapping</a>
               error has been detected and processing is aborted.</li>
             <li>Set <i>type</i> to the result of using the
               <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
@@ -873,7 +874,7 @@
               <code>false</code> for <i>document relative</i>,
               <a>local context</a>, and <i>defined</i>. If the expanded <i>type</i> is
               neither <code>@id</code>, nor <code>@vocab</code>, nor an <a>absolute IRI</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-mapping">invalid type mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid type mapping</a>
               error has been detected and processing is aborted.</li>
             <li>Set the <a>type mapping</a> for <i>definition</i> to <i>type</i>.</li>
           </ol>
@@ -881,11 +882,11 @@
         <li>If <i>value</i> contains the key <code>@reverse</code>:
           <ol class="algorithm">
             <li>If <i>value</i> contains an <code>@id</code>, member, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid reverse property</a>
               error has been detected and processing is aborted.</li>
             <li>If the value associated with the <code>@reverse</code> key
               is not a <a>string</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid IRI mapping</a>
               error has been detected and processing is aborted.</li>
             <li>Otherwise, set the <a>IRI mapping</a> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>,
@@ -895,13 +896,13 @@
               <a>local context</a>, and <i>defined</i>. If the result
               is neither an <a>absolute IRI</a> nor a <a>blank node identifier</a>,
               i.e., it contains no colon (<code>:</code>), an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid IRI mapping</a>
               error has been detected and processing is aborted.</li>
             <li>If <i>value</i> contains an <code>@container</code> member,
               set the <a>container mapping</a> of <i>definition</i>
               to its value; if its value is neither <code>@set</code>, nor
               <code>@index</code>, nor <code>null</code>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property">invalid reverse property</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid reverse property</a>
               error has been detected (reverse properties only support set- and
               index-containers) and processing is aborted.</li>
             <li>Set the <a>reverse property</a> flag of <i>definition</i>
@@ -918,7 +919,7 @@
           does not equal <i>term</i>:
           <ol class="algorithm">
             <li>If the value associated with the <code>@id</code> key is not a <a>string</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid IRI mapping</a>
               error has been detected and processing is aborted.</li>
             <li>Otherwise, set the <a>IRI mapping</a> of <i>definition</i> to the
               result of using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
@@ -928,9 +929,9 @@
               <a>local context</a>, and <i>defined</i>. If the resulting
               <a>IRI mapping</a> is neither a <a>keyword</a>, nor an
               <a>absolute IRI</a>, nor a <a>blank node identifier</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid IRI mapping</a>
               error has been detected and processing is aborted; if it equals <code>@context</code>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-keyword-alias">invalid keyword alias</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid keyword alias</a>
               error has been detected and processing is aborted.</li>
           </ol>
         </li>
@@ -957,7 +958,7 @@
           of <i>definition</i> is set to the result of concatenating the value
           associated with the <a>vocabulary mapping</a> and <i>term</i>.
           If it does not have a <a>vocabulary mapping</a>, an
-          <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-IRI-mapping">invalid IRI mapping</a></code>
+          <a data-link-for="JsonLdErrorCode">invalid IRI mapping</a>
           error been detected and processing is aborted.</li>
         <li>If <i>value</i> contains the key <code>@container</code>:
           <ol class="algorithm">
@@ -965,7 +966,7 @@
               <code>@container</code> key, which must be either
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
               or <code>@language</code>. Otherwise, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-container-mapping">invalid container mapping</a></code> error
+              <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li>Set the <a>container mapping</a> of <i>definition</i> to
               <i>container</i>.</li>
@@ -977,7 +978,7 @@
             <li>Initialize <i>language</i> to the value associated with the
               <code>@language</code> key, which must be either <code>null</code>
               or a <a>string</a>. Otherwise, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-mapping">invalid language mapping</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid language mapping</a>
               error has been detected and processing is aborted.</li>
             <li>If <i>language</i> is a <a>string</a> set it to
               lowercased <i>language</i>. Set the <a>language mapping</a>
@@ -1198,7 +1199,7 @@
                   <a>container mapping</a> is set to <code>@list</code>, the
                   <i>expanded item</i> must not be an <a>array</a> or a
                   <a>list object</a>, otherwise a
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
+                  <a data-link-for="JsonLdErrorCode">list of lists</a>
                   error has been detected and processing is aborted.</li>
                 <li>If <i>expanded item</i> is an <a>array</a>, append each
                   of its items to <i>result</i>. Otherwise, if
@@ -1230,14 +1231,14 @@
             <li>If <i>expanded property</i> is a <a>keyword</a>:
               <ol class="algorithm">
                 <li>If <a>active property</a> equals <code>@reverse</code>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-reverse-property-map">invalid reverse property map</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid reverse property map</a>
                   error has been detected and processing is aborted.</li>
                 <li>If <i>result</i> has already an <i>expanded property</i> member, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.colliding-keywords">colliding keywords</a></code>
+                  <a data-link-for="JsonLdErrorCode">colliding keywords</a>
                   error has been detected and processing is aborted.</li>
                 <li>If <i>expanded property</i> is <code>@id</code> and
                   <i>value</i> is not a <a>string</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--id-value">invalid @id value</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid @id value</a>
                   error has been detected and processing is aborted. Otherwise,
                   set <i>expanded value</i> to the result of using the
                   <a href="#iri-expansion">IRI Expansion algorithm</a>,
@@ -1246,7 +1247,7 @@
                 <li>If <i>expanded property</i> is <code>@type</code> and <i>value</i>
                   is neither a <a>string</a> nor an <a>array</a> of
                   <a>strings</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-type-value">invalid type value</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid type value</a>
                   error has been detected and processing is aborted. Otherwise,
                   set <i>expanded value</i> to the result of using the
                   <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
@@ -1259,7 +1260,7 @@
                   for <a>active property</a>, and <i>value</i> for <i>element</i>.</li>
                 <li>If <i>expanded property</i> is <code>@value</code> and
                   <i>value</i> is not a <a>scalar</a> or <code>null</code>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-value-object-value">invalid value object value</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid value object value</a>
                   error has been detected and processing is aborted. Otherwise,
                   set <i>expanded value</i> to <i>value</i>. If <i>expanded value</i>
                   is <code>null</code>, set the <code>@value</code>
@@ -1269,12 +1270,12 @@
                   on the existence of an <code>@value</code> member.</li>
                 <li>If <i>expanded property</i> is <code>@language</code> and
                   <i>value</i> is not a <a>string</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-tagged-string">invalid language-tagged string</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid language-tagged string</a>
                   error has been detected and processing is aborted. Otherwise,
                   set <i>expanded value</i> to lowercased <i>value</i>.</li>
                 <li>If <i>expanded property</i> is <code>@index</code> and
                   <i>value</i> is not a <a>string</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--index-value">invalid @index value</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid @index value</a>
                   error has been detected and processing is aborted. Otherwise,
                   set <i>expanded value</i> to <i>value</i>.</li>
                 <li>If <i>expanded property</i> is <code>@list</code>:
@@ -1286,7 +1287,7 @@
                       this algorithm recursively passing <a>active context</a>,
                       <a>active property</a>, and <i>value</i> for <i>element</i>.</li>
                     <li>If <i>expanded value</i> is a <a>list object</a>, a
-                      <code class="error"><a href="#idl-def-JsonLdErrorCode.list-of-lists">list of lists</a></code>
+                      <a data-link-for="JsonLdErrorCode">list of lists</a>
                       error has been detected and processing is aborted.</li>
                   </ol>
                 </li>
@@ -1297,7 +1298,7 @@
                   <i>element</i>.</li>
                 <li>If <i>expanded property</i> is <code>@reverse</code> and
                   <i>value</i> is not a <a>JSON object</a>, an
-                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid @reverse value</a></code>
+                  <a data-link-for="JsonLdErrorCode">invalid @reverse value</a>
                   error has been detected and processing is aborted. Otherwise
                   <ol class="algorithm">
                     <li>Initialize <i>expanded value</i> to the result of using this
@@ -1326,7 +1327,7 @@
                             <li>For each <i>item</i> in <i>items</i>:
                               <ol class="algorithm">
                                 <li>If <i>item</i> is a <a>value object</a> or <a>list object</a>, an
-                                  <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
+                                  <a data-link-for="JsonLdErrorCode">invalid reverse property value</a>
                                   has been detected and processing is aborted.</li>
                                 <li>If <i>reverse map</i> has no <i>property</i> member, create one
                                   and initialize its value to an empty <a>array</a>.</li>
@@ -1365,7 +1366,7 @@
                       <ol class="algorithm">
                         <li><i>item</i> must be a <a>string</a>,
                           otherwise an
-                          <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-map-value">invalid language map value</a></code>
+                          <a data-link-for="JsonLdErrorCode">invalid language map value</a>
                           error has been detected and processing is aborted.</li>
                         <li>Append a <a>JSON object</a> to
                           <i>expanded value</i> that consists of two
@@ -1435,7 +1436,7 @@
                 <li>For each <i>item</i> in <i>expanded value</i>
                   <ol class="algorithm">
                     <li>If <i>item</i> is a <a>value object</a> or <a>list object</a>, an
-                      <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid--reverse-value">invalid reverse property value</a></code>
+                      <a data-link-for="JsonLdErrorCode">invalid reverse property value</a>
                       has been detected and processing is aborted.</li>
                     <li>If <i>reverse map</i> has no <i>expanded property</i> member,
                       create one and initialize its value to an empty <a>array</a>.</li>
@@ -1463,19 +1464,19 @@
               and <code>@index</code>. It must not contain both the
               <code>@language</code> key and the <code>@type</code> key.
               Otherwise, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-value-object">invalid value object</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid value object</a>
               error has been detected and processing is aborted.</li>
             <li>If the value of <i>result</i>'s <code>@value</code> key is
               <code>null</code>, then set <i>result</i> to <code>null</code>.</li>
             <li>Otherwise, if the value of <i>result</i>'s <code>@value</code> member
               is not a <a>string</a> and <i>result</i> contains the key
               <code>@language</code>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-language-tagged-value">invalid language-tagged value</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid language-tagged value</a>
               error has been detected (only <a>strings</a>
               can be language-tagged) and processing is aborted.</li>
             <li>Otherwise, if the <i>result</i> has an <code>@type</code> member
               and its value is not an <a>IRI</a>, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-typed-value">invalid typed value</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid typed value</a>
               error has been detected and processing is aborted.</li>
           </ol>
         </li>
@@ -1487,7 +1488,7 @@
           <ol class="algorithm">
             <li>The <i>result</i> must contain at most one other key and that
               key must be <code>@index</code>. Otherwise, an
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-set-or-list-object">invalid set or list object</a></code>
+              <a data-link-for="JsonLdErrorCode">invalid set or list object</a>
               error has been detected and processing is aborted.</li>
             <li>If <i>result</i> contains the key <code>@set</code>, then
               set <i>result</i> to the key's associated value.</li>
@@ -1659,7 +1660,7 @@
       <p>The algorithm takes five required input variables: an <a>active context</a>,
         an <a>inverse context</a>, an <a>active property</a>, an
         <i>element</i> to be compacted, and a flag
-        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>.
+        <a data-link-for="JsonLdOptions">compactArrays</a>
         To begin, the <a>active context</a> is set to the result of
         performing <a href="#context-processing-algorithm">Context Processing</a>
         on the passed <a>context</a>, the <a>inverse context</a> is
@@ -1669,7 +1670,7 @@
         set to <code>null</code>, <i>element</i> is set to the result of
         performing the <a href="#expansion-algorithm">Expansion algorithm</a>
         on the <a>JSON-LD input</a>, and, if not passed,
-        <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+        <a data-link-for="JsonLdOptions">compactArrays</a>
         is set to <code>true</code>.</p>
 
       <ol class="algorithm">
@@ -1691,7 +1692,7 @@
             <li>If <i>result</i> contains only one item (it has a length of
               <code>1</code>), <a>active property</a> has no
               <a>container mapping</a> in <a>active context</a>, and
-              <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+              <a data-link-for="JsonLdOptions">compactArrays</a>
               is <code>true</code>, set <i>result</i> to its only item.</li>
             <li>Return <i>result</i>.</li>
           </ol>
@@ -1764,7 +1765,7 @@
                         <li>If the <a>term definition</a> for <i>property</i> in
                           the <a>active context</a> has a
                           <a>container mapping</a> of <code>@set</code> or
-                          <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+                          <a data-link-for="JsonLdOptions">compactArrays</a>
                           is <code>false</code>, and <i>value</i> is not an
                           <a>array</a>, set <i>value</i> to a new
                           <a>array</a> containing only <i>value</i>.</li>
@@ -1886,7 +1887,7 @@
                       <a>list objects</a> associated
                       with an <a>active property</a> that has a
                       <a>container mapping</a>; a
-                      <code class="error"><a href="#idl-def-JsonLdErrorCode.compaction-to-list-of-lists">compaction to list of lists</a></code>
+                      <a data-link-for="JsonLdErrorCode">compaction to list of lists</a>
                       error has been detected and processing is aborted.</li>
                   </ol>
                 </li>
@@ -1917,7 +1918,7 @@
                   Otherwise,
                   <ol class="algorithm">
                     <li>If
-                      <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
+                      <a data-link-for="JsonLdOptions">compactArrays</a>
                       is <code>false</code>, <i>container</i> is <code>@set</code> or
                       <code>@list</code>, or <i>expanded property</i> is
                       <code>@list</code> or <code>@graph</code> and
@@ -2775,7 +2776,7 @@
             <li>If <i>element</i> has an <code>@index</code> member, set the <code>@index</code>
               member of <i>node</i> to its value. If <a>node</a> has already an
               <code>@index</code> member with a different value, a
-              <code class="error"><a href="#idl-def-JsonLdErrorCode.conflicting-indexes">conflicting indexes</a></code>
+              <a data-link-for="JsonLdErrorCode">conflicting indexes</a>
               error has been detected and processing is aborted. Otherwise, continue by
               removing the <code>@index</code> member from <i>element</i>.</li>
             <li>If <i>element</i> has an <code>@reverse</code> member:
@@ -2885,10 +2886,10 @@
     <a>compact IRIs</a>:</p>
 
   <table class="simple">
-    <thead>
+    <thead><tr>
       <th>Prefix</th>
       <th>IRI</th>
-    </thead>
+    </tr></thead>
     <tbody>
       <tr>
         <td>rdf</td>
@@ -3100,7 +3101,6 @@
           <code>@language</code> member, add the value associated with the
           <code>@language</code> key as the language tag of <i>literal</i>.</li>
         <li>Return <i>literal</i>.</li>
-        </li>
       </ol>
     </section>
   </section> <!-- end of Object to RDF Conversion -->
@@ -3180,7 +3180,7 @@
         <a>RDF literals</a> with a
         <a>datatype IRI</a>
         that equals <code>xsd:integer</code> or <code>xsd:double</code> are converted
-        to a <q>JSON numbers</a> and <a>RDF literals</a>
+        to a <a>JSON numbers</a> and <a>RDF literals</a>
         with a <a>datatype IRI</a>
         that equals <code>xsd:boolean</code> are converted to <code>true</code> or
         <code>false</code> based on their
@@ -3581,7 +3581,7 @@
     [[PROMISES]] but are expected to be standardized as part of ECMAScript&nbsp;6.</p>
 
   <section class="informative">
-    <h3>The <a>JsonLdProcessor</a> Interface</h3>
+    <h3>The <dfn>JsonLdProcessor</dfn> Interface</h3>
 
     <p>The <a>JsonLdProcessor</a> interface is the high-level programming structure
       that developers use to access the JSON-LD transformation methods.</p>
@@ -3589,118 +3589,103 @@
     <p>It is important to highlight that implementations do not modify the input parameters.
       If an error is detected, the Promise is
       rejected passing a <a>JsonLdError</a> with the corresponding error
-      <code class="idlMemberName"><a href="#widl-JsonLdError-code">code</a></code>
+      <a data-link-for="JsonLdError">code</a>
       and processing is stopped.</p>
 
-    <p>If the <code class="idlMemberName"><a href="#widl-JsonLdOptions-documentLoader">documentLoader</a></code>
+    <p>If the <a data-link-for="JsonLdOptions">documentLoader</a>
       option is specified, it is used to dereference remote documents and contexts.
-      The <code class="idlMemberName"><a href="#widl-RemoteDocument-documentUrl">documentUrl</a></code>
-      in the returned <code class="idlMemberName"><a href="#idl-def-RemoteDocument">RemoteDocument</a></code>
+      The <a data-link-for="RemoteDocument">documentUrl</a>
+      in the returned <a>RemoteDocument</a>
       is used as <a>base IRI</a> and the
-      <code class="idlMemberName"><a href="#widl-RemoteDocument-contextUrl">contextUrl</a></code>
+      <a data-link-for="RemoteDocument">contextUrl</a>
       is used instead of looking at the HTTP Link Header directly. For the sake of simplicity, none of the algorithms
       in this document mention this directly.</p>
 
-    <dl title="[Constructor] interface JsonLdProcessor" class="idl">
-      <dt>Promise compact()</dt>
+    <pre class="idl">
+      [Constructor]
+      interface JsonLdProcessor {
+        Promise<dictionary> compact(
+          (dictionary or dictionary[] or DOMString) input,
+          JsonLdContext context,
+          optional JsonLdOptions? options);
+        Promise<dictionary[]> expand(
+          (dictionary or dictionary[] or DOMString) input,
+          optional JsonLdOptions? options);
+        Promise<dictionary[]> flatten(
+          (dictionary or dictionary[] or DOMString) input,
+          JsonLdContext context,
+          optional JsonLdOptions? options);
+      };
+    </pre>
+
+    <dl>
+      <dt><dfn data-dfn-for="JsonLdProcessor">compact</dfn></dt><dd>
       <dd>
         <p><a>Compacts</a> the given <i>input</i> using the
           <i>context</i> according to the steps in the
           <a href="#compaction-algorithm">Compaction algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <a>Promise</a>> <i>promise</i> and return it. The
+          <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
             following steps are then executed asynchronously.</li>
-          <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
-            representing the <a>IRI</a> of a remote document, dereference it.
-            If the retrieved document's content type is neither <code>application/json</code>,
-            nor <code>application/ld+json</code>, nor any other media type using a
-            <code>+json</code> suffix as defined in [[RFC6839]]
-            or if the document cannot be parsed as JSON, reject the <i>promise</i> passing an
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-            error.</li>
-          <li>Initialize a new empty <a>active context</a>. The <a>base IRI</a>
-            of the <a>active context</a> is set to the IRI of the currently being processed
-            document, if available; otherwise to <code>null</code>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
-            overrides the <a>base IRI</a>.</li>
-          <li>If an
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            has been passed, update the <a>active context</a> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <a>local context</a>. If
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
-          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
-            using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
-            and a content type of <code>application/json</code> or any media type
-            with a <code>+json</code> suffix as defined in [[RFC6839]] except
-            <code>application/ld+json</code>, update the <a>active context</a> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <a>local context</a>. The
-            HTTP Link Header is ignored for documents served as <code>application/ld+json</code> If
-            multiple HTTP Link Headers using the <code>http://www.w3.org/ns/json-ld#context</code>
-            link relation are found, the <i>promise</i> is rejected with a <a>JsonLdError</a> whose code is set to
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
-            and processing is terminated.</li>
-          <li>Set <i>expanded</i> to the result of using the
-            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
-            <a>active context</a> and <i>input</i> as <i>element</i>.</li>
-          <li>If <i>context</i> is a <a>JSON object</a> having an <code>@context</code> member, set
-            <i>context</i> to that member's value.</li>
-          <li>Set <i>compacted</i> to the result of using the
+          <li>Set <em>expanded input</em> to the result of using the
+            <a data-link-for="JsonLdProcessor">expand</a>
+            method using <a data-lt="jsonldprocessor-compact-input">input</a> and <a data-lt="jsonldprocessor-compact-options">options</a>.
+          <li>If <a data-lt="jsonldprocessor-compact-context">context</a> is a <a>JSON object</a> having an <code>@context</code> member, set
+            <i>context</i> to that member's value, otherwise to <a data-lt="jsonldprocessor-compact-context">context</a>.</li>
+          <li>Set <i>compacted output</i> to the result of using the
             <a href="#compaction-algorithm">Compaction algorithm</a>, passing
-            <i>context</i>, <i>expanded</i> as <i>element</i>, and if passed, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
-            flag in <i>options</i>.</li>
-          <li>Fulfill the <i>promise</i> passing <i>compacted</i>.</li>
+            <i>context</i> as <em>active context</em>,
+            an emtpy <a>dictionary</a> as <a>inverse context</a>,
+            <code>null</code> as <em>property</em>,
+            <em>expanded input</em> as <em>element</em>, and if passed, the
+            <a data-link-for="JsonldOptions">compactArrays</a> flag in <a data-lt="jsonldprocessor-compact-options">options</a>.</li>
+          <li>Fulfill the <em>promise</em> passing <i>compacted output</i>.</li>
         </ol>
 
         <dl class="parameters">
-          <dt>any input</dt>
+          <dt><dfn data-lt="jsonldprocessor-compact-input" data-lt-noDefault>input</dfn></dt>
            <dd>The JSON-LD object or array of JSON-LD objects to perform the compaction upon or an
             <a>IRI</a> referencing the JSON-LD document to compact.</dd>
-          <dt>JsonLdContext context</dt>
+          <dt><dfn data-lt="jsonldprocessor-compact-context" data-lt-noDefault>context</dfn></dt>
           <dd>The context to use when <a>compacting</a> the <code>input</code>;
             it can be specified by using a <a>JSON object</a>, an
             <a>IRI</a>, or an array consisting of
             <a>JSON object</a>s and <a>IRI</a>s.</dd>
-          <dt>optional JsonLdOptions options</dt>
+          <dt><dfn data-lt="jsonldprocessor-compact-options" data-lt-noDefault>options</dfn></dt>
           <dd>A set of options to configure the algorithms. This allows, e.g.,
             to set the input document's base <a>IRI</a>.</dd>
         </dl>
       </dd>
 
-      <dt>Promise expand()</dt>
+      <dt><dfn data-dfn-for="JsonLdProcessor">expand</dfn></dt>
       <dd>
-        <p><a href="#expansion">Expands</a> the given <i>input</i> according to
+        <p><a href="#expansion">Expands</a> the given <a data-lt="jsonldprocessor-expand-input">input</a> according to
           the steps in the <a href="#expansion-algorithm">Expansion algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <a>Promise</a>> <i>promise</i> and return it. The
+          <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
             following steps are then executed asynchronously.</li>
-          <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
+          <li>If the passed <a data-lt="jsonldprocessor-expand-input">input</a> is a <span class="idlParamType">DOMString</span>
             representing the <a>IRI</a> of a remote document, dereference it.
             If the retrieved document's content type is neither <code>application/json</code>,
             nor <code>application/ld+json</code>, nor any other media type using a
-            <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
+            <code>+json</code> suffix as defined in [[RFC6839]], reject the <em>promise</em> passing an
+            <a data-link-for="JsonLdErrorCode">loading document failed</a>
             error.</li>
           <li>Initialize a new empty <a>active context</a>. The <a>base IRI</a>
             of the <a>active context</a> is set to the IRI of the currently being processed
             document, if available; otherwise to <code>null</code>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
-            overrides the <a>base IRI</a>.</li>
+            <a data-link-for="JsonldOptions">base</a> option from <a data-lt="jsonldprocessor-expand-options">options</a> overrides the <a>base IRI</a>.</li>
           <li>If an
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            <a data-link-for="JsonldOptions">expandContext</a> option
             has been passed, update the <a>active context</a> using the
             <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            <a data-link-for="JsonldOptions">expandContext</a>
             as <a>local context</a>. If
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
+            <a data-link-for="JsonldOptions">expandContext</a>
             is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
-          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
+          <li>Once <a data-lt="jsonldprocessor-expand-input">input</a> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
             using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
             and a content type of <code>application/json</code> or any media type
             with a <code>+json</code> suffix as defined in [[RFC6839]] except
@@ -3709,132 +3694,112 @@
             context referenced in the HTTP Link Header as <a>local context</a>. The
             HTTP Link Header is ignored for documents served as <code>application/ld+json</code> If
             multiple HTTP Link Headers using the <code>http://www.w3.org/ns/json-ld#context</code>
-            link relation are found, the <i>promise</i> is rejected with a <a>JsonLdError</a> whose code is set to
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
+            link relation are found, the <em>promise</em> is rejected with a <a>JsonLdError</a> whose code is set to
+            <a data-link-for="JsonLdErrorCode">multiple context link headers</a>
             and processing is terminated.</li>
-          <li>Set <i>expanded</i> to the result of using the
+          <li>Set <i>expanded output</i> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <a>active context</a> and <i>input</i> as <i>element</i>.</li>
-          <li>Fulfill the <i>promise</i> passing <i>expanded</i>.</li>
+          <li>Fulfill the <em>promise</em> passing <i>expanded output</i>.</li>
         </ol>
 
         <dl class="parameters">
-          <dt>any input</dt>
-          <dd>The JSON-LD object or array of JSON-LD objects to perform the expansion upon or an
-            <a>IRI</a> referencing the JSON-LD document to expand.</dd>
-          <dt>optional JsonLdOptions options</dt>
+          <dt><dfn data-lt="jsonldprocessor-expand-input" data-lt-noDefault>input</dfn></dt>
+          <dd>The JSON-LD object</a> or array of JSON-LD objects to perform the expansion upon or an
+            <a>IRI</a> referencing the <a>JSON-LD document</a> to expand.</dd>
+          <dt><dfn data-lt="jsonldprocessor-expand-options" data-lt-noDefault>options</dfn></dt>
           <dd>A set of options to configure the used algorithms such. This allows, e.g.,
-            to set the input document's base <a>IRI</a>.</dd>
+            to set the input document's <a>base IRI</a>.</dd>
         </dl>
       </dd>
 
-      <dt>Promise flatten()</dt>
+      <dt><dfn data-dfn-for="JsonLdProcessor">flatten</dfn></dt>
       <dd>
-        <p><a href="#flattening">Flattens</a> the given <i>input</i> and
-          <a>compacts</a> it using the passed <i>context</i>
+        <p><a href="#flattening">Flattens</a> the given <a data-lt="jsonldprocessor-flatten-input">input</a> and
+          <a>compacts</a> it using the passed <a data-lt="jsonldprocessor-flatten-context">context</a>
           according to the steps in the <a href="#flattening-algorithm">Flattening algorithm</a>:</p>
 
         <ol class="algorithm">
-          <li>Create a new <a>Promise</a>> <i>promise</i> and return it. The
+          <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
             following steps are then executed asynchronously.</li>
-          <li>If the passed <i>input</i> is a <span class="idlParamType">DOMString</span>
-            representing the <a>IRI</a> of a remote document, dereference it.
-            If the retrieved document's content type is neither <code>application/json</code>,
-            nor <code>application/ld+json</code>, nor any other media type using a
-            <code>+json</code> suffix as defined in [[RFC6839]], reject the <i>promise</i> passing an
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-            error.</li>
-          <li>Initialize a new empty <a>active context</a>. The <a>base IRI</a>
-            of the <a>active context</a> is set to the IRI of the currently being processed
-            document, if available; otherwise to <code>null</code>. If set, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-base">base</a></code> option
-            overrides the <a>base IRI</a>.</li>
-          <li>If an
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            has been passed, update the <a>active context</a> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            as <a>local context</a>. If
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-expandContext">expandContext</a></code>
-            is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
-          <li>If the <i>input</i> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
-            using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
-            and a content type of <code>application/json</code> or any media type
-            with a <code>+json</code> suffix as defined in [[RFC6839]] except
-            <code>application/ld+json</code>, update the <a>active context</a> using the
-            <a href="#context-processing-algorithm">Context Processing algorithm</a>, passing the
-            context referenced in the HTTP Link Header as <a>local context</a>. The
-            HTTP Link Header is ignored for documents served as <code>application/ld+json</code> If
-            multiple HTTP Link Headers using the <code>http://www.w3.org/ns/json-ld#context</code>
-            link relation are found, the <i>promise</i> is rejected with a <a>JsonLdError</a> whose code is set to
-            <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
-            and processing is terminated.</li>
-          <li>Set <i>expanded</i> to the result of using the
-            <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
-            <a>active context</a> and <i>input</i> as <i>element</i>.</li>
-          <li>If <i>context</i> is a <a>JSON object</a> having an <code>@context</code> member, set
-            <i>context</i> to that member's value.</li>
+          <li>Set <em>expanded input</em> to the result of using the
+            <a data-link-for="JsonLdProcessor">expand</a>
+            method using <a data-lt="jsonldprocessor-flatten-input">input</a> and <a data-lt="jsonldprocessor-flatten-options">options</a>.
+          <li>If <a data-lt="jsonldprocessor-flatten-context">context</a> is a <a>JSON object</a> having an <code>@context</code> member, set
+            <i>context</i> to that member's value, otherwise to <a data-lt="jsonldprocessor-flatten-context">context</a>.</li>
           <li>Initialize an empty <i>identifier map</i> and a <i>counter</i> (set to <code>0</code>)
             to be used by the
             <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>.</li>
-          <li>Set <i>flattened</i> to the result of using the
+          <li>Set <i>flattened output</i> to the result of using the
             <a href="#flattening-algorithm">Flattening algorithm</a>, passing
-            <i>expanded</i> as <i>element</i>, <i>context</i>, and if passed, the
-            <code class="idlMemberName"><a href="#widl-JsonLdOptions-compactArrays">compactArrays</a></code>
-            flag in <i>options</i> (which is internally passed to the
+            <i>expanded input</i> as <i>element</i>, <i>context</i>, and if passed, the
+            <a data-link-for="JsonldOptions">compactArrays</a> flag in <a data-lt="jsonldprocessor-flatten-options">options</a>
+            (which is internally passed to the
             <a href="#compaction-algorithm">Compaction algorithm</a>).</li>
-          <li>Fulfill the <i>promise</i> passing <i>flattened</i>.</li>
+          <li>Fulfill the <em>promise</em> passing <i>flattened output</i>.</li>
         </ol>
 
         <dl class="parameters">
-          <dt>any input</dt>
+          <dt><dfn data-lt="jsonldprocessor-flatten-input" data-lt-noDefault>input</dfn></dt>
            <dd>The JSON-LD object or array of JSON-LD objects or an <a>IRI</a>
             referencing the JSON-LD document to flatten.</dd>
-          <dt>optional JsonLdContext? context</dt>
-          <dd>The context to use when <a>compacting</a> the flattened <code>input</code>;
+          <dt><dfn data-lt="jsonldprocessor-flatten-context" data-lt-noDefault>context</dfn></dt>
+          <dd>The context to use when <a>compacting</a> the flattened <i>expanded input</i>;
             it can be specified by using a <a>JSON object</a>, an
             <a>IRI</a>, or an array consisting of <a>JSON object</a>s
             and <a>IRI</a>s. If not
             passed or <code>null</code> is passed, the result will not be compacted
             but kept in expanded form.</dd>
-          <dt>optional JsonLdOptions options</dt>
+          <dt><dfn data-lt="jsonldprocessor-flatten-options" data-lt-noDefault>options</dfn></dt>
           <dd>A set of options to configure the used algorithms such. This allows, e.g.,
-            to set the input document's base <a>IRI</a>.</dd>
+            to set the input document's <a>base IRI</a>.</dd>
         </dl>
       </dd>
     </dl>
 
-    <div class='idl' title='typedef (object or DOMString or (object or DOMString)[]) JsonLdContext'>
-      <p>The <a>JsonLdContext</a> type is used to refer to a value that
-        that may be a <a>JSON object</a>, a <a>string</a> representing an
-        <a>IRI</a>, or an array of <a>JSON objects</a>
-        and <a>strings</a>.</p>
-    </div>
+    <pre class="idl">
+      typedef (dictionary or DOMString or sequence<dictionary or DOMString>) JsonLdContext;
+    </pre>
+
+    <p>The <dfn>JsonLdContext</dfn> type is used to refer to a value that
+      that may be a <a>JSON object</a>, a <a>string</a> representing an
+      <a>IRI</a>, or an array of <a>JSON objects</a>
+      and <a>strings</a>.</p>
   </section> <!-- end of JsonLdProcessor -->
 
   <section class="informative">
-    <h3>The <a>JsonLdOptions</a> Type</h3>
+    <h3>The JsonLdOptions Type</h3>
 
-    <p>The <a>JsonLdOptions</a> type is used to pass various options to the
+    <p>The <dfn>JsonLdOptions</dfn> type is used to pass various options to the
       <a>JsonLdProcessor</a> methods.</p>
 
-    <dl title="dictionary JsonLdOptions" class="idl">
-      <dt>DOMString? base</dt>
+    <pre class="idl">
+      dictionary JsonLdOptions {
+        DOMString?             base;
+        boolean                compactArrays = true;
+        LoadDocumentCallback   documentLoader = null;
+        (object? or DOMString) expandContext = null;
+        DOMString              processingMode = "json-ld-1.1";
+      };
+    </pre>
+
+    <dl>
+      <dt><dfn data-dfn-for="JsonLdOptions">base</dfn></dt>
       <dd>The base IRI to use when expanding or <a>compacting</a> the document. If set, this overrides
         the input document's IRI.</dd>
-      <dt>boolean compactArrays = true</dt>
+      <dt><dfn data-dfn-for="JsonLdOptions">compactArrays</dfn></dt>
       <dd>If set to <code>true</code>, the JSON-LD processor replaces arrays with just
         one element with that element during <a>compaction</a>. If set to <code>false</code>,
         all arrays will remain arrays even if they have just one element.
       </dd>
-      <dt>LoadDocumentCallback documentLoader = null</dt>
+      <dt><dfn data-dfn-for="JsonLdOptions">documentLoader</dfn></dt>
       <dd>The callback of the loader to be used to retrieve remote documents and contexts.
         If specified, it is used to retrieve remote documents and contexts; otherwise,
         if not specified, the processor's built-in loader is used.</dd>
-      <dt>(object? or DOMString) expandContext = null</dt>
+      <dt><dfn data-dfn-for="JsonLdOptions">expandContext</dfn></dt>
       <dd>A context that is used to initialize the active context when expanding a document.</dd>
-      <dt>DOMString processingMode = "json-ld-1.0"</dt>
-      <dd>If set to <code>json-ld-1.0</code>, the implementation has to produce
+      <dt><dfn data-dfn-for="JsonLdOptions">processingMode</dfn></dt>
+      <dd>If set to <code>json-ld-1.1</code>, the implementation has to produce
         exactly the same results as the algorithms defined in this specification.
         If set to another value, the JSON-LD processor is allowed to extend
         or modify the algorithms defined in this specification to enable
@@ -3857,41 +3822,53 @@
     <section class="informative">
       <h3>LoadDocumentCallback</h3>
 
-      <p>The <a>LoadDocumentCallback</a> defines a callback that custom document loaders
+      <p>The <dfn>LoadDocumentCallback</dfn> defines a callback that custom document loaders
         have to implement to be used to retrieve remote documents and contexts.</p>
 
-      <dl title="callback LoadDocumentCallback = Promise" class="idl">
-        <dt>DOMString url</dt>
+      <pre class="idl">
+        callback LoadDocumentCallback = Promise (DOMString url);
+      </pre>
+
+      <dl>
+        <dt><dfn data-dfn-for="LoadDocumentCallback">url</dfn></dt>
         <dd>The URL of the remote document or context to load.</dd>
       </dl>
 
-      <p>All errors result in the <a>Promise</a>> being rejected with
+      <p>All errors result in the <a>Promise</a> being rejected with
         a <a>JsonLdError</a> whose code is set to
-        <code class="error"><a href="#idl-def-JsonLdErrorCode.loading-document-failed">loading document failed</a></code>
-        or <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>
+        <a data-link-for="JsonLdErrorCode">loading document failed</a>
+        or <a data-link-for="JsonLdErrorCode">multiple context link headers</a>
         as described in the next section.</p>
     </section>
 
     <section class="informative">
       <h3>RemoteDocument</h3>
 
-      <p>The <a>RemoteDocument</a> type is used by a <a>LoadDocumentCallback</a>
+      <p>The <dfn>RemoteDocument</dfn> type is used by a <a>LoadDocumentCallback</a>
         to return information about a remote document or context.</p>
 
-      <dl title="dictionary RemoteDocument" class="idl">
-        <dt>DOMString contextUrl = null</dt>
+      <pre class="idl">
+        dictionary RemoteDocument {
+          DOMString contextUrl = null;
+          DOMString documentUrl;
+          any       document;
+        };
+      </pre>
+
+      <dl>
+        <dt><dfn data-dfn-for="RemoteDocument">contextUrl</dfn></dt>
         <dd>If available, the value of the HTTP Link Header [[!RFC5988]] using the
           <code>http://www.w3.org/ns/json-ld#context</code> link relation in the
           response. If the response's content type is <code>application/ld+json</code>,
           the HTTP Link Header is ignored. If multiple HTTP Link Headers using
           the <code>http://www.w3.org/ns/json-ld#context</code> link relation are found,
-          the <a>Promise</a>> of the <a>LoadDocumentCallback</a> is rejected with
+          the <a>Promise</a> of the <a>LoadDocumentCallback</a> is rejected with
           a <a>JsonLdError</a> whose code is set to
-          <code class="error"><a href="#idl-def-JsonLdErrorCode.multiple-context-link-headers">multiple context link headers</a></code>.</dd>
-        <dt>DOMString documentUrl</dt>
+          <a data-link-for="JsonLdErrorCode">multiple context link headers</a>.</dd>
+        <dt><dfn data-dfn-for="RemoteDocument">documentUrl</dfn></dt>
         <dd>The final URL of the loaded document. This is important
           to handle HTTP redirects properly.</dd>
-        <dt>any document</dt>
+        <dt><dfn data-dfn-for="RemoteDocument">document</dfn></dt>
         <dd>The retrieved document. This can either be the raw payload or the already
           parsed document.</dd>
       </dl>
@@ -3907,13 +3884,20 @@
     <section>
       <h4>JsonLdError</h4>
 
-      <p>The <a>JsonLdError</a> type is used to report processing errors.</p>
+      <p>The <dfn>JsonLdError</dfn> type is used to report processing errors.</p>
 
-      <dl title="dictionary JsonLdError" class="idl">
-        <dt>JsonLdErrorCode code</dt>
+      <pre class="idl">
+        dictionary JsonLdError {
+          JsonLdErrorCode code;
+          DOMString?      message = null;
+        };
+      </pre>
+
+      <dl>
+        <dt><dfn data-dfn-for="JsonLdError">code</dfn></dt>
         <dd>a string representing the particular error type, as described in
           the various algorithms in this document.</dd>
-        <dt>DOMString? message = null</dt>
+        <dt><dfn data-dfn-for="JsonLdError">message</dfn></dt>
         <dd>an optional error message containing additional debugging information.
           The specific contents of error messages are outside the scope of this
           specification.</dd>
@@ -3922,112 +3906,152 @@
 
     <section class="informative">
       <h4>JsonLdErrorCode</h4>
-      <p>The <a>JsonLdErrorCode</a> represents the collection of valid JSON-LD error
+      <p>The <dfn>JsonLdErrorCode</dfn> represents the collection of valid JSON-LD error
         codes.</p>
 
-      <dl title="enum JsonLdErrorCode" class="idl">
-        <dt>loading document failed</dt>
+      <pre class="idl">
+        enum JsonLdErrorCode {
+            "loading document failed",
+            "list of lists",
+            "invalid @index value",
+            "conflicting indexes",
+            "invalid @id value",
+            "invalid local context",
+            "multiple context link headers",
+            "loading remote context failed",
+            "invalid remote context",
+            "recursive context inclusion",
+            "invalid base IRI",
+            "invalid vocab mapping",
+            "invalid default language",
+            "keyword redefinition",
+            "invalid term definition",
+            "invalid reverse property",
+            "invalid IRI mapping",
+            "cyclic IRI mapping",
+            "invalid keyword alias",
+            "invalid type mapping",
+            "invalid language mapping",
+            "colliding keywords",
+            "invalid container mapping",
+            "invalid type value",
+            "invalid value object",
+            "invalid value object value",
+            "invalid language-tagged string",
+            "invalid language-tagged value",
+            "invalid typed value",
+            "invalid set or list object",
+            "invalid language map value",
+            "compaction to list of lists",
+            "invalid reverse property map",
+            "invalid @reverse value",
+            "invalid reverse property value"
+        };
+      </pre>
+
+      <dl dfn-for="JsonLdErrorCode">
+        <dt><dfn>loading document failed</dfn></dt>
         <dd>The document could not be loaded or parsed as JSON.</dd>
-        <dt>list of lists</dt>
+        <dt><dfn>list of lists</dfn></dt>
         <dd>A list of lists was detected. List of lists are not supported in
           this version of JSON-LD due to the algorithmic complexity.</dd>
-        <dt>invalid @index value</dt>
+        <dt><dfn>invalid @index value</dfn></dt>
         <dd>An <code>@index</code> member was encountered whose value was
           not a <a>string</a>.</dd>
-        <dt>conflicting indexes</dt>
+        <dt><dfn>conflicting indexes</dfn></dt>
         <dd>Multiple conflicting indexes have been found for the same node.</dd>
-        <dt>invalid @id value</dt>
+        <dt><dfn>invalid @id value</dfn></dt>
         <dd>An <code>@id</code> member was encountered whose value was not a
           <a>string</a>.</dd>
-        <dt>invalid local context</dt>
+        <dt><dfn>invalid local context</dfn></dt>
         <dd>In invalid <a>local context</a> was detected.</dd>
-        <dt>multiple context link headers</dt>
+        <dt><dfn>multiple context link headers</dfn></dt>
         <dd>Multiple HTTP Link Headers [[!RFC5988]] using the
           <code>http://www.w3.org/ns/json-ld#context</code> link relation
           have been detected.</dd>
-        <dt>loading remote context failed</dt>
+        <dt><dfn>loading remote context failed</dfn></dt>
         <dd>There was a problem encountered loading a remote context.</dd>
-        <dt>invalid remote context</dt>
+        <dt><dfn>invalid remote context</dfn></dt>
         <dd>No valid context document has been found for a referenced,
          remote context.</dd>
-        <dt>recursive context inclusion</dt>
+        <dt><dfn>recursive context inclusion</dfn></dt>
         <dd>A cycle in remote context inclusions has been detected.</dd>
-        <dt>invalid base IRI</dt>
+        <dt><dfn>invalid base IRI</dfn></dt>
         <dd>An invalid <a>base IRI</a> has been detected, i.e., it is
           neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
-        <dt>invalid vocab mapping</dt>
+        <dt><dfn>invalid vocab mapping</dfn></dt>
         <dd>An invalid <a>vocabulary mapping</a> has been detected, i.e.,
           it is neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
-        <dt>invalid default language</dt>
+        <dt><dfn>invalid default language</dfn></dt>
         <dd>The value of the <a>default language</a> is not a <a>string</a>
           or <code>null</code> and thus invalid.</dd>
-        <dt>keyword redefinition</dt>
+        <dt><dfn>keyword redefinition</dfn></dt>
         <dd>A <a>keyword</a> redefinition has been detected.</dd>
-        <dt>invalid term definition</dt>
+        <dt><dfn>invalid term definition</dfn></dt>
         <dd>An invalid <a>term definition</a> has been detected.</dd>
-        <dt>invalid reverse property</dt>
+        <dt><dfn>invalid reverse property</dfn></dt>
         <dd>An invalid reverse property definition has been detected.</dd>
-        <dt>invalid IRI mapping</dt>
+        <dt><dfn>invalid IRI mapping</dfn></dt>
         <dd>A <a>local context</a> contains a <a>term</a> that has
           an invalid or missing <a>IRI mapping</a>.</dd>
-        <dt>cyclic IRI mapping</dt>
+        <dt><dfn>cyclic IRI mapping</dfn></dt>
         <dd>A cycle in <a>IRI mappings</a> has been detected.</dd>
-        <dt>invalid keyword alias</dt>
+        <dt><dfn>invalid keyword alias</dfn></dt>
         <dd>An invalid <a>keyword</a> alias definition has been
           encountered.</dd>
-        <dt>invalid type mapping</dt>
+        <dt><dfn>invalid type mapping</dfn></dt>
         <dd>An <code>@type</code> member in a <a>term definition</a>
           was encountered whose value could not be expanded to an
           <a>absolute IRI</a>.</dd>
-        <dt>invalid language mapping</dt>
+        <dt><dfn>invalid language mapping</dfn></dt>
         <dd>An <code>@language</code> member in a <a>term definition</a>
           was encountered whose value was neither a <a>string</a> nor
           <code>null</code> and thus invalid.</dd>
-        <dt>colliding keywords</dt>
+        <dt><dfn>colliding keywords</dfn></dt>
         <dd>Two properties which expand to the same keyword have been detected.
           This might occur if a <a>keyword</a> and an alias thereof
           are used at the same time.</dd>
-        <dt>invalid container mapping</dt>
+        <dt><dfn>invalid container mapping</dfn></dt>
         <dd>An <code>@container</code> member was encountered whose value was
           not one of the following <a>strings</a>:
           <code>@list</code>, <code>@set</code>, or <code>@index</code>.</dd>
-        <dt>invalid type value</dt>
+        <dt><dfn>invalid type value</dfn></dt>
         <dd>An invalid value for an <code>@type</code> member has been detected,
           i.e., the value was neither a <a>string</a> nor an <a>array</a>
           of <a>strings</a>.</dd>
-        <dt>invalid value object</dt>
+        <dt><dfn>invalid value object</dfn></dt>
         <dd>A <a>value object</a> with disallowed members has been
           detected.</dd>
-        <dt>invalid value object value</dt>
+        <dt><dfn>invalid value object value</dfn></dt>
         <dd>An invalid value for the <code>@value</code> member of a
           <a>value object</a> has been detected, i.e., it is neither
           a <a>scalar</a> nor <code>null</code>.</dd>
-        <dt>invalid language-tagged string</dt>
+        <dt><dfn>invalid language-tagged string</dfn></dt>
         <dd>A <a>language-tagged string</a> with an invalid language
           value was detected.</dd>
-        <dt>invalid language-tagged value</dt>
+        <dt><dfn>invalid language-tagged value</dfn></dt>
         <dd>A <a>number</a>, <code>true</code>, or <code>false</code> with an
           associated language tag was detected.</dd>
-        <dt>invalid typed value</dt>
+        <dt><dfn>invalid typed value</dfn></dt>
         <dd>A <a>typed value</a> with an invalid type was detected.</dd>
-        <dt>invalid set or list object</dt>
+        <dt><dfn>invalid set or list object</dfn></dt>
         <dd>A <a>set object</a> or <a>list object</a> with
           disallowed members has been detected.</dd>
-        <dt>invalid language map value</dt>
+        <dt><dfn>invalid language map value</dfn></dt>
         <dd>An invalid value in a <a>language map</a>
           has been detected. It has to be a <a>string</a> or an <a>array</a> of
           <a>strings</a>.</dd>
-        <dt>compaction to list of lists</dt>
+        <dt><dfn>compaction to list of lists</dfn></dt>
         <dd>The compacted document contains a list of lists as multiple
           lists have been compacted to the same term.</dd>
-        <dt>invalid reverse property map</dt>
+        <dt><dfn>invalid reverse property map</dfn></dt>
         <dd>An invalid reverse property map has been detected. No
           <a>keywords</a> apart from <code>@context</code>
           are allowed in reverse property maps.</dd>
-        <dt>invalid @reverse value</dt>
+        <dt><dfn>invalid @reverse value</dfn></dt>
         <dd>An invalid value for an <code>@reverse</code> member has been detected,
           i.e., the value was not a <a>JSON object</a>.</dd>
-        <dt>invalid reverse property value</dt>
+        <dt><dfn>invalid reverse property value</dfn></dt>
         <dd>An invalid value for a reverse property has been detected. The value of an inverse
           property must be a <a>node object</a>.</dd>
       </dl>

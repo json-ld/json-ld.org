@@ -176,7 +176,7 @@ algorithms in this document,
 and the JSON-LD API [[!JSON-LD-API]]. To understand the API and how it is
 intended to operate  in a programming environment, it is useful to have working
 knowledge of the JavaScript programming language [[ECMA-262]] and
-WebIDL [[!WEBIDL]]. To understand how JSON-LD maps to RDF, it is helpful to be
+WebIDL [[!WebIDL-2]]. To understand how JSON-LD maps to RDF, it is helpful to be
 familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 </section>
@@ -320,7 +320,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <li><code>false</code> (equivalent to <code>@never</code>)</li>
       </ul>
       <p>Otherwise, an
-        <code class="error"><a href="#idl-def-JsonLdErrorCode.invalid-embed-value">invalid @embed value</a></code>
+        <a data-link-for="JsonLdFramingErrorCode">invalid @embed value</a></code>
         error has been detected and processing is aborted.</p>
       <p>Additionally, values of <code>@default</code> may include the value <code>@null</code>,
         or an <a>array</a> containing only <code>@null</code> in addition to other values
@@ -347,14 +347,14 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>),
   which  MUST be a <a>JSON-LD document</a> in
-  <a href="http://www.w3.org/TR/json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
+  <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
   and an <a>input frame</a> (<strong>expanded frame</strong>),
   which  MUST be a <a>JSON-LD document</a> in
-    <a href="http://www.w3.org/TR/json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
+    <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
   and a number of options and produces <a>JSON-LD output</a>.</p>
 
 <p>If an error is detected in the <strong>expanded frame</strong>, a processor MUST
-  generate a <a>JsonLdFramingError</a> with <a>JsonLdFramingError.code</a> set to "invalid frame".
+  generate a <a>JsonLdFramingError</a> with <a data-link-for="JsonLdFramingError">code</a> set to <a data-link-for="JsonLdFramingErrorCode">invalid frame</a>.
   <span class="ednote">Need more specifics as to what consititues a valid frame.</span></p>
 
 <p>The recursive algorithm operates with a <a>framing context</a> (<em>state</em>),
@@ -576,29 +576,31 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       extension of the interface defined in the [[JSON-LD-API]].</p>
 
     <pre class="idl">
-      [NoInterfaceObject]
+      [Constructor]
       interface JsonLdProcessor {
           Promise<dictionary> frame(
-            Promise<(dictionary or sequence<dictionary> or DOMString)> input,
-            Promise<(dictionary or DOMString)> frame,
+            (dictionary or sequence<dictionary> or DOMString) input,
+            (dictionary or DOMString) frame,
             optional JsonLdOptions? options);
       };
     </pre>
-    <p>The <dfn>JsonLdProcessor</dfn> interface <a href="#framing">Frames</a>
-      the given <code>input</code> using <a>JsonLdProcessor.frame.frame</a>
+    <p>The <dfn>JsonLdProcessor</dfn> interface
+      <dfn data-dfn-for="JsonLdProcessor">frame</dfn> method
+      <a href="#framing">Frames</a>
+      the given <code>input</code> using <a data-lt="JsonLdProcessor-frame-frame">frame</a>
       according to the steps in the <a href="#framing-algorithm">Framing
       Algorithm</a>:</p>
     <ol class="algorithm">
       <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
         following steps are then executed asynchronously.</li>
       <li>Set <em>expanded input</em> to the result of using the
-        <a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a>
-        method using <a>JsonLdProcessor.frame.input</a> and <a>JsonLdProcessor.frame.options</a>.
+        <a href="../json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a>
+        method using <a data-lt="JsonLdProcessor-frame-input">input</a> and <a data-lt="JsonLdProcessor-frame-options">options</a>.
       <li>Set <em>expanded frame</em> to the result of using the
-        <a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a> method using
-        <a>JsonLdProcessor.frame.frame</a> and <a>JsonLdProcessor.frame.options</a> with
-        <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code> set to <code>null</code>
-        and <code class="idlMemberName"><a href="http://www.w3.org/TR/json-ld-api/#widl-JsonLdOptions-processingMode">processingMode</a></code> set to <strong>"json-ld-framing-1.1-expand-frame"</strong>.
+        <a href="../json-ld-api/#widl-JsonLdProcessor-expand-Promise-any-input-JsonLdOptions-options" class="externalDFN">JsonLdProcessor.expand</a> method using
+        <a data-lt="JsonLdProcessor-frame-frame">frame</a> and <a data-lt="JsonLdProcessor-frame-options">options</a> with
+        <code class="idlMemberName"><a href="../json-ld-api/#widl-JsonLdOptions-expandContext">expandContext</a></code> set to <code>null</code>
+        and <code class="idlMemberName"><a href="../json-ld-api/#widl-JsonLdOptions-processingMode">processingMode</a></code> set to <strong>"json-ld-framing-1.1-expand-frame"</strong>.
       <li>Set <em>framed</em> to the result of using the
         <a href="#framing-algorithm">Framing algorithm</a>, passing
         <em>expanded input</em>, and  <em>expanded frame</em>.</li>
@@ -606,13 +608,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     </ol>
 
     <dl class="parameters">
-      <dt><dfn>JsonLdProcessor.frame.input</dfn></dt>
+      <dt><dfn data-lt="JsonLdProcessor-frame-input" data-lt-noDefault>input</dfn></dt>
        <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
         <a>IRI</a> referencing the JSON-LD document to frame.</dd>
-      <dt><dfn>JsonLdProcessor.frame.frame</dfn></dt>
+      <dt><dfn data-lt="JsonLdProcessor-frame-frame" data-lt-noDefault>frame</dfn></dt>
       <dd>The frame to use when re-arranging the data of <code>input</code>; either
         in the form of an <a>JSON object</a> or as <a>IRI</a>.</dd>
-      <dt><dfn>JsonLdProcessor.frame.options</dfn></dt>
+      <dt><dfn data-lt="JsonLdProcessor-frame-options" data-lt-noDefault>options</dfn></dt>
       <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
         input document's base <a>IRI</a>.</dd>
     </dl>
@@ -627,11 +629,21 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         DOMString? message = null;
       };
       enum JsonLdFramingErrorCode {
-        "invalid frame"
+        "invalid frame",
+        "invalid @embed value"
       };
     </pre>
     <p>JSON-LD Framing extends the error interface and codes defined in
-      <cite><a href="http://www.w3.org/TR/json-ld-api/#error-handling"></a></cite> [[JSON-LD-API]].
+      <cite><a href="../json-ld-api/#error-handling"></a></cite> [[JSON-LD-API]].
+
+    <dl data-dfn-for="JsonLdFramingErrorCode">
+      <dt><dfn>invalid frame</dfn></dt><dd>
+        The frame is invalid.
+      </dd>
+      <dt><dfn>invalid @embed value</dfn></dt><dd>
+        The value for <code>@embed</code> is not one recognized for the <a>object embed flag</a>.
+      </dd>
+    </dl>
   </section>
 
   <section>
@@ -640,17 +652,17 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
     <section>
     <h3>JsonLdContext</h3>
-    <p>The <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdContext</a> type is used to refer to a value that
+    <p>The <a href="../json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdContext</a> type is used to refer to a value that
         that may be a <a>JSON object</a>, a <a>string</a> representing an
         <a>IRI</a>, or an array of <a>JSON objects</a>
         and <a>strings</a>.</p>
-    <p>See <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
+    <p>See <a href="../json-ld-api/#idl-def-JsonLdContext" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
     </section>
 
     <section>
     <h3>JsonLdOptions</h3>
-    <p>The <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> type is used to convert a set of options to an interface method.</p>
-    <p>See <a href="http://www.w3.org/TR/json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
+    <p>The <a href="../json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> type is used to convert a set of options to an interface method.</p>
+    <p>See <a href="../json-ld-api/#idl-def-JsonLdOptions" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
     </section>
   </section>
 
