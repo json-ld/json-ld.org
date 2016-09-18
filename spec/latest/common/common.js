@@ -33,8 +33,6 @@ var jsonld = {
   }
 };
 
-
-
 // We should be able to remove terms that are not actually
 // referenced from the common definitions
 //
@@ -68,7 +66,6 @@ function restrictReferences(utils, content) {
     termLists.push(containerID) ;
     return (base.innerHTML);
 }
-
 
 // add a handler to come in after all the definitions are resolved
 //
@@ -146,4 +143,22 @@ function internalizeTermListReferences() {
             });
         }
     });
+}
+
+function _esc(s) {
+    s = s.replace(/&/g,'&amp;');
+    s = s.replace(/>/g,'&gt;');
+    s = s.replace(/"/g,'&quot;');
+    s = s.replace(/</g,'&lt;');
+    return s;
+}
+
+function updateExample(doc, content) {
+  // perform transformations to make it render and prettier
+  content = content.replace(/<!--/, '');
+  content = content.replace(/-->/, '');
+  content = _esc(content);
+  content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="highlight">$1</span>');
+  content = content.replace(/####([^#]*)####/g, '<span class="comment">$1</span>');
+  return content ;
 }
