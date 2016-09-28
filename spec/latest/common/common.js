@@ -155,10 +155,17 @@ function _esc(s) {
 
 function updateExample(doc, content) {
   // perform transformations to make it render and prettier
-  content = content.replace(/<!--/, '');
-  content = content.replace(/-->/, '');
+  content = unComment(doc, content);
   content = _esc(content);
   content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="highlight">$1</span>');
   content = content.replace(/####([^#]*)####/g, '<span class="comment">$1</span>');
+  return content ;
+}
+
+
+function unComment(doc, content) {
+  // perform transformations to make it render and prettier
+  content = content.replace(/<!--/, '');
+  content = content.replace(/-->/, '');
   return content ;
 }
