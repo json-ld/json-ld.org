@@ -168,7 +168,7 @@ Data in JSON. The document is primarily intended for the following audiences:
 <ul>
   <li>Authors who want to query JSON-LD documents to create representations
     more appropriate for a given use case.</li>
-  <li>Software developers that want to implement processors and APIs for
+  <li>Software developers that want to implement <a>processors</a> and APIs for
   JSON-LD.</li>
 </ul>
 
@@ -219,13 +219,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </section>
 
 <section id="conformance">
-  <p>There are two classes of products that can claim conformance to this
-    specification: <a>JSON-LD Processors</a>,
-    and <a>RDF Serializers/Deserializers</a>.</p>
+  <p>There is one class of products that can claim conformance to this
+    specification: <a>JSON-LD Processors</a>.</p>
 
   <p>A conforming <a>JSON-LD Processor</a> is a system which can perform the
-    <a href="#expansion-algorithm">Expansion</a>, <a href="#compaction-algorithm">Compaction</a>,
-    and <a href="#flattening-algorithm">Flattening</a> operations defined in this specification.</p>
+    <a href="#framing-algorithm">Framing</a> operation in a manner consistent with
+    the algorithms defined in this specification.</p>
 
   <p><a>JSON-LD Processors</a> MUST NOT
     attempt to correct malformed <a>IRIs</a> or language tags;
@@ -233,13 +232,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     than conversion between <a data-lt="relative IRI">relative</a> and
     <a>absolute IRIs</a>.</p>
 
-  <p>A conforming <dfn data-lt="RDF Serializers/Deserializers">RDF Serializer/Deserializer</dfn> is a system that can
-    <a href="#deserialize-json-ld-to-rdf-algorithm">deserialize JSON-LD to RDF</a> and
-    <a href="#serialize-rdf-as-json-ld-algorithm">serialize RDF as JSON-LD</a> as
-    defined in this specification.</p>
-
   <p>The algorithms in this specification are generally written with more concern for clarity
-    than efficiency. Thus, <a>JSON-LD Processors</a> may
+    than efficiency. Thus, <a>JSON-LD Processors</a> MAY
     implement the algorithms given in this specification in any way desired,
     so long as the end result is indistinguishable from the result that would
     be obtained by the specification's algorithms.</p>
@@ -256,8 +250,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <p>All algorithms described in this section are intended to operate on
   language-native data structures. That is, the serialization to a text-based
-  JSON document isn't required as input or output to any of these algorithms and
-  language-native data structures MUST be used where applicable.</p>
+  JSON document isn't required as input or output to any of these algorithms.</p>
 
 <p>Reference to JSON data structures are interpreted using their <em>abstract representation</em> for the purpose
   of describing algorithms.</p>
@@ -329,14 +322,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <section>
 <h3>Framing Requiements</h3>
-<p>A valid JSON-LD <a>Frame</a> is a superset of a valid <a>JSON-LD document</a>,
+<p>A valid <a>JSON-LD Frame</a> is a superset of a valid <a>JSON-LD document</a>,
   allowing additional content, which is preserved through expansion.
   The <cite><a href="http://www.w3.org/TR/json-ld/#json-ld-grammar">Grammar</a></cite> defined in [[JSON-LD]]
   is extended as follows:</p>
   <ul>
-    <li>Framing adds the following <a>keywords</a> used as keys, which MUST be preserved when expanding:
+    <li>Framing adds the following <a>keywords</a> used as keys of a <a>node object</a>, which MUST be preserved when expanding:
       <ul>
-        <li><code>@default</code>,</li>
         <li><code>@embed</code>,</li>
         <li><code>@explicit</code>,</li>
         <li><code>@omitDefault</code>, and</li>
@@ -356,15 +348,17 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <p>Otherwise, an
         <a data-link-for="JsonLdFramingErrorCode">invalid @embed value</a>
         error has been detected and processing is aborted.</p>
-      <p>Additionally, values of <code>@default</code> may include the value <code>@null</code>,
-        or an <a>array</a> containing only <code>@null</code> in addition to other values
-        allowed in the grammar for <a>absolute IRIs</a>.</p>
     </li>
+    <li>Values of keys in a <a>node object</a> that are not <a>keyword</a> MAY also include a <a>default object</a>.
+      Values of <code>@default</code> MAY include the value <code>@null</code>,
+      or an <a>array</a> containing only <code>@null</code>, in addition to other values
+      allowed in the grammar for values of keys expanding to <a>absolute IRIs</a>.
+      <a>Processors</a> MUST preserve this value when expanding. All other key/value pairs of
+      a <a>default object</a> MUST be ignored.</li>
+    <li>The values of <code>@id</code> and <code>@type</code> may also be an empty <a>JSON object</a>, or an <a>array</a>
+      containing only an empty <a>JSON object</a>.
+      <a>Processors</a> MUST preserve this value when expanding.</li>
   </ul>
-
-  <p>The values of <code>@id</code> and <code>@type</code> may also be an empty <a>JSON object</a>, or an <a>array</a>
-    containing only an empty <a>JSON object</a>. Processors MUST preserve this value
-    when expanding.</p>
 </section>
 
 <section>
@@ -373,16 +367,17 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>),
   which  MUST be a <a>JSON-LD document</a> in
   <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
-  and an <a>input frame</a> (<strong>expanded frame</strong>),
-  which  MUST be a <a>JSON-LD document</a> in
+  an <a>input frame</a> (<strong>expanded frame</strong>),
+  which  MUST be a <a>JSON-LD frame</a> in
     <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
+  a <a>context</a> (<strong>context</strong>),
   and a number of options and produces <a>JSON-LD output</a>.</p>
 
 <p>If an error is detected in the <strong>expanded frame</strong>, a processor MUST
   generate a <a>JsonLdFramingError</a> with <a data-link-for="JsonLdFramingError">code</a> set to <a data-link-for="JsonLdFramingErrorCode">invalid frame</a>.
   <span class="ednote">Need more specifics as to what consititues a valid frame.</span></p>
 
-<p>The recursive algorithm operates with a <a>framing context</a> (<em>state</em>),
+<p>The recursive algorithm operates with a <a>framing state</a> (<em>state</em>),
   created initially using
   the <a>object embed flag</a> set to <code>true</code>,
   the <a>explicit inclusion flag</a> set to <code>false</code>,
@@ -396,7 +391,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <em>link</em> set to an empty <a>dictionary</a>.
   Also initialize <em>results</em> as an empty <a>array</a>.</p>
 
-<p>Invoke the recursive algorithm using <a>framing context</a> (<em>state</em>),
+<p class="note"><a>Processors</a> MAY use other runtime options to set different <a>framing state</a> defaults
+  for values of <em>state</em>.</p>
+
+<p>Invoke the recursive algorithm using <a>framing state</a> (<em>state</em>),
   the keys from the <a>map of flattened subjects</a> as <em>subjects</em>,
   <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
   <code>null</code> as <a>active property</a>.</p>
@@ -420,19 +418,19 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     A <a>node definition</a> (<em>node</em>) associated with a subject from the <a>map of flattened subjects</a>
     matches <em>frame</em> in the following circumstances:
     <ol class="algorithm">
-      <li>A subject MUST match if <em>node</em> has a <code>@type</code> property including any <em>IRI</em> from the corresponding <code>@type</code> property in <em>frame</em>.</li>
-      <li>Otherwise, a subject MUST match if <em>node</em> has a <code>@type</code> property and <em>frame</em> has a <code>@type</code> property containing only an empty <a>dictionary</a>.</li>
-      <li>Otherwise, a subject MUST match if <em>node</em> and <em>frame</em> both have the same <code>@id</code> property.</li>
-      <li>Otherwise, a subject MUST NOT match if <em>node</em> has a property and <em>frame</em> has an empty <a>array</a> for that same property.</li>
-      <li>Otherwise, a subject MUST match if <em>requireAll</em> is <code>false</code> and both node and frame contain
+      <li>A subject matches if <em>node</em> has a <code>@type</code> property including any <em>IRI</em> from the corresponding <code>@type</code> property in <em>frame</em>.</li>
+      <li>Otherwise, a subject matches if <em>node</em> has a <code>@type</code> property and <em>frame</em> has a <code>@type</code> property containing only an empty <a>dictionary</a>.</li>
+      <li>Otherwise, a subject matches if <em>node</em> and <em>frame</em> both have the same <code>@id</code> property.</li>
+      <li>Otherwise, a subject does not match if <em>node</em> has a property and <em>frame</em> has an empty <a>array</a> for that same property.</li>
+      <li>Otherwise, a subject matches if <em>requireAll</em> is <code>false</code> and both node and frame contain
         common non-<a>keyword</a> properties of any value.
         <span class="ednote">Having any value might not be adequate, as contained nodes might have other matching
           critera that could fail to match.</span></li>
-      <li>Otherwise, a subject MUST match if <em>requireAll</em> is <code>true</code>
+      <li>Otherwise, a subject matches if <em>requireAll</em> is <code>true</code>
         and all the non-<a>keyword</a> properties in <em>frame</em> exist in <em>node</em> with any value,
         or properties missing in node each have a property in <em>frame</em> which has a <a>dictionary</a>
         value containing only the key <code>@default</code> with any value.</li>
-      <li>Otherwise, a subject MUST NOT match.</li>
+      <li>Otherwise, a subject does not match.</li>
     </ol>
   </li>
   <li>For each <em>id</em> and associated <a>node definition</a> <em>node</em>
@@ -444,48 +442,49 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <li>Initialize <em>output</em> to a new <a>dictionary</a> with <code>@id</code> and <em>id</em>
         and add <em>output</em> to <em>link</em> associated with <em>id</em>.</li>
       <li>If <em>embed</em> is <code>@link</code> and <em>id</em> is in <em>link</em>,
-        <em>node</em> already exists in <em>results</em>. Processors MUST add
+        <em>node</em> already exists in <em>results</em>. Add
         the associated <a>node definition</a> from <em>link</em> to <em>parent</em>
-        and MUST NOT perform additional processing for this <em>node</em>.</li>
+        and do not perform additional processing for this <em>node</em>.</li>
       <li>Otherwise, if <em>embed</em> is <code>@never</code> or if a
         circular reference would be created by an embed,
-        processors MUST add <em>output</em> to <em>parent</em>
-        and MUST NOT perform additional processing for this <em>node</em>.</li>
+        add <em>output</em> to <em>parent</em>
+        and do not perform additional processing for this <em>node</em>.</li>
       <li>Otherwise, if <em>embed</em> is <code>@last</code>,
-        any existing embedded node MUST be removed from <em>parent</em>.
+        remove any existing embedded node from <em>parent</em>.
         <span class="ednote">Requires sorting of subjects. We could consider <code>@sample</code>, to embed
           just the first matched node. With sorting, we could also consider <code>@first</code>.</span></li>
       <li>If <em>embed</em> is <code>@last</code> or <code>@always</code>
         <ol class="algorithm">
           <li>For each <em>property</em> and <em>objects</em> in <em>node</em>, ordered by <em>property</em>:
             <ol class="algorithm">
-              <li>If <em>property</em> is a <a>keyword</a>, processors MUST add <em>property</em> and <em>objects</em>
+              <li>If <em>property</em> is a <a>keyword</a>, add <em>property</em> and <em>objects</em>
                 to <em>output</em>.</li>
               <li>Otherwise, if <em>property</em> is not in <em>frame</em>, and <em>explicit</em> is <code>true</code>,
-                processors MUST NOT add any values for <em>property</em> to <em>output</em>.</li>
+                <a>processors</a> MUST NOT add any values for <em>property</em> to <em>output</em>, and the following
+                steps are skipped.</li>
               <li>For each <em>item</em> in <em>objects</em>:
                 <ol class="algorithm">
                   <li>If <em>item</em> is a <a>dictionary</a> with the property <code>@list</code>, then each
                     <em>listitem</em> in the list is processed in sequence and added to a new list <a>dictionary</a>
                     in output:
                     <ol class="algorithm">
-                      <li>If <em>listitem</em> is a <a>node reference</a>, processors MUST
+                      <li>If <em>listitem</em> is a <a>node reference</a>,
                         invoke the recursive algorithm using <em>state</em>,
                         the value of <code>@id</code> from <em>listitem</em>
                         as the sole member of a new <em>subjects</em> <a>array</a>,
                         the first value from <code>@list</code> in <em>frame</em> as <em>frame</em>,
                         <em>list</em> as <em>parent</em>, and <code>@list</code> as <em>active property</em>.
                         <span class="ednote">Could this use the <em>list</em> <a>array</a>, and <code>null</code> for <em>active property</em>?</span></li>
-                      <li>Otherwise, processors MUST append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
+                      <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
                     </ol>
                   </li>
-                  <li>If <em>item</em> is a <a>node reference</a>, processors MUST
+                  <li>If <em>item</em> is a <a>node reference</a>,
                     invoke the recursive algorithm using <em>state</em>,
                     the value of <code>@id</code> from <em>item</em>
                     as the sole member of a new <em>subjects</em> <a>array</a>,
                     the first value from <em>property</em> in <em>frame</em> as <em>frame</em>,
                     <em>output</em> as <em>parent</em>, and <em>property</em> as <em>active property</em>.</li>
-                  <li>Otherwise, processors MUST append a copy of <em>item</em> to <a>active property</a> in
+                  <li>Otherwise, append a copy of <em>item</em> to <a>active property</a> in
                     <em>output</em>.</li>
                 </ol>
               </li>
@@ -497,11 +496,11 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
               <li>Let <em>item</em> be the first element in <em>objects</em>, which MUST be a <a>dictionary</a>.</li>
               <li>Set <em>property frame</em> to the first item in <em>objects</em> or a newly created <a>dictionary</a> if value is <em>objects</em>.
                 <em>property frame</em> MUST be a dictionary.</li>
-              <li>Processors MUST skip <em>property</em> and <em>property frame</em> if <em>property frame</em> contains
+              <li>Skip <em>property</em> and <em>property frame</em> if <em>property frame</em> contains
                 <code>@omitDefault</code> with a value of <code>true</code>,
                 or does not contain <code>@omitDefault</code> and the value of
                 the <a>omit default flag</a> is <code>true</code>.</li>
-              <li>Processors MUST add <em>property</em> to <em>output</em> with a
+              <li>Add <em>property</em> to <em>output</em> with a
                 new <a>dictionary</a> having a property <code>@preserve</code> and
                 a value that is a copy of the value of <code>@default</code> in
                 <em>frame</em> if it exists, or the string <code>@null</code>
@@ -512,12 +511,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <li>If <em>frame</em> has the property <code>@reverse</code>, then
             for each <em>reverse property</em> and <em>sub frame</em> that are the values of <code>@reverse</code> in <em>frame</em>:
             <ol class="algorithm">
-              <li>Processors MUST create a <code>@reverse</code> property in <em>output</em> with a new <a>dictionary</a> <em>reverse dict</em> as its value.</li>
+              <li>Create a <code>@reverse</code> property in <em>output</em> with a new <a>dictionary</a> <em>reverse dict</em> as its value.</li>
               <li>For each <em>reverse id</em> and <em>node</em> in the <a>map of flattened subjects</a> that has the property
                 <em>reverse property</em> containing a <a>node reference</a> with an <code>@id</code> of <em>id</em>:
                 <ol class="algorithm">
-                  <li>Processors MUST add <em>reverse property</em> to <em>reverse dict</em> with a new empty <a>array</a> as its value.</li>
-                  <li>Processors MUST invoke the recursive algorithm using <em>state</em>,
+                  <li>Add <em>reverse property</em> to <em>reverse dict</em> with a new empty <a>array</a> as its value.</li>
+                  <li>Invoke the recursive algorithm using <em>state</em>,
                     the <em>reverse id</em>
                     as the sole member of a new <em>subjects</em> <a>array</a>,
                     <em>sub frame</em> as <em>frame</em>,
@@ -529,12 +528,27 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           </li>
 
           <li>Once output has been set are required in the previous steps,
-            processors MUST add <em>output</em> to <em>parent</em>.</li>
+            add <em>output</em> to <em>parent</em>.</li>
         </ol>
       </li>
     </ol>
   </li>
 </ol>
+
+<p>Using <em>result</em> from the recursive algorithm, set <em>compacted results</em> to the result of using the
+  <code class="idlMemberName"><a href="../json-ld-api/#dom-jsonldprocessor-compact" class="externalDFN">compact</a></code>
+  method using <em>results</em>, <a>context</a>, and
+  <a data-lt="JsonLdProcessor-frame-options">options</a>.</p>
+<p>If <em>compacted results</em> does not have a top-level <code>@graph</code> <a>keyword</a>, or if its value is
+  not an <a>array</a>, modify <em>compacted results</em> to place the non <code>@context</code> <a>properties</a>
+  of <em>compacted results</em> into a <a>dictionary</a> contained within the array value of
+  <code>@graph</code>.</p>
+<p>Recursively, replace all key-value pairs in <em>compacted results</em>
+  where the key is <code>@preserve</code> with the value from the key-pair.
+  If the value from the key-pair is <code>@null</code>, replace the value with <code>null</code>.
+  If, after replacement, an array contains only the value <a>null</a> remove the value, leaving
+  an empty <a>array</a>.</p>
+<p>Return <em>compacted results</em>.</p>
 
 </section>
 
@@ -615,26 +629,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <a data-lt="JsonLdProcessor-frame-options">options</a> with
         <code class="idlMemberName"><a href="../json-ld-api/#dom-jsonldoptions-expandcontext">expandContext</a></code> set to <code>null</code>
         and <code class="idlMemberName"><a href="../json-ld-api/#dom-jsonldoptions-processingmode">processingMode</a></code> set to <strong>"json-ld-framing-1.1-expand-frame"</strong>.
-      <li>Set <em>framed</em> to the result of using the
-        <a href="#framing-algorithm">Framing algorithm</a>, passing
-        <em>expanded input</em>, and  <em>expanded frame</em>.</li>
-      <li>Set <em>framing context</em> to the value of <code>@context</code>
+      <li>Set <em>context</em> to the value of <code>@context</code>
         from <a data-lt="JsonLdProcessor-frame-frame">frame</a>, if it exists, or to
         a new empty <a>context</a>, otherwise.</li>
-      <li>Set <em>compacted results</em> to the result of using the
-        <code class="idlMemberName"><a href="../json-ld-api/#dom-jsonldprocessor-compact" class="externalDFN">compact</a></code>
-        using <em>framed</em>, <em>context</em>, and
-        <a data-lt="JsonLdProcessor-frame-options">options</a>.</li>
-      <li>If <em>compacted results</em> does not have a top-level <code>@graph</code> <a>keyword</a>, or if its value is
-        not an <a>array</a>, modify <em>compacted results</em> to place the non <code>@context</code> <a>properties</a>
-        of <em>compacted results</em> into a <a>JSON object</a> contained within the array value of
-        <code>@graph</code>.</li>
-      <li>Recursively, replace all key-value pairs in <em>compacted results</em>
-        where the key is <code>@preserve</code> with the value from the key-pair.
-        If the value from the key-pair is <code>@null</code>, replace the value with <code>null</code>.
-        If, after replacement, an array contains only the value <a>null</a> remove the value, leaving
-        an empty <a>array</a>.</li>
-      <li>Fulfill the <em>promise</em> passing <em>compacted results</em>.</li>
+      <li>Set <em>framed</em> to the result of using the
+        <a href="#framing-algorithm">Framing algorithm</a>, passing
+        <em>expanded input</em>, <em>expanded frame</em>, <em>context</em>, and <em>options</em>.</li>
+      <li>Fulfill the <em>promise</em> passing <em>framed</em>.</li>
     </ol>
 
     <dl class="parameters">
