@@ -213,6 +213,41 @@
               <textarea id="frame" class="compressed process span6 codemirror-input"
               placeholder="Enter your JSON-LD frame here..." rows="10">{}</textarea>
             </div>
+
+            <div id="privatekey-div" class="span6">
+              <h3>
+                PEM-encoded Private Key
+                <div class="pull-right editor-options">
+                  <div class="input-prepend editor-option" title="Use remote private key" data-editor="privatekey">
+                    <button class="btn" type="button" data-toggle="button">
+                      <span class="icon-stack">
+                        <i class="icon-cloud icon-stack-base icon-muted"></i>
+                        <i class="icon-crop"></i>
+                      </span>
+                    </button>
+                    <input class="span2" type="text" placeholder="Private Key URL" />
+                  </div>
+                </div>
+              </h3>
+              <textarea id="privatekey" class="compressed process span6 codemirror-input"
+              placeholder="Enter your PEM-encoded private key here..." rows="10">
+-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgQC4R1AmYYyE47FMZgo708NhFU+t+VWn133PYGt/WYmD5BnKj679
+YiUmyrC3hX6oZfo4eVpOkycxZvGgXCLQGuDp45XfZkdsjqs3o62En4YjlHWxgeGm
+kiRqGfZ3sJ3u5WZ2xwapdZY3/2T/oOV5ri8SktTvmVGCyhwFuJC/NbJMEwIDAQAB
+AoGAZXNdPMQXiFGSGm1S1P0QYzJIW48ZCP4p1TFP/RxeCK5bRJk1zWlq6qBMCb0E
+rdD2oICupvN8cEYsYAxZXhhuGWZ60vggbqTTa+4LXB+SGCbKMX711ZoQHdY7rnaF
+b/Udf4wTLD1yAslx1TrHkV56OfuJcEdWC7JWqyNXQoxedwECQQDZvcEmBT/Sol/S
+AT5ZSsgXm6xCrEl4K26Vyw3M5UShRSlgk12gfqqSpdeP5Z7jdV/t5+vD89OJVfaa
+Tw4h9BibAkEA2Khe03oYQzqP1V4YyV3QeC4yl5fCBr8HRyOMC4qHHKQqBp2VDUyu
+RBJhTqqf1ErzUBkXseawNxtyuPmPrMSl6QJAQOgfu4W1EMT2a1OTkmqIWwE8yGMz
+Q28u99gftQRjAO/s9az4K++WSUDGkU6RnpxOjEymKzNzy2ykpjsKq3RoIQJAA+XL
+huxsYVE9Yy5FLeI1LORP3rBJOkvXeq0mCNMeKSK+6s2M7+dQP0NBYuPo6i3LAMbi
+yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
+8Mezti8HCizDxPb+H8HlJMSkfoHx1veWkdLaPWRFrA==
+-----END RSA PRIVATE KEY-----
+              </textarea>
+            </div>
           </div>
         </div>
         <div id="markup-errors" class="hide alert alert-error"></div>
@@ -276,6 +311,12 @@
                 <span>Normalized</span>
               </a>
             </li>
+            <li>
+              <a id="tab-signed" href="#pane-signed" data-toggle="tab" name="tab-signed">
+                <i class="icon-pencil"></i>
+                <span>Signed</span>
+              </a>
+            </li>
           </ul>
 
           <div class="tab-content">
@@ -297,6 +338,9 @@
             <div id="pane-normalized" class="tab-pane">
               <textarea id="normalized" class="codemirror-output"></textarea>
             </div>
+            <div id="pane-signed" class="tab-pane">
+              <textarea id="signed" class="codemirror-output"></textarea>
+            </div>
           </div><!-- /.tab-content -->
         </div>
 
@@ -314,11 +358,13 @@
     </div>
 
     <!-- sccdn scripts -->
-    <script src="//cdn.jsdelivr.net/g/jquery@1.11.0,es6-promise@1.0.0,bootstrap@2.3.2,codemirror@3.22.0(codemirror.min.js+addon/lint/lint.js+addon/edit/matchbrackets.js+addon/edit/closebrackets.js+addon/display/placeholder.js+addon/hint/show-hint.js+mode/ntriples/ntriples.js+mode/javascript/javascript.js)"></script>
+    <script src="//cdn.jsdelivr.net/g/async@1.5.0,jquery@1.11.0,es6-promise@1.0.0,bootstrap@2.3.2,codemirror@3.22.0(codemirror.min.js+addon/lint/lint.js+addon/edit/matchbrackets.js+addon/edit/closebrackets.js+addon/display/placeholder.js+addon/hint/show-hint.js+mode/ntriples/ntriples.js+mode/javascript/javascript.js)"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jsonld/0.4.2/jsonld.js"></script>
 
     <!-- local scripts -->
-    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jsonld/0.3.20/jsonld.js"></script> -->
-    <script src="./jsonld.js"></script>
+<!--    <script src="./jsonld.js"></script> -->
+    <script src="./forge.min.js"></script>
+    <script src="./jsonld-signatures.js"></script>
     <script src="./jsonlint.js"></script>
     <script src="./tv4.min.js"></script>
     <script src="./json-schema-lint.js"></script>
@@ -339,6 +385,7 @@
     <script type="text/javascript">
       $('#context-div').hide();
       $('#frame-div').hide();
+      $('#privatekey-div').hide();
       $('#markup,#context,#frame').bind('keyup', function() {
         $('.btn-group > .btn').each(function () {
           $(this).removeClass('active');

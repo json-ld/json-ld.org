@@ -94,6 +94,7 @@ function getDrafts($spec)
                   <li><a href="../spec/latest/json-ld/">Syntax</a></li>
                   <li><a href="../spec/latest/json-ld-api/">API</a></li>
                   <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                  <li><a href="../spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
                   <li class="divider"></li>
                   <li class="nav-header"><strong>Previous Drafts</strong></li>
                   <li><a href="../spec#syntax">Syntax</a></li>
@@ -148,6 +149,23 @@ for applying and removing JSON-LD contexts.
 Links to JSON-LD API specifications: <a href="latest/json-ld-api/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-api');
+
+foreach ($drafts as $date => $dir) {
+    print(", <a href=\"$dir/\">$date</a>");
+}
+
+?>
+               </p>
+               </div>
+               <div id="best-practices">
+               <h2><a href="latest/json-ld-api-best-practices/">Building JSON-LD APIs: Best Practices</a></h2>
+               <p>
+Best practices for publishing JSON-LD and building APIs.
+               </p>
+               <p>
+Links to JSON-LD API specifications: <a href="latest/json-ld-api-best-practices/">Latest</a><?php
+
+$drafts = getDrafts('json-ld-api-best-practices');
 
 foreach ($drafts as $date => $dir) {
     print(", <a href=\"$dir/\">$date</a>");

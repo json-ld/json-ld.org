@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Building JSON-LD APIs: Best Practices</title>
+    <meta charset='utf-8'>
+    <script class="remove" src="local-biblio.js"></script>
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+        localBiblio: localBibliography,
+        specStatus: "CG-DRAFT",
+        shortName:  "json-ld-api-best-practices",
+        edDraftURI: "http://json-ld.org/spec/latest/json-ld-api-best-practices/",
+        issueBase: "https://github.com/json-ld/json-ld.org/issues/",
+        editors: [{
+          name: "Gregg Kellogg",
+          url: "http://greggkellogg.net/",
+          company: "Spec-Ops",
+          companyURL: "https://spec-ops.io/",
+          w3cid: "44770"
+        }],
+        //previousMaturity: "FPWD",
+        //previousPublishDate: "1977-03-15",
+        wg:           "Linking Data in JSON Community Group",
+        wgURI:        "http://json-ld.org/",
+        wgPublicList: "public-linked-json"
+        //wgPatentURI: "http://www.w3.org/2004/01/pp-impl/424242/status",
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        Developers share a common problem: they want a simple, but extensible way to create an API for a web service that gets the job done, doesn't design them into a corner, and allows developers to easily interact with their service without reinventing the wheel. JSON-LD [[json-ld]] has become an important solution, as it bridges the gap between formally data and more coloquial JSON interfaces used in APIs from numerous providers. This guide attempts to define certain best practices for publishing data using JSON-LD, and interacting with such services.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This is an unofficial document of the Linking Data in JSON Community Group.
+      </p>
+    </section>
+
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        Coming up with a data format for your API is a common problem. It can be hard to choose between different data representations, what names you want to pick and even harder if you want to leave room for extensibility. How do you make all these decisions? How do make your API easy to use so people can use short strings to reference common things, but URLs to enable people to come up with their own so it isn't limiting? How can you make it easy for other people to add their own data in and make it interoperable? How do you consume data from other similar apps? There are technologies that can help you do this. EXAMPLES. Now, it isn't perfect – sometimes it won't solve your problem, but it could maybe solve a lot of them.
+      </p>
+      <p>
+        The use of JSON on the web has grown immensely in the last decade, particularly with the explosion of APIs that eschew XML in favor of what is considered to be a more developer friendly format which is directly compatible with JavaScript. As a result, different sites have chosen their own proprietary representations for interacting with their sites, sometimes described using frameworks such as [[swagger]] which imply a particular URI composition for interacting with their services. This practice leads to vendor-specific semantic silos, where the meaning of a particular JSON document makes sense only by programming directly to the API documentation for a given service.
+      </p>
+      <p class="ednote">
+        show examples from GitHub, Twitter, …?
+      </p>
+      <p>
+        As services grow the often introduce incompatible changes leading to a Version 2 or Version 3 of their API requiring developers to update client code to properly handle JSON documents. In many cases, even small changes can lead to incompatibilities. Additionally, composing information from multiple APIs becomes problematic, due to namespace or document format conventions that may differ between API endpoints. Moreover, the same principles are often repeated across different endpoints using arbitrary identifiers (name, email, website, etc.); the community needs to learn to stop repeating itself (DRY concept) and reuse common conventions, although this does not necessarily have to mean using exactly the same identifiers within the JSON itself (see <a>JSON-LD Context</a>).
+      </p>
+      <p>
+        This Note proposes to outline a number of best practices for API designers JSON developers based on the principles of separation of data model from syntax, the use of discoverable identifiers describing document contents, and general organizing principles that allow documents to be machine understandable (read, interpreted as <a>JSON-LD</a> using <a>Linked Data</a>, RDF and RDFS vocabulary and data model principles).
+      </p>
+      <p>
+        Key among these is the notion of vocabulary re-use, so that each endpoint does not need to separately describe the properties and structure of their JSON documents. Schema.org provides a great example of doing this, and includes an extension mechanism that may already be familiar to API designers.
+      </p>
+      <p>
+        This note expands on <cite><a href="http://www.w3.org/TR/dwbp/">Data on the Web Best Practices</a></cite> [[dwbp]] and <cite><a href="http://www.w3.org/TR/ld-bp/">Best Practices for Publishing Linked Data</a></cite> [[ld-bp]].
+      </p>
+    </section>
+
+    <section id='bp-summary'></section>
+
+    <section>
+    <h2>Terminology</h2>
+    <dl class="termlist">
+      <dt><dfn>JSON-LD</dfn></dt>
+      <dd>
+        JSON-LD [[json-ld]] is a lightweight <a>Linked Data</a> format. It is easy for humans to read and write. It is based on the already successful JSON format and provides a way to help JSON data interoperate at Web-scale. JSON-LD is an ideal data format for programming environments, REST Web services, and unstructured databases such as CouchDB and MongoDB.
+      </dd>
+      <dt><dfn>JSON-LD Context</dfn></dt>
+      <dd>
+        In <a>JSON-LD</a>, a <a class="externalDFN" href="http://www.w3.org/TR/json-ld/#dfn-context">context</a> is used to map terms, i.e., properties with associated values in an JSON document, to URLs. A term is a short word that expands to a URL. Terms may be defined as any valid JSON string other than a JSON-LD keyword.
+      </dd>
+      <dt><dfn>Linked Data</dfn></dt>
+      <dd>
+        Linked Data [[linked-data]] is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
+      </dd>
+    </dl>
+    </section>
+
+    <section>
+      <h2>Resource Representation</h2>
+      <div class="practice">
+        <p><span id="use-json" class="practicelab">Publish data using developer friendly JSON</span></p>
+        <p class="practicedesc">JSON [[json]] is the most popular format for publishing data through APIs; developers like it, it is easy to parse, and it is supported natively in most programming languages.</p>
+        <pre class="example" title="Example JSON representing a Person">
+          {
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+      </div>
+
+      <div class="practice">
+        <p><span id="use-json-ld" class="practicelab">Use well-known identifiers when describing data</span></p>
+        <p class="practicedesc">By sticking to basic JSON data expression, and providing a <a>JSON-LD Context</a>, all keys used within a JSON document can have unambigious meaning, as they bind to URLs which describe their meaning.</p>
+        <pre class="example" title="Example JSON-LD identifying a person">
+          {
+            <strong>"@context": "http://schema.org"</strong>,
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+        <div class="note">
+          <p>When expanding such a data representation, a JSON-LD processor replaces these terms with the URIs they expand to (as well as making property values unambiguous):</p>
+          <pre class="example" title="Example JSON-LD identifying a person (expanded)">
+            [
+              {
+                "http://schema.org/familyName": [{"@value": "Obama"}],
+                "http://schema.org/givenName": [{"@value": "Barack"}],
+                "http://schema.org/jobTitle": [{"@value": "44th President of the United States"}],
+                "http://schema.org/name": [{"@value": "Barack Obama"}]
+              }
+            ]
+          </pre>
+          <p>Expanded form is not useful as is, but is necessary for performing furhter algorithmic transformaions of JSON-LD data and is useful when validating that JSON-LD entity descriptions say what the publisher means.</p>
+        </div>
+      </div>
+
+      <div class="practice">
+        <p><span id="cache-context" class="practicelab">Cache JSON-LD Contexts</span></p>
+        <p class="practicedesc">While most use of JSON-LD should not require a client to change the data representation, JSON-LD does allow the use of various algorithms to re-shape a JSON-LD document. These require the use of the <a>JSON-LD Context</a>, which is typically represented using a link to a remote document. Because it is remote, processing time can be severely impacted by the time it takes to retrieve this context. Services providing a <a>JSON-LD Context</a> SHOULD set HTTP cache-control headers to allow liberal caching of such contexts, and clients SHOULD attempt to use a locally cached version of these documents. Typically, libraries used to process JSON-LD documents should do this for you. (See also [[json-ld-best-practice-caching]]).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="top-level-object" class="practicelab">Use a top-level object</span></p>
+        <p class="practicedesc">JSON documents may be in the form of a object, or an array of objects. For most purposes, develpers need a single entrypoint, so the JSON SHOULD be in the form of a single top-level object</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="native-values" class="practicelab">Use native values</span></p>
+        <p class="practicedesc">When possible, property values SHOULD use native JSON datatypes such as numbers (<em>integer</em>, <em>decimal</em> and <em>floating point</em>) and booleans (<code>true</code> and <code>false</code>).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="unordered-values" class="practicelab">Assume arrays are unordered</span></p>
+        <p class="practicedesc">JSON specifies that the values in an array are ordered, however in many cases arrays are also used for values which are unordered. Unless specified within the <a>JSON-LD Context</a>, multiple array values SHOULD be presumed to be unordered. (See <cite><a href="http://www.w3.org/TR/json-ld/#lists-and-sets">Lists and Sets</a></cite> in [[json-ld]]).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="typed-objects" class="practicelab">Provide one or more types for JSON objects</span></p>
+        <p class="practicedesc">Principles of <a>Linked Data</a> dictate that messages SHOULD be self describing, which includes adding a <code>type</code> to such messages.</p>
+        <p>Many APIs use JSON messages where the type of information being conveyed is inferred from the retreaval endpoint. For example, when retrieving information about a Github Commit, you might see the following response:</p>
+        <pre class="example" title="Github Commit message">
+          {
+            "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+            "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
+            "author": {
+              "date": "2014-11-07T22:01:45Z",
+              "name": "Scott Chacon",
+              "email": "schacon@gmail.com"
+            },
+            "committer": {
+              "date": "2014-11-07T22:01:45Z",
+              "name": "Scott Chacon",
+              "email": "schacon@gmail.com"
+            },
+            "message": "added readme, because im a good github citizen\n",
+            "tree": {
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
+              "sha": "691272480426f78a0138979dd3ce63b77f706feb"
+            },
+            "parents": [
+              {
+                "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+                "sha": "1acc419d4d6a9ce985db7be48c6349a0475975b5"
+              }
+            ]
+          }
+        </pre>
+        <p>The only way to know this is a commit is to infer it based on the published API documentation, and the fact that it was returned from an endpoint defined for retrieving information about commits.</p>
+        <pre class="example" title="Example message of type Person">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            <strong>"type": "Person"</strong>,
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+      </div>
+
+      <div class="practice">
+        <p><span id="use-ids" class="practicelab">Identify objects with a unique identifier</span></p>
+        <p class="practicedesc">Entities described in JSON objects often describe web resources having a URL; entity descriptions SHOULD use an identifier uniquely identifying that entity. In this case, using the resource location as the identity of the object is consistent with this practice.</p>
+        <pre class="example" title="Example JSON-LD identifying a person">
+          {
+            "@context": "http://schema.org",
+            <strong>"id": "https://www.wikidata.org/wiki/Q76"</strong>,
+            "type": "Person",
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States"
+          }
+        </pre>
+        <p class="note">There is often ambiguous if an identifier is about the entity being described, or directly represents that entity. As an example, Barack Obama may have a Wikidata entry <code>https://www.wikidata.org/wiki/Q76</code>, but it would be a mistake to say that <code>https://www.wikidata.org/wiki/Q76</code> <em>is</em> Barack Obama. However, it is common to use this pattern, particularly if the <strong>type</strong> of the entity describes a Person, rather than a WebPage.</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="dereferencable-entities" class="practicelab">Provide a representation of the entity related by URL</span></p>
+        <p class="practicedesc">When dereferencing an entity related via a URL, the location SHOULD provide a representation of that entity. (This practices replicates that described in [[ld-bp]] <cite><a href="http://www.w3.org/TR/ld-bp/#uri-design-principles">Provide at least one machine-readable representation of the resource identified by the URI</a></cite>)</p>
+        <p>Corollaries to this best practice is that Cool URIs don't change [[cooluris]], meaning that URLs describing entities SHOULD be stable and not depend on variable information. Also, the URL used to identify an entity is the best API endpoint of that entity (see also <a href="#api-versioning" class="sectionRef"></a>).</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="type-links" class="practicelab">External references should use typed term</span></p>
+        <p class="practicedesc">When using a property intended to reference another entity, properties SHOULD be defined to type string values as being references.</p>
+        <p>For example, the <code>schema:image</code> property a Thing to an Image:</p>
+        <pre class="example" title="Example typed relationship">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"image": "https://commons.wikimedia.org/wiki/File:President_Barack_Obama.jpg"</strong>
+          }
+        </pre>
+        <p>This will be interpreted as a reference, rather than a string literal, because (at the time of publication), the schema.org JSON-LD Context defines <code>image</code> to be of type <code>@id</code>:</p>
+        <pre class="example" title="schema.org context snippet for image">
+          {
+            "@context": {
+              ...
+              "image": { "@id": "schema:image", <strong>"@type": "@id"</strong>},
+              ...
+            }
+          }
+        </pre>
+        <p>If not defined as such in a remote context, terms may be (re-) defined in a local context:</p>
+        <pre class="example" title="Example typed relationship">
+          {
+            "@context": ["http://schema.org", <strong>{
+              "image": { "@id": "schema:image", "@type": "@id"}
+            }</strong>],
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            "image": "https://commons.wikimedia.org/wiki/File:President_Barack_Obama.jpg"
+          }
+        </pre>
+      </div>
+
+      <div class="practice">
+        <p><span id="embed-objects" class="practicelab">Nest referenced inline objects</span></p>
+        <p class="practicedesc">When multiple related entity descriptions are provided inline, related entities SHOULD be nested.</p>
+        <p>For example, when relating one entity to another, where the related entity is described in the same message:</p>
+        <pre class="example" title="Nested relationships">
+          {
+            "@context": "http://schema.org",
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"spouse": {
+              "id": "https://www.wikidata.org/wiki/Q13133",
+              "type": "Person",
+              "name": "Michelle Obama",
+              "spouse": "https://www.wikidata.org/wiki/Q76"
+            }</strong>
+          }
+        </pre>
+        <p class="note">In this example, the <code>spouse</code> relationship is bi-directional, we have arbitrarily rooted the message with Barack Obama, and created a symetric relationship from Michelle back to Barack by reference, rather than by nesting.</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="things-not-strings" class="practicelab">Things not strings</span></p>
+        <p class="practicedesc">When describing attributes, entity references SHOULD be used instead of string literals.</p>
+        <p>In some cases, when describing an attribute of an entity, it is tempting to using string values which have no independent meaning. Such values often are used for well known things. A JSON-LD context can define a term for such values, which allow them to appear as strings within the message, but be associated with specific identifiers. In this case, the property must be defined with type <code>@vocab</code> so that values will be interpreted relative to a vocabulary rather than the file location.</p>
+        <pre class="example" title="Example enumerated value">
+          {
+            "@context": ["http://schema.org", <strong>{
+              <strong>"gender": {"@id": "schema:gender", "@type": "@vocab"}</strong>
+            }</strong>],
+            "id": "https://www.wikidata.org/wiki/Q76",
+            "type": "Person",
+            "name": "Barack Obama",
+            "givenName": "Barack",
+            "familyName": "Obama",
+            "jobTitle": "44th President of the United States",
+            <strong>"gender": "Male"</strong>
+          }
+        </pre>
+        <p>See article in SEO Skeptic [[seo-strings-to-things]] for further elaboration on the advantages of using <em>things</em> instead of <em>strings</em>.</p>
+      </div>
+
+      <div class="practice">
+        <p><span id="reverse-references" class="practicelab">When describing an inverse relationship, use a referenced property</span></p>
+        <p class="practicedesc"></p>
+      </div>
+
+      <!--
+      <div class="practice">
+        <p><span id="xxx" class="practicelab"></span></p>
+        <p class="practicedesc"></p>
+      </div>
+      -->
+    </section>
+
+    <section>
+      <h2>Serializing Large Collections</h2>
+      <p class="ednote">Describe schema.org extension using Role sub-class, Hydra collections, and LDP collections.</p>
+    </section>
+
+    <section>
+      <h2>Reuse Vocabularies</h2>
+      <p class="ednote">Focus on schema.org?</p>
+    </section>
+
+    <section>
+      <h2>Describe API affordances</h2>
+      <p class="ednote">Describe the use of schema.org Actions and work in Hydra.</p>
+      <p class="ednote">Describe anti-pattern of URI construction emphasizing affordances.</p>
+    </section>
+
+    <section>
+      <h2>API Versioning</h2>
+      <p class="ednote">Remember that Cool URIs don't change [cooluris]; correctly modeling data allows changes data representation to be limited.</p>
+      <p class="ednote">Describe the use of API keys for controlling API versions, rather than the use of different versioned URLs.</p>
+    </section>
+  </body>
+</html>
