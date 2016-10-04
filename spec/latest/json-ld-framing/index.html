@@ -117,14 +117,18 @@
     counter-reset: numsection;
     list-style-type: none;
   }
-  ol.algorithm li {
-    margin: 0.5em 0;
+  ol.algorithm > li {
+    margin: 1em -1em;
+    padding-right: 1em;
+    text-indent: -1em;
   }
-  ol.algorithm li:before {
+  ol.algorithm > li:before {
     font-weight: bold;
     counter-increment: numsection;
-    content: counters(numsection, ".") ") ";
+    content: counters(numsection, ".") " ";
   }
+  ol.algorithm>li p, ol.algorithm>li div {text-indent: 0em}
+  ol.algorithm>li>p:first-child {position: relative; display: inline;}
 </style>
 </head>
 
@@ -364,16 +368,16 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <section>
 <h3>Framing Algorithm</h3>
 
-<p>The framing algorithm takes an <a>JSON-LD input</a> (<strong>expanded input</strong>),
+<p>The framing algorithm takes an <a>JSON-LD input</a> (<em>expanded input</em>),
   which  MUST be a <a>JSON-LD document</a> in
   <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
-  an <a>input frame</a> (<strong>expanded frame</strong>),
+  an <a>input frame</a> (<em>expanded frame</em>),
   which  MUST be a <a>JSON-LD frame</a> in
     <a href="../json-ld-api/#dfn-expanded-form" class="externalDFN">expanded form</a>,
-  a <a>context</a> (<strong>context</strong>),
+  a <a>context</a> (<em>context</em>),
   and a number of options and produces <a>JSON-LD output</a>.</p>
 
-<p>If an error is detected in the <strong>expanded frame</strong>, a processor MUST
+<p>If an error is detected in the <em>expanded frame</em>, a processor MUST
   generate a <a>JsonLdFramingError</a> with <a data-link-for="JsonLdFramingError">code</a> set to <a data-link-for="JsonLdFramingErrorCode">invalid frame</a>.
   <span class="ednote">Need more specifics as to what constitutes a valid frame.</span></p>
 
@@ -386,7 +390,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   along with <a>map of flattened subjects</a>
   set to the <code>@merged</code> property of the result of performing the
   <a href="../json-ld-api/#node-map-generation">Node Map Generation</a> algorithm on
-  <strong>expanded input</strong>,
+  <em>expanded input</em>,
   <em>subjectStack</em> set to an empty <a>array</a>,
   <em>link</em> set to an empty <a>dictionary</a>.
   Also initialize <em>results</em> as an empty <a>array</a>.</p>
@@ -396,7 +400,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 <p>Invoke the recursive algorithm using <a>framing state</a> (<em>state</em>),
   the keys from the <a>map of flattened subjects</a> as <em>subjects</em>,
-  <strong>expanded frame</strong> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
+  <em>expanded frame</em> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
   <code>null</code> as <a>active property</a>.</p>
 
 <p>The recursive algorithm adds elements to <em>parent</em> either by appending
@@ -550,6 +554,98 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   an empty <a>array</a>.</p>
 <p>Return <em>compacted results</em>.</p>
 
+</section>
+
+<section id="frame-matching">
+  <h2>Frame Matching Algorithm</h2>
+
+  <p>The Frame Matching Algorithm is used as part of the <a href="#framing-algorithm">Framing algorithm</a>
+    to determine if a particular <a>node object</a> matches the critera set in a <a>frame</a>.
+    In general, a node object matches a frame if it meets the matches on <code>@type</code>,
+    or <code>@id</code>,
+    or if it matches given one of several different properties (or all properties, if the
+    <a>require all flag</a> is present.).</p>
+
+  <p class="note">As matching is performed on expanded node objects, all values will be in the form of an array.</p>
+
+  <p>Node matching uses a combination of JSON constructs to match <em>any</em>, <em>no</em>, or <em>some</em> specific values:</p>
+  <dl>
+    <dt><code>[]</code> (<code><dfn>match none</dfn></code>)</dt>
+    <dd>An empty array matches no values, or a value which is, itself, an empty array.</dd>
+    <dt><code>[{}]</code> (<code><dfn>wildcard</dfn></code>)</dt>
+    <dd>An array containing an empty object matches any value that is present, and does not match if there are no values.</dd>
+    <dt><code>[<a>IRI</a>+]</code></dt>
+    <dd>One or more strings in the form of an IRI, used for matching on <code>@type</code> or <code>@id</code>.</dd>
+    <dt><code>[<a>node object</a>]</code> (<code><dfn>node pattern</dfn></code>)</dt>
+    <dd>A non-empty <a>node object</a>, used to match specific values using recursive node matching.</dd>
+    <dt><code>[<a>value object</a>]</code> (<code><dfn>value pattern</dfn></code>)</dt>
+    <dd>A <a>value object</a>, used to match a specific value. Within a <a>value object</a>,
+      the values for <code>@value</code>, <code>@type</code>, and <code>@language</code>
+      may also be one of the first two matching constructs, or an one or more <a>string</a> values.</dd>
+    <dt><code>[(<a>value object</a>|<a>node object</a>)+]</code></dt>
+    <dd>Patterns may be composed of a combination of <em>value objects</em> and <em>node objects</em>
+      which match if any individual component matches.</dd>
+    <dt><code>[<a>list object</a>]</code></dt>
+    <dd>One or more <a>list objects</a>, used to match specific values.
+      The list values to match may be any of the previous patterns.</dd>
+  </dl>
+
+<p>The frame matching algorithm takes the <a>framing state</a> (<em>state</em>),
+  a list of subjects to match from the <a>map of flattened subjects</a> (<em>subjects</em>),
+  a <a>frame</a> to match against (<em>frame</em>), and the <em>requireAll</em> flag
+  and returns a list of matched subjects by filtering each <em>node</em> in <em>subjects</em> as follows:</em>
+
+<ol class="algorithm">
+  <li>If <em>frame</em> has an <code>@id</code> property with value <em>values</em>:
+    <ol class="algorithm">
+      <li><em>Node</em> matches if it has an <code>@id</code> property including any <a>IRI</a> or <a>blank node</a> in <em>values</em>.
+      <li>Otherwise, <em>node</em> does not match.
+    </ol>
+  </li>
+  <li>Otherwise, if <em>frame</em> has an <code>@type</code> property with value <em>values</em>:
+    <ol class="algorithm">
+      <li><em>Node</em> matches if it has a <code>@type</code> property including any <em>IRI</em> in <em>values</em>.
+      <li>Otherwise, <em>node</em> matches if it has a non-empty <code>@type</code> property and in <em>values</em> is <code><a>wildcard</a></code>.</li>
+      <li>Otherwise, <em>node</em> does not match if it has no <code>@type</code> property or a non-empty <code>@type</code> property and <em>values</em> is <code><a>match none</a></code>.</li>
+      <li>Otherwise, <em>node</em> does not match if <em>frame</em> has no properties other than <code>@type</code>.</li>
+    </ol>
+  </li>
+  <li>Otherwise, if <em>requireAll</em> is <strong>true</strong>, <em>node</em> matches if all non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
+    Or, if <em>requireAll</em> is <strong>false</strong>, if any of the non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
+    For the <em>values</em> of <em>property</em> in <em>node</em>:
+    <ol class="algorithm">
+      <li><em>Node</em> matches if <em>values</em> is empty, <code>null</code>, or non existant,
+        the value of <em>property</em> in <em>frame</em>
+        is a <a>dictionary</a> containing only the key <code>@default</code> with any value,
+        and any other property in <em>node</em> has a non-default match.</li>
+      <li>Otherwise, <em>node</em> matches if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>wildcard</a></code>.</li>
+      <li>Otherwise, <em>node</em> does not match if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>match none</a></code>.</li>
+      <li>Otherwise, <em>node</em> matches if any value in <em>values</em> exactly matches any value of <em>property</em> in <em>frame</em>.</li>
+      <li>Otherwise, for any <a>value pattern</a> (<em>value pattern</em>) which is one of the values of <em>property</em> in <em>frame</em>:
+        <ol class="algorithm">
+          <li>Node matches if <em>values</em> contains a <em>value</em> matching <em>value pattern</em>, where matching is determined as follows:
+            <ol class="algorithm">
+              <li>Let <em>v1</em>, <em>t1</em>, and <em>l1</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value</em>, or <strong>null</strong> if none exists.</li>
+              <li>Let <em>v2</em>, <em>t2</em>, and <em>l2</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value pattern</em>, or <strong>null</strong> if none exists.</li>
+              <li><em>v1</em> is in <em>v2</em>, or <em>v2</em> is <code><a>wildcard</a></code>, and</li>
+              <li><em>t1</em> is in <em>t2</em>, or <em>t1</em> is not <strong>null</strong> and <em>t2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>t1</em> is <code>null</code> and <em>t2</em> is <strong>null</strong> or <code><a>match none</a></code>, and</li>
+              <li><em>l1</em> is in <em>l2</em>, or <em>l1</em> is not <strong>null</strong> and <em>l2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>l1</em> is <code>null</code> and <em>l2</em> is <strong>null</strong> or <code><a>match none</a></code>.</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+      <li>Otherwise, for any <strong>node pattern</strong> (<em>node pattern</em>) which is one of the values of <em>property</em> in <em>frame</em>:
+        <ol class="algorithm">
+          <li>Let <em>value subjects</em> be the list of subjects from the <a>map of flattened subjects</a> matching the <a>node object</a> values from <em>values</em>.</li>
+          <li>Let <em>matched subjects</em> be the result of calling this algorithm recursively using
+            <em>state</em>, <em>value subjects</em> for <em>subjects</em>, <em>node pattern</em> for <em>frame</em>, and the <em>requireAll</em> flag.</li>
+          <li><em>Node</em> matches if <em>matched subjects</em> is not empty.</li>
+        </ol>
+      </li>
+      <li>Otherwise, <em>node</em> does not match.</li>
+    </ol>
+  </li>
+</ol>
 </section>
 
 <section>
