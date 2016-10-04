@@ -90,9 +90,11 @@
    * @return a string containing the humanized string.
    */
   playground.humanize = function(value) {
-    return ($.type(value) === 'string') ?
-      value :
-      JSON.stringify(value, null, 2);
+    switch($.type(value)) {
+      case 'string': return value;
+      case 'error': return value.toString();
+      default: return JSON.stringify(value, null, 2);
+    }
   };
 
 
@@ -377,8 +379,21 @@
    * @return the CodeMirror editor
    */
   playground.init.editor = function(node){
-    var key = node.id,
-      editor = playground.editors[key] = CodeMirror.fromTextArea(node, {
+    var key = node.id;
+    var editor;
+
+    // don't use JSON-LD for PEM data
+    if(key === 'privatekey') {
+      editor = CodeMirror.fromTextArea(node, {
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        lineWrapping: false,
+        mode: 'text',
+        theme: playground.theme,
+        _playground_key: key
+      });
+    } else {
+      editor = CodeMirror.fromTextArea(node, {
         matchBrackets: true,
         autoCloseBrackets: true,
         lineWrapping: true,
@@ -397,6 +412,9 @@
         },
         _playground_key: key
       });
+    }
+
+    playground.editors[key] = editor;
 
     // set up 'process' areas to process JSON-LD after typing
     editor.on("change", function(){
@@ -720,24 +738,25 @@
   playground.tabSelected = function(evt) {
     var id = playground.activeTab = evt.target.id;
 
-    if(['tab-compacted', 'tab-flattened', 'tab-framed'].indexOf(id) > -1) {
+    if(['tab-compacted', 'tab-flattened', 'tab-framed', 'tab-signed']
+      .indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
-     $('#markup-div').removeClass('span12').addClass('span6');
-
-      if(id !== 'tab-framed') {
+      $('#markup-div').removeClass('span12').addClass('span6');
+      $('#frame-div, #privatekey-div, #context-div').hide();
+      if(id === 'tab-compacted' || id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
         $('#context-div').show();
-        $('#frame-div').hide();
-      }
-      else {
+      } else if(id==='tab-framed') {
         $('#param-type').html('JSON-LD Frame');
         $('#frame-div').show();
-        $('#context-div').hide();
+      } else if(id === 'tab-signed') {
+        $('#param-type').html('PEM-encoded Private Key');
+        $('#privatekey-div').show();
       }
     }
     else {
       // else no input textarea required
-      $('#context-div, #frame-div').hide();
+      $('#context-div, #frame-div, #privatekey-div').hide();
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
@@ -789,6 +808,30 @@
     else if(playground.activeTab === 'tab-normalized') {
       options.format = 'application/nquads';
       promise = processor.normalize(input, options);
+    }
+    else if(playground.activeTab === 'tab-signed') {
+      options.format = 'application/ld+json';
+
+      var jsigs = window.jsigs;
+      var pkey = playground.editors.privatekey.getValue();
+
+      // add security context to input
+      if(!('@context' in input)) {
+        input['@context'] = 'https://w3id.org/security/v1';
+      } else if(Array.isArray(input['@context'])) {
+        input['@context'].push('https://w3id.org/security/v1');
+      } else {
+        input['@context'] =
+          [input['@context'], 'https://w3id.org/security/v1'];
+      }
+
+      promise = jsigs.promises.sign(input, {
+        privateKeyPem: pkey,
+        algorithm: 'LinkedDataSignature2015',
+        nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
+        domain: 'json-ld.org',
+        creator: 'https://example.com/jdoe/keys/1'
+      });
     }
     else {
       promise = Promise.reject(new Error('Invalid tab selection.'));
@@ -1131,7 +1174,9 @@
         hasData = true;
         editor.setValue(playground.humanize(data[key]));
       }else{
-        editor.setValue("{}");
+        if(key !== 'privatekey') {
+          editor.setValue("{}");
+        }
       }
     });
 
