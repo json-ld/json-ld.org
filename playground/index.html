@@ -216,11 +216,11 @@
               placeholder="Enter your JSON-LD frame here..." rows="10">{}</textarea>
             </div>
 
-            <div id="privatekey-div" class="span6">
+            <div id="privatekey-rsa-div" class="span6">
               <h3>
                 PEM-encoded Private Key
                 <div class="pull-right editor-options">
-                  <div class="input-prepend editor-option" title="Use remote private key" data-editor="privatekey">
+                  <div class="input-prepend editor-option" title="Use remote private key" data-editor="privatekey-rsa">
                     <button class="btn" type="button" data-toggle="button">
                       <span class="icon-stack">
                         <i class="icon-cloud icon-stack-base icon-muted"></i>
@@ -231,7 +231,7 @@
                   </div>
                 </div>
               </h3>
-              <textarea id="privatekey" class="compressed process span6 codemirror-input"
+              <textarea id="privatekey-rsa" class="compressed process span6 codemirror-input"
               placeholder="Enter your PEM-encoded private key here..." rows="10">
 -----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQC4R1AmYYyE47FMZgo708NhFU+t+VWn133PYGt/WYmD5BnKj679
@@ -250,8 +250,16 @@ yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
 -----END RSA PRIVATE KEY-----
               </textarea>
             </div>
+
+            <div id="privatekey-secp256k1-div" class="span6">
+              <h3>Bitcoin Private Key (secp256k1)</h3>
+              <textarea id="privatekey-secp256k1" class="compressed process span6 codemirror-input"
+                placeholder="Enter your Bitcoin (secp256k1) private key here..." rows="3">L4mEi7eEdTNNFQEWaa7JhUKAbtHdVvByGAqvpJKC53mfiqunjBjw</textarea>
+            </div>
+
           </div>
         </div>
+
         <div id="markup-errors" class="hide alert alert-error"></div>
         <div id="param-errors" class="hide alert alert-error"></div>
         <div id="using-context-map" class="hide alert alert-note">
@@ -314,9 +322,15 @@ yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
               </a>
             </li>
             <li>
-              <a id="tab-signed" href="#pane-signed" data-toggle="tab" name="tab-signed">
+              <a id="tab-signed-rsa" href="#pane-signed-rsa" data-toggle="tab" name="tab-signed-rsa">
                 <i class="icon-pencil"></i>
-                <span>Signed</span>
+                <span>Signed with RSA</span>
+              </a>
+            </li>
+            <li>
+              <a id="tab-signed-secp256k1" href="#pane-signed-secp256k1" data-toggle="tab" name="tab-signed-secp256k1">
+                <i class="icon-pencil"></i>
+                <span>Signed with Bitcoin</span>
               </a>
             </li>
           </ul>
@@ -340,8 +354,11 @@ yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
             <div id="pane-normalized" class="tab-pane">
               <textarea id="normalized" class="codemirror-output"></textarea>
             </div>
-            <div id="pane-signed" class="tab-pane">
-              <textarea id="signed" class="codemirror-output"></textarea>
+            <div id="pane-signed-rsa" class="tab-pane">
+              <textarea id="signed-rsa" class="codemirror-output"></textarea>
+            </div>
+            <div id="pane-signed-secp256k1" class="tab-pane">
+              <textarea id="signed-secp256k1" class="codemirror-output"></textarea>
             </div>
           </div><!-- /.tab-content -->
         </div>
@@ -366,6 +383,7 @@ yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
     <!-- local scripts -->
 <!--    <script src="./jsonld.js"></script> -->
     <script src="./forge.min.js"></script>
+    <script src="./bitcore-message.js"></script>
     <script src="./jsonld-signatures.js"></script>
     <script src="./jsonlint.js"></script>
     <script src="./tv4.min.js"></script>
@@ -387,7 +405,8 @@ yT2IMAWbY76Bmi8TeQJAfdLJGwiDNIhTVYHxvDz79ANzgRAd1kPKPddJZ/w7Gfhm
     <script type="text/javascript">
       $('#context-div').hide();
       $('#frame-div').hide();
-      $('#privatekey-div').hide();
+      $('#privatekey-rsa-div').hide();
+      $('#privatekey-secp256k1-div').hide();
       $('#markup,#context,#frame').bind('keyup', function() {
         $('.btn-group > .btn').each(function () {
           $(this).removeClass('active');
