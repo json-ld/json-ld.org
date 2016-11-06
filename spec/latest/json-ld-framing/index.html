@@ -305,7 +305,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <a href="../json-ld-api/#compaction">Compacting</a>.</dd>
     <dt><code>@omitDefault</code></dt>
     <dd>Used in <a href="#framing">Framing</a> to override the
-      value of <a>omit default flag</a> within a specific frame.</dd>
+      value of <a>omit default flag</a> within a specific frame.
+      <div class="issue">Is this flag really useful? Easier to simply not have a default value,
+        if it shouldn't match.</div>
+    </dd>
     <dt><code>@requireAll</code></dt>
     <dd>Used in <a href="#framing">Framing</a> to override the
       value of <a>require all flag</a> within a specific frame.</dd>
@@ -418,25 +421,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <a>object embed flag</a>, <a>explicit inclusion flag</a>, and
     <a>require all flag</a> in <em>state</em> overriding from any property values
     for <code>@embed</code>, <code>@explicit</code>, and <code>@requireAll</code> in <em>frame</em>.</li>
-  <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>.
-    A <a>node object</a> (<em>node</em>) associated with a subject from the <a>map of flattened subjects</a>
-    matches <em>frame</em> in the following circumstances:
-    <ol class="algorithm">
-      <li>A subject matches if <em>node</em> has a <code>@type</code> property including any <em>IRI</em> from the corresponding <code>@type</code> property in <em>frame</em>.</li>
-      <li>Otherwise, a subject matches if <em>node</em> has a <code>@type</code> property and <em>frame</em> has a <code>@type</code> property containing only an empty <a>dictionary</a>.</li>
-      <li>Otherwise, a subject matches if <em>node</em> and <em>frame</em> both have the same <code>@id</code> property.</li>
-      <li>Otherwise, a subject does not match if <em>node</em> has a property and <em>frame</em> has an empty <a>array</a> for that same property.</li>
-      <li>Otherwise, a subject matches if <em>requireAll</em> is <code>false</code> and both node and frame contain
-        common non-<a>keyword</a> properties of any value.
-        <span class="ednote">Having any value might not be adequate, as contained nodes might have other matching
-          criteria that could fail to match.</span></li>
-      <li>Otherwise, a subject matches if <em>requireAll</em> is <code>true</code>
-        and all the non-<a>keyword</a> properties in <em>frame</em> exist in <em>node</em> with any value,
-        or properties missing in node each have a property in <em>frame</em> which has a <a>dictionary</a>
-        value containing only the key <code>@default</code> with any value.</li>
-      <li>Otherwise, a subject does not match.</li>
-    </ol>
-  </li>
+  <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>
+    using the <a href="#frame-matching">Frame Matching algorithm</a>
+    with <em>state</em>, <em>subjects</em>, <em>frame</em>, and <em>requireAll</em>.</li>
   <li>For each <em>id</em> and associated <a>node object</a> <em>node</em>
     from the set of matched subjects, ordered by <em>id</em>:
     <p class="ednote">Can we remove sorting, or make it subject to a processing
@@ -573,7 +560,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dt><code>[]</code> (<code><dfn>match none</dfn></code>)</dt>
     <dd>An empty array matches no values, or a value which is, itself, an empty array.</dd>
     <dt><code>[{}]</code> (<code><dfn>wildcard</dfn></code>)</dt>
-    <dd>An array containing an empty object matches any value that is present, and does not match if there are no values.</dd>
+    <dd>An array containing an empty object
+      (after excluding the framing properties <code>@default</code>, <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, and <code>@requireAll</code>)
+      matches any value that is present, and does not match if there are no values.</dd>
     <dt><code>[<a>IRI</a>+]</code></dt>
     <dd>One or more strings in the form of an IRI, used for matching on <code>@type</code> or <code>@id</code>.</dd>
     <dt><code>[<a>node object</a>]</code> (<code><dfn>node pattern</dfn></code>)</dt>
@@ -582,12 +571,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <dd>A <a>value object</a>, used to match a specific value. Within a <a>value object</a>,
       the values for <code>@value</code>, <code>@type</code>, and <code>@language</code>
       may also be one of the first two matching constructs, or an one or more <a>string</a> values.</dd>
-    <dt><code>[(<a>value object</a>|<a>node object</a>)+]</code></dt>
-    <dd>Patterns may be composed of a combination of <em>value objects</em> and <em>node objects</em>
-      which match if any individual component matches.</dd>
-    <dt><code>[<a>list object</a>]</code></dt>
-    <dd>One or more <a>list objects</a>, used to match specific values.
-      The list values to match may be any of the previous patterns.</dd>
   </dl>
 
 <p>The frame matching algorithm takes the <a>framing state</a> (<em>state</em>),
@@ -595,43 +578,47 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   a <a>frame</a> to match against (<em>frame</em>), and the <em>requireAll</em> flag
   and returns a list of matched subjects by filtering each <em>node</em> in <em>subjects</em> as follows:</em>
 
+<p>Frame matching follows a cascade, first attempting to match on a particular <code>@id</code>, then
+  a particular <code>@type</code> (or lack of <code>@type</code>), then by matching on any or all
+  of a set of properties, if neither <code>@id</code>, nor <code>@type</code> are in the frame.</p>
+
 <ol class="algorithm">
-  <li>If <em>frame</em> has an <code>@id</code> property with value <em>values</em>:
-    <div class="note">After creating the <a>map of flattened subjects</a>, all nodes will have an <code>@id</code> property.</div>
+  <li>If <em>frame</em> has an <code>@id</code> property with value <em>values</em>, and
+    <em>values</em> is not empty and not <code>wildcard</code>:
     <ol class="algorithm">
-      <li><em>Node</em> matches if it has an <code>@id</code> property including any <a>IRI</a> or <a>blank node</a> in <em>values</em>.</li>
-      <li>Otherwise, <em>node</em> matches if <code>@id</code> in <em>values</em> is <code><a>wildcard</a></code>.</li>
-      <li>Otherwise, <em>node</em> does not match.</li>
+      <li><em>Node</em> matches if it has an <code>@id</code> property including any <a>IRI</a> in <em>values</em>.</li>
     </ol>
   </li>
-  <li>Otherwise, if <em>frame</em> has an <code>@type</code> property with value <em>values</em>:
+  <li>If <em>frame</em> has an <code>@type</code> property with value <em>values</em>:
     <ol class="algorithm">
-      <li><em>Node</em> matches if it has a <code>@type</code> property including any <em>IRI</em> in <em>values</em>.
-      <li>Otherwise, <em>node</em> matches if it has a non-empty <code>@type</code> property and in <em>values</em> is <code><a>wildcard</a></code>.</li>
+      <li><em>Node</em> matches if it has a <code>@type</code> property including any <a>IRI</a> in <em>values</em>.
+      <li>Otherwise, <em>node</em> matches if it has a non-empty <code>@type</code> property and <em>values</em> is <code><a>wildcard</a></code>.</li>
       <li>Otherwise, <em>node</em> does not match if it has no <code>@type</code> property or a non-empty <code>@type</code> property and <em>values</em> is <code><a>match none</a></code>.</li>
       <li>Otherwise, <em>node</em> does not match if <em>frame</em> has no properties other than <code>@type</code>.</li>
     </ol>
   </li>
-  <li>Otherwise, if <em>requireAll</em> is <strong>true</strong>, <em>node</em> matches if all non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
+  <li><em>Node</em> matches if frame has no non-<code>keyword</code> properties.</li>
+  <li>If <em>requireAll</em> is <strong>true</strong>, <em>node</em> matches if all non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
     Or, if <em>requireAll</em> is <strong>false</strong>, if any of the non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
-    For the <em>values</em> of <em>property</em> in <em>node</em>:
+    For the <em>values</em> of each <em>property</em> from <em>frame</em> in <em>node</em>:
     <ol class="algorithm">
-      <li><em>Node</em> matches if <em>values</em> is empty, <code>null</code>, or non existant,
+      <li>The value of <em>property</em> in <em>frame</em> MUST be empty, or an array
+        containing a valid <a>frame</a>.</li>
+      <li><em>Property</em> matches if <em>values</em> is empty, or non existant,
         the value of <em>property</em> in <em>frame</em>
         is a <a>dictionary</a> containing only the key <code>@default</code> with any value,
         and any other property in <em>node</em> has a non-default match.</li>
-      <li>Otherwise, <em>node</em> matches if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>wildcard</a></code>.</li>
-      <li>Otherwise, <em>node</em> does not match if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>match none</a></code>.</li>
-      <li>Otherwise, <em>node</em> matches if any value in <em>values</em> exactly matches any value of <em>property</em> in <em>frame</em>.</li>
-      <li>Otherwise, for any <a>value pattern</a> (<em>value pattern</em>) which is one of the values of <em>property</em> in <em>frame</em>:
+      <li><em>Node</em> does not match if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>match none</a></code>, and further matching is aborted.</li>
+      <li>Otherwise, <em>property</em> matches if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>wildcard</a></code>.</li>
+      <li>Otherwise, if the value of <em>property</em> in <em>frame</em> is a <a>value pattern</a> (<em>value pattern</em>):
         <ol class="algorithm">
-          <li>Node matches if <em>values</em> contains a <em>value</em> matching <em>value pattern</em>, where matching is determined as follows:
+          <li><em>Property</em> matches if <em>values</em> contains a <em>value</em> matching <em>value pattern</em>, where matching is determined as follows:
             <ol class="algorithm">
               <li>Let <em>v1</em>, <em>t1</em>, and <em>l1</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value</em>, or <strong>null</strong> if none exists.</li>
               <li>Let <em>v2</em>, <em>t2</em>, and <em>l2</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value pattern</em>, or <strong>null</strong> if none exists.</li>
-              <li><em>v1</em> is in <em>v2</em>, or <em>v2</em> is <code><a>wildcard</a></code>, and</li>
-              <li><em>t1</em> is in <em>t2</em>, or <em>t1</em> is not <strong>null</strong> and <em>t2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>t1</em> is <code>null</code> and <em>t2</em> is <strong>null</strong> or <code><a>match none</a></code>, and</li>
-              <li><em>l1</em> is in <em>l2</em>, or <em>l1</em> is not <strong>null</strong> and <em>l2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>l1</em> is <code>null</code> and <em>l2</em> is <strong>null</strong> or <code><a>match none</a></code>.</li>
+              <li><em>v1</em> equals <em>v2</em>, or <em>v1</em> is not <strong>null</strong> and <em>v2</em> is <code><a>wildcard</a></code>, and</li>
+              <li><em>t1</em> equals <em>t2</em>, or <em>t1</em> is not <strong>null</strong> and <em>t2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>t1</em> is <code>null</code> and <em>t2</em> is <strong>null</strong> or <code><a>match none</a></code>, and</li>
+              <li><em>l1</em> equals <em>l2</em>, or <em>l1</em> is not <strong>null</strong> and <em>l2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>l1</em> is <code>null</code> and <em>l2</em> is <strong>null</strong> or <code><a>match none</a></code>.</li>
             </ol>
           </li>
         </ol>
@@ -641,10 +628,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           <li>Let <em>value subjects</em> be the list of subjects from the <a>map of flattened subjects</a> matching the <a>node object</a> values from <em>values</em>.</li>
           <li>Let <em>matched subjects</em> be the result of calling this algorithm recursively using
             <em>state</em>, <em>value subjects</em> for <em>subjects</em>, <em>node pattern</em> for <em>frame</em>, and the <em>requireAll</em> flag.</li>
-          <li><em>Node</em> matches if <em>matched subjects</em> is not empty.</li>
+          <li><em><em>Property</em></em> matches if <em>matched subjects</em> is not empty.</li>
         </ol>
       </li>
-      <li>Otherwise, <em>node</em> does not match.</li>
+      <li>Otherwise, <em>property</em> does not match.</li>
     </ol>
   </li>
 </ol>
@@ -865,10 +852,15 @@ becomes a W3C Recommendation.</p>
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="110"></p>
   <p class="issue" data-number="118"></p>
+  <p class="issue" data-number="119"></p>
   <p class="issue" data-number="293"></p>
   <p class="issue" data-number="315"></p>
+  <p class="issue" data-number="362"></p>
+  <p class="issue" data-number="377"></p>
+  <p class="issue" data-number="389"></p>
   <p class="issue" data-number="424"></p>
   <p class="issue" data-number="426"></p>
+  <p class="issue" data-number="435"></p>
 </section>
 
 <section class="appendix informative">
