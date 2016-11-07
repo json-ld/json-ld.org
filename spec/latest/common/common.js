@@ -3,17 +3,24 @@ var jsonld = {
   // Add as the respecConfig localBiblio variable
   // Extend or override global respec references
   localBiblio: {
-    "LINKED-DATA": {
-      title: "Linked Data",
-      href: "http://www.w3.org/DesignIssues/LinkedData.html",
-      authors: [
-        "Berners-Lee, Tim"
-      ],
-      publisher: "W3C"
+    "JSON-LD": {
+      title: "JSON-LD 1.1",
+      href: "http://json-ld.org/spec/latest/json-ld/",
+      authors: ["Manu Sporny", "Gregg Kellogg", "Markus Lanthaler"],
+      publisher: "W3C",
+      status: 'CG Draft'
+    },
+    "JSON-LD-API": {
+      title: "JSON-LD 1.1 Processing Algorithms and API",
+      href: "http://json-ld.org/spec/latest/json-ld/",
+      authors: ["Markus Lanthaler", "Gregg Kellogg", "Manu Sporny"],
+      publisher: "W3C",
+      status: 'CG Draft'
     },
     "JSON-LD-TESTS": {
-      title: "JSON-LD 1.0 Test Suite",
-      href: "http://www.w3.org/2013/json-ld-tests/",
+      title: "JSON-LD 1.1 Test Suite",
+      href: "http://json-ld.org/test-suite/",
+      authors: ["Gregg Kellogg"],
       publisher: "Linking Data in JSON Community Group"
     },
     // aliases to known references
