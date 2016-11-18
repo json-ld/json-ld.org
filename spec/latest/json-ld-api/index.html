@@ -24,9 +24,9 @@
       // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
       // and its maturity status
       prevVersion:            "https://www.w3.org/TR/2014/REC-json-ld-api-20140116/",
-      //previousPublishDate:  "2014-01-16",
-      //previousMaturity:     "REC",
-      //previousDiffURI:      "http://www.w3.org/TR/2014/REC-json-ld-api-20140116/",
+      previousPublishDate:  "2014-01-16",
+      previousMaturity:     "REC",
+      previousDiffURI:      "http://www.w3.org/TR/2014/REC-json-ld-api-20140116/",
 
       // if there a publicly available Editor's Draft, this is the link
       edDraftURI:           "http://json-ld.org/spec/latest/json-ld-api/",
@@ -1187,7 +1187,21 @@
         To begin, the <a>active property</a> is set to <code>null</code>,
         and <em>element</em> is set to the <a>JSON-LD input</a>.</p>
 
-      <ol class="algorithm">
+      <p>The algorithm also performs processing steps specific to expanding
+        a <a>JSON-LD Frame</a>. For a <a>frame</a>, the <code>@id</code> and
+        <code>@type</code> properties can accept an array of <a>IRIs</a> or
+        an empty <a>dictionary</a>. The properties of a <a>value object</a> can also
+        accept an <a>array</a> of <a>strings</a>, or an empty <a>dictionary</a>.
+        Framing also uses additional keyword properties:
+        (<code>@explicit</code>, <code>@default</code>,
+        <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, or
+        <code>@requireAll</code>) which are preserved through expansion.
+        Special processing for a <a>JSON-LD Frame</a> is invoked when the
+        <a data-link-for="JsonLdOptions">processingMode</a> API option is set
+        to <code>json-ld-1.1-expand-frame</code>, indicated in the algorithm
+        with the <code>frame expansion</code> flag.</p>
+
+        <ol class="algorithm">
         <li>If <em>element</em> is <code>null</code>, return <code>null</code>.</li>
         <li>If <em>element</em> is a <a>scalar</a>,
           <ol class="algorithm">
@@ -1255,7 +1269,13 @@
                   set <em>expanded value</em> to the result of using the
                   <a href="#iri-expansion">IRI Expansion algorithm</a>,
                   passing <a>active context</a>, <em>value</em>, and <code>true</code>
-                  for <em>document relative</em>.</li>
+                  for <em>document relative</em>.
+                  When the <code>frame expansion</code> flag is set, <em>value</em>
+                  may be an empty <a>dictionary</a>, or an <a>array</a> of one
+                  or more <a>strings</a>. <em>Expanded value</em> will be
+                  an <a>array</a> of one or more of these, with <a>string</a>
+                  values expanded using the <a
+                  href="#iri-expansion">IRI Expansion Algorithm</a>.</li>
                 <li>If <em>expanded property</em> is <code>@type</code> and <em>value</em>
                   is neither a <a>string</a> nor an <a>array</a> of
                   <a>strings</a>, an
@@ -1265,11 +1285,14 @@
                   <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
                   <a>active context</a>, <code>true</code> for <em>vocab</em>,
                   and <code>true</code> for <em>document relative</em> to expand the <em>value</em>
-                  or each of its items.</li>
+                  or each of its items.
+                  When the <code>frame expansion</code> flag is set, <em>value</em>
+                  may also be an empty <a>dictionary</a>.</li>
                 <li>If <em>expanded property</em> is <code>@graph</code>, set
                   <em>expanded value</em> to the result of using this algorithm
                   recursively passing <a>active context</a>, <code>@graph</code>
-                  for <a>active property</a>, and <em>value</em> for <em>element</em>.</li>
+                  for <a>active property</a>, and <em>value</em> for <em>element</em>,
+                  ensuring that <em>expanded value</em> is an <a>array</a> of one or more <a>dictionaries</a>.</li>
                 <li>If <em>expanded property</em> is <code>@value</code> and
                   <em>value</em> is not a <a>scalar</a> or <code>null</code>, an
                   <a data-link-for="JsonLdErrorCode">invalid value object value</a>
@@ -1279,12 +1302,20 @@
                   member of <em>result</em> to <code>null</code> and continue with the
                   next <em>key</em> from <em>element</em>. Null values need to be preserved
                   in this case as the meaning of an <code>@type</code> member depends
-                  on the existence of an <code>@value</code> member.</li>
+                  on the existence of an <code>@value</code> member.
+                  When the <code>frame expansion</code> flag is set, <em>value</em>
+                  may also be an empty <a>dictionary</a> or an array of
+                  <a>scalar</a> values. <em>Expanded value</em> will be <a>null</a>, or an
+                  <a>array</a> of one or more <a>scalar</a> values.</li>
                 <li>If <em>expanded property</em> is <code>@language</code> and
                   <em>value</em> is not a <a>string</a>, an
                   <a data-link-for="JsonLdErrorCode">invalid language-tagged string</a>
                   error has been detected and processing is aborted. Otherwise,
-                  set <em>expanded value</em> to lowercased <em>value</em>.</li>
+                  set <em>expanded value</em> to lowercased <em>value</em>.
+                  When the <code>frame expansion</code> flag is set, <em>value</em>
+                  may also be an empty <a>dictionary</a> or an array of zero or
+                  <a>strings</a>. <em>Expanded value</em> will be an
+                  <a>array</a> of one or more <a>string</a> values converted to lower case.</li>
                 <li>If <em>expanded property</em> is <code>@index</code> and
                   <em>value</em> is not a <a>string</a>, an
                   <a data-link-for="JsonLdErrorCode">invalid @index value</a>
@@ -1354,6 +1385,15 @@
                     <li>Continue with the next <em>key</em> from <em>element</em>.</li>
                   </ol>
                 </li>
+                <li>When the <code>frame expansion</code> flag is set,
+                  if <em>expanded property</em> is any other
+                  framing keyword (<code>@explicit</code>, <code>@default</code>,
+                  <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, or
+                  <code>@requireAll</code>),
+                  set <em>expanded value</em> to the result of performing the
+                  <a href="#expansion-algorithm">Expansion Algorithm</a>
+                  recursively, passing <a>active context</a>,
+                  <a>active property</a>, and <em>value</em> for <em>element</em>.</li>
                 <li>Unless <em>expanded value</em> is <code>null</code>, set
                   the <em>expanded property</em> member of <em>result</em> to
                   <em>expanded value</em>.</li>
@@ -3306,7 +3346,7 @@
                 <li>While <em>property</em> equals <code>rdf:rest</code>,
                   the <a>array</a> value of the member of <em>node usages map</em> associated with the <code>@id</code>
                   member of <code>node</code> has only one member,
-                  the value associated to the <code>usages</code> member of <em>node</em> has
+                  the value associated to the <code>usages</code> member of <i>node</i> has
                   exactly 1 entry,
                   <em>node</em> has a <code>rdf:first</code> and <code>rdf:rest</code> property,
                   both of which have as value an <a>array</a> consisting of a single element,
