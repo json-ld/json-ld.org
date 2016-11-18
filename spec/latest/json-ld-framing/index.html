@@ -447,8 +447,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                         invoke the recursive algorithm using <em>state</em>,
                         the value of <code>@id</code> from <em>listitem</em>
                         as the sole member of a new <em>subjects</em> <a>array</a>,
-                        the first value from <code>property</code> in <em>frame</em> as <em>frame</em>,
+                        the first value from <code>@list</code> in <em>frame</em> as <em>frame</em>,
                         <em>list</em> as <em>parent</em>, and <code>@list</code> as <em>active property</em>.
+                        If <em>frame</em> does not exist, create a new <em>frame</em> using a new <a>dictionary</a>
+                        with properties for <code>@embed</code>, <code>@explicit</code> and <code>@requireAll</code>
+                        taken from <em>embed</em>, <em>explicit</em> and <em>requireAll</em>.
+                        <span class="ednote">Could this use the <em>list</em> <a>array</a>, and <code>null</code> for <em>active property</em>?</span></li>
                       <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
                     </ol>
                   </li>
@@ -457,10 +461,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
                     the value of <code>@id</code> from <em>item</em>
                     as the sole member of a new <em>subjects</em> <a>array</a>,
                     the first value from <em>property</em> in <em>frame</em> as <em>frame</em>,
-                    <em>output</em> as <em>parent</em>, and <em>property</em> as <em>active property</em>.</li>
-                  <li>Otherwise, if item matches using the <a href="#value-matching">Value matching algorithm</a>,
-                    where the <em>pattern</em> is taken from the first value from <em>property</em> in <em>frame</em>,
-                    append a copy of <em>item</em> to <a>active property</a> in <em>output</em>.</li>
+                    <em>output</em> as <em>parent</em>, and <em>property</em> as <em>active property</em>.
+                    If <em>frame</em> does not exist, create a new <em>frame</em> using a new <a>dictionary</a>
+                    with properties for <code>@embed</code>, <code>@explicit</code> and <code>@requireAll</code>
+                    taken from <em>embed</em>, <em>explicit</em> and <em>requireAll</em>.</li>
+                  <li>Otherwise, append a copy of <em>item</em> to <a>active property</a> in
+                    <em>output</em>.</li>
                 </ol>
               </li>
             </ol>
@@ -741,14 +747,56 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         that may be a <a>JSON object</a>, a <a>string</a> representing an
         <a>IRI</a>, or an array of <a>JSON objects</a>
         and <a>strings</a>.</p>
+
     <p>See <a href="../json-ld-api/#dom-jsonldcontext" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
     </section>
 
     <section>
     <h3>JsonLdOptions</h3>
-    <p>The <a href="../json-ld-api/#dom-jsonldoptions" class="externalDFN">JsonLdOptions</a> type is used to convert a set of options to an interface method.</p>
+    <p>The <a href="../json-ld-api/#dom-jsonldoptions" class="externalDFN">JsonLdOptions</a> type is used to pass various options to the
+      <a>JsonLdProcessor</a> methods.</p>
+
+    <pre class="idl" data-transform="unComment"><!--
+      dictionary JsonLdOptions {
+        (JsonLdEmbed or boolean)  embed = "@last";
+        boolean explicit    = false;
+        boolean omitDefault = false;
+        boolean requireAll  = false;
+      };
+
+      enum JsonLdEmbed {
+        "@always",
+        "@last",
+        "@link",
+        "@never"
+      };
+    -->
+    </pre>
+
+    <p>In addition to those options defined in [[JSON-LD API]], framing defines these
+      additional options:</p>
+
+    <dl>
+      <dt><dfn data-dfn-for="JsonLdOptions">embed</dfn></dt>
+      <dd>Sets the value <a>object embed flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a>.
+        A boolean value of <code>true</code> sets the flag to
+        <code>@last</code>, while an value of <code>false</code> sets the flag
+        to <code>@never</code>.</dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">explicit</dfn></dt>
+      <dd>Sets the value <a>explicit inclusion flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a>.
+      </dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">omitDefault</dfn></dt>
+      <dd>Sets the value <a>omit default flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a></dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">requireAll</dfn></dt>
+      <dd>Sets the value <a>require all flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a></dd>
+    </dl>
+
     <p>See <a href="../json-ld-api/#dom-jsonldoptions" class="externalDFN">JsonLdOptions</a> definition in [[!JSON-LD-API]].</p>
-    </section>
+  </section>
   </section>
 
 </section>
