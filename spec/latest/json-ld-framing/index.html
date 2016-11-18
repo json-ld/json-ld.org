@@ -107,6 +107,13 @@
 //]]>
 </script>
 <style type="text/css">
+  div.example .highlight .hljs-string {
+    font-weight: bold;
+  }
+  div.example .comment .hljs-string {
+    color: #999;
+    text-decoration: line-through;
+  }
   .diff { font-weight:bold; color:#0a3; }
   .error a {
     color:  #ff4500;
@@ -222,6 +229,383 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
 </section>
 
+<section class="informative">
+<h2>Features</h2>
+  <section class="informative">
+    <h3>Framing</h3>
+    <p>Framing is used to shape the data in a <a>JSON-LD document</a>,
+      using an example <a>frame</a> document which is used to both match the
+      <a href="../json-ld-api/#dfn-flattened" class="externalDFN">flattened</a>
+      data and show an example of how the resulting data should be shaped.
+      Matching is performed by using <a>properties</a> present in in the <a>frame</a>
+      to find objects in the data that share common values. Matching can be done
+      either using all properties present in the frame, or any property in the frame.
+      By chaining together objects using matched property values, objects can be embedded
+      within one another.</p>
+
+    <p>A <a>frame</a> also includes a <a>context</a>, which is used for compacting the resulting
+      framed output.</p>
+
+    <p>For example, assume the following JSON-LD frame:</p>
+    <pre class="example" data-transform="updateExample"
+         title="Sample library frame">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      "contains": {
+        "@type": "Book",
+        "contains": {
+          "@type": "Chapter"
+        }
+      }
+    }
+    -->
+    </pre>
+
+    <p>This <a>frame</a> document describes an embedding structure that would place
+      objects with type <code>ex:Library</code> at the top, with objects of
+      type <code>ex:Book</code> that were linked to the library object using
+      the <code>ex:contains</code> property embedded as property values. It also
+      places objects of type <code>ex:Chapter</code> within the referencing ex:Book object
+      as embedded values of the book object.</p>
+
+    <p>When using a flattened set of objects that match the frame components:</p>
+    <pre class="example" data-transform="updateExample"
+         title="Flattened library objects">
+    <!--
+    {
+      "@context": {
+        "@vocab": "http://example.org/",
+        "contains": {"@type": "@id"}
+      },
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": "http://example.org/library/the-republic"
+      }, {
+        "@id": "http://example.org/library/the-republic",
+        "@type": "Book",
+        "creator": "Plato",
+        "title": "The Republic",
+        "contains": "http://example.org/library/the-republic#introduction"
+      }, {
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "Chapter",
+        "description": "An introductory chapter on The Republic.",
+        "title": "The Introduction"
+      }]
+    }
+    -->
+    </pre>
+
+    <p>The Frame Algorithm can create a new document which follows the structure
+      of the frame:</p>
+    <pre class="example" data-transform="updateExample"
+         title="Framed library objects">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          "creator": "Plato",
+          "title": "The Republic"
+        }
+      }]
+    }
+    -->
+    </pre>
+
+    <p>The <a href="#framing-algorithm">Framing Algorithm</a> does this by
+      first expanding both the input frame and document. It then creates
+      a <a>map of flattened subjects</a>. The outer-most <a>node object</a> within the frame
+      is used to match objects in the map, in this case looking for <a>node objects</a>
+      which have an <code>@type</code> of <code>Library</code>, and a
+      <code>contains</code> property with another
+      frame used to match values of that property. The input document contains
+      exactly one such <a>node object</a>. The value of contains also has
+      a <a>node object</a>, which is then treated as a frame to match the set of <a>subjects</a>
+      which are <code>contains</code> values of the <code>Library</code> object, and so forth.</p>
+  </section>
+
+  <section>
+    <h3>Default content</h3>
+    <p>A frame may specify properties that don't exist in an input file. If the
+      <a>explicit inclusion flag</a> is <code>false</code>, the framing algorithm
+      will add a property and value to the result. The <code>@default</code> property
+      in a <a>node object</a> or <a>value object</a> provides a default value to use in the resulting
+      output document. If there is no <code>@default</code> value, the property will be output
+      with a <code>null</code> value. (See <a href="#omit-default-flag" class="sectionRef"></a>
+      for ways to avoid this).</p>
+
+    <p class="note">The value of the property in the frame is not otherwise
+      used in the output document. It's purpose is for frame matching and
+      finding default values. Note the <em>description</em> value for <em>Library</em> in the following example.</p>
+    <pre class="example" data-transform="updateExample"
+         title="Sample library frame with @default value">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      ****"description": "A great Library.",****
+      "contains": {
+        "@type": "Book",
+        ****"description": {"@default": "A great book."},****
+        "contains": {
+          "@type": "Chapter"
+        }
+      }
+    }
+    -->
+    </pre>
+
+
+    <pre class="example" data-transform="updateExample"
+         title="Sample library output with @default value">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          "creator": "Plato",
+          ****"description": "A great book.",****
+          "title": "The Republic"
+        },
+      ****"description": null****
+      }]
+    }
+    -->
+    </pre>
+
+  </section>
+
+  <section>
+    <h3>Framing Flags</h3>
+    <p>Framing can be controlled using <a data-lt="JsonLdOptions">API options</a>,
+      or by adding framing <a>keywords</a> within the <a>frame</a> as
+      described in <a href="#framing-keywords" class="sectionRef"></a>.</p>
+
+    <p class="note">Framing flags set using keywords have effect only for the
+      frame in which they appear, and for implicit frames which are created
+      for objects where no frame object exists.</p>
+    <section>
+      <h4>Object Embed Flag</h4>
+
+      <p>The <a>object embed flag</a> determines if a referenced
+        <a>node object</a> is embedded as a property value of a referencing
+        object, or kept as a <a>node reference</a>. Consider the following frame
+        based on the default <code>@last</code> value of the <a>object embed flag</a>:</p>
+
+      <pre class="example" data-transform="updateExample"
+           title="Sample library frame with implicit @embed set to @last">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library"
+      }
+      -->
+      </pre>
+
+      <p>Because, the default for the <a>object embed flag</a> is <code>@last</code>
+         (in addition to the <a>explicit inclusion flag</a> being <code>false</code>),
+         non-listed properties are added two the output, and implicitly embedded
+         using a default empty frame. As a result, the same output used in the
+         <a href="#lib-example-output">Framed library objects</a> above is generated.</p>
+
+       <p>However, if the <code>@embed</code> property is added explicitly with a
+         value of <code>@never</code>, the values for <em>Book</em> and <em>Chapter</em> will be excluded.</p>
+
+      <pre class="example" data-transform="updateExample"
+           title="Sample library frame with explicit @embed set to @never">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library",
+        "contains": {
+          "@type": "Book",
+          ****"@embed": "@never"****
+        }
+      }
+      -->
+      </pre>
+
+      <pre class="example" data-transform="updateExample"
+           title="Framed library objects with @embed set to @never">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@graph": [{
+          "@id": "http://example.org/library",
+          "@type": "Library",
+          "contains": {
+            ****"@id": "http://example.org/library/the-republic"****
+          }
+        }]
+      }
+      -->
+      </pre>
+    </section>
+
+    <section>
+      <h4>Explicit inclusion flag</h4>
+      <p>The <a>explicit inclusion flag</a> used to determine
+        properties which will be included in the output document.
+        The default value is <code>false</code>, which means that properties
+        present in an input <a>node object</a> that are not in the associated frame will be
+        included in the output object. If <code>true</code>, only properties present in
+        the input frame will be placed into the output.</p>
+
+      <p>For example, take an expanded version of the library frame which include
+        some properties from the input, but omit others.</p>
+
+      <pre class="example" data-transform="updateExample"
+           title="Sample library frame with @explicit set to true">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library",
+        "description": {},
+        "contains": {
+          "@type": "Book",
+          ****"@explicit": true,****
+          ****"title": {},****
+          "contains": {
+            "@type": "Chapter"
+          }
+        }
+      }
+      -->
+      </pre>
+
+      <p>The resulting output will exclude properties for Book which are not explicitly
+        listed in the <a>frame object</a>:</p>
+
+    <pre id="lib-example-output" class="example" data-transform="updateExample"
+         title="Framed library objects with @explicit set to true">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          ####"creator": "Plato"####,
+          "title": "The Republic"
+        }
+      }]
+    }
+    -->
+    </pre>
+    </section>
+
+    <section>
+      <h4>Omit default flag</h4>
+      <p>The <a>omit default flag</a> changes the way framing generates output when a property
+        described in the frame is not present in the input document.
+        See <a href="#default-content" class="sectionRef"></a> for a futher discussion.</p>
+    </section>
+
+    <section>
+      <h4>Require all flag</h4>
+      <p>The <a>require all flag</a> is used in frame matching to determine when a
+        <a>node object</a> from an input document matches a frame. When
+        matching, an object may include <code>@type</code> and other
+        properties, a match is made when <em>any</em> property value in the
+        object matches the <a>node pattern</a> in the <a>frame object</a> if
+        the value of the <a>require all flag</a> is <code>false</code> (the
+        default). If the flag value is <code>true</code>, then <em>all</em>
+        properties in the <a>frame object</a> must be present in the <a>node
+        object</a> for the node to match.</p>
+    </section>
+  </section>
+
+  <section>
+    <h3>Reverse framing</h3>
+    <p>A frame may include @reverse, or a value of a term defined using @reverse
+      to invert the relationships in the output object. For example, the
+      Library example can be inverted using the following frame:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Inverted library frame">
+    <!--
+    {
+      "@context": {
+        "ex": "http://example.org/",
+        ****"within": {"@reverse": "contains"}****
+      },
+      ****"@type": "Chapter",
+      "within": {
+        "@type": "Book",
+        "within": {
+          "@type": "Library"
+        }
+      }****
+    }
+    -->
+    </pre>
+
+    <p>Using the flattened library example above, results in the following:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Inverted library output">
+    <!--
+    {
+      "@context": {
+        "@vocab": "http://example.org/",
+        "within": {"@reverse": "contains"}
+      },
+      "@graph": [{
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "Chapter",
+        "description": "An introductory chapter on The Republic.",
+        "title": "The Introduction",
+        "within": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {"@id": "http://example.org/library/the-republic#introduction"},
+          "creator": "Plato",
+          "title": "The Republic",
+          "within": {
+            "@id": "http://example.org/library",
+            "@type": "Library",
+            "contains": {"@id": "http://example.org/library/the-republic"}
+          }
+        }
+      }]
+    }
+    -->
+    </pre>
+  </section>
+</section>
+
 <section id="conformance">
   <p>There is one class of products that can claim conformance to this
     specification: <a>JSON-LD Processors</a>.</p>
@@ -250,7 +634,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 </section> <!-- end of Conformance section -->
 
 <section>
-<h1>Algorithms</h1>
+<h2>Framing Algorithms</h2>
 
 <p>All algorithms described in this section are intended to operate on
   language-native data structures. That is, the serialization to a text-based
@@ -259,7 +643,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <p>Reference to JSON data structures are interpreted using their <em>abstract representation</em> for the purpose
   of describing algorithms.</p>
 
-<section>
+<section id="framing-keywords">
   <h2>Syntax Tokens and Keywords</h2>
 
   <p>This specification adds a number of <a>keywords</a> (<dfn>framing keywords</dfn>) to
