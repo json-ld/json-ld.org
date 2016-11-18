@@ -262,7 +262,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 <section>
   <h2>Syntax Tokens and Keywords</h2>
 
-  <p>This specification adds a number of <a>keywords</a> to
+  <p>This specification adds a number of <a>keywords</a> (<dfn>framing keywords</dfn>) to
     the ones defined in the [[!JSON-LD]] specification:</p>
 
   <dl>
@@ -555,18 +555,19 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
   <p class="note">As matching is performed on expanded node objects, all values will be in the form of an array.</p>
 
-  <p>Node matching uses a combination of JSON constructs to match <em>any</em>, <em>no</em>, or <em>some</em> specific values:</p>
+  <p>Node matching uses a combination of JSON constructs to match <em>any</em>, <em>zero</em>, or <em>some</em> specific values:</p>
   <dl>
     <dt><code>[]</code> (<code><dfn>match none</dfn></code>)</dt>
     <dd>An empty array matches no values, or a value which is, itself, an empty array.</dd>
     <dt><code>{}</code> (<code><dfn>wildcard</dfn></code>)</dt>
     <dd>An array containing an empty object
-      (after excluding the framing properties <code>@default</code>, <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, and <code>@requireAll</code>)
+      (after excluding any properties which are <a>framing keywords</a>)
       matches any value that is present, and does not match if there are no values.</dd>
     <dt><code>[<a>IRI</a>+]</code></dt>
-    <dd>One or more strings in the form of an IRI, used for matching on <code>@type</code> and <code>@id</code>.</dd>
-    <dt><code>[<a>node object</a>]</code> (<code><dfn>node pattern</dfn></code>)</dt>
-    <dd>A non-empty <a>node object</a>, used to match specific values using recursive node matching.</dd>
+    <dd>One or more strings in the form of an <a>IRI</a>, used for matching on <code>@type</code> and <code>@id</code>,
+      which allows a match on <em>any</em> of the listed IRIs.</dd>
+    <dt><code>[<a>frame object</a>]</code> (<code><dfn>node pattern</dfn></code>)</dt>
+    <dd>A non-empty <a>frame object</a>, used to match specific values using recursive node matching.</dd>
     <dt><code>[<a>value object</a>]</code> (<code><dfn>value pattern</dfn></code>)</dt>
     <dd>A <a>value object</a>, used to match a specific value. Within a <a>value object</a>,
       the values for <code>@value</code>, <code>@type</code>, and <code>@language</code>
@@ -578,12 +579,15 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   a <a>frame</a> to match against (<em>frame</em>), and the <em>requireAll</em> flag
   and returns a list of matched subjects by filtering each <em>node</em> in <em>subjects</em> as follows:</p>
 
-<p>Frame matching follows a cascade, first attempting to match on a particular <code>@id</code>, then
+<p>Frame matching follows an order of precedence, first attempting to match on a particular <code>@id</code>, then
   a particular <code>@type</code> (or lack of <code>@type</code>), then by matching on any or all
   of a set of properties, if neither <code>@id</code>, nor <code>@type</code> are in the frame.</p>
 
 <ol class="algorithm">
-  <li><em>Node</em> matches if it has an <code>@id</code> property including any <a>IRI</a> in the <code>@id</code> property in <em>frame</em>.</li>
+  <li><em>Node</em> matches if it has an <code>@id</code> property including any <a>IRI</a> or <a>blank node</a> in the <code>@id</code> property in <em>frame</em>.
+    <div class="note">Framing works on <a>map of flattened subjects</a>, and the act of flattening ensures
+      that all subjects have an `@id` property; thus the `"@id": []` pattern would never
+      match any <a>node object</a>.</div></li>
   <li><em>Node</em> matches if frame has no non-<code>keyword</code> properties.</li>
   <li>If <em>requireAll</em> is <strong>true</strong>, <em>node</em> matches if all non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
     Or, if <em>requireAll</em> is <strong>false</strong>, if any of the non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
@@ -626,7 +630,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
 
   <p>The Value Pattern Matching Algorithm is used as part of the <a href="#framing-algorithm">Framing</a>
     and <a href="#frame-matching">Frame Matching</a> algorithms. A value object
-    matches a value pattern using the <code><a>match none</a></code>, <code><a>wildcard</a></code>
+    matches a value pattern using the <code><a>match none</a></code> and <code><a>wildcard</a></code>
     patterns on <code>@value</code>, <code>@type</code>, and
     <code>@language</code>, in addition to allowing a specific value to match a
     set of values defined using the <a>array</a> form for each <a>value
