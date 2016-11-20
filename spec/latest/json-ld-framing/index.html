@@ -548,7 +548,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   </section>
 
   <section>
-    <h3>Reverse framing</h3>
+    <h3>Reverse Framing</h3>
     <p>A frame may include @reverse, or a value of a term defined using @reverse
       to invert the relationships in the output object. For example, the
       Library example can be inverted using the following frame:</p>
@@ -558,7 +558,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <!--
     {
       "@context": {
-        "ex": "http://example.org/",
+        "@vocab": "http://example.org/",
         ****"within": {"@reverse": "contains"}****
       },
       ****"@type": "Chapter",
@@ -603,6 +603,95 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     }
     -->
     </pre>
+  </section>
+
+  <section>
+    <h3>Framing Named Graphs</h3>
+    <p>Frames can include <code>@graph</code>, which allows information from <a>named graphs</a>
+      contained within a <a>JSON-LD document</a> to be exposed within it's proper
+      graph context. By default, framing uses a <em>merged graph</em>, composed of all
+      the <a>node objects</a> across all graphs within the input. By using <code>@graph</code>
+      within a frame, the output document can include information specifically
+      from <a>named graphs</a> contained within the input document.</p>
+
+    <p>The following example uses a variation on our library theme where information
+      is split between the <a>default graph</a>, and a graph named <code>http://example.org/graphs/books</code>:</p>
+
+    <pre class="example" data-transform="updateExample"
+         title="Frame with named graphs">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      "contains": {
+        "@id": "http://example.org/graphs/books",
+        ****"@graph": {
+          "@type": "Book"
+        }****
+      }
+    }
+    -->
+    </pre>
+
+    <pre class="example" data-transform="updateExample"
+         title="Flattened Input with named graphs">
+    <!--
+    [{
+      "@context": {"@vocab": "http://example.org/"},
+      "@id": "http://example.org/graphs/books"
+      "@graph": [{
+        "@id": "http://example.org/library/the-republic",
+        "@type": "http://example.org/Book",
+        "http://example.org/contains": {
+          "@id": "http://example.org/library/the-republic#introduction"
+        },
+        "http://example.org/creator": "Plato",
+        "http://example.org/title": "The Republic"
+      }, {
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "http://example.org/Chapter",
+        "http://example.org/description": "An introductory chapter on The Republic.",
+        "http://example.org/title": "The Introduction"
+      }],
+    }, {
+      "@context": {"@vocab": "http://example.org/"},
+      "@id": "http://example.org/library",
+      "@type": "http://example.org/Library",
+      "http://example.org/contains": {"@id": "http://example.org/graphs/books"},
+      "http://example.org/name": "Library"
+    }]
+    -->
+    </pre>
+
+    <pre class="example" data-transform="updateExample"
+         title="Framed output with named graphs">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "name": "Library",
+        "contains": {
+          ****"@id": "http://example.org/graphs/books",
+          "@graph": [{****
+            "@id": "http://example.org/library/the-republic",
+            "@type": "Book",
+            "creator": "Plato",
+            "title": "The Republic",
+            "contains": {
+              "@id": "http://example.org/library/the-republic#introduction",
+              "@type": "Chapter",
+              "description": "An introductory chapter on The Republic.",
+              "title": "The Introduction"
+            }
+          ****}]****
+        }
+      }]
+    }
+    -->
+    </pre>
+
   </section>
 </section>
 
@@ -733,6 +822,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <li>The values of <code>@id</code> and <code>@type</code> may also be an empty <a>JSON object</a>, or an <a>array</a>
       containing only an empty <a>JSON object</a>.
       <a>Processors</a> MUST preserve this value when expanding.</li>
+    <li>Framing either operates on the merged node definitions contained in
+      the input document, or on the <a>default graph</a> depending on if the
+      input frame contains the <code>@graph</code> key at the top level.
+      Nodes with a <a>subject</a> that is also a <a>named graph</a>, where
+      the <a>frame object</a> contains <code>@graph</code>, extend framing
+      to <a>node objects</a> from the assocated <a>named graph</a>.</li>
   </ul>
 </section>
 
@@ -752,18 +847,29 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   generate a <a>JsonLdFramingError</a> with <a data-link-for="JsonLdFramingError">code</a> set to <a data-link-for="JsonLdFramingErrorCode">invalid frame</a>.
   <span class="ednote">Need more specifics as to what constitutes a valid frame.</span></p>
 
+<p>Set <em>graph map</em> to the result of performing the
+  <a href="../json-ld-api/#node-map-generation">Node Map Generation</a> algorithm on
+  <em>expanded input</em>.</p>
+
+<p>If the <code>frameDefault</code> option
+  is present with the value <code>true</code>, set <em>graph name</em> to <code>@default</code>.
+  Otherwise, create <em>merged node map</em> using the the <a href="../json-ld-api/#merge-node-maps">Merge Node Maps</a> algorithm
+  with <em>graph map</em> and add <em>merged node map</em> as the value of <code>@merged</code>
+  in <em>graph map</em> and set <em>graph name</em> to <code>@merged</code>.</p>
+
 <p>The recursive algorithm operates with a <a>framing state</a> (<em>state</em>),
   created initially using
   the <a>object embed flag</a> set to <code>true</code>,
   the <a>explicit inclusion flag</a> set to <code>false</code>,
   the <a>require all flag</a> set to <code>true</code>,
-  and the <a>omit default flag</a> set to <code>false</code>
+  the <a>omit default flag</a> set to <code>false</code>,
+  <em>graph map</em>, <em>graph name</em>,
   along with <a>map of flattened subjects</a>
-  set to the <code>@merged</code> property of the result of performing the
-  <a href="../json-ld-api/#node-map-generation">Node Map Generation</a> algorithm on
-  <em>expanded input</em>,
-  <em>subjectStack</em> set to an empty <a>array</a>,
-  <em>link</em> set to an empty <a>dictionary</a>.
+  set to the property associated with <em>graph name</em> in <em>graph map</em>,
+  <em>graph stack</em> set to an empty <a>array</a>, and
+  <em>link</em> set to an empty <a>dictionary</a>. The initial values of the
+  <a>object embed flag</a>, <a>require all flag</a>, and <a>omit default flag</a>
+  MUST be overridden by values set in options.
   Also initialize <em>results</em> as an empty <a>array</a>.</p>
 
 <p class="note"><a>Processors</a> MAY use other runtime options to set different <a>framing state</a> defaults
@@ -792,6 +898,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>
     using the <a href="#frame-matching">Frame Matching algorithm</a>
     with <em>state</em>, <em>subjects</em>, <em>frame</em>, and <em>requireAll</em>.</li>
+  <li>Set <em>link</em> the the value of <em>link</em> in <em>state</em> associated with
+    <em>graph name</em> in <em>state</em>, creating a new empty <a>dictionary</a>, if necessary.</li>
   <li>For each <em>id</em> and associated <a>node object</a> <em>node</em>
     from the set of matched subjects, ordered by <em>id</em>:
     <p class="ednote">Can we remove sorting, or make it subject to a processing
@@ -809,11 +917,36 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         add <em>output</em> to <em>parent</em>
         and do not perform additional processing for this <em>node</em>.</li>
       <li>Otherwise, if <em>embed</em> is <code>@last</code>,
-        remove any existing embedded node from <em>parent</em>.
+        remove any existing embedded node from <em>parent</em> accociate with
+        <em>graph name</em> in <em>state</em>.
         <span class="ednote">Requires sorting of subjects. We could consider <code>@sample</code>, to embed
           just the first matched node. With sorting, we could also consider <code>@first</code>.</span></li>
       <li>If <em>embed</em> is <code>@last</code> or <code>@always</code>
         <ol class="algorithm">
+          <li>If <em>graph map</em> in <em>state</em> has an entry for <em>id</em>:
+            <ol class="algorithm">
+              <li>If <em>frame</em> does not have the key <code>@graph</code>,
+                set <em>recurse</em> to <code>true</code>, unless <em>graph name</em> in <em>state</em> is <code>@merged</code>
+                and set <em>subframe</em> to a new empty <a>dictionary</a>.</li>
+              <li>Otherwise, set <em>subframe</em> to the first entry for <code>@graph</code> in <em>frame</em>,
+                or a new empty <a>dictionary</a>, if it does not exist, and
+                set <em>recurse</em> to <code>true</code>, unless <em>graph name</em>
+                in <em>state</em> is <code>@merged</code> or <code>@default</code>.</li>
+              <li>If <em>recurse</em> is <code>true</code>:
+                <ol class="algorithm">
+                  <li>Push <em>graph name</em> from <em>state</em> onto <em>graph stack</em>
+                  in <em>state</em>.</li>
+                  <li>Set the value of <em>graph name</em> in <em>state</em> to <em>id</em>.</li>
+                  <li>Invoke the recursive algorithm using <em>state</em>,
+                    the keys from the <em>graph map</em> in <em>state</em> associated with id as <em>subjects</em>,
+                    <em>subframe</em> as <em>frame</em>,
+                    <em>output</em> as <em>parent</em>, and <code>@graph</code> as <em>active property</em>.
+                  <li>Pop the value from <em>graph stack</em> in <em>state</em> and set <em>graph name</em> in <em>state</em>
+                    back to that value.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
           <li>For each <em>property</em> and <em>objects</em> in <em>node</em>, ordered by <em>property</em>:
             <ol class="algorithm">
               <li>If <em>property</em> is a <a>keyword</a>, add <em>property</em> and <em>objects</em>
@@ -1076,6 +1209,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <li>Set <em>context</em> to the value of <code>@context</code>
         from <a data-lt="JsonLdProcessor-frame-frame">frame</a>, if it exists, or to
         a new empty <a>context</a>, otherwise.</li>
+      <li>If <a data-lt="JsonLdProcessor-frame-frame">frame</a> has a top-level
+        property which expands to <code>@graph</code> add the <code>frameDefault</code>
+        option to <a data-lt="JsonLdProcessor-frame-options">options</a> with the
+        value <code>true</code>.</li>
       <li>Set <em>framed</em> to the result of using the
         <a href="#framing-algorithm">Framing algorithm</a>, passing
         <em>expanded input</em>, <em>expanded frame</em>, <em>context</em>, and <em>options</em>.</li>
