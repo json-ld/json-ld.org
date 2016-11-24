@@ -68,7 +68,7 @@ var libs = {};
 
 api.SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1';
 api.SUPPORTED_ALGORITHMS = [
-  'sha256-ecdsa-secp256k1-2016',
+  'BitcoinSignature2016',
   'GraphSignature2012',
   'LinkedDataSignature2015'
 ];
@@ -148,7 +148,7 @@ api.sign = function(input, options, callback) {
       JSON.stringify(api.SUPPORTED_ALGORITHMS)));
   }
 
-  if(algorithm === 'sha256-ecdsa-secp256k1-2016') {
+  if(algorithm === 'BitcoinSignature2016') {
     if(typeof privateKeyWif !== 'string') {
       return callback(new TypeError(
         '[jsig.sign] options.privateKeyWif must be a base 58 formatted string.'));
@@ -678,7 +678,7 @@ function _verify(algorithm, input, options, callback) {
  * @param callback(err, signature) called once the operation completes.
  */
 var _createSignature = function(input, options, callback) {
-  if(options.algorithm === 'sha256-ecdsa-secp256k1-2016') {
+  if(options.algorithm === 'BitcoinSignature2016') {
     // works same in any environment
     var signature;
     try {
@@ -736,7 +736,7 @@ var _createSignature = function(input, options, callback) {
  * @param callback(err, valid) called once the operation completes.
  */
 var _verifySignature = function(input, signature, options, callback) {
-  if(options.algorithm === 'sha256-ecdsa-secp256k1-2016') {
+  if(options.algorithm === 'BitcoinSignature2016') {
     // works same in any environment
     var bitcoreMessage = api.use('bitcoreMessage');
     var message = bitcoreMessage(_getDataToHash(input, options));
