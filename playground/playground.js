@@ -856,9 +856,9 @@
 
       promise = jsigs.promises.sign(input, {
         privateKeyWif: pkey,
-        algorithm: 'sha256-ecdsa-secp256k1-2016',
+        algorithm: 'BitcoinSignature2016',
         domain: 'example.com',
-        creator: 'sha256-ecdsa-secp256k1-public-key:' + new bitcoreMessage.Bitcore.PrivateKey(pkey).toPublicKey()
+        creator: 'public-key:' + new bitcoreMessage.Bitcore.PrivateKey(pkey).toPublicKey()
       });
     }
     else {
