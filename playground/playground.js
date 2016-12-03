@@ -383,7 +383,7 @@
     var editor;
 
     // don't use JSON-LD for PEM data
-    if(key === 'privatekey') {
+    if(key === 'privatekey-rsa' || key === 'privatekey-secp256k1') {
       editor = CodeMirror.fromTextArea(node, {
         matchBrackets: true,
         autoCloseBrackets: true,
@@ -738,25 +738,30 @@
   playground.tabSelected = function(evt) {
     var id = playground.activeTab = evt.target.id;
 
-    if(['tab-compacted', 'tab-flattened', 'tab-framed', 'tab-signed']
-      .indexOf(id) > -1) {
+    if(['tab-compacted', 'tab-flattened', 'tab-framed',
+      'tab-signed-rsa', 'tab-signed-secp256k1', ].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
-      $('#frame-div, #privatekey-div, #context-div').hide();
+      $('#frame-div, #privatekey-rsa-div, #privatekey-secp256k1-div, ' +
+        '#context-div').hide();
       if(id === 'tab-compacted' || id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
         $('#context-div').show();
       } else if(id==='tab-framed') {
         $('#param-type').html('JSON-LD Frame');
         $('#frame-div').show();
-      } else if(id === 'tab-signed') {
+      } else if(id === 'tab-signed-rsa') {
         $('#param-type').html('PEM-encoded Private Key');
-        $('#privatekey-div').show();
+        $('#privatekey-rsa-div').show();
+      } else if(id === 'tab-signed-secp256k1') {
+        $('#param-type').html('Base 58 Encoded Private Key');
+        $('#privatekey-secp256k1-div').show();
       }
     }
     else {
       // else no input textarea required
-      $('#context-div, #frame-div, #privatekey-div').hide();
+      $('#context-div, #frame-div, #privatekey-rsa-div, ' +
+        '#privatekey-secp256k1-div').hide();
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
@@ -771,7 +776,7 @@
 
 
   /**
-   * Returns a Promise to performs the JSON-LD API action based on the active
+   * Returns a Promise to perform the JSON-LD API action based on the active
    * tab.
    *
    * @param input the JSON-LD object input or null no error.
@@ -809,11 +814,11 @@
       options.format = 'application/nquads';
       promise = processor.normalize(input, options);
     }
-    else if(playground.activeTab === 'tab-signed') {
+    else if(playground.activeTab === 'tab-signed-rsa') {
       options.format = 'application/ld+json';
 
       var jsigs = window.jsigs;
-      var pkey = playground.editors.privatekey.getValue();
+      var pkey = playground.editors['privatekey-rsa'].getValue();
 
       // add security context to input
       if(!('@context' in input)) {
@@ -831,6 +836,29 @@
         nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
         domain: 'json-ld.org',
         creator: 'https://example.com/jdoe/keys/1'
+      });
+    }
+    else if(playground.activeTab === 'tab-signed-secp256k1') {
+      options.format = 'application/ld+json';
+
+      var jsigs = window.jsigs;
+      var pkey = playground.editors['privatekey-secp256k1'].getValue();
+
+      // add security context to input
+      if(!('@context' in input)) {
+        input['@context'] = 'https://w3id.org/security/v1';
+      } else if(Array.isArray(input['@context'])) {
+        input['@context'].push('https://w3id.org/security/v1');
+      } else {
+        input['@context'] =
+          [input['@context'], 'https://w3id.org/security/v1'];
+      }
+
+      promise = jsigs.promises.sign(input, {
+        privateKeyWif: pkey,
+        algorithm: 'sha256-ecdsa-secp256k1-2016',
+        domain: 'example.com',
+        creator: 'sha256-ecdsa-secp256k1-public-key:' + new bitcoreMessage.Bitcore.PrivateKey(pkey).toPublicKey()
       });
     }
     else {
@@ -1174,7 +1202,7 @@
         hasData = true;
         editor.setValue(playground.humanize(data[key]));
       }else{
-        if(key !== 'privatekey') {
+        if(key !== 'privatekey-rsa' && key !== 'privatekey-secp256k1') {
           editor.setValue("{}");
         }
       }

@@ -7,7 +7,7 @@
  * @author Manu Sporny <msporny@digitalbazaar.com>
  *
  * BSD 3-Clause License
- * Copyright (c) 2014-2015 Digital Bazaar, Inc.
+ * Copyright (c) 2014-2016 Digital Bazaar, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,11 @@ var libs = {};
 /* API Constants */
 
 api.SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1';
+api.SUPPORTED_ALGORITHMS = [
+  'BitcoinSignature2016',
+  'GraphSignature2012',
+  'LinkedDataSignature2015'
+];
 
 /* Core API */
 
@@ -92,8 +97,11 @@ api.use = function(name, injectable) {
 
   // api not set yet, load default
   if(!libs[name]) {
-    // alias `forge` to `node-forge`, `jsonld` to `jsonldjs`
-    var requireName = (name === 'forge' ? 'node-forge' : name);
+    var requireAliases = {
+      'forge': 'node-forge',
+      'bitcoreMessage': 'bitcore-message'
+    };
+    var requireName = requireAliases[name] || name;
     var globalName = (name === 'jsonld' ? 'jsonldjs' : name);
     libs[name] = global[globalName] || (_nodejs && require(requireName));
     if(name === 'jsonld') {
@@ -127,16 +135,29 @@ api.sign = function(input, options, callback) {
     options = {};
   }
   var privateKeyPem = options.privateKeyPem;
+  var privateKeyWif = options.privateKeyWif;
   var creator = options.creator;
   var date = options.date || new Date();
   var domain = options.domain || null;
   var nonce = options.nonce || null;
   var algorithm = options.algorithm || 'GraphSignature2012';
 
-  if(typeof privateKeyPem !== 'string') {
+  if(api.SUPPORTED_ALGORITHMS.indexOf(algorithm) === -1) {
+    return callback(new Error(
+      '[jsig.sign] options.algorithm must be one of: ' +
+      JSON.stringify(api.SUPPORTED_ALGORITHMS)));
+  }
+
+  if(algorithm === 'BitcoinSignature2016') {
+    if(typeof privateKeyWif !== 'string') {
+      return callback(new TypeError(
+        '[jsig.sign] options.privateKeyWif must be a base 58 formatted string.'));
+    }
+  } else if(typeof privateKeyPem !== 'string') {
     return callback(new TypeError(
       '[jsig.sign] options.privateKeyPem must be a PEM formatted string.'));
   }
+
   if(typeof creator !== 'string') {
     return callback(new TypeError(
       '[jsig.sign] options.creator must be a URL string.'));
@@ -148,12 +169,6 @@ api.sign = function(input, options, callback) {
   if(nonce && typeof nonce !== 'string') {
     return callback(new TypeError(
       '[jsig.sign] options.nonce must be a string.'));
-  }
-  if(['GraphSignature2012', 'LinkedDataSignature2015'].indexOf(
-    algorithm) === -1) {
-    return callback(new Error(
-      '[jsig.sign] options.algorithm must be ' +
-      '`GraphSignature2012` or `LinkedDataSignature2015`.'));
   }
 
   // create W3C-formatted date
@@ -168,7 +183,7 @@ api.sign = function(input, options, callback) {
       var normalizeAlgorithm;
       if(algorithm === 'GraphSignature2012') {
         normalizeAlgorithm = 'URGNA2012';
-      } else if(algorithm === 'LinkedDataSignature2015') {
+      } else {
         normalizeAlgorithm = 'URDNA2015';
       }
       jsonld.normalize(
@@ -185,8 +200,8 @@ api.sign = function(input, options, callback) {
           inputJson = 'JSON stringification error: ' + err;
         }
         return callback(new Error('[jsig.sign] ' +
-          'The data to sign is empty. This error may be caused because ' +
-          'a "@context" was not supplied in the input which would cause ' +
+          'The data to sign is empty. This error may be because a ' +
+          '"@context" was not supplied in the input thereby causing ' +
           'any terms or prefixes to be undefined. ' +
           'Input:\n' + inputJson));
       }
@@ -194,6 +209,7 @@ api.sign = function(input, options, callback) {
       _createSignature(normalized, {
         algorithm: algorithm,
         privateKeyPem: privateKeyPem,
+        privateKeyWif: privateKeyWif,
         date: date,
         nonce: nonce,
         domain: domain
@@ -281,16 +297,12 @@ api.verify = function(input, options, callback) {
       return callback(new Error('[jsigs.verify] No signature found.'));
     }
     var algorithm = jsonld.getValues(signature, 'type')[0] || '';
-    if(['GraphSignature2012', 'LinkedDataSignature2015'].indexOf(
-      algorithm) === -1) {
-      return callback(new Error('[jsigs.verify] Unsupported signature type.'));
+    if(api.SUPPORTED_ALGORITHMS.indexOf(algorithm) === -1) {
+      return callback(new Error(
+        '[jsigs.verify] Unsupported signature algorithm; supported ' +
+        'algorithms are: ' + JSON.stringify(api.SUPPORTED_ALGORITHMS)));
     }
-    if(algorithm === 'GraphSignature2012') {
-      return _verifyGraphSignature2012(input, options, callback);
-    }
-    if(algorithm === 'LinkedDataSignature2015') {
-      return _verifyLinkedDataSignature2015(input, options, callback);
-    }
+    return _verify(algorithm, input, options, callback);
   });
 };
 
@@ -467,7 +479,7 @@ api.getJsonLd = function(url, options, callback) {
   }
 })();
 
-function _verifyGraphSignature2012(input, options, callback) {
+function _verify(algorithm, input, options, callback) {
   var checkTimestamp = (
     'checkTimestamp' in options ? options.checkTimestamp : false);
   var maxTimestampDelta = (
@@ -480,41 +492,59 @@ function _verifyGraphSignature2012(input, options, callback) {
     //      : for signed sigs, need to recurse?
     frame: function(callback) {
       // frame message to retrieve signature
-      var frame = {
-        '@context': api.SECURITY_CONTEXT_URL,
-        signature: {
-          type: 'GraphSignature2012',
-          created: {},
-          creator: {},
-          signatureValue: {}
+      // TODO: `frame` also needs to be run for other algorithms once
+      // any named graph issues are sorted out with the framing algorithm
+      if(algorithm === 'GraphSignature2012') {
+        var frame = {
+          '@context': api.SECURITY_CONTEXT_URL,
+          signature: {
+            type: algorithm,
+            created: {},
+            creator: {},
+            signatureValue: {}
+          }
+        };
+        if(options.id) {
+          frame.id = options.id;
         }
-      };
-      if(options.id) {
-        frame.id = options.id;
+        jsonld.frame(input, frame, function(err, framed) {
+          if(err) {
+            return callback(err);
+          }
+          var graphs = framed['@graph'];
+          if(graphs.length === 0) {
+            return callback(new Error('[jsigs.verify] ' +
+              'No signed data found in the provided input.'));
+          }
+          if(graphs.length > 1) {
+            return callback(new Error('[jsigs.verify] ' +
+              'More than one signed graph found.'));
+          }
+          var graph = graphs[0];
+          // copy the top level framed data context
+          graph['@context'] = framed['@context'];
+          var signature = graph.signature;
+          if(!signature) {
+            return callback(new Error('[jsigs.verify] ' +
+              'The message is not digitally signed using a known algorithm.'));
+          }
+          callback(null, graph);
+        });
+      } else {
+        // TODO: remove and use `frame` once named graph issues with framing
+        // are sorted out
+        jsonld.compact(input, api.SECURITY_CONTEXT_URL, function(err, framed) {
+          if(err) {
+            return callback(err);
+          }
+          var signatures = jsonld.getValues(framed, 'signature');
+          if(signatures.length > 1) {
+            return callback(new Error('[jsigs.verify] ' +
+              'More than one signed graph found.'));
+          }
+          callback(null, framed);
+        });
       }
-      jsonld.frame(input, frame, function(err, framed) {
-        if(err) {
-          return callback(err);
-        }
-        var graphs = framed['@graph'];
-        if(graphs.length === 0) {
-          return callback(new Error('[jsigs.verify] ' +
-            'No signed data found in the provided input.'));
-        }
-        if(graphs.length > 1) {
-          return callback(new Error('[jsigs.verify] ' +
-            'More than one signed graph found.'));
-        }
-        var graph = graphs[0];
-        // copy the top level framed data context
-        graph['@context'] = framed['@context'];
-        var signature = graph.signature;
-        if(!signature) {
-          return callback(new Error('[jsigs.verify] ' +
-            'The message is not digitally signed using a known algorithm.'));
-        }
-        callback(null, graph);
-      });
     },
     checkNonce: ['frame', function(callback, results) {
       var signature = results.frame.signature;
@@ -573,12 +603,10 @@ function _verifyGraphSignature2012(input, options, callback) {
       callback();
     }],
     getPublicKey: ['frame', function(callback, results) {
-      var signature = results.frame.signature;
-
       if(options.publicKey) {
         return callback(null, options.publicKey);
       }
-
+      var signature = results.frame.signature;
       api.getPublicKey(signature.creator, options, callback);
     }],
     checkKey: ['getPublicKey', function(callback, results) {
@@ -607,175 +635,25 @@ function _verifyGraphSignature2012(input, options, callback) {
       var result = results.frame;
       var signature = result.signature;
       delete result.signature;
-
+      var normalizeAlgorithm = (algorithm === 'GraphSignature2012' ?
+        'URGNA2012' : 'URDNA2015');
       jsonld.normalize(
-        result, {algorithm: 'URGNA2012', format: 'application/nquads'},
+        result, {algorithm: normalizeAlgorithm, format: 'application/nquads'},
         function(err, normalized) {
-        if(err) {
-          return callback(err);
+          if(err) {
+            return callback(err);
+          }
+          callback(null, {data: normalized, signature: signature});
         }
-        callback(null, {data: normalized, signature: signature});
-      });
+      );
     }],
     verifySignature: ['normalize', function(callback, results) {
       var key = results.getPublicKey;
       var signature = results.normalize.signature;
       _verifySignature(results.normalize.data, signature.signatureValue, {
-        algorithm: 'GraphSignature2012',
+        algorithm: algorithm,
         publicKeyPem: key.publicKeyPem,
-        nonce: signature.nonce,
-        date: signature.created,
-        domain: signature.domain
-      }, callback);
-    }]
-  }, function(err, results) {
-    callback(err, results.verifySignature);
-  });
-}
-
-function _verifyLinkedDataSignature2015(input, options, callback) {
-  var checkTimestamp = (
-    'checkTimestamp' in options ? options.checkTimestamp : false);
-  var maxTimestampDelta = (
-    'maxTimestampDelta' in options ? options.maxTimestampDelta : (15 * 60));
-  var jsonld = api.use('jsonld');
-  var async = api.use('async');
-  // TODO: better merge this code with GraphSignature2012 (make more DRY)
-  async.auto({
-    // FIXME: add support for multiple signatures
-    //      : for many signers of an object, can just check all sigs
-    // FIXME: frame to get signature, compacting for now because framing
-    // requires @graph framing support in jsonld.js
-    frame: function(callback) {
-      /* var frame = {
-        '@context': api.SECURITY_CONTEXT_URL,
-        signature: {
-          type: 'LinkedDataSignature2015',
-          created: {},
-          creator: {},
-          signatureValue: {}
-        }
-      };
-      if(options.id) {
-        frame.id = options.id;
-      }*/
-      jsonld.compact(input, api.SECURITY_CONTEXT_URL, function(err, framed) {
-        if(err) {
-          return callback(err);
-        }
-        var signatures = jsonld.getValues(framed, 'signature');
-        if(signatures.length > 1) {
-          return callback(new Error('[jsigs.verify] ' +
-            'More than one signed graph found.'));
-        }
-        callback(null, framed);
-      });
-    },
-    checkNonce: ['frame', function(callback, results) {
-      var signature = results.frame.signature;
-      var cb = function(err, valid) {
-        if(err) {
-          return callback(err);
-        }
-        if(!valid) {
-          return callback(new Error('[jsigs.verify] ' +
-            'The message nonce is invalid.'));
-        }
-        callback();
-      };
-      if(!options.checkNonce) {
-        return cb(
-          null, (signature.nonce === null || signature.nonce === undefined));
-      }
-      options.checkNonce(signature.nonce, options, cb);
-    }],
-    checkDomain: ['frame', function(callback, results) {
-      var signature = results.frame.signature;
-      var cb = function(err, valid) {
-        if(err) {
-          return callback(err);
-        }
-        if(!valid) {
-          return callback(new Error('[jsigs.verify] ' +
-            'The message domain is invalid.'));
-        }
-        callback();
-      };
-      if(!options.checkDomain) {
-        return cb(
-          null, (signature.domain === null || signature.domain === undefined));
-      }
-      options.checkDomain(signature.domain, options, cb);
-    }],
-    checkDate: ['frame', function(callback, results) {
-      if(!checkTimestamp) {
-        return callback();
-      }
-
-      // ensure signature timestamp within a valid range
-      var now = new Date().getTime();
-      var delta = maxTimestampDelta * 1000;
-      try {
-        var signature = results.frame.signature;
-        var created = Date.parse(signature.created);
-        if(created < (now - delta) || created > (now + delta)) {
-          throw new Error('[jsigs.verify] ' +
-            'The message digital signature timestamp is out of range.');
-        }
-      } catch(ex) {
-        return callback(ex);
-      }
-      callback();
-    }],
-    getPublicKey: ['frame', function(callback, results) {
-      var signature = results.frame.signature;
-      if(options.publicKey) {
-        return callback(null, options.publicKey);
-      }
-      api.getPublicKey(signature.creator, options, callback);
-    }],
-    checkKey: ['getPublicKey', function(callback, results) {
-      if('revoked' in results.getPublicKey) {
-        return callback(new Error('[jsigs.verify] ' +
-          'The message was signed with a key that has been revoked.'));
-      }
-      var cb = function(err, trusted) {
-        if(err) {
-          return callback(err);
-        }
-        if(!trusted) {
-          throw new Error('[jsigs.verify] ' +
-            'The message was not signed with a trusted key.');
-        }
-        callback();
-      };
-      if(options.checkKey) {
-        return options.checkKey(results.getPublicKey, options, cb);
-      }
-      api.checkKey(results.getPublicKey, options, cb);
-    }],
-    normalize: [
-      'checkNonce', 'checkDate', 'checkKey', function(callback, results) {
-      // remove signature property from object
-      var result = results.frame;
-      var signature = result.signature;
-      delete result.signature;
-
-      jsonld.normalize(
-        result, {algorithm: 'URDNA2015', format: 'application/nquads'},
-        function(err, normalized) {
-        if(err) {
-          return callback(err);
-        }
-        callback(null, {data: normalized, signature: signature});
-      });
-    }],
-    verifySignature: ['normalize', function(callback, results) {
-      var key = results.getPublicKey;
-      var signature = results.normalize.signature;
-      _verifySignature(results.normalize.data, signature.signatureValue, {
-        algorithm: 'LinkedDataSignature2015',
-        publicKeyPem: key.publicKeyPem,
+        publicKeyWif: key.publicKeyWif,
         nonce: signature.nonce,
         date: signature.created,
         domain: signature.domain
@@ -799,36 +677,49 @@ function _verifyLinkedDataSignature2015(input, options, callback) {
  *          [nonce] an optional nonce to include in the signature.
  * @param callback(err, signature) called once the operation completes.
  */
-var _createSignature = (function() {
-  if(_nodejs) {
-    return function(input, options, callback) {
-      var signature;
-      try {
-        var crypto = api.use('crypto');
-        var signer = crypto.createSign('RSA-SHA256');
-        signer.update(_getDataToHash(input, options), 'utf8');
-        signature = signer.sign(options.privateKeyPem, 'base64');
-      } catch(err) {
-        return callback(err);
-      }
-      callback(null, signature);
-    };
-  } else if(_browser) {
-    return function(input, options, callback) {
-      var signature;
-      try {
-        var forge = api.use('forge');
-        var privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
-        var md = forge.md.sha256.create();
-        md.update(_getDataToHash(input, options), 'utf8');
-        signature = forge.util.encode64(privateKey.sign(md));
-      } catch(err) {
-        return callback(err);
-      }
-      callback(null, signature);
-    };
+var _createSignature = function(input, options, callback) {
+  if(options.algorithm === 'BitcoinSignature2016') {
+    // works same in any environment
+    var signature;
+    try {
+      var bitcoreMessage = api.use('bitcoreMessage');
+      var bitcore = bitcoreMessage.Bitcore;
+      var privateKey = bitcore.PrivateKey.fromWIF(options.privateKeyWif);
+      var message = bitcoreMessage(_getDataToHash(input, options));
+      signature = message.sign(privateKey);
+    } catch(err) {
+      return callback(err);
+    }
+    return callback(null, signature);
   }
-})();
+
+  if(_nodejs) {
+    // optimize using node libraries
+    var signature;
+    try {
+      var crypto = api.use('crypto');
+      var signer = crypto.createSign('RSA-SHA256');
+      signer.update(_getDataToHash(input, options), 'utf8');
+      signature = signer.sign(options.privateKeyPem, 'base64');
+    } catch(err) {
+      return callback(err);
+    }
+    return callback(null, signature);
+  }
+
+  // browser or other environment
+  var signature;
+  try {
+    var forge = api.use('forge');
+    var privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
+    var md = forge.md.sha256.create();
+    md.update(_getDataToHash(input, options), 'utf8');
+    signature = forge.util.encode64(privateKey.sign(md));
+  } catch(err) {
+    return callback(err);
+  }
+  callback(null, signature);
+};
 
 /**
  * Implements the node.js/browser-specific code for creating a digital
@@ -844,27 +735,33 @@ var _createSignature = (function() {
  *          [nonce] an optional nonce to include in the signature.
  * @param callback(err, valid) called once the operation completes.
  */
-var _verifySignature = (function() {
-  if(_nodejs) {
-    return function(input, signature, options, callback) {
-      var crypto = api.use('crypto');
-      var verifier = crypto.createVerify('RSA-SHA256');
-      verifier.update(_getDataToHash(input, options), 'utf8');
-      var verified = verifier.verify(options.publicKeyPem, signature, 'base64');
-      callback(null, verified);
-    };
-  } else if(_browser) {
-    return function(input, signature, options, callback) {
-      var forge = api.use('forge');
-      var publicKey = forge.pki.publicKeyFromPem(options.publicKeyPem);
-      var md = forge.md.sha256.create();
-      md.update(_getDataToHash(input, options), 'utf8');
-      var verified = publicKey.verify(
-        md.digest().bytes(), forge.util.decode64(signature));
-      callback(null, verified);
-    };
+var _verifySignature = function(input, signature, options, callback) {
+  if(options.algorithm === 'BitcoinSignature2016') {
+    // works same in any environment
+    var bitcoreMessage = api.use('bitcoreMessage');
+    var message = bitcoreMessage(_getDataToHash(input, options));
+    var verified = message.verify(options.publicKeyWif, signature);
+    return callback(null, verified);
   }
-})();
+
+  if(_nodejs) {
+    // optimize using node libraries
+    var crypto = api.use('crypto');
+    var verifier = crypto.createVerify('RSA-SHA256');
+    verifier.update(_getDataToHash(input, options), 'utf8');
+    var verified = verifier.verify(options.publicKeyPem, signature, 'base64');
+    return callback(null, verified);
+  }
+
+  // browser or other environment
+  var forge = api.use('forge');
+  var publicKey = forge.pki.publicKeyFromPem(options.publicKeyPem);
+  var md = forge.md.sha256.create();
+  md.update(_getDataToHash(input, options), 'utf8');
+  var verified = publicKey.verify(
+    md.digest().bytes(), forge.util.decode64(signature));
+  callback(null, verified);
+};
 
 function _getDataToHash(input, options) {
   var toHash = '';
