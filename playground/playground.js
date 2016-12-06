@@ -383,7 +383,8 @@
     var editor;
 
     // don't use JSON-LD for PEM data
-    if(key === 'privatekey-rsa' || key === 'privatekey-secp256k1') {
+    if(key === 'privatekey-rsa' || key === 'privatekey-koblitz' ||
+            key === 'publickey-koblitz') {
       editor = CodeMirror.fromTextArea(node, {
         matchBrackets: true,
         autoCloseBrackets: true,
@@ -739,10 +740,10 @@
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed',
-      'tab-signed-rsa', 'tab-signed-secp256k1', ].indexOf(id) > -1) {
+      'tab-signed-rsa', 'tab-signed-koblitz', ].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
-      $('#frame-div, #privatekey-rsa-div, #privatekey-secp256k1-div, ' +
+      $('#frame-div, #privatekey-rsa-div, #privatekey-koblitz-div, ' +
         '#context-div').hide();
       if(id === 'tab-compacted' || id === 'tab-flattened') {
         $('#param-type').html('JSON-LD Context');
@@ -753,15 +754,15 @@
       } else if(id === 'tab-signed-rsa') {
         $('#param-type').html('PEM-encoded Private Key');
         $('#privatekey-rsa-div').show();
-      } else if(id === 'tab-signed-secp256k1') {
+      } else if(id === 'tab-signed-koblitz') {
         $('#param-type').html('Base 58 Encoded Private Key');
-        $('#privatekey-secp256k1-div').show();
+        $('#privatekey-koblitz-div').show();
       }
     }
     else {
       // else no input textarea required
       $('#context-div, #frame-div, #privatekey-rsa-div, ' +
-        '#privatekey-secp256k1-div').hide();
+        '#privatekey-koblitz-div').hide();
       $('#markup-div').removeClass('span6').addClass('span12');
       $('#param-type').html('');
     }
@@ -838,11 +839,11 @@
         creator: 'https://example.com/jdoe/keys/1'
       });
     }
-    else if(playground.activeTab === 'tab-signed-secp256k1') {
+    else if(playground.activeTab === 'tab-signed-koblitz') {
       options.format = 'application/ld+json';
 
       var jsigs = window.jsigs;
-      var pkey = playground.editors['privatekey-secp256k1'].getValue();
+      var privateKey = playground.editors['privatekey-koblitz'].getValue().trim();
 
       // add security context to input
       if(!('@context' in input)) {
@@ -854,11 +855,49 @@
           [input['@context'], 'https://w3id.org/security/v1'];
       }
 
-      promise = jsigs.promises.sign(input, {
-        privateKeyWif: pkey,
-        algorithm: 'BitcoinSignature2016',
-        domain: 'example.com',
-        creator: 'public-key:' + new bitcoreMessage.Bitcore.PrivateKey(pkey).toPublicKey()
+      var signed = null;
+      var publicKeyFromPrivateKey;
+      try {
+        publicKeyFromPrivateKey = new bitcoreMessage.Bitcore.PrivateKey(privateKey).toPublicKey();
+      } catch (e) {
+        promise = Promise.reject(e)
+      }
+
+      promise = promise || jsigs.promises.sign(input, {
+        privateKeyWif: privateKey,
+        algorithm: 'EcdsaKoblitzSignature2016',
+        creator: 'ecdsa-koblitz-pubkey:' + publicKeyFromPrivateKey
+      }).then( function(_signed) {
+        signed = _signed;
+        var publicKey = playground.editors['publickey-koblitz'].getValue().trim();
+        var verificationKey = {
+          '@context': jsigs.SECURITY_CONTEXT_URL,
+          id: 'ecdsa-koblitz-pubkey:' + publicKey,
+          type: 'CryptographicKey',
+          publicKeyWif: publicKey
+        };
+        var publicKeyBtcOwner = {
+          '@context': jsigs.SECURITY_CONTEXT_URL,
+          publicKey: [verificationKey]
+        };
+        return jsigs.promises.verify(signed, {
+          publicKey: verificationKey,
+          publicKeyOwner: publicKeyBtcOwner
+        })
+      }).then( function(verification) {
+        if (verification) {
+          $('#validation-message')
+          .text('Signature validated successfully using this public key')
+          .show();
+        } else {
+          $('#validation-errors')
+          .text('Signature was NOT validated using this public key')
+          .show();
+        }
+        return signed;
+      }).catch( function(e) {
+        console.error(e.stack)
+        throw(e)
       });
     }
     else {
@@ -882,6 +921,8 @@
   playground.process = playground._process = function(){
     $('#markup-errors').hide().empty();
     $('#param-errors').hide().empty();
+    $('#validation-errors').hide().empty();
+    $('#validation-message').hide().empty();
     $('#processing-errors').hide().empty();
     $('#using-context-map').hide();
     $('#using-context-map table tbody').empty();
@@ -1202,7 +1243,8 @@
         hasData = true;
         editor.setValue(playground.humanize(data[key]));
       }else{
-        if(key !== 'privatekey-rsa' && key !== 'privatekey-secp256k1') {
+        if(key !== 'privatekey-rsa' && key !== 'privatekey-koblitz' &&
+                key !== 'publickey-koblitz') {
           editor.setValue("{}");
         }
       }

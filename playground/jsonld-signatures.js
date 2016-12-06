@@ -68,7 +68,7 @@ var libs = {};
 
 api.SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1';
 api.SUPPORTED_ALGORITHMS = [
-  'BitcoinSignature2016',
+  'EcdsaKoblitzSignature2016',
   'GraphSignature2012',
   'LinkedDataSignature2015'
 ];
@@ -144,11 +144,12 @@ api.sign = function(input, options, callback) {
 
   if(api.SUPPORTED_ALGORITHMS.indexOf(algorithm) === -1) {
     return callback(new Error(
-      '[jsig.sign] options.algorithm must be one of: ' +
+      '[jsigs.sign] Unsupported algorithm "' + algorithm + '"; ' +
+      'options.algorithm must be one of: ' +
       JSON.stringify(api.SUPPORTED_ALGORITHMS)));
   }
 
-  if(algorithm === 'BitcoinSignature2016') {
+  if(algorithm === 'EcdsaKoblitzSignature2016') {
     if(typeof privateKeyWif !== 'string') {
       return callback(new TypeError(
         '[jsig.sign] options.privateKeyWif must be a base 58 formatted string.'));
@@ -297,10 +298,12 @@ api.verify = function(input, options, callback) {
       return callback(new Error('[jsigs.verify] No signature found.'));
     }
     var algorithm = jsonld.getValues(signature, 'type')[0] || '';
+    algorithm = algorithm.replace(/^.+:/, '');  // strip off any namespace to compare to known algorithm names
     if(api.SUPPORTED_ALGORITHMS.indexOf(algorithm) === -1) {
       return callback(new Error(
-        '[jsigs.verify] Unsupported signature algorithm; supported ' +
-        'algorithms are: ' + JSON.stringify(api.SUPPORTED_ALGORITHMS)));
+        '[jsigs.verify] Unsupported signature algorithm "' + algorithm + '"; ' +
+        'supported algorithms are: ' +
+        JSON.stringify(api.SUPPORTED_ALGORITHMS)));
     }
     return _verify(algorithm, input, options, callback);
   });
@@ -678,13 +681,14 @@ function _verify(algorithm, input, options, callback) {
  * @param callback(err, signature) called once the operation completes.
  */
 var _createSignature = function(input, options, callback) {
-  if(options.algorithm === 'BitcoinSignature2016') {
+  var signature, privateKey;
+
+  if(options.algorithm === 'EcdsaKoblitzSignature2016') {
     // works same in any environment
-    var signature;
     try {
       var bitcoreMessage = api.use('bitcoreMessage');
       var bitcore = bitcoreMessage.Bitcore;
-      var privateKey = bitcore.PrivateKey.fromWIF(options.privateKeyWif);
+      privateKey = bitcore.PrivateKey.fromWIF(options.privateKeyWif);
       var message = bitcoreMessage(_getDataToHash(input, options));
       signature = message.sign(privateKey);
     } catch(err) {
@@ -695,7 +699,6 @@ var _createSignature = function(input, options, callback) {
 
   if(_nodejs) {
     // optimize using node libraries
-    var signature;
     try {
       var crypto = api.use('crypto');
       var signer = crypto.createSign('RSA-SHA256');
@@ -708,10 +711,9 @@ var _createSignature = function(input, options, callback) {
   }
 
   // browser or other environment
-  var signature;
   try {
     var forge = api.use('forge');
-    var privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
+    privateKey = forge.pki.privateKeyFromPem(options.privateKeyPem);
     var md = forge.md.sha256.create();
     md.update(_getDataToHash(input, options), 'utf8');
     signature = forge.util.encode64(privateKey.sign(md));
@@ -736,12 +738,18 @@ var _createSignature = function(input, options, callback) {
  * @param callback(err, valid) called once the operation completes.
  */
 var _verifySignature = function(input, signature, options, callback) {
-  if(options.algorithm === 'BitcoinSignature2016') {
+  var verified;
+
+  if(options.algorithm === 'EcdsaKoblitzSignature2016') {
     // works same in any environment
-    var bitcoreMessage = api.use('bitcoreMessage');
-    var message = bitcoreMessage(_getDataToHash(input, options));
-    var verified = message.verify(options.publicKeyWif, signature);
-    return callback(null, verified);
+    try {
+      var bitcoreMessage = api.use('bitcoreMessage');
+      var message = bitcoreMessage(_getDataToHash(input, options));
+      verified = message.verify(options.publicKeyWif, signature);
+      return callback(null, verified);
+    } catch (err) {
+      return callback(err);
+    }
   }
 
   if(_nodejs) {
@@ -749,7 +757,7 @@ var _verifySignature = function(input, signature, options, callback) {
     var crypto = api.use('crypto');
     var verifier = crypto.createVerify('RSA-SHA256');
     verifier.update(_getDataToHash(input, options), 'utf8');
-    var verified = verifier.verify(options.publicKeyPem, signature, 'base64');
+    verified = verifier.verify(options.publicKeyPem, signature, 'base64');
     return callback(null, verified);
   }
 
@@ -758,7 +766,7 @@ var _verifySignature = function(input, signature, options, callback) {
   var publicKey = forge.pki.publicKeyFromPem(options.publicKeyPem);
   var md = forge.md.sha256.create();
   md.update(_getDataToHash(input, options), 'utf8');
-  var verified = publicKey.verify(
+  verified = publicKey.verify(
     md.digest().bytes(), forge.util.decode64(signature));
   callback(null, verified);
 };
