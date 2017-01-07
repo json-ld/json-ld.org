@@ -2583,6 +2583,60 @@ specified. The full <a>IRI</a> for
   </table>
 </section>
 
+<section class="informative changed">
+  <h2>Node Identifier Indexing</h2>
+
+  <p>In addition to index maps, JSON-LD introduces the notion of <a>id maps</a>
+    for structuring data. The id indexing feature allows an author to
+    structure data using a simple key-value map where the keys map
+    to <a>IRIs</a>. This enables direct access to associated node objects
+    instead of having to scan an array in search of a specific item.
+    In JSON-LD such data can be specified by associating the
+    <code>@id</code> <a>keyword</a> with a
+    <code>@container</code> declaration in the context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing data in JSON-LD by node identifiers">
+  <!--
+  {
+    "@context":
+    {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "body": "schema:articleBody",
+       "words": "schema:wordCount",
+       "post": {
+         "@id": "schema:blogPost",
+         ****"@container": "@id"****
+       }
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    ****"post": {
+       "http://example.com/posts/1/en": {
+         "body": "World commodities were up today with heavy trading of crude oil...",
+         "words": 1539
+       },
+       "http://example.com/posts/1/de": {
+         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+         "words": 1204
+       }****
+    }
+  }
+  -->
+  </pre>
+
+  <p>In the example above, the <strong>post</strong> <a>term</a> has
+    been marked as an <a>id map</a>. The <strong>http://example.com/posts/1/en</strong> and
+    <strong>http://example.com/posts/1/de</strong> keys will be interpreted
+    as the <code>@id</code> property of the <a>node object</a> value.</p>
+
+  <p>The interpretation of the data above is exactly the same
+    as that in <a class="sectionRef" href="#data-indexing"></a>
+    using a JSON-LD processor:</p>
+</section>
+
 <section class="informative">
   <h3>Expanded Document Form</h3>
 
@@ -3184,6 +3238,20 @@ specified. The full <a>IRI</a> for
     </ul>
 
     <p>See <a class="sectionRef" href="#data-indexing"></a> for further information on this topic.</p>
+  </section>
+
+  <section class="changed">
+    <h2>Id Maps</h2>
+
+    <p>An <a>id map</a> is used to associate an <a>IRI</a> with a value that allows easy
+      programatic access. An <a>id map</a> may be used as a term value within a <a>node object</a> if the <a>term</a>
+      is defined with <code>@container</code> set to <code>@id</code>. The keys of an <a>id map</a> MUST be <a>IRIs</a>
+      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
+      and the values MUST be <a>node objects</a>.</p>
+
+    <p>If the value contains a property expanding to <code>@id</code>, it's value MUST
+      be equivalent to the referencing key. Otherwise, the key is used as
+      the <code>@id</code> of the <a>node object</a> value when expanding.</p>
   </section>
 
 <section class="normative">
