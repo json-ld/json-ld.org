@@ -2586,10 +2586,10 @@ specified. The full <a>IRI</a> for
 <section class="informative changed">
   <h2>Node Identifier Indexing</h2>
 
-  <p>In addition to index maps, JSON-LD introduces the notion of <a>id maps</a>
+  <p>In addition to <a>index maps</a>, JSON-LD introduces the notion of <a>id maps</a>
     for structuring data. The id indexing feature allows an author to
     structure data using a simple key-value map where the keys map
-    to <a>IRIs</a>. This enables direct access to associated node objects
+    to <a>IRIs</a>. This enables direct access to associated <a>node objects</a>
     instead of having to scan an array in search of a specific item.
     In JSON-LD such data can be specified by associating the
     <code>@id</code> <a>keyword</a> with a
@@ -2627,14 +2627,61 @@ specified. The full <a>IRI</a> for
   -->
   </pre>
 
-  <p>In the example above, the <strong>post</strong> <a>term</a> has
-    been marked as an <a>id map</a>. The <strong>http://example.com/posts/1/en</strong> and
-    <strong>http://example.com/posts/1/de</strong> keys will be interpreted
+  <p>In the example above, the <code>post</code> <a>term</a> has
+    been marked as an <a>id map</a>. The <code>http://example.com/posts/1/en</code> and
+    <code>http://example.com/posts/1/de</code> keys will be interpreted
     as the <code>@id</code> property of the <a>node object</a> value.</p>
 
   <p>The interpretation of the data above is exactly the same
     as that in <a class="sectionRef" href="#data-indexing"></a>
-    using a JSON-LD processor:</p>
+    using a JSON-LD processor.</p>
+</section>
+
+<section class="informative changed">
+  <h2>Node Type Indexing</h2>
+
+  <p>In addition to <a data-lt="id map">id</a> and <a>index maps</a>, JSON-LD introduces the notion of <a>type maps</a>
+    for structuring data. The type indexing feature allows an author to
+    structure data using a simple key-value map where the keys map
+    to <a>IRIs</a>. This enables data to be structured based on the <code>@type</code>
+    of specific <a>node objects</a>.
+    In JSON-LD such data can be specified by associating the
+    <code>@type</code> <a>keyword</a> with a
+    <code>@container</code> declaration in the context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing data in JSON-LD by node identifiers">
+  <!--
+  {
+    "@context":
+    {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "affiliation": {
+         "@id": "schema:affiliation",
+         ****"@container": "@type"****
+       }
+    },
+    "name": "Manu Sporny",
+    "affiliation": {
+      ****"schema:Corporpation"****: {
+        "@id": "http://digitalbazaar.com/",
+        "name": "Digital Bazaar"
+      },
+      ****"schema:ProfessionalService"****: {
+        "@id": "https://spec-ops.io",
+        "name": "Spec-Ops"
+      }
+      
+    }
+  }
+  -->
+  </pre>
+
+  <p>In the example above, the <code>affiliation</code> <a>term</a> has
+    been marked as an <a>type map</a>. The <code>schema:Corporpation</code> and
+    <code>schema:ProfessionalService</code> keys will be interpreted
+    as the <code>@type</code> property of the <a>node object</a> value.</p>
 </section>
 
 <section class="informative">
@@ -3250,7 +3297,21 @@ specified. The full <a>IRI</a> for
       and the values MUST be <a>node objects</a>.</p>
 
     <p>If the value contains a property expanding to <code>@id</code>, it's value MUST
-      be equivalent to the referencing key. Otherwise, the key is used as
+      be equivalent to the referencing key. Otherwise, the property from the value is used as
+      the <code>@id</code> of the <a>node object</a> value when expanding.</p>
+  </section>
+
+  <section class="changed">
+    <h2>Type Maps</h2>
+
+    <p>An <a>type map</a> is used to associate an <a>IRI</a> with a value that allows easy
+      programatic access. An <a>id map</a> may be used as a term value within a <a>node object</a> if the <a>term</a>
+      is defined with <code>@container</code> set to <code>@id</code>. The keys of an <a>id map</a> MUST be <a>IRIs</a>
+      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
+      and the values MUST be <a>node objects</a>.</p>
+
+    <p>If the value contains a property expanding to <code>@id</code>, it's value MUST
+      be equivalent to the referencing key. Otherwise, the property from the value is used as
       the <code>@id</code> of the <a>node object</a> value when expanding.</p>
   </section>
 
@@ -3519,17 +3580,16 @@ specified. The full <a>IRI</a> for
     <li>An <a>expanded term definition</a> can now have an
       <code>@context</code> property, which defines a <a>context</a> used for values of
       a <a>property</a> identified with such a <a>term</a>.</li>
+    <li><code>@container</code> values within an <a>expanded term definition</a> may now
+      include <code>@id</code> and <code>@type</code>, corresponding to <a>id maps</a> and <a>type maps</a>.</li>
   </ul>
 </section>
 
 <section class="appendix informative">
   <h4>Open Issues</h4>
   <p>The following is a list of open issues being worked on for the next release.</p>
-  <p class="issue" data-number="12"></p>
   <p class="issue" data-number="195"></p>
   <p class="issue" data-number="246"></p>
-  <p class="issue" data-number="247"></p>
-  <p class="issue" data-number="262"></p>
   <p class="issue" data-number="269"></p>
   <p class="issue" data-number="271"></p>
   <p class="issue" data-number="272"></p>
