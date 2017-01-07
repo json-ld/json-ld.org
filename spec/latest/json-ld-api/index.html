@@ -620,7 +620,8 @@
       the <a>vocabulary mapping</a> and the <a>default language</a>. Each
       <a>term definition</a> consists of an <dfn data-lt="IRI mappings">IRI mapping</dfn>, a boolean
       flag <dfn data-lt="reverse properties">reverse property</dfn>, an optional <dfn data-lt="type mappings">type mapping</dfn>
-      or <dfn data-lt="language mappings">language mapping</dfn>, and an optional  <dfn data-lt="container mappings">container mapping</dfn>.
+      or <dfn data-lt="language mappings">language mapping</dfn>,
+      an optional context, and an optional <dfn data-lt="container mappings">container mapping</dfn>.
       A <a>term definition</a> can not only be used to map a <a>term</a>
       to an IRI, but also to map a <a>term</a> to a <a>keyword</a>,
       in which case it is referred to as a <dfn data-lt="keyword aliases">keyword alias</dfn>.</p>
@@ -984,6 +985,18 @@
               <em>container</em>.</li>
           </ol>
         </li>
+        <li>If <em>value</em> contains the key <code>@context</code>:
+          <ol class="algorithm">
+            <li>Initialize <em>context</em> to the value associated with the
+              <code>@context</code> key, which is treated as a <a>local context</a>.</li>
+            <li>Invoke the <a href="#context-processing-algorithm">Context Processing algorithm</a>
+              using the <a>active context</a> and <em>context</em> as <a>local context</a>.
+              If any error is detected, an
+              <a data-link-for="JsonLdErrorCode">invalid scoped context</a> error
+              has been detected and processing is aborted.</li>
+            <li>Set the <a>local context</a> of <em>definition</em> to <em>context</em>.</li>
+          </ol>
+        </li>
         <li>If <em>value</em> contains the key <code>@language</code> and
           does not contain the key <code>@type</code>:
           <ol class="algorithm">
@@ -997,6 +1010,11 @@
               of <em>definition</em> to <em>language</em>.</li>
           </ol>
         </li>
+        <li>If the value contains any key other than <code>@id</code>,
+          <code>@reverse</code>, <code>@container</code>,
+          <code>@context</code>, or <code>@type</code>, an
+          <a data-link-for="JsonLdErrorCode">invalid term definition</a> error has
+          been detected and processing is aborted.</li>
         <li>Set the <a>term definition</a> of <em>term</em> in
           <a>active context</a> to <em>definition</em> and set the value
           associated with <em>defined</em>'s key <em>term</em> to
@@ -1400,8 +1418,14 @@
                 <li>Continue with the next <em>key</em> from <em>element</em>.</li>
               </ol>
             </li>
-            <li>Otherwise, if <em>key</em>'s <a>container mapping</a> in
-              <a>active context</a> is <code>@language</code> and
+            <li>If <em>key</em>'s <a>term definition</a> in <a>active context</a>
+              has a <a>local context</a>, set <em>term context</em> to the result of the
+              <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+              passing <a>active context</a> and the value of the
+              <em>key</em>'s <a>local context</a> as <a>local context</a>. Otherwise,
+              set <em>term context</em> to <a>active context</a>.</li>
+            <li>If <em>key</em>'s <a>container mapping</a> in
+              <em>term context</em> is <code>@language</code> and
               <em>value</em> is a <a>JSON object</a> then <em>value</em>
               is expanded from a <a>language map</a>
               as follows:
@@ -1432,7 +1456,7 @@
               </ol>
             </li>
             <li>Otherwise, if <em>key</em>'s <a>container mapping</a> in
-              <a>active context</a> is <code>@index</code> and
+              <em>term context</em> is <code>@index</code> and
               <em>value</em> is a <a>JSON object</a> then <em>value</em>
               is expanded from an index map as follows:
               <ol class="algorithm">
@@ -1446,7 +1470,7 @@
                       <em>index value</em>.</li>
                     <li>Initialize <em>index value</em> to the result of
                       using this algorithm recursively, passing
-                      <a>active context</a>,
+                      <em>term context</em> as <a>active context</a>,
                       <em>key</em> as <a>active property</a>,
                       and <em>index value</em> as <em>element</em>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
@@ -1463,13 +1487,13 @@
               </ol>
             </li>
             <li>Otherwise, initialize <em>expanded value</em> to the result of
-              using this algorithm recursively, passing <a>active context</a>,
+              using this algorithm recursively, passing <em>term context</em> as <a>active context</a>,
               <em>key</em> for <a>active property</a>, and <em>value</em>
               for <em>element</em>.</li>
             <li>If <em>expanded value</em> is <code>null</code>, ignore <em>key</em>
               by continuing to the next <em>key</em> from <em>element</em>.</li>
             <li>If the <a>container mapping</a> associated to <em>key</em> in
-              <a>active context</a> is <code>@list</code> and
+              <em>term context</em> is <code>@list</code> and
               <em>expanded value</em> is not already a <a>list object</a>,
               convert <em>expanded value</em> to a <a>list object</a>
               by first setting it to an <a>array</a> containing only
@@ -1726,6 +1750,18 @@
         is set to <code>true</code>.</p>
 
       <ol class="algorithm">
+        <li>If the <a>term definition</a> for <a>active property</a> has a
+          <a>local context</a>:
+          <ol class="algorithm">
+            <li>Set <a>active context</a> to the result of the
+              <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+              passing <a>active context</a> and the value of the
+              <a>active property</a>'s <a>local context</a> as <a>local context</a>.</li>
+            <li>Set <a>inverse context</a> using the
+              <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
+              using <a>active context</a>.</li>
+          </ol>
+        </li>
         <li>If <em>element</em> is a <a>scalar</a>, it is already in its most
           compact form, so simply return <em>element</em>.</li>
         <li>If <em>element</em> is an <a>array</a>:
@@ -3131,7 +3167,7 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>The algorithm takes as its sole argument <em>item</em> which must be
+      <p>The algorithm takes as its sole argument <em>item</em> which MUST be
         either a <a>value object</a> or <a>node object</a>.</p>
 
       <ol class="algorithm">
@@ -3991,114 +4027,127 @@
 
       <pre class="idl" data-transform="unComment"><!--
         enum JsonLdErrorCode {
-            "loading document failed",
-            "list of lists",
-            "invalid @index value",
-            "conflicting indexes",
-            "invalid @id value",
-            "invalid local context",
-            "multiple context link headers",
-            "loading remote context failed",
-            "invalid remote context",
-            "recursive context inclusion",
-            "invalid base IRI",
-            "invalid vocab mapping",
-            "invalid default language",
-            "keyword redefinition",
-            "invalid term definition",
-            "invalid reverse property",
-            "invalid IRI mapping",
-            "cyclic IRI mapping",
-            "invalid keyword alias",
-            "invalid type mapping",
-            "invalid language mapping",
             "colliding keywords",
+            "compaction to list of lists",
+            "conflicting indexes",
+            "cyclic IRI mapping",
+            "invalid @id value",
+            "invalid @index value",
+            "invalid @reverse value",
+            "invalid base IRI",
             "invalid container mapping",
-            "invalid type value",
-            "invalid value object",
-            "invalid value object value",
+            "invalid default language",
+            "invalid IRI mapping",
+            "invalid keyword alias",
+            "invalid language map value",
+            "invalid language mapping",
             "invalid language-tagged string",
             "invalid language-tagged value",
-            "invalid typed value",
-            "invalid set or list object",
-            "invalid language map value",
-            "compaction to list of lists",
+            "invalid local context",
+            "invalid remote context",
+            "invalid reverse property",
             "invalid reverse property map",
-            "invalid @reverse value",
-            "invalid reverse property value"
+            "invalid reverse property value",
+            "invalid scoped context",
+            "invalid set or list object",
+            "invalid term definition",
+            "invalid type mapping",
+            "invalid type value",
+            "invalid typed value",
+            "invalid value object",
+            "invalid value object value",
+            "invalid vocab mapping",
+            "keyword redefinition",
+            "list of lists",
+            "loading document failed",
+            "loading remote context failed",
+            "multiple context link headers",
+            "recursive context inclusion"
         };
       --></pre>
 
       <dl data-dfn-for="JsonLdErrorCode">
-        <dt><dfn>loading document failed</dfn></dt>
-        <dd>The document could not be loaded or parsed as JSON.</dd>
-        <dt><dfn>list of lists</dfn></dt>
-        <dd>A list of lists was detected. List of lists are not supported in
-          this version of JSON-LD due to the algorithmic complexity.</dd>
-        <dt><dfn>invalid @index value</dfn></dt>
-        <dd>An <code>@index</code> member was encountered whose value was
-          not a <a>string</a>.</dd>
-        <dt><dfn>conflicting indexes</dfn></dt>
-        <dd>Multiple conflicting indexes have been found for the same node.</dd>
-        <dt><dfn>invalid @id value</dfn></dt>
-        <dd>An <code>@id</code> member was encountered whose value was not a
-          <a>string</a>.</dd>
-        <dt><dfn>invalid local context</dfn></dt>
-        <dd>In invalid <a>local context</a> was detected.</dd>
-        <dt><dfn>multiple context link headers</dfn></dt>
-        <dd>Multiple HTTP Link Headers [[!RFC5988]] using the
-          <code>http://www.w3.org/ns/json-ld#context</code> link relation
-          have been detected.</dd>
-        <dt><dfn>loading remote context failed</dfn></dt>
-        <dd>There was a problem encountered loading a remote context.</dd>
-        <dt><dfn>invalid remote context</dfn></dt>
-        <dd>No valid context document has been found for a referenced,
-         remote context.</dd>
-        <dt><dfn>recursive context inclusion</dfn></dt>
-        <dd>A cycle in remote context inclusions has been detected.</dd>
-        <dt><dfn>invalid base IRI</dfn></dt>
-        <dd>An invalid <a>base IRI</a> has been detected, i.e., it is
-          neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
-        <dt><dfn>invalid vocab mapping</dfn></dt>
-        <dd>An invalid <a>vocabulary mapping</a> has been detected, i.e.,
-          it is neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
-        <dt><dfn>invalid default language</dfn></dt>
-        <dd>The value of the <a>default language</a> is not a <a>string</a>
-          or <code>null</code> and thus invalid.</dd>
-        <dt><dfn>keyword redefinition</dfn></dt>
-        <dd>A <a>keyword</a> redefinition has been detected.</dd>
-        <dt><dfn>invalid term definition</dfn></dt>
-        <dd>An invalid <a>term definition</a> has been detected.</dd>
-        <dt><dfn>invalid reverse property</dfn></dt>
-        <dd>An invalid reverse property definition has been detected.</dd>
-        <dt><dfn>invalid IRI mapping</dfn></dt>
-        <dd>A <a>local context</a> contains a <a>term</a> that has
-          an invalid or missing <a>IRI mapping</a>.</dd>
-        <dt><dfn>cyclic IRI mapping</dfn></dt>
-        <dd>A cycle in <a>IRI mappings</a> has been detected.</dd>
-        <dt><dfn>invalid keyword alias</dfn></dt>
-        <dd>An invalid <a>keyword</a> alias definition has been
-          encountered.</dd>
-        <dt><dfn>invalid type mapping</dfn></dt>
-        <dd>An <code>@type</code> member in a <a>term definition</a>
-          was encountered whose value could not be expanded to an
-          <a>absolute IRI</a>.</dd>
-        <dt><dfn>invalid language mapping</dfn></dt>
-        <dd>An <code>@language</code> member in a <a>term definition</a>
-          was encountered whose value was neither a <a>string</a> nor
-          <code>null</code> and thus invalid.</dd>
         <dt><dfn>colliding keywords</dfn></dt>
         <dd>Two properties which expand to the same keyword have been detected.
           This might occur if a <a>keyword</a> and an alias thereof
           are used at the same time.</dd>
+        <dt><dfn>compaction to list of lists</dfn></dt>
+        <dd>The compacted document contains a list of lists as multiple
+          lists have been compacted to the same term.</dd>
+        <dt><dfn>conflicting indexes</dfn></dt>
+        <dd>Multiple conflicting indexes have been found for the same node.</dd>
+        <dt><dfn>cyclic IRI mapping</dfn></dt>
+        <dd>A cycle in <a>IRI mappings</a> has been detected.</dd>
+        <dt><dfn>invalid @id value</dfn></dt>
+        <dd>An <code>@id</code> member was encountered whose value was not a
+          <a>string</a>.</dd>
+        <dt><dfn>invalid @index value</dfn></dt>
+        <dd>An <code>@index</code> member was encountered whose value was
+          not a <a>string</a>.</dd>
+        <dt><dfn>invalid @reverse value</dfn></dt>
+        <dd>An invalid value for an <code>@reverse</code> member has been detected,
+          i.e., the value was not a <a>JSON object</a>.</dd>
+        <dt><dfn>invalid base IRI</dfn></dt>
+        <dd>An invalid <a>base IRI</a> has been detected, i.e., it is
+          neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
         <dt><dfn>invalid container mapping</dfn></dt>
         <dd>An <code>@container</code> member was encountered whose value was
           not one of the following <a>strings</a>:
           <code>@list</code>, <code>@set</code>, or <code>@index</code>.</dd>
+        <dt><dfn>invalid default language</dfn></dt>
+        <dd>The value of the <a>default language</a> is not a <a>string</a>
+          or <code>null</code> and thus invalid.</dd>
+        <dt><dfn>invalid IRI mapping</dfn></dt>
+        <dd>A <a>local context</a> contains a <a>term</a> that has
+          an invalid or missing <a>IRI mapping</a>.</dd>
+        <dt><dfn>invalid keyword alias</dfn></dt>
+        <dd>An invalid <a>keyword</a> alias definition has been
+          encountered.</dd>
+        <dt><dfn>invalid language map value</dfn></dt>
+        <dd>An invalid value in a <a>language map</a>
+          has been detected. It has to be a <a>string</a> or an <a>array</a> of
+          <a>strings</a>.</dd>
+        <dt><dfn>invalid language mapping</dfn></dt>
+        <dd>An <code>@language</code> member in a <a>term definition</a>
+          was encountered whose value was neither a <a>string</a> nor
+          <code>null</code> and thus invalid.</dd>
+        <dt><dfn>invalid language-tagged string</dfn></dt>
+        <dd>A <a>language-tagged string</a> with an invalid language
+          value was detected.</dd>
+        <dt><dfn>invalid language-tagged value</dfn></dt>
+        <dd>A <a>number</a>, <code>true</code>, or <code>false</code> with an
+          associated language tag was detected.</dd>
+        <dt><dfn>invalid local context</dfn></dt>
+        <dd>In invalid <a>local context</a> was detected.</dd>
+        <dt><dfn>invalid remote context</dfn></dt>
+        <dd>No valid context document has been found for a referenced,
+         remote context.</dd>
+        <dt><dfn>invalid reverse property</dfn></dt>
+        <dd>An invalid reverse property definition has been detected.</dd>
+        <dt><dfn>invalid reverse property map</dfn></dt>
+        <dd>An invalid reverse property map has been detected. No
+          <a>keywords</a> apart from <code>@context</code>
+          are allowed in reverse property maps.</dd>
+        <dt><dfn>invalid reverse property value</dfn></dt>
+        <dd>An invalid value for a reverse property has been detected. The value of an inverse
+          property must be a <a>node object</a>.</dd>
+        <dt><dfn>invalid scoped context</dfn></dt>
+        <dd>The <a>local context</a> defined within a <a>term definition</a> is invalid.</dd>
+        <dt><dfn>invalid set or list object</dfn></dt>
+        <dd>A <a>set object</a> or <a>list object</a> with
+          disallowed members has been detected.</dd>
+        <dt><dfn>invalid term definition</dfn></dt>
+        <dd>An invalid <a>term definition</a> has been detected.</dd>
+        <dt><dfn>invalid type mapping</dfn></dt>
+        <dd>An <code>@type</code> member in a <a>term definition</a>
+          was encountered whose value could not be expanded to an
+          <a>absolute IRI</a>.</dd>
         <dt><dfn>invalid type value</dfn></dt>
         <dd>An invalid value for an <code>@type</code> member has been detected,
           i.e., the value was neither a <a>string</a> nor an <a>array</a>
           of <a>strings</a>.</dd>
+        <dt><dfn>invalid typed value</dfn></dt>
+        <dd>A <a>typed value</a> with an invalid type was detected.</dd>
         <dt><dfn>invalid value object</dfn></dt>
         <dd>A <a>value object</a> with disallowed members has been
           detected.</dd>
@@ -4106,41 +4155,42 @@
         <dd>An invalid value for the <code>@value</code> member of a
           <a>value object</a> has been detected, i.e., it is neither
           a <a>scalar</a> nor <code>null</code>.</dd>
-        <dt><dfn>invalid language-tagged string</dfn></dt>
-        <dd>A <a>language-tagged string</a> with an invalid language
-          value was detected.</dd>
-        <dt><dfn>invalid language-tagged value</dfn></dt>
-        <dd>A <a>number</a>, <code>true</code>, or <code>false</code> with an
-          associated language tag was detected.</dd>
-        <dt><dfn>invalid typed value</dfn></dt>
-        <dd>A <a>typed value</a> with an invalid type was detected.</dd>
-        <dt><dfn>invalid set or list object</dfn></dt>
-        <dd>A <a>set object</a> or <a>list object</a> with
-          disallowed members has been detected.</dd>
-        <dt><dfn>invalid language map value</dfn></dt>
-        <dd>An invalid value in a <a>language map</a>
-          has been detected. It has to be a <a>string</a> or an <a>array</a> of
-          <a>strings</a>.</dd>
-        <dt><dfn>compaction to list of lists</dfn></dt>
-        <dd>The compacted document contains a list of lists as multiple
-          lists have been compacted to the same term.</dd>
-        <dt><dfn>invalid reverse property map</dfn></dt>
-        <dd>An invalid reverse property map has been detected. No
-          <a>keywords</a> apart from <code>@context</code>
-          are allowed in reverse property maps.</dd>
-        <dt><dfn>invalid @reverse value</dfn></dt>
-        <dd>An invalid value for an <code>@reverse</code> member has been detected,
-          i.e., the value was not a <a>JSON object</a>.</dd>
-        <dt><dfn>invalid reverse property value</dfn></dt>
-        <dd>An invalid value for a reverse property has been detected. The value of an inverse
-          property must be a <a>node object</a>.</dd>
+        <dt><dfn>invalid vocab mapping</dfn></dt>
+        <dd>An invalid <a>vocabulary mapping</a> has been detected, i.e.,
+          it is neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
+        <dt><dfn>keyword redefinition</dfn></dt>
+        <dd>A <a>keyword</a> redefinition has been detected.</dd>
+        <dt><dfn>list of lists</dfn></dt>
+        <dd>A list of lists was detected. List of lists are not supported in
+          this version of JSON-LD due to the algorithmic complexity.</dd>
+        <dt><dfn>loading document failed</dfn></dt>
+        <dd>The document could not be loaded or parsed as JSON.</dd>
+        <dt><dfn>loading remote context failed</dfn></dt>
+        <dd>There was a problem encountered loading a remote context.</dd>
+        <dt><dfn>multiple context link headers</dfn></dt>
+        <dd>Multiple HTTP Link Headers [[!RFC5988]] using the
+          <code>http://www.w3.org/ns/json-ld#context</code> link relation
+          have been detected.</dd>
+        <dt><dfn>recursive context inclusion</dfn></dt>
+        <dd>A cycle in remote context inclusions has been detected.</dd>
       </dl>
     </section>
   </section> <!-- end of Error Handling -->
 </section> <!-- end of The Application Programming Interfaces -->
 
 <section class="appendix informative">
-  <h4>Open Issues</h4>
+  <h2>Changes since 1.0 Recommendation of 16 January 2014</h2>
+  <ul>
+    <li>An <a>expanded term definition</a> can now have an
+      <code>@context</code> property, which defines a context used for values of
+      a <a>property</a> identified with such a <a>term</a>. This context is used
+      in both the <a href="#expansion-algorithm">Expansion Algorithm</a> and
+      <a href="#compaction-algorithm">Compaction Algorithm</a>.</li>
+  </ul>
+</section>
+
+<section class="appendix informative">
+  <h2>Open Issues</h2>
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="110"></p>
   <p class="issue" data-number="140"></p>

@@ -2115,6 +2115,87 @@ specified. The full <a>IRI</a> for
   </pre>
 </section>
 
+<section class="informative">
+  <h2>Scoped Contexts</h2>
+
+  <p>An <a>expanded term definition</a> can include a <code>@context</code>
+    property, which defines a <a>context</a> for <a data-lt="JSON-LD
+    value">values</a> of properties defined using that <a>term</a>. This allows
+    values to use <a>term definitions</a>, <a>base IRI</a>,
+    <a>vocabulary mapping</a> or <a>default language</a> which is different from the
+    <a>node object</a> they are contained in, in exactly the same was as if the
+    <a>context</a> were specified within the value itself.</p>
+  
+  <pre class="example" data-transform="updateExample"
+       title="Defining an @context within a term definition">
+  <!--
+  {
+    "@context":
+    {
+      "name": "http://schema.org/name",
+      "interest": {
+        "@id":"http://xmlns.com/foaf/0.1/interest",
+        ****"@context": {"@vocab": "http://xmlns.com/foaf/0.1/"}****
+      }
+    },
+    "name": "Manu Sporny",
+    "interest": ****{
+      "@id": "https://www.w3.org/TR/json-ld/",
+      "name": "JSON-LD",
+      "topic": "Linking Data"
+    }****
+  }
+  -->
+  </pre>
+
+  <p>In this case, the social profile is defined using the schema.org vocabulary, but interest is imported from FOAF, and is used to define a node describing one of Manu's interests where those properties now come from the FOAF vocabulary.</p>
+
+  <p>Expanding this document, uses a combination of terms defined in the outer context, and those defined specifically for that term.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Expanded document using a scoped context">
+  <!--
+  [{
+    "http://schema.org/name": [{"@value": "Manu Sporny"}],
+    "http://xmlns.com/foaf/0.1/interest": [{
+      "@id": "https://www.w3.org/TR/json-ld/",
+      "http://schema.org/name": [{"@value": "JSON-LD"}],
+      ****"http://xmlns.com/foaf/0.1/topic": [{"@value": "Linking Data"}]****
+    }]
+  }]
+  -->
+  </pre>
+
+  <p>The <code>@reverse</code> <a>keyword</a> can also be used in
+    <a>expanded term definitions</a>
+    to create reverse properties as shown in the following example:</p>
+
+
+  <pre class="example" data-transform="updateExample"
+       title="Using @reverse to define reverse properties">
+  <!--
+  {
+    "@context": {
+      "name": "http://example.com/vocab#name",
+      ****"children": { "@reverse": "http://example.com/vocab#parent" }****
+    },
+    "@id": "#homer",
+    "name": "Homer",
+    ****"children"****: [
+      {
+        "@id": "#bart",
+        "name": "Bart"
+      },
+      {
+        "@id": "#lisa",
+        "name": "Lisa"
+      }
+    ]
+  }
+  -->
+  </pre>
+</section>
+
 
 <section class="informative">
   <h2>Named Graphs</h2>
@@ -3126,7 +3207,7 @@ specified. The full <a>IRI</a> for
 
   <p>An <a>expanded term definition</a> MUST be a <a>JSON object</a>
     composed of zero or more keys from <code>@id</code>, <code>@reverse</code>,
-    <code>@type</code>, <code>@language</code> or <code>@container</code>. An
+    <code>@type</code>, <code>@language</code>, <code>@context</code> or <code>@container</code>. An
     <a>expanded term definition</a> SHOULD NOT contain any other keys.</p>
 
   <p>If an <a>expanded term definition</a> has an <code>@reverse</code> member,
@@ -3160,6 +3241,9 @@ specified. The full <a>IRI</a> for
     If the value is <code>@index</code>, when the <a>term</a> is used outside of
     the <code>@context</code>, the associated value MUST be an
     <a>index map</a>.</p>
+
+  <p>If an <a>expanded term definition</a> has an <code>@context</code> member,
+    it MUST be a valid <code>context definition</code>.</p>
 
   <p><a>Terms</a> MUST NOT be used in a circular manner. That is,
     the definition of a term cannot depend on the definition of another term if that other
@@ -3345,6 +3429,15 @@ specified. The full <a>IRI</a> for
       for all triples having a common subject, and a single <a>property</a>
       for those triples also having a common predicate.</p>
   </section>
+</section>
+
+<section class="appendix informative">
+  <h2>Changes since 1.0 Recommendation of 16 January 2014</h2>
+  <ul>
+    <li>An <a>expanded term definition</a> can now have an
+      <code>@context</code> property, which defines a <a>context</a> used for values of
+      a <a>property</a> identified with such a <a>term</a>.</li>
+  </ul>
 </section>
 
 <section class="appendix informative">
