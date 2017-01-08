@@ -23,6 +23,7 @@ Tests are defined into _compact_, _expand_, _flatten_, _frame_, _normalize_, and
   contained within the _sparql_ document using a SPARQL endpoint. The end result is a
   yes/no on whether the expected triples were extracted by the JSON-LD processor.
 
+Unless `processingMode` is set explicitly in a test entry, `processingMode` is compatible with both `json-ld-1.0` and `json-ld-1.1`. Otherwise, a JSON-LD 1.0 processor should not run tests marked `json-ld-1.1` and a JSON-LD 1.1 processor should not run tests marked `json-ld-1.0`.
 
 Contributing
 ------------
