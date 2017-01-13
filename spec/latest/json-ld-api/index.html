@@ -987,6 +987,7 @@
             <li>Initialize <em>container</em> to the value associated with the
               <code>@container</code> key, which must be either
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
+              <span class="changed"><code>@id</code>, <code>@type</code></span>
               or <code>@language</code>. Otherwise, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
@@ -1470,9 +1471,10 @@
               </ol>
             </li>
             <li>Otherwise, if <em>key</em>'s <a>container mapping</a> in
-              <em class="changed">term context</em> is <code>@index</code> and
+              <em class="changed">term context</em> is <code>@index</code>,
+              <span class="changed"><code>@type</code>, or <code>@id</code></span> and
               <em>value</em> is a <a>JSON object</a> then <em>value</em>
-              is expanded from an index map as follows:
+              is expanded from an map as follows:
               <ol class="algorithm">
                 <li>Initialize <em>expanded value</em> to an empty
                   <a>array</a>.</li>
@@ -1488,10 +1490,22 @@
                       <em>key</em> as <a>active property</a>,
                       and <em>index value</em> as <em>element</em>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
-                      <ol class="algorithm">
-                        <li>If <em>item</em> does not have the key
+                      <ol class="algorithm changed">
+                        <li>If <a>container mapping</a> is <code>@index</code>
+                          and <em>item</em> does not have the key
                           <code>@index</code>, add the key-value pair
                           (<code>@index</code>-<em>index</em>) to
+                          <em>item</em>.</li>
+                        <li>Otherwise, if <a>container mapping</a> is <code>@id</code>
+                          and <em>item</em> does not have the key
+                          <code>@id</code>, add the key-value pair
+                          (<code>@id</code>-<em>index</em>) to
+                          <em>item</em>.</li>
+                        <li>Otherwise, if <a>container mapping</a> is <code>@type</code>
+                          set <em>types</em> to the concatenation of <em>index
+                          value</em> with any existing values of
+                          <code>@type</code> in <em>item</em> and add the
+                          key-value pair (<code>@type</code>-<em>types</em>) to
                           <em>item</em>.</li>
                         <li>Append <em>item</em> to <em>expanded value</em>.</li>
                       </ol>
@@ -1994,20 +2008,39 @@
                   </ol>
                 </li>
                 <li>
-                  If <em>container</em> is <code>@language</code> or
-                  <code>@index</code>:
+                  If <em>container</em> is <code>@language</code>,
+                  <code>@index</code>, <span class="changed"><code>@id</code>,
+                    or <code>@type</code></span>:
                   <ol class="algorithm">
                     <li>If <em>item active property</em> is not a key in
                       <em>result</em>, initialize it to an empty <a>JSON object</a>.
                       Initialize <em>map object</em> to the value of <em>item active property</em>
                       in <em>result</em>.</li>
+                    <li>Set <em>compacted container</em> to the result of calling the 
+                      <a href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a>,
+                      <em>container</em> as <em>iri</em>, and <code>true</code>
+                      for <em>vocab</em>.</li>
                     <li>If <em>container</em> is <code>@language</code> and
                       <em>compacted item</em> contains the key
                       <code>@value</code>, then set <em>compacted item</em>
                       to the value associated with its <code>@value</code> key.</li>
-                    <li>Initialize <em>map key</em> to the value associated with
+                    <li>If <em>container</em> is <code>@index</code>,
+                      set <em>map key</em> to the value associated with
                       with the key that equals <em>container</em> in
                       <em>expanded item</em>.</li>
+                    <li class="changed">If <em>container</em> is <code>@id</code>, set
+                      <em>map key</em> to the value associated with the key that equals
+                      <em>compacted container</em> in <em>compacted item</em>
+                      and remove that key-value pair from <em>compacted item</em>.</li>
+                    <li class="changed">If <em>container</em> is <code>@type</code>,
+                      set <em>map key</em> to the first value associated with
+                      the key that equals <em>container</em> in <em>expanded
+                      item</em>. If there are remaining values in <em>compacted
+                      item</em> for <em>compacted container</em>, set the value
+                      of <em>compacted container</em> in <em>compacted
+                      value</em> to those remaining values. Otherwise, remove
+                      that key-value pair from <em>compacted item</em>.</li>
                     <li>If <em>map key</em> is not a key in <em>map object</em>,
                       then set this key's value in <em>map object</em>
                       to <em>compacted item</em>. Otherwise, if the value
@@ -2284,9 +2317,10 @@
               variables will keep track of the preferred
               <a>type mapping</a> or <a>language mapping</a> for
               a <a>term</a>, based on what is compatible with <em>value</em>.</li>
-            <li>If <em>value</em> is a <a>JSON object</a> that contains the
-              key <code>@index</code>, then append the value <code>@index</code>
-              to <em>containers</em>.</li>
+            <li>If <em>value</em> is a <a>JSON object</a>,
+              <span class="changed">then for the keywords <code>@index</code>,
+              <code>@id</code>, and <code>@type</code>, if <em>value</em>
+              contains that <a>keyword</a>, append it to <em>containers</em>.</span></li>
             <li>If <em>reverse</em> is <code>true</code>, set <em>type/language</em>
               to <code>@type</code>, <em>type/language value</em> to
               <code>@reverse</code>, and append <code>@set</code> to <em>containers</em>.</li>
@@ -4208,6 +4242,8 @@
     <li>A new <a href="#merge-node-maps" class="sectionRef"></a> is required
       for framing, to create a single graph from the <a data-lt="default graph">default</a>
       and <a>named graphs</a>.</li>
+    <li><code>@container</code> values within an <a>expanded term definition</a> may now
+      include <code>@id</code> and <code>@type</code>, corresponding to <a>id maps</a> and <a>type maps</a>.</li>
   </ul>
 </section>
 
