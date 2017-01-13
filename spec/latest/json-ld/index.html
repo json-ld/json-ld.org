@@ -395,6 +395,8 @@
         <a>IRI</a>. This keyword is described in <a class="sectionRef" href="#default-vocabulary"></a>.</dd>
       <dt><code>@graph</code></dt><dd>Used to express a <a>graph</a>.
         This keyword is described in <a class="sectionRef" href="#named-graphs"></a>.</dd>
+      <dt class="changed"><code>@nest</code></dt><dd class="changed">Collects a set of <a>nested properties</a> within
+        a <a>node object</a>.</dd>
       <dt><code>:</code></dt>
       <dd>The separator for JSON keys and values that use
         <a>compact IRIs</a>.</dd>
@@ -2684,6 +2686,86 @@ specified. The full <a>IRI</a> for
     as the <code>@type</code> property of the <a>node object</a> value.</p>
 </section>
 
+<section class="informative changed">
+  <h2>Nested Properties</h2>
+
+  <p>Many JSON APIs separate properties from their entities using an
+    intermediate object; in JSON-LD these are called <a>nested properties</a>.
+    For example, a set of possible labels may be grouped
+    under a common property:</p>
+  <pre class="example" data-transform="updateExample"
+       title="Nested properties">
+  <!--
+  {
+    "@context": {
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "labels": "@nest",
+      "main_label": {"@id": "skos:prefLabel"},
+      "other_label": {"@id": "skos:altLabel"},
+      "homepage": {"@id":"http://schema.org/description", "@type":"@id"}
+    },
+    "@id":"http://example.org/myresource",
+    "homepage": "http://example.org",
+    "labels": {
+       "main_label": "This is the main label for my resource",
+       "other_label": "This is the other label"
+    }
+  }
+  -->
+  </pre>
+
+  <p>By defining <em>labels</em> using the <a>keyword</a> <code>@nest</code>,
+    a <a>JSON-LD processor</a> will ignore the nesting created by using the
+    <em>labels</em> property and process the contents as if it were declared
+    directly within containing object. In this case, the <em>labels</em>
+    property is semantically meaningless. Defining it as equivalent to
+    <code>@nest</code> causes it to be ignored when expanding, making it
+    equivalent to the following:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Nested properties folded into containing object">
+  <!--
+  {
+    "@context": {
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "labels": "@nest",
+      "main_label": {"@id": "skos:prefLabel"},
+      "other_label": {"@id": "skos:altLabel"},
+      "homepage": {"@id":"http://schema.org/description", "@type":"@id"}
+    },
+    "@id":"http://example.org/myresource",
+    "homepage": "http://example.org",
+    ****"main_label": "This is the main label for my resource",
+    "other_label": "This is the other label"****
+  }
+  -->
+  </pre>
+
+  <p>Similarly, properties may be marked with <code>"@container": "@nest",</code> to cause
+    them to be nested. Note that the <code>@nest</code> keyword can also be aliased in the
+    <a>context</a>.</p>
+  <pre class="example" data-transform="updateExample"
+       title="Defining property nesting">
+  <!--
+ {
+   "@context": {
+     "skos": "http://www.w3.org/2004/02/skos/core#",
+     "labels": "@nest",
+     "main_label": {"@id": "skos:prefLabel", ****"@container": "@nest"****},
+     "other_label": {"@id": "skos:altLabel", ****"@container": "@nest"****},
+     "homepage": {"@id":"http://schema.org/description", "@type":"@id"}
+   },
+   "@id":"http://example.org/myresource",
+   "homepage": "http://example.org",
+   "labels": {
+      "main_label": "This is the main label for my resource",
+      "other_label": "This is the other label"
+   }
+ }
+  -->
+  </pre>
+</section>
+
 <section class="informative">
   <h3>Expanded Document Form</h3>
 
@@ -3090,6 +3172,7 @@ specified. The full <a>IRI</a> for
       <li><code>@context</code>,</li>
       <li><code>@id</code>,</li>
       <li><code>@graph</code>,</li>
+      <li class="changed"><code>@nest</code>,</li>
       <li><code>@type</code>,</li>
       <li><code>@reverse</code>, or</li>
       <li><code>@index</code></li>
@@ -3144,6 +3227,12 @@ specified. The full <a>IRI</a> for
       its value MUST be a <a>string</a>. See
       <a class="sectionRef" href="#data-indexing"></a> for further discussion
       on <code>@index</code> values.</p>
+
+    <p class="changed">If the <a>node object</a> contains the <code>@nest</code> key,
+      its value MUST be an <a>JSON object</a> or an <a>array</a> of <a>JSON objects</a>
+      which MUST NOT include a <a>value object</a>. See
+      <a class="sectionRef" href="#property-nesting"></a> for further discussion
+      on <code>@nest</code> values.</p>
 
     <p>Keys in a <a>node object</a> that are not
       <a>keyword</a> MAY expand to an <a>absolute IRI</a>
@@ -3313,6 +3402,19 @@ specified. The full <a>IRI</a> for
     <p>If the value contains a property expanding to <code>@id</code>, it's value MUST
       be equivalent to the referencing key. Otherwise, the property from the value is used as
       the <code>@id</code> of the <a>node object</a> value when expanding.</p>
+  </section>
+
+  <section class="changed">
+    <h2>Property Nesting</h2>
+
+    <p>A <a>nested property</a> is used to gather <a>properties</a> of a <a>node object</a> in a separate
+      <a>JSON object</a>, or <a>array</a> of <a>JSON objects</a> which are not
+      <a>value objects</a>. It is semantically transparent and is removed
+      during the process of expansion. Property nesting is recursive, and
+      collections of nested properties may contain further nesting.</p>
+
+    <p>Semantically, nesting is treated as if the properties and values were declared directly
+      within the containing <a>node object</a>.</p>
   </section>
 
 <section class="normative">
@@ -3581,7 +3683,8 @@ specified. The full <a>IRI</a> for
       <code>@context</code> property, which defines a <a>context</a> used for values of
       a <a>property</a> identified with such a <a>term</a>.</li>
     <li><code>@container</code> values within an <a>expanded term definition</a> may now
-      include <code>@id</code> and <code>@type</code>, corresponding to <a>id maps</a> and <a>type maps</a>.</li>
+      include <code>@id</code> <code>@type</code>, and <code>@nest</code>,
+      corresponding to <a>id maps</a>, <a>type maps</a> and <a>nested properties</a>.</li>
   </ul>
 </section>
 

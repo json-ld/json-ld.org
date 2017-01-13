@@ -987,8 +987,8 @@
             <li>Initialize <em>container</em> to the value associated with the
               <code>@container</code> key, which must be either
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
-              <span class="changed"><code>@id</code>, <code>@type</code></span>
-              or <code>@language</code>. Otherwise, an
+              <span class="changed"><code>@id</code>, <code>@type</code></span>,
+              <code>@nest</code>, or <code>@language</code>. Otherwise, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li>Set the <a>container mapping</a> of <em>definition</em> to
@@ -1270,7 +1270,7 @@
           passing <a>active context</a> and the value of the
           <code>@context</code> key as <a>local context</a>.</li>
         <li>Initialize an empty <a>JSON object</a>, <em>result</em>.</li>
-        <li>For each <em>key</em> and <em>value</em> in <em>element</em>,
+        <li id="alg-expand-each-key-value">For each <em>key</em> and <em>value</em> in <em>element</em>,
           ordered lexicographically by <em>key</em>:
           <ol class="algorithm">
             <li>If <em>key</em> is <code>@context</code>, continue to
@@ -1418,6 +1418,10 @@
                     <li>Continue with the next <em>key</em> from <em>element</em>.</li>
                   </ol>
                 </li>
+                <li class="changed">If <em>expanded property</em> is <code>@nest</code>,
+                  add <em>key</em> to <em>nests</em>, initializing it to an empty <a>array</a>,
+                  if necessary.
+                  Continue with the next <em>key</em> from <em>element</em>.</li>
                 <li class="changed">When the <code>frame expansion</code> flag is set,
                   if <em>expanded property</em> is any other
                   framing keyword (<code>@explicit</code>, <code>@default</code>,
@@ -1557,6 +1561,22 @@
                   <a>array</a>.</li>
                 <li>Append <em>expanded value</em> to value of the <em>expanded property</em>
                   member of <em>result</em>.</li>
+              </ol>
+            </li>
+            <li class="changed">For each key <em>nesting-key</em> in <em>nests</em>
+              <ol class="algorithm">
+                <li>Set <em>nested values</em> to the value of <em>nesting-key</em>
+                  in <em>element</em>, ensuring that it is an <a>array</a>.</li>
+                <li>For each <em>nested value</em> in <em>nested values</em>:
+                  <ol class="algorithm">
+                    <li>If <em>nested value</em> is not a <a>JSON object</a>, or any key within
+                      <em>nested value</em> expands to <code>@value</code>, an
+                      <a data-link-for="JsonLdErrorCode">invalid @nest value</a> error
+                      has been detected and processing is aborted.</li>
+                    <li>Recursively repeat <a href="#alg-expand-each-key-value">step 7</a>
+                      using <em>nested value</em> for <em>element</em>.</li>
+                  </ol>
+                </li>
               </ol>
             </li>
           </ol>
@@ -2049,6 +2069,25 @@
                       <em>compacted item</em> to it.</li>
                   </ol>
                 </li>
+                <li class="changed">If container is <code>@nest</code>:
+                  <ol class="algorithm">
+                    <li>Set <em>nest prop</em> to the result of the
+                      <a href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a>,
+                      <em>item active property</em> as <em>iri</em>, and <code>true</code>
+                      for <em>vocab</em>.</li>
+                    <li>If <em>nest prop</em> is not a key in
+                      <em>result</em>, initialize it to an empty <a>JSON object</a>.
+                      Initialize <em>map object</em> to the value of <em>nest prop</em>
+                      in <em>result</em>.</li>
+                    <li>If <em>item active property</em> is not a key in <em>map object</em>,
+                      then set this key's value in <em>map object</em>
+                      to <em>compacted item</em>. Otherwise, if the value
+                      is not an <a>array</a>, then set it to one
+                      containing only the value and then append
+                      <em>compacted item</em> to it.</li>
+                  </ol>
+                </li>
                 <li>
                   Otherwise,
                   <ol class="algorithm">
@@ -2401,7 +2440,9 @@
                 </li>
                 <li>Otherwise, set <em>type/language</em> to <code>@type</code>
                   and set <em>type/language value</em> to <code>@id</code>.</li>
-                <li>Append <code>@set</code> to <em>containers</em>.</li>
+                <li>Append
+                  <span class="changed"><code>@nest</code> and</span>
+                  <code>@set</code> to <em>containers</em>.</li>
               </ol>
             </li>
             <li>Append <code>@none</code> to <em>containers</em>. This represents
@@ -4092,6 +4133,7 @@
             "invalid language mapping",
             "invalid language-tagged string",
             "invalid language-tagged value",
+            "invalid @nest value",
             "invalid local context",
             "invalid remote context",
             "invalid reverse property",
@@ -4168,6 +4210,8 @@
           associated language tag was detected.</dd>
         <dt><dfn>invalid local context</dfn></dt>
         <dd>In invalid <a>local context</a> was detected.</dd>
+        <dt class="changed"><dfn>invalid @nest value</dfn></dt>
+        <dd class="changed">An invalid value for <code>@nest</code> has been found.</dd>
         <dt><dfn>invalid remote context</dfn></dt>
         <dd>No valid context document has been found for a referenced,
          remote context.</dd>
