@@ -814,6 +814,13 @@
       options.format = 'application/nquads';
       promise = processor.normalize(input, options);
     }
+    else if(playground.activeTab === 'tab-visualized') {
+      // early return because this isn't an editor
+      return new Promise(function() {
+        $('#visualized').empty();
+        d3.jsonldVis(input, '#visualized');
+      });
+    }
     else if(playground.activeTab === 'tab-signed-rsa') {
       options.format = 'application/ld+json';
 
