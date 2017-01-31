@@ -1,0 +1,20 @@
+{% assign dir = page.dir %}
+{% assign paths = '' | split: '' %}
+
+{% for file in site.static_files reversed %}
+{% if file.path contains dir and file.name == 'index.html' %}
+  {% if file.path contains include.find or file.path contains include.find_other %}
+  {% unless file.path contains 'latest' %}
+    {% assign path_array = file.path | split: '/' %}
+    {% assign date_path = '' | split: '' %}
+    {% assign date_path = date_path | push: path_array[4] %}
+    {% assign date_path = date_path | push: path_array %}
+    {% assign date_path = date_path | join: '|' %}
+    {% assign paths = paths | push: date_path %}
+  {% endunless %}
+  {% endif %}
+{% endif %}
+{% endfor %}
+
+{% assign paths = paths | sort | reverse %}
+{% for path in paths %}{% assign split_path = path | split: '||' %}{% assign doc_path = split_path[1] | split: '|' | join: '/' %}<span><a href="/{{ doc_path }}">{{ split_path[0] }}</a></span>{% endfor %}
