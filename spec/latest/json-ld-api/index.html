@@ -1512,13 +1512,23 @@
                         <li>Otherwise, if <a>container mapping</a> is <code>@id</code>
                           and <em>item</em> does not have the key
                           <code>@id</code>, add the key-value pair
-                          (<code>@id</code>-<em>index</em>) to
-                          <em>item</em>.</li>
+                          (<code>@id</code>-<em>expanded index</em>) to
+                          <em>item</em>, where <em>expanded index</em> is set to the result of
+                          using the
+                          <a href="#iri-expansion">IRI Expansion algorithm</a>,
+                          passing <a>active context</a>, <em>index</em>, and <code>true</code>
+                          for <em>document relative</em>.</li>
                         <li>Otherwise, if <a>container mapping</a> is <code>@type</code>
-                          set <em>types</em> to the concatenation of <em>index
-                          value</em> with any existing values of
-                          <code>@type</code> in <em>item</em> and add the
-                          key-value pair (<code>@type</code>-<em>types</em>) to
+                          set <em>types</em> to the concatenation of
+                          <em>expanded index</em> with any existing values of
+                          <code>@type</code> in <em>item</em>, where
+                          <em>expanded index</em> is set to the result of using
+                          the <a href="#iri-expansion">IRI Expansion
+                          algorithm</a>, passing <a>active context</a>,
+                          <em>index</em>, <code>true</code> for <em>vocab</em>,
+                          and <code>true</code> for <em>document relative</em>
+                          and add the key-value pair
+                          (<code>@type</code>-<em>types</em>) to
                           <em>item</em>.</li>
                         <li>Append <em>item</em> to <em>expanded value</em>.</li>
                       </ol>
@@ -2082,22 +2092,24 @@
                       <em>compacted item</em> contains the key
                       <code>@value</code>, then set <em>compacted item</em>
                       to the value associated with its <code>@value</code> key.</li>
-                    <li>If <em>container</em> is <code>@index</code>,
-                      set <em>map key</em> to the value associated with
-                      with the key that equals <em>container</em> in
-                      <em>expanded item</em>.</li>
                     <li class="changed">If <em>container</em> is <code>@id</code>, set
-                      <em>map key</em> to the value associated with the key that equals
-                      <em>compacted container</em> in <em>compacted item</em>
-                      and remove that key-value pair from <em>compacted item</em>.</li>
+                      <em>map key</em> to the result of calling the <a
+                      href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a> and the value associated with
+                      the key that equals <em>compacted container</em> in
+                      <em>compacted item</em> as <em>iri</em>.</li>
                     <li class="changed">If <em>container</em> is <code>@type</code>,
-                      set <em>map key</em> to the first value associated with
-                      the key that equals <em>container</em> in <em>expanded
-                      item</em>. If there are remaining values in <em>compacted
-                      item</em> for <em>compacted container</em>, set the value
-                      of <em>compacted container</em> in <em>compacted
-                      value</em> to those remaining values. Otherwise, remove
-                      that key-value pair from <em>compacted item</em>.</li>
+                      set <em>map key</em> to the result of calling the <a
+                      href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a>, the the first value
+                      associated with the key that equals <em>compacted
+                      container</em> in <em>compacted item</em> as
+                      <em>iri</em>, and <code>true</code> for <em>vocab</em>.
+                      If there are remaining values in <em>compacted item</em>
+                      for <em>compacted container</em>, set the value of
+                      <em>compacted container</em> in <em>compacted value</em>
+                      to those remaining values. Otherwise, remove that
+                      key-value pair from <em>compacted item</em>.</li>
                     <li>If <em>map key</em> is not a key in <em>map object</em>,
                       then set this key's value in <em>map object</em>
                       to <em>compacted item</em>. Otherwise, if the value
