@@ -1278,6 +1278,22 @@
           <a href="#context-processing-algorithm">Context Processing algorithm</a>,
           passing <a>active context</a> and the value of the
           <code>@context</code> key as <a>local context</a>.</li>
+        <li class="changed">For each <em>key</em>/<em>value</em> pair in <em>element</em>
+          ordered lexicographically by <em>key</em> where <em>key</em> expands
+          to <code>@type</code> using the
+          <a href="#iri-expansion">IRI Expansion algorithm</a>,
+          passing <a>active context</a>, <em>key</em> for
+          <em>value</em>, and <code>true</code> for <em>vocab</em>:
+          <ol class="algorithm">
+            <li>For each <em>term</em> which is a value of <em>value</em>,
+              if <em>term</em>'s <a>term definition</a> in <a>active context</a>
+              has a <a>local context</a>, set <a>active context</a> to the result
+              to the result of the
+              <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+              passing <a>active context</a> and the value of the
+              <em>term</em>'s <a>local context</a> as <a>local context</a>.</li>
+          </ol>
+        </li>
         <li>Initialize an empty <a>JSON object</a>, <em>result</em>.</li>
         <li id="alg-expand-each-key-value">For each <em>key</em> and <em>value</em> in <em>element</em>,
           ordered lexicographically by <em>key</em>:
@@ -1494,12 +1510,21 @@
                 <li>For each key-value pair <em>index</em>-<em>index value</em>
                   in <em>value</em>, ordered lexicographically by <em>index</em>:
                   <ol class="algorithm">
+                    <li class="changed">If <a>container mapping</a> is <code>@type</code>,
+                      and <em>index</em>'s <a>term definition</a> in
+                      <em>term context</em> has a <a>local context</a>, set
+                      <em>map context</em> to the result of the <a
+                      href="#context-processing-algorithm">Context Processing
+                      algorithm</a>, passing <em>term context</em> as <a>active context</a> and the
+                      value of the <em>index</em>'s <a>local context</a> as
+                      <a>local context</a>. Otherwise, set <em>map context</em>
+                      to <em>term context</em>.</li>
                     <li>If <em>index value</em> is not an <a>array</a>
                       set it to an <a>array</a> containing only
                       <em>index value</em>.</li>
                     <li>Initialize <em>index value</em> to the result of
                       using this algorithm recursively, passing
-                      <em class="changed">term context</em> as <a>active context</a>,
+                      <em class="changed">map context</em> as <a>active context</a>,
                       <em>key</em> as <a>active property</a>,
                       and <em>index value</em> as <em>element</em>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
@@ -1883,12 +1908,28 @@
                       <li>Initialize <em>compacted value</em> to an empty
                         <a>array</a>.</li>
                       <li>For each item <em>expanded type</em> in
-                        <em>expanded value</em>, append the result of
-                        of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                        passing <a>active context</a>, <a>inverse context</a>,
-                        <em>expanded type</em> for <em>iri</em>, and
-                        <code>true</code> for <em>vocab</em>,
-                        to <em>compacted value</em>.</li>
+                        <em>expanded value</em>:
+                        <ol class="algorithm">
+                          <li>Set <em>term</em> to the result of
+                            of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
+                            passing <a>active context</a>, <a>inverse context</a>,
+                            <em>expanded type</em> for <em>iri</em>, and
+                            <code>true</code> for <em>vocab</em>.</li>
+                          <li class="changed">If the <a>term definition</a> for <em>term</em> has a
+                            <a>local context</a>:
+                            <ol class="algorithm">
+                              <li>Set <a>active context</a> to the result of the
+                                <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+                                passing <a>active context</a> and the value of <em>term</em>'s
+                                <a>local context</a> as <a>local context</a>.</li>
+                              <li>Set <a>inverse context</a> using the
+                                <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
+                                using <a>active context</a>.</li>
+                            </ol>
+                          </li>
+                          <li>Append <em>term</em>, to <em>compacted value</em>.</li>
+                        </ol>
+                      </li>
                       <li>If <em>compacted value</em> contains only one
                         item (it has a length of <code>1</code>), then
                         set <em>compacted value</em> to its only item.</li>
