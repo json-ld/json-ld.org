@@ -177,7 +177,7 @@
   </ul>
 
   <p>To understand the basics in this specification you must first be familiar with
-    <a data-cite="rfc7159">JSON</a>, which is detailed in [[!RFC7159]]. You must also understand the
+    <a data-cite="RFC7159">JSON</a>, which is detailed in [[!RFC7159]]. You must also understand the
     <a data-cite="JSON-LD">JSON-LD syntax</a> defined in [[!JSON-LD]], which is the base syntax used by all
     of the algorithms in this document. To understand the API and how it is
     intended to operate in a programming environment, it is useful to have working
@@ -717,16 +717,16 @@
               <ol class="algorithm">
                 <li>Set <em>context</em> to the result of resolving <em>value</em> against
                   the base IRI which is established as specified in
-                  <a data-cite="rfc3986#section-5.1">section 5.1 Establishing a Base URI</a>
+                  <a data-cite="RFC3986#section-5.1">section 5.1 Establishing a Base URI</a>
                   of [[!RFC3986]]. Only the basic algorithm in
-                  <a data-cite="rfc3986#section-5.2">section 5.2</a>
+                  <a data-cite="RFC3986#section-5.2">section 5.2</a>
                   of [[!RFC3986]] is used; neither
-                  <a data-cite="rfc3986#section-6.2.2">Syntax-Based Normalization</a> nor
-                  <a data-cite="rfc3986#section-6.2.3">Scheme-Based Normalization</a>
+                  <a data-cite="RFC3986#section-6.2.2">Syntax-Based Normalization</a> nor
+                  <a data-cite="RFC3986#section-6.2.3">Scheme-Based Normalization</a>
                   are performed. Characters additionally allowed in IRI
                   references are treated in the same way that unreserved
                   characters are treated in URI references, per
-                  <a data-cite="rfc3987#section-6.5">section 6.5</a>
+                  <a data-cite="RFC3987#section-6.5">section 6.5</a>
                   of [[!RFC3987]].</li>
                 <li>If <em>context</em> is in the <em>remote contexts</em> array, a
                   <a data-link-for="JsonLdErrorCode">recursive context inclusion</a>
@@ -1152,13 +1152,13 @@
         <li>Otherwise, if <em>document relative</em> is <code>true</code>,
           set <em>value</em> to the result of resolving <em>value</em> against
           the <a>base IRI</a>. Only the basic algorithm in
-          <a data-cite="rfc3986#section-5.2">section 5.2</a>
+          <a data-cite="RFC3986#section-5.2">section 5.2</a>
           of [[!RFC3986]] is used; neither
-          <a data-cite="rfc3986#section-6.2.2">Syntax-Based Normalization</a> nor
-          <a data-cite="rfc3986#section-6.2.3">Scheme-Based Normalization</a>
+          <a data-cite="RFC3986#section-6.2.2">Syntax-Based Normalization</a> nor
+          <a data-cite="RFC3986#section-6.2.3">Scheme-Based Normalization</a>
           are performed. Characters additionally allowed in IRI references are treated
           in the same way that unreserved characters are treated in URI references, per
-          <a data-cite="rfc3987#section-6.5">section 6.5</a>
+          <a data-cite="RFC3987#section-6.5">section 6.5</a>
           of [[!RFC3987]].</li>
         <li>Return <em>value</em> as is.</li>
       </ol>
@@ -1278,6 +1278,22 @@
           <a href="#context-processing-algorithm">Context Processing algorithm</a>,
           passing <a>active context</a> and the value of the
           <code>@context</code> key as <a>local context</a>.</li>
+        <li class="changed">For each <em>key</em>/<em>value</em> pair in <em>element</em>
+          ordered lexicographically by <em>key</em> where <em>key</em> expands
+          to <code>@type</code> using the
+          <a href="#iri-expansion">IRI Expansion algorithm</a>,
+          passing <a>active context</a>, <em>key</em> for
+          <em>value</em>, and <code>true</code> for <em>vocab</em>:
+          <ol class="algorithm">
+            <li>For each <em>term</em> which is a value of <em>value</em>,
+              if <em>term</em>'s <a>term definition</a> in <a>active context</a>
+              has a <a>local context</a>, set <a>active context</a> to the result
+              to the result of the
+              <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+              passing <a>active context</a> and the value of the
+              <em>term</em>'s <a>local context</a> as <a>local context</a>.</li>
+          </ol>
+        </li>
         <li>Initialize an empty <a>JSON object</a>, <em>result</em>.</li>
         <li id="alg-expand-each-key-value">For each <em>key</em> and <em>value</em> in <em>element</em>,
           ordered lexicographically by <em>key</em>:
@@ -1494,12 +1510,21 @@
                 <li>For each key-value pair <em>index</em>-<em>index value</em>
                   in <em>value</em>, ordered lexicographically by <em>index</em>:
                   <ol class="algorithm">
+                    <li class="changed">If <a>container mapping</a> is <code>@type</code>,
+                      and <em>index</em>'s <a>term definition</a> in
+                      <em>term context</em> has a <a>local context</a>, set
+                      <em>map context</em> to the result of the <a
+                      href="#context-processing-algorithm">Context Processing
+                      algorithm</a>, passing <em>term context</em> as <a>active context</a> and the
+                      value of the <em>index</em>'s <a>local context</a> as
+                      <a>local context</a>. Otherwise, set <em>map context</em>
+                      to <em>term context</em>.</li>
                     <li>If <em>index value</em> is not an <a>array</a>
                       set it to an <a>array</a> containing only
                       <em>index value</em>.</li>
                     <li>Initialize <em>index value</em> to the result of
                       using this algorithm recursively, passing
-                      <em class="changed">term context</em> as <a>active context</a>,
+                      <em class="changed">map context</em> as <a>active context</a>,
                       <em>key</em> as <a>active property</a>,
                       and <em>index value</em> as <em>element</em>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
@@ -1512,13 +1537,23 @@
                         <li>Otherwise, if <a>container mapping</a> is <code>@id</code>
                           and <em>item</em> does not have the key
                           <code>@id</code>, add the key-value pair
-                          (<code>@id</code>-<em>index</em>) to
-                          <em>item</em>.</li>
+                          (<code>@id</code>-<em>expanded index</em>) to
+                          <em>item</em>, where <em>expanded index</em> is set to the result of
+                          using the
+                          <a href="#iri-expansion">IRI Expansion algorithm</a>,
+                          passing <a>active context</a>, <em>index</em>, and <code>true</code>
+                          for <em>document relative</em>.</li>
                         <li>Otherwise, if <a>container mapping</a> is <code>@type</code>
-                          set <em>types</em> to the concatenation of <em>index
-                          value</em> with any existing values of
-                          <code>@type</code> in <em>item</em> and add the
-                          key-value pair (<code>@type</code>-<em>types</em>) to
+                          set <em>types</em> to the concatenation of
+                          <em>expanded index</em> with any existing values of
+                          <code>@type</code> in <em>item</em>, where
+                          <em>expanded index</em> is set to the result of using
+                          the <a href="#iri-expansion">IRI Expansion
+                          algorithm</a>, passing <a>active context</a>,
+                          <em>index</em>, <code>true</code> for <em>vocab</em>,
+                          and <code>true</code> for <em>document relative</em>
+                          and add the key-value pair
+                          (<code>@type</code>-<em>types</em>) to
                           <em>item</em>.</li>
                         <li>Append <em>item</em> to <em>expanded value</em>.</li>
                       </ol>
@@ -1873,12 +1908,28 @@
                       <li>Initialize <em>compacted value</em> to an empty
                         <a>array</a>.</li>
                       <li>For each item <em>expanded type</em> in
-                        <em>expanded value</em>, append the result of
-                        of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
-                        passing <a>active context</a>, <a>inverse context</a>,
-                        <em>expanded type</em> for <em>iri</em>, and
-                        <code>true</code> for <em>vocab</em>,
-                        to <em>compacted value</em>.</li>
+                        <em>expanded value</em>:
+                        <ol class="algorithm">
+                          <li>Set <em>term</em> to the result of
+                            of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
+                            passing <a>active context</a>, <a>inverse context</a>,
+                            <em>expanded type</em> for <em>iri</em>, and
+                            <code>true</code> for <em>vocab</em>.</li>
+                          <li class="changed">If the <a>term definition</a> for <em>term</em> has a
+                            <a>local context</a>:
+                            <ol class="algorithm">
+                              <li>Set <a>active context</a> to the result of the
+                                <a href="#context-processing-algorithm">Context Processing algorithm</a>,
+                                passing <a>active context</a> and the value of <em>term</em>'s
+                                <a>local context</a> as <a>local context</a>.</li>
+                              <li>Set <a>inverse context</a> using the
+                                <a href="#inverse-context-creation">Inverse Context Creation algorithm</a>
+                                using <a>active context</a>.</li>
+                            </ol>
+                          </li>
+                          <li>Append <em>term</em>, to <em>compacted value</em>.</li>
+                        </ol>
+                      </li>
                       <li>If <em>compacted value</em> contains only one
                         item (it has a length of <code>1</code>), then
                         set <em>compacted value</em> to its only item.</li>
@@ -2082,22 +2133,24 @@
                       <em>compacted item</em> contains the key
                       <code>@value</code>, then set <em>compacted item</em>
                       to the value associated with its <code>@value</code> key.</li>
-                    <li>If <em>container</em> is <code>@index</code>,
-                      set <em>map key</em> to the value associated with
-                      with the key that equals <em>container</em> in
-                      <em>expanded item</em>.</li>
                     <li class="changed">If <em>container</em> is <code>@id</code>, set
-                      <em>map key</em> to the value associated with the key that equals
-                      <em>compacted container</em> in <em>compacted item</em>
-                      and remove that key-value pair from <em>compacted item</em>.</li>
+                      <em>map key</em> to the result of calling the <a
+                      href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a> and the value associated with
+                      the key that equals <em>compacted container</em> in
+                      <em>compacted item</em> as <em>iri</em>.</li>
                     <li class="changed">If <em>container</em> is <code>@type</code>,
-                      set <em>map key</em> to the first value associated with
-                      the key that equals <em>container</em> in <em>expanded
-                      item</em>. If there are remaining values in <em>compacted
-                      item</em> for <em>compacted container</em>, set the value
-                      of <em>compacted container</em> in <em>compacted
-                      value</em> to those remaining values. Otherwise, remove
-                      that key-value pair from <em>compacted item</em>.</li>
+                      set <em>map key</em> to the result of calling the <a
+                      href="#iri-compaction">IRI Compaction algorithm</a>
+                      passing <a>active context</a>, the the first value
+                      associated with the key that equals <em>compacted
+                      container</em> in <em>compacted item</em> as
+                      <em>iri</em>, and <code>true</code> for <em>vocab</em>.
+                      If there are remaining values in <em>compacted item</em>
+                      for <em>compacted container</em>, set the value of
+                      <em>compacted container</em> in <em>compacted value</em>
+                      to those remaining values. Otherwise, remove that
+                      key-value pair from <em>compacted item</em>.</li>
                     <li>If <em>map key</em> is not a key in <em>map object</em>,
                       then set this key's value in <em>map object</em>
                       to <em>compacted item</em>. Otherwise, if the value
@@ -3299,7 +3352,7 @@
           part (the result of a modulo&#8209;1 operation) or <em>value</em> is a <a>number</a>
           and <em>datatype</em> equals <code>xsd:double</code>, convert <em>value</em> to a
           <a>string</a> in <a>canonical lexical form</a> of
-          an <a data-cite="xmlschema11-2#dt-double"><code>xsd:double</code></a> as defined in [[!XMLSCHEMA11-2]]
+          an <a data-cite="XMLSCHEMA11-2#dt-double"><code>xsd:double</code></a> as defined in [[!XMLSCHEMA11-2]]
           and described in
           <a class="sectionRef" href="#data-round-tripping"></a>.
           If <em>datatype</em> is <code>null</code>, set it to
@@ -3309,7 +3362,7 @@
           is a <a>number</a> and <em>datatype</em>
           equals <code>xsd:integer</code>, convert <em>value</em> to a
           <a>string</a> in <a>canonical lexical form</a> of
-          an <a data-cite="xmlschema11-2#dt-integer"><code>xsd:integer</code></a> as defined in [[!XMLSCHEMA11-2]]
+          an <a data-cite="XMLSCHEMA11-2#dt-integer"><code>xsd:integer</code></a> as defined in [[!XMLSCHEMA11-2]]
           and described in
           <a class="sectionRef" href="#data-round-tripping"></a>.
           If <em>datatype</em> is <code>null</code>, set it to
@@ -3386,7 +3439,7 @@
       <a>named graphs</a> into a JSON-LD document.</p>
 
     <p>In the RDF abstract syntax, <a>RDF literals</a> have a
-      <a data-cite="rdf11-concepts#dfn-lexical-form"><dfn>lexical form</dfn></a>, as defined
+      <a data-cite="RDF11-CONCEPTS#dfn-lexical-form"><dfn>lexical form</dfn></a>, as defined
       in [[RDF11-CONCEPTS]]. The form of these literals is used when creating <a>JSON-LD values</a> based on these literals.</p>
 
     <section class="informative">
@@ -3797,7 +3850,7 @@
 
   <p>The JSON-LD API uses <a>Promises</a> to represent
     the result of the various asynchronous operations.
-    <a data-cite="ecmascript-6.0#sec-promise-objects">Promises</a> are defined in [[ECMASCRIPT-6.0]].
+    <a data-cite="ECMASCRIPT-6.0#sec-promise-objects">Promises</a> are defined in [[ECMASCRIPT-6.0]].
     General use within specifications can be found in [[promises-guide]].</p>
 
   <section class="informative">
