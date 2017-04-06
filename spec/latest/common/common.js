@@ -36,6 +36,10 @@ var jsonld = {
       authors: ['Domenic Denicola'],
       status: 'unofficial',
       date: 'January 2014'
+    },
+    "MICROFORMATS": {
+      title: "Microformats",
+      href: "http://microformats.org"
     }
   }
 };
