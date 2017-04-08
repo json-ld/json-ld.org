@@ -397,6 +397,12 @@
         This keyword is described in <a class="sectionRef" href="#named-graphs"></a>.</dd>
       <dt class="changed"><code>@nest</code></dt><dd class="changed">Collects a set of <a>nested properties</a> within
         a <a>node object</a>.</dd>
+      <dt class="changed"><code>@version</code></dt><dd class="changed">
+        Used in a <a>context definition</a> to set the <a>processing mode</a>.
+        New features since <a data-cite="JSON-LD-20140116">JSON-LD 1.0</a> [[!JSON-LD-20140116]] described in this specification are
+        only available when <a>processing mode</a> has been explicitly set to
+        <code>json-ld-1.1</code>.
+      </dd>
       <dt><code>:</code></dt>
       <dd>The separator for JSON keys and values that use
         <a>compact IRIs</a>.</dd>
@@ -711,7 +717,7 @@
         "@type": "@id"
       }
       ...
-    }****
+    },****
   ...
     "homepage": "http://manu.sporny.org/",
   ...
@@ -829,7 +835,7 @@
     ...
     ****"Restaurant": "http://schema.org/Restaurant", ****
     ****"Brewery": "http://schema.org/Brewery"****
-  }
+  },
   "@id": "http://example.org/places#BrewEats",
   ****"@type": [ "Restaurant", "Brewery" ]****,
   ...
@@ -857,6 +863,37 @@
 <p>JSON-LD has a number of features that provide functionality above and beyond
   the core functionality described above. The following section describes this
   advanced functionality in more detail.</p>
+
+<section class="changed informative">
+  <h2>JSON-LD 1.1 Processing Mode</h2>  
+
+  <p>New features defined in JSON-LD 1.1 are available
+    when the <a>processing mode</a> is set to <code>json-ld-1.1</code>.
+    This may be set using the <code>@version</code> member in a <code>context</code>
+    set to the value <code>1.1</code>, or through an API option.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Setting @version in context">
+  <!--
+  {
+    "@context": {
+      ****"@version": 1.1****,
+      ...
+    },
+    ...
+  }
+  -->
+  </pre>
+
+  <p>The first <code>context</code> encountered when processing a
+    document determines the <code>processing mode</code>,
+    unless it is defined explicitly through an API option.</p>
+
+  <p class="note">Setting the <a>processing mode</a> explicitly
+    for JSON-LD 1.1 is necessary so that a JSON-LD 1.0 processor
+    does not attempt to process a JSON-LD 1.1 document and silently
+    produce different results.</p>
+</section>
 
 <section class="informative">
   <h2>Base IRI</h2>
@@ -1481,7 +1518,7 @@ the data type to be specified with each piece of data.</p>
     starting with an&nbsp;<code>@</code> character are to be avoided as they
     might be used as <a>keyword</a> in future versions
     of JSON-LD. Terms starting with an&nbsp;<code>@</code> character that are not
-    <a data-lt="keyword">JSON-LD 1.0 keywords</a> are treated as any other term, i.e.,
+    <a data-lt="keyword">JSON-LD 1.1 keywords</a> are treated as any other term, i.e.,
     they are ignored unless mapped to an <a>IRI</a>. Furthermore, the use of
     empty <a>terms</a> (<code>""</code>) is not allowed as
     not all programming languages are able to handle empty JSON keys.</p>
@@ -2101,7 +2138,7 @@ specified. The full <a>IRI</a> for
   -->
   </pre>
 
-  <p class="changed">The <code>@reverse</code> <a>keyword</a> can also be used in
+  <p>The <code>@reverse</code> <a>keyword</a> can also be used in
     <a>expanded term definitions</a>
     to create reverse properties as shown in the following example:</p>
 
@@ -2238,6 +2275,9 @@ specified. The full <a>IRI</a> for
   </pre>
 
   <p>Scoping on <code>@type</code> is useful when common properties are used to relate things of different types, where the vocabularies in use within different entities calls for different context scoping. For example, `hasPart`/`partOf` may be common terms used in a document, but mean different things depending on the context.</p>
+
+  <p class="note">Scoped Contexts are a new feature in JSON-LD 1.1, requiring
+    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
 </section>
 
 
@@ -2665,6 +2705,9 @@ specified. The full <a>IRI</a> for
   <p>The interpretation of the data above is exactly the same
     as that in <a class="sectionRef" href="#data-indexing"></a>
     using a JSON-LD processor.</p>
+
+  <p class="note"><a>Id maps</a> are a new feature in JSON-LD 1.1, requiring
+    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
 </section>
 
 <section class="informative changed">
@@ -2712,6 +2755,9 @@ specified. The full <a>IRI</a> for
     been marked as an <a>type map</a>. The <code>schema:Corporpation</code> and
     <code>schema:ProfessionalService</code> keys will be interpreted
     as the <code>@type</code> property of the <a>node object</a> value.</p>
+
+  <p class="note"><a>Type maps</a> are a new feature in JSON-LD 1.1, requiring
+    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
 </section>
 
 <section class="informative changed">
@@ -2791,6 +2837,9 @@ specified. The full <a>IRI</a> for
  }
   -->
   </pre>
+
+  <p class="note"><a>Nested properties</a> are a new feature in JSON-LD 1.1, requiring
+    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
 </section>
 
 <section class="informative">
@@ -3467,6 +3516,9 @@ specified. The full <a>IRI</a> for
     its value MUST be a <a>absolute IRI</a>, a <a>compact IRI</a>,
     a <a>blank node identifier</a>, a <a>term</a>, or <a>null</a>.</p>
 
+  <p class="changed">If the <a>context definition</a> has an <code>@version</code> key,
+    its value MUST be a <a>number</a> with the value <code>1.1</code>.</p>
+
   <p>The value of keys that are not <a>keyword</a> MUST be either an
     <a>absolute IRI</a>, a <a>compact IRI</a>, a <a>term</a>,
     a <a>blank node identifier</a>, a <a>keyword</a>, <a>null</a>,
@@ -3728,7 +3780,6 @@ specified. The full <a>IRI</a> for
   <h4>Open Issues</h4>
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="195"></p>
-  <p class="issue" data-number="246"></p>
   <p class="issue" data-number="269"></p>
   <p class="issue" data-number="271"></p>
   <p class="issue" data-number="272"></p>
@@ -3743,8 +3794,8 @@ specified. The full <a>IRI</a> for
   <p class="issue" data-number="418"></p>
   <p class="issue" data-number="426"></p>
   <p class="issue" data-number="429"></p>
-  <p class="issue" data-number="430"></p>
   <p class="issue" data-number="446"></p>
+  <p class="issue" data-number="463"></p>
 </section>
 
 <section class="appendix informative">
