@@ -216,7 +216,7 @@ foreach ($drafts as $date => $dir) {
       <hr>
       <div id="footer">
         <p id="copyright">
-         Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
+         JSON-LD Specifications are covered by the <a href="https://www.w3.org/Consortium/Legal/2015/doc-license">W3C DOCUMENT LICENSE</a> except where an alternate is specified.
          Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
         </p>
       </div>
