@@ -47,6 +47,8 @@ var jsonld = {
 // We should be able to remove terms that are not actually
 // referenced from the common definitions
 //
+// Add class "preserve" to a definition to ensure it is not removed.
+//
 // the termlist is in a block of class "termlist", so make sure that
 // has an ID and put that ID into the termLists array so we can 
 // interrogate all of the included termlists later.
@@ -63,7 +65,7 @@ function restrictReferences(utils, content) {
     // 1. build a list of all term-internal references
     // 2. When ready to process, for each reference INTO the terms, 
     // remove any terms they reference from the termNames array too.
-    $.each(base.querySelectorAll("dfn"), function(i, item) {
+    $.each(base.querySelectorAll("dfn:not(.preserve)"), function(i, item) {
         var $t = $(item) ;
         var titles = $t.getDfnTitles();
         var n = $t.makeID("dfn", titles[0]);
@@ -134,6 +136,9 @@ function internalizeTermListReferences() {
         var $item = $(this) ;
         var t = $item.attr('href');
         var r = t.replace(/^#/,"") ;
+        if (r === 'dictionary') {
+          var rr = r;
+        }
         // if the item is outside the term list
         if ( ! $item.closest('dl.termlist').length ) {
             clearRefs(r);
