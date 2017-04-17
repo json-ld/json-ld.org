@@ -1055,6 +1055,10 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   </li>
 </ol>
 
+<p class="changed">If the <a data-link-for="JsonLdOptions">pruneBlankNodeIdentifiers</a> is <code>true</code>,
+  remove the <code>@id</code> member of each <a>node object</a> where the 
+  member value is a <a>blank node identifier</a> which appears only once
+  in any property value within <em>result</em>.</p>
 <p>Using <em>result</em> from the recursive algorithm, set <em>compacted results</em> to the result of using the
   <code class="idlMemberName"><a data-cite="JSON-LD-API#dom-jsonldprocessor-compact">compact</a></code>
   method using <em>results</em>, <a>context</a>, and
@@ -1227,7 +1231,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <a data-lt="JsonLdProcessor-frame-frame">frame</a> and
         <a data-lt="JsonLdProcessor-frame-options">options</a> with
         <code class="idlMemberName"><a data-cite="JSON-LD-API#dom-jsonldoptions-expandcontext">expandContext</a></code> set to <code>null</code>
-        and <code class="idlMemberName"><a data-cite="JSON-LD-API#dom-jsonldoptions-processingmode">processingMode</a></code> set to <strong>"json-ld-framing-1.1-expand-frame"</strong>.
+        and <code class="idlMemberName"><a data-cite="JSON-LD-API#dom-jsonldoptions-processingmode">processingMode</a></code> set to <strong>json-ld-1.1-expand-frame</strong>.
       <li>Set <em>context</em> to the value of <code>@context</code>
         from <a data-lt="JsonLdProcessor-frame-frame">frame</a>, if it exists, or to
         a new empty <a>context</a>, otherwise.</li>
@@ -1320,6 +1324,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         boolean omitDefault = false;
         boolean requireAll  = false;
         boolean frameDefault  = false;
+        boolean pruneBlankNodeIdentifiers = true;
       };
 
       enum JsonLdEmbed {
@@ -1353,6 +1358,9 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         <a href="#framing-algorithm">Framing Algorithm</a></dd>
       <dt><dfn data-dfn-for="JsonLdOptions">frameDefault</dfn></dt>
       <dd>Instead of framing a <em>merged graph</em>, frame only the <a>default graph</a>.</dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">pruneBlankNodeIdentifiers</dfn></dt>
+      <dd>Removes <code>@id</code> from <a>node objects</a> where the value
+        is a <a>blank node identifier</a> used only once within the document.</dd>
     </dl>
 
     <p><dfn>JsonLdEmbed</dfn> enumerates the values of the <a data-link-for="JsonLdOptions">embed</a> option:</p>
@@ -1370,7 +1378,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         which allows for circular references.
         Always use a <a>node reference</a> when serializing matching values.
         </dd>
-      <dt><dfn data-dfn-for="JsonLdEmbed">@never</dfn></dt><dd>
+      <dt class="changed"><dfn data-dfn-for="JsonLdEmbed">@never</dfn></dt><dd class="changed">
         Always use a <a>node reference</a> when serializing matching values.</dd>
     </dl>
 
@@ -1443,6 +1451,12 @@ becomes a W3C Recommendation.</p>
 
 </section>
 
+<section id="security" class="appendix">
+  <h3>Security Considerations</h3>
+  <p class="ednote">Consider requirements from <a href="https://w3ctag.github.io/security-questionnaire/">Self-Review Questionnaire: Security and Privacy</a>.</p>
+  <p>See, <a href="#iana-considerations" class="sectionRef"></a></p>
+</section>
+
 <section id="idl-index" class="appendix informative">
 </section>
 
@@ -1470,6 +1484,11 @@ becomes a W3C Recommendation.</p>
       object.</li>
     <li>Frames can use one or more values for <code>@id</code> to allow for matching
       specific objects in a frame.</li>
+    <li>There is a new API option <a data-link-for="JsonLdOptions">pruneBlankNodeIdentifiers</a>
+      defaulting to <code>true</code>, which causes the
+      <a href="#framing-algorithm">Framing Algorithm</a> to remove
+      <code>@id</code> members who's value is a <a>blank node identifier</a>
+      used only for that <code>@id</code>.</li>
   </ul>
 </section>
 
