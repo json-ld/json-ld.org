@@ -246,6 +246,14 @@
     transformations of JSON-LD documents. They are referred to as
     <a>expansion</a> and <a>compaction</a>, respectively.</p>
 
+  <p class="changed">JSON-LD 1.1 introduces new features that are
+    compatible with <a data-cite="JSON-LD-20140116">JSON-LD 1.0</a> [[!JSON-LD-20140116]],
+    but if processed by a JSON-LD 1.0 processor may produce different results.
+    In order to detect this JSON-LD 1.1 requires that the <a>processing
+    mode</a> be explicitly set to <code>json-ld-1.1</code>, either through the
+    <a data-link-for="JsonLdOptions">processingMode</a> API option, or using the
+    <code>@version</code> member within a <a>context</a>.</p>
+
   <p>There are four major types of transformation that are discussed in this
     document: expansion, compaction, flattening, and RDF serialization/deserialization.</p>
 
@@ -656,6 +664,12 @@
         a combination of the two. Finally we process each <a>context</a> contained
         in the <a>local context</a> <a>array</a> as follows.</p>
 
+      <p class="changed">Unless specified using
+        <a data-link-for="JsonLdOptions">processingMode</a> API option, the first
+        <a>context</a> parsed which is a <a>JSON object</a> determines
+        sets the <a>processing mode</a> and
+        affects the behavior of <a>expansion</a> and <a>compaction</a> algorithms.</p>
+
       <p>If <a>context</a> is a <a>string</a>, it represents a reference to
         a remote context. We dereference the remote context and replace <a>context</a>
         with the value of the <code>@context</code> key of the top-level object in the
@@ -767,6 +781,20 @@
                   error has been detected and processing is aborted.</li>
               </ol>
             </li>
+            <li class="changed">If <em>context</em> has an <code>@version</code> key:
+              <ol class="algorithm">
+                <li>If the associated value is not <code>1.1</code>,
+                  an <a data-link-for="JsonLdErrorCode">invalid @version value</a>
+                  has been detected, and processing is aborted.</li>
+                <li>If <a>processing mode</a>
+                  is not set, and <code>json-ld-1.1</code> is not a prefix
+                  of <a>processing mode</a>,
+                  a <a data-link-for="JsonLdErrorCode">processing mode conflict</a>
+                  error has been detected and processing is aborted.</li>
+                <li>Set <a>processing mode</a>,
+                  to <code>json-ld-1.1</code>, if not already set.</li>
+              </ol>
+            </li>
             <li>If <em>context</em> has an <code>@vocab</code> key:
               <ol class="algorithm">
                 <li>Initialize <em>value</em> to the value associated with the
@@ -794,6 +822,8 @@
                   error has been detected and processing is aborted.</li>
               </ol>
             </li>
+            <li class="changed">Set <a>processing mode</a>,
+              to <code>json-ld-1.0</code>, if not already set.</li>
             <li>Create a <a>JSON object</a> <em>defined</em> to use to keep
               track of whether or not a <a>term</a> has already been defined
               or currently being defined during recursion.</li>
@@ -991,12 +1021,19 @@
               or <code>@language</code>. Otherwise, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
+            <li class="changed">If processingMode is <code>json-ld-1.0</code> and the container value
+              is <code>@id</code> or <code>@type</code>, an
+              <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
+              has been detected and processing is aborted.</li>
             <li>Set the <a>container mapping</a> of <em>definition</em> to
               <em>container</em>.</li>
           </ol>
         </li>
         <li class="changed">If <em>value</em> contains the key <code>@context</code>:
           <ol class="algorithm">
+            <li>If processingMode is <code>json-ld-1.0</code>, an
+              <a data-link-for="JsonLdErrorCode">invalid term definition</a>
+              has been detected and processing is aborted.</li>
             <li>Initialize <em>context</em> to the value associated with the
               <code>@context</code> key, which is treated as a <a>local context</a>.</li>
             <li>Invoke the <a href="#context-processing-algorithm">Context Processing algorithm</a>
@@ -1022,6 +1059,9 @@
         </li>
         <li class="changed">If <em>value</em> contains the key <code>@nest</code>:
           <ol class="algorithm">
+            <li>If processingMode is <code>json-ld-1.0</code>, an
+              <a data-link-for="JsonLdErrorCode">invalid term definition</a>
+              has been detected and processing is aborted.</li>
             <li>Initialize <em>nest</em> to the value associated with the
               <code>@nest</code> key, which must be a <a>string</a> and
               must not be a keyword other than <code>@nest</code>. Otherwise, an
@@ -1234,7 +1274,7 @@
         <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, or
         <code>@requireAll</code>) which are preserved through expansion.
         Special processing for a <a>JSON-LD Frame</a> is invoked when the
-        <a data-link-for="JsonLdOptions">processingMode</a> API option is set
+        <a>processing mode</a> is set
         to <code>json-ld-1.1-expand-frame</code>, indicated in the algorithm
         with the <code>frame expansion</code> flag.</p>
 
@@ -4055,7 +4095,7 @@
         LoadDocumentCallback   documentLoader = null;
         (object? or DOMString) expandContext = null;
         boolean                produceGeneralizedRdf = true;
-        DOMString              processingMode = "json-ld-1.1";
+        DOMString              processingMode = null;
       };
     --></pre>
 
@@ -4078,8 +4118,10 @@
       <dd>If set to <code>true</code>, the JSON-LD processor may emit blank nodes for
         <a>triple</a> <a>predicates</a>, otherwise they will be omitted.</dd>
       <dt><dfn data-dfn-for="JsonLdOptions">processingMode</dfn></dt>
-      <dd>If set to <code>json-ld-1.1</code>, the implementation has to produce
-        exactly the same results as the algorithms defined in this specification.
+      <dd>Sets the <a>processing mode</a>.
+        If set to <code>json-ld-1.0</code> or <code>json-ld-1.1</code>, the
+        implementation must produce exactly the same results as the algorithms
+        defined in this specification.
         If set to another value, the JSON-LD processor is allowed to extend
         or modify the algorithms defined in this specification to enable
         application-specific optimizations. The definition of such
@@ -4198,6 +4240,7 @@
             "invalid @index value",
             "invalid @nest value",
             "invalid @reverse value",
+            "invalid @version value",
             "invalid base IRI",
             "invalid container mapping",
             "invalid default language",
@@ -4226,6 +4269,7 @@
             "loading document failed",
             "loading remote context failed",
             "multiple context link headers",
+            "processing mode conflict",
             "recursive context inclusion"
         };
       --></pre>
@@ -4253,6 +4297,9 @@
         <dt><dfn>invalid @reverse value</dfn></dt>
         <dd>An invalid value for an <code>@reverse</code> member has been detected,
           i.e., the value was not a <a>JSON object</a>.</dd>
+        <dt><dfn>invalid @version value</dfn></dt>
+        <dd>The <code>@version</code> key was used in a <a>context</a> with
+          an out of range value.</dd>
         <dt><dfn>invalid base IRI</dfn></dt>
         <dd>An invalid <a>base IRI</a> has been detected, i.e., it is
           neither an <a>absolute IRI</a> nor <code>null</code>.</dd>
@@ -4337,6 +4384,9 @@
         <dd>Multiple HTTP Link Headers [[!RFC5988]] using the
           <code>http://www.w3.org/ns/json-ld#context</code> link relation
           have been detected.</dd>
+        <dt><dfn>processing mode conflict</dfn></dt>
+        <dd>An attempt was made to change the <a>processing mode</a> which is
+          incompatible with the previous specified version.</dd>
         <dt><dfn>recursive context inclusion</dfn></dt>
         <dd>A cycle in remote context inclusions has been detected.</dd>
       </dl>
@@ -4356,7 +4406,7 @@
   <h2>Changes since 1.0 Recommendation of 16 January 2014</h2>
   <ul>
     <li>The <a href="#expansion-algorithm">Expansion Algorithm</a>
-      has a special processing mode, based on
+      has a special <a>processing mode</a>, based on
       the <code>frame expansion</code> flag, to enable content associated with JSON-LD
       frames, which may not otherwise be valid <a>JSON-LD documents</a>.</li>
     <li>An <a>expanded term definition</a> can now have an
@@ -4386,7 +4436,6 @@
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="140"></p>
   <p class="issue" data-number="195"></p>
-  <p class="issue" data-number="246"></p>
   <p class="issue" data-number="269"></p>
   <p class="issue" data-number="271"></p>
   <p class="issue" data-number="272"></p>
@@ -4397,9 +4446,10 @@
   <p class="issue" data-number="385"></p>
   <p class="issue" data-number="398"></p>
   <p class="issue" data-number="405"></p>
-  <p class="issue" data-number="415"></p>
   <p class="issue" data-number="426"></p>
   <p class="issue" data-number="446"></p>
+  <p class="issue" data-number="463"></p>
+  <p class="issue" data-number="461"></p>
 </section>
 
 <section class="appendix informative">
