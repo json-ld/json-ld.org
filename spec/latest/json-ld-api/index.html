@@ -229,6 +229,15 @@
     transform JSON-LD documents so that they may be more easily consumed by
     specific applications.</p>
 
+  <p class="changed">To allow these algorithms to be adapted for syntaxes
+    other than JSON, the algorithms operate on the <a>JSON-LD abstract representation</a>,
+    which uses the generic
+    concepts of <a>arrays</a>, <a>dictionaries</a>,
+    <a>strings</a>, <a>numbers</a>, <a>booleans</a>, and <a>null</a> to describe
+    the data representated by a JSON document. Algorithms act on this
+    <a>abstract representation</a> with API entry points responsible for
+    transforming between the concreate and abstract representations.</p>
+
   <p>JSON-LD uses <a>contexts</a> to allow Linked Data
     to be expressed in a way that is specifically tailored to a particular
     person or application. By providing a <a>context</a>,
@@ -448,9 +457,9 @@
       <dfn data-lt="flattened">flattening</dfn> goes a step further to ensure that the shape of the data
       is deterministic. In expanded documents, the properties of a single
       <a>node</a> may be spread across a number of different
-      <a>JSON objects</a>. By flattening a
+      <a class="changed">dictionaries</a>. By flattening a
       document, all properties of a <a>node</a> are collected in a single
-      <a>JSON object</a> and all <a>blank nodes</a>
+      <a class="changed">dictionary</a> and all <a>blank nodes</a>
       are labeled with a <a>blank node identifier</a>. This may drastically
       simplify the code required to process JSON-LD data in certain applications.</p>
 
@@ -504,7 +513,7 @@
     </pre>
 
     <p>Note how in the output above all properties of a <a>node</a> are collected in a
-      single <a>JSON object</a> and how the <a>blank node</a> representing
+      single <a class="changed">dictionary</a> and how the <a>blank node</a> representing
       &quot;Dave Longley&quot; has been assigned the <a>blank node identifier</a>
       <code>_:t0</code>.</p>
 
@@ -536,7 +545,7 @@
     </pre>
 
     <p>Please note that the result of flattening and <a>compacting</a> a document
-      is always a <a>JSON object</a> which contains an <code>@graph</code>
+      is always a <a class="changed">dictionary</a> which contains an <code>@graph</code>
       member that represents the <a>default graph</a>.</p>
   </section> <!-- end of Flattening -->
 
@@ -656,16 +665,16 @@
       <h3>Overview</h3>
 
       <p>First we prepare a new <a>active context</a> <em>result</em> by cloning
-        the current <a>active context</a>. Then we normalize the form of the passed
+        the current <a>active context</a>. Then we normalize the form of the <span class="changed">original</span>
         <a>local context</a> to an <a>array</a>.
         <a>Local contexts</a> may be in the form of a
-        <a>JSON object</a>, a <a>string</a>, or an <a>array</a> containing
+        <a class="changed">dictionary</a>, a <a>string</a>, or an <a>array</a> containing
         a combination of the two. Finally we process each <a>context</a> contained
         in the <a>local context</a> <a>array</a> as follows.</p>
 
       <p class="changed">Unless specified using
         <a data-link-for="JsonLdOptions">processingMode</a> API option, the first
-        <a>context</a> parsed which is a <a>JSON object</a> determines
+        <a>context</a> parsed which is a <a>dictionary</a> determines
         sets the <a>processing mode</a> and
         affects the behavior of <a>expansion</a> and <a>compaction</a> algorithms.</p>
 
@@ -677,7 +686,7 @@
         has been detected. Otherwise, we process <a>context</a> by recursively using
         this algorithm ensuring that there is no cyclical reference.</p>
 
-      <p>If <a>context</a> is a <a>JSON object</a>, we first update the
+      <p>If <a>context</a> is a <a class="changed">dictionary</a>, we first update the
         <a>base IRI</a>, the <a>vocabulary mapping</a>, and the
         <a>default language</a> by processing three specific keywords:
         <code>@base</code>, <code>@vocab</code>, and <code>@language</code>.
@@ -745,10 +754,12 @@
                   <a data-link-for="JsonLdErrorCode">recursive context inclusion</a>
                   error has been detected and processing is aborted;
                   otherwise, add <em>context</em> to <em>remote contexts</em>.</li>
-                <li>Dereference <em>context</em>. If <em>context</em> cannot be dereferenced, a
-                  <a data-link-for="JsonLdErrorCode">loading remote context failed</a>
+                <li>Dereference <em>context</em>, <span class="changed">transforming into the <a>abstract representation</a></span>.
+                  If <em>context</em> cannot be dereferenced,
+                  <span class="changed">or cannot be transformed into the <a>abstract representation</a></span>,
+                  a <a data-link-for="JsonLdErrorCode">loading remote context failed</a>
                   error has been detected and processing is aborted. If the dereferenced document has no
-                  top-level <a>JSON object</a> with an <code>@context</code> member, an
+                  top-level <a class="changed">dictionary</a> with an <code>@context</code> member, an
                   <a data-link-for="JsonLdErrorCode">invalid remote context</a>
                   has been detected and processing is aborted; otherwise,
                   set <em>context</em> to the value of that member.</li>
@@ -758,7 +769,7 @@
                 <li>Continue with the next <em>context</em>.</li>
               </ol>
             </li>
-            <li>If <em>context</em> is not a <a>JSON object</a>, an
+            <li>If <em>context</em> is not a <a class="changed">dictionary</a>, an
               <a data-link-for="JsonLdErrorCode">invalid local context</a>
               error has been detected and processing is aborted.</li>
             <li>If <em>context</em> has an <code>@base</code> key and <em>remote contexts</em> is empty, i.e., the currently
@@ -823,7 +834,7 @@
             </li>
             <li class="changed">Set <a>processing mode</a>,
               to <code>json-ld-1.0</code>, if not already set.</li>
-            <li>Create a <a>JSON object</a> <em>defined</em> to use to keep
+            <li>Create a <a class="changed">dictionary</a> <em>defined</em> to use to keep
               track of whether or not a <a>term</a> has already been defined
               or currently being defined during recursion.</li>
             <li>For each <em>key</em>-<em>value</em> pair in <em>context</em> where
@@ -900,15 +911,15 @@
         <li>Initialize <em>value</em> to a copy of the value associated with the key
           <em>term</em> in <a>local context</a>.</li>
         <li>If <em>value</em> is <code>null</code> or <em>value</em>
-          is a <a>JSON object</a> containing the key-value pair
+          is a <a class="changed">dictionary</a> containing the key-value pair
           <code>@id</code>-<code>null</code>, set the
           <a>term definition</a> in <a>active context</a> to
           <code>null</code>, set the value associated with <em>defined</em>'s
           key <em>term</em> to <code>true</code>, and return.</li>
         <li>Otherwise, if <em>value</em> is a <a>string</a>, convert it
-          to a <a>JSON object</a> consisting of a single member whose
+          to a <a class="changed">dictionary</a> consisting of a single member whose
           key is <code>@id</code> and whose value is <em>value</em>.</li>
-        <li>Otherwise, <em>value</em> must be a <a>JSON object</a>, if not, an
+        <li>Otherwise, <em>value</em> must be a <a class="changed">dictionary</a>, if not, an
           <a data-link-for="JsonLdErrorCode">invalid term definition</a>
           error has been detected and processing is aborted.</li>
         <li>Create a new <a>term definition</a>, <em>definition</em>.</li>
@@ -1239,7 +1250,7 @@
         <li>Otherwise, if the <em>element</em> is an <a>array</a>, then we expand
           each of its items recursively and return them in a new
           <a>array</a>.</li>
-        <li>Otherwise, <em>element</em> is a <a>JSON object</a>. We expand
+        <li>Otherwise, <em>element</em> is a <a class="changed">dictionary</a>. We expand
           each of its keys, adding them to our <em>result</em>, and then we expand
           each value for each key recursively. Some of the keys will be
           <a>terms</a> or
@@ -1311,7 +1322,7 @@
             <li>Return <em>result</em>.</li>
           </ol>
         </li>
-        <li>Otherwise <em>element</em> is a <a>JSON object</a>.</li>
+        <li>Otherwise <em>element</em> is a <a class="changed">dictionary</a>.</li>
         <li>If <em>element</em> contains the key <code>@context</code>, set
           <a>active context</a> to the result of the
           <a href="#context-processing-algorithm">Context Processing algorithm</a>,
@@ -1333,7 +1344,7 @@
               <em>term</em>'s <a>local context</a> as <a>local context</a>.</li>
           </ol>
         </li>
-        <li>Initialize an empty <a>JSON object</a>, <em>result</em>.</li>
+        <li>Initialize an empty <a class="changed">dictionary</a>, <em>result</em>.</li>
         <li id="alg-expand-each-key-value">For each <em>key</em> and <em>value</em> in <em>element</em>,
           ordered lexicographically by <em>key</em>:
           <ol class="algorithm">
@@ -1437,7 +1448,7 @@
                   <a>active property</a>, and <em>value</em> for
                   <em>element</em>.</li>
                 <li>If <em>expanded property</em> is <code>@reverse</code> and
-                  <em>value</em> is not a <a>JSON object</a>, an
+                  <em>value</em> is not a <a class="changed">dictionary</a>, an
                   <a data-link-for="JsonLdErrorCode">invalid @reverse value</a>
                   error has been detected and processing is aborted. Otherwise
                   <ol class="algorithm">
@@ -1458,7 +1469,7 @@
                     <li>If <em>expanded value</em> contains members other than <code>@reverse</code>:
                       <ol class="algorithm">
                         <li>If <em>result</em> does not have an <code>@reverse</code> member, create
-                          one and set its value to an empty <a>JSON object</a>.</li>
+                          one and set its value to an empty <a class="changed">dictionary</a>.</li>
                         <li>Reference the value of the <code>@reverse</code> member in <em>result</em>
                           using the variable <em>reverse map</em>.</li>
                         <li>For each <em>property</em> and <em>items</em> in <em>expanded value</em>
@@ -1509,7 +1520,7 @@
               set <em>term context</em> to <a>active context</a>.</li>
             <li>If <em>key</em>'s <a>container mapping</a> in
               <em class="changed">term context</em> is <code>@language</code> and
-              <em>value</em> is a <a>JSON object</a> then <em>value</em>
+              <em>value</em> is a <a class="changed">dictionary</a> then <em>value</em>
               is expanded from a <a>language map</a>
               as follows:
               <ol class="algorithm">
@@ -1528,7 +1539,7 @@
                           otherwise an
                           <a data-link-for="JsonLdErrorCode">invalid language map value</a>
                           error has been detected and processing is aborted.</li>
-                        <li>Append a <a>JSON object</a> to
+                        <li>Append a <a class="changed">dictionary</a> to
                           <em>expanded value</em> that consists of two
                           key-value pairs: (<code>@value</code>-<em>item</em>)
                           and (<code>@language</code>-lowercased
@@ -1543,7 +1554,7 @@
             <li>Otherwise, if <em>key</em>'s <a>container mapping</a> in
               <em class="changed">term context</em> is <code>@index</code>,
               <span class="changed"><code>@type</code>, or <code>@id</code></span> and
-              <em>value</em> is a <a>JSON object</a> then <em>value</em>
+              <em>value</em> is a <a class="changed">dictionary</a> then <em>value</em>
               is expanded from an map as follows:
               <ol class="algorithm">
                 <li>Initialize <em>expanded value</em> to an empty
@@ -1615,13 +1626,13 @@
               convert <em>expanded value</em> to a <a>list object</a>
               by first setting it to an <a>array</a> containing only
               <em>expanded value</em> if it is not already an <a>array</a>,
-              and then by setting it to a <a>JSON object</a> containing
+              and then by setting it to a <a class="changed">dictionary</a> containing
               the key-value pair <code>@list</code>-<em>expanded value</em>.</li>
             <li>Otherwise, if the <a>term definition</a> associated to
               <em>key</em> indicates that it is a <a>reverse property</a>
               <ol class="algorithm">
                 <li>If <em>result</em> has no <code>@reverse</code> member, create
-                  one and initialize its value to an empty <a>JSON object</a>.</li>
+                  one and initialize its value to an empty <a class="changed">dictionary</a>.</li>
                 <li>Reference the value of the <code>@reverse</code> member in <em>result</em>
                   using the variable <em>reverse map</em>.</li>
                 <li>If <em>expanded value</em> is not an <a>array</a>, set
@@ -1654,7 +1665,7 @@
                   in <em>element</em>, ensuring that it is an <a>array</a>.</li>
                 <li>For each <em>nested value</em> in <em>nested values</em>:
                   <ol class="algorithm">
-                    <li>If <em>nested value</em> is not a <a>JSON object</a>, or any key within
+                    <li>If <em>nested value</em> is not a <a class="changed">dictionary</a>, or any key within
                       <em>nested value</em> expands to <code>@value</code>, an
                       <a data-link-for="JsonLdErrorCode">invalid @nest value</a> error
                       has been detected and processing is aborted.</li>
@@ -1708,10 +1719,10 @@
         <li>If <a>active property</a> is <code>null</code> or <code>@graph</code>,
           drop free-floating values as follows:
           <ol class="algorithm">
-            <li>If <em>result</em> is an empty <a>JSON object</a> or contains
+            <li>If <em>result</em> is an empty <a class="changed">dictionary</a> or contains
               the keys <code>@value</code> or <code>@list</code>, set <em>result</em> to
               <code>null</code>.</li>
-            <li>Otherwise, if <em>result</em> is a <a>JSON object</a> whose only
+            <li>Otherwise, if <em>result</em> is a <a class="changed">dictionary</a> whose only
               key is <code>@id</code>, set <em>result</em> to <code>null</code>.</li>
           </ol>
         </li>
@@ -1719,7 +1730,7 @@
       </ol>
 
       <p>If, after the above algorithm is run, the result is a
-        <a>JSON object</a> that contains only an <code>@graph</code> key, set the
+        <a class="changed">dictionary</a> that contains only an <code>@graph</code> key, set the
         result to the value of <code>@graph</code>'s value. Otherwise, if the result
         is <code>null</code>, set it to an empty <a>array</a>. Finally, if
         the result is not an <a>array</a>, then set the result to an
@@ -1742,12 +1753,12 @@
 
       <p>If <a>active property</a> has a <a>type mapping</a> in the
         <a>active context</a> set to <code>@id</code> or <code>@vocab</code>,
-        a <a>JSON object</a> with a single member <code>@id</code> whose
+        a <a class="changed">dictionary</a> with a single member <code>@id</code> whose
         value is the result of using the
         <a href="#iri-expansion">IRI Expansion algorithm</a> on <em>value</em>
         is returned.</p>
 
-      <p>Otherwise, the result will be a <a>JSON object</a> containing
+      <p>Otherwise, the result will be a <a class="changed">dictionary</a> containing
         an <code>@value</code> member whose value is the passed <em>value</em>.
         Additionally, an <code>@type</code> member will be included if there is a
         <a>type mapping</a> associated with the <a>active property</a>
@@ -1765,20 +1776,20 @@
       <ol class="algorithm">
         <li>If the <a>active property</a> has a <a>type mapping</a>
           in <a>active context</a> that is <code>@id</code>, return a new
-          <a>JSON object</a> containing a single key-value pair where the
+          <a class="changed">dictionary</a> containing a single key-value pair where the
           key is <code>@id</code> and the value is the result of using the
           <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
           <a>active context</a>, <em>value</em>, and <code>true</code> for
           <em>document relative</em>.</li>
         <li>If <a>active property</a> has a <a>type mapping</a> in
           <a>active context</a> that is <code>@vocab</code>, return
-          a new <a>JSON object</a> containing a single key-value pair
+          a new <a class="changed">dictionary</a> containing a single key-value pair
           where the key is <code>@id</code> and the value is the result of
           using the <a href="#iri-expansion">IRI Expansion algorithm</a>, passing
           <a>active context</a>, <em>value</em>, <code>true</code> for
           <em>vocab</em>, and <code>true</code> for
           <em>document relative</em>.</li>
-        <li>Otherwise, initialize <em>result</em> to a <a>JSON object</a>
+        <li>Otherwise, initialize <em>result</em> to a <a class="changed">dictionary</a>
           with an <code>@value</code> member whose value is set to
           <em>value</em>.</li>
         <li>If <a>active property</a> has a <a>type mapping</a> in
@@ -1842,7 +1853,7 @@
         <li>If the <em>element</em> is an <a>array</a>, we compact
           each of its items recursively and return them in a new
           <a>array</a>.</li>
-        <li>Otherwise <em>element</em> is a <a>JSON object</a>. The value
+        <li>Otherwise <em>element</em> is a <a class="changed">dictionary</a>. The value
           of each key in element is compacted recursively. Some of the keys will be
           compacted, using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
           to <a>terms</a> or <a>compact IRIs</a>
@@ -1856,8 +1867,8 @@
           maps.</li>
       </ol>
 
-      <p>The final output is a <a>JSON object</a> with an <code>@context</code>
-        key, if a non-empty <a>context</a> was given, where the <a>JSON object</a>
+      <p>The final output is a <a class="changed">dictionary</a> with an <code>@context</code>
+        key, if a non-empty <a>context</a> was given, where the <a class="changed">dictionary</a>
         is either <em>result</em> or a wrapper for it where <em>result</em> appears
         as the value of an (aliased) <code>@graph</code> key because <em>result</em>
         contained two or more items in an <a>array</a>.</p>
@@ -1918,7 +1929,7 @@
             <li>Return <em>result</em>.</li>
           </ol>
         </li>
-        <li>Otherwise <em>element</em> is a <a>JSON object</a>.</li>
+        <li>Otherwise <em>element</em> is a <a class="changed">dictionary</a>.</li>
         <li>If <em>element</em> has an <code>@value</code> or <code>@id</code>
           member and the result of using the
           <a href="#value-compaction">Value Compaction algorithm</a>,
@@ -1928,7 +1939,7 @@
         <li>Initialize <em>inside reverse</em> to <code>true</code> if
           <a>active property</a> equals <code>@reverse</code>,
           otherwise to <code>false</code>.</li>
-        <li>Initialize <em>result</em> to an empty <a>JSON object</a>.</li>
+        <li>Initialize <em>result</em> to an empty <a class="changed">dictionary</a>.</li>
         <li>For each key <em>expanded property</em> and value <em>expanded value</em>
           in <em>element</em>,  ordered lexicographically by <em>expanded property</em>:
           <ol class="algorithm">
@@ -2021,7 +2032,7 @@
                   </ol>
                 </li>
                 <li>If <em>compacted value</em> has some remaining members, i.e.,
-                  it is not an empty <a>JSON object</a>:
+                  it is not an empty <a class="changed">dictionary</a>:
                   <ol class="algorithm">
                     <li>Initialize <em>alias</em> to the result of using the
                       <a href="#iri-compaction">IRI Compaction algorithm</a>,
@@ -2106,7 +2117,7 @@
                   otherwise an <a data-link-for="JsonLdErrorCode">invalid @nest
                   value</a> error has been detected, and processing is aborted.
                   Set <em>nest result</em> to the value of <em>nest term</em> in <em>result</em>,
-                  initializing it to a new <a>JSON object</a>, if necessary; otherwise
+                  initializing it to a new <a class="changed">dictionary</a>, if necessary; otherwise
                   set <em>nest result</em> to <em>result</em>.</li>
                 <li>Initialize <em>container</em> to <code>null</code>. If there
                   is a <a>container mapping</a> for
@@ -2129,7 +2140,7 @@
                       <ol class="algorithm">
                         <li>Convert <em>compacted item</em> to a
                           <a>list object</a> by setting it to a
-                          <a>JSON object</a> containing key-value pair
+                          <a class="changed">dictionary</a> containing key-value pair
                           where the key is the result of the
                           <a href="#iri-compaction">IRI Compaction algorithm</a>,
                           passing <a>active context</a>, <a>inverse context</a>,
@@ -2159,7 +2170,7 @@
                     or <code>@type</code></span>:
                   <ol class="algorithm">
                     <li>If <em>item active property</em> is not a key in
-                      <em class="changed">nest result</em>, initialize it to an empty <a>JSON object</a>.
+                      <em class="changed">nest result</em>, initialize it to an empty <a class="changed">dictionary</a>.
                       Initialize <em>map object</em> to the value of <em>item active property</em>
                       in <em class="changed">nest result</em>.</li>
                     <li>Set <em>compacted container</em> to the result of calling the 
@@ -2233,7 +2244,7 @@
 
       <p>If, after the algorithm outlined above is run, the result <em>result</em>
         is an <a>array</a>, replace it with a new
-        <a>JSON object</a> with a single member whose key is the result
+        <a class="changed">dictionary</a> with a single member whose key is the result
         of using the <a href="#iri-compaction">IRI Compaction algorithm</a>,
         passing <a>active context</a>, <a>inverse context</a>, and
         <code>@graph</code> as <em>iri</em> and whose value is the <a>array</a>
@@ -2300,7 +2311,7 @@
         the <a>inverse context</a> is being created for.</p>
 
       <ol class="algorithm">
-        <li>Initialize <em>result</em> to an empty <a>JSON object</a>.</li>
+        <li>Initialize <em>result</em> to an empty <a class="changed">dictionary</a>.</li>
         <li>Initialize <em>default language</em> to <code>@none</code>. If the
           <a>active context</a> has a <a>default language</a>,
           set <em>default language</em> to it.</li>
@@ -2320,15 +2331,15 @@
               for the <a>term definition</a>.</li>
             <li>If <em>iri</em> is not a key in <em>result</em>, add
               a key-value pair where the key is <em>iri</em> and the value
-              is an empty <a>JSON object</a> to <em>result</em>.</li>
+              is an empty <a class="changed">dictionary</a> to <em>result</em>.</li>
             <li>Reference the value associated with the <em>iri</em> member in
               <em>result</em> using the variable <em>container map</em>.</li>
             <li>If <em>container map</em> has no <em>container</em> member,
               create one and set its value to a new
-              <a>JSON object</a> with two members. The first member is
+              <a class="changed">dictionary</a> with two members. The first member is
               <code>@language</code> and its value is a new empty
-              <a>JSON object</a>, the second member is <code>@type</code>
-              and its value is a new empty <a>JSON object</a>.</li>
+              <a class="changed">dictionary</a>, the second member is <code>@type</code>
+              and its value is a new empty <a class="changed">dictionary</a>.</li>
             <li>Reference the value associated with the <em>container</em> member
               in <em>container map</em> using the variable <em>type/language map</em>.</li>
             <li>If the <a>term definition</a> indicates that the <a>term</a>
@@ -2468,7 +2479,7 @@
               variables will keep track of the preferred
               <a>type mapping</a> or <a>language mapping</a> for
               a <a>term</a>, based on what is compatible with <em>value</em>.</li>
-            <li>If <em>value</em> is a <a>JSON object</a>,
+            <li>If <em>value</em> is a <a class="changed">dictionary</a>,
               <span class="changed">then for the keywords <code>@index</code>,
               <code>@id</code>, and <code>@type</code>, if <em>value</em>
               contains that <a>keyword</a>, append it to <em>containers</em>.</span></li>
@@ -2833,7 +2844,7 @@
     <h2>Flattening Algorithm</h2>
 
     <p>This algorithm flattens an expanded JSON-LD document by collecting all
-      properties of a <a>node</a> in a single <a>JSON object</a>
+      properties of a <a>node</a> in a single <a class="changed">dictionary</a>
       and labeling all <a>blank nodes</a> with
       <a>blank node identifiers</a>.
       This resulting uniform shape of the document, may drastically simplify
@@ -2845,7 +2856,7 @@
       <p>First, a <em>node map</em> is generated using the
         <a href="#node-map-generation">Node Map Generation algorithm</a>
         which collects all properties of a <a>node</a> in a single
-        <a>JSON object</a>. In the next step, the <em>node map</em> is
+        <a class="changed">dictionary</a>. In the next step, the <em>node map</em> is
         converted to a JSON-LD document in
         <a href="../json-ld/#flattened-document-form">flattened document form</a>.
         Finally, if a <a>context</a> has been passed, the flattened document
@@ -2869,19 +2880,19 @@
         to <code>0</code>.</p>
 
       <ol class="algorithm">
-        <li>Initialize <em>node map</em> to a <a>JSON object</a> consisting of
+        <li>Initialize <em>node map</em> to a <a class="changed">dictionary</a> consisting of
           a single member whose key is <code>@default</code> and whose value is
-          an empty <a>JSON object</a>.</li>
+          an empty <a class="changed">dictionary</a>.</li>
         <li>Perform the <a href="#node-map-generation">Node Map Generation algorithm</a>, passing
           <em>element</em> and <em>node map</em>.</li>
         <li>Initialize <em>default graph</em> to the value of the <code>@default</code>
-          member of <em>node map</em>, which is a <a>JSON object</a> representing
+          member of <em>node map</em>, which is a <a class="changed">dictionary</a> representing
           the <a>default graph</a>.</li>
         <li>For each key-value pair <em>graph name</em>-<em>graph</em> in <em>node map</em>
           where <em>graph name</em> is not <code>@default</code>,  perform the following steps:
           <ol class="algorithm">
             <li>If <em>default graph</em> does not have a <em>graph name</em> member, create
-              one and initialize its value to a <a>JSON object</a> consisting of an
+              one and initialize its value to a <a class="changed">dictionary</a> consisting of an
               <code>@id</code> member whose value is set to <em>graph name</em>.</li>
             <li>Reference the value associated with the <em>graph name</em> member in
               <em>default graph</em> using the variable <em>entry</em>.</li>
@@ -2910,7 +2921,7 @@
   <section>
     <h2>Node Map Generation</h2>
 
-    <p>This algorithm creates a <a>JSON object</a> <em>node map</em> holding an indexed
+    <p>This algorithm creates a <a class="changed">dictionary</a> <em>node map</em> holding an indexed
       representation of the <a>graphs</a> and <a>nodes</a>
       represented in the passed expanded document. All <a>nodes</a> that are not
       uniquely identified by an IRI get assigned a (new) <a>blank node identifier</a>.
@@ -2924,11 +2935,11 @@
 
       <p>The algorithm recursively runs over an expanded JSON-LD document to
         collect all <a>properties</a> of a <a>node</a>
-        in a single <a>JSON object</a>. The algorithm constructs a
-        <a>JSON object</a> <em>node map</em> whose keys represent the
+        in a single <a class="changed">dictionary</a>. The algorithm constructs a
+        <a class="changed">dictionary</a> <em>node map</em> whose keys represent the
         <a>graph names</a> used in the document
         (the <a>default graph</a> is stored under the key <code>@default</code>)
-        and whose associated values are <a>JSON objects</a>
+        and whose associated values are <a class="changed">dictionaries</a>
         which index the <a>nodes</a> in the
         <a>graph</a>. If a
         <a data-lt="property">property's</a> value is a <a>node object</a>,
@@ -2945,9 +2956,9 @@
       <h3>Algorithm</h3>
 
       <p>The algorithm takes as input an expanded JSON-LD document <em>element</em> and a reference to
-        a <a>JSON object</a> <em>node map</em>. Furthermore it has the optional parameters
+        a <a class="changed">dictionary</a> <em>node map</em>. Furthermore it has the optional parameters
         <a>active graph</a> (which defaults to <code>@default</code>), an <a>active subject</a>,
-        <a>active property</a>, and a reference to a <a>JSON object</a> <em>list</em>. If
+        <a>active property</a>, and a reference to a <a class="changed">dictionary</a> <em>list</em>. If
         not passed, <a>active subject</a>, <a>active property</a>, and <em>list</em> are
         set to <code>null</code>.</p>
 
@@ -2960,8 +2971,8 @@
               <a>active property</a>, and <em>list</em>.</li>
           </ol>
         </li>
-        <li>Otherwise <em>element</em> is a <a>JSON object</a>. Reference the
-          <a>JSON object</a> which is the value of the <a>active graph</a>
+        <li>Otherwise <em>element</em> is a <a class="changed">dictionary</a>. Reference the
+          <a class="changed">dictionary</a> which is the value of the <a>active graph</a>
           member of <em>node map</em> using the variable <em>graph</em>. If the
           <a>active subject</a> is <code>null</code>, set <em>node</em> to <code>null</code>
           otherwise reference the <a>active subject</a> member of <em>graph</em> using the
@@ -2985,7 +2996,7 @@
                   <a>array</a> associated with the <a>active property</a>
                   member of <em>node</em>. If there is no item equivalent to <em>element</em>,
                   append <em>element</em> to the <a>array</a>. Two
-                  <a>JSON objects</a> are considered
+                  <a class="changed">dictionaries</a> are considered
                   equal if they have equivalent key-value pairs.</li>
               </ol>
             </li>
@@ -2995,7 +3006,7 @@
         <li>Otherwise, if <em>element</em> has an <code>@list</code> member, perform
           the following steps:
           <ol class="algorithm">
-            <li>Initialize a new <a>JSON object</a> <em>result</em> consisting of a single member
+            <li>Initialize a new <a class="changed">dictionary</a> <em>result</em> consisting of a single member
               <code>@list</code> whose value is initialized to an empty <a>array</a>.</li>
             <li>Recursively call this algorithm passing the value of <em>element's</em>
               <code>@list</code> member for <em>element</em>, <a>active graph</a>,
@@ -3017,11 +3028,11 @@
               <a href="#generate-blank-node-identifier">Generate Blank Node Identifier algorithm</a>
               passing <code>null</code> for <em>identifier</em>.</li>
             <li>If <em>graph</em> does not contain a member <em>id</em>, create one and initialize
-              its value to a <a>JSON object</a> consisting of a single member <code>@id</code> whose
+              its value to a <a class="changed">dictionary</a> consisting of a single member <code>@id</code> whose
               value is <em>id</em>.</li>
             <li>Reference the value of the <em>id</em> member of <em>graph</em> using the
               variable <em>node</em>.</li>
-            <li>If <a>active subject</a> is a <a>JSON object</a>, a reverse property relationship
+            <li>If <a>active subject</a> is a <a class="changed">dictionary</a>, a reverse property relationship
               is being processed. Perform the following steps:
               <ol class="algorithm">
                 <li>If <em>node</em> does not have an <a>active property</a> member,
@@ -3031,13 +3042,13 @@
                   <a>array</a> associated with the <a>active property</a>
                   member of <em>node</em>. If there is no item equivalent to <a>active subject</a>,
                   append <a>active subject</a> to the <a>array</a>. Two
-                  <a>JSON objects</a> are considered
+                  <a class="changed">dictionaries</a> are considered
                   equal if they have equivalent key-value pairs.</li>
               </ol>
             </li>
             <li>Otherwise, if <a>active property</a> is not <code>null</code>, perform the following steps:
               <ol class="algorithm">
-                <li>Create a new <a>JSON object</a> <em>reference</em> consisting of a single member
+                <li>Create a new <a class="changed">dictionary</a> <em>reference</em> consisting of a single member
                   <code>@id</code> whose value is <em>id</em>.</li>
                 <li>If <em>list</em> is <code>null</code>:
                   <ol class="algorithm">
@@ -3048,7 +3059,7 @@
                       <a>array</a> associated with the <a>active property</a>
                       member of <em>node</em>. If there is no item equivalent to <em>reference</em>,
                       append <em>reference</em> to the <a>array</a>. Two
-                      <a>JSON objects</a> are considered
+                      <a class="changed">dictionaries</a> are considered
                       equal if they have equivalent key-value pairs.</li>
                   </ol>
                 </li>
@@ -3068,7 +3079,7 @@
               removing the <code>@index</code> member from <em>element</em>.</li>
             <li>If <em>element</em> has an <code>@reverse</code> member:
               <ol class="algorithm">
-                <li>Create a <a>JSON object</a> <em>referenced node</em> with a single member <code>@id</code> whose
+                <li>Create a <a class="changed">dictionary</a> <em>referenced node</em> with a single member <code>@id</code> whose
                   value is <em>id</em>.</li>
                 <li>Set <em>reverse map</em> to the value of the <code>@reverse</code> member of
                   <em>element</em>.</li>
@@ -3080,7 +3091,7 @@
                           <em>element</em>, <em>node map</em>, <a>active graph</a>,
                           <em>referenced node</em> for <a>active subject</a>, and
                           <em>property</em> for <a>active property</a>. Passing a
-                          <a>JSON object</a> for <a>active subject</a> indicates to the
+                          <a class="changed">dictionary</a> for <a>active subject</a> indicates to the
                           algorithm that a reverse property relationship is being processed.</li>
                       </ol>
                     </li>
@@ -3194,7 +3205,7 @@
 
   <p>This section describes algorithms to deserialize a JSON-LD document to an
     <a>RDF dataset</a> and vice versa. The algorithms are designed for in-memory
-    implementations with random access to <a>JSON object</a> elements.</p>
+    implementations with random access to <a class="changed">dictionary</a> elements.</p>
 
   <p>Throughout this section, the following vocabulary
     <a>prefixes</a> are used in
@@ -3515,22 +3526,22 @@
         that both default to <code>false</code>.</p>
 
       <ol class="algorithm">
-        <li>Initialize <em>default graph</em> to an empty <a>JSON object</a>.</li>
-        <li>Initialize <em>graph map</em> to a <a>JSON object</a> consisting
+        <li>Initialize <em>default graph</em> to an empty <a class="changed">dictionary</a>.</li>
+        <li>Initialize <em>graph map</em> to a <a class="changed">dictionary</a> consisting
           of a single member <code>@default</code> whose value references
           <em>default graph</em>.</li>
-        <li>Initialize <em>node usages map</em> to an empty <a>JSON object</a>.</li>
+        <li>Initialize <em>node usages map</em> to an empty <a class="changed">dictionary</a>.</li>
         <li>For each <em>graph</em> in <a>RDF dataset</a>:
           <ol class="algorithm">
             <li>If <em>graph</em> is the <a>default graph</a>,
               set <em>name</em> to <code>@default</code>, otherwise to the
               <a>graph name</a> associated with <em>graph</em>.</li>
             <li>If <em>graph map</em> has no <em>name</em> member, create one and set
-              its value to an empty <a>JSON object</a>.</li>
+              its value to an empty <a class="changed">dictionary</a>.</li>
             <li>If <em>graph</em> is not the <a>default graph</a> and
               <em>default graph</em> does not have a <em>name</em> member,
               create such a member and initialize its value to a new
-              <a>JSON object</a> with a single member <code>@id</code>
+              <a class="changed">dictionary</a> with a single member <code>@id</code>
               whose value is <em>name</em>.</li>
             <li>Reference the value of the <em>name</em> member in <em>graph map</em>
               using the variable <em>node map</em>.</li>
@@ -3538,14 +3549,14 @@
               consisting of <em>subject</em>, <em>predicate</em>, and <em>object</em>:
               <ol class="algorithm">
                 <li>If <em>node map</em> does not have a <em>subject</em> member,
-                  create one and initialize its value to a new <a>JSON object</a>
+                  create one and initialize its value to a new <a class="changed">dictionary</a>
                   consisting of a single member <code>@id</code> whose value is
                   set to <em>subject</em>.</li>
                 <li>Reference the value of the <em>subject</em> member in <em>node map</em>
                   using the variable <em>node</em>.</li>
                 <li>If <em>object</em> is an <a>IRI</a> or <a>blank node identifier</a>,
                   and <em>node map</em> does not have an <em>object</em> member,
-                  create one and initialize its value to a new <a>JSON object</a>
+                  create one and initialize its value to a new <a class="changed">dictionary</a>
                   consisting of a single member <code>@id</code> whose value is
                   set to <em>object</em>.</li>
                 <li>If <em>predicate</em> equals <code>rdf:type</code>, the
@@ -3578,7 +3589,7 @@
                       an empty <a>array</a>.</li>
                     <li>Reference the <code>usages</code> member of the <em>object</em>
                       member of <em>node map</em> using the variable <em>usages</em>.</li>
-                    <li>Append a new <a>JSON object</a> consisting of three
+                    <li>Append a new <a class="changed">dictionary</a> consisting of three
                       members, <code>node</code>, <code>property</code>, and <code>value</code>
                       to the <em>usages</em> <a>array</a>. The <code>node</code> member
                       is set to a reference to <em>node</em>, <code>property</code> to <em>predicate</em>,
@@ -3723,17 +3734,17 @@
       <h3>Algorithm</h3>
 
       <p>This algorithm takes two required inputs: a <em>value</em> to be converted
-        to a <a>JSON object</a> and a flag <em>use native types</em>.</p>
+        to a <a class="changed">dictionary</a> and a flag <em>use native types</em>.</p>
 
       <ol class="algorithm">
         <li>If <em>value</em> is an <a>IRI</a> or a
-          <a>blank node identifier</a>, return a new <a>JSON object</a>
+          <a>blank node identifier</a>, return a new <a class="changed">dictionary</a>
           consisting of a single member <code>@id</code> whose value is set to
           <em>value</em>.</li>
         <li>Otherwise <em>value</em> is an
           <a>RDF literal</a>:
           <ol class="algorithm">
-            <li>Initialize a new empty <a>JSON object</a> result.</li>
+            <li>Initialize a new empty <a class="changed">dictionary</a> result.</li>
             <li>Initialize <em>converted value</em> to <em>value</em>.</li>
             <li>Initialize <em>type</em> to <code>null</code></li>
             <li>If <em>use native types</em> is <code>true</code>
@@ -3945,7 +3956,7 @@
           <li>Set <em>expanded input</em> to the result of using the
             <a data-link-for="JsonLdProcessor">expand</a>
             method using <a data-lt="jsonldprocessor-compact-input">input</a> and <a data-lt="jsonldprocessor-compact-options">options</a>.
-          <li>If <a data-lt="jsonldprocessor-compact-context">context</a> is a <a>JSON object</a> having an <code>@context</code> member, set
+          <li>If <a data-lt="jsonldprocessor-compact-context">context</a> is a <a class="changed">dictionary</a> having an <code>@context</code> member, set
             <em>context</em> to that member's value, otherwise to <a data-lt="jsonldprocessor-compact-context">context</a>.</li>
           <li>Set <em>compacted output</em> to the result of using the
             <a href="#compaction-algorithm">Compaction algorithm</a>, passing
@@ -3954,18 +3965,20 @@
             <code>null</code> as <em>property</em>,
             <em>expanded input</em> as <em>element</em>, and if passed, the
             <a data-link-for="JsonldOptions">compactArrays</a> flag in <a data-lt="jsonldprocessor-compact-options">options</a>.</li>
-          <li>Fulfill the <em>promise</em> passing <em>compacted output</em>.</li>
+          <li>Fulfill the <em>promise</em> passing <em>compacted output</em>.
+            <span class="changed">transforming <em>compacted output</em> from the
+              <a>abstract representation</a> to a JSON serialization</span>.</li>
         </ol>
 
         <dl class="parameters">
           <dt><dfn data-lt="jsonldprocessor-compact-input" data-lt-noDefault>input</dfn></dt>
-           <dd>The <a>JSON object</a> or array of <a>JSON objects</a> to perform the compaction upon or an
+           <dd>The <a class="changed">dictionary</a> or array of <a class="changed">dictionaries</a> to perform the compaction upon or an
             <a>IRI</a> referencing the JSON-LD document to compact.</dd>
           <dt><dfn data-lt="jsonldprocessor-compact-context" data-lt-noDefault>context</dfn></dt>
           <dd>The context to use when <a>compacting</a> the <code>input</code>;
-            it can be specified by using a <a>JSON object</a>, an
+            it can be specified by using a <a class="changed">dictionary</a>, an
             <a>IRI</a>, or an array consisting of
-            <a>JSON object</a>s and <a>IRI</a>s.</dd>
+            <a class="changed">dictionaries</a> and <a>IRI</a>s.</dd>
           <dt><dfn data-lt="jsonldprocessor-compact-options" data-lt-noDefault>options</dfn></dt>
           <dd>A set of options to configure the algorithms. This allows, e.g.,
             to set the input document's base <a>IRI</a>.</dd>
@@ -3998,7 +4011,7 @@
             <a data-link-for="JsonldOptions">expandContext</a>
             as <a>local context</a>. If
             <a data-link-for="JsonldOptions">expandContext</a>
-            is a <a>JSON object</a> having an <code>@context</code> member, pass that member's value instead.</li>
+            is a <a class="changed">dictionary</a> having an <code>@context</code> member, pass that member's value instead.</li>
           <li>Once <a data-lt="jsonldprocessor-expand-input">input</a> has been retrieved, the response has an HTTP Link Header [[!RFC5988]]
             using the <code>http://www.w3.org/ns/json-ld#context</code> link relation
             and a content type of <code>application/json</code> or any media type
@@ -4011,15 +4024,21 @@
             link relation are found, the <em>promise</em> is rejected with a <a>JsonLdError</a> whose code is set to
             <a data-link-for="JsonLdErrorCode">multiple context link headers</a>
             and processing is terminated.</li>
+          <li class="changed">If necessary, transform <em>input</em> into the
+            <a>abstract representation</a>. If <em>input</em> cannot be transformed to the
+            <a>abstract representation</a>, reject <em>promise</em> passing a
+            <a data-link-for="JsonLdErrorCode">loading document failed</a> error.</li>
           <li>Set <em>expanded output</em> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
             <a>active context</a> and <em>input</em> as <em>element</em>.</li>
-          <li>Fulfill the <em>promise</em> passing <em>expanded output</em>.</li>
+          <li>Fulfill the <em>promise</em> passing <em>expanded output</em>.
+            <span class="changed">transforming <em>expanded output</em> from the
+              <a>abstract representation</a> to a JSON serialization</span>.</li>
         </ol>
 
         <dl class="parameters">
           <dt><dfn data-lt="jsonldprocessor-expand-input" data-lt-noDefault>input</dfn></dt>
-          <dd>The <a>JSON object</a> or array of <a>JSON objects</a> to perform the expansion upon or an
+          <dd>The <a class="changed">dictionary</a> or array of <a class="changed">dictionaries</a> to perform the expansion upon or an
             <a>IRI</a> referencing the <a>JSON-LD document</a> to expand.</dd>
           <dt><dfn data-lt="jsonldprocessor-expand-options" data-lt-noDefault>options</dfn></dt>
           <dd>A set of options to configure the used algorithms such. This allows, e.g.,
@@ -4039,7 +4058,7 @@
           <li>Set <em>expanded input</em> to the result of using the
             <a data-link-for="JsonLdProcessor">expand</a>
             method using <a data-lt="jsonldprocessor-flatten-input">input</a> and <a data-lt="jsonldprocessor-flatten-options">options</a>.
-          <li>If <a data-lt="jsonldprocessor-flatten-context">context</a> is a <a>JSON object</a> having an <code>@context</code> member, set
+          <li>If <a data-lt="jsonldprocessor-flatten-context">context</a> is a <a class="changed">dictionary</a> having an <code>@context</code> member, set
             <em>context</em> to that member's value, otherwise to <a data-lt="jsonldprocessor-flatten-context">context</a>.</li>
           <li>Initialize an empty <em>identifier map</em> and a <em>counter</em> (set to <code>0</code>)
             to be used by the
@@ -4050,17 +4069,19 @@
             <a data-link-for="JsonldOptions">compactArrays</a> flag in <a data-lt="jsonldprocessor-flatten-options">options</a>
             (which is internally passed to the
             <a href="#compaction-algorithm">Compaction algorithm</a>).</li>
-          <li>Fulfill the <em>promise</em> passing <em>flattened output</em>.</li>
+          <li>Fulfill the <em>promise</em> passing <em>flattened output</em>.
+            <span class="changed">transforming <em>flattened output</em> from the
+              <a>abstract representation</a> to a JSON serialization</span>.</li>
         </ol>
 
         <dl class="parameters">
           <dt><dfn data-lt="jsonldprocessor-flatten-input" data-lt-noDefault>input</dfn></dt>
-           <dd>The <a>JSON object</a> or array of <a>JSON objects</a> or an <a>IRI</a>
+           <dd>The <a class="changed">dictionary</a> or array of <a class="changed">dictionaries</a> or an <a>IRI</a>
             referencing the JSON-LD document to flatten.</dd>
           <dt><dfn data-lt="jsonldprocessor-flatten-context" data-lt-noDefault>context</dfn></dt>
           <dd>The context to use when <a>compacting</a> the flattened <em>expanded input</em>;
-            it can be specified by using a <a>JSON object</a>, an
-            <a>IRI</a>, or an array consisting of <a>JSON object</a>s
+            it can be specified by using a <a class="changed">dictionary</a>, an
+            <a>IRI</a>, or an array consisting of <a class="changed">dictionaries</a>
             and <a>IRI</a>s. If not
             passed or <code>null</code> is passed, the result will not be compacted
             but kept in expanded form.</dd>
@@ -4076,8 +4097,8 @@
     --></pre>
 
     <p>The <dfn>JsonLdContext</dfn> type is used to refer to a value that
-      that may be a <a>JSON object</a>, a <a>string</a> representing an
-      <a>IRI</a>, or an array of <a>JSON objects</a>
+      that may be a <a class="changed">dictionary</a>, a <a>string</a> representing an
+      <a>IRI</a>, or an array of <a class="changed">dictionaries</a>
       and <a>strings</a>.</p>
   </section> <!-- end of JsonLdProcessor -->
 
@@ -4295,7 +4316,7 @@
         <dd class="changed">An invalid value for <code>@nest</code> has been found.</dd>
         <dt><dfn>invalid @reverse value</dfn></dt>
         <dd>An invalid value for an <code>@reverse</code> member has been detected,
-          i.e., the value was not a <a>JSON object</a>.</dd>
+          i.e., the value was not a <a class="changed">dictionary</a>.</dd>
         <dt><dfn>invalid @version value</dfn></dt>
         <dd>The <code>@version</code> key was used in a <a>context</a> with
           an out of range value.</dd>
@@ -4427,6 +4448,9 @@
     <li>A <a>language map</a> may legitimately have a <code>null</code> value, but
       the algorithm only allowed <a>string</a> values. This has been updated
       to allow (and ignore) <code>null</code> values.</li>
+    <li>The JSON syntax has been abstracted into an <a>abstract representation</a>
+      to allow for other seriazation formats that are functionally equivalent
+      to JSON.</li>
   </ul>
 </section>
 
