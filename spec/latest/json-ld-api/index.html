@@ -3968,15 +3968,15 @@
     <pre class="idl" data-transform="unComment"><!--
       [Constructor]
       interface JsonLdProcessor {
-        Promise<dictionary> compact(
-          (dictionary or dictionary[] or DOMString) input,
+        Promise<JsonLdDictionary> compact(
+          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
           JsonLdContext context,
           optional JsonLdOptions? options);
-        Promise<dictionary[]> expand(
-          (dictionary or dictionary[] or DOMString) input,
+        Promise<JsonLdDictionary[]> expand(
+          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
           optional JsonLdOptions? options);
-        Promise<dictionary[]> flatten(
-          (dictionary or dictionary[] or DOMString) input,
+        Promise<JsonLdDictionary[]> flatten(
+          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
           JsonLdContext context,
           optional JsonLdOptions? options);
       };
@@ -4032,7 +4032,7 @@
         <ol class="algorithm">
           <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
             following steps are then executed asynchronously.</li>
-          <li>If the passed <a data-lt="jsonldprocessor-expand-input">input</a> is a <span class="idlParamType">DOMString</span>
+          <li>If the passed <a data-lt="jsonldprocessor-expand-input">input</a> is a <span class="idlParamType">USVString</span>
             representing the <a>IRI</a> of a remote document, dereference it.
             If the retrieved document's content type is neither <code>application/json</code>,
             nor <code>application/ld+json</code>, nor any other media type using a
@@ -4132,7 +4132,14 @@
     </dl>
 
     <pre class="idl" data-transform="unComment"><!--
-      typedef (dictionary or DOMString or sequence<dictionary or DOMString>) JsonLdContext;
+      dictionary JsonLdDictionary {};
+    --></pre>
+    <p>The <dfn>JsonLdDictionary</dfn> is the definition of a <a>dictionary</a>
+      used to contain arbitrary key/value pairs which are the result of 
+      parsing a <a>JSON Object</a>.</dfn>
+
+    <pre class="idl" data-transform="unComment"><!--
+      typedef (JsonLdDictionary or USVString or sequence<(JsonLdDictionary or USVString)>) JsonLdContext;
     --></pre>
 
     <p>The <dfn>JsonLdContext</dfn> type is used to refer to a value that
@@ -4149,12 +4156,12 @@
 
     <pre class="idl" data-transform="unComment"><!--
       dictionary JsonLdOptions {
-        DOMString?             base;
+        USVString?             base;
         boolean                compactArrays = true;
         LoadDocumentCallback   documentLoader = null;
-        (object? or DOMString) expandContext = null;
+        (JsonLdDictionary? or USVString) expandContext = null;
         boolean                produceGeneralizedRdf = true;
-        DOMString              processingMode = null;
+        USVString              processingMode = null;
       };
     --></pre>
 
@@ -4206,7 +4213,7 @@
         have to implement to be used to retrieve remote documents and contexts.</p>
 
       <pre class="idl" data-transform="unComment"><!--
-        callback LoadDocumentCallback = Promise (DOMString url);
+        callback LoadDocumentCallback = Promise<USVString> (USVString url);
       --></pre>
 
       <dl>
@@ -4229,8 +4236,8 @@
 
       <pre class="idl" data-transform="unComment"><!--
         dictionary RemoteDocument {
-          DOMString contextUrl = null;
-          DOMString documentUrl;
+          USVString contextUrl = null;
+          USVString documentUrl;
           any       document;
         };
       --></pre>
@@ -4269,7 +4276,7 @@
       <pre class="idl" data-transform="unComment"><!--
         dictionary JsonLdError {
           JsonLdErrorCode code;
-          DOMString?      message = null;
+          USVString?      message = null;
         };
       --></pre>
 
