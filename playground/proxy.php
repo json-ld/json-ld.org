@@ -16,7 +16,7 @@
 $method = $_SERVER['REQUEST_METHOD'];
 if ($_GET && $_GET['url']) {
   $headers = getallheaders();
-  $headers_str = [];
+  $headers_str = array();
   $url = $_GET['url'];
 
   foreach ( $headers as $key => $value){
