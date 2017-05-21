@@ -1330,6 +1330,12 @@
           url = modified;
         }
       }
+
+      // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
+      if(!url.startsWith('https://')) {
+        url = url.replace(/^http:\/\//i, 'https://');
+      }
+
       return jqueryDocumentLoader(url);
     };
 
