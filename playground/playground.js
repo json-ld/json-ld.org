@@ -1330,6 +1330,10 @@
           url = modified;
         }
       }
+      // rewrite URLs that we know have secure JSON-LD Contexts
+      if(url === 'http://schema.org/') {
+        url = 'https://schema.org/';
+      }
 
       // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
       if(!url.startsWith('https://')) {
