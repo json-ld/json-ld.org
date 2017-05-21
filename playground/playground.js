@@ -1333,7 +1333,7 @@
 
       // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
       if(!url.startsWith('https://')) {
-        url = 'https://json-ld.org/playground/proxy.php?url=' + url;
+        url = window.location.href + 'proxy.php?url=' + url;
       }
 
       return jqueryDocumentLoader(url);
