@@ -15,14 +15,16 @@ if($_GET && $_GET['url']) {
   foreach($headers as $key => $value){
     if($key == 'Host')
       continue;
-    $headers_str[]=$key.":".$value;
+    $headers_str[]=$key.': '.$value;
   }
 
-  $ch = curl_init($url);
+  $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_HTTPHEADER, $headers_str);
+  curl_setopt($ch, CURLOPT_ENCODING, '');
+  curl_setopt($ch, CURLOPT_TIMEOUT, 10);
   $result = curl_exec($ch);
   curl_close($ch);
   echo $result;

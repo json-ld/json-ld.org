@@ -1337,7 +1337,14 @@
 
       // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
       if(!url.startsWith('https://')) {
-        url = window.location.href + 'proxy.php?url=' + url;
+        url = [
+          location.protocol,
+          '//',
+          location.host,
+          location.pathname,
+          'proxy.php?url=',
+          url
+        ].join('');
       }
 
       return jqueryDocumentLoader(url);
