@@ -19,6 +19,10 @@ if ($_GET && $_GET['url']) {
   $headers_str = array();
   $url = $_GET['url'];
 
+  if(!strpos($source, 'http') === 0) {
+    exit('Only proxying HTTP URLs is allowed. Invalid URL: ' . $url);
+  }
+
   foreach ( $headers as $key => $value){
     if($key == 'Host')
       continue;
