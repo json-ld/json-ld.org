@@ -26,6 +26,8 @@ if($_GET && $_GET['url']) {
   curl_setopt($ch, CURLOPT_ENCODING, '');
   curl_setopt($ch, CURLOPT_TIMEOUT, 10);
   $result = curl_exec($ch);
+  http_response_code(curl_getinfo($ch, CURLINFO_HTTP_CODE));
+  header('Content-Type: '.curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
   curl_close($ch);
   echo $result;
 }
