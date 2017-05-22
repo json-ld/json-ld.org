@@ -3968,15 +3968,15 @@
     <pre class="idl">
       [Constructor]
       interface JsonLdProcessor {
-        Promise<JsonLdDictionary> compact(
-          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
+        Promise&lt;JsonLdDictionary> compact(
+          JsonLdInput input,
           JsonLdContext context,
           optional JsonLdOptions? options);
-        Promise<JsonLdDictionary[]> expand(
-          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
+        Promise&lt;sequence&lt;JsonLdDictionary>> expand(
+          JsonLdInput input,
           optional JsonLdOptions? options);
-        Promise<JsonLdDictionary[]> flatten(
-          (JsonLdDictionary or sequence<JsonLdDictionary> or USVString) input,
+        Promise&lt;JsonLdDictionary> flatten(
+          JsonLdInput input,
           JsonLdContext context,
           optional JsonLdOptions? options);
       };
@@ -4011,7 +4011,7 @@
 
         <dl class="parameters">
           <dt><dfn data-lt="jsonldprocessor-compact-input" data-lt-noDefault>input</dfn></dt>
-           <dd>The <a class="changed">dictionary</a> or array of <a class="changed">dictionaries</a> to perform the compaction upon or an
+           <dd>The <a class="changed">dictionary</a>, array of <a class="changed">dictionaries</a> to perform the compaction upon or an
             <a>IRI</a> referencing the JSON-LD document to compact.</dd>
           <dt><dfn data-lt="jsonldprocessor-compact-context" data-lt-noDefault>context</dfn></dt>
           <dd>The context to use when <a>compacting</a> the <code>input</code>;
@@ -4032,7 +4032,7 @@
         <ol class="algorithm">
           <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
             following steps are then executed asynchronously.</li>
-          <li>If the passed <a data-lt="jsonldprocessor-expand-input">input</a> is a <span class="idlParamType">USVString</span>
+          <li>If the passed <a data-lt="jsonldprocessor-expand-input">input</a> is a <a>string</a>
             representing the <a>IRI</a> of a remote document, dereference it.
             If the retrieved document's content type is neither <code>application/json</code>,
             nor <code>application/ld+json</code>, nor any other media type using a
@@ -4131,12 +4131,20 @@
       </dd>
     </dl>
 
-    <pre class="idl" data-transform="unComment"><!--
+    <pre class="idl changed" data-transform="unComment"><!--
       dictionary JsonLdDictionary {};
     --></pre>
-    <p>The <dfn>JsonLdDictionary</dfn> is the definition of a <a>dictionary</a>
+    <p class="changed">The <dfn>JsonLdDictionary</dfn> is the definition of a <a>dictionary</a>
       used to contain arbitrary key/value pairs which are the result of 
       parsing a <a>JSON Object</a>.</dfn>
+
+    <pre class="idl changed" data-transform="unComment"><!--
+      typedef (JsonLdDictionary or sequence&lt;JsonLdDictionary> or USVString) JsonLdInput;
+    --></pre>
+
+    <p class="changed">The <dfn>JsonLdInput</dfn> type is used to refer to an input value that
+      that may be a <a>dictionary</a>, an array of <a>dictionaries </a> or a <a>string</a> representing an
+      <a>IRI</a> which an be dereferenced to retrieve a valid JSON document.</p>
 
     <pre class="idl" data-transform="unComment"><!--
       typedef (JsonLdDictionary or USVString or sequence<(JsonLdDictionary or USVString)>) JsonLdContext;
