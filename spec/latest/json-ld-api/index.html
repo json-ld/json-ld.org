@@ -1067,11 +1067,18 @@
               <code>@container</code> key, which must be either
               <code>@list</code>, <code>@set</code>, <code>@index</code>,
               <span class="changed"><code>@id</code>, <code>@type</code></span>
-              or <code>@language</code>. Otherwise, an
+              or <code>@language</code>,
+              <span class="changed">
+                or an <a>array</a> containing exactly any one of those keyswords,
+                or a combination of <code>@set</code> and any of <code>@index</code>,
+                <code>@id</code>, <code>@type</code>, <code>@language</code>
+                in any order
+              </span>.
+              Otherwise, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li class="changed">If processingMode is <code>json-ld-1.0</code> and the container value
-              is <code>@id</code> or <code>@type</code>, an
+              is <code>@id</code> or <code>@type</code>, or is otherwise not a <a>string</a>, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li>Set the <a>container mapping</a> of <em>definition</em> to
@@ -1961,9 +1968,13 @@
               </ol>
             </li>
             <li>If <em>result</em> contains only one item (it has a length of
-              <code>1</code>), <a>active property</a> has no
-              <a>container mapping</a> in <a>active context</a>, and
-              <a data-link-for="JsonLdOptions">compactArrays</a>
+              <code>1</code>),
+              <span class="changed">
+                <a>active property</a> is not <code>@graph</code> or <code>@set</code>,
+                or the <a>container mapping</a> for <a>active property</a> in
+                <a>active context</a> does not include <code>@list</code> or <code>@set</code>,
+              </span>
+              and <a data-link-for="JsonLdOptions">compactArrays</a>
               is <code>true</code>, set <em>result</em> to its only item.</li>
             <li>Return <em>result</em>.</li>
           </ol>
@@ -2161,7 +2172,13 @@
                 <li>Initialize <em>container</em> to <code>null</code>. If there
                   is a <a>container mapping</a> for
                   <em>item active property</em> in <a>active context</a>,
-                  set <em>container</em> to its value.</li>
+                  set <em>container</em> to <span class="changed">the first</span>
+                  such value <span class="changed">other than <code>@set</code></span>.</li>
+                <li class="changed">Initialize <em>as array</em> to
+                  <code>true</code> or <code>false</code> depending on if the <a>container mapping</a> for
+                  <em>item active property</em> in <a>active context</a>
+                  includes <code>@set</code> or if <em>item active property</em>
+                  is <code>@graph</code> or <code>@list</code>.</li>
                 <li>Initialize <em>compacted item</em> to the result of using
                   this algorithm recursively, passing
                   <a>active context</a>, <a>inverse context</a>,
@@ -2204,7 +2221,7 @@
                   </ol>
                 </li>
                 <li>
-                  If <em>container</em> is <code>@language</code>,
+                  If <em>container</em> <span class="changed">includes</span> <code>@language</code>,
                   <code>@index</code>, <span class="changed"><code>@id</code>,
                     or <code>@type</code></span>:
                   <ol class="algorithm">
@@ -2242,6 +2259,9 @@
                       <em>compacted container</em> in <em>compacted value</em>
                       to those remaining values. Otherwise, remove that
                       key-value pair from <em>compacted item</em>.</li>
+                    <li class="changed">If <em>compacted item</em> is not an
+                      <a>array</a> and <em>as array</em> is <code>true</code>,
+                      set <em>compacted item</em> to an <a>array</a> containing that value.</li>
                     <li>If <em>map key</em> is not a key in <em>map object</em>,
                       then set this key's value in <em>map object</em>
                       to <em>compacted item</em>. Otherwise, if the value
@@ -2255,9 +2275,7 @@
                   <ol class="algorithm">
                     <li>If
                       <a data-link-for="JsonLdOptions">compactArrays</a>
-                      is <code>false</code>, <em>container</em> is <code>@set</code> or
-                      <code>@list</code>, or <em>expanded property</em> is
-                      <code>@list</code> or <code>@graph</code> and
+                      is <code>false</code>, <em>as array</em> is <code>true</code> and
                       <em>compacted item</em> is not an <a>array</a>,
                       set it to a new <a>array</a>
                       containing only <em>compacted item</em>.</li>
@@ -2362,10 +2380,14 @@
             <li>If the <a>term definition</a> is <code>null</code>,
               <a>term</a> cannot be selected during <a>compaction</a>,
               so continue to the next <a>term</a>.</li>
-            <li>Initialize <em>container</em> to <code>@none</code>. If there
-              is a <a>container mapping</a> in
-              <a>term definition</a>, set <em>container</em> to
-              its associated value.</li>
+            <li>Initialize <em>container</em> to <code>@none</code>. If
+              <span class="changed">
+                the <a>container mapping</a> in <a>term definition</a>
+                includes <code>@id</code>, <code>@index</code>,
+                <code>@language</code>, <code>@list</code>, <code>@type</code>, or
+              <code>@set</code> in that order</span>
+              set <em>container</em> to
+              <span class="changed">the first such value found</span>.</li>
             <li>Initialize <em>iri</em> to the value of the <a>IRI mapping</a>
               for the <a>term definition</a>.</li>
             <li>If <em>iri</em> is not a key in <em>result</em>, add
@@ -4507,6 +4529,11 @@
     <li>The JSON syntax has been abstracted into an <a>internal representation</a>
       to allow for other seriazation formats that are functionally equivalent
       to JSON.</li>
+    <li>The value for <code>@container</code> in an <a>expanded term definition</a>
+      can also be an <a>array</a> containing any appropriate container
+      keyword along with <code>@set</code> (other than <code>@list</code>).
+      This allows a way to ensure that such property values will always
+      be expressed in <a>array</a> form.</li>
   </ul>
 </section>
 
