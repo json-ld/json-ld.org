@@ -1,6 +1,10 @@
 Introduction
 ------------
 
+.. image:: https://badges.gitter.im/json-ld/json-ld.org.svg
+   :alt: Join the chat at https://gitter.im/json-ld/json-ld.org
+   :target: https://gitter.im/json-ld/json-ld.org?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 JSON-LD (JavaScript Object Notation for Linking Data) is a lightweight Linked
 Data format. It is easy for humans to read and write. It is easy for machines
 to parse and generate. It is based on the already successful JSON format and
