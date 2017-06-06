@@ -374,7 +374,12 @@
         <a class="sectionRef" href="#typed-values"></a>.</dd>
       <dt><code>@container</code></dt>
       <dd>Used to set the default container type for a <a>term</a>.
-        This keyword is described in <a class="sectionRef" href="#sets-and-lists"></a>.</dd>
+        This keyword is described in <a class="sectionRef" href="#sets-and-lists"></a>,
+        <span class="changed"><a class="sectionRef" href="#data-indexing"></a>,
+          <a class="sectionRef" href="#language-indexing"></a>,
+          <a class="sectionRef" href="#node-identifier-indexing"></a>, and
+          <a class="sectionRef" href="#node-type-indexing"></a>
+        </span>.</dd>
       <dt><code>@list</code></dt>
       <dd>Used to express an ordered set of data.
         This keyword is described in <a class="sectionRef" href="#sets-and-lists"></a>.</dd>
@@ -2590,6 +2595,108 @@ specified. The full <a>IRI</a> for
       </tr>
     </tbody>
   </table>
+
+  <p class="changed">The value of <code>@container</code> can also
+    be an array containing both <code>@index</code> and <code>@set</code>.
+    When <em>compacting</em>, this ensures that a JSON-LD Processor will use
+    the <a>array</a> form for all values of indexes.</p>
+
+  <pre class="example changed" data-transform="updateExample"
+       title="Indexing data in JSON-LD with @set representation">
+  <!--
+  {
+    "@context": {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "body": "schema:articleBody",
+       "words": "schema:wordCount",
+       "post": {
+         "@id": "schema:blogPost",
+         "@container": ****["@index", "@set"]****
+       }
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    "post": {
+       "en": ****[****{
+         "@id": "http://example.com/posts/1/en",
+         "body": "World commodities were up today with heavy trading of crude oil...",
+         "words": 1539
+       }****]****,
+       "de": ****[****{
+         "@id": "http://example.com/posts/1/de",
+         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+         "words": 1204
+       }****]****
+    }
+  }
+  -->
+  </pre>
+</section>
+
+<section class="informative changed">
+  <h2>Language Indexing</h2>
+
+  <p>JSON which includes string values in multiple languages may be
+    represented using a <a>language map</a> to allow for easily
+    indexing property values by language tag. This enables direct access to
+    lanugage values instead of having to scan an array in search of a specific item.
+    In JSON-LD such data can be specified by associating the
+    <code>@language</code> <a>keyword</a> with a
+    <code>@container</code> declaration in the context:</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing languaged-tagged strings in JSON-LD">
+  <!--
+  {
+    "@context": {
+      "vocab": "http://example.com/vocab/",
+      "label": {
+        "@id": "vocab:label",
+        "@container": "@language"
+      }
+    },
+    "@id": "http://example.com/queen",
+    "label": {
+      "en": "The Queen",
+      "de": [ "Die Königin", "Ihre Majestät" ]
+    }
+  }
+  -->
+  </pre>
+
+  <p>In the example above, the <strong>label</strong> <a>term</a> has
+    been marked as an <a>language map</a>. The <strong>en</strong> and
+    <strong>de</strong> keys are implicitly associated with their respective
+    values by the JSON-LD Processor.  This allows a developer to
+    access the German version of the <strong>label</strong> using the
+    following code snippet: <code>obj.label.de</code>.</p>
+
+  <p>The value of <code>@container</code> can also
+    be an array containing both <code>@language</code> and <code>@set</code>.
+    When <em>compacting</em>, this ensures that a JSON-LD Processor will use
+    the <a>array</a> form for all values of language tags.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing languaged-tagged strings in JSON-LD with @set representation">
+  <!--
+  {
+    "@context": {
+      "vocab": "http://example.com/vocab/",
+      "label": {
+        "@id": "vocab:label",
+        "@container": ****[****"@language", ****"@set"]****
+      }
+    },
+    "@id": "http://example.com/queen",
+    "label": {
+      "en": ****[****"The Queen"****]****,
+      "de": [ "Die Königin", "Ihre Majestät" ]
+    }
+  }
+  -->
+  </pre>
 </section>
 
 <section class="informative changed">
@@ -2644,6 +2751,42 @@ specified. The full <a>IRI</a> for
     as that in <a class="sectionRef" href="#data-indexing"></a>
     using a JSON-LD processor.</p>
 
+  <p>The value of <code>@container</code> can also
+    be an array containing both <code>@id</code> and <code>@set</code>.
+    When <em>compacting</em>, this ensures that a JSON-LD Processor will use
+    the <a>array</a> form for all values of node identifiers.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing data in JSON-LD by node identifiers with @set representation">
+  <!--
+  {
+    "@context": {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "body": "schema:articleBody",
+       "words": "schema:wordCount",
+       "post": {
+         "@id": "schema:blogPost",
+         "@container": ****[****"@id", ****"@set"]****
+       }
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    "post": {
+       "http://example.com/posts/1/en": ****[****{
+         "body": "World commodities were up today with heavy trading of crude oil...",
+         "words": 1539
+       }****]****,
+       "http://example.com/posts/1/de": ****[****{
+         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+         "words": 1204
+       }****]****
+    }
+  }
+  -->
+  </pre>
+
   <p class="note"><a>Id maps</a> are a new feature in JSON-LD 1.1, requiring
     <a>processing mode</a> set to <code>json-ld-1.1</code></p>
 </section>
@@ -2661,7 +2804,7 @@ specified. The full <a>IRI</a> for
     <code>@container</code> declaration in the context:</p>
 
   <pre class="example" data-transform="updateExample"
-       title="Indexing data in JSON-LD by node identifiers">
+       title="Indexing data in JSON-LD by type">
   <!--
   {
     "@context": {
@@ -2682,7 +2825,6 @@ specified. The full <a>IRI</a> for
         "@id": "https://spec-ops.io",
         "name": "Spec-Ops"
       }
-      
     }
   }
   -->
@@ -2692,6 +2834,39 @@ specified. The full <a>IRI</a> for
     been marked as an <a>type map</a>. The <code>schema:Corporpation</code> and
     <code>schema:ProfessionalService</code> keys will be interpreted
     as the <code>@type</code> property of the <a>node object</a> value.</p>
+
+  <p>The value of <code>@container</code> can also
+    be an array containing both <code>@type</code> and <code>@set</code>.
+    When <em>compacting</em>, this ensures that a JSON-LD Processor will use
+    the <a>array</a> form for all values of types.</p>
+
+  <pre class="example" data-transform="updateExample"
+       title="Indexing data in JSON-LD by type with @set representation">
+  <!--
+  {
+    "@context": {
+       "schema": "http://schema.org/",
+       "name": "schema:name",
+       "affiliation": {
+         "@id": "schema:affiliation",
+        "@container": ****[****"@type", ****"@set"]****
+       }
+    },
+    "name": "Manu Sporny",
+    "affiliation": {
+      "schema:Corporpation": ****[****{
+        "@id": "http://digitalbazaar.com/",
+        "name": "Digital Bazaar"
+      }****]****,
+      "schema:ProfessionalService": ****[****{
+        "@id": "https://spec-ops.io",
+        "name": "Spec-Ops"
+      }****]****
+      
+    }
+  }
+  -->
+  </pre>
 
   <p class="note"><a>Type maps</a> are a new feature in JSON-LD 1.1, requiring
     <a>processing mode</a> set to <code>json-ld-1.1</code></p>
@@ -2784,7 +2959,7 @@ specified. The full <a>IRI</a> for
 
   <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]]
     defines a method for <em>expanding</em> a JSON-LD document.
-    Expansion is the process of taking a JSON-LD document and applying a
+    <dfn data-cite="JSON-LD-API#dfn-expansion">Expansion</dfn> is the process of taking a JSON-LD document and applying a
     <code>@context</code> such that all IRIs, types, and values
     are expanded so that the <code>@context</code> is no longer necessary.</p>
 
@@ -2807,7 +2982,7 @@ specified. The full <a>IRI</a> for
   -->
   </pre>
 
-  <p>Running the JSON-LD Expansion algorithm against the JSON-LD input document
+  <p>Running the JSON-LD <a data-cite="JSON-LD-API#expansion-algorithm">Expansion algorithm</a> against the JSON-LD input document
     provided above would result in the following output:</p>
 
   <pre class="example" data-transform="updateExample"
@@ -2836,7 +3011,7 @@ specified. The full <a>IRI</a> for
   <h3>Compacted Document Form</h3>
 
   <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]] defines
-    a method for <em>compacting</em> a JSON-LD document. Compaction is the process
+    a method for <em>compacting</em> a JSON-LD document. <dfn data-cite="JSON-LD-API#dfn-compaction">Compaction</dfn> is the process
     of applying a developer-supplied context to shorten <a>IRIs</a>
     to <a>terms</a> or <a>compact IRIs</a>
     and JSON-LD values expressed in expanded form to simple values such as
@@ -2880,7 +3055,7 @@ specified. The full <a>IRI</a> for
   -->
   </pre>
 
-  <p>Running the JSON-LD Compaction algorithm given the context supplied above
+  <p>Running the JSON-LD <a data-cite="JSON-LD-API#compaction-algorithm">Compaction algorithm</a> given the context supplied above
     against the JSON-LD input document provided above would result in the following
     output:</p>
 
@@ -2911,7 +3086,7 @@ specified. The full <a>IRI</a> for
   <h3>Flattened Document Form</h3>
 
   <p>The JSON-LD Processing Algorithms and API specification [[JSON-LD-API]] defines
-    a method for <em>flattening</em> a JSON-LD document. Flattening collects all
+    a method for <em>flattening</em> a JSON-LD document. <dfn data-cite="JSON-LD-API#dfn-flattening">Flattening</dfn> collects all
     properties of a <a>node</a> in a single <a>JSON object</a> and labels
     all <a>blank nodes</a> with
     <a>blank node identifiers</a>.
@@ -2942,7 +3117,7 @@ specified. The full <a>IRI</a> for
   -->
   </pre>
 
-  <p>Running the JSON-LD Flattening algorithm against the JSON-LD input document in
+  <p>Running the JSON-LD <a data-cite="JSON-LD-API#flattening-algorithm">Flattening algorithm</a> against the JSON-LD input document in
     the example above and using the same context would result in the following
     output:</p>
 
@@ -3157,7 +3332,16 @@ specified. The full <a>IRI</a> for
       to an <a>IRI</a> or a <a>blank node identifier</a>.</p>
 
     <p>A <a>term</a> MUST NOT equal any of the JSON-LD
-      <a>keyword</a>.</p>
+      <a>keywords</a>.</p>
+
+    <p class="changed">When used as the <a>prefix</a> in a <a>Compact IRI</a>, to avoid
+      the potential ambiguity of a <a>prefix</a> being confused with an IRI
+      scheme, <a>terms</a> SHOULD NOT come from the list of URI schemes as defined in
+      [[!IANA-URI-SCHEMES]]. Similarly, to avoid confusion between a
+      <a>Compact IRI</a> and a <a>term</a>, terms SHOULD NOT include a colon (<code>:</code>)
+      and SHOULD be restricted to the form of
+      <code><a data-cite="RFC3897#section-2.2">isegment-nz-nc</a></code>
+      as defined in [[!RFC3897]].</p>
 
     <p>To avoid forward-compatibility issues, a <a>term</a> SHOULD NOT start
       with an <code>@</code> character as future versions of JSON-LD may introduce
@@ -3367,14 +3551,17 @@ specified. The full <a>IRI</a> for
     <p>A <a>language map</a> is used to associate a language with a value in a
       way that allows easy programmatic access. A <a>language map</a> may be
       used as a term value within a <a>node object</a> if the <a>term</a> is defined
-      with <code>@container</code> set to <code>@language</code>. The keys of a
+      with <code>@container</code> set to <code>@language</code>,
+      <span class="changed">
+        or an array containing both <code>@language</code> and <code>@set</code>
+      </span>. The keys of a
       <a>language map</a> MUST be <a>strings</a> representing
       [[BCP47]] language codes and the values MUST be any of the following types:</p>
 
     <ul>
       <li><a>null</a>,</li>
       <li><a>string</a>, or</li>
-      <li>an <a>array</a> of zero or more of the above possibilities</li>
+      <li>an <a>array</a> of zero or more of the <a>strings</a></li>
     </ul>
 
     <p>See <a class="sectionRef" href="#string-internationalization"></a> for further discussion
@@ -3388,7 +3575,10 @@ specified. The full <a>IRI</a> for
       but should be preserved regardless, to be used in JSON-LD documents.
       An <a>index map</a> may
       be used as a <a>term</a> value within a <a>node object</a> if the
-      term is defined with <code>@container</code> set to <code>@index</code>.
+      term is defined with <code>@container</code> set to <code>@index</code>,
+      <span class="changed">
+        or an array containing both <code>@index</code> and <code>@set</code>
+      </span>.
       The values of the members of an <a>index map</a> MUST be one
       of the following types:</p>
 
@@ -3413,7 +3603,9 @@ specified. The full <a>IRI</a> for
 
     <p>An <a>id map</a> is used to associate an <a>IRI</a> with a value that allows easy
       programatic access. An <a>id map</a> may be used as a term value within a <a>node object</a> if the <a>term</a>
-      is defined with <code>@container</code> set to <code>@id</code>. The keys of an <a>id map</a> MUST be <a>IRIs</a>
+      is defined with <code>@container</code> set to <code>@id</code>,
+      or an array containing both <code>@id</code> and <code>@set</code>.
+      The keys of an <a>id map</a> MUST be <a>IRIs</a>
       (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
       and the values MUST be <a>node objects</a>.</p>
 
@@ -3427,7 +3619,9 @@ specified. The full <a>IRI</a> for
 
     <p>A <a>type map</a> is used to associate an <a>IRI</a> with a value that allows easy
       programatic access. A <a>type map</a> may be used as a term value within a <a>node object</a> if the <a>term</a>
-      is defined with <code>@container</code> set to <code>@type</code>. The keys of a <a>type map</a> MUST be <a>IRIs</a>
+      is defined with <code>@container</code> set to <code>@type</code>,
+      or an array containing both <code>@type</code> and <code>@set</code>.
+      The keys of a <a>type map</a> MUST be <a>IRIs</a>
       (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
       and the values MUST be <a>node objects</a>.</p>
 
@@ -3443,7 +3637,7 @@ specified. The full <a>IRI</a> for
     <p>A <a>nested property</a> is used to gather <a>properties</a> of a <a>node object</a> in a separate
       <a>JSON object</a>, or <a>array</a> of <a>JSON objects</a> which are not
       <a>value objects</a>. It is semantically transparent and is removed
-      during the process of expansion. Property nesting is recursive, and
+      during the process of <a>expansion</a>. Property nesting is recursive, and
       collections of nested properties may contain further nesting.</p>
 
     <p>Semantically, nesting is treated as if the properties and values were declared directly
@@ -3516,7 +3710,14 @@ specified. The full <a>IRI</a> for
 
   <p>If the <a>expanded term definition</a> contains the <code>@container</code>
     <a>keyword</a>, its value MUST be either <code>@list</code>, <code>@set</code>,
-    <code>@language</code>, <code>@index</code>, <span class="changed"><code>@id</code>, <code>@type</code></span> or be <a>null</a>. If the value
+    <code>@language</code>, <code>@index</code>, <span class="changed"><code>@id</code>, <code>@type</code></span> or be <a>null</a>
+    <span class="changed">
+      or an <a>array</a> containing exactly any one of those keywords,
+      or a combination of <code>@set</code> and any of <code>@index</code>,
+      <code>@id</code>, <code>@type</code>, <code>@language</code>
+      in any order
+    </span>.
+    If the value
     is <code>@language</code>, when the <a>term</a> is used outside of the
     <code>@context</code>, the associated value MUST be a <a>language map</a>.
     If the value is <code>@index</code>, when the <a>term</a> is used outside of
@@ -3631,7 +3832,7 @@ specified. The full <a>IRI</a> for
     <ol>
       <li>Expand the JSON-LD document, removing any context; this ensures
         that properties, types, and values are given their full representation
-        as <a>IRIs</a> and expanded values. Expansion
+        as <a>IRIs</a> and expanded values. <a>Expansion</a>
         is discussed further in <a class="sectionRef" href="#expanded-document-form"></a>.</li>
       <li>Flatten the document, which turns the document into an array of
         <a>node objects</a>. Flattening is discussed
@@ -3663,7 +3864,7 @@ specified. The full <a>IRI</a> for
     -->
     </pre>
 
-    <p>Running the JSON-LD Expansion and Flattening algorithms against the
+    <p>Running the JSON-LD <a data-cite="JSON-LD-API#expansion-algorithm">Expansion</a> and <a data-cite="JSON-LD-API#flattening-algorithm">Flattening</a> algorithms against the
       JSON-LD input document in the example above would result in the
       following output:</p>
 
@@ -3730,6 +3931,12 @@ specified. The full <a>IRI</a> for
     <li>The JSON syntax has been abstracted into an <a>internal representation</a>
       to allow for other serializations that are functionally equivalent
       to JSON.</li>
+    <li>Added <a href="#language-indexing" class="sectionRef"></a>.</li>
+    <li>The value for <code>@container</code> in an <a>expanded term definition</a>
+      can also be an <a>array</a> containing any appropriate container
+      keyword along with <code>@set</code> (other than <code>@list</code>).
+      This allows a way to ensure that such property values will always
+      be expressed in <a>array</a> form.</li>
   </ul>
 </section>
 
