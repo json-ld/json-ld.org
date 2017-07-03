@@ -2511,8 +2511,12 @@
         <a>IRI</a>, an attempt is made to compact the <a>IRI</a> using the
         <a data-lt="active context">active context's</a> <a>vocabulary mapping</a>,
         if there is one. If the <a>IRI</a> could not be compacted, an
-        attempt is made to find a <a>compact IRI</a>. If there is no
-        appropriate <a>compact IRI</a>,
+        attempt is made to find a <a>compact IRI</a>.
+        <span class="changed">A term will be used to create a <a>compact IRI</a>
+          only if the term ends with a colon (<code>:</code>), or if the term
+          maps to a string ending with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a>,
+          with preference given to term ending with a colon (<code>:</code>).</span>
+        If there is no appropriate <a>compact IRI</a>,
         <span class="changed">and the <a data-link-for="JsonLdOptions">compactToRelative</a> option is <code>true</code>,</span>
         the <a>IRI</a> is
         transformed to a <a>relative IRI</a> using the document's
@@ -2701,13 +2705,44 @@
           Try to create a <a>compact IRI</a>, starting by initializing
           <em>compact IRI</em> to <code>null</code>. This variable will be used to
           tore the created <a>compact IRI</a>, if any.</li>
-        <li>For each key <a>term</a> and value <a>term definition</a> in
+        <li class="changed">For each key <a>term</a> and value <a>term definition</a> in
+          the <a>active context</a>:
+          <ol class="algorithm">
+            <li>If the <a>term</a> does not end with a colon (<code>:</code>),
+              then continue to the next <a>term</a>.</li>
+            <li>If the <a>term definition</a> is not a <a>simple term definitions</a> then continue to the
+              next <a>term</a>, because <a>expanded term definitions</a> are not used for
+              creating <a>compact IRIs</a>.</li>
+            <li>If the <a>term definition</a> is <code>null</code>,
+              its <a>IRI mapping</a> equals <em>iri</em>, or its
+              <a>IRI mapping</a> is not a substring at the beginning of
+              <em>iri</em>, the <a>term</a> cannot be used as a <a>prefix</a>
+              because it is not a partial match with <em>iri</em>.
+              Continue with the next <a>term</a>.</li>
+            <li>Initialize <em>candidate</em> by concatenating <a>term</a>
+              and the substring of <em>iri</em>
+              that follows after the value of the
+              <a data-lt="term definition">term definition's</a>
+              <a>IRI mapping</a>.</li>
+            <li>If either <em>compact IRI</em> is <code>null</code> or <em>candidate</em> is
+              shorter or the same length but lexicographically less than
+              <em>compact IRI</em> and <em>candidate</em> does not have a
+              <a>term definition</a> in <a>active context</a> or if the
+              <a>term definition</a> has an <a>IRI mapping</a>
+              that equals <em>iri</em> and <em>value</em> is <code>null</code>,
+              set <em>compact IRI</em> to <em>candidate</em>.</li>
+          </ol>
+        </li>
+        <li><span class="changed">If <em>compact IRI</em> is <strong>null</strong>, then</span> for each key <a>term</a> and value <a>term definition</a> in
           the <a>active context</a>:
           <ol class="algorithm">
             <li>If the <a>term</a> contains a colon (<code>:</code>),
               then continue to the next <a>term</a> because
               <a>terms</a> with colons can't be
               used as <a>prefixes</a>.</li>
+            <li class="changed">If the <a>term definition</a> is not a <a>simple term definitions</a> then continue to the
+              next <a>term</a>, because <a>expanded term definitions</a> are not used for
+              creating <a>compact IRIs</a>.</li>
             <li>If the <a>term definition</a> is <code>null</code>,
               its <a>IRI mapping</a> equals <em>iri</em>, or its
               <a>IRI mapping</a> is not a substring at the beginning of
@@ -4558,6 +4593,11 @@
       be expressed in <a>array</a> form.</li>
     <li>Added support for the <a data-link-for="JsonLdOptions">compactToRelative</a> option to allow IRI compaction (<a href="#iri-compaction" class="sectionRef"></a>)
       to document relative IRIs to be disabled.</li>
+    <li>In JSON-LD 1.1, terms will be used as compact IRI prefixes
+      when compacting only if
+      they are <a>simple term definitions</a> and either end with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
+      or where the term itself ends with a colon (<code>:</code>).
+      When compacting, preference is given to terms ending in a colon.</li>
   </ul>
 </section>
 
@@ -4567,8 +4607,9 @@
   <p class="issue" data-number="195"></p>
   <p class="issue" data-number="333"></p>
   <p class="issue" data-number="357"></p>
-  <p class="issue" data-number="405"></p>
+  <p class="issue" data-number="470"></p>
   <p class="issue" data-number="480"></p>
+  <p class="issue" data-number="488"></p>
   <p class="issue" data-number="495"></p>
 </section>
 
