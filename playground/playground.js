@@ -139,8 +139,8 @@
           }
         }
         else {
-          playground.toggleRemote(fieldName, true);
           rval = playground.setRemoteUrl(fieldName, param);
+          playground.toggleRemote(fieldName, true);
           if(rval){
             rval.then(function(data){
               queryData[fieldName] = data;
