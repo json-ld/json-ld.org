@@ -686,6 +686,7 @@
       or <dfn data-lt="language mappings">language mapping</dfn>,
       <span class="changed">an optional <a>context</a></span>,
       <span class="changed">an optional <dfn>nest value</dfn>,</span>
+      <span class="changed">an optional <dfn>prefix flag</dfn>,</span>
       and an optional <dfn data-lt="container mappings">container mapping</dfn>.
       A <a>term definition</a> can not only be used to map a <a>term</a>
       to an IRI, but also to map a <a>term</a> to a <a>keyword</a>,
@@ -1033,6 +1034,14 @@
               error has been detected and processing is aborted; if it equals <code>@context</code>, an
               <a data-link-for="JsonLdErrorCode">invalid keyword alias</a>
               error has been detected and processing is aborted.</li>
+            <li class="changed">If <a>processing mode</a> is <code>json-ld-1.0</code>, and the,
+              <a>IRI mapping</a> of <em>definition</em> ends with a URI
+              <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
+              set the <a>prefix flag</a> in <em>definition</em> to <code>true</code>.
+              Otherwise, if the <a>IRI mapping</a> ends with a URI
+              <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
+              set the <a>prefix flag</a> in <em>definition</em> to <code>true</code>, only if
+              <em>value</em> was originally a <a>string</a>.</li>
           </ol>
         </li>
         <li>
@@ -1124,9 +1133,21 @@
               error has been detected and processing is aborted.</li>
           </ol>
         </li>
+        <li class="changed">If <em>value</em> contains the key <code>@prefix</code>:
+          <ol class="algorithm">
+            <li>If processingMode is <code>json-ld-1.0</code>, an
+              <a data-link-for="JsonLdErrorCode">invalid term definition</a>
+              has been detected and processing is aborted.</li>
+            <li>Initialize the <em>prefix flag</em> to the value associated with the
+              <code>@prefix</code> key, which must be a <a>boolean</a>. Otherwise, an
+              <a data-link-for="JsonLdErrorCode">invalid @prefix value</a>
+              error has been detected and processing is aborted.</li>
+          </ol>
+        </li>
         <li>If the value contains any key other than <code>@id</code>,
           <code>@reverse</code>, <code>@container</code>,
-          <code class="changed">@context</code>, <code class="changed">@nest</code>, or <code>@type</code>, an
+          <code class="changed">@context</code>, <code class="changed">@nest</code>,
+          <code class="changed">@prefix</code>, or <code>@type</code>, an
           <a data-link-for="JsonLdErrorCode">invalid term definition</a> error has
           been detected and processing is aborted.</li>
         <li>Set the <a>term definition</a> of <em>term</em> in
@@ -2511,9 +2532,8 @@
         if there is one. If the <a>IRI</a> could not be compacted, an
         attempt is made to find a <a>compact IRI</a>.
         <span class="changed">A term will be used to create a <a>compact IRI</a>
-          only if the term ends with a colon (<code>:</code>), or if
-          a <a>simple term definition</a> is used where its value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a>,
-          with preference given to term maps to a string ending with a colon (<code>:</code>).</span>
+          only if the <a>term definition</a> contains the <a>prefix flag</a>
+          with the value <code>true</code>.</span>
         If there is no appropriate <a>compact IRI</a>,
         <span class="changed">and the <a data-link-for="JsonLdOptions">compactToRelative</a> option is <code>true</code>,</span>
         the <a>IRI</a> is
@@ -2703,49 +2723,16 @@
           Try to create a <a>compact IRI</a>, starting by initializing
           <em>compact IRI</em> to <code>null</code>. This variable will be used to
           tore the created <a>compact IRI</a>, if any.</li>
-        <li class="changed">For each key <a>term</a> and value <a>term definition</a> in
+        <li>or each key <a>term</a> and value <a>term definition</a> in
           the <a>active context</a>:
           <ol class="algorithm">
-            <li>If the <a>term</a> does not end with a colon (<code>:</code>),
-              then continue to the next <a>term</a>.</li>
-            <li>If the <a>term definition</a> is not a <a>simple term definitions</a> then continue to the
-              next <a>term</a>, because <a>expanded term definitions</a> are not used for
-              creating <a>compact IRIs</a>.</li>
             <li>If the <a>term definition</a> is <code>null</code>,
-              its <a>IRI mapping</a> equals <em>iri</em>, or its
+              its <a>IRI mapping</a> equals <em>iri</em>, its
               <a>IRI mapping</a> is not a substring at the beginning of
-              <em>iri</em>, the <a>term</a> cannot be used as a <a>prefix</a>
-              because it is not a partial match with <em>iri</em>.
-              Continue with the next <a>term</a>.</li>
-            <li>Initialize <em>candidate</em> by concatenating <a>term</a>
-              and the substring of <em>iri</em>
-              that follows after the value of the
-              <a data-lt="term definition">term definition's</a>
-              <a>IRI mapping</a>.</li>
-            <li>If either <em>compact IRI</em> is <code>null</code> or <em>candidate</em> is
-              shorter or the same length but lexicographically less than
-              <em>compact IRI</em> and <em>candidate</em> does not have a
-              <a>term definition</a> in <a>active context</a> or if the
-              <a>term definition</a> has an <a>IRI mapping</a>
-              that equals <em>iri</em> and <em>value</em> is <code>null</code>,
-              set <em>compact IRI</em> to <em>candidate</em>.</li>
-          </ol>
-        </li>
-        <li><span class="changed">If <em>compact IRI</em> is <strong>null</strong>, then</span> for each key <a>term</a> and value <a>term definition</a> in
-          the <a>active context</a>:
-          <ol class="algorithm">
-            <li>If the <a>term</a> contains a colon (<code>:</code>),
-              then continue to the next <a>term</a> because
-              <a>terms</a> with colons can't be
-              used as <a>prefixes</a>.</li>
-            <li class="changed">If the <a>term definition</a> is not a <a>simple term definitions</a> then continue to the
-              next <a>term</a>, because <a>expanded term definitions</a> are not used for
-              creating <a>compact IRIs</a>.</li>
-            <li>If the <a>term definition</a> is <code>null</code>,
-              its <a>IRI mapping</a> equals <em>iri</em>, or its
-              <a>IRI mapping</a> is not a substring at the beginning of
-              <em>iri</em>, the <a>term</a> cannot be used as a <a>prefix</a>
-              because it is not a partial match with <em>iri</em>.
+              <em>iri</em>,
+              <span class="changed"> or the term definition does not contain
+                the <a>prefix flag</a> having a value of <code>true</code>,</span>
+              the <a>term</a> cannot be used as a <a>prefix</a>.
               Continue with the next <a>term</a>.</li>
             <li>Initialize <em>candidate</em> by concatenating <a>term</a>,
               a colon (<code>:</code>), and the substring of <em>iri</em>
@@ -4406,6 +4393,7 @@
             "invalid @id value",
             "invalid @index value",
             "invalid @nest value",
+            "invalid @prefix value",
             "invalid @reverse value",
             "invalid @version value",
             "invalid base IRI",
@@ -4461,6 +4449,8 @@
           not a <a>string</a>.</dd>
         <dt class="changed"><dfn>invalid @nest value</dfn></dt>
         <dd class="changed">An invalid value for <code>@nest</code> has been found.</dd>
+        <dt class="changed"><dfn>invalid @prefix value</dfn></dt>
+        <dd class="changed">An invalid value for <code>@prefix</code> has been found.</dd>
         <dt><dfn>invalid @reverse value</dfn></dt>
         <dd>An invalid value for an <code>@reverse</code> member has been detected,
           i.e., the value was not a <a class="changed">dictionary</a>.</dd>
@@ -4609,8 +4599,10 @@
     <li>In JSON-LD 1.1, terms will be used as <a>compact IRI</a> prefixes
       when compacting only if
       a <a>simple term definition</a> is used where the value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
-      or where the <a>term</a> itself ends with a colon (<code>:</code>).
-      When compacting, preference is given to <a>terms</a> ending in a colon.</li>
+      or if their <a>expanded term definition</a> contains
+      a <code>@prefix</code> member with the value <a>true</a>. The 1.0 algorithm has
+      been updated to only consider terms that map to a value that ends with a URI
+      <a data-cite="RFC3986#section-2.2">gen-delim</a> character.</li>
   </ul>
 </section>
 
