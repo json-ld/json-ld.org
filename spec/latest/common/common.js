@@ -12,7 +12,7 @@ var jsonld = {
     },
     "JSON-LD-API": {
       title: "JSON-LD 1.1 Processing Algorithms and API",
-      href: "http://json-ld.org/spec/latest/json-ld/",
+      href: "http://json-ld.org/spec/latest/json-ld-api/",
       authors: ["Markus Lanthaler", "Gregg Kellogg", "Manu Sporny"],
       publisher: "W3C",
       status: 'CG Draft'

@@ -404,6 +404,9 @@
         This keyword is described in <a class="sectionRef" href="#named-graphs"></a>.</dd>
       <dt class="changed"><code>@nest</code></dt><dd class="changed">Collects a set of <a>nested properties</a> within
         a <a>node object</a>.</dd>
+      <dt class="changed"><code>@prefix</code></dt><dd class="changed">
+        With the value <a>true</a>, allows this <a>term</a> to be used to construct a <a>compact IRI</a>
+        when compacting.</dd>
       <dt class="changed"><code>@version</code></dt><dd class="changed">
         Used in a <a>context definition</a> to set the <a>processing mode</a>.
         New features since <a data-cite="JSON-LD-20140116">JSON-LD 1.0</a> [[!JSON-LD-20140116]] described in this specification are
@@ -1043,6 +1046,20 @@
     underscore (<code>_</code>), the value is interpreted as <a>blank node identifier</a>
     instead.</p>
 
+  <p class="changed">In JSON-LD 1.0, terms will be used as <a>compact IRI</a> prefixes when
+  compacting only if they map to a value that ends with a URI <a
+  data-cite="RFC3986#section-2.2">gen-delim</a> character (e.g, <code>/</code>,
+  <code>#</code> and others, see [[!RFC3986]]).</p>
+
+  <p class="note">This represents a small change to the 1.0 algorithm to prevent IRIs
+    that are not really intended to be used as prefixes from being used for creating
+    <a>compact IRIs</a>.</p>
+
+  <p class="changed">When <a>processing mode</a> is set to <code>json-ld-1.1</code>, terms will be used as <a>compact IRI</a> prefixes
+    when compacting only if their <a>expanded term definition</a> contains
+    a <code>@prefix</code> member with the value <a>true</a>, or if it has a
+    a <a>simple term definition</a>  where the value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character
+    (e.g, <code>/</code>, <code>#</code> and others, see [[!RFC3986]]).</p>
 
   <p>It's also possible to use compact IRIs within the context as shown in the
     following example:</p>
@@ -2228,7 +2245,7 @@ specified. The full <a>IRI</a> for
   <p>Scoping on <code>@type</code> is useful when common properties are used to relate things of different types, where the vocabularies in use within different entities calls for different context scoping. For example, `hasPart`/`partOf` may be common terms used in a document, but mean different things depending on the context.</p>
 
   <p class="note">Scoped Contexts are a new feature in JSON-LD 1.1, requiring
-    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
+    <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
 </section>
 
 
@@ -2788,7 +2805,7 @@ specified. The full <a>IRI</a> for
   </pre>
 
   <p class="note"><a>Id maps</a> are a new feature in JSON-LD 1.1, requiring
-    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
+    <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
 </section>
 
 <section class="informative changed">
@@ -2869,7 +2886,7 @@ specified. The full <a>IRI</a> for
   </pre>
 
   <p class="note"><a>Type maps</a> are a new feature in JSON-LD 1.1, requiring
-    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
+    <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
 </section>
 
 <section class="informative changed">
@@ -2951,7 +2968,7 @@ specified. The full <a>IRI</a> for
   </pre>
 
   <p class="note"><a>Nested properties</a> are a new feature in JSON-LD 1.1, requiring
-    <a>processing mode</a> set to <code>json-ld-1.1</code></p>
+    <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
 </section>
 
 <section class="informative">
@@ -3682,7 +3699,8 @@ specified. The full <a>IRI</a> for
 
   <p>An <a>expanded term definition</a> MUST be a <a>JSON object</a>
     composed of zero or more keys from <code>@id</code>, <code>@reverse</code>,
-    <code>@type</code>, <code>@language</code>, <code class="changed">@context</code> or <code>@container</code>. An
+    <code>@type</code>, <code>@language</code>, <code class="changed">@context</code>,
+    <code class="changed">@prefix</code> or <code>@container</code>. An
     <a>expanded term definition</a> SHOULD NOT contain any other keys.</p>
 
   <p>If an <a>expanded term definition</a> has an <code>@reverse</code> member,
@@ -3727,13 +3745,16 @@ specified. The full <a>IRI</a> for
   <p class="changed">If an <a>expanded term definition</a> has an <code>@context</code> member,
     it MUST be a valid <code>context definition</code>.</p>
 
+  <p class="changed">If the <a>expanded term definition</a> contains the <code>@nest</code>
+    <a>keyword</a>, its value MUST be either <code>@nest</code>, or a term
+    which expands to <code>@nest</code>.</p>
+
+  <p class="changed">If the <a>expanded term definition</a> contains the <code>@prefix</code>
+    <a>keyword</a>, its value MUST be <code>true</code> or <code>false</code>.</p>
+
   <p><a>Terms</a> MUST NOT be used in a circular manner. That is,
     the definition of a term cannot depend on the definition of another term if that other
     term also depends on the first term.</p>
-
-  <p>If the <a>expanded term definition</a> contains the <code>@nest</code>
-    <a>keyword</a>, its value MUST be either <code>@nest</code>, or a term
-    which expands to <code>@nest</code>.</p>
 
   <p>See <a class="sectionRef" href="#the-context"></a> for further discussion on contexts.</p>
 </section>
@@ -3937,6 +3958,13 @@ specified. The full <a>IRI</a> for
       keyword along with <code>@set</code> (other than <code>@list</code>).
       This allows a way to ensure that such property values will always
       be expressed in <a>array</a> form.</li>
+    <li>In JSON-LD 1.1, terms will be used as <a>compact IRI</a> prefixes
+      when compacting only if
+      a <a>simple term definition</a> is used where the value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
+      or if their <a>expanded term definition</a> contains
+      a <code>@prefix</code> member with the value <a>true</a>. The 1.0 algorithm has
+      been updated to only consider terms that map to a value that ends with a URI
+      <a data-cite="RFC3986#section-2.2">gen-delim</a> character.</li>
   </ul>
 </section>
 
@@ -3944,10 +3972,7 @@ specified. The full <a>IRI</a> for
   <h4>Open Issues</h4>
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="195"></p>
-  <p class="issue" data-number="269"></p>
   <p class="issue" data-number="333"></p>
-  <p class="issue" data-number="407"></p>
-  <p class="issue" data-number="429"></p>
   <p class="issue" data-number="481"></p>
 </section>
 
