@@ -865,7 +865,7 @@
       var signed = null;
       var publicKeyFromPrivateKey;
       try {
-        publicKeyFromPrivateKey = new bitcoreMessage.Bitcore.PrivateKey(privateKey).toPublicKey().toAddress('livenet');
+        publicKeyFromPrivateKey = new bitcoreMessage.Bitcore.PrivateKey(privateKey).toPublicKey();
       } catch (e) {
         promise = Promise.reject(e)
       }
