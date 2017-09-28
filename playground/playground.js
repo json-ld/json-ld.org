@@ -786,7 +786,7 @@
    * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
-    var processor = new jsonld.JsonLdProcessor();
+    var processor = new jsonld.promises;
 
     // set base IRI
     var options = {
@@ -1312,7 +1312,7 @@
   // event handlers
   $(document).ready(function() {
     // Add custom document loader that uses a context URL map.
-    var jqueryDocumentLoader = jsonld.documentLoaders.jquery($);
+    var xhrDocumentLoader = jsonld.documentLoaders.xhr();
     // FIXME: add UI to let users control and set context mapping
     jsonld.documentLoader = function(url) {
       if(url in playground.contextMap) {
@@ -1347,7 +1347,7 @@
         ].join('');
       }
 
-      return jqueryDocumentLoader(url);
+      return xhrDocumentLoader(url);
     };
 
     // set up buttons to load examples
