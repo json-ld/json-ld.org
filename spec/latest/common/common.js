@@ -50,7 +50,7 @@ var jsonld = {
 // Add class "preserve" to a definition to ensure it is not removed.
 //
 // the termlist is in a block of class "termlist", so make sure that
-// has an ID and put that ID into the termLists array so we can 
+// has an ID and put that ID into the termLists array so we can
 // interrogate all of the included termlists later.
 var termNames = [] ;
 var termLists = [] ;
@@ -63,7 +63,7 @@ function restrictReferences(utils, content) {
     // New new logic:
     //
     // 1. build a list of all term-internal references
-    // 2. When ready to process, for each reference INTO the terms, 
+    // 2. When ready to process, for each reference INTO the terms,
     // remove any terms they reference from the termNames array too.
     $.each(base.querySelectorAll("dfn:not(.preserve)"), function(i, item) {
         var $t = $(item) ;
@@ -112,7 +112,7 @@ function internalizeTermListReferences() {
         }
     });
 
-    // clearRefs is recursive.  Walk down the tree of 
+    // clearRefs is recursive.  Walk down the tree of
     // references to ensure that all references are resolved.
     var clearRefs = function(theTerm) {
         if ( termsReferencedByTerms[theTerm] ) {
@@ -128,9 +128,9 @@ function internalizeTermListReferences() {
             delete termNames[theTerm];
         }
     };
-   
-    // now termsReferencedByTerms has ALL terms that 
-    // reference other terms, and a list of the 
+
+    // now termsReferencedByTerms has ALL terms that
+    // reference other terms, and a list of the
     // terms that they reference
     $("a.internalDFN").each(function () {
         var $item = $(this) ;

@@ -5,7 +5,7 @@
 # Copyright (c) 1998-2006 MACS, Inc.
 #
 # Copyright (c) 2007 SiSco, Inc.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -13,10 +13,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -188,7 +188,7 @@ sub markit {
 	my $temp = "";
 	my $lineCount = 0;
 
-# strategy: 
+# strategy:
 #
 # process the output of diff...
 #
@@ -208,7 +208,7 @@ sub markit {
 		my $anchor = $opt_l ? qq[<a tabindex="$diffcounter">] : "" ;
 		my $anchorEnd = $opt_l ? q[</a>] : "" ;
 		$lineCount ++;
-		if ($state == 0) {	# if we are resting and we find a marker, 
+		if ($state == 0) {	# if we are resting and we find a marker,
 							# then we must be entering a block
 			if (m/^([\001-\004])/) {
 				$state = ord($1);
@@ -327,7 +327,7 @@ function setOldDisplay() {
 : '';
 				return;
 			}
-		} 
+		}
 		} catch(e) {} ;
 	}
 }
