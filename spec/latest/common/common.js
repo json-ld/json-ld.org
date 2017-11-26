@@ -173,7 +173,7 @@ function updateExample(doc, content) {
   // perform transformations to make it render and prettier
   content = unComment(doc, content);
   content = _esc(content);
-  content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="highlight">$1</span>');
+  content = content.replace(/\*\*\*\*([^*]*)\*\*\*\*/g, '<span class="hl-bold">$1</span>');
   content = content.replace(/####([^#]*)####/g, '<span class="comment">$1</span>');
   return content ;
 }
