@@ -413,9 +413,6 @@
         only available when <a>processing mode</a> has been explicitly set to
         <code>json-ld-1.1</code>.
       </dd>
-      <dt class="changed"><code>@graphId</code></dt><dd class="changed">
-        Used to name a <a>named graph</a> which is created from the value of a <a>property</a> where the associated <a>term definition</a> has <code>@container</code> set to <code>@graph</code>. This keyword is described in <a class="sectionRef" href="#graph-containers"></a>.
-      </dd>
       <dt><code>:</code></dt>
       <dd>The separator for JSON keys and values that use
         <a>compact IRIs</a>.</dd>
@@ -2589,83 +2586,6 @@ specified. The full <a>IRI</a> for
     -->
     </pre>
 
-    <p>You can optionally use the <code>@graphId</code> within the
-      <a>expanded term definition</a> to assign a specific <a>graph name</a> to
-      an <a>implicitly named graph</a>. Note that multiple values of such a
-      term will each be given the same <a>graph name</a> defined using
-      <code>@graphId</code>.</p>
-
-    <pre class="example nohighlight" data-transform="updateExample"
-         title="Implicitly named graph with graph name">
-    <!--
-    {
-      "@context": {
-        ****"@version": 1.1****,
-        "generatedAt": {
-          "@id": "http://www.w3.org/ns/prov#generatedAtTime",
-          "@type": "http://www.w3.org/2001/XMLSchema#date"
-        },
-        "Person": "http://xmlns.com/foaf/0.1/Person",
-        "name": "http://xmlns.com/foaf/0.1/name",
-        "knows": "http://xmlns.com/foaf/0.1/knows",
-        "claim": {
-         "@id": "https://w3id.org/credentials#claim",
-          "@container": "@graph",
-          ****"@graphId": "http://example.org/claim-1"****
-        }
-      },
-      "generatedAt": "2012-04-09",
-      "claim": [
-        {
-          "@id": "http://manu.sporny.org/about#manu",
-          "@type": "Person",
-          "name": "Manu Sporny",
-          "knows": "http://greggkellogg.net/foaf#me"
-        }, {
-          "@id": "http://greggkellogg.net/foaf#me",
-          "@type": "Person",
-          "name": "Gregg Kellogg",
-          "knows": "http://manu.sporny.org/about#manu"
-        }
-      ]
-    }
-    -->
-    </pre>
-
-    <pre class="example nohighlight" data-transform="updateExample"
-         title="Implicitly named graph with graph name after expansion">
-    <!--
-    [{
-      "http://www.w3.org/ns/prov#generatedAtTime": [{
-        "@value": "2012-04-09",
-        "@type": "http://www.w3.org/2001/XMLSchema#date"
-      }],
-      "https://w3id.org/credentials#claim": [{
-        ****"@id": "http://example.org/claim-1",****
-        "@graph": [{
-          "@id": "http://manu.sporny.org/about#manu",
-          "@type": ["http://xmlns.com/foaf/0.1/Person"],
-          "http://xmlns.com/foaf/0.1/knows": [{
-            "@value": "http://greggkellogg.net/foaf#me"
-          }],
-          "http://xmlns.com/foaf/0.1/name": [{
-            "@value": "Manu Sporny"
-          }]
-        }, {
-          "@id": "http://greggkellogg.net/foaf#me",
-          "@type": ["http://xmlns.com/foaf/0.1/Person"],
-          "http://xmlns.com/foaf/0.1/knows": [{
-            "@value": "http://manu.sporny.org/about#manu"
-          }],
-          "http://xmlns.com/foaf/0.1/name": [{
-            "@value": "Gregg Kellogg"
-          }]
-        }]
-      }]
-    }]
-    -->
-    </pre>
-
     <p class="note">Strictly speaking, the value of such a <a>term</a>
       is not a <a>named graph</a>, rather it is the <a>graph name</a>
       associated with the <a>named graph</a>, which exists separately within
@@ -3962,7 +3882,6 @@ specified. The full <a>IRI</a> for
     <code>@type</code>,
     <code>@language</code>,
     <code class="changed">@context</code>,
-    <code class="changed">@graphId</code>,
     <code class="changed">@prefix</code>, or
     <code>@container</code>. An
     <a>expanded term definition</a> SHOULD NOT contain any other keys.</p>
@@ -4022,12 +3941,6 @@ specified. The full <a>IRI</a> for
 
   <p class="changed">If the <a>expanded term definition</a> contains the <code>@prefix</code>
     <a>keyword</a>, its value MUST be <code>true</code> or <code>false</code>.</p>
-
-  <p class="changed">If the <a>expanded term definition</a> contains
-    the <code>@graphId</code> <a>keyword</a>, its value MUST be an <a>absolute
-    IRI</a>, a <a>compact IRI</a>, a <a>term</a>, or <a>null</a>. Additionally,
-    the value of <code>@container</code> must be <code>@graph</code>, or an
-    array containing <code>@graph</code> and <code>@set</code>.</p>
 
   <p><a>Terms</a> MUST NOT be used in a circular manner. That is,
     the definition of a term cannot depend on the definition of another term if that other
