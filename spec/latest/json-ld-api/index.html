@@ -89,7 +89,7 @@
 //]]>
 </script>
 <style type="text/css">
-  .highlight {
+  .hl-bold {
     font-weight: bold;
     color: #0a3;
   }
@@ -212,7 +212,7 @@
       the internal representation use of <a>dictionaries</a> are represented using
       <a>JSON objects</a>.</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample JSON-LD document">
     <!--
     {
@@ -300,7 +300,7 @@
       here is an example of JSON-LD that uses only <a>terms</a>
       and is fairly compact:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample JSON-LD document">
     <!--
     {
@@ -322,7 +322,7 @@
     and an <a>array</a> to encapsulate another, but
     leaves the rest of the information untouched.</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample JSON-LD document using an IRI instead of a term to express a property">
     <!--
     {
@@ -354,7 +354,7 @@
       (<a data-link-for="JsonLdProcessor">expand</a>)
       operation) against the above examples results in the following output:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Expanded sample document">
     <!--
     [
@@ -407,7 +407,7 @@
 
     <p>For example, assume the following expanded JSON-LD input document:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Expanded sample document">
     <!--
     [
@@ -427,7 +427,7 @@
     <p>Additionally, assume the following developer-supplied JSON-LD
       <a>context</a>:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="JSON-LD context">
     <!--
     {
@@ -447,7 +447,7 @@
       operation) given the context supplied above against the JSON-LD input
       document provided above would result in the following output:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Compacted sample document">
     <!--
     {
@@ -494,7 +494,7 @@
 
     <p>For example, assume the following JSON-LD input document:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample JSON-LD document">
     <!--
     {
@@ -518,7 +518,7 @@
       operation) with a context set to <a>null</a> to prevent compaction
       returns the following document:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Flattened sample document in expanded form">
     <!--
     [
@@ -555,7 +555,7 @@
       the same context as the input document, the flattened and compacted document
       looks as follows:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Flattened and compacted sample document">
     <!--
     {
@@ -593,7 +593,7 @@
 
     <p>For example, assume the following RDF input serialized in Turtle [[TURTLE]]:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample Turtle document">
     <!--
     <http://me.markus-lanthaler.com/> <http://xmlns.com/foaf/0.1/name> "Markus Lanthaler" .
@@ -604,7 +604,7 @@
     <p>Using the <a href="#serialize-rdf-as-json-ld-algorithm">Serialize RDF as JSON-LD algorithm</a>
       a developer could transform this document into expanded JSON-LD:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample Turtle document converted to JSON-LD">
     <!--
     [
@@ -1074,20 +1074,27 @@
           <ol class="algorithm">
             <li>Initialize <em>container</em> to the value associated with the
               <code>@container</code> key, which must be either
-              <code>@list</code>, <code>@set</code>, <code>@index</code>,
-              <span class="changed"><code>@id</code>, <code>@type</code></span>
-              or <code>@language</code>,
+              <span class="changed"><code>@graph</code>,
+              <span class="changed"><code>@id</code>,
+              <code>@index</code>,
+              <code>@language</code>.
+              <code>@list</code>,
+              <code>@set</code>, or
+              <code>@type</code></span>.
               <span class="changed">
-                or an <a>array</a> containing exactly any one of those keywords,
-                or a combination of <code>@set</code> and any of <code>@index</code>,
-                <code>@id</code>, <code>@type</code>, <code>@language</code>
-                in any order
+                or an <a>array</a> containing exactly any one of those
+                keywords, an <a>array</a> containing <code>@graph</code> and
+                either <code>@id</code> or <code>@index</code> optionally
+                including <code>@set</code>, or an <a>array</a> containing a
+                combination of <code>@set</code> and any of
+                <code>@index</code>, <code>@id</code>, <code>@type</code>,
+                <code>@language</code> in any order
               </span>.
               Otherwise, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li class="changed">If processingMode is <code>json-ld-1.0</code> and the container value
-              is <code>@id</code> or <code>@type</code>, or is otherwise not a <a>string</a>, an
+              is <code>@graph</code>, <code>@id</code>, or <code>@type</code>, or is otherwise not a <a>string</a>, an
               <a data-link-for="JsonLdErrorCode">invalid container mapping</a>
               has been detected and processing is aborted.</li>
             <li>Set the <a>container mapping</a> of <em>definition</em> to
@@ -1377,7 +1384,7 @@
                   algorithm recursively, passing <a>active context</a>,
                   <a>active property</a>, and <em>item</em> as <em>element</em>.</li>
                 <li>If the <a>active property</a> is <code>@list</code> or its
-                  <a>container mapping</a> is set to <code>@list</code>, the
+                  <a>container mapping</a> <span class="changed">includes</span> <code>@list</code>, the
                   <em>expanded item</em> must not be an <a>array</a> or a
                   <a>list object</a>, otherwise a
                   <a data-link-for="JsonLdErrorCode">list of lists</a>
@@ -1587,7 +1594,7 @@
               <em>key</em>'s <a>local context</a> as <a>local context</a>. Otherwise,
               set <em>term context</em> to <a>active context</a>.</li>
             <li>If <em>key</em>'s <a>container mapping</a> in
-              <em class="changed">term context</em> is <code>@language</code> and
+              <em class="changed">term context</em> <span class="changed">includes</span> <code>@language</code> and
               <em>value</em> is a <a class="changed">dictionary</a> then <em>value</em>
               is expanded from a <a>language map</a>
               as follows:
@@ -1612,7 +1619,9 @@
                           key-value pairs: (<code>@value</code>-<em>item</em>)
                           and (<code>@language</code>-lowercased
                           <em>language</em>),
-                          <span class="changed">unless <em>item</em> is <code>null</code></span>.</li>
+                          <span class="changed">unless <em>item</em> is <code>null</code></span>.
+                          <span class="ednote">From <a href="#issue-480">Issue 480</a>
+                          the <a>language tag</a> <code>@none</code> represents no language.</span></li>
                       </ol>
                     </li>
                   </ol>
@@ -1620,7 +1629,7 @@
               </ol>
             </li>
             <li>Otherwise, if <em>key</em>'s <a>container mapping</a> in
-              <em class="changed">term context</em> is <code>@index</code>,
+              <em class="changed">term context</em> <span class="changed">includes</span> <code>@index</code>,
               <span class="changed"><code>@type</code>, or <code>@id</code></span> and
               <em>value</em> is a <a class="changed">dictionary</a> then <em>value</em>
               is expanded from an map as follows:
@@ -1630,7 +1639,7 @@
                 <li>For each key-value pair <em>index</em>-<em>index value</em>
                   in <em>value</em>, ordered lexicographically by <em>index</em>:
                   <ol class="algorithm">
-                    <li class="changed">If <a>container mapping</a> is <code>@type</code>,
+                    <li class="changed">If <a>container mapping</a> <span class="changed">includes</span> <code>@type</code>,
                       and <em>index</em>'s <a>term definition</a> in
                       <em>term context</em> has a <a>local context</a>, set
                       <em>map context</em> to the result of the <a
@@ -1649,12 +1658,20 @@
                       and <em>index value</em> as <em>element</em>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
                       <ol class="algorithm changed">
-                        <li>If <a>container mapping</a> is <code>@index</code>
+                        <li>If <a>container mapping</a> <span class="changed">includes</span>
+                          <code>@graph</code> and if <em>item</em> is not a
+                          <a>graph object</a>, set <em>item</em> to a new
+                          <a>dictionary</a> containing the key-value pair
+                          <code>@graph</code>-<em>item</em>, ensuring that the
+                          value is represented using an <a>array</a>.</li>
+                        <li>If <a>container mapping</a> <span class="changed">includes</span> <code>@index</code>
                           and <em>item</em> does not have the key
                           <code>@index</code>, add the key-value pair
                           (<code>@index</code>-<em>index</em>) to
-                          <em>item</em>.</li>
-                        <li>Otherwise, if <a>container mapping</a> is <code>@id</code>
+                          <em>item</em>.
+                          <span class="ednote">From <a href="#issue-480">Issue 480</a>
+                          the index <code>@none</code> represents no index.</span></li>
+                        <li>Otherwise, if <a>container mapping</a> <span class="changed">includes</span> <code>@id</code>
                           and <em>item</em> does not have the key
                           <code>@id</code>, add the key-value pair
                           (<code>@id</code>-<em>expanded index</em>) to
@@ -1663,7 +1680,7 @@
                           <a href="#iri-expansion">IRI Expansion algorithm</a>,
                           passing <a>active context</a>, <em>index</em>, and <code>true</code>
                           for <em>document relative</em>.</li>
-                        <li>Otherwise, if <a>container mapping</a> is <code>@type</code>
+                        <li>Otherwise, if <a>container mapping</a> <span class="changed">includes</span> <code>@type</code>
                           set <em>types</em> to the concatenation of
                           <em>expanded index</em> with any existing values of
                           <code>@type</code> in <em>item</em>, where
@@ -1689,13 +1706,22 @@
             <li>If <em>expanded value</em> is <code>null</code>, ignore <em>key</em>
               by continuing to the next <em>key</em> from <em>element</em>.</li>
             <li>If the <a>container mapping</a> associated to <em>key</em> in
-              <em class="changed">term context</em> is <code>@list</code> and
+              <em class="changed">term context</em> <span class="changed">includes</span> <code>@list</code> and
               <em>expanded value</em> is not already a <a>list object</a>,
               convert <em>expanded value</em> to a <a>list object</a>
               by first setting it to an <a>array</a> containing only
               <em>expanded value</em> if it is not already an <a>array</a>,
               and then by setting it to a <a class="changed">dictionary</a> containing
               the key-value pair <code>@list</code>-<em>expanded value</em>.</li>
+            <li class="changed">If the <a>container mapping</a> associated to
+              <em>key</em> in <em>term context</em> <span>includes</span>
+              <code>@graph</code> and <em>expanded value</em> is not already a
+              <a>graph object</a>, convert <em>expanded value</em> to a
+              <a>graph object</a> by first setting it to an <a>array</a>
+              containing only <em>expanded value</em> if it is not already an
+              <a>array</a>, and then by setting it to a <a>dictionary</a>
+              containing the key-value pair <code>@graph</code>-<em>expanded
+              value</em>.</li>
             <li>Otherwise, if the <a>term definition</a> associated to
               <em>key</em> indicates that it is a <a>reverse property</a>
               <ol class="algorithm">
@@ -1872,7 +1898,9 @@
               value to the language code associated with the
               <a>language mapping</a>; unless the
               <a>language mapping</a> is set to <code>null</code> in
-              which case no member is added.</li>
+              which case no member is added. 
+              <span class="ednote">From <a href="#issue-480">Issue 480</a>
+              the <a>language tag</a> <code>@none</code> represents no language.</span></li>
             <li>Otherwise, if the <a>active context</a> has a
               <a>default language</a>, add an <code>@language</code>
               to <em>result</em> and set its value to the
@@ -2084,7 +2112,7 @@
                       <ol class="algorithm">
                         <li>If the <a>term definition</a> for <em>property</em> in
                           the <a>active context</a> has a
-                          <a>container mapping</a> of <code>@set</code> or
+                          <a>container mapping</a> <span class="changed">including</span> <code>@set</code> or
                           <a data-link-for="JsonLdOptions">compactArrays</a>
                           is <code>false</code>, and <em>value</em> is not an
                           <a>array</a>, set <em>value</em> to a new
@@ -2132,10 +2160,12 @@
             </li>
             <li>If <em>expanded property</em> is <code>@index</code> and
               <a>active property</a> has a <a>container mapping</a>
-              in <a>active context</a> that is <code>@index</code>,
+              in <a>active context</a> that <span class="changed">includes</span> <code>@index</code>,
               then the compacted result will be inside of an <code>@index</code>
               container, drop the <code>@index</code> property by continuing
-              to the next <em>expanded property</em>.</li>
+              to the next <em>expanded property</em>.
+              <span class="ednote">From <a href="#issue-480">Issue 480</a>
+              the index <code>@none</code> represents no index.</span></li>
             <li>Otherwise, if <em>expanded property</em> is <code>@index</code>,
               <code>@value</code>, or <code>@language</code>:
               <ol class="algorithm">
@@ -2217,8 +2247,9 @@
                   <a>active context</a>, <a>inverse context</a>,
                   <em>item active property</em> for <a>active property</a>,
                   <em>expanded item</em> for <em>element</em> if it does
-                  not contain the key <code>@list</code>, otherwise pass
-                  the key's associated value for <em>element</em>.</li>
+                  not contain the key <code>@list</code>
+                  <span class="changed">and is not a <a>graph object</a> containing <code>@list</code></span>,
+                  otherwise pass the key's associated value for <em>element</em>.</li>
                 <li>
                   If <em>expanded item</em> is a <a>list object</a>:
                   <ol class="algorithm">
@@ -2253,10 +2284,107 @@
                       error has been detected and processing is aborted.</li>
                   </ol>
                 </li>
+                <li class="changed">
+                  If <em>expanded item</em> is a <a>graph object</a>:
+                  <div class="ednote">This algorithm could be simplified by extracting
+                    common steps.</div>
+                  <ol class="algorithm">
+                    <li>If <em>container</em> includes <code>@graph</code> and <code>@id</code>:
+                      <ol class="algorithm">
+                        <li>Initialize <em>map object</em> to the value of <em>item active property</em>
+                          in <em class="changed">nest result</em>.</li>
+                        <li>Initialize <em>map key</em> to the result of calling the
+                          <a href="#iri-compaction">IRI Compaction algorithm</a>
+                          passing <a>active context</a> and the value associated
+                          with the key that equals <em>compacted container</em> in
+                          <em>compacted item</em> as <em>iri</em>.</li>
+                        <li class="changed">If <em>compacted item</em> is not an
+                          <a>array</a> and <em>as array</em> is <code>true</code>,
+                          set <em>compacted item</em> to an <a>array</a> containing that value.</li>
+                        <li>If <em>map key</em> is not a key in <em>map object</em>,
+                          then set this key's value in <em>map object</em>
+                          to <em>compacted item</em>. Otherwise, if the value
+                          is not an <a>array</a>, then set it to one
+                          containing only the value and then append
+                          <em>compacted item</em> to it.</li>
+                      </ol>
+                    </li>
+                    <li>Otherwise, if <em>container</em> includes <code>@graph</code> and <code>@index</code>
+                      and <em>expanded item</em> is a <a>simple graph object</a>:
+                      <ol class="algorithm">
+                        <li>Initialize <em>map object</em> to the value of <em>item active property</em>
+                          in <em class="changed">nest result</em>.</li>
+                        <li>Initialize <em>map key</em> the value of <code>@index</code> in
+                          <em>expanded item</em> or <code>@none</code>, if no such
+                          value exists.</li>
+                        <li class="changed">If <em>compacted item</em> is not an
+                          <a>array</a> and <em>as array</em> is <code>true</code>,
+                          set <em>compacted item</em> to an <a>array</a> containing that value.</li>
+                        <li>If <em>map key</em> is not a key in <em>map object</em>,
+                          then set this key's value in <em>map object</em>
+                          to <em>compacted item</em>. Otherwise, if the value
+                          is not an <a>array</a>, then set it to one
+                          containing only the value and then append
+                          <em>compacted item</em> to it.</li>
+                      </ol>
+                    </li>
+                    <li>Otherwise, if <em>container</em> includes <code>@graph</code>
+                      and <em>expanded item</em> is a <a>simple graph
+                      object</a> the value cannot be represented as a map
+                      object. If <em>compacted item</em> is not an <a>array</a>
+                      and <em>as array</em> is <code>true</code>, set
+                      <em>compacted item</em> to an <a>array</a> containing
+                      that value. If the value associated with the key that
+                      equals <em>item active property</em> in <em
+                      class="changed">nest result</em> is not an <a>array</a>,
+                      set it to a new <a>array</a> containing only the value.
+                      Then append <em>compacted item</em> to the value if
+                      <em>compacted item</em> is not an <a>array</a>,
+                      otherwise, concatenate it.
+                    </li>
+                    <li>Otherwise, <em>container</em> does not include <code>@graph</code>
+                      or otherwise does not match one of the previous cases, redo <em>compacted item</em>.
+                      <ol class="algorithm">
+                        <li>Set <em>compacted item</em> to a new dictionary containing
+                          the key resulting from calling the <a
+                          href="#iri-compaction">IRI Compaction algorithm</a>
+                          passing <a>active context</a>, <code>@graph</code> as
+                          <em>iri</em>, and <code>true</code> for
+                          <em>vocab</em> using the original <em>compacted
+                          item</em> as a value contained within an
+                          <a>array</a>.</li>
+                        <li>If expanded item contains the key <code>@id</code>,
+                          add the key resulting from calling the <a
+                          href="#iri-compaction">IRI Compaction algorithm</a>
+                          passing <a>active context</a>, <code>@id</code> as
+                          <em>iri</em>, and <code>true</code> for
+                          <em>vocab</em> using the value resulting from calling the <a
+                          href="#iri-compaction">IRI Compaction algorithm</a>
+                          passing <a>active context</a>, the value of <code>@id</code>
+                          in <em>expanded item</em> as
+                          <em>iri</em>.</li>
+                        <li>If expanded item contains the key <code>@index</code>,
+                          add the key resulting from calling the <a
+                          href="#iri-compaction">IRI Compaction algorithm</a>
+                          passing <a>active context</a>, <code>@index</code> as
+                          <em>iri</em>, and <code>true</code> for
+                          <em>vocab</em> using the value of <code>@index</code>
+                          in <em>expanded item</em>.</li>
+                        <li>If <em>as array</em> is <code>true</code>,
+                          set <em>compacted item</em> to an <a>array</a>
+                          containing that value.</li>
+                        <li>Then append <em>compacted item</em> to the value if
+                          <em>compacted item</em> is not an <a>array</a>,
+                          otherwise, concatenate it.</li>
+                      </ol>
+                    </li>
+                  </ol>
+                </li>
                 <li>
-                  If <em>container</em> <span class="changed">includes</span> <code>@language</code>,
+                  <span class="changed">Otherwise</span>, if <em>container</em> <span class="changed">includes</span> <code>@language</code>,
                   <code>@index</code>, <span class="changed"><code>@id</code>,
-                    or <code>@type</code></span>:
+                    or <code>@type</code></span>
+                    <span class="changed">and <em>container</em> does not include <code>@graph</code></span>:
                   <ol class="algorithm">
                     <li>If <em>item active property</em> is not a key in
                       <em class="changed">nest result</em>, initialize it to an empty <a class="changed">dictionary</a>.
@@ -2269,11 +2397,15 @@
                       for <em>vocab</em>.</li>
                     <li>Initialize <em>map key</em> to the value associated with
                       with the key that equals <em>container</em> in
-                      <em>expanded item</em>.</li>
+                      <em>expanded item</em>.
+                      <span class="ednote">From <a href="#issue-480">Issue 480</a>
+                      the index <code>@none</code> represents no index.</span></li>
                     <li>If <em>container</em> is <code>@language</code> and
                       <em>compacted item</em> contains the key
                       <code>@value</code>, then set <em>compacted item</em>
-                      to the value associated with its <code>@value</code> key.</li>
+                      to the value associated with its <code>@value</code> key.
+                      <span class="ednote">From <a href="#issue-480">Issue 480</a>
+                      the <a>language tag</a> <code>@none</code> represents no language.</span></li>
                     <li class="changed">If <em>container</em> is <code>@id</code>, set
                       <em>map key</em> to the result of calling the <a
                       href="#iri-compaction">IRI Compaction algorithm</a>
@@ -2651,6 +2783,8 @@
                   <em>common language</em>.</li>
               </ol>
             </li>
+            <li>Otherwise, if <em>value</em> is a <a>graph object</a>,
+              append <code>@graph</code> and <code>@set</code> to <em>containers</em>.</li>
             <li>Otherwise:
               <ol class="algorithm">
                 <li>If <em>value</em> is a <a>value object</a>:
@@ -2866,7 +3000,7 @@
         <a>active property</a> is set to <code>@id</code> or <code>@vocab</code>
         and <em>value</em> consists of only an <code>@id</code> member and, if
         the <a>container mapping</a> of <a>active property</a>
-        is set to <code>@index</code>, an <code>@index</code> member, <em>value</em>
+        <span class="changed">includes</span> <code>@index</code>, an <code>@index</code> member, <em>value</em>
         can be compacted to a <a>string</a> by returning the result of
         using the <a href="#iri-compaction">IRI Compaction algorithm</a>
         to compact the value associated with the <code>@id</code> member.
@@ -2877,10 +3011,10 @@
         This can be done if the <a>active property</a> has a matching
         <a>type mapping</a> or <a>language mapping</a> and there
         is either no <code>@index</code> member or the <a>container mapping</a>
-        of <a>active property</a> is set to <code>@index</code>. It can
+        of <a>active property</a> <span class="changed">includes</span> <code>@index</code>. It can
         also be done if <code>@value</code> is the only member in <em>value</em>
         (apart an <code>@index</code> member in case the <a>container mapping</a>
-        of <a>active property</a> is set to <code>@index</code>) and
+        of <a>active property</a> <span class="changed">includes</span> <code>@index</code>) and
         either its associated value is not a <a>string</a>, there is
         no <a>default language</a>, or there is an explicit
         <code>null</code> <a>language mapping</a> for the
@@ -2899,7 +3033,7 @@
           <em>value</em> contains.</li>
         <li>If <em>value</em> has an <code>@index</code> member and the
           <a>container mapping</a> associated to <a>active property</a>
-          is set to <code>@index</code>, decrease <em>number members</em> by
+          <span class="changed">includes</span> <code>@index</code>, decrease <em>number members</em> by
           <code>1</code>.</li>
         <li>If <em>number members</em> is greater than <code>2</code>, return
           <em>value</em> as it cannot be compacted.</li>
@@ -3530,7 +3664,7 @@
         <li>Initialize <em>literal</em> as an <a>RDF literal</a> using
           <em>value</em> and <em>datatype</em>. If <em>item</em> has an
           <code>@language</code> member, add the value associated with the
-          <code>@language</code> key as the language tag of <em>literal</em>.</li>
+          <code>@language</code> key as the <a>language tag</a> of <em>literal</em>.</li>
         <li>Return <em>literal</em>.</li>
       </ol>
     </section>
@@ -3922,7 +4056,7 @@
       snippet of code to convert an integer to
       <a>canonical lexical form</a>:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample integer serialization implementation in JavaScript">
     <!--
     (value).toFixed(0).toString()
@@ -3951,7 +4085,7 @@
       can use the following snippet of code to convert a double to
       <a>canonical lexical form</a>:</p>
 
-    <pre class="example" data-transform="updateExample"
+    <pre class="example nohighlight" data-transform="updateExample"
          title="Sample floating point number serialization implementation in JavaScript">
     <!--
     (value).toExponential(15).replace(/(\d)0*e\+?/,'$1E')
@@ -4050,7 +4184,7 @@
       };
     </pre>
 
-    <dl>
+    <dl data-sort>
       <dt><dfn data-dfn-for="JsonLdProcessor">compact</dfn></dt><dd>
       <dd>
         <p><a>Compacts</a> the given <em>input</em> using the
@@ -4257,7 +4391,7 @@
       };
     --></pre>
 
-    <dl>
+    <dl data-sort>
       <dt><dfn data-dfn-for="JsonLdOptions">base</dfn></dt>
       <dd>The base IRI to use when expanding or <a>compacting</a> the document. If set, this overrides
         the input document's IRI.</dd>
@@ -4436,7 +4570,7 @@
         };
       --></pre>
 
-      <dl data-dfn-for="JsonLdErrorCode">
+      <dl data-dfn-for="JsonLdErrorCode" data-sort>
         <dt><dfn>colliding keywords</dfn></dt>
         <dd>Two properties which expand to the same keyword have been detected.
           This might occur if a <a>keyword</a> and an alias thereof
@@ -4493,7 +4627,7 @@
           value was detected.</dd>
         <dt><dfn>invalid language-tagged value</dfn></dt>
         <dd>A <a>number</a>, <code>true</code>, or <code>false</code> with an
-          associated language tag was detected.</dd>
+          associated <a>language tag</a> was detected.</dd>
         <dt><dfn>invalid local context</dfn></dt>
         <dd>In invalid <a>local context</a> was detected.</dd>
         <dt><dfn>invalid remote context</dfn></dt>
