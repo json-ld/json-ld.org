@@ -86,7 +86,7 @@
       // This is important for Rec-track documents, do not copy a patent URI from a random
       // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
       // Team Contact.
-      wgPatentURI:  "",
+      //wgPatentURI:  "",
       maxTocLevel: 4
       //alternateFormats: [ {uri: "diff-20120524.html", label: "diff to previous version"} ],
   };
@@ -765,13 +765,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
           default value if neither <code>@embed</code> nor <a>object embed flag</a>
           is not specified.
         </dd>
-        <dt><code>@link</code></dt><dd>
-          In the in-memory <em>internal representation</em>, nodes are linked directly,
-          which allows for circular references.
-          Always use a <a>node reference</a> when serializing matching values.
-          <span class="ednote">Do we want to describe this here? Or, perhaps
-            in a separate JSON-LD Linking document?</span>
-        </dd>
         <dt><code>@never</code></dt><dd>
           Always use a <a>node reference</a> when serializing matching values.
         </dd>
@@ -873,9 +866,8 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   the <a>omit default flag</a> set to <code>false</code>,
   <em>graph map</em>, <em>graph name</em>,
   along with <a>map of flattened subjects</a>
-  set to the property associated with <em>graph name</em> in <em>graph map</em>,
-  <em>graph stack</em> set to an empty <a>array</a>, and
-  <em>link</em> set to an empty <a>dictionary</a>. The initial values of the
+  set to the property associated with <em>graph name</em> in <em>graph map</em>, and
+  <em>graph stack</em> set to an empty <a>array</a>. The initial values of the
   <a>object embed flag</a>, <a>require all flag</a>, and <a>omit default flag</a>
   MUST be overridden by values set in <a data-lt="JsonLdProcessor-frame-options">options</a>.
   Also initialize <em>results</em> as an empty <a>array</a>.</p>
@@ -906,20 +898,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>
     using the <a href="#frame-matching">Frame Matching algorithm</a>
     with <em>state</em>, <em>subjects</em>, <em>frame</em>, and <em>requireAll</em>.</li>
-  <li>Set <em>link</em> to the value of <em>link</em> in <em>state</em> associated with
-    <em>graph name</em> in <em>state</em>, creating a new empty <a>dictionary</a>, if necessary.</li>
   <li>For each <em>id</em> and associated <a>node object</a> <em>node</em>
     from the set of matched subjects, ordered by <em>id</em>:
     <p class="ednote">Can we remove sorting, or make it subject to a processing
       flag? In general, sorting is a performance problem for JSON-LD, and
       inhibits stream processing.</p>
     <ol class="algorithm">
-      <li>Initialize <em>output</em> to a new <a>dictionary</a> with <code>@id</code> and <em>id</em>
-        and add <em>output</em> to <em>link</em> associated with <em>id</em>.</li>
-      <li>If <em>embed</em> is <code>@link</code> and <em>id</em> is in <em>link</em>,
-        <em>node</em> already exists in <em>results</em>. Add
-        the associated <a>node object</a> from <em>link</em> to <em>parent</em>
-        and do not perform additional processing for this <em>node</em>.</li>
+      <li>Initialize <em>output</em> to a new <a>dictionary</a> with <code>@id</code> and <em>id</em>.</li>
       <li>Otherwise, if <em>embed</em> is <code>@never</code> or if a
         circular reference would be created by an embed,
         add <em>output</em> to <em>parent</em>
@@ -1194,7 +1179,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     <pre class="idl" data-transform="unComment"><!--
       [Constructor]
       interface JsonLdProcessor {
-          Promise&lt;JsonLdDictionary> frame(
+          static Promise&lt;JsonLdDictionary> frame(
             JsonLdInput input,
             (JsonLdDictionary or USVString) frame,
             optional JsonLdOptions? options);
@@ -1325,7 +1310,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       enum JsonLdEmbed {
         "@always",
         "@last",
-        "@link",
         "@never"
       };
     -->
@@ -1368,11 +1352,6 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         previous values of other properties use a <a>node reference</a>. This is the
         default value if neither <code>@embed</code> nor <a>object embed flag</a>
         is not specified.</dd>
-      <dt><dfn data-dfn-for="JsonLdEmbed">@link</dfn></dt><dd>
-        In the in-memory <em>internal representation</em>, nodes are linked directly,
-        which allows for circular references.
-        Always use a <a>node reference</a> when serializing matching values.
-        </dd>
       <dt class="changed"><dfn data-dfn-for="JsonLdEmbed">@never</dfn></dt><dd class="changed">
         Always use a <a>node reference</a> when serializing matching values.</dd>
     </dl>
@@ -1488,17 +1467,16 @@ becomes a W3C Recommendation.</p>
       to allow for other serialization formats that are functionally equivalent
       to JSON.</li>
     <li>Preserved values are compacted using the properties of the referencing term.</li>
+    <li>Removed support for <code>@link</code> and in-memory object linking.</p>
   </ul>
 </section>
 
 <section class="appendix informative">
   <h4>Open Issues</h4>
   <p>The following is a list of open issues being worked on for the next release.</p>
-  <p class="issue" data-number="140"></p>
   <p class="issue" data-number="435"></p>
   <p class="issue" data-number="477"></p>
   <p class="issue" data-number="491"></p>
-  <p class="issue" data-number="531"></p>
   <p class="issue" data-number="532"></p>
 </section>
 
