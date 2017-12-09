@@ -1,6 +1,10 @@
 Introduction
 ------------
 
+.. image:: https://badges.gitter.im/json-ld/json-ld.org.svg
+   :alt: Join the chat at https://gitter.im/json-ld/json-ld.org
+   :target: https://gitter.im/json-ld/json-ld.org?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 JSON-LD (JavaScript Object Notation for Linking Data) is a lightweight Linked
 Data format. It is easy for humans to read and write. It is easy for machines
 to parse and generate. It is based on the already successful JSON format and
@@ -20,7 +24,7 @@ A Simple Example
 A simple example of a JSON object with added semantics::
 
  {
-   "@context": "http://json-ld.org/contexts/person.jsonld",
+   "@context": "https://json-ld.org/contexts/person.jsonld",
    "@id": "http://dbpedia.org/resource/John_Lennon",
    "name": "John Lennon",
    "born": "1940-10-09",
@@ -37,7 +41,7 @@ The Playground
 
 If you would like to play around with JSON-LD markup, you may do so here:
 
-http://json-ld.org/playground/
+https://json-ld.org/playground/
 
 The Specification
 -----------------
@@ -50,7 +54,7 @@ specifications:
 
 A list of all previous specification drafts is also available.
 
-http://json-ld.org/spec/
+https://json-ld.org/spec/
 
 .. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
 .. _JSON-LD 1.0 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/

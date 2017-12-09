@@ -3,7 +3,7 @@
   <!DOCTYPE html>
   <html
     prefix="
-      xhv: http://www.w3.org/1999/xhtml/vocab# 
+      xhv: http://www.w3.org/1999/xhtml/vocab#
       xsd: http://www.w3.org/2001/XMLSchema#
       rdfs: http://www.w3.org/2000/01/rdf-schema#
       dc: http://purl.org/dc/terms/
@@ -17,7 +17,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
-      <!-- Style Sheets -->  
+      <!-- Style Sheets -->
       <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
       <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
       <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
@@ -42,11 +42,11 @@
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="row-fluid">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
-          </a> 
+          </a>
           <a class="brand" href="../"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
           <div class="nav-collapse">
             <ul class="nav">
@@ -82,9 +82,9 @@
     </div>
     <div class="container">
     <br>
-    <div id="content"> 
-      <div id="info"> 
-          <h1>Primers</h1> 
+    <div id="content">
+      <div id="info">
+          <h1>Primers</h1>
           <p>The following primers are sorted in most recent to
           least recent order:</p>
           <ul>
@@ -117,7 +117,7 @@ print <<< htmlcode
         </p>
       </div>
     </div> <!-- /container -->
-  </body> 
+  </body>
 </html>
 
 htmlcode;

@@ -139,8 +139,8 @@
           }
         }
         else {
-          playground.toggleRemote(fieldName, true);
           rval = playground.setRemoteUrl(fieldName, param);
+          playground.toggleRemote(fieldName, true);
           if(rval){
             rval.then(function(data){
               queryData[fieldName] = data;
@@ -786,7 +786,7 @@
    * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
-    var processor = new jsonld.JsonLdProcessor();
+    var processor = new jsonld.promises;
 
     // set base IRI
     var options = {
@@ -1312,7 +1312,7 @@
   // event handlers
   $(document).ready(function() {
     // Add custom document loader that uses a context URL map.
-    var jqueryDocumentLoader = jsonld.documentLoaders.jquery($);
+    var xhrDocumentLoader = jsonld.documentLoaders.xhr();
     // FIXME: add UI to let users control and set context mapping
     jsonld.documentLoader = function(url) {
       if(url in playground.contextMap) {
@@ -1330,7 +1330,24 @@
           url = modified;
         }
       }
-      return jqueryDocumentLoader(url);
+      // rewrite URLs that we know have secure JSON-LD Contexts
+      if(url === 'http://schema.org/') {
+        url = 'https://schema.org/';
+      }
+
+      // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
+      if(!url.startsWith('https://')) {
+        url = [
+          location.protocol,
+          '//',
+          location.host,
+          location.pathname,
+          'proxy.php?url=',
+          url
+        ].join('');
+      }
+
+      return xhrDocumentLoader(url);
     };
 
     // set up buttons to load examples
