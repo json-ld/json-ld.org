@@ -1413,26 +1413,54 @@ the data type to be specified with each piece of data.</p>
     <a>property</a> values. This is a commonly used mechanism for
     creating a parent-child relationship between two <a>nodes</a>.</p>
 
-  <p>The example shows two nodes related by a property from the first node:</p>
+  <p>Without embedding, <a>node objects</a> can be linked by referencing the
+    identifier of another <a>node object</a>. For example:</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Referencing node objects">
+  <!--
+  [{
+    "@context": {
+      "@vocab": "http://schema.org/",
+      ****"knows": {"@type": "@id"}****
+    },
+    "name": "Manu Sporny",
+    "@type": "Person",
+    ****"knows": "http://foaf.me/gkellogg#me"****
+  }, {
+    "@id": "http://foaf.me/gkellogg#me",
+    "@type": "Person",
+    "name": "Gregg Kellogg"
+  }]
+  -->
+  </pre>
+
+  <p>The previous example describes two <a>node objects</a>, for Manu and Gregg, with
+    the <code>knows</code> property defined to treat string values as identifiers.
+    Embedding allows the <a>node object</a> for Gregg to be <em>embedded</em> as a value
+    of the <code>knows</code> property:</p>
 
   <pre class="example nohighlight" data-transform="updateExample"
        title="Embedding a node object as property value of another node object">
   <!--
   {
-  ...
+    "@context": {
+      "@vocab": "http://schema.org/"
+    },
     "name": "Manu Sporny",
-    "****knows****": {
-      "****@type****": "****Person****",
-      "****name****": "****Gregg Kellogg****",
-    }
-  ...
+    ****"knows": {****
+      "@id": "http://foaf.me/gkellogg#me",
+      "@type": "Person",
+      "name": "Gregg Kellogg",
+    ****}****
   }
   -->
   </pre>
 
-  <p>
-    A <a>node object</a>, like the one used above, may be used in
-    any value position in the body of a JSON-LD document.</p>
+  <p>A <a>node object</a>, like the one used above, may be used in
+    any value position in the body of a JSON-LD document. Note that <a
+    href="#type-coercion">type coercion</a> of the <code>knows</code> property
+    is not required, as the value is not a string.</p>
 </section>
 
 <section class="informative">
