@@ -56,6 +56,23 @@ A list of all previous specification drafts is also available.
 
 https://json-ld.org/spec/
 
+The Web Site
+------------
+
+Below are the basics for running this web site locally and/or contributing to
+it.
+
+The site is hosted on GitHub Pages. A foundational setup guide can be found at
+https://help.github.com/articles/setting-up-your-github-pages-site-locally-with-jekyll/
+
+Essentially:
+
+* install Ruby
+* install Jekyll
+* install Bundler
+* `bundle install` in this directory
+* `bundle exec jekyll serve --watch`
+
 .. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
 .. _JSON-LD 1.0 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/
 .. _JSON-LD 1.0 Processing Algorithms and API: http://www.w3.org/TR/json-ld-api/
