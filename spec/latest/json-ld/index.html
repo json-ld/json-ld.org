@@ -410,6 +410,9 @@
         This keyword is described in <a class="sectionRef" href="#named-graphs"></a>.</dd>
       <dt class="changed"><code>@nest</code></dt><dd class="changed">Collects a set of <a>nested properties</a> within
         a <a>node object</a>.</dd>
+      <dt class="changed"><code>@none</code></dt><dd class="changed">Used as an index value
+        in an id map, language map, type map or elsewhere where a dictionary is
+        used to index into other values.</dd>
       <dt class="changed"><code>@prefix</code></dt><dd class="changed">
         With the value <a>true</a>, allows this <a>term</a> to be used to construct a <a>compact IRI</a>
         when compacting.</dd>
@@ -2780,9 +2783,9 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"url": "@id"****,
-       ****"a": "@type"****,
-       "name": "http://xmlns.com/foaf/0.1/name"
+      ****"url": "@id"****,
+      ****"a": "@type"****,
+      "name": "http://xmlns.com/foaf/0.1/name"
     },
     "****url****": "http://example.com/about#gregg",
     "****a****": "http://xmlns.com/foaf/0.1/Person",
@@ -2823,29 +2826,29 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "body": "schema:articleBody",
-       "words": "schema:wordCount",
-       "post": {
-         "@id": "schema:blogPost",
-         ****"@container": "@index"****
-       }
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "body": "schema:articleBody",
+      "words": "schema:wordCount",
+      "post": {
+        "@id": "schema:blogPost",
+        ****"@container": "@index"****
+      }
     },
     "@id": "http://example.com/",
     "@type": "schema:Blog",
     "name": "World Financial News",
     ****"post": {
-       "en": {
-         "@id": "http://example.com/posts/1/en",
-         "body": "World commodities were up today with heavy trading of crude oil...",
-         "words": 1539
-       },
-       "de": {
-         "@id": "http://example.com/posts/1/de",
-         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
-         "words": 1204
-       }****
+      "en": {
+        "@id": "http://example.com/posts/1/en",
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      },
+      "de": {
+        "@id": "http://example.com/posts/1/de",
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      }****
     }
   }
   -->
@@ -2924,30 +2927,71 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"@version": 1.1****,
+      ****"@version": 1.1****,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "body": "schema:articleBody",
+      "words": "schema:wordCount",
+      "post": {
+        "@id": "schema:blogPost",
+        "@container": ****["@index", "@set"]****
+      }
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    "post": {
+      "en": ****[****{
+        "@id": "http://example.com/posts/1/en",
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      }****]****,
+      "de": ****[****{
+        "@id": "http://example.com/posts/1/de",
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      }****]****
+    }
+  }
+  -->
+  </pre>
+
+  <p class="changed">The special index <code>@none</code> is used for indexing
+    data which does not have an associated index, which is useful to maintain
+    a normalized represeiontation.</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Indexing data using @none">
+  <!--
+  {
+    "@context": {
        "schema": "http://schema.org/",
        "name": "schema:name",
        "body": "schema:articleBody",
        "words": "schema:wordCount",
        "post": {
          "@id": "schema:blogPost",
-         "@container": ****["@index", "@set"]****
+         ****"@container": "@index"****
        }
     },
     "@id": "http://example.com/",
     "@type": "schema:Blog",
     "name": "World Financial News",
     "post": {
-       "en": ****[****{
-         "@id": "http://example.com/posts/1/en",
-         "body": "World commodities were up today with heavy trading of crude oil...",
-         "words": 1539
-       }****]****,
-       "de": ****[****{
-         "@id": "http://example.com/posts/1/de",
-         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
-         "words": 1204
-       }****]****
+      "en": {
+        "@id": "http://example.com/posts/1/en",
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      },
+      "de": {
+        "@id": "http://example.com/posts/1/de",
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      },
+      ****"@none": {
+        "body": "Unindexed description",
+        "words": 20
+      }****
     }
   }
   -->
@@ -3169,6 +3213,30 @@ specified. The full <a>IRI</a> for
   }
   -->
   </pre>
+
+  <p class="changed">The special index <code>@none</code> is used for indexing
+    data which does not have a language, which is useful to maintain
+    a normalized represeiontation.</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Indexing languaged-tagged strings using @none for no language">
+  <!--
+  {
+    "@context": {
+      "vocab": "http://example.com/vocab/",
+      "label": {
+        "@id": "vocab:label",
+        "@container": "@language"
+      }
+    },
+    "@id": "http://example.com/queen",
+    "label": {
+      "en": "The Queen",
+      "de": [ "Die Königin", "Ihre Majestät" ],
+      "@none": "The Queen"
+    }
+  }
+  -->
 </section>
 
 <section class="informative changed">
@@ -3188,29 +3256,29 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"@version": 1.1****,
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "body": "schema:articleBody",
-       "words": "schema:wordCount",
-       "post": {
-         "@id": "schema:blogPost",
-         ****"@container": "@id"****
-       }
+      ****"@version": 1.1****,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "body": "schema:articleBody",
+      "words": "schema:wordCount",
+      "post": {
+        "@id": "schema:blogPost",
+        ****"@container": "@id"****
+      }
     },
     "@id": "http://example.com/",
     "@type": "schema:Blog",
     "name": "World Financial News",
     ****"post": {
-       "http://example.com/posts/1/en": {
-         "body": "World commodities were up today with heavy trading of crude oil...",
-         "words": 1539
-       },
-       "http://example.com/posts/1/de": {
-         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
-         "words": 1204
-       }****
-    }
+      "http://example.com/posts/1/en": {
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      },
+      "http://example.com/posts/1/de": {
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      }
+    }****
   }
   -->
   </pre>
@@ -3234,28 +3302,71 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"@version": 1.1****,
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "body": "schema:articleBody",
-       "words": "schema:wordCount",
-       "post": {
-         "@id": "schema:blogPost",
-         "@container": ****[****"@id", ****"@set"]****
-       }
+      ****"@version": 1.1****,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "body": "schema:articleBody",
+      "words": "schema:wordCount",
+      "post": {
+        "@id": "schema:blogPost",
+        "@container": ****[****"@id", ****"@set"]****
+      }
     },
     "@id": "http://example.com/",
     "@type": "schema:Blog",
     "name": "World Financial News",
     "post": {
-       "http://example.com/posts/1/en": ****[****{
-         "body": "World commodities were up today with heavy trading of crude oil...",
-         "words": 1539
-       }****]****,
-       "http://example.com/posts/1/de": ****[****{
-         "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
-         "words": 1204
-       }****]****
+      "http://example.com/posts/1/en": ****[****{
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      }****]****,
+      "http://example.com/posts/1/de": ****[****{
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      }****]****
+    }
+  }
+  -->
+  </pre>
+
+  <p class="changed">The special index <code>@none</code> is used for indexing
+    <a>node objects</a> which do not have an <code>@id</code>, which is useful to maintain
+    a normalized represeiontation. The <code>@none</code> index may also be
+    a term which expands to <code>@none</code>, such as the term <em>none</em>
+    used in the example below.</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Indexing data in JSON-LD by node identifiers">
+  <!--
+  {
+    "@context": {
+      "@version": 1.1,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "body": "schema:articleBody",
+      "words": "schema:wordCount",
+      "post": {
+        "@id": "schema:blogPost",
+        "@container": "@id"
+      },
+      ****"none": "@none"****
+    },
+    "@id": "http://example.com/",
+    "@type": "schema:Blog",
+    "name": "World Financial News",
+    "post": {
+      "http://example.com/posts/1/en": {
+        "body": "World commodities were up today with heavy trading of crude oil...",
+        "words": 1539
+      },
+      "http://example.com/posts/1/de": {
+        "body": "Die Werte an Warenbörsen stiegen im Sog eines starken Handels von Rohöl...",
+        "words": 1204
+      },
+      ****"none": {
+        "body": "Description for object within an @id",
+        "words": 20
+      }****
     }
   }
   -->
@@ -3437,6 +3548,52 @@ specified. The full <a>IRI</a> for
 
   <p>As with <a>id maps</a>, when used with <code>@graph</code>, a container may also
     include <code>@set</code> to ensure that key values are always contained in an array.</p>
+
+  <p>As with <a>id maps</a>, the special index <code>@none</code> is used for indexing
+    <a>named graphs</a> which do not have an <code>@id</code>, which is useful to maintain
+    a normalized represeiontation. The <code>@none</code> index may also be
+    a term which expands to <code>@none</code>, such as the term <em>none</em>
+    used in the example below.</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Referencing named graphs using an id map with @none">
+  <!--
+  {
+    "@context": {
+      "@version": 1.1,
+      "generatedAt": {
+        "@id": "http://www.w3.org/ns/prov#generatedAtTime",
+        "@type": "http://www.w3.org/2001/XMLSchema#date"
+      },
+      "Person": "http://xmlns.com/foaf/0.1/Person",
+      "name": "http://xmlns.com/foaf/0.1/name",
+      "knows": "http://xmlns.com/foaf/0.1/knows",
+      "graphMap": {
+        "@id": "http://example.org/graphMap",
+        "@container": ["@graph", "@id"]
+      }
+    },
+    "@id": "_:graph",
+    "generatedAt": "2012-04-09",
+    "graphMap": {
+      ****"@none"****: [{
+        "@id": "http://manu.sporny.org/about#manu",
+        "@type": "Person",
+        "name": "Manu Sporny",
+        "knows": "http://greggkellogg.net/foaf#me"
+      }, {
+        "@id": "http://greggkellogg.net/foaf#me",
+        "@type": "Person",
+        "name": "Gregg Kellogg",
+        "knows": "http://manu.sporny.org/about#manu"
+      }]
+    }
+  }
+  -->
+  </pre>
+
+  <p class="note">Graph Containers are a new feature in JSON-LD 1.1, requiring
+    <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
 </section>
 
 <section class="informative changed">
@@ -3456,13 +3613,13 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"@version": 1.1****,
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "affiliation": {
-         "@id": "schema:affiliation",
-         ****"@container": "@type"****
-       }
+      ****"@version": 1.1****,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "affiliation": {
+        "@id": "schema:affiliation",
+        ****"@container": "@type"****
+      }
     },
     "name": "Manu Sporny",
     "affiliation": {
@@ -3494,13 +3651,13 @@ specified. The full <a>IRI</a> for
   <!--
   {
     "@context": {
-       ****"@version": 1.1****,
-       "schema": "http://schema.org/",
-       "name": "schema:name",
-       "affiliation": {
-         "@id": "schema:affiliation",
-         "@container": ****[****"@type", ****"@set"]****
-       }
+      ****"@version": 1.1****,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "affiliation": {
+        "@id": "schema:affiliation",
+        "@container": ****[****"@type", ****"@set"]****
+      }
     },
     "name": "Manu Sporny",
     "affiliation": {
@@ -3516,6 +3673,48 @@ specified. The full <a>IRI</a> for
   }
   -->
   </pre>
+
+  <p class="changed">The special index <code>@none</code> is used for indexing
+    <a>node objects</a> which do not have an <code>@type</code>, which is useful to maintain
+    a normalized represeiontation. The <code>@none</code> index may also be
+    a term which expands to <code>@none</code>, such as the term <em>none</em>
+    used in the example below.</p>
+
+  <pre class="example nohighlight" data-transform="updateExample"
+       title="Indexing data in JSON-LD by type using @none">
+  <!--
+  {
+    "@context": {
+      "@version": 1.1,
+      "schema": "http://schema.org/",
+      "name": "schema:name",
+      "affiliation": {
+        "@id": "schema:affiliation",
+        "@container": "@type"
+      },
+      ****"none": "@none"****
+    },
+    "name": "Manu Sporny",
+    "affiliation": {
+      "schema:Corporation": {
+        "@id": "https://digitalbazaar.com/",
+        "name": "Digital Bazaar"
+      },
+      "schema:ProfessionalService": {
+        "@id": "https://spec-ops.io",
+        "name": "Spec-Ops"
+      },
+      ****"none": {
+        "@id": "http://greggkellogg.net/",
+        "name": "Gregg Kellogg"
+      }****
+    }
+  }
+  -->
+  </pre>
+
+  <p>As with <a>id maps</a>, when used with <code>@type</code>, a container may also
+    include <code>@set</code> to ensure that key values are always contained in an array.</p>
 
   <p class="note"><a>Type maps</a> are a new feature in JSON-LD 1.1, requiring
     <a>processing mode</a> set to <code>json-ld-1.1</code>.</p>
@@ -4250,7 +4449,7 @@ specified. The full <a>IRI</a> for
         or an array containing both <code>@language</code> and <code>@set</code>
       </span>. The keys of a
       <a>language map</a> MUST be <a>strings</a> representing
-      [[BCP47]] language codes and the values MUST be any of the following types:</p>
+      [[BCP47]] language codes, or the <a>keyword</a> <code>@none</code>, and the values MUST be any of the following types:</p>
 
     <ul>
       <li><a>null</a>,</li>
@@ -4291,7 +4490,7 @@ specified. The full <a>IRI</a> for
 
     <p>See <a class="sectionRef" href="#data-indexing"></a> for further information on this topic.</p>
 
-    <p><a>Index Maps</a> may also be used to map indexes to associated
+    <p class="changed"><a>Index Maps</a> may also be used to map indexes to associated
       <a>named graphs</a>, if the term is defined with <code>@container</code>
       set to an array containing both <code>@graph</code> and
       <code>@index</code>, and optionally including <code>@set</code>. The
@@ -4308,7 +4507,8 @@ specified. The full <a>IRI</a> for
       is defined with <code>@container</code> set to <code>@id</code>,
       or an array containing both <code>@id</code> and <code>@set</code>.
       The keys of an <a>id map</a> MUST be <a>IRIs</a>
-      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
+      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>),
+      or the <a>keyword</a> <code>@none</code>,
       and the values MUST be <a>node objects</a>.</p>
 
     <p>If the value contains a property expanding to <code>@id</code>, it's value MUST
@@ -4331,7 +4531,8 @@ specified. The full <a>IRI</a> for
       is defined with <code>@container</code> set to <code>@type</code>,
       or an array containing both <code>@type</code> and <code>@set</code>.
       The keys of a <a>type map</a> MUST be <a>IRIs</a>
-      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>)
+      (<a>relative IRI</a>, <a>compact IRI</a> (including <a>blank node identifiers</a>), or <a>absolute IRI</a>),
+      or the <a>keyword</a> <code>@none</code>,
       and the values MUST be <a>node objects</a>.</p>
 
     <p>If the value contains a property expanding to <code>@type</code>, and it's value
