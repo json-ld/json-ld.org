@@ -2547,14 +2547,12 @@
             <li>If the <a>term definition</a> is <code>null</code>,
               <a>term</a> cannot be selected during <a>compaction</a>,
               so continue to the next <a>term</a>.</li>
-            <li>Initialize <em>container</em> to <code>@none</code>. If
+            <li>Initialize <em>container</em> to <code>@none</code>.
               <span class="changed">
-                the <a>container mapping</a> in <a>term definition</a>
-                includes <code>@id</code>, <code>@index</code>,
-                <code>@language</code>, <code>@list</code>, <code>@type</code>, or
-              <code>@set</code> in that order</span>
-              set <em>container</em> to
-              <span class="changed">the first such value found</span>.</li>
+                If the <a>container mapping</a> is not empty, set <em>container</em>
+                to the concatenation of all values of the <a>container mapping</a>
+                in lexicographically order
+              </span>.</li>
             <li>Initialize <em>iri</em> to the value of the <a>IRI mapping</a>
               for the <a>term definition</a>.</li>
             <li>If <em>iri</em> is not a key in <em>result</em>, add
@@ -2720,8 +2718,8 @@
               a <a>term</a>, based on what is compatible with <em>value</em>.</li>
             <li>If <em>value</em> is a <a class="changed">dictionary</a>,
               that contains the key <code>@index</code>,
-              <span class="changed">and <a data-link-for="JsonLdOptions">processingMode</a> is <code>json-ld-1.0</code></span>
-              then append the value <code>@index</code> to <em>containers</em>.</span></li>
+              <span class="changed">and <em>value</em> is not a <a>graph object</a></span>
+              then append the values <code>@index</code> <span class="changed">and <code>@index@set</code></span> to <em>containers</em>.</span></li>
             <li>If <em>reverse</em> is <code>true</code>, set <em>type/language</em>
               to <code>@type</code>, <em>type/language value</em> to
               <code>@reverse</code>, and append <code>@set</code> to <em>containers</em>.</li>
@@ -2786,31 +2784,56 @@
               </ol>
             </li>
             <li class="changed">Otherwise, if <em>value</em> is a <a>graph object</a>,
+              prefer a mapping most appropriate for the particular value.
+              <ol class="algorithm">
+                <li>If value contains the key <code>@index</code>,
+                  append the values <code>@graph@index</code> and <code>@graph@index@set</code>
+                  to <em>containers</em>.</li>
+                <li>If the value contains the key <code>@id</code>,
+                  append the values <code>@graph@id</code> and <code>@graph@id@set</code>
+                  to <em>containers</em>.</li>
+                <li>Append the values <code>@graph</code> and <code>@graph@set</code>
+                  to <em>containers</em>.</li>
+                <li>If value does not contain the key <code>@index</code>,
+                  append the values <code>@graph@index</code> and <code>@graph@index@set</code>
+                  to <em>containers</em>.</li>
+                <li>If the value does not contain the key <code>@id</code>,
+                  append the values <code>@graph@id</code> and <code>@graph@id@set</code>
+                  to <em>containers</em>.</li>
+                <li>Append the values <code>@index</code> and <code>@index@set</code>
+                  to <em>containers</em>.</li>
+              </ol>
+            </li>
               append <code>@graph</code>, <code>@id</code>, <code>@index</code> and <code>@set</code> to <em>containers</em>.</li>
             <li>Otherwise:
               <ol class="algorithm">
                 <li>If <em>value</em> is a <a>value object</a>:
                   <ol class="algorithm">
-                    <li class="changed">If <a data-link-for="JsonLdOptions">processingMode</a> is <code>json-ld-1.1</code>,
-                      append <code>@language</code> and <code>@index</code> to <em>containers</em>.</li>
                     <li>If <em>value</em> contains the key <code>@language</code>
                       and does not contain the key <code>@index</code>,
                       then set <em>type/language value</em> to its associated
-                      value and,
-                      <span class="changed">if <a data-link-for="JsonLdOptions">processingMode</a> is <code>json-ld-1.0</code></span>,
-                      append <code>@language</code> to
+                      value and, append <code>@language</code>
+                      <span class="changed">and <code>@language@set</code></span> to
                       <em>containers</em>.</li>
                     <li>Otherwise, if <em>value</em> contains the key
                       <code>@type</code>, then set <em>type/language value</em> to
                       its associated value and set <em>type/language</em> to
                       <code>@type</code>.</li>
+                    <li class="changed">Otherwise, if <em>value</em>
+                      does not contain the key <code>@index</code>, append <code>@language</code>
+                      and <code>@language@set</code> to
+                      <em>containers</em>.</li>
                   </ol>
                 </li>
                 <li>Otherwise, set <em>type/language</em> to <code>@type</code>
                   and set <em>type/language value</em> to <code>@id</code>,
-                  <span class="changed">and if <a data-link-for="JsonLdOptions">processingMode</a></span>
-                  is <code>json-ld-1.1</code>, append <code>@id</code>, <code>@type</code>,
-                  and <code>@index</code> to <em>containers</em>.</li>
+                  <span class="changed">and append <code>@id</code>, <code>@id@set</code>,
+                    <code>@type</code>, and <code>@type@set</code></span>,
+                  to <em>containers</em>.</li>
+                <li class="changed">
+                  If value does not contain the key <code>@index</code>, append
+                  <code>@index</code> and <code>@index@set</code> to <em>containers</em>.
+                </li>
                 <li>Append <code>@set</code> to <em>containers</em>.</li>
               </ol>
             </li>
