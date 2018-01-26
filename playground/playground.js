@@ -813,6 +813,10 @@
       options.format = 'application/n-quads';
       promise = jsonld.normalize(input, options);
     }
+    else if(playground.activeTab === 'tab-table') {
+      return jsonld.toRDF(input, options)
+        .then(_datasetToTable($('#table tbody')));
+    }
     else if(playground.activeTab === 'tab-visualized') {
       // early return because this isn't an editor
       return new Promise(function() {
@@ -916,6 +920,126 @@
     });
   };
 
+  var _datasetToTable = function(tbody) {
+    return function(dataset) {
+      tbody.empty();
+      // simple sort, good enough for this purpose
+      // FIXME: is this needed?
+      dataset.sort(function(a, b) {
+        if(a.graph.value !== b.graph.value) {
+          return a.graph.value > b.graph.value;
+        }
+        if(a.subject.value !== b.subject.value) {
+          return a.subject.value > b.subject.value;
+        }
+        if(a.predicate.value !== b.predicate.value) {
+          return a.predicate.value > b.predicate.value;
+        }
+        return a.object.value > b.object.value;
+      });
+      dataset.forEach(function(quad) {
+        tbody.append(_tableRow(quad));
+      });
+    };
+  };
+
+  var RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  var RDF_LANGSTRING = RDF + 'langString';
+  var XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string';
+
+  var _tableRow = function(quad) {
+    var g = quad.graph;
+    var s = quad.subject;
+    var p = quad.predicate;
+    var o = quad.object;
+
+    var row = $('<tr>');
+
+    // subject (IRI)
+    var td = $('<td>');
+    if(s.termType === 'NamedNode') {
+      var a = $('<a>').attr('href', s.value).text(s.value);
+      td.append(a);
+    } else {
+      td.text(s.value);
+    }
+    row.append(td);
+
+    // predicate (IRI)
+    td = $('<td>');
+    if(p.termType === 'NamedNode') {
+      var a = $('<a>').attr('href', p.value).text(p.value);
+      td.append(a);
+    } else {
+      td.text(p.value);
+    }
+    row.append(td);
+
+    // object (IRI, bnode, or literal)
+    if(o.termType === 'NamedNode') {
+      var a = $('<a>').attr('href', o.value).text(o.value);
+      row.append($('<td>').append(a));
+      row.append($('<td>'));
+      row.append($('<td>'));
+    } else if(o.termType === 'BlankNode') {
+      row.append($('<td>').text(o.value));
+      row.append($('<td>'));
+      row.append($('<td>'));
+    } else {
+      row.append($('<td>').text(o.value));
+      if(o.datatype.value === RDF_LANGSTRING) {
+        if(o.language) {
+          row.append($('<td>').text(o.language));
+        } else {
+          row.append($('<td>'));
+        }
+        row.append($('<td>'));
+      } else if(o.datatype.value !== XSD_STRING) {
+        row.append($('<td>'));
+        var a = $('<a>').attr('href', o.datatype.value).text(o.datatype.value);
+        row.append($('<td>').append(a));
+      } else {
+        row.append($('<td>'));
+        row.append($('<td>'));
+      }
+    }
+    /*
+    td = $('<td>');
+    if(o.type === 'IRI') {
+      var a = $('<a>').attr('href', o.value).text(o.value);
+      td.append(a);
+    } else if(o.termType === 'BlankNode') {
+      td.text(o.value);
+    } else {
+      var t = o.value;
+      if(o.datatype === RDF_LANGSTRING) {
+        if(o.language) {
+          t += '@' + o.language;
+        }
+      } else if(o.datatype !== XSD_STRING) {
+        t += '^^<' + o.datatype + '>';
+      }
+      td.text(t);
+    }
+    row.append(td);
+    */
+
+    // TODO: ad lang and datatype columns?
+
+    // graph (null, IRI, bnode)
+    td = $('<td>');
+    if(g.value !== '') {
+      if(g.value.indexOf('_:') !== 0) {
+        var a = $('<a>').attr('href', g.value).text(g.value);
+        td.append(a);
+      } else {
+        td.text(g.value);
+      }
+    }
+    row.append(td);
+
+    return row;
+  };
 
   /**
    * Process the JSON-LD markup that has been input and display the output
