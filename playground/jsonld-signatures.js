@@ -102,7 +102,7 @@ api.use = function(name, injectable) {
       'bitcoreMessage': 'bitcore-message'
     };
     var requireName = requireAliases[name] || name;
-    var globalName = (name === 'jsonld' ? 'jsonldjs' : name);
+    var globalName = name;
     libs[name] = global[globalName] || (_nodejs && require(requireName));
     if(name === 'jsonld') {
       if(_nodejs) {
@@ -871,7 +871,7 @@ api.promises = function(options) {
   options = options || {};
   var slice = Array.prototype.slice;
   var jsonld = api.use('jsonld');
-  var promisify = jsonld.promisify;
+  var promisify = _promisify;
 
   // handle 'api' option as version, set defaults
   var papi = options.api || {};
@@ -910,6 +910,26 @@ api.promises = function(options) {
 
   return papi;
 };
+
+/**                                                                            
+ * Converts a node.js async op into a promise w/boxed resolved value(s).       
+ *                                                                             
+ * @param op the operation to convert.                                         
+ *                                                                             
+ * @return the promise.                                                        
+ */                                                                            
+function _promisify(op) {                                                      
+  var args = Array.prototype.slice.call(arguments, 1);                         
+  return new Promise(function(resolve, reject) {                               
+    op.apply(null, args.concat(function(err, value) {                          
+      if(!err) {                                                               
+        resolve(value);                                                        
+      } else {                                                                 
+        reject(err);                                                           
+      }                                                                        
+    }));                                                                       
+  });                                                                          
+}                                                                              
 
 // extend default promises call w/promise API
 try {
