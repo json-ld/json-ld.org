@@ -786,8 +786,6 @@
    * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
-    var processor = new jsonld.promises;
-
     // set base IRI
     var options = {
       base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
@@ -796,24 +794,24 @@
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
-      promise = processor.compact(input, param, options);
+      promise = jsonld.compact(input, param, options);
     }
     else if(playground.activeTab === 'tab-expanded') {
-      promise = processor.expand(input, options);
+      promise = jsonld.expand(input, options);
     }
     else if(playground.activeTab === 'tab-flattened') {
-      promise = processor.flatten(input, param, options);
+      promise = jsonld.flatten(input, param, options);
     }
     else if(playground.activeTab === 'tab-framed') {
-      promise = processor.frame(input, param, options);
+      promise = jsonld.frame(input, param, options);
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/nquads';
-      promise = processor.toRDF(input, options);
+      promise = jsonld.toRDF(input, options);
     }
     else if(playground.activeTab === 'tab-normalized') {
       options.format = 'application/nquads';
-      promise = processor.normalize(input, options);
+      promise = jsonld.normalize(input, options);
     }
     else if(playground.activeTab === 'tab-visualized') {
       // early return because this isn't an editor
