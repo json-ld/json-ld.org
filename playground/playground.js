@@ -806,11 +806,11 @@
       promise = jsonld.frame(input, param, options);
     }
     else if(playground.activeTab === 'tab-nquads') {
-      options.format = 'application/nquads';
+      options.format = 'application/n-quads';
       promise = jsonld.toRDF(input, options);
     }
     else if(playground.activeTab === 'tab-normalized') {
-      options.format = 'application/nquads';
+      options.format = 'application/n-quads';
       promise = jsonld.normalize(input, options);
     }
     else if(playground.activeTab === 'tab-visualized') {
