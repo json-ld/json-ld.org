@@ -1339,7 +1339,9 @@
           location.protocol,
           '//',
           location.host,
-          location.pathname,
+          // NOTE: using hard-coded path so file can be shared with dev page
+          //location.pathname,
+          '/playground/',
           'proxy.php?url=',
           url
         ].join('');
