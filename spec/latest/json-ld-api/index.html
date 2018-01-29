@@ -284,8 +284,9 @@
     <a data-link-for="JsonLdOptions">processingMode</a> API option, or using the
     <code>@version</code> member within a <a>context</a>.</p>
 
-  <p>There are four major types of transformation that are discussed in this
-    document: expansion, compaction, flattening, and RDF serialization/deserialization.</p>
+  <p>There are <span class="changed">five</span> major types of transformation that are discussed in this
+    document: expansion, compaction, flattening, <span class="changed">framing</span>,
+    and RDF serialization/deserialization.</p>
 
   <section class="informative">
     <h2>Expansion</h2>
@@ -585,6 +586,477 @@
   </section> <!-- end of Flattening -->
 
   <section class="informative">
+    <h2>Framing</h2>
+    <p>Framing is used to shape the data in a <a>JSON-LD document</a>,
+      using an example <a>frame</a> document which is used to both match the
+      <a>flattened</a>
+      data and show an example of how the resulting data should be shaped.
+      Matching is performed by using <a>properties</a> present in in the <a>frame</a>
+      to find objects in the data that share common values. Matching can be done
+      either using all properties present in the frame, or any property in the frame.
+      By chaining together objects using matched property values, objects can be embedded
+      within one another.</p>
+
+    <p>A <a>frame</a> also includes a <a>context</a>, which is used for compacting the resulting
+      framed output.</p>
+
+    <p>For example, assume the following JSON-LD frame:</p>
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Sample library frame">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      "contains": {
+        "@type": "Book",
+        "contains": {
+          "@type": "Chapter"
+        }
+      }
+    }
+    -->
+    </pre>
+
+    <p>This <a>frame</a> document describes an embedding structure that would place
+      objects with type <code>ex:Library</code> at the top, with objects of
+      type <code>ex:Book</code> that were linked to the library object using
+      the <code>ex:contains</code> property embedded as property values. It also
+      places objects of type <code>ex:Chapter</code> within the referencing ex:Book object
+      as embedded values of the book object.</p>
+
+    <p>When using a flattened set of objects that match the frame components:</p>
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Flattened library objects">
+    <!--
+    {
+      "@context": {
+        "@vocab": "http://example.org/",
+        "contains": {"@type": "@id"}
+      },
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": "http://example.org/library/the-republic"
+      }, {
+        "@id": "http://example.org/library/the-republic",
+        "@type": "Book",
+        "creator": "Plato",
+        "title": "The Republic",
+        "contains": "http://example.org/library/the-republic#introduction"
+      }, {
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "Chapter",
+        "description": "An introductory chapter on The Republic.",
+        "title": "The Introduction"
+      }]
+    }
+    -->
+    </pre>
+
+    <p>The Frame Algorithm can create a new document which follows the structure
+      of the frame:</p>
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Framed library objects">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          "creator": "Plato",
+          "title": "The Republic"
+        }
+      }]
+    }
+    -->
+    </pre>
+
+    <p>The <a href="#framing-algorithm">Framing Algorithm</a> does this by
+      first expanding both the input frame and document. It then creates
+      a <a>map of flattened subjects</a>. The outer-most <a>node object</a> within the frame
+      is used to match objects in the map, in this case looking for <a>node objects</a>
+      which have an <code>@type</code> of <code>Library</code>, and a
+      <code>contains</code> property with another
+      frame used to match values of that property. The input document contains
+      exactly one such <a>node object</a>. The value of contains also has
+      a <a>node object</a>, which is then treated as a frame to match the set of <a>subjects</a>
+      which are <code>contains</code> values of the <code>Library</code> object, and so forth.</p>
+
+  <section>
+    <h3>Default content</h3>
+    <p>A frame may specify properties that don't exist in an input file. If the
+      <a>explicit inclusion flag</a> is <code>false</code>, the framing algorithm
+      will add a property and value to the result. The <code>@default</code> property
+      in a <a>node object</a> or <a>value object</a> provides a default value to use in the resulting
+      output document. If there is no <code>@default</code> value, the property will be output
+      with a <code>null</code> value. (See <a href="#omit-default-flag" class="sectionRef"></a>
+      for ways to avoid this).</p>
+
+    <p class="note">The value of the property in the frame is not otherwise
+      used in the output document. It's purpose is for frame matching and
+      finding default values. Note the <em>description</em> value for <em>Library</em> in the following example.</p>
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Sample library frame with @default value">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      ****"description": "A great Library.",****
+      "contains": {
+        "@type": "Book",
+        ****"description": {"@default": "A great book."},****
+        "contains": {
+          "@type": "Chapter"
+        }
+      }
+    }
+    -->
+    </pre>
+
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Sample library output with @default value">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          "creator": "Plato",
+          ****"description": "A great book.",****
+          "title": "The Republic"
+        },
+      ****"description": null****
+      }]
+    }
+    -->
+    </pre>
+
+  </section>
+
+  <section>
+    <h3>Framing Flags</h3>
+    <p>Framing can be controlled using <a data-lt="JsonLdOptions">API options</a>,
+      or by adding framing <a>keywords</a> within the <a>frame</a> as
+      described in <a href="#framing-keywords" class="sectionRef"></a>.</p>
+
+    <p class="note">Framing flags set using keywords have effect only for the
+      frame in which they appear, and for implicit frames which are created
+      for objects where no frame object exists.</p>
+    <section>
+      <h4>Object Embed Flag</h4>
+
+      <p>The <a>object embed flag</a> determines if a referenced
+        <a>node object</a> is embedded as a property value of a referencing
+        object, or kept as a <a>node reference</a>.
+        The initial value for the <a>object embed flag</a> is set using the
+        <a data-link-for="JsonLdOptions">embed</a> option.
+        Consider the following frame
+        based on the default <code>@last</code> value of the <a>object embed flag</a>:</p>
+
+      <pre class="example nohighlight" data-transform="updateExample"
+           title="Sample library frame with implicit @embed set to @last">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library"
+      }
+      -->
+      </pre>
+
+      <p>Because, the default for the <a>object embed flag</a> is <code>@last</code>
+         (in addition to the <a>explicit inclusion flag</a> being <code>false</code>),
+         non-listed properties are added two the output, and implicitly embedded
+         using a default empty frame. As a result, the same output used in the
+         <a href="#lib-example-output">Framed library objects</a> above is generated.</p>
+
+       <p>However, if the <code>@embed</code> property is added explicitly with a
+         value of <code>@never</code>, the values for <em>Book</em> and <em>Chapter</em> will be excluded.</p>
+
+      <pre class="example nohighlight" data-transform="updateExample"
+           title="Sample library frame with explicit @embed set to @never">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library",
+        "contains": {
+          "@type": "Book",
+          ****"@embed": "@never"****
+        }
+      }
+      -->
+      </pre>
+
+      <pre class="example nohighlight" data-transform="updateExample"
+           title="Framed library objects with @embed set to @never">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@graph": [{
+          "@id": "http://example.org/library",
+          "@type": "Library",
+          "contains": {
+            ****"@id": "http://example.org/library/the-republic"****
+          }
+        }]
+      }
+      -->
+      </pre>
+    </section>
+
+    <section>
+      <h4>Explicit inclusion flag</h4>
+      <p>The <a>explicit inclusion flag</a> used to determine
+        properties which will be included in the output document.
+        The default value is <code>false</code>, which means that properties
+        present in an input <a>node object</a> that are not in the associated frame will be
+        included in the output object.
+        The initial value for the <a>explicit inclusion flag</a> is set using the
+        <a data-link-for="JsonLdOptions">explicit</a> option.
+        If <code>true</code>, only properties present in
+        the input frame will be placed into the output.</p>
+
+      <p>For example, take an expanded version of the library frame which include
+        some properties from the input, but omit others.</p>
+
+      <pre class="example nohighlight" data-transform="updateExample"
+           title="Sample library frame with @explicit set to true">
+      <!--
+      {
+        "@context": {"@vocab": "http://example.org/"},
+        "@type": "Library",
+        "description": {},
+        "contains": {
+          "@type": "Book",
+          ****"@explicit": true,****
+          ****"title": {},****
+          "contains": {
+            "@type": "Chapter"
+          }
+        }
+      }
+      -->
+      </pre>
+
+      <p>The resulting output will exclude properties for Book which are not explicitly
+        listed in the <a>frame object</a>:</p>
+
+    <pre id="lib-example-output" class="example" data-transform="updateExample"
+         title="Framed library objects with @explicit set to true">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "contains": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {
+            "@id": "http://example.org/library/the-republic#introduction",
+            "@type": "Chapter",
+            "description": "An introductory chapter on The Republic.",
+            "title": "The Introduction"
+          },
+          ####"creator": "Plato"####,
+          "title": "The Republic"
+        }
+      }]
+    }
+    -->
+    </pre>
+    </section>
+
+    <section>
+      <h4>Omit default flag</h4>
+      <p>The <a>omit default flag</a> changes the way framing generates output when a property
+        described in the frame is not present in the input document.
+        The initial value for the <a>omit default flag</a> is set using the
+        <a data-link-for="JsonLdOptions">omitDefault</a> option.
+        See <a href="#default-content" class="sectionRef"></a> for a further discussion.</p>
+    </section>
+
+    <section>
+      <h4>Require all flag</h4>
+      <p>The <a>require all flag</a> is used in frame matching to determine when a
+        <a>node object</a> from an input document matches a frame. When
+        matching, an object may include <code>@type</code> and other
+        properties, a match is made when <em>any</em> property value in the
+        object matches the <a>node pattern</a> in the <a>frame object</a> if
+        the value of the <a>require all flag</a> is <code>false</code> (the
+        default). If the flag value is <code>true</code>, then <em>all</em>
+        properties in the <a>frame object</a> must be present in the <a>node
+        object</a> for the node to match.</p>
+    </section>
+  </section>
+
+  <section>
+    <h3>Reverse Framing</h3>
+    <p>A frame may include @reverse, or a value of a term defined using @reverse
+      to invert the relationships in the output object. For example, the
+      Library example can be inverted using the following frame:</p>
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Inverted library frame">
+    <!--
+    {
+      "@context": {
+        "@vocab": "http://example.org/",
+        ****"within": {"@reverse": "contains"}****
+      },
+      ****"@type": "Chapter",
+      "within": {
+        "@type": "Book",
+        "within": {
+          "@type": "Library"
+        }
+      }****
+    }
+    -->
+    </pre>
+
+    <p>Using the flattened library example above, results in the following:</p>
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Inverted library output">
+    <!--
+    {
+      "@context": {
+        "@vocab": "http://example.org/",
+        "within": {"@reverse": "contains"}
+      },
+      "@graph": [{
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "Chapter",
+        "description": "An introductory chapter on The Republic.",
+        "title": "The Introduction",
+        "within": {
+          "@id": "http://example.org/library/the-republic",
+          "@type": "Book",
+          "contains": {"@id": "http://example.org/library/the-republic#introduction"},
+          "creator": "Plato",
+          "title": "The Republic",
+          "within": {
+            "@id": "http://example.org/library",
+            "@type": "Library",
+            "contains": {"@id": "http://example.org/library/the-republic"}
+          }
+        }
+      }]
+    }
+    -->
+    </pre>
+  </section>
+
+  <section class="changed">
+    <h3>Framing Named Graphs</h3>
+    <p>Frames can include <code>@graph</code>, which allows information from <a>named graphs</a>
+      contained within a <a>JSON-LD document</a> to be exposed within it's proper
+      graph context. By default, framing uses a <em>merged graph</em>, composed of all
+      the <a>node objects</a> across all graphs within the input. By using <code>@graph</code>
+      within a frame, the output document can include information specifically
+      from <a>named graphs</a> contained within the input document.</p>
+
+    <p>The following example uses a variation on our library theme where information
+      is split between the <a>default graph</a>, and a graph named <code>http://example.org/graphs/books</code>:</p>
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Frame with named graphs">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@type": "Library",
+      "contains": {
+        "@id": "http://example.org/graphs/books",
+        ****"@graph": {
+          "@type": "Book"
+        }****
+      }
+    }
+    -->
+    </pre>
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Flattened Input with named graphs">
+    <!--
+    [{
+      "@context": {"@vocab": "http://example.org/"},
+      "@id": "http://example.org/graphs/books"
+      "@graph": [{
+        "@id": "http://example.org/library/the-republic",
+        "@type": "http://example.org/Book",
+        "http://example.org/contains": {
+          "@id": "http://example.org/library/the-republic#introduction"
+        },
+        "http://example.org/creator": "Plato",
+        "http://example.org/title": "The Republic"
+      }, {
+        "@id": "http://example.org/library/the-republic#introduction",
+        "@type": "http://example.org/Chapter",
+        "http://example.org/description": "An introductory chapter on The Republic.",
+        "http://example.org/title": "The Introduction"
+      }],
+    }, {
+      "@context": {"@vocab": "http://example.org/"},
+      "@id": "http://example.org/library",
+      "@type": "http://example.org/Library",
+      "http://example.org/contains": {"@id": "http://example.org/graphs/books"},
+      "http://example.org/name": "Library"
+    }]
+    -->
+    </pre>
+
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Framed output with named graphs">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@graph": [{
+        "@id": "http://example.org/library",
+        "@type": "Library",
+        "name": "Library",
+        "contains": {
+          ****"@id": "http://example.org/graphs/books",
+          "@graph": [{****
+            "@id": "http://example.org/library/the-republic",
+            "@type": "Book",
+            "creator": "Plato",
+            "title": "The Republic",
+            "contains": {
+              "@id": "http://example.org/library/the-republic#introduction",
+              "@type": "Chapter",
+              "description": "An introductory chapter on The Republic.",
+              "title": "The Introduction"
+            }
+          ****}]****
+        }
+      }]
+    }
+    -->
+    </pre>
+
+  </section>
+  </section>
+
+  <section class="informative">
     <h2>RDF Serialization/Deserialization</h2>
 
     <p>JSON-LD can be used to serialize RDF data as described in
@@ -631,7 +1103,6 @@
   </section> <!-- end of RDF Serialization/Deserialization -->
 </section> <!-- end of Features section -->
 
-
 <section id="conformance">
   <p>There are two classes of products that can claim conformance to this
     specification: <a>JSON-LD Processors</a>,
@@ -639,7 +1110,8 @@
 
   <p>A conforming <a>JSON-LD Processor</a> is a system which can perform the
     <a href="#expansion-algorithm">Expansion</a>, <a href="#compaction-algorithm">Compaction</a>,
-    and <a href="#flattening-algorithm">Flattening</a> operations
+    <a href="#flattening-algorithm">Flattening</a>, and
+    <a class="changed" href="#framing-algorithm">Framing</a> operations
     <span class="changed">in a manner consistent with
       the algorithms defined in this specification</span>.</p>
 
@@ -3470,6 +3942,435 @@
 
 </section> <!-- end of Flattening section -->
 
+<section id="framing">
+<h1>Framing Algorithms</h1>
+<p>Framing is the process of taking a JSON-LD document, which expresses a
+  graph of information, and applying a specific graph layout
+  (called a <a>Frame</a>).</p>
+
+<p>Framing makes use of the <a data-cite="#node-map-generation">Node Map Generation</a> algorithm
+  to place each object defined in the JSON-LD document into a <a>map of flattened subjects</a>, allowing
+  them to be operated upon by the <a href="#framing-algorithm">Framing algorithm</a>.</p>
+
+<section id="framing-keywords">
+  <h2>Syntax Tokens and Keywords</h2>
+
+  <p>Framing adds a number of <a>keywords</a> (<dfn>framing keywords</dfn>) to
+    the ones defined in the [[!JSON-LD]] specification:</p>
+
+  <p class="ednote">Should these simply be folded into the syntax document? Framing
+    keywords are not a normal part of JSON-LD syntax.</p>
+
+  <dl data-sort>
+    <dt><code>@default</code></dt>
+    <dd>Used in <a href="#framing">Framing</a> to set the default value for
+      an output property when the framed <a>node object</a> does not include such a property.</dd>
+    <dt><code>@embed</code></dt>
+    <dd>Used in <a href="#framing">Framing</a> to override the
+      value of <a>object embed flag</a> within a specific frame. Valid values for
+      <code>@embed</code> as the following:
+      <dl data-sort>
+        <dt><code>@always</code></dt><dd>
+          Always embed <a>node objects</a> as property values, unless this would
+          cause a circular reference.
+        </dd>
+        <dt><code>@last</code></dt><dd>
+          Only the last value within a given <a>node object</a> should be embedded,
+          previous values of other properties use a <a>node reference</a>. This is the
+          default value if neither <code>@embed</code> nor <a>object embed flag</a>
+          is not specified.
+        </dd>
+        <dt><code>@never</code></dt><dd>
+          Always use a <a>node reference</a> when serializing matching values.
+        </dd>
+        <dt><code>true</code></dt><dd>(equivalent to <code>@last</code>).</dd>
+        <dt><code>false</code></dt><dd>(equivalent to <code>@never</code>).</dd>
+      </dl>
+      <p>Any other value for <code>@embed</code> is invalid and indicates that an
+        <a data-link-for="JsonLdErrorCode">invalid @embed value</a>
+        error has been detected and processing is aborted.</p>
+    </dd>
+    <dt><code>@explicit</code></dt>
+    <dd>Used in <a href="#framing">Framing</a> to override the
+      value of <a>explicit inclusion flag</a> within a specific frame.</dd>
+    <dt><code>@null</code></dt>
+    <dd>Used in <a href="#framing">Framing</a> when a value of <code>null</code>
+      should be returned, which would otherwise be removed when
+      <a>Compacting</a>.</dd>
+    <dt><code>@omitDefault</code></dt>
+    <dd>Used in <a href="#framing">Framing</a> to override the
+      value of <a>omit default flag</a> within a specific frame.
+      <div class="issue">Is this flag really useful? Easier to simply not have a default value,
+        if it shouldn't match.</div>
+    </dd>
+    <dt class="changed"><code>@requireAll</code></dt>
+    <dd class="changed">Used in <a href="#framing">Framing</a> to override the
+      value of <a>require all flag</a> within a specific frame.</dd>
+  </dl>
+
+  <p>All JSON-LD tokens and keywords are case-sensitive.</p>
+</section>
+
+<section>
+<h3>Framing Requirements</h3>
+<p>A valid <a>JSON-LD Frame</a> is a superset of a valid <a>JSON-LD document</a>,
+  allowing additional content, which is preserved through expansion.
+  The <a data-cite="JSON-LD#json-ld-grammar">Grammar</a> defined in [[JSON-LD]]
+  is extended as follows:</p>
+  <ul>
+    <li>Framing adds <a>framing keywords</a> which may be used as keys of a <a>node object</a>, which MUST be preserved when expanding.
+    <li>Values of keys in a <a>frame object</a> that are not <a>keyword</a> MAY also include a <a>default object</a>.
+      Values of <code>@default</code> MAY include the value <code>@null</code>,
+      or an <a>array</a> containing only <code>@null</code>, in addition to other values
+      allowed in the grammar for values of keys expanding to <a>absolute IRIs</a>.
+      <a>Processors</a> MUST preserve this value when expanding. All other key/value pairs of
+      a <a>default object</a> MUST be ignored.</li>
+    <li>The values of <code>@id</code> and <code>@type</code> may also be an empty <a>dictionary</a>, or an <a>array</a>
+      containing only an empty <a>dictionary</a>.
+      <a>Processors</a> MUST preserve this value when expanding.</li>
+    <li>Framing either operates on the merged node definitions contained in
+      the input document, or on the <a>default graph</a> depending on if the
+      input frame contains the <code>@graph</code> key at the top level.
+      Nodes with a <a>subject</a> that is also a <a>named graph</a>, where
+      the <a>frame object</a> contains <code>@graph</code>, extend framing
+      to <a>node objects</a> from the associated <a>named graph</a>.</li>
+  </ul>
+</section>
+
+<section>
+<h3>Framing Algorithm</h3>
+
+<p>The framing algorithm takes an <a>JSON-LD input</a> (<em>expanded input</em>),
+  which  MUST be a <a>JSON-LD document</a> in
+  <a>expanded form</a>,
+  an <a>input frame</a> (<em>expanded frame</em>),
+  which  MUST be a <a>JSON-LD frame</a> in
+  <a>expanded form</a>,
+  a <a>context</a> (<em>context</em>),
+  and a number of <a data-lt="JsonLdProcessor-frame-options">options</a> and produces <a>JSON-LD output</a>.</p>
+
+<p>If an error is detected in the <em>expanded frame</em>, a <a data-link-for="JsonLdErrorCode">invalid frame</a>
+  error has been detected and processing is aborted.
+  <span class="ednote">Need more specifics as to what constitutes a valid frame.</span></p>
+
+<p class="changed">Set <em>graph map</em> to the result of performing the
+  <a data-cite="#node-map-generation">Node Map Generation</a> algorithm on
+  <em>expanded input</em>.</p>
+
+<p class="changed">If the <a data-link-for="JsonLdOptions">frameDefault</a> option
+  is present with the value <code>true</code>, set <em>graph name</em> to <code>@default</code>.
+  Otherwise, create <em>merged node map</em> using the <a data-cite="#merge-node-maps">Merge Node Maps</a> algorithm
+  with <em>graph map</em> and add <em>merged node map</em> as the value of <code>@merged</code>
+  in <em>graph map</em> and set <em>graph name</em> to <code>@merged</code>.</p>
+
+<p>The recursive algorithm operates with a <a>framing state</a> (<em>state</em>),
+  created initially using
+  the <a>object embed flag</a> set to <code>true</code>,
+  the <a>explicit inclusion flag</a> set to <code>false</code>,
+  the <a>require all flag</a> set to <code>true</code>,
+  the <a>omit default flag</a> set to <code>false</code>,
+  <em>graph map</em>, <em>graph name</em>,
+  along with <a>map of flattened subjects</a>
+  set to the property associated with <em>graph name</em> in <em>graph map</em>, and
+  <em>graph stack</em> set to an empty <a>array</a>. The initial values of the
+  <a>object embed flag</a>, <a>require all flag</a>, and <a>omit default flag</a>
+  MUST be overridden by values set in <a data-lt="JsonLdProcessor-frame-options">options</a>.
+  Also initialize <em>results</em> as an empty <a>array</a>.</p>
+
+<p class="note"><a>Processors</a> MAY use other runtime options to set different <a>framing state</a> defaults
+  for values of <em>state</em>.</p>
+
+<p>Invoke the recursive algorithm using <a>framing state</a> (<em>state</em>),
+  the keys from the <a>map of flattened subjects</a> as <em>subjects</em>,
+  <em>expanded frame</em> (<em>frame</em>), <em>result</em> as <em>parent</em>, and
+  <code>null</code> as <a>active property</a>.</p>
+
+<p>The recursive algorithm adds elements to <em>parent</em> either by appending
+  the element to <em>parent</em>, if it is an <a>array</a>, or by appending it
+  to an array associated with <em>active property</em> in <em>parent</em>, if it is a <a>dictionary</a>.
+  Note that if <em>parent</em> is an <a>array</a>, <em>active property</em> MUST be <code>null</code>,
+  and if it is a <a>dictionary</a>, it MUST NOT be <code>null</code>.</p>
+
+<p>The following series of steps is the recursive
+  portion of the framing algorithm:</p>
+
+<ol class="algorithm">
+  <li>If <em>frame</em> is an <a>array</a>, set <em>frame</em> to the first member of the <a>array</a>, which MUST be a valid <a>frame</a>.</li>
+  <li>Initialize flags <em>embed</em>, <em>explicit</em>, and <em>requireAll</em> from
+    <a>object embed flag</a>, <a>explicit inclusion flag</a>, and
+    <a>require all flag</a> in <em>state</em> overriding from any property values
+    for <code>@embed</code>, <code>@explicit</code>, and <code>@requireAll</code> in <em>frame</em>.</li>
+  <li>Create a list of matched subjects by filtering <em>subjects</em> against <em>frame</em>
+    using the <a href="#frame-matching">Frame Matching algorithm</a>
+    with <em>state</em>, <em>subjects</em>, <em>frame</em>, and <em>requireAll</em>.</li>
+  <li>For each <em>id</em> and associated <a>node object</a> <em>node</em>
+    from the set of matched subjects, ordered by <em>id</em>:
+    <p class="ednote">Can we remove sorting, or make it subject to a processing
+      flag? In general, sorting is a performance problem for JSON-LD, and
+      inhibits stream processing.</p>
+    <ol class="algorithm">
+      <li>Initialize <em>output</em> to a new <a>dictionary</a> with <code>@id</code> and <em>id</em>.</li>
+      <li>Otherwise, if <em>embed</em> is <code>@never</code> or if a
+        circular reference would be created by an embed,
+        add <em>output</em> to <em>parent</em>
+        and do not perform additional processing for this <em>node</em>.</li>
+      <li>Otherwise, if <em>embed</em> is <code>@last</code>,
+        remove any existing embedded node from <em>parent</em> associate with
+        <em>graph name</em> in <em>state</em>.
+        <span class="ednote">Requires sorting of subjects. We could consider <code>@sample</code>, to embed
+          just the first matched node. With sorting, we could also consider <code>@first</code>.</span></li>
+      <li>If <em>embed</em> is <code>@last</code> or <code>@always</code>
+        <ol class="algorithm">
+          <li class="changed">If <em>graph map</em> in <em>state</em> has an entry for <em>id</em>:
+            <ol class="algorithm">
+              <li>If <em>frame</em> does not have the key <code>@graph</code>,
+                set <em>recurse</em> to <code>true</code>, unless <em>graph name</em> in <em>state</em> is <code>@merged</code>
+                and set <em>subframe</em> to a new empty <a>dictionary</a>.</li>
+              <li>Otherwise, set <em>subframe</em> to the first entry for <code>@graph</code> in <em>frame</em>,
+                or a new empty <a>dictionary</a>, if it does not exist, and
+                set <em>recurse</em> to <code>true</code>, unless <em>id</em>
+                is <code>@merged</code> or <code>@default</code>.</li>
+              <li>If <em>recurse</em> is <code>true</code>:
+                <ol class="algorithm">
+                  <li>Push <em>graph name</em> from <em>state</em> onto <em>graph stack</em>
+                  in <em>state</em>.</li>
+                  <li>Set the value of <em>graph name</em> in <em>state</em> to <em>id</em>.</li>
+                  <li>Invoke the recursive algorithm using <em>state</em>,
+                    the keys from the <em>graph map</em> in <em>state</em> associated with id as <em>subjects</em>,
+                    <em>subframe</em> as <em>frame</em>,
+                    <em>output</em> as <em>parent</em>, and <code>@graph</code> as <em>active property</em>.
+                  <li>Pop the value from <em>graph stack</em> in <em>state</em> and set <em>graph name</em> in <em>state</em>
+                    back to that value.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>For each <em>property</em> and <em>objects</em> in <em>node</em>, ordered by <em>property</em>:
+            <ol class="algorithm">
+              <li>If <em>property</em> is a <a>keyword</a>, add <em>property</em> and <em>objects</em>
+                to <em>output</em>.</li>
+              <li>Otherwise, if <em>property</em> is not in <em>frame</em>, and <em>explicit</em> is <code>true</code>,
+                <a>processors</a> MUST NOT add any values for <em>property</em> to <em>output</em>, and the following
+                steps are skipped.</li>
+              <li>For each <em>item</em> in <em>objects</em>:
+                <ol class="algorithm">
+                  <li>If <em>item</em> is a <a>dictionary</a> with the property <code>@list</code>, then each
+                    <em>listitem</em> in the list is processed in sequence and added to a new list <a>dictionary</a>
+                    in output:
+                    <ol class="algorithm">
+                      <li>If <em>listitem</em> is a <a>node reference</a>,
+                        invoke the recursive algorithm using <em>state</em>,
+                        the value of <code>@id</code> from <em>listitem</em>
+                        as the sole member of a new <em>subjects</em> <a>array</a>,
+                        the first value from <code>@list</code> in <em>frame</em> as <em>frame</em>,
+                        <em>list</em> as <em>parent</em>, and <code>@list</code> as <em>active property</em>.
+                        If <em>frame</em> does not exist, create a new <em>frame</em> using a new <a>dictionary</a>
+                        with properties for <code>@embed</code>, <code>@explicit</code> and <code>@requireAll</code>
+                        taken from <em>embed</em>, <em>explicit</em> and <em>requireAll</em>.
+                        <span class="ednote">Could this use the <em>list</em> <a>array</a>, and <code>null</code> for <em>active property</em>?</span></li>
+                      <li>Otherwise, append a copy of <em>listitem</em> to <code>@list</code> in <em>list</em>.</li>
+                    </ol>
+                  </li>
+                  <li>If <em>item</em> is a <a>node reference</a>,
+                    invoke the recursive algorithm using <em>state</em>,
+                    the value of <code>@id</code> from <em>item</em>
+                    as the sole member of a new <em>subjects</em> <a>array</a>,
+                    the first value from <em>property</em> in <em>frame</em> as <em>frame</em>,
+                    <em>output</em> as <em>parent</em>, and <em>property</em> as <em>active property</em>.
+                    If <em>frame</em> does not exist, create a new <em>frame</em> using a new <a>dictionary</a>
+                    with properties for <code>@embed</code>, <code>@explicit</code> and <code>@requireAll</code>
+                    taken from <em>embed</em>, <em>explicit</em> and <em>requireAll</em>.</li>
+                  <li>Otherwise, append a copy of <em>item</em> to <a>active property</a> in
+                    <em>output</em>.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+
+          <li>For each non-<a>keyword</a> <em>property</em> and <em>objects</em> in <em>frame</em> that is not in <em>output</em>:
+            <ol class="algorithm">
+              <li>Let <em>item</em> be the first element in <em>objects</em>, which MUST be a <a>frame object</a>.</li>
+              <li>Set <em>property frame</em> to the first item in <em>objects</em> or a newly created <a>frame object</a> if value is <em>objects</em>.
+                <em>property frame</em> MUST be a dictionary.</li>
+              <li>Skip <em>property</em> and <em>property frame</em> if <em>property frame</em> contains
+                <code>@omitDefault</code> with a value of <code>true</code>,
+                or does not contain <code>@omitDefault</code> and the value of
+                the <a>omit default flag</a> is <code>true</code>.</li>
+              <li>Add <em>property</em> to <em>output</em> with a
+                new <a>dictionary</a> having a property <code>@preserve</code> and
+                a value that is a copy of the value of <code>@default</code> in
+                <em>frame</em> if it exists, or the string <code>@null</code>
+                otherwise.</li>
+            </ol>
+          </li>
+
+          <li class="changed">If <em>frame</em> has the property <code>@reverse</code>, then
+            for each <em>reverse property</em> and <em>sub frame</em> that are the values of <code>@reverse</code> in <em>frame</em>:
+            <ol class="algorithm">
+              <li>Create a <code>@reverse</code> property in <em>output</em> with a new <a>dictionary</a> <em>reverse dict</em> as its value.</li>
+              <li>For each <em>reverse id</em> and <em>node</em> in the <a>map of flattened subjects</a> that has the property
+                <em>reverse property</em> containing a <a>node reference</a> with an <code>@id</code> of <em>id</em>:
+                <ol class="algorithm">
+                  <li>Add <em>reverse property</em> to <em>reverse dict</em> with a new empty <a>array</a> as its value.</li>
+                  <li>Invoke the recursive algorithm using <em>state</em>,
+                    the <em>reverse id</em>
+                    as the sole member of a new <em>subjects</em> <a>array</a>,
+                    <em>sub frame</em> as <em>frame</em>,
+                    <code>null</code> as <em>active property</em>,
+                    and the <a>array</a> value of <em>reverse property</em> in <em>reverse dict</em> as <em>parent</em>.</li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+
+          <li>Once output has been set are required in the previous steps,
+            add <em>output</em> to <em>parent</em>.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<p class="changed">If the <a data-link-for="JsonLdOptions">pruneBlankNodeIdentifiers</a> is <code>true</code>,
+  remove the <code>@id</code> member of each <a>node object</a> where the
+  member value is a <a>blank node identifier</a> which appears only once
+  in any property value within <em>result</em>.</p>
+<p>Using <em>result</em> from the recursive algorithm, set <em>compacted results</em> to the result of using the
+  <a data-link-for="JsonLdProcessor">compact</a>
+  method using <em>results</em>, <a>context</a>, and
+  <a data-lt="JsonLdProcessor-frame-options">options</a>.</p>
+<p>If <em>compacted results</em> does not have a top-level <code>@graph</code> <a>keyword</a>, or if its value is
+  not an <a>array</a>, modify <em>compacted results</em> to place the non <code>@context</code> <a>properties</a>
+  of <em>compacted results</em> into a <a>dictionary</a> contained within the array value of
+  <code>@graph</code>.</p>
+<p>Recursively, replace all key-value pairs in <em>compacted results</em>
+  where the key is <code>@preserve</code> with the value from the key-pair.
+  If the value from the key-pair is <code>@null</code>, replace the value with <code>null</code>.
+  <span class="changed">If, after replacement, an array contains a single array value, replace the array with that value.</span>
+  If, after replacement, an array contains only the value <a>null</a> remove the value, leaving
+  an empty <a>array</a>.</p>
+<p>Return <em>compacted results</em>.</p>
+
+</section>
+
+<section id="frame-matching" class="changed">
+  <h2>Frame Matching Algorithm</h2>
+
+  <p>The Frame Matching Algorithm is used as part of the <a href="#framing-algorithm">Framing algorithm</a>
+    to determine if a particular <a>node object</a> matches the criteria set in a <a>frame</a>.
+    In general, a node object matches a frame if it meets the matches on <code>@type</code>,
+    or <code>@id</code>,
+    or if it matches given one of several different properties (or all properties, if the
+    <a>require all flag</a> is present.).</p>
+
+  <p class="note">As matching is performed on expanded node objects, all values will be in the form of an array.</p>
+
+  <p>Node matching uses a combination of JSON constructs to match <em>any</em>, <em>zero</em>, or <em>some</em> specific values:</p>
+  <dl data-sort>
+    <dt><code>[]</code> (<code><dfn>match none</dfn></code>)</dt>
+    <dd>An empty array matches no values, or a value which is, itself, an empty array.</dd>
+    <dt><code>{}</code> (<code><dfn>wildcard</dfn></code>)</dt>
+    <dd>An array containing an empty object
+      (after excluding any properties which are <a>framing keywords</a>)
+      matches any value that is present, and does not match if there are no values.</dd>
+    <dt><code>[<a>IRI</a>+]</code></dt>
+    <dd>One or more strings in the form of an <a>IRI</a>, used for matching on <code>@type</code> and <code>@id</code>,
+      which allows a match on <em>any</em> of the listed IRIs.</dd>
+    <dt><code>[<a>frame object</a>]</code> (<code><dfn>node pattern</dfn></code>)</dt>
+    <dd>A non-empty <a>frame object</a>, used to match specific values using recursive node matching.</dd>
+    <dt><code>[<a>value object</a>]</code> (<code><dfn>value pattern</dfn></code>)</dt>
+    <dd>A <a>value object</a>, used to match a specific value. Within a <a>value object</a>,
+      the values for <code>@value</code>, <code>@type</code>, and <code>@language</code>
+      may also be an array of one or more <a>string</a> values.</dd>
+  </dl>
+
+<p>The frame matching algorithm takes the <a>framing state</a> (<em>state</em>),
+  a list of subjects to match from the <a>map of flattened subjects</a> (<em>subjects</em>),
+  a <a>frame</a> to match against (<em>frame</em>), and the <em>requireAll</em> flag
+  and returns a list of matched subjects by filtering each <em>node</em> in <em>subjects</em> as follows:</p>
+
+<p>Frame matching follows an order of precedence, first attempting to match on a particular <code>@id</code>, then
+  a particular <code>@type</code> (or lack of <code>@type</code>), then by matching on any or all
+  of a set of properties, if neither <code>@id</code>, nor <code>@type</code> are in the frame.</p>
+
+<ol class="algorithm">
+  <li><em>Node</em> matches if it has an <code>@id</code> property value
+    which is also a value of the <code>@id</code> property in <em>frame</em>.
+    Otherwise, <em>node</em> does not match if <em>frame</em> has a non-empty
+    <code>@id</code> property, other than an empty <a>dictionary</a>.
+    Otherwise, frame must not have a <code>@id</code> property; continue to the next step.
+    <div class="note">Framing works on <a>map of flattened subjects</a>,
+      and the act of flattening ensures that all subjects have an
+      <code>@id</code> property; thus the <code>"@id": []</code> pattern would
+      never match any <a>node object</a>. the <code>"@id": [{}]</code> pattern would
+      match any <a>node object</a> and is equivalent to not specifying a
+      <code>@id</code> property in <em>frame</em> at all</div>
+  </li>
+  <li><em>Node</em> matches if frame has no non-<code>keyword</code> properties.</li>
+  <li>If <em>requireAll</em> is <strong>true</strong>, <em>node</em> matches if all non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
+    Or, if <em>requireAll</em> is <strong>false</strong>, if any of the non-<a>keyword</a> properties (<em>property</em>) in <em>frame</em> match any of the following conditions.
+    For the <em>values</em> of each <em>property</em> from <em>frame</em> in <em>node</em>:
+    <ol class="algorithm">
+      <li>If <em>property</em> is <code>@type</code>:
+        <ol class="algorithm">
+          <li><em>Property</em> matches if the <code>@type</code> property in frame includes any <a>IRI</a> in <em>values</em>.</li>
+          <li>Otherwise, <em>property</em> matches if <em>values</em> is not empty and the <code>@type</code> property in <em>frame</em> is <code><a>wildcard</a></code>.</li>
+          <li>Otherwise, <em>property</em> matches if <em>values</em> is empty and the <code>@type</code> property in <em>frame</em> is <code><a>match none</a></code>.</li>
+          <li>Otherwise, <em>property</em> does not match.</li>
+        </ol>
+      </li>
+      <li>Otherwise, the value of <em>property</em> in <em>frame</em> MUST be empty, or an array
+        containing a valid <a>frame</a>.</li>
+      <li><em>Property</em> matches if <em>values</em> is empty, or non existent,
+        the value of <em>property</em> in <em>frame</em>
+        is a <a>dictionary</a> containing only the key <code>@default</code> with any value,
+        and any other property in <em>node</em> has a non-default match.</li>
+      <li><em>Node</em> does not match if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>match none</a></code>, and further matching is aborted.</li>
+      <li>Otherwise, <em>property</em> matches if <em>values</em> is not empty and the value of <em>property</em> in <em>frame</em> is <code><a>wildcard</a></code>.</li>
+      <li>Otherwise, if the value of <em>property</em> in <em>frame</em> is a <a>value pattern</a> (<em>value pattern</em>):
+        property matching is determined using the <a href="#value-matching">Value matching algorithm</a>. </li>
+      <li>Otherwise, for any <strong>node pattern</strong> (<em>node pattern</em>) which is one of the values of <em>property</em> in <em>frame</em>:
+        <ol class="algorithm">
+          <li>Let <em>value subjects</em> be the list of subjects from the <a>map of flattened subjects</a> matching the <a>node object</a> values from <em>values</em>.</li>
+          <li>Let <em>matched subjects</em> be the result of calling this algorithm recursively using
+            <em>state</em>, <em>value subjects</em> for <em>subjects</em>, <em>node pattern</em> for <em>frame</em>, and the <em>requireAll</em> flag.</li>
+          <li><em>Property</em> matches if <em>matched subjects</em> is not empty.</li>
+        </ol>
+      </li>
+      <li>Otherwise, <em>property</em> does not match.</li>
+    </ol>
+  </li>
+</ol>
+</section>
+
+<section id="value-matching" class="changed">
+  <h2>Value Pattern Matching Algorithm</h2>
+
+  <p>The Value Pattern Matching Algorithm is used as part of the <a href="#framing-algorithm">Framing</a>
+    and <a href="#frame-matching">Frame Matching</a> algorithms. A value object
+    matches a value pattern using the <code><a>match none</a></code> and <code><a>wildcard</a></code>
+    patterns on <code>@value</code>, <code>@type</code>, and
+    <code>@language</code>, in addition to allowing a specific value to match a
+    set of values defined using the <a>array</a> form for each <a>value
+    object</a> property.</p>
+
+  <p>The algorithm takes a <a>value pattern</a> (<em>pattern</em>) and <a>value object</a> (<em>value</em>) as parameters.
+    Value matches pattern using the following algorithm:</p>
+
+  <ol class="algorithm">
+    <li>Let <em>v1</em>, <em>t1</em>, and <em>l1</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value</em>, or <strong>null</strong> if none exists.</li>
+    <li>Let <em>v2</em>, <em>t2</em>, and <em>l2</em> be the values of <code>@value</code>, <code>@type</code>, and <code>@language</code> in <em>value pattern</em>, or <strong>null</strong> if none exists.</li>
+    <li><em>Value</em> matches <em>pattern</em> when pattern is <code><a>wildcard</a></code>, or:
+      <ol class="algorithm">
+        <li><em>v1</em> is in <em>v2</em>, or <em>v1</em> is not <strong>null</strong> and <em>v2</em> is <code><a>wildcard</a></code>, and</li>
+        <li><em>t1</em> is in <em>t2</em>, or <em>t1</em> is not <strong>null</strong> and <em>t2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>t1</em> is <code>null</code> and <em>t2</em> is <strong>null</strong> or <code><a>match none</a></code>, and</li>
+        <li><em>l1</em> is in <em>l2</em>, or <em>l1</em> is not <strong>null</strong> and <em>l2</em> is <code><a>wildcard</a></code>, or <strong>null</strong>, or <em>l1</em> is <code>null</code> and <em>l2</em> is <strong>null</strong> or <code><a>match none</a></code>.</li>
+      </ol>
+    </li>
+  </ol>
+</section>
+
+</section>
 
 <section>
   <h1>RDF Serialization/Deserialization Algorithms</h1>
@@ -4213,6 +5114,10 @@
           JsonLdInput input,
           optional JsonLdContext? context,
           optional JsonLdOptions? options);
+        static Promise&lt;JsonLdDictionary> frame(
+          JsonLdInput input,
+          (JsonLdDictionary or USVString) frame,
+          optional JsonLdOptions? options);
       };
     </pre>
 
@@ -4378,6 +5283,59 @@
             to set the input document's <a>base IRI</a>.</dd>
         </dl>
       </dd>
+
+      <dt><dfn data-dfn-for="JsonLdProcessor">frame</dfn></dt>
+      <dd>
+        <p><a href="#framing">Frames</a> the given <code>input</code> using <a data-lt="JsonLdProcessor-frame-frame">frame</a>
+          according to the steps in the <a href="#framing-algorithm">Framing
+          Algorithm</a>:</p>
+
+        <ol class="algorithm">
+          <li>Create a new <a>Promise</a> <em>promise</em> and return it. The
+            following steps are then executed asynchronously.</li>
+          <li>Set <em>expanded input</em> to the result of using the
+            <a data-link-for="JsonLdProcessor">expand</a>
+            method using <a data-lt="JsonLdProcessor-frame-input">input</a> and <a data-lt="JsonLdProcessor-frame-options">options</a>.
+          <li>Set <em>expanded frame</em> to the result of using the
+            <a data-link-for="JsonLdProcessor">expand</a>
+            method using
+            <a data-lt="JsonLdProcessor-frame-frame">frame</a> and
+            <a data-lt="JsonLdProcessor-frame-options">options</a> with
+            <code class="idlMemberName"><a data-link-for="JsonldOptions">expandContext</a></code> set to <code>null</code>
+            and <a data-link-for="JsonLdOptions">processingMode</a> set to <strong>json-ld-1.1-expand-frame</strong>.
+          <li>Set <em>context</em> to the value of <code>@context</code>
+            from <a data-lt="JsonLdProcessor-frame-frame">frame</a>, if it exists, or to
+            a new empty <a>context</a>, otherwise.</li>
+          <li class="changed">Initialize an <a>active context</a> using <em>context</em>;
+            the <a>base IRI</a> is set to
+            the <a data-link-for="JsonldOptions">base</a> option from
+            <a data-lt="jsonldprocessor-frame-options">options</a>, if set;
+            otherwise, if the
+            <a data-link-for="JsonLdOptions">compactToRelative</a> option is
+            <strong>true</strong>, to the IRI of the currently being processed
+            document, if available; otherwise to <code>null</code>.</li>
+          <li>If <a data-lt="JsonLdProcessor-frame-frame">frame</a> has a top-level
+            property which expands to <code>@graph</code> set the <a data-link-for="JsonLdOptions">frameDefault</a>
+            option to <a data-lt="JsonLdProcessor-frame-options">options</a> with the
+            value <code>true</code>.</li>
+          <li>Set <em>framed</em> to the result of using the
+            <a href="#framing-algorithm">Framing algorithm</a>, passing
+            <em>expanded input</em>, <em>expanded frame</em>, <a>active context</a>, and <em>options</em>.</li>
+          <li>Fulfill the <em>promise</em> passing <em>framed</em>.</li>
+        </ol>
+
+        <dl class="parameters">
+          <dt><dfn data-lt="JsonLdProcessor-frame-input" data-lt-noDefault>input</dfn></dt>
+           <dd>The JSON-LD object or array of JSON-LD objects to perform the framing upon or an
+            <a>IRI</a> referencing the JSON-LD document to frame.</dd>
+          <dt><dfn data-lt="JsonLdProcessor-frame-frame" data-lt-noDefault>frame</dfn></dt>
+          <dd>The frame to use when re-arranging the data of <code>input</code>; either
+            in the form of an <a>dictionary</a> or as <a>IRI</a>.</dd>
+          <dt><dfn data-lt="JsonLdProcessor-frame-options" data-lt-noDefault>options</dfn></dt>
+          <dd>A set of options that MAY affect the framing algorithm such as, e.g., the
+            input document's base <a>IRI</a>.</dd>
+        </dl>
+      </dd>
     </dl>
 
     <pre class="idl changed" data-transform="unComment"><!--
@@ -4413,13 +5371,25 @@
 
     <pre class="idl" data-transform="unComment"><!--
       dictionary JsonLdOptions {
-        USVString?             base;
-        boolean                compactArrays = true;
-        LoadDocumentCallback   documentLoader = null;
+        USVString?                base;
+        boolean                   compactArrays = true;
+        LoadDocumentCallback      documentLoader = null;
         (JsonLdDictionary? or USVString) expandContext = null;
-        boolean                produceGeneralizedRdf = true;
-        USVString              processingMode = null;
-        boolean                compactToRelative = true;
+        boolean                   produceGeneralizedRdf = true;
+        USVString                 processingMode = null;
+        boolean                   compactToRelative = true;
+        (JsonLdEmbed or boolean)  embed = "@last";
+        boolean                   explicit    = false;
+        boolean                   omitDefault = false;
+        boolean                   requireAll  = false;
+        boolean                   frameDefault  = false;
+        boolean                   pruneBlankNodeIdentifiers = true;
+      };
+
+      enum JsonLdEmbed {
+        "@always",
+        "@last",
+        "@never"
       };
     --></pre>
 
@@ -4457,6 +5427,41 @@
       <dt class="changed"><dfn data-dfn-for="JsonLdOptions">compactToRelative</dfn></dt>
       <dd class="changed">Determines if IRIs are compacted relative to the
         <a data-link-for="JsonLdOptions">base</a> option or document location when <a>compacting</a>.</dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">embed</dfn></dt>
+      <dd>Sets the value <a>object embed flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a>.
+        A boolean value of <code>true</code> sets the flag to
+        <code>@last</code>, while an value of <code>false</code> sets the flag
+        to <code>@never</code>.</dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">explicit</dfn></dt>
+      <dd>Sets the value <a>explicit inclusion flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a>.
+      </dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">omitDefault</dfn></dt>
+      <dd>Sets the value <a>omit default flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a></dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">requireAll</dfn></dt>
+      <dd>Sets the value <a>require all flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a></dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">frameDefault</dfn></dt>
+      <dd>Instead of framing a <em>merged graph</em>, frame only the <a>default graph</a>.</dd>
+      <dt><dfn data-dfn-for="JsonLdOptions">pruneBlankNodeIdentifiers</dfn></dt>
+      <dd>Removes <code>@id</code> from <a>node objects</a> where the value
+        is a <a>blank node identifier</a> used only once within the document.</dd>
+    </dl>
+
+    <p><dfn>JsonLdEmbed</dfn> enumerates the values of the <a data-link-for="JsonLdOptions">embed</a> option:</p>
+    <dl data-sort>
+      <dt><dfn data-dfn-for="JsonLdEmbed">@always</dfn></dt><dd>
+        Always embed <a>node objects</a> as property values, unless this would
+        cause a circular reference.</dd>
+      <dt><dfn data-dfn-for="JsonLdEmbed">@last</dfn></dt><dd>
+        Only the last value within a given <a>node object</a> should be embedded,
+        previous values of other properties use a <a>node reference</a>. This is the
+        default value if neither <code>@embed</code> nor <a>object embed flag</a>
+        is not specified.</dd>
+      <dt class="changed"><dfn data-dfn-for="JsonLdEmbed">@never</dfn></dt><dd class="changed">
+        Always use a <a>node reference</a> when serializing matching values.</dd>
     </dl>
   </section> <!-- end JsonLdOptions -->
 
@@ -4569,6 +5574,8 @@
             "invalid @prefix value",
             "invalid @reverse value",
             "invalid @version value",
+            "invalid frame",
+            "invalid @embed value",
             "invalid base IRI",
             "invalid container mapping",
             "invalid default language",
@@ -4719,12 +5726,81 @@
           incompatible with the previous specified version.</dd>
         <dt><dfn>recursive context inclusion</dfn></dt>
         <dd>A cycle in remote context inclusions has been detected.</dd>
+        <dt><dfn>invalid frame</dfn></dt><dd>
+          The frame is invalid.
+        </dd>
+        <dt><dfn>invalid @embed value</dfn></dt><dd>
+          The value for <code>@embed</code> is not one recognized for the <a>object embed flag</a>.
+        </dd>
       </dl>
     </section>
   </section> <!-- end of Error Handling -->
 </section> <!-- end of The Application Programming Interfaces -->
 
 <section id="idl-index" class="appendix informative">
+</section>
+
+<section class="appendix informative">
+<h2>IANA Considerations</h2>
+
+<p>This section is included merely for standards community review and will be
+submitted to the Internet Engineering Steering Group if this specification
+becomes a W3C Recommendation.</p>
+
+<h3>application/ld-frame+json</h3>
+<dl>
+  <dt>Type name:</dt>
+  <dd>application</dd>
+  <dt>Subtype name:</dt>
+  <dd>ld-frame+json</dd>
+  <dt>Required parameters:</dt>
+  <dd>None</dd>
+  <dt>Optional parameters:</dt>
+  <dd>None</dd>
+  <dt>Encoding considerations:</dt>
+  <dd>The same as the <code>application/json</code> MIME media type.</dd>
+  <dt>Security considerations:</dt>
+  <dd>Since a JSON-LD frame is intended to specify a deterministic layout
+    for a JSON-LD graph, the serialization SHOULD NOT be passed through a
+    code execution mechanism such as JavaScript's <code>eval()</code>
+    function. It is RECOMMENDED that a conforming parser does not attempt to
+    directly evaluate the JSON-LD frame and instead purely parse the
+    input into a language-native data structure.</dd>
+  <dt>Interoperability considerations:</dt>
+  <dd>Not Applicable</dd>
+  <dt>Published specification:</dt>
+  <dd>The <a href="https://json-ld.org/spec/latest/">JSON-LD</a> specification.</dd>
+  <dt>Applications that use this media type:</dt>
+  <dd>Any programming environment that requires the exchange of
+    directed graphs. Implementations of JSON-LD have been created for
+    JavaScript, Python, Ruby, PHP and C++.
+  </dd>
+  <dt>Additional information:</dt>
+  <dd>
+    <dl>
+      <dt>Magic number(s):</dt>
+      <dd>Not Applicable</dd>
+      <dt>File extension(s):</dt>
+      <dd>.jsonldf</dd>
+      <dt>Macintosh file type code(s):</dt>
+      <dd>TEXT</dd>
+    </dl>
+  </dd>
+  <dt>Person &amp; email address to contact for further information:</dt>
+  <dd>Manu Sporny &lt;msporny@digitalbazaar.com&gt;</dd>
+  <dt>Intended usage:</dt>
+  <dd>Common</dd>
+  <dt>Restrictions on usage:</dt>
+  <dd>None</dd>
+  <dt>Author(s):</dt>
+  <dd>Manu Sporny, Gregg Kellogg, Markus Lanthaler, Dave Longley</dd>
+  <dt>Change controller:</dt>
+  <dd>W3C</dd>
+</dl>
+
+<p>Fragment identifiers have no meaning with
+  <a href="#application-ld-frame-json">application/frame-ld+json</a> resources.</p>
+
 </section>
 
 <section id="security" class="appendix">
@@ -4793,6 +5869,37 @@
       values of maps for which there is no natural index. The <a
       href="#expansion-algorithm">Expansion Algorithm</a> removes this indexing
       transparently.</li>
+    <li>There are numerous formatting and terminology changes intended to align with
+      the 1.0 Recommendations of JSON-LD and JSON-LD-API in addition to the use
+      of common term definition sections.</li>
+    <li>The <a>object embed flag</a> (<code>@embed</code>) can take on different
+      values to better control object embedding.</li>
+    <li>Framing supports <em>More specific frame matching</em>, where
+      general <code><a>wildcard</a></code> and <code><a>match none</a></code>
+      can be used for type and property values.</li>
+    <li>Frame matching also supports value object matching, where
+      values for <code>@value</code>, <code>@type</code>, and <code>@language</code>
+      can use <code><a>wildcard</a></code> and <code><a>match none</a></code>
+      and may also use a set of specific strings to match (e.g., a set of specific
+      languages).</li>
+    <li>Framing allows specific graphs to be matched, and the outer-most frame
+      can either come from the merged graph or the <a>default graph</a>.</li>
+    <li>Framing supports <code>@reverse</code>.</li>
+    <li>Through the use of <em>scoped contexts</em>, parts of a frame can be
+      compacted using a different context than is used for the outer-most
+      object.</li>
+    <li>Frames can use one or more values for <code>@id</code> to allow for matching
+      specific objects in a frame.</li>
+    <li>There is a new API option <a data-link-for="JsonLdOptions">pruneBlankNodeIdentifiers</a>
+      defaulting to <code>true</code>, which causes the
+      <a href="#framing-algorithm">Framing Algorithm</a> to remove
+      <code>@id</code> members who's value is a <a>blank node identifier</a>
+      used only for that <code>@id</code>.</li>
+    <li>The JSON syntax has been abstracted into an <a>internal representation</a>
+      to allow for other serialization formats that are functionally equivalent
+      to JSON.</li>
+    <li>Preserved values are compacted using the properties of the referencing term.</li>
+    <li>Removed support for <code>@link</code> and in-memory object linking.</p>
   </ul>
 </section>
 
@@ -4801,8 +5908,9 @@
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="333"></p>
   <p class="issue" data-number="357"></p>
-  <p class="issue" data-number="480"></p>
+  <p class="issue" data-number="435"></p>
   <p class="issue" data-number="488"></p>
+  <p class="issue" data-number="491"></p>
   <p class="issue" data-number="495"></p>
   <p class="issue" data-number="548"></p>
 </section>

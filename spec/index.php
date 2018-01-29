@@ -93,7 +93,6 @@ function getDrafts($spec)
                   <li class="nav-header"><strong>Latest</strong></li>
                   <li><a href="../spec/latest/json-ld/">Syntax</a></li>
                   <li><a href="../spec/latest/json-ld-api/">API</a></li>
-                  <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
                   <li><a href="../spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
                   <li class="divider"></li>
                   <li class="nav-header"><strong>Previous Drafts</strong></li>
@@ -173,28 +172,6 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </p>
-               </div>
-               <div id="framing">
-               <h2><a href="latest/json-ld-framing/">JSON-LD Framing</a></h2>
-               <p>
-JSON-LD Framing allows developers to perform <em>query by example</em>
-and force a specific tree layout to a JSON-LD document. It allows developers
-to restructure data retrieved from the Web according to the specific needs of
-their application. Restructuring JSON-LD data before your application processes
-it leads to simpler code when processing data from external sources.
-               </p>
-               <p>
-Links to JSON-LD Framing specifications: <a href="latest/json-ld-framing/">Latest</a><?php
-
-$drafts = getDrafts('json-ld-framing');
-
-foreach ($drafts as $date => $dir) {
-    print(", <a href=\"$dir/\">$date</a>");
-}
-
-?>
-               </p>
-
                </div>
                <h2><a href="latest/json-ld-rdf/">JSON-LD RDF API</a></h2>
                <p>
