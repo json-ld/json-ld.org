@@ -3,17 +3,24 @@ var jsonld = {
   // Add as the respecConfig localBiblio variable
   // Extend or override global respec references
   localBiblio: {
-    "JSON-LD": {
+    "JSON-LD11CG": {
       title: "JSON-LD 1.1",
       href: "https://json-ld.org/spec/latest/json-ld/",
-      authors: ["Manu Sporny", "Gregg Kellogg", "Markus Lanthaler"],
+      authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Draft'
     },
-    "JSON-LD-API": {
+    "JSON-LD11CG-API": {
       title: "JSON-LD 1.1 Processing Algorithms and API",
       href: "https://json-ld.org/spec/latest/json-ld-api/",
-      authors: ["Markus Lanthaler", "Gregg Kellogg", "Manu Sporny"],
+      authors: ["Gregg Kellogg"],
+      publisher: "W3C",
+      status: 'CG Draft'
+    },
+    "JSON-LD11CG-FRAMING": {
+      title: "JSON-LD 1.1 Framing",
+      href: "https://json-ld.org/spec/latest/json-ld-api/",
+      authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Draft'
     },
