@@ -896,8 +896,7 @@
                   an <a data-link-for="JsonLdErrorCode">invalid @version value</a>
                   has been detected, and processing is aborted.</li>
                 <li>If <a>processing mode</a>
-                  is not set, and <code>json-ld-1.1</code> is not a prefix
-                  of <a>processing mode</a>,
+                  is set to <code>json-ld-1.0</code>,
                   a <a data-link-for="JsonLdErrorCode">processing mode conflict</a>
                   error has been detected and processing is aborted.</li>
                 <li>Set <a>processing mode</a>,
@@ -1097,7 +1096,7 @@
               <a>IRI mapping</a> of <em>definition</em> ends with a URI
               <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
               set the <a>prefix flag</a> in <em>definition</em> to <code>true</code>.
-              If processing mode is not json-ld-1.0, and the <a>IRI mapping</a> ends with a URI
+              If <a>processing mode</a> is not <code>json-ld-1.0</code>, and the <a>IRI mapping</a> ends with a URI
               <a data-cite="RFC3986#section-2.2">gen-delim</a> character,
               set the <a>prefix flag</a> in <em>definition</em> to <code>true</code>, only if
               <em>value</em> was originally a <a>string</a>.</li>
@@ -1406,10 +1405,14 @@
     <section>
       <h3>Algorithm</h3>
 
-      <p>The algorithm takes three input variables: an <a>active context</a>,
+      <p>The algorithm takes three required <span class="changed">and one optional</span> input variables.
+        The required inputs are an <a>active context</a>,
         an <a>active property</a>, and an <em>element</em> to be expanded.
+        <span class="changed">The optional input is the flag <em>frame expansion</em> the allows
+          special forms of input used for <a data-cite="JSON-LD11CG-FRAMING#dfn-framing">framing</a></span>.
         To begin, the <a>active property</a> is set to <code>null</code>,
-        and <em>element</em> is set to the <a>JSON-LD input</a>.</p>
+        and <em>element</em> is set to the <a>JSON-LD input</a>.
+        <span class="changed">If not passed, the <em>frame expansion</em> flag is set to <code>false</code></span>.</p>
 
       <p class="changed">The algorithm also performs processing steps specific to expanding
         a <a>JSON-LD Frame</a>. For a <a>frame</a>, the <code>@id</code> and
@@ -1421,12 +1424,12 @@
         <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, or
         <code>@requireAll</code>) which are preserved through expansion.
         Special processing for a <a>JSON-LD Frame</a> is invoked when the
-        <a>processing mode</a> is set
-        to <code>json-ld-1.1-expand-frame</code>, indicated in the algorithm
-        with the <code>frame expansion</code> flag.</p>
+        <em>frame expansion</em> flag is set to <code>true</code>.</p>
 
         <ol class="algorithm">
         <li>If <em>element</em> is <code>null</code>, return <code>null</code>.</li>
+        <li class="changed">If <em>active property</em> is <code>@default</code>,
+          set the <em>frame expansion</em> flag to <code>false</code>.</li>
         <li>If <em>element</em> is a <a>scalar</a>,
           <ol class="algorithm">
             <li>If <a>active property</a> is <code>null</code> or <code>@graph</code>,
@@ -1444,7 +1447,8 @@
               <ol class="algorithm">
                 <li>Initialize <em>expanded item</em> to the result of using this
                   algorithm recursively, passing <a>active context</a>,
-                  <a>active property</a>, and <em>item</em> as <em>element</em>.</li>
+                  <a>active property</a>, <em>item</em> as <em>element</em>,
+                  <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                 <li>If the <a>active property</a> is <code>@list</code> or its
                   <a>container mapping</a> <span class="changed">includes</span> <code>@list</code>, the
                   <em>expanded item</em> must not be an <a>array</a> or a
@@ -1511,7 +1515,7 @@
                   passing <a>active context</a>, <em>value</em>, and <code>true</code>
                   for <em>document relative</em>.
                   <span class="changed">
-                    When the <code>frame expansion</code> flag is set, <em>value</em>
+                    When the <em>frame expansion</em> flag is set, <em>value</em>
                     may be an empty <a>dictionary</a>, or an <a>array</a> of one
                     or more <a>strings</a>. <em>Expanded value</em> will be
                     an <a>array</a> of one or more of these, with <a>string</a>
@@ -1528,12 +1532,13 @@
                   and <code>true</code> for <em>document relative</em> to expand the <em>value</em>
                   or each of its items.
                   <span class="changed">
-                    When the <code>frame expansion</code> flag is set, <em>value</em>
+                    When the <em>frame expansion</em> flag is set, <em>value</em>
                     may also be an empty <a>dictionary</a>.</span></li>
                 <li>If <em>expanded property</em> is <code>@graph</code>, set
                   <em>expanded value</em> to the result of using this algorithm
                   recursively passing <a>active context</a>, <code>@graph</code>
-                  for <a>active property</a>, and <em>value</em> for <em>element</em>,
+                  for <a>active property</a>, <em>value</em> for <em>element</em>,
+                  <span class="changed">and the <em>frame expansion</em> flag</span>,
                   <span class="changed">
                     ensuring that <em>expanded value</em> is an <a>array</a> of one or more <a>dictionaries</a></span>.</li>
                 <li>If <em>expanded property</em> is <code>@value</code> and
@@ -1547,7 +1552,7 @@
                   in this case as the meaning of an <code>@type</code> member depends
                   on the existence of an <code>@value</code> member.
                   <span class="changed">
-                    When the <code>frame expansion</code> flag is set, <em>value</em>
+                    When the <em>frame expansion</em> flag is set, <em>value</em>
                     may also be an empty <a>dictionary</a> or an array of
                     <a>scalar</a> values. <em>Expanded value</em> will be <a>null</a>, or an
                     <a>array</a> of one or more <a>scalar</a> values.</span></li>
@@ -1557,7 +1562,7 @@
                   error has been detected and processing is aborted.
                   <span class="changed">
                     Otherwise, set <em>expanded value</em> to lowercased <em>value</em>.
-                    When the <code>frame expansion</code> flag is set, <em>value</em>
+                    When the <em>frame expansion</em> flag is set, <em>value</em>
                     may also be an empty <a>dictionary</a> or an array of zero or
                     <a>strings</a>. <em>Expanded value</em> will be an
                     <a>array</a> of one or more <a>string</a> values converted to lower case.</span></li>
@@ -1573,7 +1578,8 @@
                       from <em>element</em> to remove the free-floating list.</li>
                     <li>Otherwise, initialize <em>expanded value</em> to the result of using
                       this algorithm recursively passing <a>active context</a>,
-                      <a>active property</a>, and <em>value</em> for <em>element</em>.</li>
+                      <a>active property</a>, <em>value</em> for <em>element</em>,
+                      <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                     <li>If <em>expanded value</em> is a <a>list object</a>, a
                       <a data-link-for="JsonLdErrorCode">list of lists</a>
                       error has been detected and processing is aborted.</li>
@@ -1582,8 +1588,8 @@
                 <li>If <em>expanded property</em> is <code>@set</code>, set
                   <em>expanded value</em> to the result of using this algorithm
                   recursively, passing <a>active context</a>,
-                  <a>active property</a>, and <em>value</em> for
-                  <em>element</em>.</li>
+                  <a>active property</a>, <em>value</em> for <em>element</em>,
+                  <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                 <li>If <em>expanded property</em> is <code>@reverse</code> and
                   <em>value</em> is not a <a class="changed">dictionary</a>, an
                   <a data-link-for="JsonLdErrorCode">invalid @reverse value</a>
@@ -1591,8 +1597,9 @@
                   <ol class="algorithm">
                     <li>Initialize <em>expanded value</em> to the result of using this
                       algorithm recursively, passing <a>active context</a>,
-                      <code>@reverse</code> as <a>active property</a>, and
-                      <em>value</em> as <em>element</em>.</li>
+                      <code>@reverse</code> as <a>active property</a>,
+                      <em>value</em> as <em>element</em>,
+                      <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                     <li>If <em>expanded value</em> contains an <code>@reverse</code> member,
                       i.e., properties that are reversed twice, execute for each of its
                       <em>property</em> and <em>item</em> the following steps:
@@ -1634,7 +1641,7 @@
                   add <em>key</em> to <em>nests</em>, initializing it to an empty <a>array</a>,
                   if necessary.
                   Continue with the next <em>key</em> from <em>element</em>.</li>
-                <li class="changed">When the <code>frame expansion</code> flag is set,
+                <li class="changed">When the <em>frame expansion</em> flag is set,
                   if <em>expanded property</em> is any other
                   framing keyword (<code>@explicit</code>, <code>@default</code>,
                   <code>@embed</code>, <code>@explicit</code>, <code>@omitDefault</code>, or
@@ -1642,7 +1649,8 @@
                   set <em>expanded value</em> to the result of performing the
                   <a href="#expansion-algorithm">Expansion Algorithm</a>
                   recursively, passing <a>active context</a>,
-                  <a>active property</a>, and <em>value</em> for <em>element</em>.</li>
+                  <a>active property</a>, <em>value</em> for <em>element</em>,
+                  <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                 <li>Unless <em>expanded value</em> is <code>null</code>, set
                   the <em>expanded property</em> member of <em>result</em> to
                   <em>expanded value</em>.</li>
@@ -1721,7 +1729,8 @@
                       using this algorithm recursively, passing
                       <em class="changed">map context</em> as <a>active context</a>,
                       <em>key</em> as <a>active property</a>,
-                      and <em>index value</em> as <em>element</em>.</li>
+                      <em>index value</em> as <em>element</em>,
+                      <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
                     <li>For each <em>item</em> in <em>index value</em>:
                       <ol class="algorithm changed">
                         <li>If <a>container mapping</a> includes
@@ -1763,8 +1772,8 @@
             </li>
             <li>Otherwise, initialize <em>expanded value</em> to the result of
               using this algorithm recursively, passing <em class="changed">term context</em> as <a>active context</a>,
-              <em>key</em> for <a>active property</a>, and <em>value</em>
-              for <em>element</em>.</li>
+              <em>key</em> for <a>active property</a>, <em>value</em> for <em>element</em>,
+              <span class="changed">and the <em>frame expansion</em> flag</span>.</li>
             <li>If <em>expanded value</em> is <code>null</code>, ignore <em>key</em>
               by continuing to the next <em>key</em> from <em>element</em>.</li>
             <li>If the <a>container mapping</a> associated to <em>key</em> in
@@ -1881,7 +1890,7 @@
             <li>Otherwise, if <em>result</em> is a <a class="changed">dictionary</a> whose only
               key is <code>@id</code>, set <em>result</em> to <code>null</code>.
               <span class="changed">
-                When the <code>frame expansion</code> flag is set, a <a>dictionary</a>
+                When the <em>frame expansion</em> flag is set, a <a>dictionary</a>
                 containing only the <code>@id</code> key is retained.</span></li>
           </ol>
         </li>
@@ -4379,7 +4388,8 @@
             <a data-link-for="JsonLdErrorCode">loading document failed</a> error.</li>
           <li>Set <em>expanded output</em> to the result of using the
             <a href="#expansion-algorithm">Expansion algorithm</a>, passing the
-            <a>active context</a> and <em>input</em> as <em>element</em>.</li>
+            <a>active context</a> and <em>input</em> as <em>element</em>,
+            <span class="changed">and, if the <dfn data-link-for="JsonLdOptions">framing</dfn> option is set, pass the <em>frame expansion</em> flag as <code>true</code>.</span>.</li>
           <li>Fulfill the <em>promise</em> passing <em>expanded output</em>.
             <span class="changed">transforming <em>expanded output</em> from the
               <a>internal representation</a> to a JSON serialization</span>.</li>
@@ -4484,11 +4494,12 @@
       dictionary JsonLdOptions {
         USVString?             base;
         boolean                compactArrays = true;
+        boolean                compactToRelative = true;
         LoadDocumentCallback   documentLoader = null;
         (JsonLdDictionary? or USVString) expandContext = null;
-        boolean                produceGeneralizedRdf = true;
+        boolean                framing = false;
         USVString              processingMode = null;
-        boolean                compactToRelative = true;
+        boolean                produceGeneralizedRdf = true;
       };
     --></pre>
 
@@ -4526,6 +4537,8 @@
       <dt class="changed"><dfn data-dfn-for="JsonLdOptions">compactToRelative</dfn></dt>
       <dd class="changed">Determines if IRIs are compacted relative to the
         <a data-link-for="JsonLdOptions">base</a> option or document location when <a>compacting</a>.</dd>
+      <dt class="changed"><dfn data-dfn-for="JsonLdOptions">framing</dfn></dt>
+      <dd class="changed">Enables special frame processing rules for the <a href="#expansion-algorithm">Expansion Algorithm</a>.</dd>
     </dl>
   </section> <!-- end JsonLdOptions -->
 
@@ -4806,7 +4819,7 @@
   <ul>
     <li>The <a href="#expansion-algorithm">Expansion Algorithm</a>
       has a special <a>processing mode</a>, based on
-      the <code>frame expansion</code> flag, to enable content associated with JSON-LD
+      the <em>frame expansion</em> flag, to enable content associated with JSON-LD
       frames, which may not otherwise be valid <a>JSON-LD documents</a>.</li>
     <li>An <a>expanded term definition</a> can now have an
       <code>@context</code> property, which defines a context used for values of
