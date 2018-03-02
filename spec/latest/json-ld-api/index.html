@@ -910,10 +910,13 @@
                   <code>@vocab</code> key.</li>
                 <li>If <em>value</em> is <a>null</a>, remove
                   any <a>vocabulary mapping</a> from <em>result</em>.</li>
-                <li>Otherwise, if <em>value</em> is an <a>absolute IRI</a>
+                <li>Otherwise, if <em>value</em> is
+                  <code class="changed">@base</code>,
+                  an <a>absolute IRI</a>
                   or <a>blank node identifier</a>, the <a>vocabulary mapping</a>
-                  of <em>result</em> is set to <em>value</em>. If it is not an
-                  <a>absolute IRI</a> or <a>blank node identifier</a>, an
+                  of <em>result</em> is set to <em>value</em>. If it is not
+                  <code class="changed">@base</code>,
+                  an <a>absolute IRI</a> or <a>blank node identifier</a>, an
                   <a data-link-for="JsonLdErrorCode">invalid vocab mapping</a>
                   error has been detected and processing is aborted.</li>
               </ol>
@@ -1132,8 +1135,8 @@
           <ol class="algorithm">
             <li>Initialize <em>container</em> to the value associated with the
               <code>@container</code> key, which must be either
-              <span class="changed"><code>@graph</code></span>,
-              <span class="changed"><code>@id</code></span>,
+              <code class="changed">@graph</code>,
+              <code class="changed">@id</code>,
               <code>@index</code>,
               <code>@language</code>,
               <code>@list</code>,
@@ -1333,10 +1336,12 @@
           </ol>
         </li>
         <li>If <em>vocab</em> is <code>true</code>, and
-          <a>active context</a> has a <a>vocabulary mapping</a>,
+          <a>active context</a> has a <a>vocabulary mapping</a>
+          <span class="changed">which is not <code>@base</code></span>,
           return the result of concatenating the <a>vocabulary mapping</a>
           with <em>value</em>.</li>
-        <li>Otherwise, if <em>document relative</em> is <code>true</code>,
+        <li>Otherwise, if <em>document relative</em> is <code>true</code>
+          <code class="changed">or <a>active context</a> has a <a>vocabulary mapping</a> which is <code>@base</code></code>,
           set <em>value</em> to the result of resolving <em>value</em> against
           the <a>base IRI</a>. Only the basic algorithm in
           <a data-cite="RFC3986#section-5.2">section 5.2</a>
@@ -3008,7 +3013,8 @@
           </ol>
         </li>
         <li>If <em>compact IRI</em> is not <code>null</code>, return <em>compact IRI</em>.</li>
-        <li>If <em>vocab</em> is <code>false</code> then
+        <li>If <em>vocab</em> is <code>false</code>
+          <span class="changed">or <a>active context</a> has a<a>vocabulary mapping</a> which is <code>@base</code></span>
           transform <em>iri</em> to a <a>relative IRI</a> using
           the <span class="changed"><a>base IRI</a> from <a>active context</a>, if it exists</span>.</li>
         <li>Finally, return <em>iri</em> as is.</li>
@@ -4885,6 +4891,11 @@
       values of maps for which there is no natural index. The <a
       href="#expansion-algorithm">Expansion Algorithm</a> removes this indexing
       transparently.</li>
+    <li><code>@base</code> has been added as a possible value for <code>@vocab</code> in
+      a context. When this is set, vocabulary-relative IRIs, such as the
+      keys of <a>node objects</a>, are expanded or compacted relative
+      to the <a>base IRI</a> using the basic algorithm in
+      <a data-cite="RFC3986#section-5.2">section 5.2</a> [[RFC3986]].</li>
   </ul>
 </section>
 
