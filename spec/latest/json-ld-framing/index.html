@@ -50,8 +50,16 @@
           url:        "http://greggkellogg.net/",
           company:    "Spec-Ops",
           companyURL: "https://spec-ops.io/",
-          w3cid:      "44770",
-          note:       "v1.0 and v1.1" }
+          w3cid:      "44770" }
+      ],
+
+      formerEditors:  [
+          { name: "Manu Sporny", url: "http://manu.sporny.org/",
+            company: "Digital Bazaar", companyURL: "https://digitalbazaar.com/" },
+          { name: "Dave Longley", url: "https://digitalbazaar.com/",
+            company: "Digital Bazaar", companyURL: "https://digitalbazaar.com/"},
+          { name: "Markus Lanthaler", url: "http://www.markus-lanthaler.com/",
+            company: "Graz University of Technology", companyURL: "http://www.tugraz.at/" }
       ],
 
       // authors, add as many as you like.
@@ -367,6 +375,31 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
     -->
     </pre>
 
+    <p>If <a>processing mode</a> is <code>json-ld-1.1</code> or greater, or the <a>omit graph flag</a> is <code>true</code>,
+      the top-level <code>@graph</code> member may be omitted.</p>
+    <pre class="example nohighlight" data-transform="updateExample"
+         title="Framed library objects with omitGraph set to false">
+    <!--
+    {
+      "@context": {"@vocab": "http://example.org/"},
+      "@id": "http://example.org/library",
+      "@type": "Library",
+      "contains": {
+        "@id": "http://example.org/library/the-republic",
+        "@type": "Book",
+        "contains": {
+          "@id": "http://example.org/library/the-republic#introduction",
+          "@type": "Chapter",
+          "description": "An introductory chapter on The Republic.",
+          "title": "The Introduction"
+        },
+        "creator": "Plato",
+        "title": "The Republic"
+      }
+    }
+    -->
+    </pre>
+
     <p>The <a href="#framing-algorithm">Framing Algorithm</a> does this by
       first expanding both the input frame and document. It then creates
       a <a>map of flattened subjects</a>. The outer-most <a>node object</a> within the frame
@@ -580,6 +613,18 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         The initial value for the <a>omit default flag</a> is set using the
         <a data-link-for="JsonLdOptions">omitDefault</a> option.
         See <a href="#default-content" class="sectionRef"></a> for a further discussion.</p>
+    </section>
+
+    <section class="changed">
+      <h4>Omit graph flag</h4>
+      <p>The <a>omit graph flag</a> determines if framed output containing a single
+        <a>node object</a> is contained within <code>@graph</code>, or not.
+        The initial value for the <a>omit graph flag</a> is set using the
+        <a data-link-for="JsonLdOptions">omitGraph</a> option, or based on
+        the <a>processing mode</a>; if <a>processing mode</a> is <code>json-ld-1.0</code>, the output
+        always includes a <code>@graph</code> member, otherwise, the <code>@graph</code> member is used only
+        to describe multiple <a>node objects</a>, consistent with compaction.
+        See <a href="#framing-algorithm" class="sectionRef"></a> for a further discussion.</p>
     </section>
 
     <section>
@@ -1075,10 +1120,12 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
   <code class="idlMemberName"><a data-cite="JSON-LD11CG-API#dom-jsonldprocessor-compact">compact</a></code>
   method using <em>results</em>, <a>context</a>, and
   <a data-lt="JsonLdProcessor-frame-options">options</a>.</p>
-<p>If <em>compacted results</em> does not have a top-level <code>@graph</code> <a>keyword</a>, or if its value is
+<p>If <span class="changed">the <a>omit graph flag</a> is <code>false</code> and</span>
+  <em>compacted results</em> does not have a top-level <code>@graph</code> member, or its value is
   not an <a>array</a>, modify <em>compacted results</em> to place the non <code>@context</code> <a>properties</a>
   of <em>compacted results</em> into a <a>dictionary</a> contained within the array value of
-  <code>@graph</code>.</p>
+  <code>@graph</code>. If the <a>omit graph flag</a> is <code>true</code>, a
+  top-level <code>@graph</code> member is used only to contain multiple <p>node objects</p>.</p>
 <p>Recursively, replace all key-value pairs in <em>compacted results</em>
   where the key is <code>@preserve</code> with the value from the key-pair.
   If the value from the key-pair is <code>@null</code>, replace the value with <code>null</code>.
@@ -1351,6 +1398,7 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
         (JsonLdEmbed or boolean)  embed = "@last";
         boolean explicit    = false;
         boolean omitDefault = false;
+        boolean omitGraph;
         boolean requireAll  = false;
         boolean frameDefault  = false;
         boolean pruneBlankNodeIdentifiers = true;
@@ -1381,9 +1429,13 @@ familiar with the basic RDF concepts [[!RDF-CONCEPTS]].</p>
       <dt><dfn data-dfn-for="JsonLdOptions">omitDefault</dfn></dt>
       <dd>Sets the value <a>omit default flag</a> used in the
         <a href="#framing-algorithm">Framing Algorithm</a></dd>
+      <dt class="changed"><dfn data-dfn-for="JsonLdOptions">omitGraph</dfn></dt>
+      <dd class="changed">Sets the value <a>omit graph flag</a> used in the
+        <a href="#framing-algorithm">Framing Algorithm</a>. If not set explicitly,
+        it is set to <code>false</code> if <a>processing mode</a> if <code>json-ld-1.0</code>, <code>true</code> otherwise.</dd>
       <dt><dfn data-dfn-for="JsonLdOptions">requireAll</dfn></dt>
       <dd>Sets the value <a>require all flag</a> used in the
-        <a href="#framing-algorithm">Framing Algorithm</a></dd>
+        <a href="#framing-algorithm">Framing Algorithm</a>.</dd>
       <dt><dfn data-dfn-for="JsonLdOptions">frameDefault</dfn></dt>
       <dd>Instead of framing a <em>merged graph</em>, frame only the <a>default graph</a>.</dd>
       <dt><dfn data-dfn-for="JsonLdOptions">pruneBlankNodeIdentifiers</dfn></dt>
@@ -1517,6 +1569,9 @@ becomes a W3C Recommendation.</p>
       to JSON.</li>
     <li>Preserved values are compacted using the properties of the referencing term.</li>
     <li>Removed support for <code>@link</code> and in-memory object linking.</li>
+    <li>Added the <a>omit default flag</a>, controled via the
+      <a data-link-for="JsonLdOptions">omitDefault</a> API option and/or
+      the current <a>processing mode</a>.</li>
   </ul>
 </section>
 
@@ -1524,9 +1579,9 @@ becomes a W3C Recommendation.</p>
   <h4>Open Issues</h4>
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="435"></p>
-  <p class="issue" data-number="477"></p>
   <p class="issue" data-number="491"></p>
   <p class="issue" data-number="532"></p>
+  <p class="issue" data-number="579"></p>
 </section>
 
 <section class="appendix informative">
