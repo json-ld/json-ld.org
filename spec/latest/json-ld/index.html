@@ -1168,21 +1168,6 @@
     underscore (<code>_</code>), the value is interpreted as <a>blank node identifier</a>
     instead.</p>
 
-  <p class="changed">In JSON-LD 1.0, terms will be used as <a>compact IRI</a> prefixes when
-  compacting only if they map to a value that ends with a URI <a
-  data-cite="RFC3986#section-2.2">gen-delim</a> character (e.g, <code>/</code>,
-  <code>#</code> and others, see [[!RFC3986]]).</p>
-
-  <p class="note">This represents a small change to the 1.0 algorithm to prevent IRIs
-    that are not really intended to be used as prefixes from being used for creating
-    <a>compact IRIs</a>.</p>
-
-  <p class="changed">When <a>processing mode</a> is set to <code>json-ld-1.1</code>, terms will be used as <a>compact IRI</a> prefixes
-    when compacting only if their <a>expanded term definition</a> contains
-    a <code>@prefix</code> member with the value <a>true</a>, or if it has a
-    a <a>simple term definition</a>  where the value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character
-    (e.g, <code>/</code>, <code>#</code> and others, see [[!RFC3986]]).</p>
-
   <p>It's also possible to use compact IRIs within the context as shown in the
     following example:</p>
 
@@ -1205,6 +1190,44 @@
   }
   -->
   </pre>
+
+  <p class="changed">In JSON-LD 1.0, terms will be used as <a>compact IRI</a> prefixes when
+  compacting only if they map to a value that ends with a URI <a
+  data-cite="RFC3986#section-2.2">gen-delim</a> character (e.g, <code>/</code>,
+  <code>#</code> and others, see [[!RFC3986]]).</p>
+
+  <p class="note">This represents a small change to the 1.0 algorithm to prevent IRIs
+    that are not really intended to be used as prefixes from being used for creating
+    <a>compact IRIs</a>.</p>
+
+  <p class="changed">When <a>processing mode</a> is set to <code>json-ld-1.1</code>, terms will be used as <a>compact IRI</a> prefixes
+    when compacting only if their <a>expanded term definition</a> contains
+    a <code>@prefix</code> member with the value <a>true</a>, or if it has a
+    a <a>simple term definition</a>  where the value ends with a URI <a data-cite="RFC3986#section-2.2">gen-delim</a> character
+    (e.g, <code>/</code>, <code>#</code> and others, see [[!RFC3986]]).</p>
+
+  <pre class="example nohighlight changed" data-transform="updateExample"
+     title="Using explicit @prefix declaration to create compact IRIs">
+  <!--
+  {
+    "@context": {
+      "compact-iris": {"@id": "http://example.com/compact-iris-", ****"@prefix": true****},
+      "property": "http://example.com/property"
+    },
+    "property": {
+      "@id": ****"compact-iris:are-considered"****,
+      "property": "@prefix does not require a gen-delim"
+    }
+  }
+  -->
+  </pre>
+
+  <p class="changed">In this case, the <em>compact-iris</em> term would not normally be usable as a prefix, both
+    because it is defined with an <a>expanded term definition</a>, and because
+    it's <code>@id</code> does not end in a
+    <a data-cite="RFC3986#section-2.2">gen-delim</a> character. Adding
+    <code>"@prefix": true</code> allows it to be used as the prefix portion of
+    the <a>compact IRI</a> <em>compact-iris:are-considered</em>.</p>
 </section>
 
 <section class="informative">
