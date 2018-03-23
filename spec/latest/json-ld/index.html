@@ -1698,18 +1698,27 @@ the data type to be specified with each piece of data.</p>
 <section class="normative">
   <h2>Interpreting JSON as JSON-LD</h2>
 
-  <p>Ordinary JSON documents can be interpreted as JSON-LD by referencing a JSON-LD
-    <a>context</a> document in an <a data-cite="RFC5988#section-5">HTTP Link Header</a>. Doing so allows JSON to
-    be unambiguously machine-readable without requiring developers to drastically
+  <p>Ordinary JSON documents can be interpreted as JSON-LD
+    by providing an explicit JSON-LD <a>context</a> document. One way
+    to provide this is by using referencing a JSON-LD
+    <a>context</a> document in an <a data-cite="RFC5988#section-5">HTTP Link Header</a>.
+    Doing so allows JSON to be unambiguously machine-readable without requiring developers to drastically
     change their documents and provides an upgrade path for existing infrastructure
     without breaking existing clients that rely on the <code>application/json</code>
     media type or a media type with a <code>+json</code> suffix as defined in
     [[RFC6839]].</p>
 
-  <p>In order to use an external context with an ordinary JSON document, an author
-    MUST specify an <a>IRI</a> to a valid <a>JSON-LD document</a> in
-    an <a data-cite="RFC5988#section-5">HTTP Link Header</a> [[!RFC5988]] using the <code>http://www.w3.org/ns/json-ld#context</code>
-    link relation. The referenced document MUST have a top-level <a>JSON object</a>.
+  <p>In order to use an external context with an ordinary JSON document,
+    when retrieving an ordinary JSON document via HTTP, processors MUST
+    retrieve any <a>JSON-LD document</a> referenced by a
+    <a data-cite="RFC5988#section-5">Link Header</a> with:</p>
+
+  <ul>
+    <li><code>rel="http://www.w3.org/ns/json-ld#context"</code>, and</li>
+    <li><code>type="application/ld+json"</code>.</li>
+  </ul>
+
+  <p>The referenced document MUST have a top-level <a>JSON object</a>.
     The <code>@context</code> subtree within that object is added to the top-level
     <a>JSON object</a> of the referencing document. If an <a>array</a>
     is at the top-level of the referencing document and its items are
@@ -1721,8 +1730,15 @@ the data type to be specified with each piece of data.</p>
     contain more than one <a data-cite="RFC5988#section-5">HTTP Link Header</a> [[!RFC5988]] using the
     <code>http://www.w3.org/ns/json-ld#context</code> link relation.</p>
 
+  <p>Other mechanisms for providing a JSON-LD Context MAY be described for other
+    URI schemes.</p>
+
+  <p>The JSON-LD 1.1 Processing Algorithms and API specification [[JSON-LD11CG-API]]
+    provides for an <a data-cite="JSON-LD11CG-API#dom-jsonldoptions-expandcontext">expandContext</a> option for specifying
+    a <a>context</a> to use when expanding JSON documents programatically.</p>
+
   <p>The following example demonstrates the use of an external context with an
-    ordinary JSON document:</p>
+    ordinary JSON document over HTTP:</p>
 
   <pre class="example nohighlight" data-transform="updateExample"
        data-content-type="http"
@@ -5078,7 +5094,7 @@ specified. The full <a>IRI</a> for
   <p>The following is a list of open issues being worked on for the next release.</p>
   <p class="issue" data-number="333"></p>
   <p class="issue" data-number="547"></p>
-  <p class="issue" data-number="548"></p>
+  <p class="issue" data-number="564"></p>
   <p class="issue" data-number="584"></p>
   <p class="issue" data-number="595"></p>
   <p class="issue" data-number="598"></p>
