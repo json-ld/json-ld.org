@@ -2470,8 +2470,8 @@
                           href="#iri-compaction">IRI Compaction algorithm</a>
                           passing <var>active context</var>, <code>@graph</code> as
                           <var>var</var>, and <code>true</code> for
-                          <var>vocab</var> using the original var>compacted
-                          item</var> as a value.</li>
+                          <var>vocab</var> using the original
+                          <var>compacted item</var> as a value.</li>
                         <li>If expanded item contains the key <code>@id</code>,
                           add the key resulting from calling the <a
                           href="#iri-compaction">IRI Compaction algorithm</a>
@@ -3121,6 +3121,119 @@
         </li>
         <li>No matching term has been found. Return <code>null</code>.</li>
       </ol>
+    </section>
+
+    <section class="informative">
+      <h3>Examples</h3>
+      <p>The following examples are intended to illustrate how the term selection algorithm
+        behaves for different term definitions and values. It is not comprehensive, but
+        intended to illustrate different parts of the algorithm.</p>
+
+      <section>
+        <h4>Language Map Term</h4>
+        <p>If the term definition has <code>"@container": "@language"</code>, it will only match a
+          <a>value object</a> having no <code>@type</code>.</p>
+        <pre class="example" title="Term definition with language map">
+          {
+            "@context": {"t": {"@id": "http://example/t", "@container": "@language"}}
+          }
+        </pre>
+        <p>The inverse context will contain the following:</p>
+        <pre>
+{
+  "@language": {
+    "@language": {"@none": "t"},
+    "@type": {"@none": "t"},
+    "@any": {"@none": "t"}
+  }
+}
+        </pre>
+
+        <aside class="example data-ignore" title="Language map term with language value">
+          <p>Given the member <code>{"http://example/t": {"@value": "foo", "@type": "http:/example/type"}}</code>,
+            The algorithm will be invoked as follows:</p>
+          <dl>
+            <dt><var>containers</var></dt>
+            <dd><code>["@language", "@language@set", "@set", "@none", "@index", "@index@set"]</code></dd>
+            <dt><var>type/language</var></dt>
+            <dd><code>@language</code></dd>
+            <dt><var>preferred values</var></dt>
+            <dd><code>["en", "@none"]</code></dd>
+          </dl>
+          <p>The <var>value map</var> will be set to <code>{"@none"=>"t"}</code>,
+            as <var>preferred values</var> contains <code>"@none"</code>,
+            the algorithm returns <code>"t"</code> as the term to use for compaction.</p>
+        </aside>
+      </section>
+
+      <section>
+        <h4>Datatyped Term</h4>
+        <p>If the term definition has a datatype, it will only match a
+          <a>value object</a> having a matching datatype.</p>
+        <pre class="example" title="Term definition with datatype">
+          {
+            "@context": {"t": {"@id": "http://example/t", "@type": "http:/example/type"}}
+          }
+        </pre>
+        <p>The inverse context will contain the following:</p>
+        <pre>
+{
+  "@none": {
+    "@language": {},
+    "@type": {"http:/example/type": "t"},
+    "@any": {"@none": "t"}
+  }
+}
+        </pre>
+
+        <aside class="example data-ignore" title="Datatyped term with datatyped value">
+          <p>Given the member <code>{"http://example/t": {"@value": "foo", "@type": "http:/example/type"}}</code>,
+            The algorithm will be invoked as follows:</p>
+          <dl>
+            <dt><var>containers</var></dt>
+            <dd><code>["@set", "@none", "@index", "@index@set"]</code></dd>
+            <dt><var>type/language</var></dt>
+            <dd><code>@type</code></dd>
+            <dt><var>preferred values</var></dt>
+            <dd><code>["http:/example/type", "@none"]</code></dd>
+          </dl>
+          <p>The <var>value map</var> will be set to <code>{"http:/example/type": "t"}</code>,
+            as <var>preferred values</var> contains <code>"http:/example/type"</code>,
+            the algorithm returns <code>"t"</code> as the term to use for compaction.</p>
+        </aside>
+
+        <aside class="example data-ignore" title="Datatyped term with simple value">
+          <p>Given the member <code>{"http://example/t": {"@value": "foo"}}</code>,
+            The algorithm will be invoked as follows:</p>
+          <dl>
+            <dt><var>containers</var></dt>
+            <dd><code>["@set", "@none", "@index", "@index@set", "@language", "@language@set"]</code></dd>
+            <dt><var>type/language</var></dt>
+            <dd><code>@language</code></dd>
+            <dt><var>preferred values</var></dt>
+            <dd><code>["@null", "@none"]</code></dd>
+          </dl>
+          <p>The <var>value map</var> will be set to <code>{"@none": "t"}</code>,
+            as no key in <var>preferred values</var> matches a key in <var>value map</var>,
+            the algorithm returns <code>null</code> and no term is found.</p>
+        </aside>
+
+        <aside class="example data-ignore" title="Datatyped term with object value">
+          <p>Given the member <code>{"http://example/t": {"@id": "http://example/id"}}</code>,
+            The algorithm will be invoked as follows:</p>
+          <dl>
+            <dt><var>containers</var></dt>
+            <dd><code>["@id", "@id@set", "@type", "@set@type", "@set", "@none", "@index", "@index@set"]</code></dd>
+            <dt><var>type/language</var></dt>
+            <dd><code>@type</code></dd>
+            <dt><var>preferred values</var></dt>
+            <dd><code>["@id", "@vocab", "@none"]</code></dd>
+          </dl>
+          <p>The <var>value map</var> will be set to <code>{"http:/example/type": "t"}</code>,
+            as no key in <var>preferred values</var> matches a key in <var>value map</var>,
+            the algorithm returns <code>null</code> and no term is found.</p>
+        </aside>
+      </section>
     </section>
   </section> <!-- end of Term Selection -->
 
@@ -4931,7 +5044,6 @@
   <p class="issue defer" data-number="402"></p>
   <p class="issue defer" data-number="434"></p>
   <p class="issue defer" data-number="460"></p>
-  <p class="issue" data-number="495"></p>
   <p class="issue defer" data-number="507"></p>
   <p class="issue" data-number="512"></p>
   <p class="issue defer" data-number="526"></p>
@@ -4942,7 +5054,6 @@
   <p class="issue defer" data-number="583"></p>
   <p class="issue defer" data-number="595"></p>
   <p class="issue defer" data-number="589"></p>
-  <p class="issue" data-number="611"></p>
 </section>
 
 <section class="appendix informative">
