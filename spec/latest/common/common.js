@@ -19,7 +19,7 @@ var jsonld = {
     },
     "JSON-LD11CG-FRAMING": {
       title: "JSON-LD 1.1 Framing",
-      href: "https://json-ld.org/spec/latest/json-ld-api/",
+      href: "https://json-ld.org/spec/latest/json-ld-framing/",
       authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Draft'
