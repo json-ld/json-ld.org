@@ -5,21 +5,21 @@ var jsonld = {
   localBiblio: {
     "JSON-LD11CG": {
       title: "JSON-LD 1.1",
-      href: "https://json-ld.org/spec/CG-FINAL/json-ld/20180607/",
+      href: "https://json-ld.org/spec/FCGS/json-ld/20180607/",
       authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Final'
     },
     "JSON-LD11CG-API": {
       title: "JSON-LD 1.1 Processing Algorithms and API",
-      href: "https://json-ld.org/spec/CG-FINAL/json-ld-api/20180607/",
+      href: "https://json-ld.org/spec/FCGS/json-ld-api/20180607/",
       authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Final'
     },
     "JSON-LD11CG-FRAMING": {
       title: "JSON-LD 1.1 Framing",
-      href: "https://json-ld.org/spec/CG-FINAL/json-ld-framing/20180607/",
+      href: "https://json-ld.org/spec/FCGS/json-ld-framing/20180607/",
       authors: ["Gregg Kellogg"],
       publisher: "W3C",
       status: 'CG Final'
