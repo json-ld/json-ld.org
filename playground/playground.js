@@ -826,22 +826,37 @@
     else if(playground.activeTab === 'tab-signed-rsa') {
       options.format = 'application/ld+json';
 
-      var jsigs = window.jsigs;
+      var jsigs = window.jsigs || window['jsonld-signatures'];
       var pkey = playground.editors['privatekey-rsa'].getValue();
+
+      var secCtx = jsigs.SECURITY_CONTEXT_URL;
+      var algorithm;
+      var newerJsigs = 'suites' in jsigs && 'RsaSignature2018' in jsigs.suites;
+      // FIXME: remove when jsonld.js updated
+      var v11Ctx = {'@version': 1.1};
+
+      if(newerJsigs) {
+        algorithm = 'RsaSignature2018';
+      } else {
+        algorithm = 'LinkedDataSignature2015';
+      }
 
       // add security context to input
       if(!('@context' in input)) {
-        input['@context'] = 'https://w3id.org/security/v1';
+        input['@context'] = secCtx;
       } else if(Array.isArray(input['@context'])) {
-        input['@context'].push('https://w3id.org/security/v1');
+        if(newerJsigs) {
+          input['@context'].unshift(v11Ctx);
+        }
+        input['@context'].push(secCtx);
       } else {
         input['@context'] =
-          [input['@context'], 'https://w3id.org/security/v1'];
+          [v11Ctx, input['@context'], secCtx];
       }
 
       promise = jsigs.promises.sign(input, {
         privateKeyPem: pkey,
-        algorithm: 'LinkedDataSignature2015',
+        algorithm: algorithm,
         nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
         domain: 'json-ld.org',
         creator: 'https://example.com/jdoe/keys/1'
@@ -850,7 +865,7 @@
     else if(playground.activeTab === 'tab-signed-koblitz') {
       options.format = 'application/ld+json';
 
-      var jsigs = window.jsigs;
+      var jsigs = window.jsigs || window['jsonld-signatures'];
       var privateKey = playground.editors['privatekey-koblitz'].getValue().trim();
 
       // add security context to input
