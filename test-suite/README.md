@@ -1,3 +1,8 @@
+Test Suite Moved
+----------------
+Please use the Working Group version of the test suite at https://w3c.github.io/json-ld-api/tests/ and https://w3c.github.io/json-ld-framing/tests/ instead.
+
+<!--
 Introduction
 ------------
 
@@ -65,3 +70,4 @@ by the JSON-LD community.
 Building Files
 ==============
 The vocab.html and vocab.jsonld files are created from vocab.ttl using with `vocab_gen.rb`.
+-->
