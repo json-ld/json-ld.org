@@ -243,8 +243,20 @@
    * Used to initialize the UI, call once on document load.
    */
   playground.init = function() {
+    // options storage
+    playground.options = {
+      input: {
+        processingMode: ''
+      }
+      // TODO: add other API options
+    };
+
     // enable bootstrap tabs
-    $('#tabs a').click(function (e) {
+    $('#input-tabs a, #context-tabs a, #frame-tabs a, #privatekey-rsa-tabs #privatekey-koblitz-tabs').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+    $('#output-tabs a').click(function (e) {
       e.preventDefault();
       $(this).tab('show');
     }).on("show", playground.tabSelected);
@@ -296,6 +308,15 @@
       option.find("button").bind("click", function(){
         playground.toggleRemote(key);
       });
+    });
+
+    // setup options
+    $("#options-input-processingMode")[0].value = playground.options.input.processingMode;
+
+    // process on option changes
+    $("#options-input-processingMode").change(function(e) {
+      playground.options.input.processingMode = e.target.value;
+      playground.process();
     });
 
     $("[title]").tooltip();
@@ -785,11 +806,15 @@
    * @return a promise to perform the action
    */
   playground.performAction = function(input, param) {
-    // set base IRI
+    // set options
     var options = {
+      // base IRI
       base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
         document.baseURI || document.URL
     };
+    if(playground.options.input.processingMode !== '') {
+      options.processingMode = playground.options.input.processingMode;
+    }
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
