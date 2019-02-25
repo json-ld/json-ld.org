@@ -252,7 +252,11 @@
     };
 
     // enable bootstrap tabs
-    $('#input-tabs a, #context-tabs a, #frame-tabs a, #privatekey-rsa-tabs #privatekey-koblitz-tabs').click(function (e) {
+    $('#input-tabs a,' +
+      '#context-tabs a,' +
+      '#frame-tabs a,' +
+      '#privatekey-rsa-tabs a,' +
+      '#privatekey-koblitz-tabs a').click(function (e) {
       e.preventDefault();
       $(this).tab('show');
     });
