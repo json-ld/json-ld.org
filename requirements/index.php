@@ -3,7 +3,7 @@ print <<< htmlcode
 <!DOCTYPE html>
 <html
   prefix="
-    xhv: http://www.w3.org/1999/xhtml/vocab# 
+    xhv: http://www.w3.org/1999/xhtml/vocab#
     xsd: http://www.w3.org/2001/XMLSchema#
     rdfs: http://www.w3.org/2000/01/rdf-schema#
     dc: http://purl.org/dc/terms/
@@ -17,7 +17,7 @@ print <<< htmlcode
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
-    <!-- Style Sheets -->  
+    <!-- Style Sheets -->
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
@@ -42,11 +42,11 @@ print <<< htmlcode
   <div class="navbar navbar-static-top">
     <div class="navbar-inner">
       <div class="row-fluid">
-        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
-        </a> 
+        </a>
         <a class="brand" href="../"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
         <div class="nav-collapse">
           <ul class="nav">
@@ -62,15 +62,16 @@ print <<< htmlcode
                 <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
               </a>
               <ul class="dropdown-menu">
-                <li class="nav-header"><strong>Latest</strong></li>
-                <li><a href="../spec/latest/json-ld/">Syntax</a></li>
-                <li><a href="../spec/latest/json-ld-api/">API</a></li>
-                <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                <li class="nav-header"><strong>W3C Recommendations</strong></li>
+                <li><a href="https://www.w3.org/TR/json-ld/">Syntax</a></li>
+                <li><a href="https://www.w3.org/TR/json-ld-api/">Processing Algorithms and API</a></li>
                 <li class="divider"></li>
-                <li class="nav-header"><strong>Previous Drafts</strong></li>
-                <li><a href="../spec#syntax">Syntax</a></li>
-                <li><a href="../spec#api">API</a></li>
-                <li><a href="../spec#framing">Framing</a></li>
+                <li class="nav-header"><strong>Latest Drafts</strong></li>
+                <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
+                <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
+                <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
+                <li><a href="/spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
+                <li><a href="/spec/">All drafts</a></li>
               </ul>
             </li>
             <li><a href="../images/"><span class="icon-picture"></span> Branding</a></li>
@@ -80,12 +81,12 @@ print <<< htmlcode
       </div>
     </div>
   </div>
-  
+
   <div class="container">
   <br>
-    <div id="content">         
-      <div id="info"> 
-        <h1>Requirements</h1> 
+    <div id="content">
+      <div id="info">
+        <h1>Requirements</h1>
           <p>The following requirements are sorted in most recent to
           least recent order:</p>
           <ul class="nav nav-list">
@@ -107,15 +108,15 @@ print <<< htmlcode
           </ul>
         </div>
       </div>
-      <hr>        
+      <hr>
       <div id="footer">
         <p id="copyright">
          Website content released under a <a href="http://creativecommons.org/about/cc0">Creative Commons CC0 Public Domain Dedication</a> except where an alternate is specified.
          Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
         </p>
-      </div>        
+      </div>
     </div> <!-- /container -->
- </body> 
+ </body>
 </html>
 
 htmlcode;
