@@ -62,15 +62,16 @@
                   <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li class="nav-header"><strong>Latest</strong></li>
-                  <li><a href="../spec/latest/json-ld/">Syntax</a></li>
-                  <li><a href="../spec/latest/json-ld-api/">API</a></li>
-                  <li><a href="../spec/latest/json-ld-framing/">Framing</a></li>
+                  <li class="nav-header"><strong>W3C Recommendations</strong></li>
+                  <li><a href="https://www.w3.org/TR/json-ld/">Syntax</a></li>
+                  <li><a href="https://www.w3.org/TR/json-ld-api/">Processing Algorithms and API</a></li>
                   <li class="divider"></li>
-                  <li class="nav-header"><strong>Previous Drafts</strong></li>
-                  <li><a href="../spec#syntax">Syntax</a></li>
-                  <li><a href="../spec#api">API</a></li>
-                  <li><a href="../spec#framing">Framing</a></li>
+                  <li class="nav-header"><strong>Latest Drafts</strong></li>
+                  <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
+                  <li><a href="/spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
+                  <li><a href="/spec/">All drafts</a></li>
                 </ul>
               </li>
               <li><a href="../images/"><span class="icon-picture"></span> Branding</a></li>
