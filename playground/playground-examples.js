@@ -135,7 +135,7 @@
   // add the example of a Library
   playground.examples["Library"] = {
     "@context": {
-      "dcterms": "http://purl.org/dc/elements/1.1/",
+      "dc11": "http://purl.org/dc/elements/1.1/",
       "ex": "http://example.org/vocab#",
       "xsd": "http://www.w3.org/2001/XMLSchema#",
       "ex:contains": {"@type": "@id"}
@@ -147,21 +147,21 @@
     }, {
       "@id": "http://example.org/library/the-republic",
       "@type": "ex:Book",
-      "dcterms:creator": "Plato",
-      "dcterms:title": "The Republic",
+      "dc11:creator": "Plato",
+      "dc11:title": "The Republic",
       "ex:contains": "http://example.org/library/the-republic#introduction"
     }, {
       "@id": "http://example.org/library/the-republic#introduction",
       "@type": "ex:Chapter",
-      "dcterms:description": "An introductory chapter on The Republic.",
-      "dcterms:title": "The Introduction"
+      "dc11:description": "An introductory chapter on The Republic.",
+      "dc11:title": "The Introduction"
     }]
   };
 
   // add the frame example of a Library
   playground.frames["Library"] = {
     "@context": {
-      "dcterms": "http://purl.org/dc/elements/1.1/",
+      "dc11": "http://purl.org/dc/elements/1.1/",
       "ex": "http://example.org/vocab#"
     },
     "@type": "ex:Library",
