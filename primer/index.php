@@ -70,7 +70,7 @@
                   <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
                   <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
                   <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
-                  <li><a href="/spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-bp/">Best Practices</a></li>
                   <li><a href="/spec/">All drafts</a></li>
                 </ul>
               </li>
