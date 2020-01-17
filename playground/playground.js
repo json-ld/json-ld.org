@@ -835,7 +835,32 @@
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
-      promise = jsonld.toRDF(input, options);
+      promise = jsonld.toRDF(input, options)
+        .then(dataset => {
+          const ret = {
+            store: new N3.Store(),
+            prefixes: {}
+          };
+          const parser = new N3.Parser({baseIRI: document.baseURI, blankNodePrefix: ''});
+          return new Promise((resolve, reject) => {
+            parser.parse(dataset, (error, quad, prefixes) => {
+              if (error) reject(error);
+              if (prefixes) Object.assign(ret.prefixes, prefixes);
+              if (quad) ret.store.addQuad(quad);
+              else resolve(ret);
+            });
+          });
+        })
+        .then(foo => {
+          const writer = new N3.Writer({baseIRI: document.baseURI});
+          writer.addQuads(foo.store.getQuads());
+          return new Promise((resolve, reject) => {
+            writer.end((error, result) => {
+              if (error) reject(error);
+              resolve(result);
+            });
+          });
+        });
     }
     else if(playground.activeTab === 'tab-normalized') {
       options.format = 'application/n-quads';
