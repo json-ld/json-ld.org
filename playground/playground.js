@@ -63,6 +63,20 @@
   // whether a remote document should be used
   playground.useRemote = docs();
 
+  var getFhirContextUrl = function(resourceType) {
+    return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
+  };
+
+  var fhirPreprocessR4 = function (input) {
+    if (input.resourceType) {
+      input['@context'] = getFhirContextUrl(input.resourceType);
+    }
+    return JSON.stringify(input, null, 4)
+  };
+
+  var fhirPreprocessR5 = function (input) {
+    return fhirPreprocessR4(input);
+  }
 
   /**
    * Get a query parameter by name.
@@ -95,7 +109,6 @@
       default: return JSON.stringify(value, null, 2);
     }
   };
-
 
   /**
    * Handle URL query parameters.
@@ -764,7 +777,7 @@
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed',
-      'tab-signed-rsa', 'tab-signed-koblitz', ].indexOf(id) > -1) {
+      /* 'tab-signed-rsa', 'tab-signed-koblitz',*/ ].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
       $('#frame-div, #privatekey-rsa-div, #privatekey-koblitz-div, ' +
@@ -781,6 +794,12 @@
       } else if(id === 'tab-signed-koblitz') {
         $('#param-type').html('Base 58 Encoded Private Key');
         $('#privatekey-koblitz-div').show();
+      } else if (id === 'tab-jsonld-r5') {
+        $('#param-type').html('FHIR JSON-LD R4');
+        $('#jsonld-r5-div').show();
+      } else if (id === 'tab-jsonld-r4') {
+        $('#param-type').html('FHIR JSON-LD R5');
+        $('#jsonld-r4-div').show();
       }
     }
     else {
@@ -878,103 +897,127 @@
       });
     }
     else if(playground.activeTab === 'tab-signed-rsa') {
-      options.format = 'application/ld+json';
-
-      var jsigs = window.jsigs || window['jsonld-signatures'];
-      var pkey = playground.editors['privatekey-rsa'].getValue();
-
-      var secCtx = jsigs.SECURITY_CONTEXT_URL;
-      var algorithm;
-      var newerJsigs = 'suites' in jsigs && 'RsaSignature2018' in jsigs.suites;
-      // FIXME: remove when jsonld.js updated
-      var v11Ctx = {'@version': 1.1};
-
-      if(newerJsigs) {
-        algorithm = 'RsaSignature2018';
-      } else {
-        algorithm = 'LinkedDataSignature2015';
-      }
-
-      // add security context to input
-      if(!('@context' in input)) {
-        input['@context'] = secCtx;
-      } else if(Array.isArray(input['@context'])) {
-        if(newerJsigs) {
-          input['@context'].unshift(v11Ctx);
+      promise = new Promise(function(resolve, reject) {
+        var output = fhirPreprocessR4(input);
+        if (output) {
+          resolve(output);
+        } else {
+          reject("Failed to preprocess FHIR JSON-LD");
         }
-        input['@context'].push(secCtx);
-      } else {
-        input['@context'] =
-          [v11Ctx, input['@context'], secCtx];
-      }
-
-      promise = jsigs.promises.sign(input, {
-        privateKeyPem: pkey,
-        algorithm: algorithm,
-        nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
-        domain: 'json-ld.org',
-        creator: 'https://example.com/jdoe/keys/1'
       });
+      // options.format = 'application/ld+json';
+      //
+      // var jsigs = window.jsigs || window['jsonld-signatures'];
+      // var pkey = playground.editors['privatekey-rsa'].getValue();
+      //
+      // var secCtx = jsigs.SECURITY_CONTEXT_URL;
+      // var algorithm;
+      // var newerJsigs = 'suites' in jsigs && 'RsaSignature2018' in jsigs.suites;
+      // // FIXME: remove when jsonld.js updated
+      // var v11Ctx = {'@version': 1.1};
+      //
+      // if(newerJsigs) {
+      //   algorithm = 'RsaSignature2018';
+      // } else {
+      //   algorithm = 'LinkedDataSignature2015';
+      // }
+      //
+      // // add security context to input
+      // if(!('@context' in input)) {
+      //   input['@context'] = secCtx;
+      // } else if(Array.isArray(input['@context'])) {
+      //   if(newerJsigs) {
+      //     input['@context'].unshift(v11Ctx);
+      //   }
+      //   input['@context'].push(secCtx);
+      // } else {
+      //   input['@context'] =
+      //     [v11Ctx, input['@context'], secCtx];
+      // }
+      //
+      // promise = jsigs.promises.sign(input, {
+      //   privateKeyPem: pkey,
+      //   algorithm: algorithm,
+      //   nonce: forge.util.bytesToHex(forge.random.getBytesSync(4)),
+      //   domain: 'json-ld.org',
+      //   creator: 'https://example.com/jdoe/keys/1'
+      // });
     }
     else if(playground.activeTab === 'tab-signed-koblitz') {
-      options.format = 'application/ld+json';
-
-      var jsigs = window.jsigs || window['jsonld-signatures'];
-      var privateKey = playground.editors['privatekey-koblitz'].getValue().trim();
-
-      // add security context to input
-      if(!('@context' in input)) {
-        input['@context'] = 'https://w3id.org/security/v1';
-      } else if(Array.isArray(input['@context'])) {
-        input['@context'].push('https://w3id.org/security/v1');
-      } else {
-        input['@context'] =
-          [input['@context'], 'https://w3id.org/security/v1'];
-      }
-
-      var signed = null;
-      var publicKeyFromPrivateKey;
-      try {
-        publicKeyFromPrivateKey = new bitcoreMessage.Bitcore.PrivateKey(privateKey).toPublicKey();
-      } catch (e) {
-        promise = Promise.reject(e)
-      }
-
-      promise = promise || jsigs.promises.sign(input, {
-        privateKeyWif: privateKey,
-        algorithm: 'EcdsaKoblitzSignature2016',
-        creator: 'ecdsa-koblitz-pubkey:' + publicKeyFromPrivateKey
-      }).then( function(_signed) {
-        signed = _signed;
-        var publicKey = playground.editors['publickey-koblitz'].getValue().trim();
-        var verificationKey = {
-          '@context': jsigs.SECURITY_CONTEXT_URL,
-          id: 'ecdsa-koblitz-pubkey:' + publicKey,
-          type: 'CryptographicKey',
-          publicKeyWif: publicKey
-        };
-        var publicKeyBtcOwner = {
-          '@context': jsigs.SECURITY_CONTEXT_URL,
-          publicKey: [verificationKey]
-        };
-        return jsigs.promises.verify(signed, {
-          publicKey: verificationKey,
-          publicKeyOwner: publicKeyBtcOwner
-        })
-      }).then( function(verification) {
-        if (verification) {
-          $('#validation-message')
-          .text('Signature validated successfully using this public key')
-          .show();
+      promise = new Promise(function(resolve, reject) {
+        var output = fhirPreprocessR5(input);
+        if (output) {
+          resolve(output);
         } else {
-          $('#validation-errors')
-          .text('Signature was NOT validated using this public key')
-          .show();
+          reject("Failed to preprocess FHIR JSON-LD");
         }
-        return signed;
-      }).catch( function(e) {
-        console.error(e.stack)
-        throw(e)
+      });
+      // options.format = 'application/ld+json';
+      //
+      // var jsigs = window.jsigs || window['jsonld-signatures'];
+      // var privateKey = playground.editors['privatekey-koblitz'].getValue().trim();
+      //
+      // // add security context to input
+      // if(!('@context' in input)) {
+      //   input['@context'] = 'https://w3id.org/security/v1';
+      // } else if(Array.isArray(input['@context'])) {
+      //   input['@context'].push('https://w3id.org/security/v1');
+      // } else {
+      //   input['@context'] =
+      //     [input['@context'], 'https://w3id.org/security/v1'];
+      // }
+      //
+      // var signed = null;
+      // var publicKeyFromPrivateKey;
+      // try {
+      //   publicKeyFromPrivateKey = new bitcoreMessage.Bitcore.PrivateKey(privateKey).toPublicKey();
+      // } catch (e) {
+      //   promise = Promise.reject(e)
+      // }
+      //
+      // promise = promise || jsigs.promises.sign(input, {
+      //   privateKeyWif: privateKey,
+      //   algorithm: 'EcdsaKoblitzSignature2016',
+      //   creator: 'ecdsa-koblitz-pubkey:' + publicKeyFromPrivateKey
+      // }).then( function(_signed) {
+      //   signed = _signed;
+      //   var publicKey = playground.editors['publickey-koblitz'].getValue().trim();
+      //   var verificationKey = {
+      //     '@context': jsigs.SECURITY_CONTEXT_URL,
+      //     id: 'ecdsa-koblitz-pubkey:' + publicKey,
+      //     type: 'CryptographicKey',
+      //     publicKeyWif: publicKey
+      //   };
+      //   var publicKeyBtcOwner = {
+      //     '@context': jsigs.SECURITY_CONTEXT_URL,
+      //     publicKey: [verificationKey]
+      //   };
+      //   return jsigs.promises.verify(signed, {
+      //     publicKey: verificationKey,
+      //     publicKeyOwner: publicKeyBtcOwner
+      //   })
+      // }).then( function(verification) {
+      //   if (verification) {
+      //     $('#validation-message')
+      //     .text('Signature validated successfully using this public key')
+      //     .show();
+      //   } else {
+      //     $('#validation-errors')
+      //     .text('Signature was NOT validated using this public key')
+      //     .show();
+      //   }
+      //   return signed;
+      // }).catch( function(e) {
+      //   console.error(e.stack)
+      //   throw(e)
+      // });
+    } else if (playground.activeTab === 'tab-jsonld-r4') {
+      promise = new Promise(function(resolve, reject) {
+        resolve("R4" + input);
+      });
+    } else if (playground.activeTab === 'tab-jsonld-r5') {
+      promise = new Promise(function(resolve, reject) {
+        resolve("R5" + input);
       });
     }
     else {
