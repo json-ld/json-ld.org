@@ -1568,5 +1568,10 @@
       html: true
     });
   });
+  $("#btn-copy").click(function() {
+    var outputTab = playground.activeTab.substr('tab-'.length);
+    var value = playground.outputs[outputTab].getValue();
+    playground.editors.markup.setValue(value);
+  });
   return playground;
 }).call(this, this.jQuery, this.CodeMirror, this.jsonld, this.Promise);
