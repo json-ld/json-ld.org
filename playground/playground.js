@@ -859,7 +859,7 @@
 
           // Use N3.Parser to extract quads.
           // Currently input is n-quads so it won't emit any prefixes.
-          const store = new N3.Store();
+          const quads = [];
           const parser = new N3.Parser({
             baseIRI: document.baseURI,
             blankNodePrefix: '' // avoid _:b0_b0
@@ -874,12 +874,12 @@
                             + JSON.stringify(prefixes)
                             + " defined in input:\n"
                             + JSON.stringify(input, null, 2));
-              if (quad) store.addQuad(quad);
-              else resolve(store);
+              if (quad) quads.push(quad);
+              else resolve(quads);
             });
           });
         })
-        .then(store => {
+        .then(quads => {
 
           // Dig through @context for likely candidates for prefixes.
           const prefixes = Object.entries(input["@context"] || {}).reduce(
@@ -895,7 +895,7 @@
             baseIRI: document.baseURI,
             prefixes
           });
-          writer.addQuads(store.getQuads());
+          writer.addQuads(quads);
           return new Promise((resolve, reject) => {
 
             // Wrap N3.Writer .end() in a promise.
