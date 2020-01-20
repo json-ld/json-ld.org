@@ -890,12 +890,20 @@
             {} // empty starting set of prefixes
           )
 
+          // Extract rdf:Collection heads.
+          const store = new N3.Store();
+          store.addQuads(quads);
+          const lists = store.extractLists({
+            remove: true // Remove quads involved in lists (RDF Collections).
+          });
+
           // Serialize with an N3.Writer.
           const writer = new N3.Writer({
             baseIRI: document.baseURI,
-            prefixes
+            prefixes,
+            lists
           });
-          writer.addQuads(quads);
+          writer.addQuads(store.getQuads());
           return new Promise((resolve, reject) => {
 
             // Wrap N3.Writer .end() in a promise.
