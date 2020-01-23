@@ -70,6 +70,7 @@
   var fhirPreprocessR4 = function (input) {
     if (input.resourceType) {
       input['@context'] = getFhirContextUrl(input.resourceType);
+      input['fhir:nodeRole'] = 'fhir:treeRoot'
     }
     return JSON.stringify(input, null, 4)
   };
