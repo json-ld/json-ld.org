@@ -191,7 +191,7 @@
     });
     output = { '@context': context, ...output };
 
-    return JSON.stringify(output, null, 4);
+    return JSON.stringify(output, null, 2);
   };
 
   const fhirPreprocessR5 = function (input) {
