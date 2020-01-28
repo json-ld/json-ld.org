@@ -69,8 +69,8 @@
   }
 
   const getFhirContextUrl = function(resourceType) {
-    return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
-    //return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
+    // return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
+    return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
   };
 
   const toFhirValue = function(value) {
@@ -165,7 +165,6 @@
     }
     input['nodeRole'] = 'fhir:treeRoot';
 
-
     // TODO: replace this with @included once the bug is fixed
     let graph = processFhirObject(input, resourceType);
 
@@ -180,9 +179,8 @@
     let context = [];
     if (resourceType) {
       context.push(getFhirContextUrl(resourceType));
+      context.push(getFhirContextUrl('root'));
     }
-    // TODO: add root context once it's pushed to a CORS enabled server
-    // context.push(getFhirContextUrl('root'));
     context.push({
       // '@base': 'server',
       'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
