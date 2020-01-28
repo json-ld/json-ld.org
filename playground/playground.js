@@ -184,7 +184,7 @@
     // TODO: add root context once it's pushed to a CORS enabled server
     // context.push(getFhirContextUrl('root'));
     context.push({
-      '@base': 'server',
+      // '@base': 'server',
       'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
       '@owl:imports': { '@type': '@id' },
       '@owl:versionIRI': { '@type': '@id' },
