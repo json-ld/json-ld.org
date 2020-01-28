@@ -13,7 +13,7 @@
   playground.frames = {};
   playground.contexts = {};
 
-  // add the example of a Person
+  // add the example of a Patient
   playground.examples["Patient"] =
       {
         "resourceType": "Patient",
@@ -86,114 +86,370 @@
         ]
       };
 
-  // add the example of a Place
-  playground.examples["Place"] = {
-    "@context": {
-      "name": "http://schema.org/name",
-      "description": "http://schema.org/description",
-      "image": {
-        "@id": "http://schema.org/image",
-        "@type": "@id"
-      },
-      "geo": "http://schema.org/geo",
-      "latitude": {
-        "@id": "http://schema.org/latitude",
-        "@type": "xsd:float"
-      },
-      "longitude": {
-        "@id": "http://schema.org/longitude",
-        "@type": "xsd:float"
-      },
-      "xsd": "http://www.w3.org/2001/XMLSchema#"
-    },
-    "name": "The Empire State Building",
-    "description": "The Empire State Building is a 102-story landmark in New York City.",
-    "image": "http://www.civil.usherbrooke.ca/cours/gci215a/empire-state-building.jpg",
-    "geo": {
-       "latitude": "40.75",
-       "longitude": "73.98"
-    }
-  };
+  // add the example of a Observation
+  playground.examples["Observation"] =
+      {
+        "resourceType": "Observation",
+        "id": "f001",
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative with Details</b></p><p><b>id</b>: f001</p><p><b>identifier</b>: 6323 (OFFICIAL)</p><p><b>status</b>: final</p><p><b>code</b>: Glucose [Moles/volume] in Blood <span>(Details : {LOINC code '15074-8' = 'Glucose [Moles/volume] in Blood', given as 'Glucose [Moles/volume] in Blood'})</span></p><p><b>subject</b>: <a>P. van de Heuvel</a></p><p><b>effective</b>: Apr 2, 2013 9:30:10 AM --&gt; (ongoing)</p><p><b>issued</b>: Apr 3, 2013 3:30:10 PM</p><p><b>performer</b>: <a>A. Langeveld</a></p><p><b>value</b>: 6.3 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></p><p><b>interpretation</b>: High <span>(Details : {http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation code 'H' = 'High', given as 'High'})</span></p><h3>ReferenceRanges</h3><table><tr><td>-</td><td><b>Low</b></td><td><b>High</b></td></tr><tr><td>*</td><td>3.1 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td><td>6.2 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td></tr></table></div>"
+        },
+        "identifier": [
+          {
+            "use": "official",
+            "system": "http://www.bmc.nl/zorgportal/identifiers/observations",
+            "value": "6323"
+          }
+        ],
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "15074-8",
+              "display": "Glucose [Moles/volume] in Blood"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/f001",
+          "display": "P. van de Heuvel"
+        },
+        "effectivePeriod": {
+          "start": "2013-04-02T09:30:10+01:00"
+        },
+        "issued": "2013-04-03T15:30:10+01:00",
+        "performer": [
+          {
+            "reference": "Practitioner/f005",
+            "display": "A. Langeveld"
+          }
+        ],
+        "valueQuantity": {
+          "value": 6.3,
+          "unit": "mmol/l",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "H",
+                "display": "High"
+              }
+            ]
+          }
+        ],
+        "referenceRange": [
+          {
+            "low": {
+              "value": 3.1,
+              "unit": "mmol/l",
+              "system": "http://unitsofmeasure.org",
+              "code": "mmol/L"
+            },
+            "high": {
+              "value": 6.2,
+              "unit": "mmol/l",
+              "system": "http://unitsofmeasure.org",
+              "code": "mmol/L"
+            }
+          }
+        ]
+      };
 
-  // add the example of a Event
-  playground.examples["Event"] = {
-    "@context": {
-      "ical": "http://www.w3.org/2002/12/cal/ical#",
-      "xsd": "http://www.w3.org/2001/XMLSchema#",
-      "ical:dtstart": {
-        "@type": "xsd:dateTime"
-      }
-    },
-    "ical:summary": "Lady Gaga Concert",
-    "ical:location": "New Orleans Arena, New Orleans, Louisiana, USA",
-    "ical:dtstart": "2011-04-09T20:00:00Z"
-  };
+  // add the example of a CodeSystem
+  playground.examples["CodeSystem"] =
+      {
+        "resourceType": "CodeSystem",
+        "id": "example",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+          ]
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">\n      <p>CodeSystem &quot;ACME Codes for Cholesterol&quot;: This is an example code system that includes \n        all the codes for serum cholesterol defined by ACME inc.</p>\n      <p>Developed by: FHIR project team (example)</p>\n      <p>Published for testing on 28-Jan 2016</p>\n      <p>This code system defines all the ACME codes for serum cholesterol:</p>\n      <table class=\"grid\">\n        <tr>\n          <td>\n            <b>Code</b>\n          </td>\n          <td>\n            <b>Display</b>\n          </td>\n          <td>\n            <b>Definition</b>\n          </td>\n        </tr>\n        <tr>\n          <td>chol-mmol</td>\n          <td>SChol (mmol/L)</td>\n          <td>Serum Cholesterol, in mmol/L</td>\n        </tr>\n        <tr>\n          <td>chol-mass</td>\n          <td>SChol (mg/L)</td>\n          <td>Serum Cholesterol, in mg/L</td>\n        </tr>\n        <tr>\n          <td>chol</td>\n          <td>SChol</td>\n          <td>Serum Cholesterol</td>\n        </tr>\n      </table>\n    </div>"
+        },
+        "url": "http://hl7.org/fhir/CodeSystem/example",
+        "identifier": [
+          {
+            "system": "http://acme.com/identifiers/codesystems",
+            "value": "internal-cholesterol-inl"
+          }
+        ],
+        "version": "20160128",
+        "name": "ACMECholCodesBlood",
+        "title": "ACME Codes for Cholesterol in Serum/Plasma",
+        "status": "draft",
+        "experimental": true,
+        "date": "2016-01-28",
+        "publisher": "Acme Co",
+        "contact": [
+          {
+            "name": "FHIR project team",
+            "telecom": [
+              {
+                "system": "url",
+                "value": "http://hl7.org/fhir"
+              }
+            ]
+          }
+        ],
+        "description": "This is an example code system that includes all the ACME codes for serum/plasma cholesterol from v2.36.",
+        "caseSensitive": true,
+        "content": "complete",
+        "filter": [
+          {
+            "code": "acme-plasma",
+            "description": "An internal filter used to select codes that are only used with plasma",
+            "operator": [
+              "="
+            ],
+            "value": "the value of this filter is either 'true' or 'false'"
+          }
+        ],
+        "concept": [
+          {
+            "code": "chol-mmol",
+            "display": "SChol (mmol/L)",
+            "definition": "Serum Cholesterol, in mmol/L",
+            "designation": [
+              {
+                "use": {
+                  "system": "http://acme.com/config/fhir/codesystems/internal",
+                  "code": "internal-label"
+                },
+                "value": "From ACME POC Testing"
+              }
+            ]
+          },
+          {
+            "code": "chol-mass",
+            "display": "SChol (mg/L)",
+            "definition": "Serum Cholesterol, in mg/L",
+            "designation": [
+              {
+                "use": {
+                  "system": "http://acme.com/config/fhir/codesystems/internal",
+                  "code": "internal-label"
+                },
+                "value": "From Paragon Labs"
+              }
+            ]
+          },
+          {
+            "code": "chol",
+            "display": "SChol",
+            "definition": "Serum Cholesterol",
+            "designation": [
+              {
+                "use": {
+                  "system": "http://acme.com/config/fhir/codesystems/internal",
+                  "code": "internal-label"
+                },
+                "value": "Obdurate Labs uses this with both kinds of units..."
+              }
+            ]
+          }
+        ]
+      };
 
-  // add the example of a Product
-  playground.examples["Product"] = {
-    "@context": {
-      "gr": "http://purl.org/goodrelations/v1#",
-      "pto": "http://www.productontology.org/id/",
-      "foaf": "http://xmlns.com/foaf/0.1/",
-      "xsd": "http://www.w3.org/2001/XMLSchema#",
-      "foaf:page": {"@type": "@id"},
-      "gr:acceptedPaymentMethods": {"@type": "@id"},
-      "gr:hasBusinessFunction": {"@type": "@id"},
-       "gr:hasCurrencyValue": {"@type": "xsd:float"}
-    },
-    "@id": "http://example.org/cars/for-sale#tesla",
-    "@type": "gr:Offering",
-    "gr:name": "Used Tesla Roadster",
-    "gr:description": "Need to sell fast and furiously",
-    "gr:hasBusinessFunction": "gr:Sell",
-    "gr:acceptedPaymentMethods": "gr:Cash",
-    "gr:hasPriceSpecification": {
-      "gr:hasCurrencyValue": "85000",
-      "gr:hasCurrency": "USD"
-    },
-    "gr:includes": {
-      "@type": ["gr:Individual", "pto:Vehicle"],
-      "gr:name": "Tesla Roadster",
-      "foaf:page": "http://www.teslamotors.com/roadster"
-    }
-  };
+  // add the example of a Medication
+  playground.examples["Medication"] =
+      {
+        "resourceType": "Medication",
+        "id": "med0301",
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative with Details</b></p><p><b>id</b>: med0301</p><p><b>contained</b>: </p><p><b>code</b>: Vancomycin Hydrochloride (VANCOMYCIN HYDROCHLORIDE) <span>(Details : {http://hl7.org/fhir/sid/ndc code '0409-6531-02' = '10 VIAL in 1 TRAY (0409-6531-02)  &gt; 1 INJECTION, POWDER, LYOPHILIZED, FOR SOLUTION in 1 VIAL', given as 'Vancomycin Hydrochloride (VANCOMYCIN HYDROCHLORIDE)'})</span></p><p><b>status</b>: active</p><p><b>manufacturer</b>: id: org4; name: Pfizer Laboratories Div Pfizer Inc</p><p><b>doseForm</b>: Injection Solution (qualifier value) <span>(Details : {SNOMED CT code '385219001' = 'Injection solution', given as 'Injection Solution (qualifier value)'})</span></p><h3>Ingredients</h3><table><tr><td>-</td><td><b>Item[x]</b></td><td><b>IsActive</b></td><td><b>Strength[x]</b></td></tr><tr><td>*</td><td>Vancomycin Hydrochloride <span>(Details : {RxNorm code '66955' = 'Vancomycin Hydrochloride', given as 'Vancomycin Hydrochloride'})</span></td><td>true</td><td>500 mg<span> (Details: UCUM code mg = 'mg')</span>/10 mL<span> (Details: UCUM code mL = 'mL')</span></td></tr></table><h3>Batches</h3><table><tr><td>-</td><td><b>LotNumber</b></td><td><b>ExpirationDate</b></td></tr><tr><td>*</td><td>9494788</td><td>2017-05-22</td></tr></table></div>"
+        },
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "org4",
+            "name": "Pfizer Laboratories Div Pfizer Inc"
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "0409-6531-02",
+              "display": "Vancomycin Hydrochloride (VANCOMYCIN HYDROCHLORIDE)"
+            }
+          ]
+        },
+        "status": "active",
+        "manufacturer": {
+          "reference": "#org4"
+        },
+        "doseForm": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "385219001",
+              "display": "Injection Solution (qualifier value)"
+            }
+          ]
+        },
+        "ingredient": [
+          {
+            "itemCodeableConcept": {
+              "coding": [
+                {
+                  "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                  "code": "66955",
+                  "display": "Vancomycin Hydrochloride"
+                }
+              ]
+            },
+            "isActive": true,
+            "strengthRatio": {
+              "numerator": {
+                "value": 500,
+                "system": "http://unitsofmeasure.org",
+                "code": "mg"
+              },
+              "denominator": {
+                "value": 10,
+                "system": "http://unitsofmeasure.org",
+                "code": "mL"
+              }
+            }
+          }
+        ],
+        "batch": {
+          "lotNumber": "9494788",
+          "expirationDate": "2017-05-22"
+        }
+      };
 
-  // add the example of a Recipe
-  playground.examples["Recipe"] = {
-    "@context": {
-      "name": "http://rdf.data-vocabulary.org/#name",
-      "ingredient": "http://rdf.data-vocabulary.org/#ingredients",
-      "yield": "http://rdf.data-vocabulary.org/#yield",
-      "instructions": "http://rdf.data-vocabulary.org/#instructions",
-      "step": {
-        "@id": "http://rdf.data-vocabulary.org/#step",
-        "@type": "xsd:integer"
-      },
-      "description": "http://rdf.data-vocabulary.org/#description",
-      "xsd": "http://www.w3.org/2001/XMLSchema#"
-    },
-    "name": "Mojito",
-    "ingredient": ["12 fresh mint leaves", "1/2 lime, juiced with pulp",
-      "1 tablespoons white sugar", "1 cup ice cubes",
-      "2 fluid ounces white rum", "1/2 cup club soda"],
-    "yield": "1 cocktail",
-    "instructions" : [{
-      "step": 1,
-      "description": "Crush lime juice, mint and sugar together in glass."
-    }, {
-      "step": 2,
-      "description": "Fill glass to top with ice cubes."
-    }, {
-      "step": 3,
-      "description": "Pour white rum over ice."
-    }, {
-      "step": 4,
-      "description": "Fill the rest of glass with club soda, stir."
-    }, {
-      "step": 5,
-      "description": "Garnish with a lime wedge."
-    }]
-  };
+  // add the example of a AllergyIntolerance
+  playground.examples["AllergyIntolerance"] =
+      {
+        "resourceType": "AllergyIntolerance",
+        "id": "example",
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative with Details</b></p><p><b>id</b>: example</p><p><b>identifier</b>: 49476534</p><p><b>clinicalStatus</b>: Active <span>(Details : {http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical code 'active' = 'Active', given as 'Active'})</span></p><p><b>verificationStatus</b>: Confirmed <span>(Details : {http://terminology.hl7.org/CodeSystem/allergyintolerance-verification code 'confirmed' = 'Confirmed', given as 'Confirmed'})</span></p><p><b>type</b>: allergy</p><p><b>category</b>: food</p><p><b>criticality</b>: high</p><p><b>code</b>: Cashew nuts <span>(Details : {SNOMED CT code '227493005' = 'Cashew nuts', given as 'Cashew nuts'})</span></p><p><b>patient</b>: <a>Patient/example</a></p><p><b>onset</b>: 2004</p><p><b>recordedDate</b>: Oct 9, 2014 2:58:00 PM</p><p><b>recorder</b>: <a>Practitioner/example</a></p><p><b>asserter</b>: <a>Patient/example</a></p><p><b>lastOccurrence</b>: 2012-06</p><p><b>note</b>: The criticality is high becasue of the observed anaphylactic reaction when challenged with cashew extract.</p><blockquote><p><b>reaction</b></p><p><b>substance</b>: cashew nut allergenic extract Injectable Product <span>(Details : {RxNorm code '1160593' = 'cashew nut allergenic extract Injectable Product', given as 'cashew nut allergenic extract Injectable Product'})</span></p><p><b>manifestation</b>: Anaphylactic reaction <span>(Details : {SNOMED CT code '39579001' = 'Anaphylaxis', given as 'Anaphylactic reaction'})</span></p><p><b>description</b>: Challenge Protocol. Severe reaction to subcutaneous cashew extract. Epinephrine administered</p><p><b>onset</b>: 2012-06-12</p><p><b>severity</b>: severe</p><p><b>exposureRoute</b>: Subcutaneous route <span>(Details : {SNOMED CT code '34206005' = 'Subcutaneous route', given as 'Subcutaneous route'})</span></p></blockquote><blockquote><p><b>reaction</b></p><p><b>manifestation</b>: Urticaria <span>(Details : {SNOMED CT code '64305001' = 'Urticaria', given as 'Urticaria'})</span></p><p><b>onset</b>: 2004</p><p><b>severity</b>: moderate</p><p><b>note</b>: The patient reports that the onset of urticaria was within 15 minutes of eating cashews.</p></blockquote></div>"
+        },
+        "identifier": [
+          {
+            "system": "http://acme.com/ids/patients/risks",
+            "value": "49476534"
+          }
+        ],
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              "code": "active",
+              "display": "Active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+              "code": "confirmed",
+              "display": "Confirmed"
+            }
+          ]
+        },
+        "type": "allergy",
+        "category": [
+          "food"
+        ],
+        "criticality": "high",
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "227493005",
+              "display": "Cashew nuts"
+            }
+          ]
+        },
+        "patient": {
+          "reference": "Patient/example"
+        },
+        "onsetDateTime": "2004",
+        "recordedDate": "2014-10-09T14:58:00+11:00",
+        "recorder": {
+          "reference": "Practitioner/example"
+        },
+        "asserter": {
+          "reference": "Patient/example"
+        },
+        "lastOccurrence": "2012-06",
+        "note": [
+          {
+            "text": "The criticality is high becasue of the observed anaphylactic reaction when challenged with cashew extract."
+          }
+        ],
+        "reaction": [
+          {
+            "substance": {
+              "coding": [
+                {
+                  "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                  "code": "1160593",
+                  "display": "cashew nut allergenic extract Injectable Product"
+                }
+              ]
+            },
+            "manifestation": [
+              {
+                "coding": [
+                  {
+                    "system": "http://snomed.info/sct",
+                    "code": "39579001",
+                    "display": "Anaphylactic reaction"
+                  }
+                ]
+              }
+            ],
+            "description": "Challenge Protocol. Severe reaction to subcutaneous cashew extract. Epinephrine administered",
+            "onset": "2012-06-12",
+            "severity": "severe",
+            "exposureRoute": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "34206005",
+                  "display": "Subcutaneous route"
+                }
+              ]
+            }
+          },
+          {
+            "manifestation": [
+              {
+                "coding": [
+                  {
+                    "system": "http://snomed.info/sct",
+                    "code": "64305001",
+                    "display": "Urticaria"
+                  }
+                ]
+              }
+            ],
+            "onset": "2004",
+            "severity": "moderate",
+            "note": [
+              {
+                "text": "The patient reports that the onset of urticaria was within 15 minutes of eating cashews."
+              }
+            ]
+          }
+        ]
+      };
 
   // add the example of a Library
   playground.examples["Library"] = {
