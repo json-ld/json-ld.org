@@ -972,83 +972,83 @@
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
-      promise = jsonld.toRDF(input, options)
-        .then(dataset => {
-
-          // Use N3.Parser to extract quads.
-          // Currently input is n-quads so it won't emit any prefixes.
-          const quads = [];
-          const parser = new N3.Parser({
-            baseIRI: document.baseURI,
-            blankNodePrefix: '' // avoid _:b0_b0
-          });
-          return new Promise((resolve, reject) => {
-            parser.parse(dataset, (error, quad, prefixes) => {
-              // vanilla N3.Parser .parse() handler:
-              if (error) reject(error);
-              if (prefixes && Object.keys(prefixes) > 0)
-                // assumptions have changed; need coder intervention
-                throw Error("apparently there are prefixes "
-                            + JSON.stringify(prefixes)
-                            + " defined in input:\n"
-                            + JSON.stringify(input, null, 2));
-              if (quad) quads.push(quad);
-              else resolve(quads);
-            });
-          });
-        })
-        .then(quads => {
-
-          // Dig through @context for likely candidates for prefixes.
-          const prefixes = Object.entries(input["@context"] || {}).reduce(
-            (acc, pair) =>
-              typeof pair[1] === "string" && pair[0].indexOf(":") === -1
-              ? setKey(acc, pair[0], pair[1])
-              : acc,
-            {} // empty starting set of prefixes
-          )
-
-          // Extract rdf:Collection heads.
-          const store = new N3.Store();
-          store.addQuads(quads);
-          const lists = store.extractLists({
-            remove: true // Remove quads involved in lists (RDF Collections).
-          });
-
-          // Serialize with an N3.Writer.
-          const writer = new N3.Writer({
-            baseIRI: document.baseURI,
-            prefixes,
-            lists
-          });
-          writer.addQuads(store.getQuads());
-          return new Promise((resolve, reject) => {
-
-            // Wrap N3.Writer .end() in a promise.
-            writer.end((error, result) => {
-              if (error) reject(error);
-
-              // Change /@prefix a: <>./PREFIX a: <>/
-              const rows = result.split(/\n/);
-              for (let rowNo = 0; rowNo < rows.length; ++rowNo) {
-                const m = rows[rowNo]
-                      .match(/^@(prefix|base)( *[^:]+: *<.*?>) *\.$/);
-                if (m)
-                  rows[rowNo] = m[1].toUpperCase() + m[2]
-                else
-                  break;
-              }
-
-              // Resolve with Turtle.
-              resolve(rows.join("\n"));
-            });
-          });
-
-          function setKey (obj, key, val) {
-            obj[key] = val;
-            return obj;
-          }
-        });
+      promise = jsonld.toRDF(input, options);
+        // .then(dataset => {
+        //
+        //   // Use N3.Parser to extract quads.
+        //   // Currently input is n-quads so it won't emit any prefixes.
+        //   const quads = [];
+        //   const parser = new N3.Parser({
+        //     baseIRI: document.baseURI,
+        //     blankNodePrefix: '' // avoid _:b0_b0
+        //   });
+        //   return new Promise((resolve, reject) => {
+        //     parser.parse(dataset, (error, quad, prefixes) => {
+        //       // vanilla N3.Parser .parse() handler:
+        //       if (error) reject(error);
+        //       if (prefixes && Object.keys(prefixes) > 0)
+        //         // assumptions have changed; need coder intervention
+        //         throw Error("apparently there are prefixes "
+        //                     + JSON.stringify(prefixes)
+        //                     + " defined in input:\n"
+        //                     + JSON.stringify(input, null, 2));
+        //       if (quad) quads.push(quad);
+        //       else resolve(quads);
+        //     });
+        //   });
+        // })
+        // .then(quads => {
+        //
+        //   // Dig through @context for likely candidates for prefixes.
+        //   const prefixes = Object.entries(input["@context"] || {}).reduce(
+        //     (acc, pair) =>
+        //       typeof pair[1] === "string" && pair[0].indexOf(":") === -1
+        //       ? setKey(acc, pair[0], pair[1])
+        //       : acc,
+        //     {} // empty starting set of prefixes
+        //   )
+        //
+        //   // Extract rdf:Collection heads.
+        //   const store = new N3.Store();
+        //   store.addQuads(quads);
+        //   const lists = store.extractLists({
+        //     remove: true // Remove quads involved in lists (RDF Collections).
+        //   });
+        //
+        //   // Serialize with an N3.Writer.
+        //   const writer = new N3.Writer({
+        //     baseIRI: document.baseURI,
+        //     prefixes,
+        //     lists
+        //   });
+        //   writer.addQuads(store.getQuads());
+        //   return new Promise((resolve, reject) => {
+        //
+        //     // Wrap N3.Writer .end() in a promise.
+        //     writer.end((error, result) => {
+        //       if (error) reject(error);
+        //
+        //       // Change /@prefix a: <>./PREFIX a: <>/
+        //       const rows = result.split(/\n/);
+        //       for (let rowNo = 0; rowNo < rows.length; ++rowNo) {
+        //         const m = rows[rowNo]
+        //               .match(/^@(prefix|base)( *[^:]+: *<.*?>) *\.$/);
+        //         if (m)
+        //           rows[rowNo] = m[1].toUpperCase() + m[2]
+        //         else
+        //           break;
+        //       }
+        //
+        //       // Resolve with Turtle.
+        //       resolve(rows.join("\n"));
+        //     });
+        //   });
+        //
+        //   function setKey (obj, key, val) {
+        //     obj[key] = val;
+        //     return obj;
+        //   }
+        // });
     }
     else if(playground.activeTab === 'tab-normalized') {
       options.format = 'application/n-quads';
