@@ -1397,6 +1397,7 @@
         },
         function(err){
           // FIXME: add better error handling output
+          console.error(err);
           $('#processing-errors')
             .append('Processing error:')
             .append(
