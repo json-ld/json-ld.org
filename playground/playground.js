@@ -63,21 +63,140 @@
   // whether a remote document should be used
   playground.useRemote = docs();
 
-  var getFhirContextUrl = function(resourceType) {
+  const CODE_SYSTEM_MAP = {
+    "http://snomed.info/sct": "sct",
+    "http://loinc.org": "loinc"
+  }
+
+  const getFhirContextUrl = function(resourceType) {
     return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
+    //return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
+  };
+
+  const toFhirValue = function(value) {
+    return { 'fhir:value': value }
+  };
+
+  const fromFhirValue = function(value) {
+    return value['fhir:value'] || value
+  };
+
+  const addTypeArc = function(value) {
+    if (value.system && value.code) {
+      let system = fromFhirValue(value.system);
+      let code = fromFhirValue(value.code);
+      let system_root = '/#'.includes(system.slice(-1)) ? system.slice(0, -1) : system;
+      let base;
+      if (system_root in CODE_SYSTEM_MAP) {
+        base = CODE_SYSTEM_MAP[system_root] + ':'
+      } else {
+        base = system + ('/#'.includes(system.slice(-1)) ? '' : '/')
+      }
+      value['@type'] = base + code
+    }
+    return value
+  };
+
+  const processFhirArray = function(key, value) {
+    return value.map((e, i) => {
+      if (Array.isArray(e)) {
+        console.log(`Problem: ${key} has a list in a list`)
+      } else if (typeof e === 'object') {
+        let v = processFhirObject(e)
+        v['index'] = i
+        return v
+      } else {
+        let v = toFhirValue(e)
+        v['index'] = i
+        return v
+      }
+    })
+  };
+
+  const genFhirReference = function(fhirObj) {
+    let typ, link
+    if (!fhirObj.reference.includes('://') && !fhirObj.reference.startsWith('/')) {
+      typ = 'type' in fhirObj ? fhirObj.type : fhirObj.reference.split('/', 1)[0]
+      link = '../' + fhirObj.reference
+    } else {
+      link = fhirObj.reference;
+      typ = fhirObj.type
+    }
+    let rval = { '@id': link };
+    if (typ) {
+      rval['@type'] = 'fhir:' + typ
+    }
+    return rval
+  };
+
+  const processFhirObject = function(fhirObj, resourceType, inside=false) {
+    for (let key in fhirObj) {
+      let value = fhirObj[key];
+      if (key.startsWith('@')) {
+        continue;
+      } else if (Array.isArray(value)) {
+        fhirObj[key] = processFhirArray(key, value);
+      } else if (typeof value === 'object') {
+        fhirObj[key] = processFhirObject(value, resourceType, true)
+      } else if (key === 'id') {
+        fhirObj['@id'] = (inside && !value.startsWith('#') ? '#' : resourceType + '/') + value
+        fhirObj.id = toFhirValue(fhirObj.id)
+      } else if (key === 'reference') {
+        if (!('link' in fhirObj)) {
+          fhirObj['fhir:link'] = genFhirReference(fhirObj);
+        }
+        fhirObj[key] = toFhirValue(value)
+      } else if (key === 'resourceType' && !(value.startsWith('fhir:'))) {
+        fhirObj[key] = 'fhir:' + value
+      } else if (!['nodeRole', 'index', 'div'].includes(key)) {
+        fhirObj[key] = toFhirValue(value);
+      }
+      if (key === 'coding') {
+        fhirObj[key] = value.map(n => addTypeArc(n))
+      }
+    }
+    return fhirObj;
   };
 
   var fhirPreprocessR4 = function (input) {
+    let resourceType;
     if (input.resourceType) {
-      input['@context'] = getFhirContextUrl(input.resourceType);
-      input['fhir:nodeRole'] = 'fhir:treeRoot'
+      resourceType = input.resourceType.includes(':') ? input.resourceType.split(':')[1] : input.resourceType
     }
-    return JSON.stringify(input, null, 4)
+    input['nodeRole'] = 'fhir:treeRoot';
+
+
+    // TODO: replace this with @included once the bug is fixed
+    let graph = processFhirObject(input, resourceType);
+
+    // add ontology header
+    let hdr = {};
+    hdr['@id'] = graph['@id'] + '.ttl';
+    hdr['owl:versionIRI'] = hdr['@id'];
+    hdr['owl:imports'] = 'fhir:fhir.ttl';
+
+    let output = { '@graph': [ graph, hdr ] };
+
+    let context = [];
+    if (resourceType) {
+      context.push(getFhirContextUrl(resourceType));
+    }
+    // TODO: add root context once it's pushed to a CORS enabled server
+    // context.push(getFhirContextUrl('root'));
+    context.push({
+      '@base': 'server',
+      'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
+      '@owl:imports': { '@type': '@id' },
+      '@owl:versionIRI': { '@type': '@id' },
+    });
+    output = { '@context': context, ...output };
+
+    return JSON.stringify(output, null, 4);
   };
 
-  var fhirPreprocessR5 = function (input) {
+  const fhirPreprocessR5 = function (input) {
     return fhirPreprocessR4(input);
-  }
+  };
 
   /**
    * Get a query parameter by name.
