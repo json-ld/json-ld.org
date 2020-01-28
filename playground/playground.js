@@ -182,7 +182,7 @@
       context.push(getFhirContextUrl('root'));
     }
     context.push({
-      // '@base': 'server',
+      '@base': 'http://hl7.org/fhir/',
       'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
       '@owl:imports': { '@type': '@id' },
       '@owl:versionIRI': { '@type': '@id' },
