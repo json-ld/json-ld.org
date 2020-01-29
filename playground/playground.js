@@ -74,11 +74,11 @@
   };
 
   const toFhirValue = function(value) {
-    return { 'fhir:value': value }
+    return { 'value': value }
   };
 
   const fromFhirValue = function(value) {
-    return value['fhir:value'] || value
+    return value['value'] || value
   };
 
   const addTypeArc = function(value) {
@@ -129,7 +129,7 @@
     return rval
   };
 
-  const processFhirObject = function(fhirObj, resourceType, inside=false) {
+  const processFhirObject = function(fhirObj, resourceType, inside=false, r4 = true) {
     for (let key in fhirObj) {
       let value = fhirObj[key];
       if (key.startsWith('@')) {
@@ -155,10 +155,30 @@
         fhirObj[key] = value.map(n => addTypeArc(n))
       }
     }
+
+    // merge extensions
+    for (let key in fhirObj) {
+      if (!key.startsWith('_')) {
+        continue;
+      }
+      let baseKey = key.substr(1);
+      if (fhirObj[baseKey] && typeof fhirObj[baseKey] === 'object') {
+        for (let subkey in fhirObj[key]) {
+          if (subkey in fhirObj[baseKey]) {
+            console.log(`Extension object ${subkey} is already in the base for ${key}`)
+          } else {
+            fhirObj[baseKey][subkey] = fhirObj[key][subkey]
+          }
+        }
+      } else {
+        console.log(`Badly formed extension element: ${key}`);
+      }
+      delete fhirObj[key]
+    }
     return fhirObj;
   };
 
-  var fhirPreprocessR4 = function (input) {
+  const fhirPreprocessR4 = function (input) {
     let resourceType;
     if (input.resourceType) {
       resourceType = input.resourceType.includes(':') ? input.resourceType.split(':')[1] : input.resourceType
@@ -184,8 +204,8 @@
     context.push({
       '@base': 'http://hl7.org/fhir/',
       'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
-      '@owl:imports': { '@type': '@id' },
-      '@owl:versionIRI': { '@type': '@id' },
+      'owl:imports': { '@type': '@id' },
+      'owl:versionIRI': { '@type': '@id' },
     });
     output = { '@context': context, ...output };
 
