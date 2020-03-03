@@ -98,7 +98,7 @@
 
       let context = [];
       if (this.resourceTypeSet.size > 0) {
-        this.resourceTypeSet.forEach(rt => {
+        Array.from(this.resourceTypeSet).sort().forEach(rt => {
           context.push(this.getFhirContextUrl(rt));
         })
         context.push(this.getFhirContextUrl('root'));
