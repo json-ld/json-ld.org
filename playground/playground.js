@@ -68,14 +68,20 @@
     "http://loinc.org": "loinc"
   };
 
+  function parseResourceType(resourceType) {
+    return resourceType.includes(':') ? resourceType.split(':')[1] : resourceType
+  }
+
   class FhirR5Preprocessor {
     constructor() {
+      this.resourceTypeSet = new Set();
     }
 
     preprocess(input) {
       let resourceType;
       if (input.resourceType) {
-        resourceType = input.resourceType.includes(':') ? input.resourceType.split(':')[1] : input.resourceType
+        resourceType = parseResourceType(input.resourceType);
+        this.resourceTypeSet.add(resourceType);
       }
       input['nodeRole'] = 'fhir:treeRoot';
 
@@ -91,8 +97,10 @@
       let output = { '@graph': [ graph, hdr ] };
 
       let context = [];
-      if (resourceType) {
-        context.push(this.getFhirContextUrl(resourceType));
+      if (this.resourceTypeSet.size > 0) {
+        this.resourceTypeSet.forEach(rt => {
+          context.push(this.getFhirContextUrl(rt));
+        })
         context.push(this.getFhirContextUrl('root'));
       }
       context.push({
@@ -153,7 +161,8 @@
           }
           fhirObj[key] = this.toFhirValue(value)
         } else if (key === 'resourceType' && !(value.startsWith('fhir:'))) {
-          fhirObj[key] = 'fhir:' + value
+          this.resourceTypeSet.add(value);
+          fhirObj[key] = 'fhir:' + value;
         } else if (!['nodeRole', 'index', 'div'].includes(key)) {
           fhirObj[key] = this.toFhirValue(value);
         }
