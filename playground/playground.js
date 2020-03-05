@@ -93,6 +93,7 @@
       hdr['@id'] = graph['@id'] + '.ttl';
       hdr['owl:versionIRI'] = hdr['@id'];
       hdr['owl:imports'] = 'fhir:fhir.ttl';
+      hdr["@type"] = 'owl:Ontology';
 
       let output = { '@graph': [ graph, hdr ] };
 
