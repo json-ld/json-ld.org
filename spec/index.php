@@ -98,7 +98,7 @@ function getDrafts($spec)
                   <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
                   <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
                   <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
-                  <li><a href="/spec/latest/json-ld-api-best-practices/">Best Practices</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-bp/">Best Practices</a></li>
                   <li><a href="/spec/">All drafts</a></li>
                 </ul>
               </li>
@@ -158,12 +158,12 @@ foreach ($drafts as $date => $dir) {
                </p>
                </div>
                <div id="best-practices">
-               <h2><a href="latest/json-ld-api-best-practices/">Building JSON-LD APIs: Best Practices</a></h2>
+               <h2><a href="https://w3c.github.io/json-ld-bp">JSON-LD Best Practices</a></h2>
                <p>
 Best practices for publishing JSON-LD and building APIs.
                </p>
                <p>
-Links to JSON-LD API specifications: <a href="latest/json-ld-api-best-practices/">Latest</a><?php
+Links to JSON-LD API specifications: <a href="https://w3c.github.io/json-ld-bp">Latest</a><?php
 
 $drafts = getDrafts('json-ld-api-best-practices');
 
