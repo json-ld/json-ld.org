@@ -84,7 +84,7 @@ function getDrafts($spec)
               <li>
                 <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
               </li>
-              <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
+              <li><a href="../#developers"><span class="icon-beaker"></span> Developers</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                   <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
