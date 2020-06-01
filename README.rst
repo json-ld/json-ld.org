@@ -43,19 +43,21 @@ If you would like to play around with JSON-LD markup, you may do so here:
 
 https://json-ld.org/playground/
 
-The Specification
------------------
+The Specifications
+------------------
 
 If you are a developer, you may be interested in the official JSON-LD W3C
 specifications:
 
-* `JSON-LD 1.0 - A JSON-based Serialization for Linked Data`_
-* `JSON-LD 1.0 Processing Algorithms and API`_
+* `JSON-LD 1.1 - A JSON-based Serialization for Linked Data`_
+* `JSON-LD 1.1 Processing Algorithms and API`_
+* `JSON-LD 1.1 Framing`_
 
 A list of all previous specification drafts is also available.
 
 https://json-ld.org/spec/
 
 .. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
-.. _JSON-LD 1.0 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/
-.. _JSON-LD 1.0 Processing Algorithms and API: http://www.w3.org/TR/json-ld-api/
+.. _JSON-LD 1.1 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/
+.. _JSON-LD 1.1 Processing Algorithms and API: http://www.w3.org/TR/json-ld-api/
+.. _JSON-LD 1.1 Framing: http://www.w3.org/TR/json-ld-framing/
