@@ -84,7 +84,7 @@ function getDrafts($spec)
               <li>
                 <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
               </li>
-              <!-- <li><a href="#"><span class="icon-beaker"></span> Developers</a></li> -->
+              <li><a href="../#developers"><span class="icon-beaker"></span> Developers</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                   <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
@@ -93,13 +93,17 @@ function getDrafts($spec)
                   <li class="nav-header"><strong>W3C Recommendations</strong></li>
                   <li><a href="https://www.w3.org/TR/json-ld/">Syntax</a></li>
                   <li><a href="https://www.w3.org/TR/json-ld-api/">Processing Algorithms and API</a></li>
+                  <li><a href="https://www.w3.org/TR/json-ld-framing/">Framing</a></li>
                   <li class="divider"></li>
                   <li class="nav-header"><strong>Latest Drafts</strong></li>
                   <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
                   <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
                   <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
                   <li><a href="https://w3c.github.io/json-ld-bp/">Best Practices</a></li>
-                  <li><a href="/spec/">All drafts</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-streaming/">Streaming</a></li>
+                  <li><a href="https://w3c.github.io/json-ld-cbor/">CBOR</a></li>
+                  <li><a href="https://github.com/w3c/json-ld-rc/">Recommended Context</a></li>
+                  <li><a href="/spec/">1.0 drafts (historic)</a></li>
                 </ul>
               </li>
               <li><a href="../images/"><span class="icon-picture"></span> Branding</a></li>
