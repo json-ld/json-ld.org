@@ -95,7 +95,7 @@
       hdr['owl:imports'] = 'fhir:fhir.ttl';
       hdr["@type"] = 'owl:Ontology';
 
-      let output = { '@graph': [ graph, hdr ] };
+      let output = { ...graph, "@included": hdr };
 
       let context = [];
       if (this.resourceTypeSet.size > 0) {
