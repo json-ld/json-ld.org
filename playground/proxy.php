@@ -7,6 +7,14 @@
 // Support < 5.4.0
 // https://stackoverflow.com/questions/3258634/php-how-to-send-http-response-code
 
+// https://stackoverflow.com/questions/1252693/using-str-replace-so-that-it-only-acts-on-the-first-match
+function str_replace_first($from, $to, $content)
+{
+    $from = '/'.preg_quote($from, '/').'/';
+
+    return preg_replace($from, $to, $content, 1);
+}
+
 if ($_GET && $_GET['url']) {
   $url = $_GET['url'];
 
@@ -14,7 +22,7 @@ if ($_GET && $_GET['url']) {
   $ip = gethostbyname($host);
 
   // replace hostname with IP to avoid DNS rebinding attacks
-  preg_replace("/" . $host . "/", $ip, $url, 1);
+  $url = str_replace_first($host, $ip, $url);
   
   // Check if IP in reserved range: https://www.php.net/manual/de/filter.filters.flags.php
   if (filter_var($ip, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
