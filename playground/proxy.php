@@ -6,48 +6,52 @@
 
 // Support < 5.4.0
 // https://stackoverflow.com/questions/3258634/php-how-to-send-http-response-code
-if(!function_exists('http_response_code'))
-{
-   function http_response_code($newcode = NULL)
-   {
-      static $code = 200;
-      if($newcode !== NULL)
-      {
-         header('X-PHP-Response-Code: '.$newcode, true, $newcode);
-         if(!headers_sent())
-            $code = $newcode;
-      }
-      return $code;
-   }
-}
 
-if($_GET && $_GET['url']) {
-  $headers = getallheaders();
-  $headers_str = array();
+if ($_GET && $_GET['url']) {
   $url = $_GET['url'];
 
-  if(strpos($url, 'http') !== 0) {
-    exit('Only proxying HTTP URLs is allowed. Invalid URL: ' . $url);
+  $host = parse_url($url, PHP_URL_HOST);
+  $ip = gethostbyname($host);
+
+  // replace hostname with IP to avoid DNS rebinding attacks
+  preg_replace("/" . $host . "/", $ip, $url, 1);
+  
+  // Check if IP in reserved range: https://www.php.net/manual/de/filter.filters.flags.php
+  if (filter_var($ip, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
+    exit('The playground does not allow IPs within private or reserved ranges as JSON-LD @context URIs.');
   }
 
-  foreach($headers as $key => $value){
-    if($key == 'Host')
-      continue;
-    $headers_str[]=$key.': '.$value;
+  if (strpos($url, 'http') !== 0) {
+    exit('The playground only supports HTTP schema for JSON-LD @context URLs.');
   }
+
+  // Set Headers
+  $headers_str = array();
+  $headers_str[] = "Host: " . $host;
+  $headers_str[] = "User-Agent: " . "curl/json-ld.org";
 
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers_str);
+
+  curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS | CURLPROTO_HTTP);
+  curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false); // Prevent redirect to blocked IP range. If we want to enable redirections we have to ensure the redirect does not contain an IP in a reserved/private range
+
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_HTTPHEADER, $headers_str);
   curl_setopt($ch, CURLOPT_ENCODING, '');
   curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
   $result = curl_exec($ch);
-  http_response_code(curl_getinfo($ch, CURLINFO_HTTP_CODE));
-  header('Content-Type: '.curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
+  $recieved_content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+  
+  // Only allow json responses as we only process those on the client anyway
+  // Prevent XSS payloads by returning HTML content from external sites.
+  if ($recieved_content_type !== 'application/ld+json' && $recieved_content_type !== 'application/json') {
+    exit('Invalid content type recieved from JSON-LD @context endpoint');
+  }
+  
   curl_close($ch);
   echo $result;
 }
-
-?>
