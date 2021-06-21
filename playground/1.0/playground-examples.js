@@ -15,7 +15,7 @@
 
   // add the example of a Person
   playground.examples["Person"] = {
-    "@context": "http://schema.org/",
+    "@context": "https://schema.org/",
     "@type": "Person",
     "name": "Jane Doe",
     "jobTitle": "Professor",
@@ -26,19 +26,19 @@
   // add the example of a Place
   playground.examples["Place"] = {
     "@context": {
-      "name": "http://schema.org/name",
-      "description": "http://schema.org/description",
+      "name": "https://schema.org/name",
+      "description": "https://schema.org/description",
       "image": {
-        "@id": "http://schema.org/image",
+        "@id": "https://schema.org/image",
         "@type": "@id"
       },
-      "geo": "http://schema.org/geo",
+      "geo": "https://schema.org/geo",
       "latitude": {
-        "@id": "http://schema.org/latitude",
+        "@id": "https://schema.org/latitude",
         "@type": "xsd:float"
       },
       "longitude": {
-        "@id": "http://schema.org/longitude",
+        "@id": "https://schema.org/longitude",
         "@type": "xsd:float"
       },
       "xsd": "http://www.w3.org/2001/XMLSchema#"
