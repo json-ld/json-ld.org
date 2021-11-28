@@ -4,15 +4,19 @@ const STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
 const FHIRPATH_ROOT = "http://hl7.org/fhirpath/System."
 
 const HEADER = {
-    "@version": 1.1,
-    "@vocab": "http://example.com/UNKNOWN#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "fhir": "http://hl7.org/fhir/",
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "resourceType": {
-      "@id": "rdf:type",
-      "@type": "@id"
-    },
+  "@version": 1.1,
+  "@vocab": "http://example.com/UNKNOWN#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "fhir": "http://hl7.org/fhir/",
+  "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+  "resourceType": {
+    "@id": "rdf:type",
+    "@type": "@id"
+  },
+  "index": {
+    "@id": "fhir:index",
+    "@type": "http://www.w3.org/2001/XMLSchema#integer"
+  },
 };
 
 const NAMESPACES = { 
@@ -41,7 +45,6 @@ const NAMESPACES = {
  * Recursive function to generate a content model for a FHIR Resource
  */
 genJsonldContext = function (target, structureMap, datatypeMap, config) {
-  console.log("genJsonldContext " + target);
   let map;
   if (target === "root") {
     return NAMESPACES;
@@ -63,8 +66,6 @@ genJsonldContext = function (target, structureMap, datatypeMap, config) {
           config
         )
         : JSON.parse(JSON.stringify(HEADER));
-  if (typeof globalThis.RET === "undefined")
-    globalThis.RET = ret;
   const backboneElements = {};
   let nowIn, resourceName;
 
@@ -127,17 +128,58 @@ genJsonldContext = function (target, structureMap, datatypeMap, config) {
         };
       } else {
         // Create a new property entry with the appropriate @context reference
-        const trimmedTypeCode = typeCode.startsWith(FHIRPATH_ROOT)
+        const trimmedTypeCode = typeCode === "code"
+              ? "String"
+              : typeCode.startsWith(FHIRPATH_ROOT)
               ? typeCode.substr(FHIRPATH_ROOT.length)
               : typeCode
+        const isValue = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value"
+              || ["base64Binary.value", "uri.value"].indexOf(elt.id) !== -1;
+        const propertyName = isValue
+              // || trimmedTypeCode === "code"
+              ? "value"
+              : elt.id;
+        // if (typeCode.startsWith(FHIRPATH_ROOT)) debugger;
+        // if (elt.id.endsWith(".value"/* && trimmedTypeCode === "String"*/)) {debugger;
+        //   console.log("HERE", elt.id, trimmedTypeCode, "value");}
         backboneElements[left][curriedName] = {
-          '@id': `fhir:${elt.id}`,
+          '@id': `fhir:${propertyName}`,
           '@context': trimmedTypeCode.toLowerCase() + GEND_CONTEXT_SUFFIX
         };
+        if (isValue) {
+          const xsdNs = "http://www.w3.org/2001/XMLSchema#";
+          const fhirPathToXsd = {
+            "Boolean": "boolean",
+            "String": "string",
+            "Date": "date",
+            "Decimal": "decimal",
+            "Integer": "integer",
+            "Time": "time",
+          };
+          const dt = elt.id === "uri.value"
+                ? "anyURI"
+                : elt.id === "base64Binary.value"
+                ? "base64Binary"
+                : (fhirPathToXsd[trimmedTypeCode]
+                   || (function () {
+                     const e = new Error(`unknown mapping to XSD for ${trimmedTypeCode}`);
+                     console.warn(e.stack);
+                     return "UNKNOWN";
+                   })());
+          delete backboneElements[left][curriedName]['@context'];
+          backboneElements[left][curriedName]['@type'] = xsdNs + dt;
+        }
       }
     });
   });
 
   // Return the constructed @context.
+  // if (typeof globalThis.CONTEXTS === "undefined")
+  //   globalThis.CONTEXTS = ret;
+  // globalThis.CONTEXTS[target] = JSON.parse(JSON.stringify(ret));
+  console.log(target, ret);
+  if (typeof globalThis.CONTEXTS === "undefined")
+    globalThis.CONTEXTS = {};
+  // globalThis.CONTEXTS[target] = {};
   return ret;
 }
