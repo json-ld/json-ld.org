@@ -7,6 +7,11 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
+const GEND_CONTEXT_STEM = "https://fhircat.org/fhir-r4/original/contexts/";
+// const GEND_CONTEXT_SUFFIX = ".context.jsonld";
+const GEN_JSONLD_CONTEXT_CONFIG = {
+};
+
 ;(function($, CodeMirror, jsonld, Promise){
   "use strict";
   // assume nothing
@@ -1821,6 +1826,21 @@
         ].join('');
       }
 
+      if (url.startsWith(GEND_CONTEXT_STEM) && url.endsWith(GEND_CONTEXT_SUFFIX)) {
+        try {
+          const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
+          const struc = { '@context': genJsonldContext(genMe, FHIRStructureMap, FHIRDatatypeMap, GEN_JSONLD_CONTEXT_CONFIG) };
+          const ret = {
+            contextUrl: null,
+            documentUrl: url,
+            document: JSON.stringify(struc, null, 2)
+          };
+          return Promise.resolve(ret);
+        } catch (e) {
+          console.warn("error trying to genJsonldContext:" + e.stack);
+          throw e; // not that anyone appears to care
+        }
+      }
       return xhrDocumentLoader(url);
     };
 
