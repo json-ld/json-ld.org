@@ -188,4 +188,6 @@
       // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
     }
   }
-module.exports = FhirR4Preprocessor;
+
+if (typeof module !== 'undefined')
+  module.exports = { FhirR4Preprocessor, FhirR4Preprocessor };

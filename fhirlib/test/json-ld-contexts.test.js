@@ -1,7 +1,7 @@
 const Fs = require('fs');
 const Jsonld  = require('jsonld');
 const GenJsonLdContext = require('../genJsonldContext.js');
-const FhirR4Preprocessor = require('../FhirR4Preprocessor.js');
+const FhirPreprocessors = require('../FhirPreprocessors.js');
 const R5StructureDefintions = require('../../playground/R5-StructureDefinitions-no-ws.js');
 const R5Datatypes = require('../../playground/R5-Datatypes-no-ws.js');
 
@@ -41,7 +41,7 @@ Jsonld.documentLoader = function(url) {debugger
 test('nquads(playground Patient).length > 1000', async () => {
   const json = await Fs.promises.readFile('./test/json/playground-Patient.json', 'utf8');
   const patient = JSON.parse(json);debugger;
-  const preProcessed = JSON.parse(new FhirR4Preprocessor().preprocess(patient));
+  const preProcessed = JSON.parse(new FhirPreprocessors.FhirR4Preprocessor().preprocess(patient));
   // const context = patient['@context'];
   // const compacted = await Jsonld.compact(patient, context);
   // console.log(Object.keys(compacted));
