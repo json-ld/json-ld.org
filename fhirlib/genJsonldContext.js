@@ -134,7 +134,7 @@ genJsonldContext = function (target, structureMap, datatypeMap, config) {
               ? typeCode.substr(FHIRPATH_ROOT.length)
               : typeCode
         const isValue = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value"
-              || ["base64Binary.value", "uri.value"].indexOf(elt.id) !== -1;
+              || ["base64Binary.value", "uri.value", "instant.value"].indexOf(elt.id) !== -1;
         const propertyName = isValue
               // || trimmedTypeCode === "code"
               ? "value"
@@ -148,23 +148,25 @@ genJsonldContext = function (target, structureMap, datatypeMap, config) {
         };
         if (isValue) {
           const xsdNs = "http://www.w3.org/2001/XMLSchema#";
-          const fhirPathToXsd = {
+          const fhirPathTypeToXsd = {
             "Boolean": "boolean",
             "String": "string",
             "Date": "date",
             "Decimal": "decimal",
             "Integer": "integer",
             "Time": "time",
+            "Instant": "dateTime",
+            "DateTime": "dateTime",
           };
-          const dt = elt.id === "uri.value"
+          const dt = elt.id === "uri.value" // type String
                 ? "anyURI"
-                : elt.id === "base64Binary.value"
+                : elt.id === "base64Binary.value" // also type String
                 ? "base64Binary"
-                : (fhirPathToXsd[trimmedTypeCode]
+                : (fhirPathTypeToXsd[trimmedTypeCode]
                    || (function () {
-                     const e = new Error(`unknown mapping to XSD for ${trimmedTypeCode}`);
+                     const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
                      console.warn(e.stack);
-                     return "UNKNOWN";
+                     return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                    })());
           delete backboneElements[left][curriedName]['@context'];
           backboneElements[left][curriedName]['@type'] = xsdNs + dt;
@@ -177,9 +179,9 @@ genJsonldContext = function (target, structureMap, datatypeMap, config) {
   // if (typeof globalThis.CONTEXTS === "undefined")
   //   globalThis.CONTEXTS = ret;
   // globalThis.CONTEXTS[target] = JSON.parse(JSON.stringify(ret));
-  console.log(target, ret);
-  if (typeof globalThis.CONTEXTS === "undefined")
-    globalThis.CONTEXTS = {};
+  // console.log(target, ret);
+  // if (typeof globalThis.CONTEXTS === "undefined")
+  //   globalThis.CONTEXTS = {};
   // globalThis.CONTEXTS[target] = {};
   return ret;
 }
