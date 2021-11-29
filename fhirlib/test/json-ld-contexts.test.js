@@ -40,16 +40,23 @@ Jsonld.documentLoader = function(url) {debugger
   // return xhrDocumentLoader(url);
 };
 
-test('nquads(playground Patient).length > 1000', async () => {
-  const json = await Fs.promises.readFile('./test/json/playground-Patient.json', 'utf8');
+const compareMe = [
+  'playground-Patient',
+  'playground-Observation',
+  'playground-CodeSystem',
+  'playground-Medication',
+  'playground-AllergyIntollerance',
+  'playground-Bundle',
+];
+
+test.each(compareMe)('nquads(%s)', async () => {
+  const filename = 'playground-Patient';
+  const json = await Fs.promises.readFile(`./test/json/${filename}.json`, 'utf8');
   const patient = JSON.parse(json);debugger;
   const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
   const preProcessed = JSON.parse(preprocessor.preprocess(patient));
-  // const context = patient['@context'];
-  // const compacted = await Jsonld.compact(patient, context);
-  // console.log(Object.keys(compacted));
   const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
-  console.log(nquads);
-  expect(nquads.length).toBeGreaterThan(1000);
+  const expected = await Fs.promises.readFile(`./test/ttl/${filename}.ttl`, 'utf8');
+  // Crappy test ignores graph isomorphism, but good enough for now.
+  expect(nquads).toEqual(expected);
 });
-
