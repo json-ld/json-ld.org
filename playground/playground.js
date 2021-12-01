@@ -7,8 +7,6 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
-const GEND_CONTEXT_STEM = "https://fhircat.org/fhir-r4/original/contexts/";
-// const GEND_CONTEXT_SUFFIX = ".context.jsonld";
 const GEN_JSONLD_CONTEXT_CONFIG = {
 };
 
@@ -1635,9 +1633,9 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         ].join('');
       }
 
-      if (url.startsWith(GEND_CONTEXT_STEM) && url.endsWith(GEND_CONTEXT_SUFFIX)) {
+      if (url.startsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM) && url.endsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX)) {
         try {
-          const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
+          const genMe = url.substr(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length, url.length - FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length - FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX.length);
           const generator = new FhirJsonLdContextGenerator();
           const contentModel = new FhirJsonLdContextGenerator().genJsonldContext(genMe, FHIRStructureMap, FHIRDatatypeMap, GEN_JSONLD_CONTEXT_CONFIG);
           const struc = { '@context': contentModel };

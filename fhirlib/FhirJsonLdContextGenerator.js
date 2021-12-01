@@ -1,88 +1,95 @@
+const FhirProfileVisitor = require('./FhirProfileVisitor').FhirProfileVisitor;
 
-const LOGID = "genJsonldContext: ";
-const GEND_CONTEXT_SUFFIX = ".context.jsonld";
-const STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
-const FHIRPATH_ROOT = "http://hl7.org/fhirpath/System."
+class FhirJsonLdContextGenerator extends FhirProfileVisitor {
+  static GEND_CONTEXT_SUFFIX = ".context.jsonld";
+  static STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
+  static FHIRPATH_ROOT = "http://hl7.org/fhirpath/System."
 
-const HEADER = {
-  "@version": 1.1,
-  "@vocab": "http://example.com/UNKNOWN#",
-  "xsd": "http://www.w3.org/2001/XMLSchema#",
-  "fhir": "http://hl7.org/fhir/",
-  "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  "resourceType": {
-    "@id": "rdf:type",
-    "@type": "@id"
-  },
-  "index": {
-    "@id": "fhir:index",
-    "@type": "http://www.w3.org/2001/XMLSchema#integer"
-  },
-};
+  static HEADER = {
+    "@version": 1.1,
+    "@vocab": "http://example.com/UNKNOWN#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "fhir": "http://hl7.org/fhir/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "resourceType": {
+      "@id": "rdf:type",
+      "@type": "@id"
+    },
+    "index": {
+      "@id": "fhir:index",
+      "@type": "http://www.w3.org/2001/XMLSchema#integer"
+    },
+  };
 
-const NAMESPACES = {
-  "fhir": "http://hl7.org/fhir/",
-  "owl": "http://www.w3.org/2002/07/owl#",
-  "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-  "xsd": "http://www.w3.org/2001/XMLSchema#",
-  "dc": "http://purl.org/dc/elements/1.1/",
-  "cs": "http://hl7.org/orim/codesystem/",
-  "dc": "http://purl.org/dc/elements/1.1/",
-  "dcterms": "http://purl.org/dc/terms/",
-  "dt": "http://hl7.org/orim/datatype/",
-  "ex": "http://hl7.org/fhir/StructureDefinition/",
-  "fhir-vs": "http://hl7.org/fhir/ValueSet/",
-  "loinc": "http://loinc.org/rdf#",
-  "os": "http://open-services.net/ns/core#",
-  "rim": "http://hl7.org/orim/class/",
-  "rim": "http://hl7.org/owl/rim/",
-  "sct": "http://snomed.info/id/",
-  "vs": "http://hl7.org/orim/valueset/",
-  "w5": "http://hl7.org/fhir/w5#"
-};
+  static NAMESPACES = {
+    "fhir": "http://hl7.org/fhir/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "cs": "http://hl7.org/orim/codesystem/",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "dt": "http://hl7.org/orim/datatype/",
+    "ex": "http://hl7.org/fhir/StructureDefinition/",
+    "fhir-vs": "http://hl7.org/fhir/ValueSet/",
+    "loinc": "http://loinc.org/rdf#",
+    "os": "http://open-services.net/ns/core#",
+    "rim": "http://hl7.org/orim/class/",
+    "rim": "http://hl7.org/owl/rim/",
+    "sct": "http://snomed.info/id/",
+    "vs": "http://hl7.org/orim/valueset/",
+    "w5": "http://hl7.org/fhir/w5#"
+  };
 
-class FhirJsonLdContextGenerator {
   constructor() {
+    super();
     this.cache = new Map(); // not used yet
+  }
+
+  genJsonldContext (target, structureMap, datatypeMap, config) {
+    const ret = this.walk(target, structureMap, datatypeMap, config);
+    return ret;
   }
 
   /**
    * Recursive function to generate a content model for a FHIR Resource
    */
-  genJsonldContext (target, structureMap, datatypeMap, config) {
+  walk (target, structureMap, datatypeMap, config) {
     let map;
     if (target === "root") {
-      return NAMESPACES;
+      return FhirJsonLdContextGenerator.NAMESPACES;
     } if (target in structureMap) {
       map = structureMap;
     } else if (target in datatypeMap) {
       map = datatypeMap;
     } else if (!(target in map)) throw new Error(`Key ${target} not found in ${Object.keys(map)}`);
 
-    const resource = map[target];
-    if ("baseDefinition" in resource && !(resource.baseDefinition.startsWith(STRUCTURE_DEFN_ROOT)))
-      throw new Error(`Don't know where to look for base structure ${resource.baseDefinition}`);
+    const resourceDef = map[target];
+    if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirJsonLdContextGenerator.STRUCTURE_DEFN_ROOT)))
+      throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
-    const ret = "baseDefinition" in resource
-          ? this.genJsonldContext( // Get content model from base type
-            resource.baseDefinition.substr(STRUCTURE_DEFN_ROOT.length).toLowerCase(),
+    const ret = "baseDefinition" in resourceDef
+          ? this.walk( // Get content model from base type
+            resourceDef.baseDefinition.substr(FhirJsonLdContextGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
             structureMap,
             datatypeMap,
             config
           )
-          : JSON.parse(JSON.stringify(HEADER));
-    const backboneElements = {};
-    let nowIn, resourceName;
+          : JSON.parse(JSON.stringify(FhirJsonLdContextGenerator.HEADER));
+    const elementHierarchy = {
+      '': ret
+    };
+    let resourceName;
 
     // Walk differential elements
-    resource.differential.element.forEach(elt => {
+    resourceDef.differential.element.forEach(elt => {
       if (elt.id !== elt.path) // test assumptions
         throw new Error(`id !== path in ${target} ${map[target]}`);
 
       // Early return for the first entry in a Resource's elements
       if (!("type" in elt)) { // 1st elt points to itself or something like that. Anyways, it doesn't have a type.
-        backboneElements[''] = ret;
         return;
       }
 
@@ -120,24 +127,24 @@ class FhirJsonLdContextGenerator {
         // Elements and BackboneElements imply a nested @context
         if (typeCode === "BackboneElement" || typeCode === "Element") {
           const backboneEltName = [...path, curriedName].join('.');
-          backboneElements[backboneEltName] = "baseDefinition" in resource  // apparently always true because
-            ? this.genJsonldContext(                                         // {,Backbone}Element have baseDefinitions.
-              resource.baseDefinition.substr(STRUCTURE_DEFN_ROOT.length).toLowerCase(),
+          elementHierarchy[backboneEltName] = "baseDefinition" in resourceDef  // apparently always true because
+            ? this.walk(                                         // {,Backbone}Element have baseDefinitions.
+              resourceDef.baseDefinition.substr(FhirJsonLdContextGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
               structureMap,
               datatypeMap,
               config
             )
-            : JSON.parse(JSON.stringify(HEADER));                       // so it never gets here
-          backboneElements[left][curriedName] = {
+            : JSON.parse(JSON.stringify(FhirJsonLdContextGenerator.HEADER));                       // so it never gets here
+          elementHierarchy[left][curriedName] = {
             '@id': `fhir:${elt.id}`,
-            '@context': backboneElements[backboneEltName]
+            '@context': elementHierarchy[backboneEltName]
           };
         } else {
           // Create a new property entry with the appropriate @context reference
           const trimmedTypeCode = typeCode === "code"
                 ? "String"
-                : typeCode.startsWith(FHIRPATH_ROOT)
-                ? typeCode.substr(FHIRPATH_ROOT.length)
+                : typeCode.startsWith(FhirJsonLdContextGenerator.FHIRPATH_ROOT)
+                ? typeCode.substr(FhirJsonLdContextGenerator.FHIRPATH_ROOT.length)
                 : typeCode
           const isValue = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value"
                 || ["base64Binary.value", "uri.value", "instant.value"].indexOf(elt.id) !== -1;
@@ -145,12 +152,12 @@ class FhirJsonLdContextGenerator {
           // || trimmedTypeCode === "code"
                 ? "value"
                 : elt.id;
-          // if (typeCode.startsWith(FHIRPATH_ROOT)) debugger;
+          // if (typeCode.startsWith(FhirJsonLdContextGenerator.FHIRPATH_ROOT)) debugger;
           // if (elt.id.endsWith(".value"/* && trimmedTypeCode === "String"*/)) {debugger;
           //   console.log("HERE", elt.id, trimmedTypeCode, "value");}
-          backboneElements[left][curriedName] = {
+          elementHierarchy[left][curriedName] = {
             '@id': `fhir:${propertyName}`,
-            '@context': trimmedTypeCode.toLowerCase() + GEND_CONTEXT_SUFFIX
+            '@context': trimmedTypeCode.toLowerCase() + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX
           };
           if (isValue) {
             const xsdNs = "http://www.w3.org/2001/XMLSchema#";
@@ -174,8 +181,8 @@ class FhirJsonLdContextGenerator {
                        console.warn(e.stack);
                        return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                      })());
-            delete backboneElements[left][curriedName]['@context'];
-            backboneElements[left][curriedName]['@type'] = xsdNs + dt;
+            delete elementHierarchy[left][curriedName]['@context'];
+            elementHierarchy[left][curriedName]['@type'] = xsdNs + dt;
           }
         }
       });
