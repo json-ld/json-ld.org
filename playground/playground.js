@@ -78,6 +78,9 @@
     }
 
     preprocess(input) {
+      if ('@context' in input) {
+        return "input preprocessed";
+      }
       let resourceType;
       if (input.resourceType) {
         resourceType = parseResourceType(input.resourceType);
