@@ -1637,12 +1637,11 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         try {
           const genMe = url.substr(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length, url.length - FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length - FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX.length);
           const generator = new FhirJsonLdContextGenerator(FHIRStructureMap, FHIRDatatypeMap);
-          const contentModel = new FhirJsonLdContextGenerator().genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
-          const struc = { '@context': contentModel };
+          const context = new FhirJsonLdContextGenerator().genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
           const ret = {
             contextUrl: null,
             documentUrl: url,
-            document: JSON.stringify(struc, null, 2)
+            document: JSON.stringify(context, null, 2)
           };
           return Promise.resolve(ret);
         } catch (e) {

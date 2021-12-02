@@ -23,12 +23,11 @@ Jsonld.documentLoader = function(url) {
     try {
       const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
       const generator = new FhirJsonLdContextGenerator(FHIRStructureMap, FHIRDatatypeMap);
-      const contentModel = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
-      const struc = { '@context': contentModel };
+      const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
       const ret = {
         contextUrl: null,
         documentUrl: url,
-        document: JSON.stringify(struc, null, 2)
+        document: JSON.stringify(context, null, 2)
       };
       return Promise.resolve(ret);
     } catch (e) {
@@ -52,7 +51,7 @@ const compareMe = [
 test.each(compareMe)('nquads(%s)', async () => {
   const filename = 'playground-Patient';
   const json = await Fs.promises.readFile(`./test/json/${filename}.json`, 'utf8');
-  const patient = JSON.parse(json);debugger;
+  const patient = JSON.parse(json);
   const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
   const preProcessed = JSON.parse(preprocessor.preprocess(patient));
   const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
