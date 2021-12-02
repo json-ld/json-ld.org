@@ -67,13 +67,13 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   playground.useRemote = docs();
 
   const fhirPreprocessR4 = function (input) {
-    let processor = new FhirR4Preprocessor();
+    let processor = new FhirPreprocessor.R4();
     return processor.preprocess(input);
   };
 
 
   const fhirPreprocessR5 = function (input) {
-    let processor = new FhirR5Preprocessor();
+    let processor = new FhirPreprocessor.R5();
     return processor.preprocess(input);
   };
 
@@ -1636,8 +1636,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       if (url.startsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM) && url.endsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX)) {
         try {
           const genMe = url.substr(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length, url.length - FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length - FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX.length);
-          const generator = new FhirJsonLdContextGenerator();
-          const contentModel = new FhirJsonLdContextGenerator().genJsonldContext(genMe, FHIRStructureMap, FHIRDatatypeMap, GEN_JSONLD_CONTEXT_CONFIG);
+          const generator = new FhirJsonLdContextGenerator(FHIRStructureMap, FHIRDatatypeMap);
+          const contentModel = new FhirJsonLdContextGenerator().genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
           const struc = { '@context': contentModel };
           const ret = {
             contextUrl: null,

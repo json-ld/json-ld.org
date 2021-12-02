@@ -18,12 +18,12 @@ const FHIRStructureMap = R5StructureDefintions.entry.reduce(indexFhir, {});
 const FHIRDatatypeMap = R5Datatypes.entry.reduce(indexFhir, {});
 
 
-Jsonld.documentLoader = function(url) {debugger
+Jsonld.documentLoader = function(url) {
   if (url.startsWith(GEND_CONTEXT_STEM) && url.endsWith(GEND_CONTEXT_SUFFIX)) {
     try {
       const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
-      const generator = new FhirJsonLdContextGenerator();
-      const contentModel = generator.genJsonldContext(genMe, FHIRStructureMap, FHIRDatatypeMap, GEN_JSONLD_CONTEXT_CONFIG);
+      const generator = new FhirJsonLdContextGenerator(FHIRStructureMap, FHIRDatatypeMap);
+      const contentModel = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
       const struc = { '@context': contentModel };
       const ret = {
         contextUrl: null,

@@ -190,4 +190,4 @@
   }
 
 if (typeof module !== 'undefined')
-  module.exports = { FhirR4Preprocessor, FhirR4Preprocessor };
+  module.exports = { FhirR5Preprocessor, FhirR4Preprocessor };

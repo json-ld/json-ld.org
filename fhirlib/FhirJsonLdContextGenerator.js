@@ -43,27 +43,29 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
     "w5": "http://hl7.org/fhir/w5#"
   };
 
-  constructor() {
-    super();
+  constructor(structureMap, datatypeMap) {
+    super(structureMap, datatypeMap);
+    this.structureMap = structureMap;
+    this.datatypeMap = datatypeMap;
     this.cache = new Map(); // not used yet
   }
 
-  genJsonldContext (target, structureMap, datatypeMap, config) {
-    const ret = this.walk(target, structureMap, datatypeMap, config);
+  genJsonldContext (target, config) {
+    const ret = this.walk(target, config);
     return ret;
   }
 
   /**
    * Recursive function to generate a content model for a FHIR Resource
    */
-  walk (target, structureMap, datatypeMap, config) {
+  walk (target, config) {
     let map;
     if (target === "root") {
       return FhirJsonLdContextGenerator.NAMESPACES;
-    } if (target in structureMap) {
-      map = structureMap;
-    } else if (target in datatypeMap) {
-      map = datatypeMap;
+    } if (target in this.structureMap) {
+      map = this.structureMap;
+    } else if (target in this.datatypeMap) {
+      map = this.datatypeMap;
     } else if (!(target in map)) throw new Error(`Key ${target} not found in ${Object.keys(map)}`);
 
     const resourceDef = map[target];
@@ -73,8 +75,6 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
     const ret = "baseDefinition" in resourceDef
           ? this.walk( // Get content model from base type
             resourceDef.baseDefinition.substr(FhirJsonLdContextGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
-            structureMap,
-            datatypeMap,
             config
           )
           : JSON.parse(JSON.stringify(FhirJsonLdContextGenerator.HEADER));
@@ -130,8 +130,6 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
           elementHierarchy[backboneEltName] = "baseDefinition" in resourceDef  // apparently always true because
             ? this.walk(                                         // {,Backbone}Element have baseDefinitions.
               resourceDef.baseDefinition.substr(FhirJsonLdContextGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
-              structureMap,
-              datatypeMap,
               config
             )
             : JSON.parse(JSON.stringify(FhirJsonLdContextGenerator.HEADER));                       // so it never gets here
