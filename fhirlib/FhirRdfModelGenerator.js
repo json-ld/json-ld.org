@@ -69,13 +69,9 @@ class FhirRdfModelGenerator {
       throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
     if ("baseDefinition" in resourceDef) {
-        this.visitElement( // Get content model from base type
-          resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
-          visitor,
-          config
-        );
+      const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
+      this.visitElement(recursionTarget, visitor, config); // Get content model from base type
     }
-    let resourceName;
 
     // Walk differential elements
     resourceDef.differential.element.forEach(elt => {
@@ -89,7 +85,7 @@ class FhirRdfModelGenerator {
 
       // Calculate path components
       const path = elt.id.split('.');
-      resourceName = path.shift();
+      const resourceName = path.shift();
       if (resourceName.toLowerCase() !== target)
         throw new Error(`property id ${elt.id} does not start with target \"${target}\" in ${map[target]}`);
       let rawName = path.pop();
