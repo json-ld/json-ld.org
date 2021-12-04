@@ -45,15 +45,17 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
   constructor(structureMap, datatypeMap) {
     super(structureMap, datatypeMap);
     this.cache = new Map(); // not used yet
-    this.stack = [];
   }
 
   genJsonldContext (target, config) {
-    this.ret = [{
-      '@context': Object.assign({}, FhirJsonLdContextGenerator.HEADER, FhirJsonLdContextGenerator.NAMESPACES, FhirJsonLdContextGenerator.TYPE_AND_INDEX)
-    }];
-    this.visitResource(target, config);
-    return this.ret[0];
+    if (!(target in this.cache)) {
+      this.ret = [{
+        '@context': Object.assign({}, FhirJsonLdContextGenerator.HEADER, FhirJsonLdContextGenerator.NAMESPACES, FhirJsonLdContextGenerator.TYPE_AND_INDEX)
+      }];
+      this.visitResource(target, config);
+      this.cache.set(target, this.ret[0]);
+    }
+    return this.cache.get(target);
   }
 
   enter (nesting) {

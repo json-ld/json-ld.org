@@ -5,50 +5,84 @@ const R5Datatypes = require('../playground/R5-Datatypes-no-ws');
 const R5StructureDefintions = require('../playground/R5-StructureDefinitions-no-ws');
 const P = require('./Prefixes');
 
-class Printer {
+const {FhirProfileVisitor, Nesting} = require('./FhirProfileVisitor');
+const N3Store = require('n3/lib/N3Store').default;
 
-}
+class FhirProfilePredicates extends FhirProfileVisitor {
+
+  constructor(structureMap, datatypeMap) {
+    super(structureMap, datatypeMap);
+  }
+
+  walk (target, config) {
+    this.ret = [[]];
+    this.visitResource(target, config);
+    return this.ret[0];
+  }
+
+  enter (nesting) {
+    const nestedElt = []
+    this.ret[0].push(nesting.property);
+    this.ret.unshift(nestedElt);
+  }
+
+  scalar (nesting) {
+    this.ret[0].push(nesting.property);
+  }
+
+  complex (nesting) {
+    this.ret[0].push(nesting.property);
+  }
+
+  exit (nesting) {
+    this.ret.shift();
+  }
+};
 
 class Serializer {
-    store = null;
-    constructor(resource, config) {
-        this.store = resource.store;
-        this.config = config;
-        this.structureMap = R5StructureDefintions.entry.reduce(indexFhir, {});
-        this.datatypeMap = R5Datatypes.entry.reduce(indexFhir, {});
-    }
-    print(printer) {
-        const root = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot').subject;
-        const type = this.expectFhirResource(this.expectOne(root, P.rdf + 'type', null).object);
-        console.log(`serializing ${type} ${root.id}`);
+  store = null;
 
-        const neighborhood = this.store.getQuads(root, null, null);
-        this.walk(root, type.toLowerCase(), neighborhood, '  ');
-        return 'ab';
-    }
+  constructor(structureMap, datatypeMap) {
+    this.structureMap = structureMap;
+    this.datatypeMap = datatypeMap;
+  }
 
-    walk(root, target, printer, neighborhood, indent) {
-        return [];
-    }
+  print(resource, printer, config) {
+    this.store = new N3Store();
+    this.store.addQuads(resource.store.getQuads());
+    const root = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot').subject;
+    const target = this.expectFhirResource(this.expectOne(root, P.rdf + 'type', null).object).toLowerCase();
+    console.log(`serializing ${target} ${root.id}`);
 
-    expectOne(s, p, o) {
-        const oneQuad = this.store.getQuads(s, p, o);
-        if (oneQuad.length !== 1) {
-            throw new Error(`Expected 1, got ${oneQuad.length} matches for {${s} ${p} ${o}}`);
-        }
-        return oneQuad[0];
-    }
+    const predicates = new FhirProfilePredicates(this.structureMap, this.datatypeMap).walk(target, config);
+    const neighborhood = this.store.getQuads(root, null, null);
+    this.walk(root, target, neighborhood, '  ');
+    return 'ab';
+  }
 
-    expectFhirResource(node) {
-        // if (node.id.startsWith())
-        return node.id.substr(P.fhir.length);
+  walk(root, target, printer, neighborhood, indent) {
+    return [];
+  }
+
+  expectOne(s, p, o) {
+    const oneQuad = this.store.getQuads(s, p, o);
+    if (oneQuad.length !== 1) {
+      throw new Error(`Expected 1, got ${oneQuad.length} matches for {${s} ${p} ${o}}`);
     }
+    this.store.removeQuads(oneQuad);
+    return oneQuad[0];
+  }
+
+  expectFhirResource(node) {
+    // if (node.id.startsWith())
+    return node.id.substr(P.fhir.length);
+  }
 }
 
 const indexFhir = (acc, entry) => {
-    acc[entry.resource.id.toLowerCase()] = entry.resource;
-    return acc;
+  acc[entry.resource.id.toLowerCase()] = entry.resource;
+  return acc;
 };
 
 if (typeof module !== 'undefined')
-    module.exports = {Serializer, Printer};
+  module.exports = {Serializer};

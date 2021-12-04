@@ -33,6 +33,7 @@ class FhirProfileVisitor {
   constructor (structureMap, datatypeMap) {
     this.structureMap = structureMap;
     this.datatypeMap = datatypeMap;
+    this.stack = [];
   }
 
   /**
@@ -98,8 +99,9 @@ class FhirProfileVisitor {
       // Trim down any nested properties we've passed as evidenced by them not having a corresponding name in the path.
       for (let i = 0; i < this.stack.length; ++i) {
         if (this.stack[i].element.id.split('.').slice(1)[0] !== path[i]) {
-          this.stack.slice(i).reverse().forEach(n => this.exit(n));
-          this.stack = this.stack.slice(0, i);
+          // `i` has the index of the first Nesting not consistent with `path`.
+          this.stack.slice(i).reverse().forEach(n => this.exit(n)); // call exit on each extra element in the stack
+          this.stack = this.stack.slice(0, i); // trim down the stack
           break;
         }
       }
