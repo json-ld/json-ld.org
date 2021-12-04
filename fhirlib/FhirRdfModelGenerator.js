@@ -10,6 +10,17 @@ class PropertyMapping {
   }
 }
 
+class ModelVisitor {
+  constructor(structureMap, datatypeMap) {
+    this.structureMap = structureMap;
+    this.datatypeMap = datatypeMap;
+  }
+  enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
+  scalar (propertyMapping) { throw new Error(`ModelVistor.scalar(${propertyMapping}) must be overloaded`); }
+  complex (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
+  exit (propertyMapping) { throw new Error(`ModelVistor.exit(${propertyMapping}) must be overloaded`); }
+}
+
 /**
  * Walk a FHIR Resource definition and call a visitor for each scalar or complex element property definition when entering or exiting a nested Element.
  */
@@ -173,4 +184,4 @@ class FhirRdfModelGenerator {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirRdfModelGenerator, PropertyMapping};
+  module.exports = {FhirRdfModelGenerator, ModelVisitor, PropertyMapping};

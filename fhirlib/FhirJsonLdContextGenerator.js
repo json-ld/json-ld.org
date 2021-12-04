@@ -1,6 +1,6 @@
-const {FhirRdfModelGenerator, PropertyMapping} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, ModelVisitor} = require('./FhirRdfModelGenerator');
 
-class FhirJsonLdContextGenerator {
+class FhirJsonLdContextGenerator extends ModelVisitor {
 
   static HEADER = {
     "@version": 1.1,
@@ -43,8 +43,7 @@ class FhirJsonLdContextGenerator {
   };
 
   constructor(structureMap, datatypeMap) {
-    this.structureMap = structureMap;
-    this.datatypeMap = datatypeMap;
+    super(structureMap, datatypeMap);
     this.cache = new Map(); // not used yet
   }
 

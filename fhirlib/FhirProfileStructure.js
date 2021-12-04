@@ -1,4 +1,4 @@
-const {FhirRdfModelGenerator, PropertyMapping} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRdfModelGenerator');
 
 /**
  * produce a FHIR content model of RdfPropertyMappings collected in contentModels, e.g.:
@@ -21,11 +21,10 @@ const {FhirRdfModelGenerator, PropertyMapping} = require('./FhirRdfModelGenerato
  *     ...
  *   ]
  */
-class FhirProfileStructure {
+class FhirProfileStructure extends ModelVisitor {
 
     constructor(structureMap, datatypeMap) {
-        this.structureMap = structureMap;
-        this.datatypeMap = datatypeMap;
+        super(structureMap, datatypeMap);
     }
 
     walk (target, config) {
