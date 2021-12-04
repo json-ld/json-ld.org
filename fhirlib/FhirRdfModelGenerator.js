@@ -7,7 +7,7 @@ class Nesting {
   }
 }
 
-class FhirProfileVisitor {
+class FhirRdfModelGenerator {
   static GEND_CONTEXT_SUFFIX = ".context.jsonld";
   static STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
   static FHIRPATH_ROOT = "http://hl7.org/fhirpath/System.";
@@ -58,12 +58,12 @@ class FhirProfileVisitor {
     }
 
     const resourceDef = map[target];
-    if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirProfileVisitor.STRUCTURE_DEFN_ROOT)))
+    if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
       throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
     if ("baseDefinition" in resourceDef) {
         this.visitElement( // Get content model from base type
-          resourceDef.baseDefinition.substr(FhirProfileVisitor.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
+          resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
           config
         );
     }
@@ -122,7 +122,7 @@ class FhirProfileVisitor {
 
         // Elements and BackboneElements imply a nested @context
         if (typeCode === "BackboneElement" || typeCode === "Element") {
-          const n = new Nesting(elt, curriedName, FhirProfileVisitor.NS_fhir + elt.id, resourceDef.baseDefinition);
+          const n = new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, resourceDef.baseDefinition);
           this.stack.push(n);
           this.enter(n);
           const backboneEltName = [...path, curriedName].join('.');
@@ -130,7 +130,7 @@ class FhirProfileVisitor {
             const hideStack = this.stack;
             this.stack = [];
             this.visitElement(                                         // {,Backbone}Element have baseDefinitions.
-                resourceDef.baseDefinition.substr(FhirProfileVisitor.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
+                resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
                 config
             )
             this.stack = hideStack;
@@ -139,27 +139,27 @@ class FhirProfileVisitor {
           // Create a new property entry with the appropriate @context reference
           const trimmedTypeCode = typeCode === "code"
                 ? "String"
-                : typeCode.startsWith(FhirProfileVisitor.FHIRPATH_ROOT)
-                ? typeCode.substr(FhirProfileVisitor.FHIRPATH_ROOT.length)
+                : typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+                ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length)
                 : typeCode;
           const isValue = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value"
-                || elt.id in FhirProfileVisitor.fhirPathToXsd;
+                || elt.id in FhirRdfModelGenerator.fhirPathToXsd;
           const propertyName = isValue
                 ? "value"
                 : elt.id;
           let propertyDefinition;
           if (isValue) {
             const xsdNs = "http://www.w3.org/2001/XMLSchema#";
-            const dt = FhirProfileVisitor.fhirPathToXsd[elt.id]
-                       || (FhirProfileVisitor.fhirScalarTypeToXsd[trimmedTypeCode]
+            const dt = FhirRdfModelGenerator.fhirPathToXsd[elt.id]
+                       || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
                        || (function () {
                             const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            this.scalar(new Nesting(elt, curriedName, FhirProfileVisitor.NS_fhir + propertyName, xsdNs + dt));
+            this.scalar(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + propertyName, xsdNs + dt));
           } else {
-            this.complex(new Nesting(elt, curriedName, FhirProfileVisitor.NS_fhir + propertyName, trimmedTypeCode.toLowerCase() + FhirProfileVisitor.GEND_CONTEXT_SUFFIX));
+            this.complex(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + propertyName, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
           }
         }
       });
@@ -168,4 +168,4 @@ class FhirProfileVisitor {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirProfileVisitor, Nesting};
+  module.exports = {FhirProfileVisitor: FhirRdfModelGenerator, Nesting};

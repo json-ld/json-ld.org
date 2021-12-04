@@ -1,4 +1,4 @@
-const {FhirProfileVisitor, Nesting} = require('./FhirProfileVisitor');
+const {FhirProfileVisitor, Nesting} = require('./FhirRdfModelGenerator');
 
 class FhirJsonLdContextGenerator extends FhirProfileVisitor {
 

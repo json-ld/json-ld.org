@@ -5,7 +5,7 @@ const R5Datatypes = require('../playground/R5-Datatypes-no-ws');
 const R5StructureDefintions = require('../playground/R5-StructureDefinitions-no-ws');
 const P = require('./Prefixes');
 
-const {FhirProfileVisitor, Nesting} = require('./FhirProfileVisitor');
+const {FhirProfileVisitor, Nesting} = require('./FhirRdfModelGenerator');
 const N3Store = require('n3/lib/N3Store').default;
 
 class FhirProfilePredicates extends FhirProfileVisitor {
