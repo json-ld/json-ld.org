@@ -1,5 +1,26 @@
-const {FhirRdfModelGenerator, JsonRdfPropertyMapping} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, PropertyMapping} = require('./FhirRdfModelGenerator');
 
+/**
+ * produce a FHIR content model of RdfPropertyMappings collected in contentModels, e.g.:
+ *   [
+ *     {
+ *       "propertyMapping": {
+ *         "element": { "id": "Resource.id", "path": "Resource.id", ... },
+ *         "property": "id",
+ *         "predicate": "http://hl7.org/fhir/Resource.id",
+ *         "type": "string.context.jsonld"
+ *       }
+ *     },
+ *     {
+ *       "propertyMapping": {...},
+ *       "contentModel": [
+ *         { "propertyMapping": {...} }
+ *         ...
+ *       ]
+ *     },
+ *     ...
+ *   ]
+ */
 class FhirProfileStructure {
 
     constructor(structureMap, datatypeMap) {
@@ -14,21 +35,21 @@ class FhirProfileStructure {
         return this.ret[0];
     }
 
-    enter (nesting) {
-        const nestedElt = []
-        this.ret[0].push({nesting, nestedElt});
-        this.ret.unshift(nestedElt);
+    enter (propertyMapping) {
+        const contentModel = []
+        this.ret[0].push({propertyMapping, contentModel});
+        this.ret.unshift(contentModel);
     }
 
-    scalar (nesting) {
-        this.ret[0].push({nesting});
+    scalar (propertyMapping) {
+        this.ret[0].push({propertyMapping});
     }
 
-    complex (nesting) {
-        this.ret[0].push({nesting});
+    complex (propertyMapping) {
+        this.ret[0].push({propertyMapping});
     }
 
-    exit (nesting) {
+    exit (propertyMapping) {
         this.ret.shift();
     }
 };

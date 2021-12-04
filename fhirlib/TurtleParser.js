@@ -23,14 +23,7 @@ class TurtleParser {
 
             const ret = new RdfResource();
             parser.parse(
-                text
-/*
-                `PREFIX c: <http://example.org/cartoons#>
-   c:Tom a c:Cat.
-   c:Jerry a c:Mouse;
-   c:smarterThan c:Tom.`
- */
-                ,
+                text,
                 (error, quad, prefixes) => {
                     if (prefixes) {
                         ret.prefixes = prefixes;

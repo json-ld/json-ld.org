@@ -1,4 +1,4 @@
-const {FhirRdfModelGenerator, JsonRdfPropertyMapping} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, PropertyMapping} = require('./FhirRdfModelGenerator');
 
 class FhirJsonLdContextGenerator {
 
@@ -60,30 +60,30 @@ class FhirJsonLdContextGenerator {
     return this.cache.get(target);
   }
 
-  enter (nesting) {
+  enter (propertyMapping) {
     const nestedElt = {
-      '@id': nesting.predicate,
+      '@id': propertyMapping.predicate,
       '@context': Object.assign({}, FhirJsonLdContextGenerator.TYPE_AND_INDEX),
     }
-    this.ret[0]["@context"][nesting.property] = nestedElt;
+    this.ret[0]["@context"][propertyMapping.property] = nestedElt;
     this.ret.unshift(nestedElt);
   }
 
-  scalar (nesting) {
-    this.ret[0]["@context"][nesting.property] = {
-      '@id': nesting.predicate,
-      '@type': nesting.type,
+  scalar (propertyMapping) {
+    this.ret[0]["@context"][propertyMapping.property] = {
+      '@id': propertyMapping.predicate,
+      '@type': propertyMapping.type,
     };
   }
 
-  complex (nesting) {
-    this.ret[0]["@context"][nesting.property] = {
-      '@id': nesting.predicate,
-      '@context': nesting.type,
+  complex (propertyMapping) {
+    this.ret[0]["@context"][propertyMapping.property] = {
+      '@id': propertyMapping.predicate,
+      '@context': propertyMapping.type,
     };
   }
 
-  exit (nesting) {
+  exit (propertyMapping) {
     this.ret.shift();
   }
 };

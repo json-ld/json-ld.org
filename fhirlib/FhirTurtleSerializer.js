@@ -1,7 +1,7 @@
 /**
  *
  */
-const {JsonRdfPropertyMapping} = require('./FhirRdfModelGenerator');
+const {PropertyMapping} = require('./FhirRdfModelGenerator');
 const {FhirProfileStructure} = require('./FhirProfileStructure')
 const P = require('./Prefixes');
 

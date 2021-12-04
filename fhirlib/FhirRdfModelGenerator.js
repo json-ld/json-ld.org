@@ -1,7 +1,7 @@
 /**
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
  */
-class JsonRdfPropertyMapping {
+class PropertyMapping {
   constructor(element, property, predicate, type) {
     this.element = element;
     this.property = property;
@@ -130,7 +130,7 @@ class FhirRdfModelGenerator {
         // Elements and BackboneElements indicate a nested structure.
         if (typeCode === "BackboneElement" || typeCode === "Element") {
           // Construct a Nesting for this property and visitor.enter it.
-          const n = new JsonRdfPropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, resourceDef.baseDefinition);
+          const n = new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, resourceDef.baseDefinition);
           this.stack.push(n);
           visitor.enter(n);
 
@@ -166,9 +166,9 @@ class FhirRdfModelGenerator {
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            visitor.scalar(new JsonRdfPropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', FhirRdfModelGenerator.NS_xsd + xsdDatatype));
+            visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', FhirRdfModelGenerator.NS_xsd + xsdDatatype));
           } else {
-            visitor.complex(new JsonRdfPropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
+            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
           }
         }
       });
@@ -177,4 +177,4 @@ class FhirRdfModelGenerator {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirRdfModelGenerator, JsonRdfPropertyMapping};
+  module.exports = {FhirRdfModelGenerator, PropertyMapping};
