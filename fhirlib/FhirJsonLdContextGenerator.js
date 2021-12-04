@@ -1,4 +1,4 @@
-const {FhirRdfModelGenerator, Nesting} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, JsonRdfPropertyMapping} = require('./FhirRdfModelGenerator');
 
 class FhirJsonLdContextGenerator {
 

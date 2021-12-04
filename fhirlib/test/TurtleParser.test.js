@@ -3,7 +3,7 @@ const Jsonld  = require('jsonld');
 const TurtleParser = require('../TurtleParser.js');
 const Path = require("path");
 
-test('asdf', async () => {
+test('TurtleParserTest', async () => {
   const filename = 'playground-Patient';
   const printer = new TurtleParser.TurtleParser();
   const filepath = `./test/ttl/${filename}.ttl`;

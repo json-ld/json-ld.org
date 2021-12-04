@@ -22,7 +22,7 @@ test('FhirTurtleSerializer', async () => {
   expect(resource.base).toEqual('file://' + filepath);
   expect(resource.store.size).toBeGreaterThan(50);
   const serializer = new FhirTurtleSerializer(FHIRStructureMap, FHIRDatatypeMap);
-  const printer = new FhirTurtlePrinter();
+  const printer = new FhirTurtlePrinter(FHIRStructureMap, FHIRDatatypeMap);
   const pretty = serializer.print(resource, printer, {});
   expect(pretty.length).toBeGreaterThan(1);
 });

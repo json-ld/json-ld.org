@@ -1,43 +1,26 @@
 /**
  *
  */
-const R5Datatypes = require('../playground/R5-Datatypes-no-ws');
-const R5StructureDefintions = require('../playground/R5-StructureDefinitions-no-ws');
+const {JsonRdfPropertyMapping} = require('./FhirRdfModelGenerator');
+const {FhirProfileStructure} = require('./FhirProfileStructure')
 const P = require('./Prefixes');
 
-const {FhirRdfModelGenerator, Nesting} = require('./FhirRdfModelGenerator');
 const N3Store = require('n3/lib/N3Store').default;
 
-class FhirProfilePredicates extends FhirRdfModelGenerator {
+const NS_fhir = "http://hl7.org/fhir/";
 
-  constructor(structureMap, datatypeMap) {
-    super(structureMap, datatypeMap);
+function c (rdfNode) {
+  if (typeof rdfNode === 'string') {
+    if (rdfNode.startsWith(NS_fhir)) {
+      return `fhir:${rdfNode.substr(NS_fhir.length)}`;
+    } else {
+      return `<${rdfNode}>`;
+    }
+  } else {
+    throw new Error(`unexpected node type: ${JSON.stringify(rdfNode)}`);
   }
-
-  walk (target, config) {
-    this.ret = [[]];
-    this.visitResource(target, this, config);
-    return this.ret[0];
-  }
-
-  enter (nesting) {
-    const nestedElt = []
-    this.ret[0].push(nesting.property);
-    this.ret.unshift(nestedElt);
-  }
-
-  scalar (nesting) {
-    this.ret[0].push(nesting.property);
-  }
-
-  complex (nesting) {
-    this.ret[0].push(nesting.property);
-  }
-
-  exit (nesting) {
-    this.ret.shift();
-  }
-};
+  return 'fhir:xxx';
+}
 
 class Serializer {
   store = null;
@@ -51,10 +34,14 @@ class Serializer {
     this.store = new N3Store();
     this.store.addQuads(resource.store.getQuads());
     const root = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot').subject;
-    const target = this.expectFhirResource(this.expectOne(root, P.rdf + 'type', null).object).toLowerCase();
-    console.log(`serializing ${target} ${root.id}`);
+    const type = this.expectFhirResource(this.expectOne(root, P.rdf + 'type', null).object);
+    const target = type.toLowerCase();
+    console.log(`# serializing ${target} ${root.id}
+${c(root.id)} a ${c(type)} ;
+  fhir:nodeRole fhir:treeRoot;
+      `);
 
-    const predicates = new FhirProfilePredicates(this.structureMap, this.datatypeMap).walk(target, config);
+    const predicates = new FhirProfileStructure(this.structureMap, this.datatypeMap).walk(target, config);
     const neighborhood = this.store.getQuads(root, null, null);
     this.walk(root, target, neighborhood, '  ');
     return 'ab';
@@ -71,6 +58,12 @@ class Serializer {
     }
     this.store.removeQuads(oneQuad);
     return oneQuad[0];
+  }
+
+  takeAll(s, p, o) {
+    const allMatching = this.store.getQuads(s, p, o);
+    this.store.removeQuads(allMatching);
+    return allMatching;
   }
 
   expectFhirResource(node) {
