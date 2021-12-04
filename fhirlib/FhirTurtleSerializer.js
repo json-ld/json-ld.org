@@ -9,19 +9,6 @@ const N3Store = require('n3/lib/N3Store').default;
 
 const NS_fhir = "http://hl7.org/fhir/";
 
-function c (rdfNode) {
-  if (typeof rdfNode === 'string') {
-    if (rdfNode.startsWith(NS_fhir)) {
-      return `fhir:${rdfNode.substr(NS_fhir.length)}`;
-    } else {
-      return `<${rdfNode}>`;
-    }
-  } else {
-    throw new Error(`unexpected node type: ${JSON.stringify(rdfNode)}`);
-  }
-  return 'fhir:xxx';
-}
-
 class Serializer {
   store = null;
 
@@ -33,15 +20,19 @@ class Serializer {
   print(resource, printer, config) {
     this.store = new N3Store();
     this.store.addQuads(resource.store.getQuads());
-    const root = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot').subject;
-    const type = this.expectFhirResource(this.expectOne(root, P.rdf + 'type', null).object);
+    const rootTriple = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot');
+    const root = rootTriple.subject;
+    const typeTriple = this.expectOne(root, P.rdf + 'type', null);
+    const type = this.expectFhirResource(typeTriple.object);
     const target = type.toLowerCase();
-    console.log(`# serializing ${target} ${root.id}
-${c(root.id)} a ${c(type)} ;
-  fhir:nodeRole fhir:treeRoot;
-      `);
+//     console.log(`# serializing ${target} ${root.id}
+// ${c(root.id)} a ${c(type)} ;
+//   fhir:nodeRole fhir:treeRoot;
+// `);
 
     const predicates = new FhirProfileStructure(this.structureMap, this.datatypeMap).walk(target, config);
+    printer.addQuads([typeTriple]);
+    printer.addQuads([rootTriple]);
     const neighborhood = this.store.getQuads(root, null, null);
     this.walk(root, target, neighborhood, '  ');
     return 'ab';
