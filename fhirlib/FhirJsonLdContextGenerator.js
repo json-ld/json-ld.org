@@ -1,6 +1,6 @@
-const {FhirProfileVisitor, Nesting} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, Nesting} = require('./FhirRdfModelGenerator');
 
-class FhirJsonLdContextGenerator extends FhirProfileVisitor {
+class FhirJsonLdContextGenerator {
 
   static HEADER = {
     "@version": 1.1,
@@ -43,7 +43,8 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
   };
 
   constructor(structureMap, datatypeMap) {
-    super(structureMap, datatypeMap);
+    this.structureMap = structureMap;
+    this.datatypeMap = datatypeMap;
     this.cache = new Map(); // not used yet
   }
 
@@ -52,7 +53,8 @@ class FhirJsonLdContextGenerator extends FhirProfileVisitor {
       this.ret = [{
         '@context': Object.assign({}, FhirJsonLdContextGenerator.HEADER, FhirJsonLdContextGenerator.NAMESPACES, FhirJsonLdContextGenerator.TYPE_AND_INDEX)
       }];
-      this.visitResource(target, config);
+      const modelGenerator = new FhirRdfModelGenerator(this.structureMap, this.datatypeMap);
+      modelGenerator.visitResource(target, this, config);
       this.cache.set(target, this.ret[0]);
     }
     return this.cache.get(target);

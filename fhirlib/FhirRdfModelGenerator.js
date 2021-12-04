@@ -1,3 +1,6 @@
+/**
+ * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
+ */
 class Nesting {
   constructor(element, property, predicate, type) {
     this.element = element;
@@ -7,11 +10,15 @@ class Nesting {
   }
 }
 
+/**
+ * Walk a FHIR Resource definition and call a visitor for each scalar or complex element property definition when entering or exiting a nested Element.
+ */
 class FhirRdfModelGenerator {
   static GEND_CONTEXT_SUFFIX = ".context.jsonld";
   static STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
   static FHIRPATH_ROOT = "http://hl7.org/fhirpath/System.";
   static NS_fhir = "http://hl7.org/fhir/";
+  static NS_xsd = "http://www.w3.org/2001/XMLSchema#";
 
   static fhirScalarTypeToXsd = {
     "Boolean": "boolean",
@@ -39,13 +46,13 @@ class FhirRdfModelGenerator {
   /**
    * Recursive function to generate a content model for a FHIR Resource
    */
-  visitResource (target, config) {
-    this.visitElement(target, config);
-    this.stack.reverse().forEach(n => this.exit(n));
+  visitResource (target, visitor, config) {
+    this.visitElement(target, visitor, config);
+    this.stack.reverse().forEach(n => visitor.exit(n));
     this.stack = [];
   }
 
-  visitElement (target, config) {
+  visitElement (target, visitor, config) {
     let map;
     if (target === "root") {
       return;
@@ -64,6 +71,7 @@ class FhirRdfModelGenerator {
     if ("baseDefinition" in resourceDef) {
         this.visitElement( // Get content model from base type
           resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
+          visitor,
           config
         );
     }
@@ -100,7 +108,7 @@ class FhirRdfModelGenerator {
       for (let i = 0; i < this.stack.length; ++i) {
         if (this.stack[i].element.id.split('.').slice(1)[0] !== path[i]) {
           // `i` has the index of the first Nesting not consistent with `path`.
-          this.stack.slice(i).reverse().forEach(n => this.exit(n)); // call exit on each extra element in the stack
+          this.stack.slice(i).reverse().forEach(n => visitor.exit(n)); // call exit on each extra element in the stack
           this.stack = this.stack.slice(0, i); // trim down the stack
           break;
         }
@@ -118,48 +126,49 @@ class FhirRdfModelGenerator {
         const curriedName = curried
               ? name + typeCode.substr(0, 1).toUpperCase() + typeCode.substr(1)
               : name;
-        const left = path.join('.');
 
-        // Elements and BackboneElements imply a nested @context
+        // Elements and BackboneElements indicate a nested structure.
         if (typeCode === "BackboneElement" || typeCode === "Element") {
+          // Construct a Nesting for this property and visitor.enter it.
           const n = new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, resourceDef.baseDefinition);
           this.stack.push(n);
-          this.enter(n);
-          const backboneEltName = [...path, curriedName].join('.');
-          if ("baseDefinition" in resourceDef) {  // apparently always true because
-            const hideStack = this.stack;
+          visitor.enter(n);
+
+          // if this element extends another, process the base.
+          // This is probably always true BackboneElements extend DomainResource and Elements extend BackboneType or Datatype.
+          if ("baseDefinition" in resourceDef) {
+            if (!resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))
+              throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
+            const nestedTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
+
+            // Because the nested element has a different name, we will appear to have exited any nested elements,
+            // so save and hide the stack.
+            const saveStack = this.stack;
             this.stack = [];
-            this.visitElement(                                         // {,Backbone}Element have baseDefinitions.
-                resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase(),
-                config
-            )
-            this.stack = hideStack;
+            this.visitElement(nestedTarget, visitor, config);
+            this.stack = saveStack;
           }
         } else {
-          // Create a new property entry with the appropriate @context reference
           const trimmedTypeCode = typeCode === "code"
-                ? "String"
+                ? "String"                                                     // "code" -> String
                 : typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
-                ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length)
-                : typeCode;
-          const isValue = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value"
+                ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
+                : typeCode;                                                   // Address -> Address, uri -> uri
+
+          const isScalar = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value" //  e.g. elt.id is "string.value", "date.value"
                 || elt.id in FhirRdfModelGenerator.fhirPathToXsd;
-          const propertyName = isValue
-                ? "value"
-                : elt.id;
-          let propertyDefinition;
-          if (isValue) {
-            const xsdNs = "http://www.w3.org/2001/XMLSchema#";
-            const dt = FhirRdfModelGenerator.fhirPathToXsd[elt.id]
+          if (isScalar) {
+            // Calculate XML Schema datatype
+            const xsdDatatype = FhirRdfModelGenerator.fhirPathToXsd[elt.id]
                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
                        || (function () {
                             const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            this.scalar(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + propertyName, xsdNs + dt));
+            visitor.scalar(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', FhirRdfModelGenerator.NS_xsd + xsdDatatype));
           } else {
-            this.complex(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + propertyName, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
+            visitor.complex(new Nesting(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
           }
         }
       });
@@ -168,4 +177,4 @@ class FhirRdfModelGenerator {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirProfileVisitor: FhirRdfModelGenerator, Nesting};
+  module.exports = {FhirRdfModelGenerator, Nesting};

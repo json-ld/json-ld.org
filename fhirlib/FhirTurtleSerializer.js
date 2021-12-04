@@ -5,10 +5,10 @@ const R5Datatypes = require('../playground/R5-Datatypes-no-ws');
 const R5StructureDefintions = require('../playground/R5-StructureDefinitions-no-ws');
 const P = require('./Prefixes');
 
-const {FhirProfileVisitor, Nesting} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, Nesting} = require('./FhirRdfModelGenerator');
 const N3Store = require('n3/lib/N3Store').default;
 
-class FhirProfilePredicates extends FhirProfileVisitor {
+class FhirProfilePredicates extends FhirRdfModelGenerator {
 
   constructor(structureMap, datatypeMap) {
     super(structureMap, datatypeMap);
@@ -16,7 +16,7 @@ class FhirProfilePredicates extends FhirProfileVisitor {
 
   walk (target, config) {
     this.ret = [[]];
-    this.visitResource(target, config);
+    this.visitResource(target, this, config);
     return this.ret[0];
   }
 
