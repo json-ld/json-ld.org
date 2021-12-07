@@ -8,27 +8,10 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
   };
 
   static NAMESPACES = {
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
     "fhir": "http://hl7.org/fhir/",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
     "owl": "http://www.w3.org/2002/07/owl#",
-  /* not needed yet
-    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "dc": "http://purl.org/dc/elements/1.1/",
-    "cs": "http://hl7.org/orim/codesystem/",
-    "dc": "http://purl.org/dc/elements/1.1/",
-    "dcterms": "http://purl.org/dc/terms/",
-    "dt": "http://hl7.org/orim/datatype/",
-    "ex": "http://hl7.org/fhir/StructureDefinition/",
-    "fhir-vs": "http://hl7.org/fhir/ValueSet/",
-    "loinc": "http://loinc.org/rdf#",
-    "os": "http://open-services.net/ns/core#",
-    "rim": "http://hl7.org/orim/class/", // oops
-    "rim": "http://hl7.org/owl/rim/",
-    "sct": "http://snomed.info/id/",
-    "vs": "http://hl7.org/orim/valueset/",
-    "w5": "http://hl7.org/fhir/w5#"
-  */
   }
 
   static TYPE_AND_INDEX = {
@@ -50,7 +33,12 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
   genJsonldContext (target, config) {
     if (!(target in this.cache)) {
       this.ret = [{
-        '@context': Object.assign({}, FhirJsonLdContextGenerator.HEADER, FhirJsonLdContextGenerator.NAMESPACES, FhirJsonLdContextGenerator.TYPE_AND_INDEX)
+        '@context': Object.assign(
+          {},
+          FhirJsonLdContextGenerator.HEADER,
+          FhirJsonLdContextGenerator.NAMESPACES,
+          FhirJsonLdContextGenerator.TYPE_AND_INDEX
+        )
       }];
       const modelGenerator = new FhirRdfModelGenerator(this.structureMap, this.datatypeMap);
       modelGenerator.visitResource(target, this, config);
