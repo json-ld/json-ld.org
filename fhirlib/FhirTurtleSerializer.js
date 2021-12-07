@@ -7,8 +7,6 @@ const P = require('./Prefixes');
 
 const N3Store = require('n3/lib/N3Store').default;
 
-const NS_fhir = "http://hl7.org/fhir/";
-
 class Serializer {
   store = null;
 
@@ -24,22 +22,42 @@ class Serializer {
     const root = rootTriple.subject;
     const typeTriple = this.expectOne(root, P.rdf + 'type', null);
     const type = this.expectFhirResource(typeTriple.object);
-    const target = type.toLowerCase();
-//     console.log(`# serializing ${target} ${root.id}
-// ${c(root.id)} a ${c(type)} ;
-//   fhir:nodeRole fhir:treeRoot;
-// `);
+    printer.addQuads([typeTriple, rootTriple]);
 
-    const predicates = new FhirProfileStructure(this.structureMap, this.datatypeMap).walk(target, config);
-    printer.addQuads([typeTriple]);
-    printer.addQuads([rootTriple]);
-    const neighborhood = this.store.getQuads(root, null, null);
-    this.walk(root, target, neighborhood, '  ');
-    return 'ab';
+    const target = type.toLowerCase();
+    this.visitResource(target, config, printer, root);
+    let ret = null;
+    printer.end((error, result) => {
+      if (error)
+        throw new Error(error);
+      ret = result;
+    });
+    // console.log(this.store.size)
+    return ret;
   }
 
-  walk(root, target, printer, neighborhood, indent) {
-    return [];
+  visitResource(target, config, printer, root) {
+    const contentModel = new FhirProfileStructure(this.structureMap, this.datatypeMap).walk(target, config);
+    this.visitContentModel(contentModel, config, printer, root);
+  }
+
+  visitContentModel(contentModel, config, printer, node) {
+    contentModel.forEach(pMap => {
+      const all = this.takeAll(node, pMap.propertyMapping.predicate, null);
+      all.forEach(q => {
+        printer.addQuad(q);
+        if ('contentModel' in pMap) {
+          this.visitContentModel(pMap.contentModel, config, printer, q.object)
+        } else {
+          const type = pMap.propertyMapping.type;
+          const typeEnding = '.context.jsonld';
+          if (type.endsWith(typeEnding)) {
+            const target = type.substr(0, type.length - typeEnding.length).toLowerCase();
+            this.visitResource(target, config, printer, q.object);
+          }
+        }
+      })
+    })
   }
 
   expectOne(s, p, o) {
