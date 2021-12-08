@@ -1,9 +1,8 @@
 /**
- * config {
- predicateList: 2,
- objectList: 2,
- bnode: 2,
- }
+ * options: {
+ *   indent: '    ',
+ *   checkCorefs: n => false, // meaning "trust me, it's a tree"
+ * }
  */
 
 // **N3Writer** writes N3 documents.
@@ -47,9 +46,7 @@ class Printer {
       options = outputStream, outputStream = null;
     options = options || {};
     this._lists = options.lists;
-    this._predicateList = this.indentFunc(options.predicateList || ';\n    ');
-    this._objectList = this.indentFunc(options.objectList || ', ');
-    this._bnode = options.bnode || '  ';
+    this._indent = options.indent || '  ';
     this._checkCorefs = options.checkCorefs || (n => true);
     this._version = options.version || 1.0;
     this._localName = this._version === 1.0
@@ -124,7 +121,7 @@ class Printer {
         subject: targetSubject,
         predicate: null,
         indent: this._nestings.length > 0
-          ? this._nestings[0].indent + this._bnode
+          ? this._nestings[0].indent + this._indent
           : ''
       });
     }
@@ -169,14 +166,14 @@ class Printer {
       if (this._nestings.length > 0 && subject.equals(this._nestings[0].subject)) {
         // Don't repeat the predicate if it's the same
         if (predicate.equals(this._nestings[0].predicate)) {
-          this._write(`${this._objectList()}${objectStr}`, done);
+          this._write(`, ${objectStr}`, done);
           // Same subject, different predicate
         } else if (this._nestings[0].fresh) {
-          this._write(`\n${this._nestings[0].indent + this._bnode}${
+          this._write(`\n${this._nestings[0].indent + this._indent}${
               this._encodePredicate(this._nestings[0].predicate = predicate)} ${
               objectStr}`, done);
         } else {
-          this._write(`${this._predicateList()}${
+          this._write(`;\n${this._nestings[0].indent + this._indent}${
               this._encodePredicate(this._nestings[0].predicate = predicate)} ${
               objectStr}`, done);
         }
@@ -189,7 +186,7 @@ class Printer {
           this._nestings.unshift({
             subject: subject,
             predicate: predicate,
-            indent: reuseFrame.indent + this._bnode
+            indent: reuseFrame.indent + this._indent
           });
           this._write(`${
                     this._encodePredicate(predicate)} ${
@@ -211,7 +208,7 @@ class Printer {
         this._nestings.unshift({
           subject: object,
           predicate: null,
-          indent: this._nestings[0].indent + this._bnode,
+          indent: this._nestings[0].indent + this._indent,
           nested: true,
           fresh: true,
         });

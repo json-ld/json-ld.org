@@ -15,8 +15,8 @@ class Serializer {
     this.datatypeMap = datatypeMap;
   }
 
-  print(resource, printer, config) {
-    this.store = new N3Store();
+  print(resource, printer, config, rest) {
+    this.store = rest || new N3Store();
     this.store.addQuads(resource.store.getQuads());
     const rootTriple = this.expectOne(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot');
     const root = rootTriple.subject;
@@ -32,7 +32,6 @@ class Serializer {
         throw new Error(error);
       ret = result;
     });
-    // console.log(this.store.size)
     return ret;
   }
 
