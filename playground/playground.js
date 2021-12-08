@@ -853,31 +853,45 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
-      promise = jsonld.toRDF(input, options);
-        // .then(dataset => {
-        //
-        //   // Use N3.Parser to extract quads.
-        //   // Currently input is n-quads so it won't emit any prefixes.
-        //   const quads = [];
-        //   const parser = new N3.Parser({
-        //     baseIRI: document.baseURI,
-        //     blankNodePrefix: '' // avoid _:b0_b0
-        //   });
-        //   return new Promise((resolve, reject) => {
-        //     parser.parse(dataset, (error, quad, prefixes) => {
-        //       // vanilla N3.Parser .parse() handler:
-        //       if (error) reject(error);
-        //       if (prefixes && Object.keys(prefixes) > 0)
-        //         // assumptions have changed; need coder intervention
-        //         throw Error("apparently there are prefixes "
-        //                     + JSON.stringify(prefixes)
-        //                     + " defined in input:\n"
-        //                     + JSON.stringify(input, null, 2));
-        //       if (quad) quads.push(quad);
-        //       else resolve(quads);
-        //     });
-        //   });
-        // })
+      promise = jsonld.toRDF(input, options)
+        .then(dataset => {
+          // Use N3.Parser to extract quads.
+          // Currently input is n-quads so it won't emit any prefixes.
+          const quads = [];
+          const parser = new N3.Parser({
+            baseIRI: document.baseURI,
+            blankNodePrefix: '' // avoid _:b0_b0
+          });
+          return new Promise((resolve, reject) => {
+            parser.parse(dataset, (error, quad, prefixes) => {
+              // vanilla N3.Parser .parse() handler:
+              if (error) reject(error);
+              if (prefixes && Object.keys(prefixes) > 0)
+                // assumptions have changed; need coder intervention
+                throw Error("apparently there are prefixes "
+                            + JSON.stringify(prefixes)
+                            + " defined in input:\n"
+                            + JSON.stringify(input, null, 2));
+              if (quad) quads.push(quad);
+              else resolve(quads);
+            });
+          });
+        })
+        .then(quads => {
+          const db = new N3.Store();
+          db.addQuads(quads);
+          const serializer = new FhirTurtleSerializer.Serializer(FHIRStructureMap, FHIRDatatypeMap);
+          const printer = new NestedWriter.Writer(null, {
+            lists: {},
+            format: 'text/turtle',
+            // baseIRI: resource.base,
+            prefixes: P,
+            version: 1.1,
+            indent: '    ',
+            checkCorefs: n => false,
+          });
+          return serializer.print({store: db}, printer, {}, null);
+        });
         // .then(quads => {
         //
         //   // Dig through @context for likely candidates for prefixes.

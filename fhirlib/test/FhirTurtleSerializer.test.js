@@ -4,7 +4,7 @@ const Fs = require('fs');
 const Jsonld  = require('jsonld');
 const TurtleParser = require('../TurtleParser');
 const FhirTurtleSerializer = require('../FhirTurtleSerializer').Serializer;
-const NestedWriter = require('../NestedWriter').Printer;
+const NestedWriter = require('../NestedWriter');
 const R5StructureDefintions = require('../../playground/R5-StructureDefinitions-no-ws.js');
 const R5Datatypes = require('../../playground/R5-Datatypes-no-ws.js');
 const P = require('../Prefixes')
@@ -27,7 +27,7 @@ test('FhirTurtleSerializer', async () => {
   expect(resource.base).toEqual('file://' + filepath);
   expect(resource.store.size).toBeGreaterThan(50);
   const serializer = new FhirTurtleSerializer(FHIRStructureMap, FHIRDatatypeMap);
-  const printer = new NestedWriter(null, {
+  const printer = new NestedWriter.Writer(null, {
     lists: {},
     format: 'text/turtle',
     baseIRI: resource.base,

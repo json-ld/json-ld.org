@@ -36,7 +36,7 @@ class SerializedTerm extends Term {
 }
 
 // ## Constructor
-class Printer {
+class Writer {
   constructor(outputStream, options) {
     // ### `_prefixRegex` matches a prefixed name or IRI that begins with one of the added prefixes
     this._prefixRegex = /$0^/;
@@ -518,4 +518,4 @@ function characterReplacer(character) {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {Printer};
+  module.exports = {Writer};
