@@ -171,6 +171,10 @@ class Printer {
         if (predicate.equals(this._nestings[0].predicate)) {
           this._write(`${this._objectList()}${objectStr}`, done);
           // Same subject, different predicate
+        } else if (this._nestings[0].fresh) {
+          this._write(`\n${this._nestings[0].indent + this._bnode}${
+              this._encodePredicate(this._nestings[0].predicate = predicate)} ${
+              objectStr}`, done);
         } else {
           this._write(`${this._predicateList()}${
               this._encodePredicate(this._nestings[0].predicate = predicate)} ${
@@ -202,12 +206,14 @@ class Printer {
                     objectStr}`, done);
         }
       }
+      this._nestings[0].fresh  = false;
       if (nestable) {
         this._nestings.unshift({
           subject: object,
           predicate: null,
           indent: this._nestings[0].indent + this._bnode,
           nested: true,
+          fresh: true,
         });
       }
     }
