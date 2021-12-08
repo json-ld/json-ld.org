@@ -28,10 +28,11 @@ test('FhirTurtleSerializer', async () => {
     format: 'text/turtle',
     baseIRI: resource.base,
     prefixes: P,
+    end: true,
     version: 1.1,
     predicateList: ';\n    ',
     objectList: ', ',
-    bnode: 'bb',
+    bnode: '    ',
     checkCorefs: n => false,
   });
   const pretty = serializer.print(resource, printer, {});

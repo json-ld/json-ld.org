@@ -113,7 +113,7 @@ class Printer {
     const oldLength = this._nestings.length;
     let i = 0;
     for (; i < this._nestings.length && this._nestings.subject.equals(targetSubject); ++i)
-      this._write('\n' + this._nestings[i].indent + ']');
+      this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
 
     this._nestings = this._nestings.slice(i);
     if (this._nestings.length === 0 && oldLength > 0)
@@ -140,7 +140,7 @@ class Printer {
                     (DEFAULTGRAPH.equals(graph) ? '' : `${this._encodeIriOrBlank(graph)} {\n`));
         this._graph = graph;
         for (let i = 0; i < this._nestings.length && this._nestings.subject.equals(subject); ++i)
-          this._write('\n' + this._nestings[i].indent + ']');
+          this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
       }
 
       let objectStr, nestable;
@@ -158,7 +158,7 @@ class Printer {
       const oldLength = this._nestings.length;
       if (this._nestings.length > 0)
         while (!this._nestings[0].subject.equals(subject)) {
-          this._write('\n' + this._nestings[0].indent + ']');
+          this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
           this._nestings.shift();
         }
       const reuseFrame = this._nestings.length > 0
@@ -206,7 +206,8 @@ class Printer {
         this._nestings.unshift({
           subject: object,
           predicate: null,
-          indent: this._nestings[0].indent + this._bnode
+          indent: this._nestings[0].indent + this._bnode,
+          nested: true,
         });
       }
     }
@@ -217,7 +218,7 @@ class Printer {
     const oldLength = this._nestings.length;
     if (this._nestings.length > 0)
       while (this._nestings.length > 0) {
-        this._write('\n' + this._nestings[0].indent + ']');
+        this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
         this._nestings.shift();
       }
     if (oldLength !== 0) {
