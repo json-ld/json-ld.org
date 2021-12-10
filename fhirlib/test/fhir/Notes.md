@@ -2,33 +2,63 @@
 
 ## What does the extension `structuredefinition-fhir-type` mean?
 
-| path/id			    | type code | ext uri		| shex shape | new type |
-| Element.id			| String	| string		| string	 | xsd:string |
-| Extension.url			| String	| uri			| uri   	 | 
-| xhtml.value			| String	| string        |       	 | 
-|                       |           |               |       	 | 
-| base64Binary.value	| String	| base64Binary  | *     	 | 
-| canonical.value		| String	| canonical     | string	 | 
-| code.value			| String	| code          | string	 | 
-| id.value				| String	| id            |       	 | 
-| markdown.value		| String	| markdown      | string	 | 
-| oid.value				| String	| oid           | string	 | 
-| uri.value				| String	| uri           | *     	 | 
-| url.value				| String	| url           | string	 | 
-| uuid.value			| String	| uuid          | string	 | 
-|                       |           |               |       	 | 
-| instant.value			| DateTime	| instant       | *     	 | 
-| integer64.value		| Integer	| integer64     | *     	 | 
-| positiveInt.value		| Integer	| positiveInt   | string	 | 
-| unsignedInt.value		| Integer	| unsignedInt   | string	 | 
-|                       |           |               |       	 | 
-| boolean.value			| Boolean	| boolean       | *     	 | 
-| date.value			| Date		| date          | *     	 | 
-| dateTime.value		| DateTime	| dateTime      | *     	 | 
-| decimal.value			| Decimal	| decimal       | *     	 | 
-| integer.value			| Integer	| integer       | *     	 | 
-| string.value			| String	| string        | *     	 | 
-| time.value			| Time		| time			| *			 | 
+| path/id            | type code | ext uri      | old shape | new type                                      |
+|--------------------|-----------|--------------|-----------|-----------------------------------------------|
+| Element.id         | String    | string       | string    | xs:string                                     |
+| Extension.url      | String    | uri          | uri       | xs:anyUri                                     |
+| xhtml.value        | String    | string       |           | N/A                                           |
+|--------------------|-----------|--------------|-----------|-----------------------------------------------|
+|                    |           |              |           |                                               |
+| base64Binary.value | String    | base64Binary | *         | xs:string                                     |
+| canonical.value    | String    | canonical    | string    | xs:anyURI                                     |
+| code.value         | String    | code         | string    | xs:token                                      |
+| id.value           | String    | id           |           | xs:string                                     |
+| markdown.value     | String    | markdown     | string    | xs:string                                     |
+| oid.value          | String    | oid          | string    | xs:anyURI                                     |
+| uri.value          | String    | uri          | *         | xs:anyURI                                     |
+| url.value          | String    | url          | string    | xs:anyURI                                     |
+| uuid.value         | String    | uuid         | string    | xs:anyURI                                     |
+|--------------------|-----------|--------------|-----------|-----------------------------------------------|
+|                    |           |              |           |                                               |
+| instant.value      | DateTime  | instant      | *         | xs:dateTime                                   |
+| integer64.value    | Integer   | integer64    | *         | xs:long                                       |
+| positiveInt.value  | Integer   | positiveInt  | string    | xs:positiveInteger                            |
+| unsignedInt.value  | Integer   | unsignedInt  | string    | xs:nonNegativeInteger                         |
+|--------------------|-----------|--------------|-----------|-----------------------------------------------|
+|                    |           |              |           |                                               |
+| boolean.value      | Boolean   | boolean      | *         | xs:boolean                                    |
+| date.value         | Date      | date         | *         | xs:date, xs:gYearMonth, xs:gYear              |
+| dateTime.value     | DateTime  | dateTime     | *         | xs:dateTime, xs:date, xs:gYearMonth, xs:gYear |
+| decimal.value      | Decimal   | decimal      | *         | xs:decimal, xs:double                         |
+| integer.value      | Integer   | integer      | *         | xs:int                                        |
+| string.value       | String    | string       | *         | xs:string                                     |
+| time.value         | Time      | time         | *         | xs:time                                       |
+
+types according to [Datatypes - Primitive types](http://build.fhir.org/datatypes.html#primitive):
+```
+{
+  "boolean": { "XMLRepresentation": "xs:boolean", "caveats": "0 and 1 are not valid values" },
+  "integer": { "XMLRepresentation": "xs:int", "caveats": "leading 0 digits are not allowed" },
+  "integer64": { "XMLRepresentation": "xs:long", "caveats": "leading 0 digits are not allowed" },
+  "string": { "XMLRepresentation": "xs:string" },
+  "decimal": { "XMLRepresentation": ["xs:decimal", "xs:double"] },
+  "uri": { "XMLRepresentation": "xs:anyURI" },
+  "url": { "XMLRepresentation": "xs:anyURI" },
+  "canonical": { "XMLRepresentation": "xs:anyURI" },
+  "base64Binary": { "XMLRepresentation": "xs:base64Binary" },
+  "instant": { "XMLRepresentation": "xs:dateTime" },
+  "date": { "XMLRepresentation": ["xs:date", "xs:gYearMonth", "xs:gYear"] },
+  "dateTime": { "XMLRepresentation": ["xs:dateTime", "xs:date", "xs:gYearMonth", "xs:gYear"] },
+  "time": { "XMLRepresentation": "xs:time" },
+  "code": { "XMLRepresentation": "xs:token" },
+  "oid": { "XMLRepresentation": "xs:anyURI" },
+  "id": { "XMLRepresentation": "xs:string" },
+  "markdown": { "XMLRepresentation": "xs:string" },
+  "unsignedInt": { "XMLRepresentation": "xs:nonNegativeInteger" },
+  "positiveInt": { "XMLRepresentation": "xs:positiveInteger" },
+  "uuid": { "XMLRepresentation": "xs:anyURI" }
+}
+```
 
 
 [MedicationRequest.shex](https://build.fhir.org/medicationrequest.shex.html) includes:
