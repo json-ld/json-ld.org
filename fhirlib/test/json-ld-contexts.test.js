@@ -41,15 +41,17 @@ Jsonld.documentLoader = function(url) {
 
 const compareMe = [
   'playground-Patient',
+/*
   'playground-Observation',
   'playground-CodeSystem',
   'playground-Medication',
   'playground-AllergyIntollerance',
   'playground-Bundle',
+*/
 ];
 
-test.each(compareMe)('nquads(%s)', async () => {
-  const filename = 'playground-Patient';
+test.each(compareMe)('nquads(%s)', async (filename) => {
+  // const filename = 'playground-Patient';
   const json = await Fs.promises.readFile(`./test/json/${filename}.json`, 'utf8');
   const patient = JSON.parse(json);
   const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();

@@ -25,7 +25,6 @@ class ModelVisitor {
  * Walk a FHIR Resource definition and call a visitor for each scalar or complex element property definition when entering or exiting a nested Element.
  */
 class FhirRdfModelGenerator {
-  static GEND_CONTEXT_SUFFIX = ".context.jsonld";
   static STRUCTURE_DEFN_ROOT = "http://hl7.org/fhir/StructureDefinition/";
   static FHIRPATH_ROOT = "http://hl7.org/fhirpath/System.";
   static NS_fhir = "http://hl7.org/fhir/";
@@ -71,8 +70,8 @@ class FhirRdfModelGenerator {
       map = this.structureMap;
     } else if (target in this.datatypeMap) {
       map = this.datatypeMap;
-    } else if (!(target in map)) {
-      throw new Error(`Key ${target} not found in ${Object.keys(map)}`);
+    } else {
+      throw new Error(`Key ${target} not found in ${Object.keys(this.structureMap)} or ${Object.keys(this.datatypeMap)}`);
     }
 
     const resourceDef = map[target];
@@ -175,7 +174,7 @@ class FhirRdfModelGenerator {
                           })());
             visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', FhirRdfModelGenerator.NS_xsd + xsdDatatype));
           } else {
-            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase() + FhirRdfModelGenerator.GEND_CONTEXT_SUFFIX));
+            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase()));
           }
         }
       });

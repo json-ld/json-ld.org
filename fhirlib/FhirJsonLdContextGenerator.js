@@ -25,6 +25,8 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
     },
   };
 
+  static GEND_CONTEXT_SUFFIX = ".context.jsonld";
+
   constructor(structureMap, datatypeMap) {
     super(structureMap, datatypeMap);
     this.cache = new Map(); // not used yet
@@ -66,7 +68,7 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
   complex (propertyMapping) {
     this.ret[0]["@context"][propertyMapping.property] = {
       '@id': propertyMapping.predicate,
-      '@context': propertyMapping.type,
+      '@context': propertyMapping.type + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
     };
   }
 
