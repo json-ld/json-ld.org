@@ -63,6 +63,7 @@ class FhirShExJGenerator extends ModelVisitor {
     this.addTripleConstraint(propertyMapping.predicate, Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length));
     this.pushShape(Prefixes.fhirshex + propertyMapping.element.id);
   }
+
   scalar (propertyMapping) {
     this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type); // e.g. http://www.w3.org/2001/XMLSchema#string"
   }

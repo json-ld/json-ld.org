@@ -155,9 +155,7 @@ class FhirRdfModelGenerator {
             this.stack = saveStack;
           }
         } else {
-          const trimmedTypeCode = typeCode === "code"
-                ? "String"                                                     // "code" -> String
-                : typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+          const trimmedTypeCode = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
                 ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
                 : typeCode;                                                   // Address -> Address, uri -> uri
 

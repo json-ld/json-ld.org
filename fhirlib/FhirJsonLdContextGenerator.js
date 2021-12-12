@@ -66,9 +66,12 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
   }
 
   complex (propertyMapping) {
+    const type = propertyMapping.type === 'code' // TODO: really? check out Patient.gender
+        ? 'string'
+        : propertyMapping.type;
     this.ret[0]["@context"][propertyMapping.property] = {
       '@id': propertyMapping.predicate,
-      '@context': propertyMapping.type + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
+      '@context': type + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
     };
   }
 
