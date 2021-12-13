@@ -2,11 +2,12 @@
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
  */
 class PropertyMapping {
-  constructor(element, property, predicate, type) {
+  constructor(element, property, predicate, type, binding) {
     this.element = element;
     this.property = property;
     this.predicate = predicate;
     this.type = type;
+    this.binding = binding;
   }
 }
 
@@ -155,7 +156,8 @@ class FhirRdfModelGenerator {
             this.stack = saveStack;
           }
         } else {
-          const trimmedTypeCode = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+          const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
+          const trimmedTypeCode = isFhirPath
                 ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
                 : typeCode;                                                   // Address -> Address, uri -> uri
 
@@ -170,9 +172,10 @@ class FhirRdfModelGenerator {
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', FhirRdfModelGenerator.NS_xsd + xsdDatatype));
+            visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null));
           } else {
-            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, trimmedTypeCode.toLowerCase()));
+            const binding = 'binding' in elt ? elt.binding.valueSet : null;
+            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, typeCode, binding));
           }
         }
       });

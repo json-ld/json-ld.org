@@ -6,6 +6,7 @@ Prefixes = {
   'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
   'owl': 'http://www.w3.org/2002/07/owl#',
   'fhirshex': 'http://hl7.org/fhir/shape/',
+  'fhirvs': 'http://hl7.org/fhir/ValueSet/',
 /* not needed yet
   'dc': 'http://purl.org/dc/elements/1.1/',
   'cs': 'http://hl7.org/orim/codesystem/',

@@ -61,17 +61,19 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
   scalar (propertyMapping) {
     this.ret[0]["@context"][propertyMapping.property] = {
       '@id': propertyMapping.predicate,
-      '@type': propertyMapping.type,
+      '@type': propertyMapping.type.datatype,
     };
   }
 
   complex (propertyMapping) {
     const type = propertyMapping.type === 'code' // TODO: really? check out Patient.gender
         ? 'string'
+        : propertyMapping.type.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+        ? propertyMapping.type.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length)
         : propertyMapping.type;
     this.ret[0]["@context"][propertyMapping.property] = {
       '@id': propertyMapping.predicate,
-      '@context': type + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
+      '@context': type.toLowerCase() + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
     };
   }
 
