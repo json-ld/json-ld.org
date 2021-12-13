@@ -17,12 +17,7 @@ const indexFhir = (acc, entry) => {
   acc[entry.resource.id.toLowerCase()] = entry.resource;
   return acc;
 };
-/*
-const R5StructureDefintions = require('../../playground/R5-StructureDefinitions-no-ws.js');
-const R5Datatypes = require('../../playground/R5-Datatypes-no-ws.js');
-const FHIRStructureMap = R5StructureDefintions.entry.reduce(indexFhir, {});
-const FHIRDatatypeMap = R5Datatypes.entry.reduce(indexFhir, {});
-*/
+
 const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];
 
 const GenTests = [

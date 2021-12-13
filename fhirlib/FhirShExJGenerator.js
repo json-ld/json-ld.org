@@ -84,7 +84,7 @@ class FhirShExJGenerator extends ModelVisitor {
   }
 
   scalar (propertyMapping) {
-    this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type); // e.g. http://www.w3.org/2001/XMLSchema#string"
+    this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type, propertyMapping.element.min, propertyMapping.element.max); // e.g. http://www.w3.org/2001/XMLSchema#string"
   }
 
   complex (propertyMapping) {
@@ -92,39 +92,27 @@ class FhirShExJGenerator extends ModelVisitor {
     if (propertyMapping.binding) {
       const [valueSet, version] = propertyMapping.binding.split(/\|/);
       const annotations = this.config.addValueSetVersionAnnotation && version
-            ? {
-              "annotations": [
-                {
+            ? { "annotations": [ {
                   "type": "Annotation",
                   "predicate": "http://hl7.org/fhir/version",
-                  "object": {
-                    "value": "4.6.0"
-                  }
-                }
-              ]
-            }
+                  "object": {"value": version}
+                } ] }
             : {};
+      const expression = Object.assign(
+          {
+            type: "TripleConstraint",
+            predicate: Prefixes.fhir + 'value',
+            valueExpr: valueSet
+          },
+          annotations
+      );
       valueExpr = {
         type: "ShapeAnd",
-        valueExprs: [
-          valueExpr,
-          {
-            type: "Shape",
-            expression: Object.assign(
-              {
-                type: "TripleConstraint",
-                predicate: Prefixes.fhir + 'value',
-                valueExpr: valueSet
-              },
-              annotations
-            )
-          }
-        ]
+        valueExprs: [valueExpr, {type: "Shape", expression}]
       };
     }
 
-
-    this.addTripleConstraint(propertyMapping.predicate, valueExpr); // e.g. MedicationRequest.dose.dosageInstruction
+    this.addTripleConstraint(propertyMapping.predicate, valueExpr, propertyMapping.element.min, propertyMapping.element.max); // e.g. MedicationRequest.dose.dosageInstruction
   }
 
   exit (propertyMapping) {
@@ -153,12 +141,18 @@ class FhirShExJGenerator extends ModelVisitor {
       };
   }
 
-  addTripleConstraint(predicate, valueExpr) {
-    this.teListStack[0].push({
+  addTripleConstraint(predicate, valueExpr, min, maxP) {
+    const max = maxP === '*'
+        ? -1
+        : parseInt(maxP);
+    const cardObj = min === 1 && max === 1
+        ? {}
+        : {min, max};
+    this.teListStack[0].push(Object.assign({
       type: "TripleConstraint",
       predicate: predicate,
       valueExpr: valueExpr,
-    });
+    }, cardObj));
   }
 
   /**
