@@ -175,7 +175,10 @@ class FhirRdfModelGenerator {
             visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null));
           } else {
             const binding = 'binding' in elt ? elt.binding.valueSet : null;
-            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, typeCode, binding));
+            const shapeLabel = isFhirPath
+                ? trimmedTypeCode.toLowerCase()
+                : typeCode;
+            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, shapeLabel, binding));
           }
         }
       });

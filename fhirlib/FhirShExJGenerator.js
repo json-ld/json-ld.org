@@ -141,8 +141,11 @@ class FhirShExJGenerator extends ModelVisitor {
       };
   }
 
-  addTripleConstraint(predicate, valueExpr, min, maxP) {
-    const max = maxP === '*'
+  addTripleConstraint(predicate, valueExpr, minP, maxP) {
+    const min = minP === undefined ? 1 : minP;
+    const max = maxP === undefined
+        ? 1
+        : maxP === '*'
         ? -1
         : parseInt(maxP);
     const cardObj = min === 1 && max === 1
