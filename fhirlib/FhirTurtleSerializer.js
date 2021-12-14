@@ -42,20 +42,22 @@ class Serializer {
 
   visitContentModel(contentModel, config, printer, node) {
     contentModel.forEach(pMap => {
-      const all = this.takeAll(node, pMap.propertyMapping.predicate, null);
-      all.forEach(q => {
-        printer.addQuad(q);
-        if ('contentModel' in pMap) {
-          this.visitContentModel(pMap.contentModel, config, printer, q.object)
-        } else {
-          const type = pMap.propertyMapping.type;
-          const typeEnding = '.context.jsonld';
-          if (type.endsWith(typeEnding)) {
-            const target = type.substr(0, type.length - typeEnding.length).toLowerCase();
-            this.visitResource(target, config, printer, q.object);
+      pMap.propertyMappings.forEach(propertyMapping => {
+        const all = this.takeAll(node, propertyMapping.predicate, null);
+        all.forEach(q => {
+          printer.addQuad(q);
+          if ('contentModel' in pMap) {
+            this.visitContentModel(pMap.contentModel, config, printer, q.object)
+          } else {
+            const type = propertyMapping.type;
+            const typeEnding = '.context.jsonld';
+            if (type.endsWith(typeEnding)) {
+              const target = type.substr(0, type.length - typeEnding.length).toLowerCase();
+              this.visitResource(target, config, printer, q.object);
+            }
           }
-        }
-      })
+        })
+      });
     })
   }
 

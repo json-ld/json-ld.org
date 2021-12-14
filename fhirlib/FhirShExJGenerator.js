@@ -86,36 +86,42 @@ class FhirShExJGenerator extends ModelVisitor {
     this.pushShape(Prefixes.fhirshex + propertyMapping.element.id);
   }
 
-  scalar (propertyMapping) {
-    this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type, propertyMapping.element.min, propertyMapping.element.max); // e.g. http://www.w3.org/2001/XMLSchema#string"
+  scalar (propertyMappings) {
+    propertyMappings.forEach(propertyMapping => {
+      this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type, propertyMapping.element.min, propertyMapping.element.max); // e.g. http://www.w3.org/2001/XMLSchema#string"
+    });
   }
 
-  complex (propertyMapping) {
-    let valueExpr = Prefixes.fhirshex + propertyMapping.type;
-    if (propertyMapping.binding) {
-      const [valueSet, version] = propertyMapping.binding.split(/\|/);
-      const annotations = this.config.addValueSetVersionAnnotation && version
-            ? { "annotations": [ {
-                  "type": "Annotation",
-                  "predicate": "http://hl7.org/fhir/version",
-                  "object": {"value": version}
-                } ] }
+  complex (propertyMappings) {
+    propertyMappings.forEach(propertyMapping => {
+      let valueExpr = Prefixes.fhirshex + propertyMapping.type;
+      if (propertyMapping.binding) {
+        const [valueSet, version] = propertyMapping.binding.split(/\|/);
+        const annotations = this.config.addValueSetVersionAnnotation && version
+            ? {
+              "annotations": [{
+                "type": "Annotation",
+                "predicate": "http://hl7.org/fhir/version",
+                "object": {"value": version}
+              }]
+            }
             : {};
-      const expression = Object.assign(
-          {
-            type: "TripleConstraint",
-            predicate: Prefixes.fhir + 'value',
-            valueExpr: valueSet
-          },
-          annotations
-      );
-      valueExpr = {
-        type: "ShapeAnd",
-        valueExprs: [valueExpr, {type: "Shape", expression}]
-      };
-    }
+        const expression = Object.assign(
+            {
+              type: "TripleConstraint",
+              predicate: Prefixes.fhir + 'value',
+              valueExpr: valueSet
+            },
+            annotations
+        );
+        valueExpr = {
+          type: "ShapeAnd",
+          valueExprs: [valueExpr, {type: "Shape", expression}]
+        };
+      }
 
-    this.addTripleConstraint(propertyMapping.predicate, valueExpr, propertyMapping.element.min, propertyMapping.element.max); // e.g. MedicationRequest.dose.dosageInstruction
+      this.addTripleConstraint(propertyMapping.predicate, valueExpr, propertyMapping.element.min, propertyMapping.element.max); // e.g. MedicationRequest.dose.dosageInstruction
+    });
   }
 
   exit (propertyMapping) {

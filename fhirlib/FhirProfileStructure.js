@@ -36,19 +36,19 @@ class FhirProfileStructure extends ModelVisitor {
 
     enter (propertyMapping) {
         const contentModel = []
-        this.ret[0].push({propertyMapping, contentModel});
+        this.ret[0].push({propertyMappings: [propertyMapping], contentModel});
         this.ret.unshift(contentModel);
     }
 
-    scalar (propertyMapping) {
-        this.ret[0].push({propertyMapping});
+    scalar (propertyMappings) {
+        this.ret[0].push({propertyMappings});
     }
 
-    complex (propertyMapping) {
-        this.ret[0].push({propertyMapping});
+    complex (propertyMappings) {
+        this.ret[0].push({propertyMappings});
     }
 
-    exit (propertyMapping) {
+    exit (propertyMappings) {
         this.ret.shift();
     }
 };

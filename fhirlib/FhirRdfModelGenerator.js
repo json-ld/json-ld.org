@@ -48,6 +48,8 @@ class FhirRdfModelGenerator {
     'instant.value': 'dateTime', // Datetime
   };
 
+  static NestedStructureTypeCodes = ["BackboneElement", "Element"];
+
   constructor (structureMap, datatypeMap) {
     this.structureMap = structureMap;
     this.datatypeMap = datatypeMap;
@@ -121,9 +123,12 @@ class FhirRdfModelGenerator {
         }
       }
 
+      if (!('type' in elt || elt.type.length === 0))
+        throw new Error(`expected one or more types in '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
       // Walk the element's types
+
       elt.type.forEach((typeEntry, idx) => {
-        if (typeof typeEntry !== "object" // test assumptions
+        if (typeof typeEntry !== "object"
             || !("code" in typeEntry)
             || typeof typeEntry.code !== "string")
           throw new Error(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(map[target])}`);
@@ -137,7 +142,7 @@ class FhirRdfModelGenerator {
         // Elements and BackboneElements indicate a nested structure.
         const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
               [resourceName].concat(path).concat(curriedName).join('.');
-        if (typeCode === "BackboneElement" || typeCode === "Element") {
+        if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
           // Construct a Nesting for this property and visitor.enter it.
           const n = new PropertyMapping(elt, curriedName, predicate, resourceDef.baseDefinition);
           this.stack.push(n);
@@ -174,13 +179,13 @@ class FhirRdfModelGenerator {
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            visitor.scalar(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null));
+            visitor.scalar([new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null)]);
           } else {
             const binding = 'binding' in elt ? elt.binding.valueSet : null;
             const shapeLabel = isFhirPath
                 ? trimmedTypeCode.toLowerCase()
                 : typeCode;
-            visitor.complex(new PropertyMapping(elt, curriedName, predicate, shapeLabel, binding));
+            visitor.complex([new PropertyMapping(elt, curriedName, predicate, shapeLabel, binding)]);
           }
         }
       });
