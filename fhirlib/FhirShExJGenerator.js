@@ -3,6 +3,7 @@ const Prefixes = require('./Prefixes');
 
 /**
  * Leverage a FhirRdfModelGenerator to traverse StructureDefinitions and generate equivalent ShExJ.
+ * TODO: add closed: true on all Shapes.
  */
 class FhirShExJGenerator extends ModelVisitor {
 
@@ -66,10 +67,12 @@ class FhirShExJGenerator extends ModelVisitor {
     const label = Prefixes.fhirshex + target;
     this.added.push(label);
     this.pushShape(label);
-    this.addTripleConstraint(Prefixes.rdf + 'type', {
-      "type": "NodeConstraint",
-      "values": [Prefixes.fhir + target]
-    });
+    if (target.toLowerCase() in this.structureMap) {
+      this.addTripleConstraint(Prefixes.rdf + 'type', {
+        "type": "NodeConstraint",
+        "values": [Prefixes.fhir + target]
+      });
+    }
     this.modelGenerator.visitResource(target.toLowerCase(), this, config);
     // this.structureMap.entries.forEach(
     //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, config); }
@@ -123,6 +126,7 @@ class FhirShExJGenerator extends ModelVisitor {
     const newShape = {
       type: "Shape",
       id: name,
+      closed: true,
     };
     this.teListStack.unshift([]);
     this.schema.shapes.push(newShape);

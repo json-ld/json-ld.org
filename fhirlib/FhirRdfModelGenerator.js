@@ -135,9 +135,11 @@ class FhirRdfModelGenerator {
               : name;
 
         // Elements and BackboneElements indicate a nested structure.
+        const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
+              [resourceName].concat(path).concat(curriedName).join('.');
         if (typeCode === "BackboneElement" || typeCode === "Element") {
           // Construct a Nesting for this property and visitor.enter it.
-          const n = new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, resourceDef.baseDefinition);
+          const n = new PropertyMapping(elt, curriedName, predicate, resourceDef.baseDefinition);
           this.stack.push(n);
           visitor.enter(n);
 
@@ -178,7 +180,7 @@ class FhirRdfModelGenerator {
             const shapeLabel = isFhirPath
                 ? trimmedTypeCode.toLowerCase()
                 : typeCode;
-            visitor.complex(new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + elt.id, shapeLabel, binding));
+            visitor.complex(new PropertyMapping(elt, curriedName, predicate, shapeLabel, binding));
           }
         }
       });
