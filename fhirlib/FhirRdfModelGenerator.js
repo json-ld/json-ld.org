@@ -192,7 +192,7 @@ class FhirRdfModelGenerator {
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
-                ? trimmedTypeCode.toLowerCase()
+                ? typeEntry.extension.find(ext => ext.url === "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type").valueUri
                 : typeCode;
             const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding);
             return acc.concat([pMap]);

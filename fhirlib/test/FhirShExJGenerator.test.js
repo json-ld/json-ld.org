@@ -86,14 +86,15 @@ async function writeShExJ(filename, schema, longLines) {
   "type": "schema",
   "shapes": [
 `;
-  const tail = `  ]
+  const tail = `  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
 }
 `;
   await Fs.promises.writeFile(
       filename,
       longLines
           ? head + schema.shapes.map((se, idx) => JSON.stringify(se) + (idx === schema.shapes.length - 1 ? '' : ',') + '\n').join('') + tail
-          : JSON.stringify(schema, null, 2)
+          : JSON.stringify(schema, null, 2) + "\n"
   );
 }
 

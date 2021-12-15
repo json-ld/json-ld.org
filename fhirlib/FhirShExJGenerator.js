@@ -42,6 +42,8 @@ class FhirShExJGenerator extends ModelVisitor {
 
   static PARENT_TYPES = ['Resource'];
 
+  static ResourcesThatNeedALink = ["Reference"];
+
   constructor(structureMap, datatypeMap, valuesetMap, config = {}) {
     super(structureMap, datatypeMap);
     this.valuesetMap = valuesetMap;
@@ -84,6 +86,12 @@ class FhirShExJGenerator extends ModelVisitor {
       } else {
         this.add(this.makeTripleConstraint(Prefixes.rdf + 'type', undefined, {min: 1, max: -1}));
       }
+    }
+    if (FhirShExJGenerator.ResourcesThatNeedALink.indexOf(target) !== -1) {
+      this.add(this.makeTripleConstraint(Prefixes.fhir + 'link', {
+        "type": "NodeConstraint",
+        "nodeKind": "iri"
+      }, {min: 0, max: 1}));
     }
     this.modelGenerator.visitResource(target.toLowerCase(), this, config);
     // this.structureMap.entries.forEach(
