@@ -258,7 +258,8 @@ class FhirShExJGenerator extends ModelVisitor {
       type: "NodeConstraint",
       id: label,
       values: this.added.map(label => ({ value: label.substr(label.lastIndexOf('/') + 1) }))
-    })
+    });
+    this.schema["@context"] = "http://www.w3.org/ns/shex.jsonld";
     return this;
   }
 };
