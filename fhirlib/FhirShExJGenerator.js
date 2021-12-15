@@ -3,7 +3,6 @@ const Prefixes = require('./Prefixes');
 
 /**
  * Leverage a FhirRdfModelGenerator to traverse StructureDefinitions and generate equivalent ShExJ.
- * TODO: add closed: true on all Shapes.
  */
 class FhirShExJGenerator extends ModelVisitor {
 
@@ -41,6 +40,8 @@ class FhirShExJGenerator extends ModelVisitor {
     min: 0, max: 1 // TODO <- remove max
   };
 
+  static PARENT_TYPES = ['Resource'];
+
   constructor(structureMap, datatypeMap, valuesetMap, config = {}) {
     super(structureMap, datatypeMap);
     this.valuesetMap = valuesetMap;
@@ -63,40 +64,51 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator} this.
    */
-  genShape (target, config) {
+  genShape (target, root, config) {
+    const isParent = FhirShExJGenerator.PARENT_TYPES.indexOf(target) === -1;
     const label = Prefixes.fhirshex + target;
     this.added.push(label);
-    this.pushShape(label);
+    this.pushShape(label, isParent);
     if (target.toLowerCase() in this.structureMap) {
-      this.addTripleConstraint(Prefixes.rdf + 'type', {
-        "type": "NodeConstraint",
-        "values": [Prefixes.fhir + target]
-      });
+      if (isParent) {
+        this.add(this.makeTripleConstraint(Prefixes.rdf + 'type', {
+          "type": "NodeConstraint",
+          "values": [Prefixes.fhir + target]
+        }, null));
+        if (root) {
+          this.add(this.makeTripleConstraint(Prefixes.fhir + 'nodeRole', {
+            "type": "NodeConstraint",
+            "values": ["http://hl7.org/fhir/treeRoot"]
+          }, {min: 0, max: 1}));
+        }
+      } else {
+        this.add(this.makeTripleConstraint(Prefixes.rdf + 'type', undefined, {min: 1, max: -1}));
+      }
     }
     this.modelGenerator.visitResource(target.toLowerCase(), this, config);
     // this.structureMap.entries.forEach(
     //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, config); }
     // );
-    this.popShape();
+    this.popShape(target);
     return this;
   }
 
   enter (propertyMapping) {
-    this.addTripleConstraint(propertyMapping.predicate, Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length));
-    this.pushShape(Prefixes.fhirshex + propertyMapping.element.id);
+    this.add(this.makeTripleConstraint(propertyMapping.predicate, Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length), this.makeCard(propertyMapping.element.min, propertyMapping.element.max)));
+    this.pushShape(Prefixes.fhirshex + propertyMapping.element.id, true); // TODO: would break if nested *inside* a DomainResource.
   }
 
   scalar (propertyMappings) {
     propertyMappings.forEach(propertyMapping => {
-      this.addTripleConstraint(propertyMapping.predicate, propertyMapping.type, propertyMapping.element.min, propertyMapping.element.max); // e.g. http://www.w3.org/2001/XMLSchema#string"
+      this.add(this.makeTripleConstraint(propertyMapping.predicate, propertyMapping.type, this.makeCard(propertyMapping.element.min, propertyMapping.element.max))); // e.g. http://www.w3.org/2001/XMLSchema#string"
     });
   }
 
   complex (propertyMappings) {
-    propertyMappings.forEach(propertyMapping => {
+    const valueExprs = propertyMappings.reduce((acc, propertyMapping) => {
       let valueExpr = Prefixes.fhirshex + propertyMapping.type;
-      if (propertyMapping.binding) {
-        const [valueSet, version] = propertyMapping.binding.split(/\|/);
+      if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
+        const [valueSet, version] = propertyMapping.binding.valueSet.split(/\|/);
         const annotations = this.config.addValueSetVersionAnnotation && version
             ? {
               "annotations": [{
@@ -116,24 +128,36 @@ class FhirShExJGenerator extends ModelVisitor {
         );
         valueExpr = {
           type: "ShapeAnd",
-          valueExprs: [valueExpr, {type: "Shape", expression}]
+          shapeExprs: [valueExpr, {type: "Shape", expression}]
         };
       }
+      return acc.concat([this.makeTripleConstraint(propertyMapping.predicate, valueExpr, null)]);
+    }, []);
 
-      this.addTripleConstraint(propertyMapping.predicate, valueExpr, propertyMapping.element.min, propertyMapping.element.max); // e.g. MedicationRequest.dose.dosageInstruction
-    });
+    const possibleDisjunction = Object.assign(
+      valueExprs.length > 1
+        ? {
+          type: "OneOf",
+          expressions: valueExprs
+        }
+      : valueExprs[0],
+      this.makeCard(propertyMappings[0].element.min, propertyMappings[0].element.max)
+    );
+    this.add(possibleDisjunction); // e.g. MedicationRequest.dose.dosageInstruction
   }
 
   exit (propertyMapping) {
     this.popShape(propertyMapping.type);
   }
 
-  pushShape (name) {
-    const newShape = {
+  pushShape (name, isClosed) {
+    const newShape = Object.assign({
       type: "Shape",
       id: name,
-      closed: true,
-    };
+    }, isClosed
+    ? {  closed: true }
+    : {}
+    );
     this.teListStack.unshift([]);
     this.schema.shapes.push(newShape);
     this.shapeStack.push(newShape);
@@ -143,6 +167,9 @@ class FhirShExJGenerator extends ModelVisitor {
     const teList = this.teListStack.shift();
     if (teList.length === 0)
       throw new Error(`Unexpected 0-length TE list when serializing, um, something?`);
+    if (this.config.oloIndexes && FhirShExJGenerator.PARENT_TYPES.indexOf(name) === -1) {
+      teList.push(FhirShExJGenerator.INDEX);
+    }
     this.shapeStack.pop().expression = teList.length === 1
       ? teList[0]
       : {
@@ -151,21 +178,31 @@ class FhirShExJGenerator extends ModelVisitor {
       };
   }
 
-  addTripleConstraint(predicate, valueExpr, minP, maxP) {
+  makeCard(minP, maxP) {
     const min = minP === undefined ? 1 : minP;
     const max = maxP === undefined
         ? 1
         : maxP === '*'
         ? -1
         : parseInt(maxP);
-    const cardObj = min === 1 && max === 1
+    return min === 1 && max === 1
         ? {}
         : {min, max};
-    this.teListStack[0].push(Object.assign({
+  }
+
+  makeTripleConstraint(predicate, valueExpr, cardObj = {}) {
+    return Object.assign({
       type: "TripleConstraint",
       predicate: predicate,
-      valueExpr: valueExpr,
-    }, cardObj));
+    },
+        valueExpr ?
+            { valueExpr: valueExpr }
+            : {},
+        cardObj);
+  }
+
+  add(te) {
+    this.teListStack[0].push(te)
   }
 
   /**
@@ -220,7 +257,7 @@ class FhirShExJGenerator extends ModelVisitor {
     this.schema.shapes.push({
       type: "NodeConstraint",
       id: label,
-      values: this.added.map(se => { value: se.id})
+      values: this.added.map(label => ({ value: label.substr(label.lastIndexOf('/') + 1) }))
     })
     return this;
   }

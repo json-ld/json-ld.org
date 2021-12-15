@@ -6,7 +6,8 @@ const FhirShExJGenerator = require('../FhirShExJGenerator.js');
 const FhirPreprocessors = require('../FhirPreprocessors.js');
 
 const GEN_SHEXJ_CONTEXT_CONFIG = {
-  addValueSetVersionAnnotation: false // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
+  addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
+  oloIndexes: true,
 };
 
 const GEN_SHEXJ_STEM = 'http://hl7.org/fhir/StructureDefinition/';
@@ -52,7 +53,7 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
 
         source.id === 'valuesets'
             ? generator.genValueset(genMe, GEN_SHEXJ_CONTEXT_CONFIG)
-            : generator.genShape(genMe, GEN_SHEXJ_CONTEXT_CONFIG);
+            : generator.genShape(genMe, true, GEN_SHEXJ_CONTEXT_CONFIG);
         return generated.concat(genMe);
       } catch (e) {
         console.warn("error trying to genShExJ:" + e.stack);
@@ -76,6 +77,7 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
 
   // Verify read size
   expect(ret.shapes.map(se => se.id)).toEqual(parsed.shapes.map(se => se.id));
+  expect(ret.shapes).toEqual(parsed.shapes);
 });
 
 // Write to disk with long-lines

@@ -2,7 +2,8 @@
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
  */
 class PropertyMapping {
-  constructor(element, property, predicate, type, binding) {
+  constructor(isScalar, element, property, predicate, type, binding) {
+    this.isSalar = isScalar;
     this.element = element;
     this.property = property;
     this.predicate = predicate;
@@ -125,9 +126,9 @@ class FhirRdfModelGenerator {
 
       if (!('type' in elt || elt.type.length === 0))
         throw new Error(`expected one or more types in '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
-      // Walk the element's types
 
-      elt.type.forEach((typeEntry, idx) => {
+      // Walk the element's types
+      const complexPMaps = elt.type.reduce((acc, typeEntry, idx) => {
         if (typeof typeEntry !== "object"
             || !("code" in typeEntry)
             || typeof typeEntry.code !== "string")
@@ -143,8 +144,11 @@ class FhirRdfModelGenerator {
         const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
               [resourceName].concat(path).concat(curriedName).join('.');
         if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
+          if (elt.type.length > 1)
+            throw new Error(`expected exactly one type for nested structure '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
+
           // Construct a Nesting for this property and visitor.enter it.
-          const n = new PropertyMapping(elt, curriedName, predicate, resourceDef.baseDefinition);
+          const n = new PropertyMapping(false, elt, curriedName, predicate, resourceDef.baseDefinition);
           this.stack.push(n);
           visitor.enter(n);
 
@@ -162,6 +166,7 @@ class FhirRdfModelGenerator {
             this.visitElement(nestedTarget, visitor, config);
             this.stack = saveStack;
           }
+          return [];
         } else {
           const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
           const trimmedTypeCode = isFhirPath
@@ -171,6 +176,9 @@ class FhirRdfModelGenerator {
           const isScalar = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value" //  e.g. elt.id is "string.value", "date.value"
                 || elt.id in FhirRdfModelGenerator.fhirPathToXsd;
           if (isScalar) {
+            if (elt.type.length > 1)
+              throw new Error(`expected exactly one type for scalar '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
+
             // Calculate XML Schema datatype
             const xsdDatatype = FhirRdfModelGenerator.fhirPathToXsd[elt.id]
                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
@@ -179,16 +187,22 @@ class FhirRdfModelGenerator {
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                           })());
-            visitor.scalar([new PropertyMapping(elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null)]);
+            visitor.scalar([new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null)]);
+            return [];
           } else {
-            const binding = 'binding' in elt ? elt.binding.valueSet : null;
+            const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
                 ? trimmedTypeCode.toLowerCase()
                 : typeCode;
-            visitor.complex([new PropertyMapping(elt, curriedName, predicate, shapeLabel, binding)]);
+            const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding);
+            return acc.concat([pMap]);
+            // visitor.complex([pMap]);
+            // return [];
           }
         }
-      });
+      }, []);
+      if (complexPMaps.length) // only true if all complex types, as verified by (elt.type.length > 1) tests
+        visitor.complex(complexPMaps);
     });
   }
 }
