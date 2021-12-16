@@ -3,7 +3,7 @@
  */
 class PropertyMapping {
   constructor(isScalar, element, property, predicate, type, binding) {
-    this.isSalar = isScalar;
+    this.isScalar = isScalar;
     this.element = element;
     this.property = property;
     this.predicate = predicate;
@@ -18,8 +18,7 @@ class ModelVisitor {
     this.datatypeMap = datatypeMap;
   }
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
-  scalar (propertyMapping) { throw new Error(`ModelVistor.scalar(${propertyMapping}) must be overloaded`); }
-  complex (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
+  element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
   exit (propertyMapping) { throw new Error(`ModelVistor.exit(${propertyMapping}) must be overloaded`); }
 }
 
@@ -186,9 +185,11 @@ class FhirRdfModelGenerator {
                             const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
-                          })());
-            visitor.scalar([new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null)]);
-            return [];
+                       })());
+            const pMap = new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null);
+            return acc.concat([pMap]);
+            // visitor.scalar([pMap]);
+            // return [];
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
@@ -202,7 +203,7 @@ class FhirRdfModelGenerator {
         }
       }, []);
       if (complexPMaps.length) // only true if all complex types, as verified by (elt.type.length > 1) tests
-        visitor.complex(complexPMaps);
+        visitor.element(complexPMaps);
     });
   }
 }

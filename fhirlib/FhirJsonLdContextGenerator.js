@@ -58,26 +58,24 @@ class FhirJsonLdContextGenerator extends ModelVisitor {
     this.ret.unshift(nestedElt);
   }
 
-  scalar (propertyMappings) {
+  element (propertyMappings) {
     propertyMappings.forEach(propertyMapping => {
-      this.ret[0]["@context"][propertyMapping.property] = {
-        '@id': propertyMapping.predicate,
-        '@type': propertyMapping.type.datatype,
-      };
-    });
-  }
-
-  complex (propertyMappings) {
-    propertyMappings.forEach(propertyMapping => {
-      const type = propertyMapping.type === 'code' // TODO: really? check out Patient.gender
-          ? 'string'
-          : propertyMapping.type.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+      if (propertyMapping.isScalar) {
+        this.ret[0]["@context"][propertyMapping.property] = {
+          '@id': propertyMapping.predicate,
+          '@type': propertyMapping.type.datatype,
+        };
+      } else {
+        const type = propertyMapping.type === 'code' // TODO: really? check out Patient.gender
+              ? 'string'
+              : propertyMapping.type.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
               ? propertyMapping.type.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length)
               : propertyMapping.type;
-      this.ret[0]["@context"][propertyMapping.property] = {
-        '@id': propertyMapping.predicate,
-        '@context': type.toLowerCase() + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
-      };
+        this.ret[0]["@context"][propertyMapping.property] = {
+          '@id': propertyMapping.predicate,
+          '@context': type.toLowerCase() + FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX,
+        };
+      }
     });
   }
 

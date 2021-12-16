@@ -106,40 +106,38 @@ class FhirShExJGenerator extends ModelVisitor {
     this.pushShape(Prefixes.fhirshex + propertyMapping.element.id, true); // TODO: would break if nested *inside* a DomainResource.
   }
 
-  scalar (propertyMappings) {
-    propertyMappings.forEach(propertyMapping => {
-      this.add(this.makeTripleConstraint(propertyMapping.predicate, propertyMapping.type, this.makeCard(propertyMapping.element.min, propertyMapping.element.max))); // e.g. http://www.w3.org/2001/XMLSchema#string"
-    });
-  }
-
-  complex (propertyMappings) {
+  element (propertyMappings) {
     const valueExprs = propertyMappings.reduce((acc, propertyMapping) => {
-      let valueExpr = Prefixes.fhirshex + propertyMapping.type;
-      if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
-        const [valueSet, version] = propertyMapping.binding.valueSet.split(/\|/);
-        const annotations = this.config.addValueSetVersionAnnotation && version
-            ? {
-              "annotations": [{
-                "type": "Annotation",
-                "predicate": "http://hl7.org/fhir/version",
-                "object": {"value": version}
-              }]
-            }
-            : {};
-        const expression = Object.assign(
+      if (propertyMapping.isScalar) {
+        return acc.concat(this.makeTripleConstraint(propertyMapping.predicate, propertyMapping.type, this.makeCard(propertyMapping.element.min, propertyMapping.element.max))); // e.g. http://www.w3.org/2001/XMLSchema#string"
+      } else {
+        let valueExpr = Prefixes.fhirshex + propertyMapping.type;
+        if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
+          const [valueSet, version] = propertyMapping.binding.valueSet.split(/\|/);
+          const annotations = this.config.addValueSetVersionAnnotation && version
+                ? {
+                  "annotations": [{
+                    "type": "Annotation",
+                    "predicate": "http://hl7.org/fhir/version",
+                    "object": {"value": version}
+                  }]
+                }
+                : {};
+          const expression = Object.assign(
             {
               type: "TripleConstraint",
               predicate: Prefixes.fhir + 'value',
               valueExpr: valueSet
             },
             annotations
-        );
-        valueExpr = {
-          type: "ShapeAnd",
-          shapeExprs: [valueExpr, {type: "Shape", expression}]
-        };
+          );
+          valueExpr = {
+            type: "ShapeAnd",
+            shapeExprs: [valueExpr, {type: "Shape", expression}]
+          };
+        }
+        return acc.concat([this.makeTripleConstraint(propertyMapping.predicate, valueExpr, null)]);
       }
-      return acc.concat([this.makeTripleConstraint(propertyMapping.predicate, valueExpr, null)]);
     }, []);
 
     const possibleDisjunction = Object.assign(
