@@ -73,25 +73,31 @@ class FhirShExJGenerator extends ModelVisitor {
     this.pushShape(label, isParent);
     if (target.toLowerCase() in this.structureMap) {
       if (isParent) {
-        this.add(this.makeTripleConstraint(Prefixes.rdf + 'type', {
-          "type": "NodeConstraint",
-          "values": [Prefixes.fhir + target]
-        }, null));
+        this.add(this.makeTripleConstraint(
+          Prefixes.rdf + 'type',
+          { "type": "NodeConstraint", "values": [Prefixes.fhir + target] },
+          null));
         if (root) {
-          this.add(this.makeTripleConstraint(Prefixes.fhir + 'nodeRole', {
-            "type": "NodeConstraint",
-            "values": ["http://hl7.org/fhir/treeRoot"]
-          }, {min: 0, max: 1}));
+          this.add(this.makeTripleConstraint(
+            Prefixes.fhir + 'nodeRole',
+            { "type": "NodeConstraint", "values": ["http://hl7.org/fhir/treeRoot"] },
+            {min: 0, max: 1}
+          ));
         }
       } else {
-        this.add(this.makeTripleConstraint(Prefixes.rdf + 'type', undefined, {min: 1, max: -1}));
+        this.add(this.makeTripleConstraint(
+          Prefixes.rdf + 'type',
+          undefined,
+          {min: 1, max: -1}
+        ));
       }
     }
     if (FhirShExJGenerator.ResourcesThatNeedALink.indexOf(target) !== -1) {
-      this.add(this.makeTripleConstraint(Prefixes.fhir + 'link', {
-        "type": "NodeConstraint",
-        "nodeKind": "iri"
-      }, {min: 0, max: 1}));
+      this.add(this.makeTripleConstraint(
+        Prefixes.fhir + 'link',
+        { "type": "NodeConstraint", "nodeKind": "iri" },
+        {min: 0, max: 1}
+      ));
     }
     this.modelGenerator.visitResource(target.toLowerCase(), this, config);
     // this.structureMap.entries.forEach(
@@ -102,16 +108,21 @@ class FhirShExJGenerator extends ModelVisitor {
   }
 
   enter (propertyMapping) {
-    this.add(this.makeTripleConstraint(propertyMapping.predicate, Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length), this.makeCard(propertyMapping.element.min, propertyMapping.element.max)));
+    this.add(this.makeTripleConstraint(
+      propertyMapping.predicate,
+      Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length),
+      this.makeCard(propertyMapping.element.min, propertyMapping.element.max)
+    ));
     this.pushShape(Prefixes.fhirshex + propertyMapping.element.id, true); // TODO: would break if nested *inside* a DomainResource.
   }
 
   element (propertyMappings) {
     const valueExprs = propertyMappings.reduce((acc, propertyMapping) => {
+      let valueExpr;
       if (propertyMapping.isScalar) {
-        return acc.concat(this.makeTripleConstraint(propertyMapping.predicate, propertyMapping.type, this.makeCard(propertyMapping.element.min, propertyMapping.element.max))); // e.g. http://www.w3.org/2001/XMLSchema#string"
+        valueExpr = propertyMapping.type; // e.g. http://www.w3.org/2001/XMLSchema#string"
       } else {
-        let valueExpr = Prefixes.fhirshex + propertyMapping.type;
+        valueExpr = Prefixes.fhirshex + propertyMapping.type;
         if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
           const [valueSet, version] = propertyMapping.binding.valueSet.split(/\|/);
           const annotations = this.config.addValueSetVersionAnnotation && version
@@ -136,8 +147,12 @@ class FhirShExJGenerator extends ModelVisitor {
             shapeExprs: [valueExpr, {type: "Shape", expression}]
           };
         }
-        return acc.concat([this.makeTripleConstraint(propertyMapping.predicate, valueExpr, null)]);
       }
+      return acc.concat([this.makeTripleConstraint(
+        propertyMapping.predicate,
+        valueExpr,
+        null
+      )]);
     }, []);
 
     const possibleDisjunction = Object.assign(

@@ -126,8 +126,8 @@ class FhirRdfModelGenerator {
       if (!('type' in elt || elt.type.length === 0))
         throw new Error(`expected one or more types in '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
 
-      // Walk the element's types
-      const complexPMaps = elt.type.reduce((acc, typeEntry, idx) => {
+      // aggregate element's types into a disjunction
+      const disjointPMaps = elt.type.reduce((acc, typeEntry, idx) => {
         if (typeof typeEntry !== "object"
             || !("code" in typeEntry)
             || typeof typeEntry.code !== "string")
@@ -188,8 +188,6 @@ class FhirRdfModelGenerator {
                        })());
             const pMap = new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null);
             return acc.concat([pMap]);
-            // visitor.scalar([pMap]);
-            // return [];
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
@@ -197,13 +195,12 @@ class FhirRdfModelGenerator {
                 : typeCode;
             const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding);
             return acc.concat([pMap]);
-            // visitor.complex([pMap]);
-            // return [];
           }
         }
       }, []);
-      if (complexPMaps.length) // only true if all complex types, as verified by (elt.type.length > 1) tests
-        visitor.element(complexPMaps);
+
+      if (disjointPMaps.length) // will be 0 if elt.id was in NestedStructureTypeCodes, as verified by (elt.type.length > 1) assertions
+        visitor.element(disjointPMaps);
     });
   }
 }

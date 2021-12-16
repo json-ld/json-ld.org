@@ -94,7 +94,7 @@ async function writeShExJ(filename, schema, longLines) {
       filename,
       longLines
           ? head + schema.shapes.map((se, idx) => JSON.stringify(se) + (idx === schema.shapes.length - 1 ? '' : ',') + '\n').join('') + tail
-          : JSON.stringify(schema, null, 2) + "\n"
+          : JSON.stringify(schema, null, 2)
   );
 }
 
