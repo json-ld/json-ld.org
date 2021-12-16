@@ -46,6 +46,7 @@ class FhirRdfModelGenerator {
     'uri.value': 'anyURI', // FHIR type String
     'base64Binary.value': 'base64Binary', // also type String
     'instant.value': 'dateTime', // Datetime
+//    'positiveInt.value': 'positiveInt' // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
   };
 
   static NestedStructureTypeCodes = ["BackboneElement", "Element"];
