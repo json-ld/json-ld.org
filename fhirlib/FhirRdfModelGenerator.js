@@ -81,19 +81,20 @@ class FhirRdfModelGenerator {
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
       throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
+    let baseElts = [];
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
-      this.visitElement(recursionTarget, visitor, config); // Get content model from base type
+      baseElts = this.visitElement(recursionTarget, visitor, config); // Get content model from base type
     }
 
     // Walk differential elements
-    resourceDef.differential.element.forEach(elt => {
+    return resourceDef.differential.element.reduce((visitedElts, elt) => {
       if (elt.id !== elt.path) // test assumptions
         throw new Error(`id !== path in ${target} ${map[target]}`);
 
       // Early return for the first entry in a Resource's elements
       if (!("type" in elt)) { // 1st elt points to itself or something like that. Anyways, it doesn't have a type.
-        return;
+        return visitedElts; // should be []
       }
 
       // Calculate path components
@@ -110,7 +111,7 @@ class FhirRdfModelGenerator {
           ? [true, rawName.substr(0, rawName.length - "[x]".length)]
           : [false, rawName];
 
-      if (!Array.isArray(elt.type)) // test assuptions
+      if (!Array.isArray(elt.type)) // test assumptions
         throw new Error(`unknown type list '${elt.id}' in ${JSON.stringify(map[target])}`);
 
       // Trim down any nested properties we've passed as evidenced by them not having a corresponding name in the path.
@@ -174,6 +175,10 @@ class FhirRdfModelGenerator {
 
           const isScalar = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value" //  e.g. elt.id is "string.value", "date.value"
                 || elt.id in FhirRdfModelGenerator.fhirPathToXsd;
+          const isSpecialization = baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName));
+          if (isSpecialization)
+            return []; // TODO: update specializations
+
           if (isScalar) {
             if (elt.type.length > 1)
               throw new Error(`expected exactly one type for scalar '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
@@ -201,7 +206,8 @@ class FhirRdfModelGenerator {
 
       if (disjointPMaps.length) // will be 0 if elt.id was in NestedStructureTypeCodes, as verified by (elt.type.length > 1) assertions
         visitor.element(disjointPMaps);
-    });
+      return visitedElts.concat([disjointPMaps]);
+    }, []);
   }
 }
 
