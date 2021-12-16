@@ -233,14 +233,7 @@ class FhirShExJGenerator extends ModelVisitor {
    * @returns {FhirShExJGenerator}
    */
   genValueset (target, config) {
-    const values = [];
     const label = Prefixes.fhirvs + target;
-    this.added.push(label);
-    this.schema.shapes.push({
-      type: "NodeConstraint",
-      id: label,
-      values: values
-    });
     let map;
     if (target === "root") {
       return;
@@ -258,11 +251,28 @@ class FhirShExJGenerator extends ModelVisitor {
       this.visitElement(recursionTarget, visitor, config); // Get content model from base type
     }
 
+    let sourceValues;
+    if ('concept' in resourceDef) {
+      sourceValues = resourceDef.concept;
+    } else if ('compose' in resourceDef) {
+      const includedConcepts = resourceDef.compose.include.find(i => 'concept' in i);
+      if (includedConcepts)
+        sourceValues = includedConcepts.concept;
+      else
+        return this; // can't generate. make EXTERNAL?
+    } else {
+      return this; // can't generate. make EXTERNAL?
+    }
+    const values = [];
+    this.added.push(label);
+    this.schema.shapes.push({
+      type: "NodeConstraint",
+      id: label,
+      values: values
+    });
+
     // Walk differential elements
-    const concept = 'concept' in resourceDef
-          ? resourceDef.concept
-          : resourceDef.compose.include.find(i => 'concept' in i).concept;
-    concept.forEach(elt => {
+    sourceValues.forEach(elt => {
       values.push({ value: elt.code });
     });
     return this;

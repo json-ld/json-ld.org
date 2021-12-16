@@ -85,7 +85,8 @@ class FhirRdfModelGenerator {
     let baseElts = [];
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
-      baseElts = this.visitElement(recursionTarget, visitor, config); // Get content model from base type
+      if (recursionTarget !== 'base')
+        baseElts = this.visitElement(recursionTarget, visitor, config); // Get content model from base type
     }
 
     // Walk differential elements

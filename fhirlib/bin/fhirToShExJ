@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const Fs = require('fs');
 const Path = require('path');
 const FhirShExJGenerator = require('../FhirShExJGenerator.js');
@@ -10,25 +12,23 @@ const GEN_SHEXJ_CONTEXT_CONFIG = {
 const GEN_SHEXJ_STEM = 'http://hl7.org/fhir/StructureDefinition/';
 const CODE_SYSTEM_STEM = 'http://hl7.org/fhir/CodeSystem/';
 const VALUE_SET_STEM = 'http://hl7.org/fhir/ValueSet/';
+const CAPABILITY_STATEMENT_BASE = 'http://hl7.org/fhir/CapabilityStatement/';
+const COMPARTMENT_DEFINITION_BASE = 'http://hl7.org/fhir/CompartmentDefinition/';
+const OPERATION_DEFINITION_BASE = 'http://hl7.org/fhir/OperationDefinition/';
 
 const indexFhir = (acc, entry) => {
   acc[entry.resource.id.toLowerCase()] = entry.resource;
   return acc;
 };
 
-const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];
+generate(process.argv.slice(2));
 
-const GenTests = [
-  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-expected.shexj', got: 'fhir/medreq-min-got.shexj'}
-]
-
-// test('generate $ expected from $ resources and $ datatypes', async () => {const {resources, datatypes, skip, expected, got} = GenTests[0];
-test.each(GenTests)('generate $expected from $resources and $datatypes', async ({resources, datatypes, valuesets, skip, expected, got}) => {
+async function generate([resources, datatypes, valuesets, got]) {
   // Generate in memory
   // const generator = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap);
-  const parsedResources = await readJsonProfile(Path.join(__dirname, resources));
-  const parsedDatatypes = await readJsonProfile(Path.join(__dirname, datatypes));
-  const parsedValuesets = await readJsonProfile(Path.join(__dirname, valuesets));
+  const parsedResources = await readJsonProfile(resources);
+  const parsedDatatypes = await readJsonProfile(datatypes);
+  const parsedValuesets = await readJsonProfile(valuesets);
   const generator = new FhirShExJGenerator(
       parsedResources.entry.reduce(indexFhir, {}),
       parsedDatatypes.entry.reduce(indexFhir, {}),
@@ -36,25 +36,30 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
       GEN_SHEXJ_CONTEXT_CONFIG
   );
   const sources = [parsedResources, parsedDatatypes, parsedValuesets];
+  const errors = [];
   const generated = sources.reduce((generated, source) => {
     return source.entry.reduce((generated, entry) => {
       const url = entry.fullUrl;
+      if (url.startsWith(CAPABILITY_STATEMENT_BASE) ||
+          url.startsWith(COMPARTMENT_DEFINITION_BASE) ||
+          url.startsWith(OPERATION_DEFINITION_BASE) ||
+          url === GEN_SHEXJ_STEM + 'Base' ||
+          url === CODE_SYSTEM_STEM + 'FHIR-version') // no use for these at present
+        return generated;
+
       const genMe = url.startsWith(GEN_SHEXJ_STEM)
           ? url.substr(GEN_SHEXJ_STEM.length)
           : url.startsWith(VALUE_SET_STEM)
               ? url.substr(VALUE_SET_STEM.length)
               : url.substr(CODE_SYSTEM_STEM.length);
       try {
-        if (skip.indexOf(genMe) !== -1)
-          return generated;
-
         source.id === 'valuesets'
             ? generator.genValueset(genMe, GEN_SHEXJ_CONTEXT_CONFIG)
             : generator.genShape(genMe, true, GEN_SHEXJ_CONTEXT_CONFIG);
         return generated.concat(genMe);
       } catch (e) {
-        console.warn("error trying to genShExJ:" + e.stack);
-        throw e; // what does jest do with this exception?
+        errors.push(e);
+        return generated; // tolerate e.g. missing valuesets
       }
     }, generated);
   }, [])
@@ -63,19 +68,13 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
   generator.genAllTypes(allTypesLabel, GEN_SHEXJ_CONTEXT_CONFIG);
   const ret = generator.schema;
 
-  // Verify generated size
-  expect(ret.shapes.map(s => s.id.startsWith(Prefixes.fhirshex) ? s.id.substr(Prefixes.fhirshex.length) : s.id.substr(Prefixes.fhirvs.length))).toEqual(expect.arrayContaining(generated));
-
-  await writeShExJ(Path.join(__dirname, got), ret, false); // TODO: change to true for production
-
-  // Parse it back
-  const json = await Fs.promises.readFile(Path.join(__dirname, expected), 'utf8');
-  const parsed = JSON.parse(json);
-
-  // Verify read size
-  expect(ret.shapes.map(se => se.id)).toEqual(parsed.shapes.map(se => se.id));
-  expect(ret.shapes).toEqual(parsed.shapes);
-});
+  await writeShExJ(got, ret, true); // TODO: add switch for pretty-printing
+  console.log(`wrote ${ret.shapes.length} shape expressions into ${got}`);
+  if (errors.length) {
+    console.log(`writing ${errors.length} errors to stderr`);
+    errors.forEach(e => console.warn("error trying to genShExJ:" + e.stack));
+  }
+};
 
 // Write to disk with long-lines
 async function writeShExJ(filename, schema, longLines) {
