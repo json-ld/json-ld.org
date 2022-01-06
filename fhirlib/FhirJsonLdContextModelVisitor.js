@@ -27,8 +27,8 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
 
   static GEND_CONTEXT_SUFFIX = ".context.jsonld";
 
-  constructor(structureMap, datatypeMap) {
-    super(structureMap, datatypeMap);
+  constructor(resources, datatypes, valuesets) {
+    super(resources, datatypes, valuesets);
     this.cache = new Map(); // not used yet
   }
 
@@ -42,7 +42,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
           FhirJsonLdContextModelVisitor.TYPE_AND_INDEX
         )
       }];
-      const modelGenerator = new FhirRdfModelGenerator(this.structureMap, this.datatypeMap);
+      const modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
       modelGenerator.visitResource(target, this, config);
       this.cache.set(target, this.ret[0]);
     }

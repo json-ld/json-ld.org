@@ -23,13 +23,13 @@ const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRd
  */
 class FhirProfileStructure extends ModelVisitor {
 
-    constructor(structureMap, datatypeMap) {
-        super(structureMap, datatypeMap);
+    constructor(resources, datatypes, valuesets) {
+        super(resources, datatypes, valuesets);
     }
 
     walk (target, config) {
         this.ret = [[]];
-        const modelGenerator = new FhirRdfModelGenerator(this.structureMap, this.datatypeMap);
+        const modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
         modelGenerator.visitResource(target, this, config);
         return this.ret[0];
     }

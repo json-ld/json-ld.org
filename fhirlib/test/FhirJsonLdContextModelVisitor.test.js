@@ -10,30 +10,17 @@ const GEND_CONTEXT_SUFFIX = ".context.jsonld";
 const GEN_JSONLD_CONTEXT_CONFIG = {
 };
 
-const indexFhir = (acc, entry) => {
-  acc[entry.resource.id.toLowerCase()] = entry.resource;
-  return acc;
-};
-const FHIRStructureMap = R5StructureDefintions.entry.reduce(indexFhir, {});
-const FHIRDatatypeMap = R5Datatypes.entry.reduce(indexFhir, {});
-
-
 Jsonld.documentLoader = function(url) {
   if (url.startsWith(GEND_CONTEXT_STEM) && url.endsWith(GEND_CONTEXT_SUFFIX)) {
-    try {
-      const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
-      const generator = new FhirJsonLdContextModelVisitor(FHIRStructureMap, FHIRDatatypeMap);
-      const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
-      const ret = {
-        contextUrl: null,
-        documentUrl: url,
-        document: JSON.stringify(context, null, 2)
-      };
-      return Promise.resolve(ret);
-    } catch (e) {
-      console.warn("error trying to genJsonldContext:" + e.stack);
-      throw e; // not that anyone appears to care
-    }
+    const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
+    const generator = new FhirJsonLdContextModelVisitor(R5StructureDefintions, R5Datatypes);
+    const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+    const ret = {
+      contextUrl: null,
+      documentUrl: url,
+      document: JSON.stringify(context, null, 2)
+    };
+    return Promise.resolve(ret);
   }
   throw new Error("HERE");
   // return xhrDocumentLoader(url);

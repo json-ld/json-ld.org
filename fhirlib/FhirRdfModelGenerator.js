@@ -1,3 +1,5 @@
+const { indexBundle } = require('./indexBundle');
+
 /**
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
  */
@@ -13,9 +15,12 @@ class PropertyMapping {
 }
 
 class ModelVisitor {
-  constructor(structureMap, datatypeMap) {
-    this.structureMap = structureMap;
-    this.datatypeMap = datatypeMap;
+  static empty = { entry: [] }; // dummy to not cause trouble
+
+  constructor(resources = empty, datatypes = empty, valuesets = ModelVisitor.empty) {
+    this.resources = indexBundle(resources);
+    this.datatypes = indexBundle(datatypes);
+    this.valuesets = indexBundle(valuesets)
   }
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
   element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
@@ -51,9 +56,10 @@ class FhirRdfModelGenerator {
 
   static NestedStructureTypeCodes = ["BackboneElement", "Element"];
 
-  constructor (structureMap, datatypeMap) {
-    this.structureMap = structureMap;
-    this.datatypeMap = datatypeMap;
+  constructor (resources, datatypes, valuesets) {
+    this.resources = resources;
+    this.datatypes = datatypes;
+    this.valuesets = valuesets;
     this.stack = [];
   }
 
@@ -70,12 +76,12 @@ class FhirRdfModelGenerator {
     let map;
     if (target === "root") {
       return;
-    } if (target in this.structureMap) {
-      map = this.structureMap;
-    } else if (target in this.datatypeMap) {
-      map = this.datatypeMap;
+    } if (target in this.resources._index) {
+      map = this.resources._index;
+    } else if (target in this.datatypes._index) {
+      map = this.datatypes._index;
     } else {
-      throw new Error(`Key ${target} not found in ${Object.keys(this.structureMap)} or ${Object.keys(this.datatypeMap)}`);
+      throw new Error(`Key ${target} not found in ${Object.keys(this.resources._index)} or ${Object.keys(this.datatypes._index)}`);
     }
 
     const resourceDef = map[target];

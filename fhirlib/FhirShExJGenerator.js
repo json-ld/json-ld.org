@@ -1,6 +1,10 @@
 const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRdfModelGenerator');
 const Prefixes = require('./Prefixes');
 
+const GEN_SHEXJ_STEM = 'http://hl7.org/fhir/StructureDefinition/';
+const CODE_SYSTEM_STEM = 'http://hl7.org/fhir/CodeSystem/';
+const VALUE_SET_STEM = 'http://hl7.org/fhir/ValueSet/';
+
 /**
  * Leverage a FhirRdfModelGenerator to traverse StructureDefinitions and generate equivalent ShExJ.
  */
@@ -44,9 +48,8 @@ class FhirShExJGenerator extends ModelVisitor {
 
   static ResourcesThatNeedALink = ["Reference"];
 
-  constructor(structureMap, datatypeMap, valuesetMap, config = {}) {
-    super(structureMap, datatypeMap);
-    this.valuesetMap = valuesetMap;
+  constructor (resources, datatypes, valuesets, config = {}) {
+    super(resources, datatypes, valuesets);
     this.config = config;
     // make a fresh copy of the prototype schema.
     this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.SCHEMA));
@@ -57,7 +60,37 @@ class FhirShExJGenerator extends ModelVisitor {
     // list of top-level shape labels added to schema. differs from shapes.map(se => se.id) if nested shapes get top-level entries.
     this.added = [];
     // walk StructureDefinition, calling enter, scalar, complex, exit.
-    this.modelGenerator = new FhirRdfModelGenerator(this.structureMap, this.datatypeMap);
+    this.modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
+  }
+
+  genShExJ (skip = []) {
+    const sources = [this.resources, this.datatypes, this.valuesets];
+    const generated = sources.reduce((generated, source) => {
+      return source.entry.reduce((generated, entry) => {
+        const url = entry.fullUrl;
+        const genMe = url.startsWith(GEN_SHEXJ_STEM)
+              ? url.substr(GEN_SHEXJ_STEM.length)
+              : url.startsWith(VALUE_SET_STEM)
+              ? url.substr(VALUE_SET_STEM.length)
+              : url.substr(CODE_SYSTEM_STEM.length);
+        try {
+          if (skip.indexOf(genMe) !== -1)
+            return generated;
+
+          source.id === 'valuesets'
+            ? this.genValueset(genMe, this.config)
+            : this.genShape(genMe, true, this.config);
+          return generated.concat(genMe);
+        } catch (e) {
+          console.warn("error trying to genShExJ:" + e.stack);
+          throw e; // what does jest do with this exception?
+        }
+      }, generated);
+    }, [])
+    const allTypesLabel = Prefixes.fhirvs + 'all-types';
+    generated.push('all-types');
+    this.genAllTypes(allTypesLabel, this.config);
+    return this.schema;
   }
 
   /**
@@ -66,12 +99,12 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator} this.
    */
-  genShape (target, root, config) {
+  genShape (target, root, generatorConfig = this.config) {
     const isParent = FhirShExJGenerator.PARENT_TYPES.indexOf(target) === -1;
     const label = Prefixes.fhirshex + target;
     this.added.push(label);
     this.pushShape(label, isParent);
-    if (target.toLowerCase() in this.structureMap) {
+    if (target.toLowerCase() in this.resources._index) {
       if (isParent) {
         this.add(this.makeTripleConstraint(
           Prefixes.rdf + 'type',
@@ -99,9 +132,9 @@ class FhirShExJGenerator extends ModelVisitor {
         {min: 0, max: 1}
       ));
     }
-    this.modelGenerator.visitResource(target.toLowerCase(), this, config);
-    // this.structureMap.entries.forEach(
-    //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, config); }
+    this.modelGenerator.visitResource(target.toLowerCase(), this, generatorConfig);
+    // this.resources._index.entries.forEach(
+    //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, generatorConfig); }
     // );
     this.popShape(target);
     return this;
@@ -232,15 +265,15 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator}
    */
-  genValueset (target, config) {
+  genValueset (target, generatorConfig = this.config) {
     const label = Prefixes.fhirvs + target;
     let map;
     if (target === "root") {
       return;
-    } if (target in this.valuesetMap) {
-      map = this.valuesetMap;
+    } if (target in this.valuesets._index) {
+      map = this.valuesets._index;
     } else {
-      throw new Error(`Key ${target} not found in ${Object.keys(this.valuesetMap)}`);
+      throw new Error(`Key ${target} not found in ${Object.keys(this.valuesets._index)}`);
     }
     const resourceDef = map[target];
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
@@ -248,7 +281,7 @@ class FhirShExJGenerator extends ModelVisitor {
 
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
-      this.visitElement(recursionTarget, visitor, config); // Get content model from base type
+      this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
     }
 
     let sourceValues;
@@ -284,7 +317,7 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator}
    */
-  genAllTypes (label, config) {
+  genAllTypes (label, generatorConfig = this.config) {
     this.schema.shapes.push({
       type: "NodeConstraint",
       id: label,

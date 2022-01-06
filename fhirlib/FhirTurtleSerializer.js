@@ -69,10 +69,5 @@ class Serializer {
   }
 }
 
-const indexFhir = (acc, entry) => {
-  acc[entry.resource.id.toLowerCase()] = entry.resource;
-  return acc;
-};
-
 if (typeof module !== 'undefined')
   module.exports = {Serializer};

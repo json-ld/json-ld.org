@@ -880,9 +880,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         .then(quads => {
           const db = new N3.Store();
           db.addQuads(quads);
-          const schema = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap, FHIRStructureMap, FHIRValuesetMap, GEN_JSONLD_CONTEXT_CONFIG);
-          const serializer = new FhirTurtleSerializer.Serializer(FHIRStructureMap, FHIRDatatypeMap);
-          const printer = new NestedWriter.Writer(null, {
+          const shexjGenerator = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap, FHIRValuesetMap, GEN_JSONLD_CONTEXT_CONFIG);
+          const shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+          console.log(shexj);
+          const writer = new NestedWriter.Writer(null, {
             lists: {},
             format: 'text/turtle',
             // baseIRI: resource.base,
@@ -891,7 +892,17 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             indent: '    ',
             checkCorefs: n => false,
           });
-          return serializer.print({store: db}, printer, {}, null);
+          const serializer = new FhirTurtleSerializer.Serializer(shexj);
+          serializer.addResource({store: db}, writer, {}, null);
+
+          // Get the ouput following NestedWriter's stream convention.
+          let pretty = null;
+          printer.end((error, result) => {
+            if (error)
+              throw new Error(error);
+            pretty = result;
+          });
+          return pretty;
         });
         // .then(quads => {
         //
