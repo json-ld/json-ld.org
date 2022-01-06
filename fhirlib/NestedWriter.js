@@ -153,11 +153,10 @@ class Writer {
 
       // see if we're already serializing this subject
       const oldLength = this._nestings.length;
-      if (this._nestings.length > 0)
-        while (!this._nestings[0].subject.equals(subject)) {
-          this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
-          this._nestings.shift();
-        }
+      while (this._nestings.length > 0 && !this._nestings[0].subject.equals(subject)) {
+        this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
+        this._nestings.shift();
+      }
       const reuseFrame = this._nestings.length > 0
             ? this._nestings[0]
             : null;
@@ -478,6 +477,13 @@ class Writer {
     for (let i = 0; i < length; i++)
       contents[i] = this._encodeObject(elements[i]);
     return new SerializedTerm(`(${contents.join(' ')})`);
+  }
+
+  // ### `end` signals the end of the output stream
+  comment(text) {
+    // Finish a possible pending quad
+    this._finish();
+    this._write(text + "\n");
   }
 
   // ### `end` signals the end of the output stream

@@ -880,6 +880,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         .then(quads => {
           const db = new N3.Store();
           db.addQuads(quads);
+          const schema = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap, FHIRStructureMap, FHIRValuesetMap, GEN_JSONLD_CONTEXT_CONFIG);
           const serializer = new FhirTurtleSerializer.Serializer(FHIRStructureMap, FHIRDatatypeMap);
           const printer = new NestedWriter.Writer(null, {
             lists: {},

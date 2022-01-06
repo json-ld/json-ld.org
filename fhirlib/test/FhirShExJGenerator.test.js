@@ -80,7 +80,7 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
 // Write to disk with long-lines
 async function writeShExJ(filename, schema, longLines) {
   const head = `{
-  "type": "schema",
+  "type": "Schema",
   "shapes": [
 `;
   const tail = `  ],
