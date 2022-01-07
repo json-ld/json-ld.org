@@ -125,6 +125,13 @@ class FhirShExJGenerator extends ModelVisitor {
         ));
       }
     }
+    if ("addTypesTo" in this.config && this.config.addTypesTo.indexOf(target) !== -1) {
+      this.add(this.makeTripleConstraint(
+          Prefixes.rdf + 'type',
+          { "type": "NodeConstraint", "nodeKind": 'nonliteral' },
+          {min: 0, max: 1}
+      ));
+    }
     if (FhirShExJGenerator.ResourcesThatNeedALink.indexOf(target) !== -1) {
       this.add(this.makeTripleConstraint(
         Prefixes.fhir + 'link',

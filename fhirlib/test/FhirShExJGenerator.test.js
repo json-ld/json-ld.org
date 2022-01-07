@@ -5,6 +5,7 @@ const FhirShExJGenerator = require('../FhirShExJGenerator.js');
 const GEN_SHEXJ_CONTEXT_CONFIG = {
   addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
   oloIndexes: true,
+  addTypesTo: ["Coding"],
 };
 
 const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];

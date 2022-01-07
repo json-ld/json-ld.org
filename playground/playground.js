@@ -8,6 +8,8 @@
  * @author Markus Lanthaler
  */
 const GEN_JSONLD_CONTEXT_CONFIG = {
+  oloIndexes: true,
+  addTypesTo: ["Coding"]
 };
 
 ;(function($, CodeMirror, jsonld, Promise){
