@@ -5,14 +5,12 @@ const FhirPreprocessors = require('../FhirPreprocessors.js');
 const R5StructureDefintions = require('../../playground/R5-StructureDefinitions-no-ws.js');
 const R5Datatypes = require('../../playground/R5-Datatypes-no-ws.js');
 
-const GEND_CONTEXT_STEM = "https://fhircat.org/fhir-r4/original/contexts/";
-const GEND_CONTEXT_SUFFIX = ".context.jsonld";
 const GEN_JSONLD_CONTEXT_CONFIG = {
 };
 
 Jsonld.documentLoader = function(url) {
-  if (url.startsWith(GEND_CONTEXT_STEM) && url.endsWith(GEND_CONTEXT_SUFFIX)) {
-    const genMe = url.substr(GEND_CONTEXT_STEM.length, url.length - GEND_CONTEXT_STEM.length - GEND_CONTEXT_SUFFIX.length);
+  if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
+    const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
     const generator = new FhirJsonLdContextModelVisitor(R5StructureDefintions, R5Datatypes);
     const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {

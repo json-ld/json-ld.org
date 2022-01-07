@@ -68,18 +68,18 @@ class FhirShExJGenerator extends ModelVisitor {
     const generated = sources.reduce((generated, source) => {
       return source.entry.reduce((generated, entry) => {
         const url = entry.fullUrl;
-        const genMe = url.startsWith(GEN_SHEXJ_STEM)
-              ? url.substr(GEN_SHEXJ_STEM.length)
-              : url.startsWith(VALUE_SET_STEM)
-              ? url.substr(VALUE_SET_STEM.length)
-              : url.substr(CODE_SYSTEM_STEM.length);
+        const genMe = entry.resource.id;
         try {
           if (skip.indexOf(genMe) !== -1)
             return generated;
 
-          source.id === 'valuesets'
-            ? this.genValueset(genMe, this.config)
-            : this.genShape(genMe, true, this.config);
+          switch (entry.resource.resourceType) {
+            // can optimize by passing entry.resource, but for now, exercise generation by name
+            case "CodeSystem": break;
+            case "ValueSet": this.genValueset(genMe, this.config); break;
+            case "StructureDefinition": this.genShape(genMe, true, this.config); break;
+            default: throw Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`)
+          }
           return generated.concat(genMe);
         } catch (e) {
           console.warn("error trying to genShExJ:" + e.stack);
@@ -273,16 +273,11 @@ class FhirShExJGenerator extends ModelVisitor {
    * @returns {FhirShExJGenerator}
    */
   genValueset (target, generatorConfig = this.config) {
-    const label = Prefixes.fhirvs + target;
-    let map;
-    if (target === "root") {
-      return;
-    } if (target in this.valuesets._index) {
-      map = this.valuesets._index;
-    } else {
+    if (!(target in this.valuesets._index)) {
       throw new Error(`Key ${target} not found in ${Object.keys(this.valuesets._index)}`);
     }
-    const resourceDef = map[target];
+    const resourceDef = this.valuesets._index[target];
+    const label = Prefixes.fhirvs + resourceDef.id;
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
       throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
@@ -291,31 +286,56 @@ class FhirShExJGenerator extends ModelVisitor {
       this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
     }
 
-    let sourceValues;
-    if ('concept' in resourceDef) {
-      sourceValues = resourceDef.concept;
-    } else if ('compose' in resourceDef) {
-      const includedConcepts = resourceDef.compose.include.find(i => 'concept' in i);
-      if (includedConcepts)
-        sourceValues = includedConcepts.concept;
-      else
-        return this; // can't generate. make EXTERNAL?
-    } else {
-      return this; // can't generate. make EXTERNAL?
-    }
-    const values = [];
-    this.added.push(label);
-    this.schema.shapes.push({
+    const values = this.parseCompose(resourceDef.compose);
+    let nodeConstraint = {
       type: "NodeConstraint",
-      id: label,
-      values: values
-    });
-
-    // Walk differential elements
-    sourceValues.forEach(elt => {
-      values.push({ value: elt.code });
-    });
+      id: label
+    };
+    if (values.length > 0) {
+      nodeConstraint.values = values;
+    }
+    this.schema.shapes.push(nodeConstraint);
+    this.added.push(target);
     return this;
+  }
+
+  parseCompose (compose) {
+    return compose.include.reduce((acc, i) => {
+      if ("system" in i) {
+        if (this.codesystems.has(i.system)) {
+          const cs = this.codesystems.get(i.system);
+          if ("concept" in cs) {
+            acc = acc.concat(this.parseConcept(cs.concept));
+          }
+          if ("property" in cs) {
+            acc = acc.concat(this.parseConcept(cs.property));
+          }
+        } else {
+          const msg = `can't find definition for codesystem ${i.system}`;
+          if ("concept" in i || true) {
+            console.log(msg);
+          } else {
+            throw Error(msg);
+          }
+        }
+      }
+      if ("concept" in i) {
+        acc = acc.concat(i.concept.map(c => ({value: c.code})));
+      }
+      return acc;
+    }, [])
+  }
+
+  parseConcept (concept) {
+    return concept.reduce((acc, c) => {
+      if ("code" in c) {
+        acc = acc.concat([{value: c.code}]);
+      }
+      if ("concept" in c) {
+        acc = acc.concat(this.parseConcept(c.concept));
+      }
+      return acc;
+    }, [])
   }
 
   /**

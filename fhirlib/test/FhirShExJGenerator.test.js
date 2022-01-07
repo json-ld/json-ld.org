@@ -44,8 +44,8 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   const reference = JSON.parse(json);
 
   // Verify read size
-  expect(generated.shapes.map(se => se.id)).toEqual(reference.shapes.map(se => se.id));
   // console.log(JSON.stringify(generated, null, 2));
+  expect(generated.shapes.map(se => se.id)).toEqual(reference.shapes.map(se => se.id));
   expect(generated).toEqual(reference);
 });
 

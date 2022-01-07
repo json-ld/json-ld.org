@@ -899,7 +899,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
           // Get the ouput following NestedWriter's stream convention.
           let pretty = null;
-          printer.end((error, result) => {
+          writer.end((error, result) => {
             if (error)
               throw new Error(error);
             pretty = result;
@@ -1661,11 +1661,11 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         ].join('');
       }
 
-      if (url.startsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM) && url.endsWith(FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX)) {
+      if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
         try {
-          const genMe = url.substr(FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length, url.length - FhirJsonLdContextGenerator.GEND_CONTEXT_STEM.length - FhirJsonLdContextGenerator.GEND_CONTEXT_SUFFIX.length);
-          const generator = new FhirJsonLdContextGenerator(FHIRStructureMap, FHIRDatatypeMap);
-          const context = new FhirJsonLdContextGenerator().genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+          const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
+          const generator = new FhirJsonLdContextModelVisitor(FHIRStructureMap, FHIRDatatypeMap);
+          const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
           const ret = {
             contextUrl: null,
             documentUrl: url,

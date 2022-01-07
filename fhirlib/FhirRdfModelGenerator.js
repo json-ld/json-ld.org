@@ -17,10 +17,17 @@ class PropertyMapping {
 class ModelVisitor {
   static empty = { entry: [] }; // dummy to not cause trouble
 
-  constructor(resources = empty, datatypes = empty, valuesets = ModelVisitor.empty) {
+  constructor(resources = ModelVisitor.empty, datatypes = ModelVisitor.empty, valuesets = ModelVisitor.empty) {
     this.resources = indexBundle(resources);
     this.datatypes = indexBundle(datatypes);
-    this.valuesets = indexBundle(valuesets)
+    this.valuesets = indexBundle(valuesets);
+    this.codesystems = valuesets.entry.reduce((codesystems, entry) => {
+      const resource = entry.resource;
+      if (resource.resourceType === "CodeSystem") {
+        codesystems.set(resource.url, resource);
+      }
+      return codesystems;
+    }, new Map())
   }
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
   element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }

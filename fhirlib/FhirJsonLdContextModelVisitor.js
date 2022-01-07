@@ -27,6 +27,9 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
 
   static GEND_CONTEXT_SUFFIX = ".context.jsonld";
 
+  static STEM = "https://fhircat.org/fhir-r4/original/contexts/"; // could be a parameter but convenient to write in one place
+  static SUFFIX = ".context.jsonld";
+
   constructor(resources, datatypes, valuesets) {
     super(resources, datatypes, valuesets);
     this.cache = new Map(); // not used yet
