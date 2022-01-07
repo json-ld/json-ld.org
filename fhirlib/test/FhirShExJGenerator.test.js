@@ -11,10 +11,15 @@ const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer',
 
 const GenTests = [
   {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-expected.shexj', got: 'fhir/medreq-min-got.shexj'}
-]
+].map(t => {
+  (["resources", "datatypes", "valuesets", "expected", "got"]).forEach(attr => {
+    t[attr + "Rel"] = Path.relative(process.env.PWD, Path.join(__dirname, t[attr]));
+  });
+  return t;
+});
 
 // test('generate $ expected from $ resources and $ datatypes', async () => {const {resources, datatypes, skip, expected, got} = GenTests[0];
-test.each(GenTests)('generate $expected from $resources and $datatypes', async ({resources, datatypes, valuesets, skip, expected, got}) => {
+test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel', async ({resources, datatypes, valuesets, skip, expected, got, expectedRel, resourcesRel, datatypesRel}) => {
   // Generate in memory
   // const generator = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap);
   const parsedResources = await readJsonProfile(Path.join(__dirname, resources));
@@ -26,20 +31,21 @@ test.each(GenTests)('generate $expected from $resources and $datatypes', async (
       parsedValuesets,
       GEN_SHEXJ_CONTEXT_CONFIG
   );
-  const ret = generator.genShExJ(skip);
+  const generated = generator.genShExJ(skip);
 
   // Verify generated size
-  // expect(ret.shapes.map(s => s.id.startsWith(Prefixes.fhirshex) ? s.id.substr(Prefixes.fhirshex.length) : s.id.substr(Prefixes.fhirvs.length))).toEqual(expect.arrayContaining(generated));
+  // expect(generated.shapes.map(s => s.id.startsWith(Prefixes.fhirshex) ? s.id.substr(Prefixes.fhirshex.length) : s.id.substr(Prefixes.fhirvs.length))).toEqual(expect.arrayContaining(generated));
 
-  await writeShExJ(Path.join(__dirname, got), ret, false); // TODO: change to true for production
+  await writeShExJ(Path.join(__dirname, got), generated, false); // TODO: change to true for production
 
   // Parse it back
   const json = await Fs.promises.readFile(Path.join(__dirname, expected), 'utf8');
-  const parsed = JSON.parse(json);
+  const reference = JSON.parse(json);
 
   // Verify read size
-  expect(ret.shapes.map(se => se.id)).toEqual(parsed.shapes.map(se => se.id));
-  expect(ret.shapes).toEqual(parsed.shapes);
+  expect(generated.shapes.map(se => se.id)).toEqual(reference.shapes.map(se => se.id));
+  // console.log(JSON.stringify(generated, null, 2));
+  expect(generated).toEqual(reference);
 });
 
 // Write to disk with long-lines

@@ -47,11 +47,12 @@ class FhirRdfModelGenerator {
     "DateTime": "dateTime",
   };
 
-  static fhirPathToXsd = {
-    'uri.value': 'anyURI', // FHIR type String
-    'base64Binary.value': 'base64Binary', // also type String
-    'instant.value': 'dateTime', // Datetime
-//    'positiveInt.value': 'positiveInt' // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
+  static pathOverrides = {
+    'uri.value': {predicate: 'value', datatype: 'anyURI'}, // FHIR type String
+    'base64Binary.value': {predicate: 'value', datatype: 'base64Binary'}, // also type String
+    'instant.value': {predicate: 'value', datetype: 'dateTime'}, // Datetime
+    'Narrative.div': {predicate: 'Narrative.div', datatype: 'string'}, // XHTML narrative text
+//    'positiveInt.value': {datatype: 'positiveInt'} // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
   };
 
   static NestedStructureTypeCodes = ["BackboneElement", "Element"];
@@ -181,8 +182,9 @@ class FhirRdfModelGenerator {
                 ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
                 : typeCode;                                                   // Address -> Address, uri -> uri
 
+          let propertyOverride = FhirRdfModelGenerator.pathOverrides[elt.id];
           const isScalar = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value" //  e.g. elt.id is "string.value", "date.value"
-                || elt.id in FhirRdfModelGenerator.fhirPathToXsd;
+                || !!propertyOverride;
           const isSpecialization = baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName));
           if (isSpecialization)
             return []; // TODO: update specializations
@@ -192,14 +194,15 @@ class FhirRdfModelGenerator {
               throw new Error(`expected exactly one type for scalar '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
 
             // Calculate XML Schema datatype
-            const xsdDatatype = FhirRdfModelGenerator.fhirPathToXsd[elt.id]
+            const xsdDatatype = (propertyOverride ? propertyOverride.datatype : null)
                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
                        || (function () {
                             const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                        })());
-            const pMap = new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + 'value', { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null);
+            const finalName = propertyOverride ? propertyOverride.predicate : curriedName
+            const pMap = new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + finalName, { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null);
             return acc.concat([pMap]);
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
