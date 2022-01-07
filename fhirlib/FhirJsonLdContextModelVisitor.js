@@ -73,7 +73,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
               : propertyMapping.type;
         this.ret[0]["@context"][propertyMapping.property] = {
           '@id': propertyMapping.predicate,
-          '@context': type.toLowerCase() + FhirJsonLdContextModelVisitor.GEND_CONTEXT_SUFFIX,
+          '@context': type + FhirJsonLdContextModelVisitor.GEND_CONTEXT_SUFFIX,
         };
       }
     });

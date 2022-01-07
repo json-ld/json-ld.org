@@ -91,7 +91,7 @@ class FhirRdfModelGenerator {
 
     let baseElts = [];
     if ("baseDefinition" in resourceDef) {
-      const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
+      const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
       if (recursionTarget !== 'base')
         baseElts = this.visitElement(recursionTarget, visitor, config); // Get content model from base type
     }
@@ -109,7 +109,7 @@ class FhirRdfModelGenerator {
       // Calculate path components
       const path = elt.id.split('.');
       const resourceName = path.shift();
-      if (resourceName.toLowerCase() !== target)
+      if (resourceName !== target)
         throw new Error(`property id ${elt.id} does not start with target \"${target}\" in ${map[target]}`);
       let rawName = path.pop();
 
@@ -166,7 +166,7 @@ class FhirRdfModelGenerator {
           if ("baseDefinition" in resourceDef) {
             if (!resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))
               throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
-            const nestedTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
+            const nestedTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
 
             // Because the nested element has a different name, we will appear to have exited any nested elements,
             // so save and hide the stack.

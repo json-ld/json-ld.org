@@ -54,9 +54,9 @@ class FhirR5Preprocessor {
   }
 
   getFhirContextUrl(resourceType) {
-    return `https://fhircat.org/fhir-r5/original/contexts/${resourceType.toLowerCase()}.context.jsonld`
-    // return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
-    // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
+    return `https://fhircat.org/fhir-r5/original/contexts/${resourceType}.context.jsonld`
+    // return `https://fhircat.org/fhir/contexts/r5/${resourceType}.context.jsonld`
+    // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType}.context.jsonld`;
   }
 
   fromFhirValue(value) {
@@ -183,9 +183,9 @@ class FhirR4Preprocessor extends FhirR5Preprocessor {
   }
 
   getFhirContextUrl(resourceType) {
-    return `https://fhircat.org/fhir-r4/original/contexts/${resourceType.toLowerCase()}.context.jsonld`
-    // return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
-    // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
+    return `https://fhircat.org/fhir-r4/original/contexts/${resourceType}.context.jsonld`
+    // return `https://fhircat.org/fhir/contexts/r5/${resourceType}.context.jsonld`
+    // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType}.context.jsonld`;
   }
 }
 

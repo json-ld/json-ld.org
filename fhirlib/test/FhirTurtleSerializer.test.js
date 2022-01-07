@@ -11,7 +11,7 @@ const P = require('../Prefixes')
 const N3Store = require('n3/lib/N3Store').default;
 
 const indexFhir = (acc, entry) => {
-  acc[entry.resource.id.toLowerCase()] = entry.resource;
+  acc[entry.resource.id] = entry.resource;
   return acc;
 };
 

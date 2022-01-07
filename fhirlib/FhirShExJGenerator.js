@@ -104,7 +104,7 @@ class FhirShExJGenerator extends ModelVisitor {
     const label = Prefixes.fhirshex + target;
     this.added.push(label);
     this.pushShape(label, isParent);
-    if (target.toLowerCase() in this.resources._index) {
+    if (target in this.resources._index) {
       if (isParent) {
         this.add(this.makeTripleConstraint(
           Prefixes.rdf + 'type',
@@ -139,7 +139,7 @@ class FhirShExJGenerator extends ModelVisitor {
         {min: 0, max: 1}
       ));
     }
-    this.modelGenerator.visitResource(target.toLowerCase(), this, generatorConfig);
+    this.modelGenerator.visitResource(target, this, generatorConfig);
     // this.resources._index.entries.forEach(
     //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, generatorConfig); }
     // );
@@ -287,7 +287,7 @@ class FhirShExJGenerator extends ModelVisitor {
       throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
 
     if ("baseDefinition" in resourceDef) {
-      const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length).toLowerCase();
+      const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
       this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
     }
 
