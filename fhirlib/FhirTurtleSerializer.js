@@ -2,7 +2,6 @@
  *
  */
 const {PropertyMapping} = require('./FhirRdfModelGenerator');
-const {FhirShExSchema} = require('./FhirShExSchema');
 const P = require('./Prefixes');
 
 const N3Store = require('n3/lib/N3Store').default;

@@ -68,6 +68,49 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   // whether a remote document should be used
   playground.useRemote = docs();
 
+  playground.fhircat = {
+    shexj: null,
+    profile: {
+      resources: null,
+      datatypes: null,
+      valuesets: null
+    },
+    profileUrls: {
+      resources: "R5-Resources-no-ws.json",
+      datatypes: "R5-Datatypes-no-ws.json",
+      valuesets: "R5-Valuesets-no-ws.json",
+    }
+  };
+
+  function loadFhirProfile (profileUrls, profile) {debugger;
+    $.when(
+      ajaxProfileFileLoader(profileUrls.resources),
+      ajaxProfileFileLoader(profileUrls.datatypes),
+      ajaxProfileFileLoader(profileUrls.valuesets),
+    ).done((r, d, v) => {
+      profile.resources = r[0];
+      profile.datatypes = d[0];
+      profile.valuesets = v[0];
+      generateShExJFromProfile(profile, profileUrls);
+    });
+  }
+
+  function ajaxProfileFileLoader (url, assign) {
+    return $.ajax({
+        url: url,
+        dataType: "json"
+      })
+      .fail(function(){
+        throw Error(`Could not load FHIR Profile component ${url}.`);
+      })
+  }
+
+  function generateShExJFromProfile (profile, profileUrls) {
+    const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, GEN_JSONLD_CONTEXT_CONFIG);
+    playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+    console.log(playground.fhircat.shexj);
+  }
+
   const fhirPreprocessR4 = function (input) {
     let processor = new FhirPreprocessor.R4();
     return processor.preprocess(input);
@@ -357,6 +400,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       .fail(function(){
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
+
+    loadFhirProfile(playground.fhircat.profileUrls, playground.fhircat.profile);
 
     if(window.location.search || window.location.hash) {
       playground.processQueryParameters();
@@ -880,13 +925,14 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
           });
         })
         .then(quads => {
+          // db has the passed quads. restDb will receive quads not part of the FHIR Resource.
           const db = new N3.Store();
           db.addQuads(quads);
-          const shexjGenerator = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap, FHIRValuesetMap, GEN_JSONLD_CONTEXT_CONFIG);
-          const shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
-          console.log(shexj);
+          const restDb = new N3.Store();
+
+          // The FhirTurtleSerializer passes FHIR Resource quads to the NestedWriter.
           const writer = new NestedWriter.Writer(null, {
-            lists: {},
+            // lists: {}, -- lists will require some thinking
             format: 'text/turtle',
             // baseIRI: resource.base,
             prefixes: P,
@@ -894,8 +940,11 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             indent: '    ',
             checkCorefs: n => false,
           });
-          const serializer = new FhirTurtleSerializer.Serializer(shexj);
-          serializer.addResource({store: db}, writer, {}, null);
+          const serializer = new FhirTurtleSerializer.Serializer(playground.fhircat.shexj);
+          serializer.addResource({store: db}, writer, {}, restDb);
+
+          // Append a comment and the remaining triples.
+          serializer.addRest(restDb, writer, {}, "\n# Triples not in FHIR Resource:");
 
           // Get the ouput following NestedWriter's stream convention.
           let pretty = null;
@@ -1664,7 +1713,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
         try {
           const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
-          const generator = new FhirJsonLdContextModelVisitor(FHIRStructureMap, FHIRDatatypeMap);
+          const generator = new FhirJsonLdContextModelVisitor(playground.fhircat.profile.resources, playground.fhircat.profile.datatypes);
           const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
           const ret = {
             contextUrl: null,

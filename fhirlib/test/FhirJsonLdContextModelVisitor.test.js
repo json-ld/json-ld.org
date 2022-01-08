@@ -2,7 +2,7 @@ const Fs = require('fs');
 const Jsonld  = require('jsonld');
 const FhirJsonLdContextModelVisitor = require('../FhirJsonLdContextModelVisitor.js');
 const FhirPreprocessors = require('../FhirPreprocessors.js');
-const R5StructureDefintions = require('../../playground/R5-StructureDefinitions-no-ws.js');
+const R5Resources = require('../../playground/R5-Resources-no-ws.js');
 const R5Datatypes = require('../../playground/R5-Datatypes-no-ws.js');
 
 const GEN_JSONLD_CONTEXT_CONFIG = {
@@ -11,7 +11,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 Jsonld.documentLoader = function(url) {
   if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
     const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
-    const generator = new FhirJsonLdContextModelVisitor(R5StructureDefintions, R5Datatypes);
+    const generator = new FhirJsonLdContextModelVisitor(R5Resources, R5Datatypes);
     const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {
       contextUrl: null,

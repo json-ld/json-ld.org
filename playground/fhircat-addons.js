@@ -4,9 +4,6 @@ globalThis.N3 = {
   Writer: require('n3/lib/N3Writer').default,
   Store: require('n3/lib/N3Store').default,
 };
-globalThis.FHIRStructureMap = require('./R5-StructureDefinitions-no-ws');
-globalThis.FHIRDatatypeMap = require('./R5-Datatypes-no-ws');
-globalThis.FHIRValuesetMap = require('./R5-Valuesets-no-ws');
 globalThis.FhirJsonLdContextModelVisitor = require('../fhirlib/FhirJsonLdContextModelVisitor');
 globalThis.FhirShExJGenerator = require('../fhirlib/FhirShExJGenerator');
 globalThis.FhirTurtleSerializer = require('../fhirlib/FhirTurtleSerializer');
