@@ -1710,10 +1710,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         ].join('');
       }
 
-      if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
+      if (url.startsWith(FhirJsonLdContextGenerator.STEM) && url.endsWith(FhirJsonLdContextGenerator.SUFFIX)) {
         try {
-          const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
-          const generator = new FhirJsonLdContextModelVisitor(playground.fhircat.profile.resources, playground.fhircat.profile.datatypes);
+          const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
+          const generator = new FhirJsonLdContextGenerator(playground.fhircat.shexj);
           const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
           const ret = {
             contextUrl: null,

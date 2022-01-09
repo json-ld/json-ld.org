@@ -1,21 +1,29 @@
 const Fs = require('fs');
 const Path = require('path');
 const Jsonld  = require('jsonld');
-const FhirJsonLdContextModelVisitor = require('../FhirJsonLdContextModelVisitor.js');
+const FhirJsonLdContextGenerator = require('../FhirJsonLdContextGenerator.js');
 const FhirPreprocessors = require('../FhirPreprocessors.js');
-
-const R5Resources = JSON.parse(Fs.readFileSync(Path.join(__dirname, '../../playground/R5-Resources-no-ws.json')));
-const R5Datatypes = JSON.parse(Fs.readFileSync(Path.join(__dirname, '../../playground/R5-Datatypes-no-ws.json')));
 
 const GEN_JSONLD_CONTEXT_CONFIG = {
 };
 
 const Generatod = {}; // all generated contexts by URL
+// let Expected = null;
+
+/*
+const MonitorFile = "monitor.txt";
+const MonitorStream = Fs.createWriteStream(MonitorFile);
+MonitorStream.on('error', () => {throw Error(`Failure to write to ${MonitorFile}`)})
+MonitorStream.write(`${__esModule}\n\n`);
+afterAll(() => {MonitorStream.close()});
+*/
+
+let ShExJ = JSON.parse(Fs.readFileSync(Path.join(__dirname, '../fhir.shexj'), 'utf8'));
 
 Jsonld.documentLoader = function(url) {
-  if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
-    const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
-    const generator = new FhirJsonLdContextModelVisitor(R5Resources, R5Datatypes);
+  if (url.startsWith(FhirJsonLdContextGenerator.STEM) && url.endsWith(FhirJsonLdContextGenerator.SUFFIX)) {
+    const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
+    const generator = new FhirJsonLdContextGenerator(ShExJ);
     const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {
       contextUrl: null,
@@ -23,6 +31,13 @@ Jsonld.documentLoader = function(url) {
       document: JSON.stringify(context, null, 2)
     };
     Generatod[url] = context;
+/*
+    try {
+      expect(Expected[url]).toEqual(context);
+    } catch (e) {
+      console.warn(e);
+    }
+*/
     return Promise.resolve(ret);
   }
   throw new Error("HERE");
@@ -48,6 +63,7 @@ test.each(compareMe)('nquads(%s)', async (filename) => {
   const patient = JSON.parse(json);
   const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
   const preProcessed = JSON.parse(preprocessor.preprocess(patient));
+  // Expected = JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8'));
   const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
 
   // test against (or generate, if first time this compareMe has been run) expected contexts.

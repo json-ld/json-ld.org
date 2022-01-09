@@ -1,4 +1,5 @@
 const {FhirRdfModelGenerator, ModelVisitor} = require('./FhirRdfModelGenerator');
+const Prefixes = require('./Prefixes');
 
 class FhirJsonLdContextModelVisitor extends ModelVisitor {
 
@@ -54,7 +55,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
 
   enter (propertyMapping) {
     const nestedElt = {
-      '@id': propertyMapping.predicate,
+      '@id': FhirJsonLdContextModelVisitor.shorten(propertyMapping.predicate),
       '@context': Object.assign({}, FhirJsonLdContextModelVisitor.TYPE_AND_INDEX),
     }
     this.ret[0]["@context"][propertyMapping.property] = nestedElt;
@@ -65,17 +66,15 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
     propertyMappings.forEach(propertyMapping => {
       if (propertyMapping.isScalar) {
         this.ret[0]["@context"][propertyMapping.property] = {
-          '@id': propertyMapping.predicate,
+          '@id': FhirJsonLdContextModelVisitor.shorten(propertyMapping.predicate),
           '@type': propertyMapping.type.datatype,
         };
       } else {
-        const type = propertyMapping.type === 'code' // TODO: really? check out Patient.gender
-              ? 'string'
-              : propertyMapping.type.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
+        const type = propertyMapping.type.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT)
               ? propertyMapping.type.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length)
               : propertyMapping.type;
         this.ret[0]["@context"][propertyMapping.property] = {
-          '@id': propertyMapping.predicate,
+          '@id': FhirJsonLdContextModelVisitor.shorten(propertyMapping.predicate),
           '@context': type + FhirJsonLdContextModelVisitor.GEND_CONTEXT_SUFFIX,
         };
       }
@@ -84,6 +83,22 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
 
   exit (propertyMapping) {
     this.ret.shift();
+  }
+
+  static shorten (p) {
+    if (p === Prefixes.rdf + 'type')
+      return 'rdf:type'
+    const pairs = [
+      {prefix: 'fhir', ns: Prefixes.fhir},
+      {prefix: 'rdf', ns: Prefixes.rdf}
+    ]
+    return pairs.reduce((acc, pair) => {
+      if (!p.startsWith(pair.ns))
+        return acc
+      const localName = p.substr(pair.ns.length) // .replace(/[a-zA-Z]+\./, '')
+      const n = pair.prefix + ':' + escape(localName)
+      return acc === null || n.length < acc.length ? n : acc
+    }, null)
   }
 };
 
