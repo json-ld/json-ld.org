@@ -3,6 +3,7 @@ const Path = require('path');
 const Jsonld  = require('jsonld');
 const FhirJsonLdContextGenerator = require('../FhirJsonLdContextGenerator.js');
 const FhirPreprocessors = require('../FhirPreprocessors.js');
+const ShExUtil = require("@shexjs/util");
 
 const GEN_JSONLD_CONTEXT_CONFIG = {
 };
@@ -18,12 +19,13 @@ MonitorStream.write(`${__esModule}\n\n`);
 afterAll(() => {MonitorStream.close()});
 */
 
-let ShExJ = JSON.parse(Fs.readFileSync(Path.join(__dirname, '../fhir.shexj'), 'utf8'));
+const ShExJ = JSON.parse(Fs.readFileSync(Path.join(__dirname, '../fhir.shexj'), 'utf8'));
+const Index = ShExUtil.index(ShExJ);
 
 Jsonld.documentLoader = function(url) {
   if (url.startsWith(FhirJsonLdContextGenerator.STEM) && url.endsWith(FhirJsonLdContextGenerator.SUFFIX)) {
     const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
-    const generator = new FhirJsonLdContextGenerator(ShExJ);
+    const generator = new FhirJsonLdContextGenerator(ShExJ, Index);
     const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {
       contextUrl: null,

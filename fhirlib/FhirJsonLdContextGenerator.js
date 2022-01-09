@@ -58,9 +58,9 @@ class FhirJsonLdContextGenerator {
   static STEM = "https://fhircat.org/fhir-r4/original/contexts/"; // could be a parameter but convenient to write in one place
   static SUFFIX = ".context.jsonld";
 
-  constructor(shexj) {
+  constructor(shexj, index) {
     this.shexj = shexj;
-    this.index = ShExUtil.index(shexj);
+    this.index = index || shexj._index || ShExUtil.index(shexj);
     this.cache = new Map();
     this.cache.set("root", FhirJsonLdContextGenerator.ROOT);
   }
@@ -113,7 +113,7 @@ class Converter {
             Object.assign.apply({}, expr.expressions.map(e => this.visit(e))) // generated properties
         )
       case 'TripleConstraint':
-        const {id, attr, property} = shorten(expr.predicate)
+        const {id, property} = shorten(expr.predicate)
         if (id === 'fhir:nodeRole')
           return {}
         if (id === 'rdf:type')
@@ -173,7 +173,7 @@ function shorten (p) {
     const lastDot = localName.lastIndexOf('.'); // may be -1
     const property = localName.substr(lastDot + 1);
     const n = pair.prefix + ':' + escape(localName)
-    return acc.id === null || n.length < acc.id.length ? {id: n, attr: localName, property} : acc
+    return acc.id === null || n.length < acc.id.length ? {id: n, property} : acc
   }, {id: null, attr: null})
 }
 

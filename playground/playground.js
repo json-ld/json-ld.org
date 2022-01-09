@@ -108,6 +108,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   function generateShExJFromProfile (profile, profileUrls) {
     const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, GEN_JSONLD_CONTEXT_CONFIG);
     playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+    playground.fhircat.shexj._index = ShExUtil.index(playground.fhircat.shexj);
     console.log(playground.fhircat.shexj);
   }
 

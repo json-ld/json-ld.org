@@ -4,6 +4,7 @@ globalThis.N3 = {
   Writer: require('n3/lib/N3Writer').default,
   Store: require('n3/lib/N3Store').default,
 };
+globalThis.ShExUtil = require('@shexjs/util');
 globalThis.FhirJsonLdContextGenerator = require('../fhirlib/FhirJsonLdContextGenerator');
 globalThis.FhirShExJGenerator = require('../fhirlib/FhirShExJGenerator');
 globalThis.FhirTurtleSerializer = require('../fhirlib/FhirTurtleSerializer');
