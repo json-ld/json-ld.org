@@ -64,6 +64,8 @@ class FhirRdfModelGenerator {
 
   static NestedStructureTypeCodes = ["BackboneElement", "Element"];
 
+  static FhirTypeExtension = "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type";
+
   constructor (resources, datatypes, valuesets) {
     this.resources = resources;
     this.datatypes = datatypes;
@@ -214,7 +216,7 @@ class FhirRdfModelGenerator {
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
-                ? typeEntry.extension.find(ext => ext.url === "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type").valueUri
+                ? FhirRdfModelGenerator.expectFhirType(elt, typeEntry)
                 : typeCode;
             const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding);
             return acc.concat([pMap]);
@@ -226,6 +228,14 @@ class FhirRdfModelGenerator {
         visitor.element(disjointPMaps);
       return visitedElts.concat([disjointPMaps]);
     }, []);
+  }
+
+  static expectFhirType (elt, typeEntry) {
+    const ft = (typeEntry.extension || []).find(ext => ext.url === FhirRdfModelGenerator.FhirTypeExtension);
+    if (!ft) {
+      throw Error(`Expected ${elt.id} ${typeEntry.code} to have an <${FhirRdfModelGenerator.FhirTypeExtension}> extension`);
+    }
+    return ft.valueUrl || ft.valueUri; // latter is deprecated?
   }
 }
 

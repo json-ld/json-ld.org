@@ -45,7 +45,6 @@ class FhirShExJGenerator extends ModelVisitor {
   };
 
   static PARENT_TYPES = ['Resource'];
-
   static ResourcesThatNeedALink = ["Reference"];
 
   constructor (resources, datatypes, valuesets, config = {}) {
@@ -69,22 +68,21 @@ class FhirShExJGenerator extends ModelVisitor {
       return source.entry.reduce((generated, entry) => {
         const url = entry.fullUrl;
         const genMe = entry.resource.id;
-        try {
-          if (skip.indexOf(genMe) !== -1)
-            return generated;
+        if (skip.indexOf(genMe) !== -1)
+          return generated;
 
-          switch (entry.resource.resourceType) {
+        switch (entry.resource.resourceType) {
             // can optimize by passing entry.resource, but for now, exercise generation by name
-            case "CodeSystem": break;
-            case "ValueSet": this.genValueset(genMe, this.config); break;
-            case "StructureDefinition": this.genShape(genMe, true, this.config); break;
-            default: throw Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`)
-          }
-          return generated.concat(genMe);
-        } catch (e) {
-          console.warn("error trying to genShExJ:" + e.stack);
-          throw e; // what does jest do with this exception?
+          case "CodeSystem":
+          case "CapabilityStatement":
+          case "CompartmentDefinition":
+          case "OperationDefinition":
+            break;
+          case "ValueSet": this.genValueset(genMe, this.config); break;
+          case "StructureDefinition": this.genShape(genMe, true, this.config); break;
+          default: throw Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`)
         }
+        return generated.concat(genMe);
       }, generated);
     }, [])
     const allTypesLabel = Prefixes.fhirvs + 'all-types';
@@ -226,8 +224,8 @@ class FhirShExJGenerator extends ModelVisitor {
 
   popShape (name) {
     const teList = this.teListStack.shift();
-    if (teList.length === 0)
-      throw new Error(`Unexpected 0-length TE list when serializing, um, something?`);
+    if (teList.length === 0 && name !== "Base")
+      throw new Error(`Unexpected 0-length TE list when serializing ${name}?`);
     if (this.config.oloIndexes && FhirShExJGenerator.PARENT_TYPES.indexOf(name) === -1) {
       teList.push(FhirShExJGenerator.INDEX);
     }
@@ -311,12 +309,7 @@ class FhirShExJGenerator extends ModelVisitor {
             acc = acc.concat(this.parseConcept(cs.property));
           }
         } else {
-          const msg = `can't find definition for codesystem ${i.system}`;
-          if ("concept" in i || true) {
-            console.log(msg);
-          } else {
-            throw Error(msg);
-          }
+          this.missing("codesystems", i.system);
         }
       }
       if ("concept" in i) {
@@ -324,6 +317,22 @@ class FhirShExJGenerator extends ModelVisitor {
       }
       return acc;
     }, [])
+  }
+
+  missing (type, missing) {
+    if ("missing" in this.config) {
+      if (!(type in this.config.missing)) {
+        this.config.missing[type] = new Set();
+      }
+      this.config.missing[type].add(missing);
+    } else {
+      const msg = `can't find definition for ${type} ${missing}`;
+      if (this.config.log) {
+        console.log(msg);
+      } else {
+        throw Error(msg);
+      }
+    }
   }
 
   parseConcept (concept) {

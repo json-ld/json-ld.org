@@ -6,6 +6,7 @@ const GEN_SHEXJ_CONTEXT_CONFIG = {
   addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
   oloIndexes: true,
   addTypesTo: ["Coding"],
+  missing: {}
 };
 
 const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];
@@ -32,7 +33,7 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
       parsedValuesets,
       GEN_SHEXJ_CONTEXT_CONFIG
   );
-  const generated = generator.genShExJ(skip);
+  const generated = await generator.genShExJ(skip);
 
   // Verify generated size
   // expect(generated.shapes.map(s => s.id.startsWith(Prefixes.fhirshex) ? s.id.substr(Prefixes.fhirshex.length) : s.id.substr(Prefixes.fhirvs.length))).toEqual(expect.arrayContaining(generated));
@@ -47,6 +48,12 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   // console.log(JSON.stringify(generated, null, 2));
   expect(generated.shapes.map(se => se.id)).toEqual(reference.shapes.map(se => se.id));
   expect(generated).toEqual(reference);
+  expect(GEN_SHEXJ_CONTEXT_CONFIG.missing.codesystems).toEqual(new Set([
+      "http://terminology.hl7.org/CodeSystem/v3-TimingEvent",
+      "urn:ietf:bcp:13",
+      "http://unitsofmeasure.org",
+  ]))
+  GEN_SHEXJ_CONTEXT_CONFIG.missing = {};
 });
 
 // Write to disk with long-lines
