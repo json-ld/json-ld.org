@@ -48,8 +48,8 @@ Jsonld.documentLoader = function(url) {
 
 const compareMe = [
   'playground-Patient',
-/*
   'playground-Observation',
+/*
   'playground-CodeSystem',
   'playground-Medication',
   'playground-AllergyIntollerance',
@@ -57,28 +57,30 @@ const compareMe = [
 */
 ];
 
-test.each(compareMe)('nquads(%s)', async (filename) => {
-  const instanceFile = Path.join(__dirname, `json/${filename}.json`);
-  const referenceContexts = Path.join(__dirname, `json/${filename}-contexts.json`);
+describe("FhirJsonLdConctextGenerator", () => {
+  test.each(compareMe)('nquads(%s)', async (filename) => {
+    const instanceFile = Path.join(__dirname, `json/${filename}.json`);
+    const referenceContexts = Path.join(__dirname, `json/${filename}-contexts.json`);
 
-  const json = await Fs.promises.readFile(instanceFile, 'utf8');
-  const patient = JSON.parse(json);
-  const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
-  const preProcessed = JSON.parse(preprocessor.preprocess(patient));
-  // Expected = JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8'));
-  const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
+    const json = await Fs.promises.readFile(instanceFile, 'utf8');
+    const patient = JSON.parse(json);
+    const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
+    const preProcessed = JSON.parse(preprocessor.preprocess(patient));
+    // Expected = JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8'));
+    const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
 
-  // test against (or generate, if first time this compareMe has been run) expected contexts.
-  if (Fs.existsSync(referenceContexts)) {
-    // test the expected contexts
-    expect(Generatod).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
-  } else {
-    // still generating them. ideally should happen once per test addition
-    Fs.writeFileSync(referenceContexts, JSON.stringify(Generatod, null, 2));
-  }
-  Generatod.length = 0;
+    // test against (or generate, if first time this compareMe has been run) expected contexts.
+    if (Fs.existsSync(referenceContexts)) {
+      // test the expected contexts
+      expect(Generatod).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
+    } else {
+      // still generating them. ideally should happen once per test addition
+      Fs.writeFileSync(referenceContexts, JSON.stringify(Generatod, null, 2));
+    }
+    Generatod.length = 0;
 
-  const expected = await Fs.promises.readFile(`./test/ttl/${filename}.nt`, 'utf8');
-  // Crappy test ignores graph isomorphism, but good enough for now.
-  expect(nquads).toEqual(expected);
+    const expected = await Fs.promises.readFile(`./test/ttl/${filename}.nt`, 'utf8');
+    // Crappy test ignores graph isomorphism, but good enough for now.
+    expect(nquads).toEqual(expected);
+  });
 });

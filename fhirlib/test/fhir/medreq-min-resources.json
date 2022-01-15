@@ -716,6 +716,595 @@
           ]
         }
       }
+    },
+    {
+      "fullUrl": "http://hl7.org/fhir/StructureDefinition/Observation",
+      "resource": {
+        "resourceType": "StructureDefinition",
+        "id": "Observation",
+        "meta": { "lastUpdated": "2021-07-07T13:16:58.680+00:00" },
+        "extension": [
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status", "valueCode": "normative" },
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-normative-version", "valueCode": "4.0.0" },
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fmm", "valueInteger": 5 },
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-security-category", "valueCode": "patient" },
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-wg", "valueCode": "oo" },
+          { "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-category", "valueString": "Clinical.Diagnostics" }
+        ],
+        "url": "http://hl7.org/fhir/StructureDefinition/Observation",
+        "version": "4.6.0",
+        "name": "Observation",
+        "status": "active",
+        "date": "2021-07-07T13:16:58+00:00",
+        "publisher": "Health Level Seven International (Orders and Observations)",
+        "contact": [
+          { "telecom": [ { "system": "url", "value": "http://hl7.org/fhir" } ] },
+          { "telecom": [ { "system": "url", "value": "http://www.hl7.org/Special/committees/orders/index.cfm" } ] }
+        ],
+        "description": "Measurements and simple assertions made about a patient, device or other subject.",
+        "fhirVersion": "4.6.0",
+        "mapping": [
+          { "identity": "workflow", "uri": "http://hl7.org/fhir/workflow", "name": "Workflow Pattern" },
+          { "identity": "sct-concept", "uri": "http://snomed.info/conceptdomain", "name": "SNOMED CT Concept Domain Binding" },
+          { "identity": "v2", "uri": "http://hl7.org/v2", "name": "HL7 v2 Mapping" },
+          { "identity": "rim", "uri": "http://hl7.org/v3", "name": "RIM Mapping" },
+          { "identity": "w5", "uri": "http://hl7.org/fhir/fivews", "name": "FiveWs Pattern Mapping" },
+          { "identity": "sct-attr", "uri": "http://snomed.org/attributebinding", "name": "SNOMED CT Attribute Binding" }
+        ],
+        "kind": "resource",
+        "abstract": false,
+        "type": "Observation",
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/DomainResource",
+        "derivation": "specialization",
+        "differential": {
+          "element": [
+            {
+              "id": "Observation",
+              "path": "Observation",
+              "short": "Measurements and simple assertions",
+              "definition": "Measurements and simple assertions made about a patient, device or other subject.",
+              "alias": [ "Vital Signs", "Measurement", "Results", "Tests" ],
+              "min": 0, "max": "*",
+              "constraint": [
+                {
+                  "key": "obs-7",
+                  "severity": "error",
+                  "expression": "value.empty() or component.code.where(coding.intersect(%resource.code.coding).exists()).empty()",
+                  "source": "http://hl7.org/fhir/StructureDefinition/Observation"
+                },
+                {
+                  "key": "obs-6",
+                  "severity": "error",
+                  "human": "dataAbsentReason SHALL only be present if Observation.value[x] is not present",
+                  "expression": "dataAbsentReason.empty() or value.empty()",
+                  "xpath": "not(exists(f:dataAbsentReason)) or (not(exists(*[starts-with(local-name(.), 'value')])))",
+                  "source": "http://hl7.org/fhir/StructureDefinition/Observation"
+                }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "mapping": [
+                { "identity": "workflow", "map": "Event" },
+                { "identity": "sct-concept", "map": "< 363787002 |Observable entity|" },
+                { "identity": "v2", "map": "OBX" },
+                { "identity": "rim", "map": "Observation[classCode=OBS, moodCode=EVN]" },
+                { "identity": "w5", "map": "clinical.diagnostics" }
+              ]
+            },
+            {
+              "id": "Observation.identifier",
+              "path": "Observation.identifier",
+              "short": "Business Identifier for observation",
+              "definition": "A unique identifier assigned to this observation.",
+              "requirements": "Allows observations to be distinguished and referenced.",
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "Identifier" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "workflow", "map": "Event.identifier" },
+                { "identity": "w5", "map": "FiveWs.identifier" },
+                { "identity": "v2" },
+                { "identity": "rim", "map": "id" }
+              ]
+            },
+            {
+              "id": "Observation.instantiates[x]",
+              "path": "Observation.instantiates[x]",
+              "short": "Instantiates FHIR ObservationDefinition",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "canonical", "targetProfile": [
+                  "http://hl7.org/fhir/StructureDefinition/ObservationDefinition"
+                ] },
+                { "code": "Reference", "targetProfile": [
+                  "http://hl7.org/fhir/StructureDefinition/ObservationDefinition"
+                ] }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "workflow", "map": "Event.instantiatesCanonical" },
+                { "identity": "rim", "map": ".outboundRelationship[typeCode=DEFN].target" }
+              ]
+            },
+            {
+              "id": "Observation.status",
+              "extension": [
+                { "valueString": "default: final", "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-display-hint" }
+              ],
+              "path": "Observation.status",
+              "short": "registered | preliminary | final | amended +",
+              "definition": "The status of the result value.",
+              "min": 1, "max": "1",
+              "type": [
+                { "code": "code" }
+              ],
+              "mustSupport": false,
+              "isModifier": true,
+              "isSummary": true,
+              "binding": {
+                "extension": [
+                  { "valueString": "ObservationStatus", "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName" }
+                ],
+                "strength": "required",
+                "description": "Codes providing the status of an observation.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/observation-status|4.6.0"
+              },
+              "mapping": [
+                { "identity": "workflow", "map": "Event.status" },
+                { "identity": "w5", "map": "FiveWs.status" },
+                { "identity": "sct-concept", "map": "< 445584004 |Report by finality status|" },
+                { "identity": "v2", "map": "OBX-11" },
+                { "identity": "rim" } ]
+            },
+            {
+              "id": "Observation.code",
+              "path": "Observation.code",
+              "short": "Type of observation (code / type)",
+              "definition": "Describes what was observed. Sometimes this is called the observation \"name\".",
+              "requirements": "Knowing what kind of observation is being made is essential to understanding the observation.",
+              "alias": [ "Name" ],
+              "min": 1, "max": "1",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "binding": {
+                "extension": [
+                  { "valueString": "ObservationCode", "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName" }
+                ],
+                "strength": "example",
+                "description": "Codes identifying names of simple observations.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes"
+              },
+              "mapping": [
+                { "identity": "workflow", "map": "Event.code" },
+                { "identity": "w5", "map": "FiveWs.what[x]" },
+                { "identity": "sct-concept", "map": "< 363787002 |Observable entity| OR < 386053000 |Evaluation procedure|" },
+                { "identity": "v2", "map": "OBX-3" },
+                { "identity": "rim", "map": "code" },
+                { "identity": "sct-attr", "map": "116680003 |Is a|" }
+              ]
+            },
+            {
+              "id": "Observation.subject",
+              "path": "Observation.subject",
+              "short": "Who and/or what the observation is about",
+              "requirements": "Observations have no value if you don't know who or what they're about.",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "Reference", "targetProfile": [
+                  "http://hl7.org/fhir/StructureDefinition/Patient",
+                  "http://hl7.org/fhir/StructureDefinition/Group",
+                  "http://hl7.org/fhir/StructureDefinition/Device",
+                  "http://hl7.org/fhir/StructureDefinition/Location",
+                  "http://hl7.org/fhir/StructureDefinition/Organization",
+                  "http://hl7.org/fhir/StructureDefinition/Procedure",
+                  "http://hl7.org/fhir/StructureDefinition/Practitioner",
+                  "http://hl7.org/fhir/StructureDefinition/Medication",
+                  "http://hl7.org/fhir/StructureDefinition/Substance"
+                ] }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "workflow", "map": "Event.subject" },
+                { "identity": "w5", "map": "FiveWs.subject[x]" },
+                { "identity": "v2", "map": "PID-3" },
+                { "identity": "rim", "map": "participation[typeCode=RTGT]" },
+                { "identity": "w5", "map": "FiveWs.subject" }
+              ]
+            },
+            {
+              "id": "Observation.effective[x]",
+              "path": "Observation.effective[x]",
+              "short": "Clinically relevant time/time-period for observation",
+              "alias": [ "Occurrence" ],
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "dateTime" },
+                { "code": "Period" },
+                { "code": "Timing" },
+                { "code": "instant" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "workflow", "map": "Event.occurrence[x]" },
+                { "identity": "w5", "map": "FiveWs.done[x]" },
+                { "identity": "v2", "map": "OBX-14, and/or OBX-19 after v2.4  (depends on who observation made)" },
+                { "identity": "rim", "map": "effectiveTime" }
+              ]
+            },
+            {
+              "id": "Observation.issued",
+              "path": "Observation.issued",
+              "short": "Date/Time this version was made available",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "instant" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "w5", "map": "FiveWs.recorded" },
+                { "identity": "v2", "map": "OBR.22 (or MSH.7), or perhaps OBX-19 (depends on who observation made)" },
+                { "identity": "rim", "map": "participation[typeCode=AUT].time" }
+              ]
+            },
+            {
+              "id": "Observation.performer",
+              "path": "Observation.performer",
+              "short": "Who is responsible for the observation",
+              "definition": "Who was responsible for asserting the observed value as \"true\".",
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "Reference", "targetProfile": [
+                  "http://hl7.org/fhir/StructureDefinition/Practitioner",
+                  "http://hl7.org/fhir/StructureDefinition/PractitionerRole",
+                  "http://hl7.org/fhir/StructureDefinition/Organization",
+                  "http://hl7.org/fhir/StructureDefinition/CareTeam",
+                  "http://hl7.org/fhir/StructureDefinition/Patient",
+                  "http://hl7.org/fhir/StructureDefinition/RelatedPerson"
+                ] }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "workflow", "map": "Event.performer.actor" },
+                { "identity": "w5", "map": "FiveWs.actor" },
+                { "identity": "v2" },
+                { "identity": "rim", "map": "participation[typeCode=PRF]" }
+              ]
+            },
+            {
+              "id": "Observation.value[x]",
+              "path": "Observation.value[x]",
+              "short": "Actual result",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "CodeableConcept" },
+                { "code": "string" },
+                { "code": "boolean" },
+                { "code": "integer" },
+                { "code": "time" },
+                { "code": "dateTime" },
+                { "code": "Period" },
+                { "code": "Attachment" }
+              ],
+              "condition": [ "obs-7" ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "sct-concept", "map": "< 441742003 |Evaluation finding|" },
+                { "identity": "v2", "map": "OBX.2, OBX.5, OBX.6" },
+                { "identity": "rim", "map": "value" },
+                { "identity": "sct-attr", "map": "363714003 |Interprets|" }
+              ]
+            },
+            {
+              "id": "Observation.interpretation",
+              "path": "Observation.interpretation",
+              "short": "High, low, normal, etc.",
+              "definition": "A categorical assessment of an observation value.  For example, high, low, normal.",
+              "alias": [ "Abnormal Flag" ],
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "binding": {
+                "extension": [
+                  { "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName", "valueString": "ObservationInterpretation" }
+                ],
+                "strength": "extensible",
+                "description": "Codes identifying interpretations of observations.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/observation-interpretation"
+              },
+              "mapping": [
+                { "identity": "sct-concept", "map": "< 260245000 |Findings values|" },
+                { "identity": "v2", "map": "OBX-8" },
+                { "identity": "rim", "map": "interpretationCode" },
+                { "identity": "sct-attr", "map": "363713009 |Has interpretation|" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange",
+              "path": "Observation.referenceRange",
+              "short": "Provides guide for interpretation",
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "BackboneElement" }
+              ],
+              "constraint": [
+                {
+                  "key": "obs-3",
+                  "severity": "error",
+                  "human": "Must have at least a low or a high or text",
+                  "expression": "low.exists() or high.exists() or text.exists()",
+                  "xpath": "(exists(f:low) or exists(f:high)or exists(f:text))",
+                  "source": "http://hl7.org/fhir/StructureDefinition/Observation"
+                }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "v2", "map": "OBX.7" },
+                { "identity": "rim", "map": "outboundRelationship[typeCode=REFV]/target[classCode=OBS, moodCode=EVN]" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.low",
+              "path": "Observation.referenceRange.low",
+              "short": "Low Range, if relevant",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "Quantity", "profile": [
+                  "http://hl7.org/fhir/StructureDefinition/SimpleQuantity"
+                ] }
+              ],
+              "condition": [ "obs-3" ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "v2", "map": "OBX-7" },
+                { "identity": "rim", "map": "value:IVL_PQ.low" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.high",
+              "path": "Observation.referenceRange.high",
+              "short": "High Range, if relevant",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "Quantity", "profile": [
+                  "http://hl7.org/fhir/StructureDefinition/SimpleQuantity"
+                ] }
+              ],
+              "condition": [ "obs-3" ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "v2", "map": "OBX-7" },
+                { "identity": "rim", "map": "value:IVL_PQ.high" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.type",
+              "path": "Observation.referenceRange.type",
+              "short": "Reference range qualifier",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "binding": {
+                "extension": [
+                  { "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName", "valueString": "ObservationRangeMeaning" }
+                ],
+                "strength": "preferred",
+                "description": "Code for the meaning of a reference range.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/referencerange-meaning"
+              },
+              "mapping": [
+                { "identity": "sct-concept" },
+                { "identity": "v2", "map": "OBX-10" },
+                { "identity": "rim", "map": "interpretationCode" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.appliesTo",
+              "path": "Observation.referenceRange.appliesTo",
+              "short": "Reference range population",
+              "requirements": "Need to be able to identify the target population for proper interpretation.",
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "binding": {
+                "extension": [
+                  { "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName", "valueString": "ObservationRangeType" }
+                ],
+                "strength": "example",
+                "description": "Codes identifying the population the reference range applies to.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/referencerange-appliesto"
+              },
+              "mapping": [
+                { "identity": "sct-concept" },
+                { "identity": "v2", "map": "OBX-10" },
+                { "identity": "rim", "map": "interpretationCode" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.age",
+              "path": "Observation.referenceRange.age",
+              "short": "Applicable age range, if relevant",
+              "requirements": "Some analytes vary greatly over age.",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "Range" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "rim", "map": "outboundRelationship[typeCode=PRCN].targetObservationCriterion[code=\"age\"].value" }
+              ]
+            },
+            {
+              "id": "Observation.referenceRange.text",
+              "path": "Observation.referenceRange.text",
+              "short": "Text based reference range in an observation",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "string" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "v2", "map": "OBX-7" },
+                { "identity": "rim", "map": "value:ST" }
+              ]
+            },
+            {
+              "id": "Observation.component",
+              "path": "Observation.component",
+              "short": "Component results",
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "BackboneElement" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "v2", "map": "containment by OBX-4?" },
+                { "identity": "rim", "map": "outBoundRelationship[typeCode=COMP]" }
+              ]
+            },
+            {
+              "id": "Observation.component.code",
+              "path": "Observation.component.code",
+              "short": "Type of component observation (code / type)",
+              "definition": "Describes what was observed. Sometimes this is called the observation \"code\".",
+              "requirements": "Knowing what kind of observation is being made is essential to understanding the observation.",
+              "min": 1, "max": "1",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "binding": {
+                "extension": [
+                  { "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName", "valueString": "ObservationCode" }
+                ],
+                "strength": "example",
+                "description": "Codes identifying names of simple observations.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes"
+              },
+              "mapping": [
+                { "identity": "w5", "map": "FiveWs.what[x]" },
+                { "identity": "sct-concept", "map": "< 363787002 |Observable entity| OR \r< 386053000 |Evaluation procedure|" },
+                { "identity": "v2", "map": "OBX-3" },
+                { "identity": "rim", "map": "code" }
+              ]
+            },
+            {
+              "id": "Observation.component.value[x]",
+              "path": "Observation.component.value[x]",
+              "short": "Actual component result",
+              "min": 0, "max": "1",
+              "type": [
+                { "code": "CodeableConcept" },
+                { "code": "string" },
+                { "code": "boolean" },
+                { "code": "integer" },
+                { "code": "time" },
+                { "code": "dateTime" },
+                { "code": "Period" },
+                { "code": "Attachment" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": true,
+              "mapping": [
+                { "identity": "sct-concept", "map": "363714003 |Interprets| < 441742003 |Evaluation finding|" },
+                { "identity": "v2", "map": "OBX.2, OBX.5, OBX.6" },
+                { "identity": "rim", "map": "value" },
+                { "identity": "sct-attr", "map": "363714003 |Interprets|" }
+              ]
+            },
+            {
+              "id": "Observation.component.interpretation",
+              "path": "Observation.component.interpretation",
+              "short": "High, low, normal, etc.",
+              "definition": "A categorical assessment of an observation value.  For example, high, low, normal.",
+              "alias": [ "Abnormal Flag" ],
+              "min": 0, "max": "*",
+              "type": [
+                { "code": "CodeableConcept" }
+              ],
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "binding": {
+                "extension": [
+                  { "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName", "valueString": "ObservationInterpretation" }
+                ],
+                "strength": "extensible",
+                "description": "Codes identifying interpretations of observations.",
+                "valueSet": "http://hl7.org/fhir/ValueSet/observation-interpretation"
+              },
+              "mapping": [
+                { "identity": "sct-concept", "map": "< 260245000 |Findings values|" },
+                { "identity": "v2", "map": "OBX-8" },
+                { "identity": "rim", "map": "interpretationCode" },
+                { "identity": "sct-attr", "map": "363713009 |Has interpretation|" }
+              ]
+            },
+            {
+              "id": "Observation.component.referenceRange",
+              "path": "Observation.component.referenceRange",
+              "short": "Provides guide for interpretation of component result",
+              "definition": "Guidance on how to interpret the value by comparison to a normal or recommended range.",
+              "min": 0, "max": "*",
+              "contentReference": "#Observation.referenceRange",
+              "mustSupport": false,
+              "isModifier": false,
+              "isSummary": false,
+              "mapping": [
+                { "identity": "v2", "map": "OBX.7" },
+                { "identity": "rim", "map": "outboundRelationship[typeCode=REFV]/target[classCode=OBS, moodCode=EVN]" }
+              ]
+            }
+          ]
+        }
+      }
     }
+
   ]
 }

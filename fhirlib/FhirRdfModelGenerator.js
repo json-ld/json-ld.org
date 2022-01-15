@@ -58,6 +58,7 @@ class FhirRdfModelGenerator {
     'uri.value': {predicate: 'value', datatype: 'anyURI'}, // FHIR type String
     'base64Binary.value': {predicate: 'value', datatype: 'base64Binary'}, // also type String
     'instant.value': {predicate: 'value', datetype: 'dateTime'}, // Datetime
+    'dateTime.value': {predicate: 'dateTime.value', datetype: 'dateTime'}, // Datetime
     'Narrative.div': {predicate: 'Narrative.div', datatype: 'string'}, // XHTML narrative text
 //    'positiveInt.value': {datatype: 'positiveInt'} // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
   };
