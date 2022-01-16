@@ -4,13 +4,14 @@ const { indexBundle } = require('./indexBundle');
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
  */
 class PropertyMapping {
-  constructor(isScalar, element, property, predicate, type, binding) {
+  constructor(isScalar, element, property, predicate, type, binding, specializes) {
     this.isScalar = isScalar;
     this.element = element;
     this.property = property;
     this.predicate = predicate;
     this.type = type;
     this.binding = binding;
+    this.specializes = specializes;
   }
 }
 
@@ -57,13 +58,14 @@ class FhirRdfModelGenerator {
   static pathOverrides = {
     'uri.value': {predicate: 'value', datatype: 'anyURI'}, // FHIR type String
     'base64Binary.value': {predicate: 'value', datatype: 'base64Binary'}, // also type String
-    'instant.value': {predicate: 'value', datetype: 'dateTime'}, // Datetime
-    'dateTime.value': {predicate: 'value', datetype: 'dateTime'}, // Datetime
+    'instant.value': {predicate: 'value', datatype: 'dateTime'}, // Datetime
+    'dateTime.value': {predicate: 'value', datatype: 'dateTime'}, // Datetime
+    'integer64.value': {predicate: 'value', datatype: 'long'}, // Datetime
     'Narrative.div': {predicate: 'Narrative.div', datatype: 'string'}, // XHTML narrative text
 //    'positiveInt.value': {datatype: 'positiveInt'} // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
   };
 
-  static NestedStructureTypeCodes = ["BackboneElement", "Element"];
+  static NestedStructureTypeCodes = ["BackboneElement", "BackboneType", "Element"];
 
   static FhirTypeExtension = "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type";
 
@@ -107,35 +109,32 @@ class FhirRdfModelGenerator {
     }
 
     // Walk differential elements
-    return resourceDef.differential.element.reduce((visitedElts, elt) => {
+    return resourceDef.differential.element.slice(1).reduce((visitedElts, elt) => {
       if (elt.id !== elt.path) // test assumptions
-        throw new Error(`id !== path in ${target} ${map[target]}`);
+        throw new Error(`id !== path in ${target} ${elt.id}`);
 
       // Early return for the first entry in a Resource's elements
-      if (!("type" in elt)) { // 1st elt points to itself or something like that. Anyways, it doesn't have a type.
-        return visitedElts; // should be []
+      if (!(("type" in elt) ^ ("contentReference" in elt))) { // 1st elt points to itself or something like that. Anyways, it doesn't have a type.
+        throw Error(`expected one of (type, contentReference) in ${elt.id}`);
       }
 
       // Calculate path components
       const path = elt.id.split('.');
       const resourceName = path.shift();
       if (resourceName !== target)
-        throw new Error(`property id ${elt.id} does not start with target \"${target}\" in ${map[target]}`);
+        console.warn(`property id ${elt.id} does not start with target \"${target}\" in ${resourceDef.id} structure def`);
       let rawName = path.pop();
 
       // Handle curried datatype names
-      if (rawName.endsWith("[x]") ^ elt.type.length > 1)
+      if ("type" in elt && rawName.endsWith("[x]") ^ elt.type.length > 1) // assume "...[x]" only applies if you have multiple types
         throw new Error(`Not sure whether ${target}.${elt.id} is a curried property or not: '${JSON.stringify(typeEntry)}'`);
-      const [curried, name] = elt.type.length > 1
+      const [curried, name] = "type" in elt && elt.type.length > 1
           ? [true, rawName.substr(0, rawName.length - "[x]".length)]
           : [false, rawName];
 
-      if (!Array.isArray(elt.type)) // test assumptions
-        throw new Error(`unknown type list '${elt.id}' in ${JSON.stringify(map[target])}`);
-
       // Trim down any nested properties we've passed as evidenced by them not having a corresponding name in the path.
-      for (let i = 0; i < this.stack.length; ++i) {
-        if (this.stack[i].element.id.split('.').slice(1)[0] !== path[i]) {
+      for (let i = this.stack.length - 1; i >= 0; --i) {
+        if (this.stack[i].property !== path[i]) {
           // `i` has the index of the first Nesting not consistent with `path`.
           this.stack.slice(i).reverse().forEach(n => visitor.exit(n)); // call exit on each extra element in the stack
           this.stack = this.stack.slice(0, i); // trim down the stack
@@ -143,15 +142,14 @@ class FhirRdfModelGenerator {
         }
       }
 
-      if (!('type' in elt || elt.type.length === 0))
-        throw new Error(`expected one or more types in '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
-
       // aggregate element's types into a disjunction
-      const disjointPMaps = elt.type.reduce((acc, typeEntry, idx) => {
+      const disjointPMaps = "contentReference" in elt
+        ? [new PropertyMapping(false, elt, name, FhirRdfModelGenerator.NS_fhir + [resourceName].concat(path).concat(name).join('.'), elt.contentReference.slice(1), null, [])]
+        : elt.type.reduce((acc, typeEntry, idx) => {
         if (typeof typeEntry !== "object"
             || !("code" in typeEntry)
             || typeof typeEntry.code !== "string")
-          throw new Error(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(map[target])}`);
+          throw new Error(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(elt.id)}`);
 
         // Calculate final element name.
         const typeCode = typeEntry.code;
@@ -167,24 +165,21 @@ class FhirRdfModelGenerator {
             throw new Error(`expected exactly one type for nested structure '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
 
           // Construct a Nesting for this property and visitor.enter it.
-          const n = new PropertyMapping(false, elt, curriedName, predicate, resourceDef.baseDefinition);
+          const n = new PropertyMapping(false, elt, curriedName, predicate, FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT + typeCode, null, []);
           this.stack.push(n);
           visitor.enter(n);
 
           // if this element extends another, process the base.
           // This is probably always true BackboneElements extend DomainResource and Elements extend BackboneType or Datatype.
-          if ("baseDefinition" in resourceDef) {
-            if (!resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))
-              throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
-            const nestedTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
+          if (elt.id === resourceDef.id) throw Error(`Resource root element should not have a type and so shouldn't get here. got type '${elt.type}'`)
+          const nestedTarget = typeCode;
 
-            // Because the nested element has a different name, we will appear to have exited any nested elements,
-            // so save and hide the stack.
-            const saveStack = this.stack;
-            this.stack = [];
-            this.visitElement(nestedTarget, visitor, config);
-            this.stack = saveStack;
-          }
+          // Because the nested element has a different name, we will appear to have exited any nested elements,
+          // so save and hide the stack.
+          const saveStack = this.stack;
+          this.stack = [];
+          this.visitElement(nestedTarget, visitor, config);
+          this.stack = saveStack;
           return [];
         } else {
           const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
@@ -193,11 +188,11 @@ class FhirRdfModelGenerator {
                 : typeCode;                                                   // Address -> Address, uri -> uri
 
           let propertyOverride = FhirRdfModelGenerator.pathOverrides[elt.id];
-          const isScalar = elt.id === trimmedTypeCode.toLocaleLowerCase() + ".value" //  e.g. elt.id is "string.value", "date.value"
+          const isScalar = (elt.id === resourceDef.id + ".value" && "representation" in elt && elt.representation[0] === "xmlAttr") //  e.g. elt.id is "string.value", "date.value"
                 || !!propertyOverride;
-          const isSpecialization = baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName));
-          if (isSpecialization)
-            return []; // TODO: update specializations
+          const specializes = path.length > 0
+              ? []
+              : baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName)) || [];
 
           if (isScalar) {
             if (elt.type.length > 1)
@@ -212,14 +207,16 @@ class FhirRdfModelGenerator {
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                        })());
             const finalName = propertyOverride ? propertyOverride.predicate : curriedName
-            const pMap = new PropertyMapping(true, elt, curriedName, FhirRdfModelGenerator.NS_fhir + finalName, { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype }, null);
+            const predicate2 = FhirRdfModelGenerator.NS_fhir + finalName;
+            const nodeConstraint = { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + xsdDatatype };
+            const pMap = new PropertyMapping(true, elt, curriedName, predicate2, nodeConstraint, null, specializes);
             return acc.concat([pMap]);
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
                 ? FhirRdfModelGenerator.expectFhirType(elt, typeEntry)
                 : typeCode;
-            const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding);
+            const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding, specializes);
             return acc.concat([pMap]);
           }
         }

@@ -60,6 +60,8 @@ class FhirShExJGenerator extends ModelVisitor {
     this.added = [];
     // walk StructureDefinition, calling enter, scalar, complex, exit.
     this.modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
+    // be able to look up TripleConstraints by the PropertyMapping that begat them.
+    this.pMap2TC = new Map();
   }
 
   genShExJ (skip = []) {
@@ -146,8 +148,8 @@ class FhirShExJGenerator extends ModelVisitor {
   }
 
   enter (propertyMapping) {
-    this.add(this.makeTripleConstraint(
-      propertyMapping.predicate,
+    this.add(this.indexTripleConstraint(
+      propertyMapping,
       Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length),
       this.makeCard(propertyMapping.element.min, propertyMapping.element.max)
     ));
@@ -156,6 +158,16 @@ class FhirShExJGenerator extends ModelVisitor {
 
   element (propertyMappings) {
     const valueExprs = propertyMappings.reduce((acc, propertyMapping) => {
+      // Early return if this specializes another.
+      if (propertyMapping.specializes.length > 0) {
+        propertyMapping.specializes.forEach(specializes => {
+          const tc = this.pMap2TC.get(specializes);
+          tc.predicate = propertyMapping.predicate;
+          // TODO: what are the real semantics of specialization?
+        })
+        return acc; // no additional TCs
+      }
+
       let valueExpr;
       if (propertyMapping.isScalar) {
         valueExpr = propertyMapping.type; // e.g. http://www.w3.org/2001/XMLSchema#string"
@@ -186,23 +198,25 @@ class FhirShExJGenerator extends ModelVisitor {
           };
         }
       }
-      return acc.concat([this.makeTripleConstraint(
-        propertyMapping.predicate,
+      return acc.concat([this.indexTripleConstraint(
+        propertyMapping,
         valueExpr,
         null
       )]);
     }, []);
 
-    const possibleDisjunction = Object.assign(
-      valueExprs.length > 1
-        ? {
-          type: "OneOf",
-          expressions: valueExprs
-        }
-      : valueExprs[0],
-      this.makeCard(propertyMappings[0].element.min, propertyMappings[0].element.max)
-    );
-    this.add(possibleDisjunction); // e.g. MedicationRequest.dose.dosageInstruction
+    if (valueExprs.length > 0) { // 0 if specializing an earlier element
+      const possibleDisjunction = Object.assign(
+        valueExprs.length > 1
+          ? {
+            type: "OneOf",
+            expressions: valueExprs
+          }
+        : valueExprs[0],
+        this.makeCard(propertyMappings[0].element.min, propertyMappings[0].element.max)
+      );
+      this.add(possibleDisjunction); // e.g. MedicationRequest.dose.dosageInstruction
+    }
   }
 
   exit (propertyMapping) {
@@ -247,6 +261,12 @@ class FhirShExJGenerator extends ModelVisitor {
     return min === 1 && max === 1
         ? {}
         : {min, max};
+  }
+
+  indexTripleConstraint(propertyMapping, valueExpr, cardObj = {}) {
+    const ret = this.makeTripleConstraint(propertyMapping.predicate, valueExpr, cardObj);
+    this.pMap2TC.set(propertyMapping, ret);
+    return ret;
   }
 
   makeTripleConstraint(predicate, valueExpr, cardObj = {}) {

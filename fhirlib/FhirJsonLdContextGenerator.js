@@ -121,7 +121,7 @@ class Converter {
         const ret = {}
         ret[property] = {'@id': id}
         if (typeof expr.valueExpr === "string") {
-          if (expr.valueExpr.substr(Ns_fhsh.length).match(/\./)) {
+          if (false && expr.valueExpr.substr(Ns_fhsh.length).match(/\./)) { // would need cycle detection, currently left up to
             // '.'d reference to a nested Shape, e.g. `fhirs:Patient.contact`
             ret[property]['@context'] = this.visit(this.lookup(expr.valueExpr))
           } else {
@@ -133,9 +133,10 @@ class Converter {
             if (expr.valueExpr.nodeKind === 'iri') {
               // e.g. `fhir:link IRI`
               ret[property]['@type'] = "@id"
-            } else if ("datatype" in expr.valueExpr)
-                // e.g. `fhir:value xsd:string`
+            } else if ("datatype" in expr.valueExpr) {
+              // e.g. `fhir:value xsd:string`
               ret[property]['@type'] = expr.valueExpr.datatype
+            }
           } else {
             // e.g. `fhir:gender @fhirs:code AND { fhir:value @fhirvs:adminstritative-gender }`
             const ref = firstRef(expr.valueExpr);
