@@ -3,6 +3,7 @@
 const Fs = require('fs');
 const Path = require('path');
 const FhirShExJGenerator = require('../FhirShExJGenerator.js');
+const { program } = require('commander');
 
 const GEN_SHEXJ_CONTEXT_CONFIG = {
   addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
@@ -23,9 +24,18 @@ const indexFhir = (acc, entry) => {
   return acc;
 };
 
-generate(process.argv.slice(2));
+program
+  .version('0.0.1')
+  .option('--flat', 'name and hoist all embeded shapes (default)')
+  .option('--nest', 'embed shapes where possible')
+  .arguments('<resources> <datatypes> <valuesets> <result>')
+  .action(generate)
+  .parse(process.argv);
 
-async function generate([resources, datatypes, valuesets, got]) {
+// generate(process.argv.slice(2));
+// async function generate([resources, datatypes, valuesets, got]) {
+
+async function generate(resources, datatypes, valuesets, result) {
   try {
     const parsedResources = await readJsonProfile(resources);
     const parsedDatatypes = await readJsonProfile(datatypes);
@@ -36,10 +46,13 @@ async function generate([resources, datatypes, valuesets, got]) {
         parsedValuesets,
         GEN_SHEXJ_CONTEXT_CONFIG
     );
-    const ret = await generator.genShExJ();
+    const raw = await generator.genShExJ();
+    const schema = program.opts().nest
+        ? FhirShExJGenerator.nestShapes(raw)
+        : raw;
 
-    await writeShExJ(got, ret, true); // TODO: add switch for pretty-printing
-    console.log(`wrote ${ret.shapes.length} shape expressions into ${got}`);
+    await writeShExJ(result, schema, true); // TODO: add switch for pretty-printing
+    console.log(`wrote ${schema.shapes.length} shape expressions into ${result}`);
     // if (errors.length) {
     //   console.log(`writing ${errors.length} errors to stderr`);
     //   errors.forEach(e => console.warn("error trying to genShExJ:" + e.stack));

@@ -23,7 +23,7 @@ test('FhirTurtleSerializer', async () => {
   const resource = await parser.parseFile(filepath, config);
   expect(resource.base).toEqual('file://' + filepath);
   expect(resource.store.size).toBeGreaterThan(50);
-  const shexj = JSON.parse(await Fs.promises.readFile(Path.join(__dirname, '../fhir.shexj'), 'utf-8'));
+  const shexj = JSON.parse(await Fs.promises.readFile(Path.join(__dirname, '../fhir-flat.shexj'), 'utf-8'));
 
   // The NestedWriter nicely nests ordered quads.
   const printer = new Writer(null, {

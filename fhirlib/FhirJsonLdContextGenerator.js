@@ -137,6 +137,8 @@ class Converter {
               // e.g. `fhir:value xsd:string`
               ret[property]['@type'] = expr.valueExpr.datatype
             }
+          } else if (expr.valueExpr.type === "Shape") {
+            ret[property]['@context'] = this.visit(expr.valueExpr.expression)
           } else {
             // e.g. `fhir:gender @fhirs:code AND { fhir:value @fhirvs:adminstritative-gender }`
             const ref = firstRef(expr.valueExpr);

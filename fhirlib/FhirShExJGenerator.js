@@ -1,5 +1,7 @@
 const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRdfModelGenerator');
 const Prefixes = require('./Prefixes');
+const ShExUtil = require("@shexjs/util");
+const P = require("./Prefixes");
 
 const GEN_SHEXJ_STEM = 'http://hl7.org/fhir/StructureDefinition/';
 const CODE_SYSTEM_STEM = 'http://hl7.org/fhir/CodeSystem/';
@@ -381,6 +383,55 @@ class FhirShExJGenerator extends ModelVisitor {
     });
     this.schema["@context"] = "http://www.w3.org/ns/shex.jsonld";
     return this;
+  }
+
+  /**
+   * Create a copy of `schema` with ShapeExpressions nested in place of their references.
+   * @param schema an input ShapeExpressions schema
+   * @returns {schema} nested copy of schema
+   */
+  static nestShapes (schema) {
+    const index = schema._index || ShExUtil.index(schema);
+
+    // Create a visitor to count references to labeled (i.e. appearing in schema.shapes) ShapeExpressions.
+    const seFinder = ShExUtil.Visitor();
+
+    let refCounts = {}
+
+    seFinder.visitShapeRef = function (reference) {
+      if (!(reference in refCounts)) { refCounts[reference] = 0; }
+      refCounts[reference]++;
+      return reference;
+    }
+
+    seFinder.visitSchema(schema) // Throw away the copy this created. We only want the ref counts.
+
+    // Create another visitor to make a nested copy of schema.
+    const seRenamer = ShExUtil.Visitor()
+
+    // We want to nest this ShapeExpression if:
+    function nestTest (shapeExprLabel) {
+      return refCounts[shapeExprLabel] === 1 &&                // it has a ref count == 1, AND
+          shapeExprLabel.startsWith(P.fhirshex) &&             // it is a FHIR shape (probably unnecessary in the FHIR schema), AND
+          shapeExprLabel.substr(P.fhirshex.length).indexOf('.') !== -1 // it has a '.' in the name (our naming convention for nested shape).
+    }
+
+    seRenamer.visitShapeRef = function (reference) {
+      return nestTest(reference)                               // If this reference is a candidate for nesting,
+          ? seRenamer.visitShapeExpr(index.shapeExprs[reference]) // add (a copy of) it from the initial schema,
+          : reference                                          // otherwise keep a reference to it.
+    }
+
+    seRenamer.visitShapes = function (shapes) {
+      return shapes.reduce(
+          (acc, shapeExpr) => nestTest(shapeExpr.id)             // If this id is a candidate for nesting,
+              ? acc                                                // don't add it to the outer shapes,
+              : acc.concat([seRenamer.visitShapeExpr(shapeExpr)]), // otherwise add (a copy of) it.
+          []
+      )
+    }
+
+    return seRenamer.visitSchema(schema)
   }
 };
 
