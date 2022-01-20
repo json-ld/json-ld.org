@@ -82,7 +82,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     }
   };
 
-  function loadFhirProfile (profileUrls, profile) {debugger;
+  function loadFhirProfile (profileUrls, profile) {
     $.when(
       ajaxProfileFileLoader(profileUrls.resources),
       ajaxProfileFileLoader(profileUrls.datatypes),
@@ -91,7 +91,18 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       profile.resources = r[0];
       profile.datatypes = d[0];
       profile.valuesets = v[0];
-      generateShExJFromProfile(profile, profileUrls);
+      try {
+        generateShExJFromProfile(profile, profileUrls);
+      } catch (err) {
+        if (typeof err === 'object' && err instanceof StructureError) {
+          err.logMessage(console.log);
+        }
+        $('#processing-errors')
+          .append('Processing error:')
+          .append(
+            $('<pre>').text(playground.humanize(err)))
+          .show();
+      }
     });
   }
 

@@ -1,4 +1,5 @@
 const { indexBundle } = require('./indexBundle');
+const { StructureError } = require('./errors');
 
 /**
  * Used in the visitor API to communicate JSON properties definitions mapped to RDF.
@@ -33,6 +34,31 @@ class ModelVisitor {
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
   element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
   exit (propertyMapping) { throw new Error(`ModelVistor.exit(${propertyMapping}) must be overloaded`); }
+}
+
+class FhirResourceDefinitionError extends StructureError {
+  constructor (msg, resourceDef) {
+    super(`Error in ${resourceDef.id}: ${msg}`);
+    this.resourceDef = resourceDef;
+  }
+
+  logMessage (log) {
+    log(`Bad resource`, this.resourceDef);
+  }
+}
+
+class FhirElementDefinitionError extends StructureError {
+  constructor (msg, resourceDef, elt) {
+    const ordinal = resourceDef.differential.element.indexOf(elt);
+    super(`Error in ${resourceDef.id} differential.element[${ordinal}]] ${elt.id}: ${msg}`);
+    this.resourceDef = resourceDef;
+    this.elt = elt;
+    this.ordinal = ordinal;
+  }
+
+  logMessage (log) {
+    log(`Bad element in resource differential.element[${this.ordinal}]`, this.resourceDef);
+  }
 }
 
 /**
@@ -94,12 +120,12 @@ class FhirRdfModelGenerator {
     } else if (target in this.datatypes._index) {
       map = this.datatypes._index;
     } else {
-      throw new Error(`Key ${target} not found in ${Object.keys(this.resources._index)} or ${Object.keys(this.datatypes._index)}`);
+      throw new FhirResourceDefinitionError(`Key ${target} not found in ${Object.keys(this.resources._index)} or ${Object.keys(this.datatypes._index)}`, resourceDef);
     }
 
     const resourceDef = map[target];
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
-      throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
+      throw new FhirResourceDefinitionError(`Don't know where to look for base structure ${resourceDef.baseDefinition}`, resourceDef);
 
     let baseElts = [];
     if ("baseDefinition" in resourceDef) {
@@ -111,11 +137,11 @@ class FhirRdfModelGenerator {
     // Walk differential elements
     return resourceDef.differential.element.slice(1).reduce((visitedElts, elt) => {
       if (elt.id !== elt.path) // test assumptions
-        throw new Error(`id !== path in ${target} ${elt.id}`);
+        throw new FhirElementDefinitionError(`id !== path in ${target} ${elt.id}`, resourceDef, elt);
 
       // Early return for the first entry in a Resource's elements
       if (!(("type" in elt) ^ ("contentReference" in elt))) { // 1st elt points to itself or something like that. Anyways, it doesn't have a type.
-        throw Error(`expected one of (type, contentReference) in ${elt.id}`);
+        throw new FhirElementDefinitionError(`expected one of (type, contentReference)`, resourceDef, elt);
       }
 
       // Calculate path components
@@ -149,7 +175,7 @@ class FhirRdfModelGenerator {
         if (typeof typeEntry !== "object"
             || !("code" in typeEntry)
             || typeof typeEntry.code !== "string")
-          throw new Error(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(elt.id)}`);
+          throw new FhirElementDefinitionError(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(elt.id)}`, resourceDef, elt);
 
         // Calculate final element name.
         const typeCode = typeEntry.code;
@@ -162,7 +188,7 @@ class FhirRdfModelGenerator {
               [resourceName].concat(path).concat(curriedName).join('.');
         if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
           if (elt.type.length > 1)
-            throw new Error(`expected exactly one type for nested structure '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
+            throw new FhirElementDefinitionError(`expected exactly one type for nested structure '${elt.id}'`, resourceDef); // DEBUG: add ${JSON.stringify(elt)}
 
           // Construct a Nesting for this property and visitor.enter it.
           const n = new PropertyMapping(false, elt, curriedName, predicate, FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT + typeCode, null, []);
@@ -171,7 +197,7 @@ class FhirRdfModelGenerator {
 
           // if this element extends another, process the base.
           // This is probably always true BackboneElements extend DomainResource and Elements extend BackboneType or Datatype.
-          if (elt.id === resourceDef.id) throw Error(`Resource root element should not have a type and so shouldn't get here. got type '${elt.type}'`)
+          if (elt.id === resourceDef.id) throw FhirElementDefinitionError(`Resource root element should not have a type and so shouldn't get here. got type '${elt.type}'`, resourceDef, elt)
           const nestedTarget = typeCode;
 
           // Because the nested element has a different name, we will appear to have exited any nested elements,
@@ -196,13 +222,13 @@ class FhirRdfModelGenerator {
 
           if (isScalar) {
             if (elt.type.length > 1)
-              throw new Error(`expected exactly one type for scalar '${elt.id}'`); // DEBUG: add ${JSON.stringify(elt)}
+              throw new FhirElementDefinitionError(`expected exactly one type for scalar '${elt.id}'`, resourceDef, elt);
 
             // Calculate XML Schema datatype
             const xsdDatatype = (propertyOverride ? propertyOverride.datatype : null)
                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
                        || (function () {
-                            const e = new Error(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`);
+                         const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
                             console.warn(e.stack);
                             return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
                        })());
@@ -214,7 +240,7 @@ class FhirRdfModelGenerator {
           } else {
             const binding = 'binding' in elt ? elt.binding : null;
             const shapeLabel = isFhirPath
-                ? FhirRdfModelGenerator.expectFhirType(elt, typeEntry)
+                ? FhirRdfModelGenerator.expectFhirType(resourceDef, elt, typeEntry)
                 : typeCode;
             const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding, specializes);
             return acc.concat([pMap]);
@@ -228,14 +254,14 @@ class FhirRdfModelGenerator {
     }, []);
   }
 
-  static expectFhirType (elt, typeEntry) {
+  static expectFhirType (resourceDef, elt, typeEntry) {
     const ft = (typeEntry.extension || []).find(ext => ext.url === FhirRdfModelGenerator.FhirTypeExtension);
     if (!ft) {
-      throw Error(`Expected ${elt.id} ${typeEntry.code} to have an <${FhirRdfModelGenerator.FhirTypeExtension}> extension`);
+      throw FhirElementDefinitionError(`Expected ${elt.id} ${typeEntry.code} to have an <${FhirRdfModelGenerator.FhirTypeExtension}> extension`, resourceDef, elt);
     }
     return ft.valueUrl || ft.valueUri; // latter is deprecated?
   }
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirRdfModelGenerator, ModelVisitor, PropertyMapping};
+  module.exports = {FhirRdfModelGenerator, FhirResourceDefinitionError, FhirElementDefinitionError, ModelVisitor, PropertyMapping};
