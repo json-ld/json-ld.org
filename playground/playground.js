@@ -423,7 +423,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
     // load the schema
     $.ajax({
-        url: "/schemas/jsonld-schema.json",
+        url: "../schemas/jsonld-schema.json",
         dataType: "json"
       })
       .done(function(schema){
