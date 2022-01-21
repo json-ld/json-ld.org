@@ -91,18 +91,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       profile.resources = r[0];
       profile.datatypes = d[0];
       profile.valuesets = v[0];
-      try {
-        generateShExJFromProfile(profile, profileUrls);
-      } catch (err) {
-        if (typeof err === 'object' && err instanceof StructureError) {
-          err.logMessage(console.log);
-        }
-        $('#processing-errors')
-          .append('Processing error:')
-          .append(
-            $('<pre>').text(playground.humanize(err)))
-          .show();
-      }
+      generateShExJFromProfile(profile, profileUrls);
     });
   }
 
@@ -117,10 +106,41 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   }
 
   function generateShExJFromProfile (profile, profileUrls) {
-    const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, GEN_JSONLD_CONTEXT_CONFIG);
-    playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
-    playground.fhircat.shexj._index = ShExUtil.index(playground.fhircat.shexj);
-    console.log(playground.fhircat.shexj);
+    let reportMe = null;
+    try {
+      const generationErrors = [];
+      const config = Object.assign({}, GEN_JSONLD_CONTEXT_CONFIG, {
+        error: (err) => {
+          generationErrors.push(err);
+        },
+        missing: {}
+      });
+      const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, config);
+
+      playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      if (Object.keys(config.missing).length > 0) {
+        console.warn('missing items reported while generating ShExJ:\n', config.missing);
+      }
+      if (generationErrors) {
+        console.error('errors reported while generating ShExJ:\n', generationErrors);
+        reportMe = `${generationErrors.length} errors reported while generating ShExJ. See console for list`;
+      }
+
+      playground.fhircat.shexj._index = ShExUtil.index(playground.fhircat.shexj);
+      console.log('generated ShExJ:\n', playground.fhircat.shexj);
+    } catch (err) {
+      if (typeof err === 'object' && err instanceof StructureError) {
+        err.logMessage(console.log);
+        reportMe = playground.humanize(err);
+      }
+    }
+    if (reportMe) {
+      $('#processing-errors')
+        .append('Processing error:')
+        .append(
+          $('<pre>').text(reportMe))
+        .show();
+    }
   }
 
   const fhirPreprocessR4 = function (input) {

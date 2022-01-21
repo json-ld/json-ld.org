@@ -61,9 +61,17 @@ class FhirShExJGenerator extends ModelVisitor {
     // list of top-level shape labels added to schema. differs from shapes.map(se => se.id) if nested shapes get top-level entries.
     this.added = [];
     // walk StructureDefinition, calling enter, scalar, complex, exit.
-    this.modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
+    this.modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets, config);
     // be able to look up TripleConstraints by the PropertyMapping that begat them.
     this.pMap2TC = new Map();
+  }
+
+  myError (error) {
+    if ('error' in this.config) {
+      this.config.error(error);
+    } else {
+      throw error;
+    }
   }
 
   genShExJ (skip = []) {
@@ -76,15 +84,17 @@ class FhirShExJGenerator extends ModelVisitor {
           return generated;
 
         switch (entry.resource.resourceType) {
-            // can optimize by passing entry.resource, but for now, exercise generation by name
-          case "CodeSystem":
-          case "CapabilityStatement":
-          case "CompartmentDefinition":
-          case "OperationDefinition":
-            break;
-          case "ValueSet": this.genValueset(genMe, this.config); break;
-          case "StructureDefinition": this.genShape(genMe, true, this.config); break;
-          default: throw Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`)
+          // can optimize by passing entry.resource, but for now, exercise generation by name
+        case "CodeSystem":
+        case "CapabilityStatement":
+        case "CompartmentDefinition":
+        case "OperationDefinition":
+          break;
+        case "ValueSet": this.genValueset(genMe, this.config); break;
+        case "StructureDefinition": this.genShape(genMe, true, this.config); break;
+        default:
+          this.myError(Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`));
+          return generated;
         }
         return generated.concat(genMe);
       }, generated);
@@ -294,12 +304,15 @@ class FhirShExJGenerator extends ModelVisitor {
    */
   genValueset (target, generatorConfig = this.config) {
     if (!(target in this.valuesets._index)) {
-      throw new Error(`Key ${target} not found in ${Object.keys(this.valuesets._index)}`);
+      this.myError(Error(`Key ${target} not found in ${Object.keys(this.valuesets._index)}`));
+      return this;
     }
     const resourceDef = this.valuesets._index[target];
     const label = Prefixes.fhirvs + resourceDef.id;
-    if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT)))
-      throw new Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`);
+    if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))) {
+      this.myError(Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`));
+      return this;
+    }
 
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
@@ -352,7 +365,7 @@ class FhirShExJGenerator extends ModelVisitor {
       if (this.config.log) {
         console.log(msg);
       } else {
-        throw Error(msg);
+        this.myError(Error(msg));
       }
     }
   }
