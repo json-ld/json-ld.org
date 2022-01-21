@@ -19,9 +19,3 @@ globalThis.FhirPreprocessor = {
   R4: preprocs.FhirR4Preprocessor,
   R5: preprocs.FhirR5Preprocessor,
 }
-
-function indexFhir (acc, entry) {
-  acc[entry.resource.id.toLowerCase()] = entry.resource;
-  return acc;
-};
-
