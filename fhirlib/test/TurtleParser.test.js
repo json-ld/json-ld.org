@@ -5,8 +5,9 @@ const Path = require("path");
 
 test('TurtleParserTest', async () => {
   const filename = 'playground-Patient';
+  const axes = 'RDVcs';
   const printer = new TurtleParser.TurtleParser();
-  const filepath = `./test/ttl/${filename}.ttl`;
+  const filepath = `./test/ttl/${filename}.${axes}.ttl`;
   const res = await printer.parseFile(filepath);
   expect(res.base).toEqual('file://' + filepath);
   expect(res.store.size).toBeGreaterThan(50);

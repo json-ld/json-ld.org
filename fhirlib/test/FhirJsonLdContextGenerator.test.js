@@ -22,14 +22,14 @@ const TestJsonResourceInstances = [
 ];
 
 describe("flat", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat.shexj', '-flat'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat.shexj', 'flat', 'RDVcs'));
 });
 
 describe("nested", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest.shexj', '-nest'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest.shexj', 'nest', 'RDVcs'));
 });
 
-function makeTester (shexjFile, attributes) {
+function makeTester (shexjFile, nestings, axes) {
   const schema = JSON.parse(Fs.readFileSync(Path.join(__dirname, shexjFile), 'utf8'));
   const contextGenerator = new FhirJsonLdContextGenerator(schema);
 
@@ -37,7 +37,7 @@ function makeTester (shexjFile, attributes) {
   return async (filename) => { // the WebStorm recipe has a space in the name
     // Calculate paths for source and expected data.
     const instanceFile = Path.join(__dirname, `json/${filename}.json`);
-    const referenceContexts = Path.join(__dirname, `json/${filename}${attributes}-contexts.json`);
+    const referenceContexts = Path.join(__dirname, `json/${filename}-${nestings}-contexts.json`);
 
     // Parse and pre-process source data.
     const json = await Fs.promises.readFile(instanceFile, 'utf8');
@@ -62,7 +62,7 @@ function makeTester (shexjFile, attributes) {
     }
 
     // Test the reference nquads.
-    const expected = await Fs.promises.readFile(`./test/ttl/${filename}.nt`, 'utf8');
+    const expected = await Fs.promises.readFile(`./test/ttl/${filename}.${axes}.nt`, 'utf8');
     // Crappy test ignores graph isomorphism, but good enough for now.
     expect(nquads).toEqual(expected);
   }
