@@ -91,11 +91,11 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       profile.resources = r[0];
       profile.datatypes = d[0];
       profile.valuesets = v[0];
-      generateShExJFromProfile(profile, profileUrls);
+      generateShExJFromProfile(profile);
     });
   }
 
-  function ajaxProfileFileLoader (url, assign) {
+  function ajaxProfileFileLoader (url) {
     return $.ajax({
         url: url,
         dataType: "json"
@@ -105,7 +105,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       })
   }
 
-  function generateShExJFromProfile (profile, profileUrls) {
+  function generateShExJFromProfile (profile) {
     $('#processing-errors').hide().empty();
     let reportMe = null;
     try {
@@ -434,67 +434,77 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
 
-    zip.configure({ workerScripts: { inflate: ["lib/z-worker.js"] } });
-    const fileInput = document.getElementById("file-input");
-    const fileInputButton = document.getElementById("file-input-button");
-    let selectedFile;
-    fileInput.onchange = selectFile;
-    fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent("click"));
-
-    const model = (() => {
-      return {
-        getEntries(file, options) {
-          return (new zip.ZipReader(new zip.BlobReader(file))).getEntries(options);
-        },
-        async getURL(entry, options) {
-          return URL.createObjectURL(await entry.getData(new zip.BlobWriter(), options));
-        }
-      };
-    })();
-
-    async function selectFile() {
+    zip.configure({ workerScripts: { inflate: ['lib/z-worker.js'] } });
+    const fileInput = document.getElementById('file-input');
+    const fileInputButton = document.getElementById('file-input-button');
+    fileInput.onchange = uploadDefinitionsZip;
+    fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent('click'));
+    fileInputButton.ondragenter = handleDrag;
+    fileInputButton.ondragover = handleDrag;
+    fileInputButton.ondrop = evt => {
+      handleDrag(evt);
       $('#processing-errors').hide().empty();
+      const dt = evt.dataTransfer;
+      const url = dt.getData('URL');
+      if (url) {
+        unzipDefinitions(new zip.HttpReader(url), url);
+      } else if (dt.files.length > 0) {
+        unzipDefinitions(new zip.BlobReader(dt.files[0]), 'file upload ' + dt.files[0].name);
+      } else {
+        $('#processing-errors')
+          .append('Error loading profile: unknown drag event')
+          .show();
+      }
+    }
+
+    function handleDrag (evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
+
+    async function uploadDefinitionsZip () {
+      await unzipDefinitions(new zip.BlobReader(fileInput.files[0]), 'file upload');
+    }
+
+    async function unzipDefinitions (reader, source) {
+      $('#processing-errors').hide().empty();
+      fileInputButton.disabled = true;
       try {
-        fileInputButton.disabled = true;
-        selectedFile = fileInput.files[0];
-        await loadFiles();
+        const zipper = new zip.ZipReader(reader);
+        const entries = await zipper.getEntries({ filenameEncoding: 'utf-8' });
+
+        const resources = await expectJson(/resource/i);
+        const datatypes = await expectJson(/type/i);
+        const valuesets = await expectJson(/value/i);
+
+        const version = await expectEntry(/version/i);
+        const m = version.match(/version=([^\r\n]+)/);
+        fileInputButton.innerText = m ? m[1] : '??';
+        fileInputButton.title = version + `\n\nuploaded ${new Date().toISOString()} from\n${source}`;
+
+        generateShExJFromProfile({resources, datatypes, valuesets});
+
+        async function expectEntry (re) {
+          const oneEntry = entries.filter(e => e.filename.match(re));
+          if (oneEntry.length !== 1) {
+            throw Error(`Expected 1 entry to match ${re} in ${entries.map(e => e.filename).join(', ')}`);
+          }
+          const text = await oneEntry[0].getData(new zip.TextWriter());
+          return text;
+        }
+
+        async function expectJson (re) {
+          return JSON.parse(await expectEntry(re));
+        }
       } catch (err) {
-      $('#processing-errors')
+        $('#processing-errors')
           .append('Error loading profile:')
           .append(
             $('<pre>').text(playground.humanize(err)))
           .show();
       } finally {
         fileInputButton.disabled = false;
-        fileInput.value = "";
-      }
-    }
-
-    async function loadFiles() {
-      const filenameEncoding = 'utf-8';
-      const entries = await model.getEntries(selectedFile, { filenameEncoding });
-
-      const resources = await expectJson(/resource/i);
-      const datatypes = await expectJson(/type/i);
-      const valuesets = await expectJson(/value/i);
-
-      const version = await expectEntry(/version/i);
-      const m = version.match(/version=([^\r\n]+)/);
-      fileInputButton.innerText = m ? m[1] : '??';
-
-      generateShExJFromProfile({resources, datatypes, valuesets}, null);
-
-      async function expectEntry (re) {
-        const oneEntry = entries.filter(e => e.filename.match(re));
-        if (oneEntry.length !== 1) {
-          throw Error(`Expected 1 entry to match ${re} in ${entries.map(e => e.filename).join(', ')}`);
-        }
-        const text = await oneEntry[0].getData(new zip.TextWriter());
-        return text;
-      }
-
-      async function expectJson (re) {
-        return JSON.parse(await expectEntry(re));
+        fileInput.value = '';
       }
     }
 
