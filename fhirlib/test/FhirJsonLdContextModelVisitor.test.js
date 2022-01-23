@@ -40,8 +40,8 @@ const compareMe = [
 */
 ];
 
-describe('RDVcs', () => {
-  const axes = 'RDVcs';
+describe('RDVch', () => {
+  const axes = 'RDVch';
   test.each(compareMe)('nquads(%s)', async (filename) => {
     const instanceFile = Path.join(__dirname, `json/${filename}.json`);
     const referenceContexts = Path.join(__dirname, `json/${filename}-contexts.json`);

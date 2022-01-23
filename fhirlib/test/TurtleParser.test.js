@@ -5,7 +5,7 @@ const Path = require("path");
 
 test('TurtleParserTest', async () => {
   const filename = 'playground-Patient';
-  const axes = 'RDVcs';
+  const axes = 'RDVch';
   const printer = new TurtleParser.TurtleParser();
   const filepath = `./test/ttl/${filename}.${axes}.ttl`;
   const res = await printer.parseFile(filepath);

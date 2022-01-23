@@ -24,19 +24,19 @@ const TestJsonResourceInstances = [
 ];
 
 describe("flat", () => {
-  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-flat.shexj', 'RDVcs'));
+  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-flat.shexj', 'RDVch'));
 });
 
 describe("nested", () => {
-  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-nest.shexj', 'RDVcs'));
+  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-nest.shexj', 'RDVch'));
 });
 
-function makeTester (shexjFile, axess) {
+function makeTester (shexjFile, rdvch) {
   const schema = JSON.parse(Fs.readFileSync(Path.join(__dirname, shexjFile), 'utf8'));
 
   return async (filename) => {
     const parser = new TurtleParser.TurtleParser();
-    const filepath = `./test/ttl/${filename}.${axess}.ttl`;
+    const filepath = `./test/ttl/${filename}.${rdvch}.ttl`;
     const config = {};
     const resource = await parser.parseFile(filepath, config);
     expect(resource.base).toEqual('file://' + filepath);

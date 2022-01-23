@@ -22,11 +22,11 @@ const TestJsonResourceInstances = [
 ];
 
 describe("flat", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat.shexj', 'flat', 'RDVcs'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat.shexj', 'flat', 'RDVch'));
 });
 
 describe("nested", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest.shexj', 'nest', 'RDVcs'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest.shexj', 'nest', 'RDVch'));
 });
 
 function makeTester (shexjFile, nestings, axes) {
