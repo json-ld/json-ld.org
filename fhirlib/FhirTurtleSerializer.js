@@ -17,9 +17,9 @@ class Serializer {
   }
 
   addResource(resource, printer, config, rest = new N3Store()) {
-    const rootTriple = this.expectOne(resource.store.getQuads(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot'));
+    const rootTriple = this.expectOne(resource.store.getQuads(null, P.fhir + 'nodeRole', P.fhir + 'treeRoot'), 'nodeRole treeRoot');
     const node = rootTriple.subject;
-    const typeTriple = this.expectOne(resource.store.getQuads(node, P.rdf + 'type', null));
+    const typeTriple = this.expectOne(resource.store.getQuads(node, P.rdf + 'type', null), 'fhir type');
     const type = this.expectFhirResource(typeTriple.object);
     // printer.addQuads([typeTriple, rootTriple]);
 
@@ -54,9 +54,9 @@ class Serializer {
     }
   }
 
-  expectOne(oneQuad) {
+  expectOne(oneQuad, description) {
     if (oneQuad.length !== 1) {
-      throw new Error(`Expected 1, got ${oneQuad.length} matches for {${s} ${p} ${o}}`);
+      throw new Error(`Expected 1, got ${oneQuad.length} matches for ${description}`);
     }
     // this.store.removeQuads(oneQuad);
     return oneQuad[0];
