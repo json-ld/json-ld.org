@@ -2,6 +2,7 @@
  *
  */
 const {PropertyMapping} = require('./FhirRdfModelGenerator');
+const EvalSimple1err = require("@shexjs/eval-simple-1err");
 const P = require('./Prefixes');
 
 const N3Store = require('n3/lib/N3Store').default;
@@ -25,7 +26,9 @@ class Serializer {
 
     const shape = P.fhirshex + type;
     const db = ShExUtil.rdfjsDB(resource.store, null); // no query tracker needed
-    const validator = ShExValidator.construct(this.schema, db, {});
+    const validator = ShExValidator.construct(this.schema, db, {
+      regexModule: EvalSimple1err
+    });
     const res = validator.validate([{node, shape}]);
     // if (process.env.DEBUG) { console.log('validation res: ' + JSON.stringify(res, null, 2)) };
 
