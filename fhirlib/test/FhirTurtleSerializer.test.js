@@ -13,28 +13,30 @@ const N3Store = require('n3/lib/N3Store').default;
 const TestJsonResourceInstances = [
 /*
 */
-  'playground-Patient',
+  { f: 'playground-Patient', extra: 5 },
+  { f: 'playground-Observation', extra: 3 },
+  { f: 'playground-CodeSystem', extra: 3 },
 /*
-  'playground-Observation',
-  'playground-CodeSystem',
-  'playground-Medication',
-  'playground-AllergyIntollerance',
-  'playground-Bundle',
+  { f: 'playground-Medication', extra: 5 },
+  { f: 'playground-AllergyIntollerance', extra: 5 },
+  { f: 'playground-Bundle', extra: 5 },
 */
 ];
 
 describe("flat", () => {
-  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-flat.shexj', 'RDVch'));
+  const tester = makeTester('../fhir-flat.shexj', 'RDVch');
+  test.each(TestJsonResourceInstances)('serialize %s:%d ', ({f, extra}) => tester(f, extra));
 });
 
 describe("nested", () => {
-  test.each(TestJsonResourceInstances)('serialize %s ', makeTester('../fhir-nest.shexj', 'RDVch'));
+  const tester = makeTester('../fhir-nest.shexj', 'RDVch');
+  test.each(TestJsonResourceInstances)('serialize %s:%d ', ({f, extra}) => tester(f, extra));
 });
 
 function makeTester (shexjFile, rdvch) {
   const schema = JSON.parse(Fs.readFileSync(Path.join(__dirname, shexjFile), 'utf8'));
 
-  return async (filename) => {
+  return async (filename, extraQuads) => {
     const parser = new TurtleParser.TurtleParser();
     const filepath = `./test/ttl/${filename}.${rdvch}.ttl`;
     const config = {};
@@ -72,9 +74,9 @@ function makeTester (shexjFile, rdvch) {
         throw new Error(error);
       pretty = result;
     });
-    // if (process.env.DEBUG) { console.log(restDb.size + "\n" + pretty); }
+    // console.log(restDb.size + "\n" + pretty);
 
     expect(pretty.length).toBeGreaterThan(1);
-    expect(restDb.size).toEqual(5); // playground-Patient has 5 remaining triples
+    expect(restDb.size).toEqual(extraQuads); // playground-Patient has 5 remaining triples
   }
 }

@@ -44,11 +44,12 @@ describe('RDVch', () => {
   const axes = 'RDVch';
   test.each(compareMe)('nquads(%s)', async (filename) => {
     const instanceFile = Path.join(__dirname, `json/${filename}.json`);
+    const schemaFile = Path.join(__dirname, `../fhir-flat.shexj`);
     const referenceContexts = Path.join(__dirname, `json/${filename}-contexts.json`);
 
-    const json = await Fs.promises.readFile(instanceFile, 'utf8');
-    const patient = JSON.parse(json);
-    const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
+    const patient = JSON.parse(await Fs.promises.readFile(instanceFile, 'utf8'));
+    const shexj = JSON.parse(await Fs.promises.readFile(schemaFile, 'utf8'))
+    const preprocessor = new FhirPreprocessors.FhirR4Preprocessor(shexj);
     const preProcessed = JSON.parse(preprocessor.preprocess(patient));
     const nquads = await Jsonld.toRDF(preProcessed, {format: 'application/n-quads'});
 

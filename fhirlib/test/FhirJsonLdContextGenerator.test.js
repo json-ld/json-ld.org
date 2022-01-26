@@ -42,7 +42,7 @@ function makeTester (shexjFile, nestings, axes) {
     // Parse and pre-process source data.
     const json = await Fs.promises.readFile(instanceFile, 'utf8');
     const patient = JSON.parse(json);
-    const preprocessor = new FhirPreprocessors.FhirR4Preprocessor();
+    const preprocessor = new FhirPreprocessors.FhirR4Preprocessor(schema);
     const preProcessed = JSON.parse(preprocessor.preprocess(patient));
 
     // Construct a document loader which will record generated contexts.
@@ -55,6 +55,7 @@ function makeTester (shexjFile, nestings, axes) {
     // Test against (or generate, if first time this TestJsonResourceInstances has been run) expected contexts:
     if (Fs.existsSync(referenceContexts)) {
       // test the expected contexts.
+      // await Fs.promises.writeFile(referenceContexts + '-got', JSON.stringify(generatedContexts))
       expect(generatedContexts).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
     } else {
       // still generating them, ideally should happen once per test addition.

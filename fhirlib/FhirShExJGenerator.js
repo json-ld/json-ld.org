@@ -181,8 +181,13 @@ class FhirShExJGenerator extends ModelVisitor {
       }
 
       let valueExpr;
+      let annotations = null;
       if (propertyMapping.isScalar) {
-        valueExpr = propertyMapping.type; // e.g. http://www.w3.org/2001/XMLSchema#string"
+        valueExpr = Object.assign({}, propertyMapping.type); // e.g. http://www.w3.org/2001/XMLSchema#string"
+        if ("annotations" in valueExpr) {
+          annotations = valueExpr.annotations;
+          delete valueExpr.annotations;
+        }
       } else {
         valueExpr = Prefixes.fhirshex + propertyMapping.type;
         if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
@@ -213,7 +218,8 @@ class FhirShExJGenerator extends ModelVisitor {
       return acc.concat([this.indexTripleConstraint(
         propertyMapping,
         valueExpr,
-        null
+        null,
+        annotations
       )]);
     }, []);
 
@@ -275,13 +281,13 @@ class FhirShExJGenerator extends ModelVisitor {
         : {min, max};
   }
 
-  indexTripleConstraint(propertyMapping, valueExpr, cardObj = {}) {
-    const ret = this.makeTripleConstraint(propertyMapping.predicate, valueExpr, cardObj);
+  indexTripleConstraint(propertyMapping, valueExpr, cardObj = {}, annotations = null) {
+    const ret = this.makeTripleConstraint(propertyMapping.predicate, valueExpr, cardObj, annotations);
     this.pMap2TC.set(propertyMapping, ret);
     return ret;
   }
 
-  makeTripleConstraint(predicate, valueExpr, cardObj = {}) {
+  makeTripleConstraint(predicate, valueExpr, cardObj = {}, annotations) {
     return Object.assign({
       type: "TripleConstraint",
       predicate: predicate,
@@ -289,7 +295,10 @@ class FhirShExJGenerator extends ModelVisitor {
         valueExpr ?
             { valueExpr: valueExpr }
             : {},
-        cardObj);
+        cardObj,
+        annotations
+            ? { annotations}
+            : {});
   }
 
   add(te) {

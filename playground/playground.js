@@ -145,13 +145,13 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   }
 
   const fhirPreprocessR4 = function (input) {
-    let processor = new FhirPreprocessor.R4();
+    let processor = new FhirPreprocessor.R4(playground.fhircat.shexj);
     return processor.preprocess(input);
   };
 
 
   const fhirPreprocessR5 = function (input) {
-    let processor = new FhirPreprocessor.R5();
+    let processor = new FhirPreprocessor.R5(playground.fhircat.shexj);
     return processor.preprocess(input);
   };
 

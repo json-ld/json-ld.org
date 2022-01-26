@@ -129,7 +129,10 @@ class Converter {
             ret[property]['@context'] = StupidBaseUrl(expr.valueExpr.substr(Ns_fhsh.length))
           }
         } else if (typeof expr.valueExpr === 'object') {
-          if (expr.valueExpr.type === "NodeConstraint") {
+          const a = (expr.annotations || []).find(a => a.predicate === "http://shex2json.example/map#property");
+          if (a) {
+            ; // no need for an @type
+          } else if (expr.valueExpr.type === "NodeConstraint") {
             if (expr.valueExpr.nodeKind === 'iri') {
               // e.g. `fhir:link IRI`
               ret[property]['@type'] = "@id"
