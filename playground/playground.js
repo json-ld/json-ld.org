@@ -247,7 +247,9 @@
     playground.options = {
       api: {
         // TODO: add other API options
-        processingMode: ''
+        processingMode: '',
+        compactArrays: true,
+        compactToRelative: true
       }
     };
 
@@ -317,10 +319,22 @@
     // setup options
     $("#options-api-processingMode")[0].value =
       playground.options.api.processingMode;
+    $("#options-api-compactArrays").prop(
+      'checked', playground.options.api.compactArrays);
+    $("#options-api-compactToRelative").prop(
+      'checked', playground.options.api.compactToRelative);
 
     // process on option changes
     $("#options-api-processingMode").change(function(e) {
       playground.options.api.processingMode = e.target.value;
+      playground.process();
+    });
+    $("#options-api-compactArrays").change(function(e) {
+      playground.options.api.compactArrays = e.target.checked;
+      playground.process();
+    });
+    $("#options-api-compactToRelative").change(function(e) {
+      playground.options.api.compactToRelative = e.target.checked;
       playground.process();
     });
 
@@ -820,6 +834,8 @@
     if(playground.options.api.processingMode !== '') {
       options.processingMode = playground.options.api.processingMode;
     }
+    options.compactArrays = playground.options.api.compactArrays;
+    options.compactToRelative = playground.options.api.compactToRelative;
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
