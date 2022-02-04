@@ -245,10 +245,10 @@
   playground.init = function() {
     // options storage
     playground.options = {
-      input: {
+      api: {
+        // TODO: add other API options
         processingMode: ''
       }
-      // TODO: add other API options
     };
 
     // enable bootstrap tabs
@@ -315,11 +315,12 @@
     });
 
     // setup options
-    $("#options-input-processingMode")[0].value = playground.options.input.processingMode;
+    $("#options-api-processingMode")[0].value =
+      playground.options.api.processingMode;
 
     // process on option changes
-    $("#options-input-processingMode").change(function(e) {
-      playground.options.input.processingMode = e.target.value;
+    $("#options-api-processingMode").change(function(e) {
+      playground.options.api.processingMode = e.target.value;
       playground.process();
     });
 
@@ -816,8 +817,8 @@
       base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
         document.baseURI || document.URL
     };
-    if(playground.options.input.processingMode !== '') {
-      options.processingMode = playground.options.input.processingMode;
+    if(playground.options.api.processingMode !== '') {
+      options.processingMode = playground.options.api.processingMode;
     }
 
     var promise;
