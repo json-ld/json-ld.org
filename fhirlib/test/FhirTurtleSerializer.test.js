@@ -23,15 +23,13 @@ const TestJsonResourceInstances = [
 */
 ];
 
-describe("flat", () => {
-  const tester = makeTester('../fhir-flat.shexj', 'RDVch');
-  test.each(TestJsonResourceInstances)('serialize %s:%d ', ({f, extra}) => tester(f, extra));
-});
-
-describe("nested", () => {
-  const tester = makeTester('../fhir-nest.shexj', 'RDVch');
-  test.each(TestJsonResourceInstances)('serialize %s:%d ', ({f, extra}) => tester(f, extra));
-});
+['flat', 'nest'].forEach(
+  n =>
+    describe(`${n} schema`, () => {
+      const tester = makeTester(`../fhir-${n}.shexj`, 'RDVch');
+      test.each(TestJsonResourceInstances)('serialize %s +%d extra triples', ({f, extra}) => tester(f, extra));
+    } )
+)
 
 function makeTester (shexjFile, rdvch) {
   const schema = JSON.parse(Fs.readFileSync(Path.join(__dirname, shexjFile), 'utf8'));
