@@ -13,7 +13,7 @@ const VALUE_SET_STEM = 'http://hl7.org/fhir/ValueSet/';
 class FhirShExJGenerator extends ModelVisitor {
 
   // prototype for generated schema.
-  static SCHEMA = {
+  static EMPTY_FHIR_RESOURCE_SCHEMA = {
     type: "Schema",
     start: {
       type: "ShapeAnd",
@@ -53,7 +53,7 @@ class FhirShExJGenerator extends ModelVisitor {
     super(resources, datatypes, valuesets);
     this.config = config;
     // make a fresh copy of the prototype schema.
-    this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.SCHEMA));
+    this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.EMPTY_FHIR_RESOURCE_SCHEMA));
     // conjunctions of TripleExpressions to add to current shape.
     this.teListStack = [];
     // shift in nested shape on genShape and enter. unshift on exit and when done in genShape.

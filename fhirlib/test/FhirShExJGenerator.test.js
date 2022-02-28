@@ -47,6 +47,8 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   // Verify read size
   // console.log(JSON.stringify(generated, null, 2));
   expect(generated.shapes.map(se => se.id)).toEqual(reference.shapes.map(se => se.id));
+  // Fs.writeFileSync("/tmp/toy/generated.json", JSON.stringify(generated, null, 2), {encoding: "utf8"});
+  // Fs.writeFileSync("/tmp/toy/reference.json", JSON.stringify(reference, null, 2), {encoding: "utf8"});
   expect(generated).toEqual(reference);
   expect(GEN_SHEXJ_CONTEXT_CONFIG.missing.codesystems).toEqual(new Set([
       "http://terminology.hl7.org/CodeSystem/v3-TimingEvent",

@@ -1,3 +1,7 @@
+/*
+ obsolete - enter/element/exit actions may be handy later but feel free to delete.
+ */
+
 const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRdfModelGenerator');
 
 /**
