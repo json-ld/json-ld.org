@@ -16,20 +16,28 @@ class PropertyMapping {
   }
 }
 
-class ModelVisitor {
+class ResourceLoader {
   static empty = { entry: [] }; // dummy to not cause trouble
 
-  constructor(resources = ModelVisitor.empty, datatypes = ModelVisitor.empty, valuesets = ModelVisitor.empty) {
+  constructor(resources = ResourceLoader.empty, datatypes = ResourceLoader.empty, valuesets = ResourceLoader.empty) {
     this.resources = indexBundle(resources);
     this.datatypes = indexBundle(datatypes);
     this.valuesets = indexBundle(valuesets);
-    this.codesystems = valuesets.entry.reduce((codesystems, entry) => {
-      const resource = entry.resource;
-      if (resource.resourceType === "CodeSystem") {
-        codesystems.set(resource.url, resource);
-      }
-      return codesystems;
-    }, new Map())
+  }
+
+  getStructureDefinitionByName (target) {
+    return target in this.resources._index
+      ? this.resources._index[target]
+      : target in this.datatypes._index
+      ? this.datatypes._index[target]
+      : null;
+  }
+}
+
+class ModelVisitor {
+
+  constructor(resourceLoader) {
+    this.resourceLoader = resourceLoader;
   }
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
   element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
@@ -108,10 +116,8 @@ class FhirRdfModelGenerator {
 
   static FhirTypeExtension = "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type";
 
-  constructor (resources, datatypes, valuesets, opts = []) {
-    this.resources = resources;
-    this.datatypes = datatypes;
-    this.valuesets = valuesets;
+  constructor (resourceLoader, opts = {}) {
+    this.resourceLoader = resourceLoader;
     this.stack = [];
     this.opts = opts;
   }
@@ -127,26 +133,22 @@ class FhirRdfModelGenerator {
   /**
    * Recursive function to generate a content model for a FHIR Resource
    */
-  visitResource (target, visitor, config) {
-    this.visitElement(target, visitor, config);
+  visitResource (resourceDef, visitor, config) {
+    this.visitElement(resourceDef, visitor, config);
     this.stack.reverse().forEach(n => visitor.exit(n));
     this.stack = [];
   }
 
-  visitElement (target, visitor, config) {
-    let map;
-    if (target === "root") {
-      return;
-    } if (target in this.resources._index) {
-      map = this.resources._index;
-    } else if (target in this.datatypes._index) {
-      map = this.datatypes._index;
-    } else {
-      this.myError(new FhirResourceDefinitionError(`Key ${target} not found in ${Object.keys(this.resources._index)} or ${Object.keys(this.datatypes._index)}`, resourceDef));
+  visitElementByName (target, visitor, config) {
+    const resourceDef = this.resourceLoader.getStructureDefinitionByName(target);
+    if (resourceDef === null) {
       return [];
     }
 
-    const resourceDef = map[target];
+    return this.visitElement(resourceDef, visitor, config);
+  }
+
+  visitElement (resourceDef, visitor, config) {
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))) {
       this.myError(new FhirResourceDefinitionError(`Don't know where to look for base structure ${resourceDef.baseDefinition}`, resourceDef));
       return [];
@@ -156,13 +158,13 @@ class FhirRdfModelGenerator {
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
       if (recursionTarget !== 'base')
-        baseElts = this.visitElement(recursionTarget, visitor, config); // Get content model from base type
+        baseElts = this.visitElementByName(recursionTarget, visitor, config); // Get content model from base type
     }
 
     // Walk differential elements
     return resourceDef.differential.element.slice(1).reduce((visitedElts, elt) => {
       if (elt.id !== elt.path) { // test assumptions
-        this.myError(new FhirElementDefinitionError(`id !== path in ${target} ${elt.id}`, resourceDef, elt));
+        this.myError(new FhirElementDefinitionError(`id !== path in ${resourceDef.id} ${elt.id}`, resourceDef, elt));
         return visitedElts;
       }
 
@@ -175,13 +177,13 @@ class FhirRdfModelGenerator {
       // Calculate path components
       const path = elt.id.split('.');
       const resourceName = path.shift();
-      if (resourceName !== target)
-        console.warn(`property id ${elt.id} does not start with target \"${target}\" in ${resourceDef.id} structure def`);
+      if (resourceName !== resourceDef.id)
+        console.warn(`property id ${elt.id} does not start with target \"${resourceDef.id}\" in ${resourceDef.id} structure def`);
       let rawName = path.pop();
 
       // Handle curried datatype names
       if ("type" in elt && rawName.endsWith("[x]") ^ elt.type.length > 1) { // assume "...[x]" only applies if you have multiple types
-        this.myError(new Error(`Not sure whether ${target}.${elt.id} is a curried property or not: '${JSON.stringify(typeEntry)}'`));
+        this.myError(new Error(`Not sure whether ${resourceDef.id}.${elt.id} is a curried property or not: '${JSON.stringify(typeEntry)}'`));
         return visitedElts;
       }
       const [curried, name] = "type" in elt && elt.type.length > 1
@@ -239,7 +241,7 @@ class FhirRdfModelGenerator {
           // so save and hide the stack.
           const saveStack = this.stack;
           this.stack = [];
-          this.visitElement(nestedTarget, visitor, config);
+          this.visitElementByName(nestedTarget, visitor, config);
           this.stack = saveStack;
           return [];
         } else {
@@ -264,9 +266,9 @@ class FhirRdfModelGenerator {
             const nodeConstraint = (propertyOverride ? propertyOverride.nodeConstraint : null)
                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
                        || (function () {
-                         const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${target}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
+                         const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
                             console.warn(e.stack);
-                            return `UNKNOWN-${target}-${elt.id}-${trimmedTypeCode}`;
+                            return `UNKNOWN-${resourceDef.id}-${elt.id}-${trimmedTypeCode}`;
                        })());
             const finalName = propertyOverride ? propertyOverride.predicate : curriedName
             const predicate2 = FhirRdfModelGenerator.NS_fhir + finalName;
@@ -316,4 +318,4 @@ class FhirRdfModelGenerator {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirRdfModelGenerator, FhirResourceDefinitionError, FhirElementDefinitionError, ModelVisitor, PropertyMapping};
+  module.exports = {FhirRdfModelGenerator, FhirResourceDefinitionError, FhirElementDefinitionError, ResourceLoader, ModelVisitor, PropertyMapping};

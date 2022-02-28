@@ -1,4 +1,4 @@
-const {FhirRdfModelGenerator, PropertyMapping, ModelVisitor} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, PropertyMapping, ResourceLoader, ModelVisitor} = require('./FhirRdfModelGenerator');
 const Prefixes = require('./Prefixes');
 const ShExUtil = require("@shexjs/util");
 const P = require("./Prefixes");
@@ -50,7 +50,7 @@ class FhirShExJGenerator extends ModelVisitor {
   static ResourcesThatNeedALink = ["Reference"];
 
   constructor (resources, datatypes, valuesets, config = {}) {
-    super(resources, datatypes, valuesets);
+    super(new ResourceLoader(resources, datatypes, valuesets));
     this.config = config;
     // make a fresh copy of the prototype schema.
     this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.EMPTY_FHIR_RESOURCE_SCHEMA));
@@ -61,9 +61,17 @@ class FhirShExJGenerator extends ModelVisitor {
     // list of top-level shape labels added to schema. differs from shapes.map(se => se.id) if nested shapes get top-level entries.
     this.added = [];
     // walk StructureDefinition, calling enter, scalar, complex, exit.
-    this.modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets, config);
+    this.modelGenerator = new FhirRdfModelGenerator(this.resourceLoader, config);
     // be able to look up TripleConstraints by the PropertyMapping that begat them.
     this.pMap2TC = new Map();
+
+    this.codesystems = valuesets.entry.reduce((codesystems, entry) => {
+      const resource = entry.resource;
+      if (resource.resourceType === "CodeSystem") {
+        codesystems.set(resource.url, resource);
+      }
+      return codesystems;
+    }, new Map())
   }
 
   myError (error) {
@@ -74,8 +82,7 @@ class FhirShExJGenerator extends ModelVisitor {
     }
   }
 
-  genShExJ (skip = []) {
-    const sources = [this.resources, this.datatypes, this.valuesets];
+  genShExJ (sources, skip = []) {
     const generated = sources.reduce((generated, source) => {
       return source.entry.reduce((generated, entry) => {
         const url = entry.fullUrl;
@@ -90,8 +97,8 @@ class FhirShExJGenerator extends ModelVisitor {
         case "CompartmentDefinition":
         case "OperationDefinition":
           break;
-        case "ValueSet": this.genValueset(genMe, this.config); break;
-        case "StructureDefinition": this.genShape(genMe, true, this.config); break;
+        case "ValueSet": this.genValueset(entry.resource, this.config); break;
+        case "StructureDefinition": this.genShape(entry.resource, true, this.config); break;
         default:
           this.myError(Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`));
           return generated;
@@ -107,20 +114,20 @@ class FhirShExJGenerator extends ModelVisitor {
 
   /**
    * Generate a Shape for target. This may entail creating nested shapes.
-   * @param target shape label for generates Shape.
+   * @param resourceDef_id shape label for generates Shape.
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator} this.
    */
-  genShape (target, root, generatorConfig = this.config) {
-    const isParent = FhirShExJGenerator.PARENT_TYPES.indexOf(target) === -1;
-    const label = Prefixes.fhirshex + target;
+  genShape (resourceDef, root, generatorConfig = this.config) {
+    const isParent = FhirShExJGenerator.PARENT_TYPES.indexOf(resourceDef.id) === -1;
+    const label = Prefixes.fhirshex + resourceDef.id;
     this.added.push(label);
     this.pushShape(label, isParent);
-    if (target in this.resources._index) {
+    if (resourceDef.kind === 'resource') {
       if (isParent) {
         this.add(this.makeTripleConstraint(
           Prefixes.rdf + 'type',
-          { "type": "NodeConstraint", "values": [Prefixes.fhir + target] },
+          { "type": "NodeConstraint", "values": [Prefixes.fhir + resourceDef.id] },
           null));
         if (root) {
           this.add(this.makeTripleConstraint(
@@ -137,25 +144,25 @@ class FhirShExJGenerator extends ModelVisitor {
         ));
       }
     }
-    if ("addTypesTo" in this.config && this.config.addTypesTo.indexOf(target) !== -1) {
+    if ("addTypesTo" in this.config && this.config.addTypesTo.indexOf(resourceDef.id) !== -1) {
       this.add(this.makeTripleConstraint(
           Prefixes.rdf + 'type',
           { "type": "NodeConstraint", "nodeKind": 'nonliteral' },
           {min: 0, max: 1}
       ));
     }
-    if (FhirShExJGenerator.ResourcesThatNeedALink.indexOf(target) !== -1) {
+    if (FhirShExJGenerator.ResourcesThatNeedALink.indexOf(resourceDef.id) !== -1) {
       this.add(this.makeTripleConstraint(
         Prefixes.fhir + 'link',
         { "type": "NodeConstraint", "nodeKind": "iri" },
         {min: 0, max: 1}
       ));
     }
-    this.modelGenerator.visitResource(target, this, generatorConfig);
+    this.modelGenerator.visitResource(resourceDef, this, generatorConfig);
     // this.resources._index.entries.forEach(
     //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, generatorConfig); }
     // );
-    this.popShape(target);
+    this.popShape(resourceDef.id);
     return this;
   }
 
@@ -311,12 +318,7 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator}
    */
-  genValueset (target, generatorConfig = this.config) {
-    if (!(target in this.valuesets._index)) {
-      this.myError(Error(`Key ${target} not found in ${Object.keys(this.valuesets._index)}`));
-      return this;
-    }
-    const resourceDef = this.valuesets._index[target];
+  genValueset (resourceDef, generatorConfig = this.config) {
     const label = Prefixes.fhirvs + resourceDef.id;
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))) {
       this.myError(Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`));
@@ -337,7 +339,7 @@ class FhirShExJGenerator extends ModelVisitor {
       nodeConstraint.values = values;
     }
     this.schema.shapes.push(nodeConstraint);
-    this.added.push(target);
+    this.added.push(resourceDef.id);
     return this;
   }
 

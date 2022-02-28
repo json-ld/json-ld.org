@@ -33,7 +33,7 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
       parsedValuesets,
       GEN_SHEXJ_CONTEXT_CONFIG
   );
-  const generated = await generator.genShExJ(skip);
+  const generated = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets], skip);
 
   // Verify generated size
   // expect(generated.shapes.map(s => s.id.startsWith(Prefixes.fhirshex) ? s.id.substr(Prefixes.fhirshex.length) : s.id.substr(Prefixes.fhirvs.length))).toEqual(expect.arrayContaining(generated));
