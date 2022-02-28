@@ -16,20 +16,13 @@ const GEN_SHEXJ_CONTEXT_CONFIG = {
   }
 };
 
-const GEN_SHEXJ_STEM = 'http://hl7.org/fhir/StructureDefinition/';
-const CODE_SYSTEM_STEM = 'http://hl7.org/fhir/CodeSystem/';
-const VALUE_SET_STEM = 'http://hl7.org/fhir/ValueSet/';
-const CAPABILITY_STATEMENT_BASE = 'http://hl7.org/fhir/CapabilityStatement/';
-const COMPARTMENT_DEFINITION_BASE = 'http://hl7.org/fhir/CompartmentDefinition/';
-const OPERATION_DEFINITION_BASE = 'http://hl7.org/fhir/OperationDefinition/';
-
 const indexFhir = (acc, entry) => {
   acc[entry.resource.id] = entry.resource;
   return acc;
 };
 
 program
-  .version('0.0.1')
+  .version('0.0.2')
   .option('--flat', 'name and hoist all embeded shapes (default)')
   .option('--nest', 'embed shapes where possible')
   .arguments('<resources> <datatypes> <valuesets> <result>')
@@ -41,9 +34,10 @@ program
 
 async function generate(resources, datatypes, valuesets, result) {
   try {
-    const parsedResources = await readJsonProfile(resources);
-    const parsedDatatypes = await readJsonProfile(datatypes);
-    const parsedValuesets = await readJsonProfile(valuesets);
+    const [parsedResources, parsedDatatypes, parsedValuesets] =
+          await Promise.all(
+            [resources, datatypes, valuesets].map(readJsonProfile)
+          );
     let generator = new FhirShExJGenerator(
         parsedResources,
         parsedDatatypes,
