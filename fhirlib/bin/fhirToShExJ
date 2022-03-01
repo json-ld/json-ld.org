@@ -4,6 +4,7 @@ const Fs = require('fs');
 const Path = require('path');
 const FhirShExJGenerator = require('../FhirShExJGenerator.js');
 const { program } = require('commander');
+const {DefinitionBundleLoader} = require("../FhirRdfModelGenerator");
 
 const Errors = [];
 const GEN_SHEXJ_CONTEXT_CONFIG = {
@@ -38,10 +39,17 @@ async function generate(resources, datatypes, valuesets, result) {
           await Promise.all(
             [resources, datatypes, valuesets].map(readJsonProfile)
           );
+    const definitionLoader = new DefinitionBundleLoader(parsedResources, parsedDatatypes, parsedValuesets);
+    const codesystems = parsedValuesets.entry.reduce((codesystems, entry) => {
+      const resource = entry.resource;
+      if (resource.resourceType === "CodeSystem") {
+        codesystems.set(resource.url, resource);
+      }
+      return codesystems;
+    }, new Map())
     let generator = new FhirShExJGenerator(
-        parsedResources,
-        parsedDatatypes,
-        parsedValuesets,
+        definitionLoader,
+        codesystems,
         GEN_SHEXJ_CONTEXT_CONFIG
     );
     const raw = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets]);

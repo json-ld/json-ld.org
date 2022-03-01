@@ -1,4 +1,4 @@
-const {ResourceLoader, ModelVisitor, FhirRdfModelGenerator} = require('./FhirRdfModelGenerator');
+const {DefinitionBundleLoader, ModelVisitor, FhirRdfModelGenerator} = require('./FhirRdfModelGenerator');
 const Prefixes = require('./Prefixes');
 const { StructureError } = require('./errors');
 
@@ -32,8 +32,8 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
   static STEM = "https://fhircat.org/fhir-r4/original/contexts/"; // could be a parameter but convenient to write in one place
   static SUFFIX = ".context.jsonld";
 
-  constructor(resourceLoader) {
-    super(resourceLoader);
+  constructor(definitionLoader) {
+    super(definitionLoader);
     this.cache = new Map(); // not used yet
   }
 
@@ -48,7 +48,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
         )
       }];
       if (resourceDef.id !== 'root') { // grumble
-        const modelGenerator = new FhirRdfModelGenerator(this.resourceLoader);
+        const modelGenerator = new FhirRdfModelGenerator(this.definitionLoader);
         if (resourceDef === null) {
           const e = new StructureError(`Key ${target} not found`);
           if ('error' in config)

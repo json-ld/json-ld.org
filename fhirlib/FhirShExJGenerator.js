@@ -1,4 +1,4 @@
-const {FhirRdfModelGenerator, PropertyMapping, ResourceLoader, ModelVisitor} = require('./FhirRdfModelGenerator');
+const {FhirRdfModelGenerator, PropertyMapping, DefinitionBundleLoader, ModelVisitor} = require('./FhirRdfModelGenerator');
 const Prefixes = require('./Prefixes');
 const ShExUtil = require("@shexjs/util");
 const P = require("./Prefixes");
@@ -49,8 +49,9 @@ class FhirShExJGenerator extends ModelVisitor {
   static PARENT_TYPES = ['Resource'];
   static ResourcesThatNeedALink = ["Reference"];
 
-  constructor (resources, datatypes, valuesets, config = {}) {
-    super(new ResourceLoader(resources, datatypes, valuesets));
+  constructor (definitionLoader, codesystems, config = {}) {
+    super(definitionLoader);
+    this.codesystems = codesystems;
     this.config = config;
     // make a fresh copy of the prototype schema.
     this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.EMPTY_FHIR_RESOURCE_SCHEMA));
@@ -61,17 +62,9 @@ class FhirShExJGenerator extends ModelVisitor {
     // list of top-level shape labels added to schema. differs from shapes.map(se => se.id) if nested shapes get top-level entries.
     this.added = [];
     // walk StructureDefinition, calling enter, scalar, complex, exit.
-    this.modelGenerator = new FhirRdfModelGenerator(this.resourceLoader, config);
+    this.modelGenerator = new FhirRdfModelGenerator(this.definitionLoader, config);
     // be able to look up TripleConstraints by the PropertyMapping that begat them.
     this.pMap2TC = new Map();
-
-    this.codesystems = valuesets.entry.reduce((codesystems, entry) => {
-      const resource = entry.resource;
-      if (resource.resourceType === "CodeSystem") {
-        codesystems.set(resource.url, resource);
-      }
-      return codesystems;
-    }, new Map())
   }
 
   myError (error) {

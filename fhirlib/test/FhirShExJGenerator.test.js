@@ -1,6 +1,7 @@
 const Fs = require('fs');
 const Path = require('path');
 const FhirShExJGenerator = require('../FhirShExJGenerator.js');
+const {DefinitionBundleLoader} = require('../FhirRdfModelGenerator');
 
 const GEN_SHEXJ_CONTEXT_CONFIG = {
   addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
@@ -27,10 +28,17 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   const parsedResources = await readJsonProfile(Path.join(__dirname, resources));
   const parsedDatatypes = await readJsonProfile(Path.join(__dirname, datatypes));
   const parsedValuesets = await readJsonProfile(Path.join(__dirname, valuesets));
+  const definitionLoader = new DefinitionBundleLoader(parsedResources, parsedDatatypes, parsedValuesets);
+  const codesystems = parsedValuesets.entry.reduce((codesystems, entry) => {
+    const resource = entry.resource;
+    if (resource.resourceType === "CodeSystem") {
+      codesystems.set(resource.url, resource);
+    }
+    return codesystems;
+  }, new Map())
   const generator = new FhirShExJGenerator(
-      parsedResources,
-      parsedDatatypes,
-      parsedValuesets,
+      definitionLoader,
+      codesystems,
       GEN_SHEXJ_CONTEXT_CONFIG
   );
   const generated = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets], skip);

@@ -16,10 +16,10 @@ class PropertyMapping {
   }
 }
 
-class ResourceLoader {
+class DefinitionBundleLoader {
   static empty = { entry: [] }; // dummy to not cause trouble
 
-  constructor(resources = ResourceLoader.empty, datatypes = ResourceLoader.empty, valuesets = ResourceLoader.empty) {
+  constructor(resources = DefinitionBundleLoader.empty, datatypes = DefinitionBundleLoader.empty, valuesets = DefinitionBundleLoader.empty) {
     this.resources = indexBundle(resources);
     this.datatypes = indexBundle(datatypes);
     this.valuesets = indexBundle(valuesets);
@@ -36,8 +36,8 @@ class ResourceLoader {
 
 class ModelVisitor {
 
-  constructor(resourceLoader) {
-    this.resourceLoader = resourceLoader;
+  constructor(definitionLoader) {
+    this.definitionLoader = definitionLoader;
   }
   enter (propertyMapping) { throw new Error(`ModelVistor.enter(${propertyMapping}) must be overloaded`); }
   element (propertyMapping) { throw new Error(`ModelVistor.complex(${propertyMapping}) must be overloaded`); }
@@ -116,8 +116,8 @@ class FhirRdfModelGenerator {
 
   static FhirTypeExtension = "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type";
 
-  constructor (resourceLoader, opts = {}) {
-    this.resourceLoader = resourceLoader;
+  constructor (definitionLoader, opts = {}) {
+    this.definitionLoader = definitionLoader;
     this.stack = [];
     this.opts = opts;
   }
@@ -140,7 +140,7 @@ class FhirRdfModelGenerator {
   }
 
   visitElementByName (target, visitor, config) {
-    const resourceDef = this.resourceLoader.getStructureDefinitionByName(target);
+    const resourceDef = this.definitionLoader.getStructureDefinitionByName(target);
     if (resourceDef === null) {
       return [];
     }
@@ -318,4 +318,4 @@ class FhirRdfModelGenerator {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {FhirRdfModelGenerator, FhirResourceDefinitionError, FhirElementDefinitionError, ResourceLoader, ModelVisitor, PropertyMapping};
+  module.exports = {FhirRdfModelGenerator, FhirResourceDefinitionError, FhirElementDefinitionError, DefinitionBundleLoader, ModelVisitor, PropertyMapping};
