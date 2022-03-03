@@ -49,9 +49,8 @@ class FhirShExJGenerator extends ModelVisitor {
   static PARENT_TYPES = ['Resource'];
   static ResourcesThatNeedALink = ["Reference"];
 
-  constructor (definitionLoader, codesystems, config = {}) {
+  constructor (definitionLoader, config = {}) {
     super(definitionLoader);
-    this.codesystems = codesystems;
     this.config = config;
     // make a fresh copy of the prototype schema.
     this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.EMPTY_FHIR_RESOURCE_SCHEMA));
@@ -339,8 +338,8 @@ class FhirShExJGenerator extends ModelVisitor {
   parseCompose (compose) {
     return compose.include.reduce((acc, i) => {
       if ("system" in i) {
-        if (this.codesystems.has(i.system)) {
-          const cs = this.codesystems.get(i.system);
+        const cs = this.definitionLoader.getCodesystemByUrl(i.system);
+        if (cs !== undefined) {
           if ("concept" in cs) {
             acc = acc.concat(this.parseConcept(cs.concept));
           }

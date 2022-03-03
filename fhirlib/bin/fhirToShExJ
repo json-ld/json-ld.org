@@ -40,21 +40,13 @@ async function generate(resources, datatypes, valuesets, result) {
             [resources, datatypes, valuesets].map(readJsonProfile)
           );
     const definitionLoader = new DefinitionBundleLoader(parsedResources, parsedDatatypes, parsedValuesets);
-    const codesystems = parsedValuesets.entry.reduce((codesystems, entry) => {
-      const resource = entry.resource;
-      if (resource.resourceType === "CodeSystem") {
-        codesystems.set(resource.url, resource);
-      }
-      return codesystems;
-    }, new Map())
     let generator = new FhirShExJGenerator(
         definitionLoader,
-        codesystems,
         GEN_SHEXJ_CONTEXT_CONFIG
     );
     const raw = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets]);
     if (Errors.length > 0) {
-      console.error("Errors from run:\n", Errors);
+      console.error("Errors from run:\n", Errors/*.map(e => e.message)*/);
     }
     const schema = program.opts().nest
         ? FhirShExJGenerator.nestShapes(raw)

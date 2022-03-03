@@ -29,16 +29,8 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   const parsedDatatypes = await readJsonProfile(Path.join(__dirname, datatypes));
   const parsedValuesets = await readJsonProfile(Path.join(__dirname, valuesets));
   const definitionLoader = new DefinitionBundleLoader(parsedResources, parsedDatatypes, parsedValuesets);
-  const codesystems = parsedValuesets.entry.reduce((codesystems, entry) => {
-    const resource = entry.resource;
-    if (resource.resourceType === "CodeSystem") {
-      codesystems.set(resource.url, resource);
-    }
-    return codesystems;
-  }, new Map())
   const generator = new FhirShExJGenerator(
       definitionLoader,
-      codesystems,
       GEN_SHEXJ_CONTEXT_CONFIG
   );
   const generated = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets], skip);

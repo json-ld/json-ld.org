@@ -20,17 +20,49 @@ class DefinitionBundleLoader {
   static empty = { entry: [] }; // dummy to not cause trouble
 
   constructor(resources = DefinitionBundleLoader.empty, datatypes = DefinitionBundleLoader.empty, valuesets = DefinitionBundleLoader.empty) {
-    this.resources = indexBundle(resources);
-    this.datatypes = indexBundle(datatypes);
-    this.valuesets = indexBundle(valuesets);
+    this.structureDefinitions = new Map();
+    this.codesystemUrls = new Map();
+
+    for (let argNo = 0; argNo < arguments.length; ++argNo) {
+      const arg = arguments[argNo];
+      const entries = arg.resourceType === "Bundle"
+          ? arg.entry.map(e => e.resource)
+          : Array.isArray(arg)
+          ? arg
+          : [arg];
+      for (let entryNo = 0; entryNo < entries.length; ++entryNo) {
+        const entry = entries[entryNo];
+        switch (entry.resourceType) {
+        case 'CodeSystem': DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, argNo, entryNo); break;
+        case 'ValueSet': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, argNo, entryNo); break;
+        case 'CapabilityStatement':
+        case 'CompartmentDefinition':
+        case 'OperationDefinition': break;
+        case 'StructureDefinition': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, argNo, entryNo); break;
+        default:
+          throw Errogr(`what's a ${entry.resourceType}`);
+        }
+      }
+    }
   }
 
-  getStructureDefinitionByName (target) {
-    return target in this.resources._index
-      ? this.resources._index[target]
-      : target in this.datatypes._index
-      ? this.datatypes._index[target]
-      : null;
+  getStructureDefinitionByName (target) { return DefinitionBundleLoader.getFromIndex(this.structureDefinitions, target); }
+  getCodesystemByUrl (target) { return DefinitionBundleLoader.getFromIndex(this.codesystemUrls, target); }
+
+  static addToIndex(index, id, entry, argNo, entryNo) {
+    if (index.has(id)) {
+      const old = index.get(id)
+      console.warn(`duplicate ${id}
+old: ${old.entry.resourceType} ${old.entry.kind} at [${old.argNo}][${old.entryNo}],
+new: ${entry.resourceType} ${entry.kind} at [${argNo}][${entryNo}]`);
+    }
+    index.set(id, {argNo, entryNo, entry});
+  }
+
+  static getFromIndex (index, target) {
+    return index.has(target)
+        ? index.get(target).entry
+        : undefined;
   }
 }
 
