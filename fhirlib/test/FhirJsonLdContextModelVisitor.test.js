@@ -2,7 +2,7 @@ const Fs = require('fs');
 const Path = require('path');
 const Jsonld  = require('jsonld');
 const JsonLdError = require('jsonld/lib/JsonLdError');
-const {DefinitionBundleLoader} = require('../FhirRdfModelGenerator');
+const {DefinitionBundleLoader} = require('../DefinitionBundleLoader');
 const FhirJsonLdContextModelVisitor = require('../FhirJsonLdContextModelVisitor');
 const FhirPreprocessors = require('../FhirPreprocessors');
 
