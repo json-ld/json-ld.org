@@ -31,14 +31,15 @@ class DefinitionBundleLoader {
           ? arg
           : [arg];
       for (let entryNo = 0; entryNo < entries.length; ++entryNo) {
+        const where = `[${argNo}][${entryNo}]`;
         const entry = entries[entryNo];
         switch (entry.resourceType) {
-        case 'CodeSystem': DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, argNo, entryNo); break;
-        case 'ValueSet': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, argNo, entryNo); break;
+        case 'CodeSystem': DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, where); break;
+        case 'ValueSet': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where); break;
         case 'CapabilityStatement':
         case 'CompartmentDefinition':
         case 'OperationDefinition': break;
-        case 'StructureDefinition': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, argNo, entryNo); break;
+        case 'StructureDefinition': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where); break;
         default:
           throw Errogr(`what's a ${entry.resourceType}`);
         }
@@ -49,14 +50,14 @@ class DefinitionBundleLoader {
   getStructureDefinitionByName (target) { return DefinitionBundleLoader.getFromIndex(this.structureDefinitions, target); }
   getCodesystemByUrl (target) { return DefinitionBundleLoader.getFromIndex(this.codesystemUrls, target); }
 
-  static addToIndex(index, id, entry, argNo, entryNo) {
+  static addToIndex(index, id, entry, where) {
     if (index.has(id)) {
       const old = index.get(id)
       console.warn(`duplicate ${id}
-old: ${old.entry.resourceType} ${old.entry.kind} at [${old.argNo}][${old.entryNo}],
-new: ${entry.resourceType} ${entry.kind} at [${argNo}][${entryNo}]`);
+old: ${old.entry.resourceType} ${old.entry.kind} at ${old.where},
+new: ${entry.resourceType} ${entry.kind} at ${where}`);
     }
-    index.set(id, {argNo, entryNo, entry});
+    index.set(id, {where, entry});
   }
 
   static getFromIndex (index, target) {
