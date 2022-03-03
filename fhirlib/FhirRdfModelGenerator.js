@@ -17,9 +17,7 @@ class PropertyMapping {
 }
 
 class DefinitionBundleLoader {
-  static empty = { entry: [] }; // dummy to not cause trouble
-
-  constructor(resources = DefinitionBundleLoader.empty, datatypes = DefinitionBundleLoader.empty, valuesets = DefinitionBundleLoader.empty) {
+  constructor() {
     this.structureDefinitions = new Map();
     this.codesystemUrls = new Map();
 
@@ -31,19 +29,30 @@ class DefinitionBundleLoader {
           ? arg
           : [arg];
       for (let entryNo = 0; entryNo < entries.length; ++entryNo) {
-        const where = `[${argNo}][${entryNo}]`;
-        const entry = entries[entryNo];
-        switch (entry.resourceType) {
-        case 'CodeSystem': DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, where); break;
-        case 'ValueSet': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where); break;
-        case 'CapabilityStatement':
-        case 'CompartmentDefinition':
-        case 'OperationDefinition': break;
-        case 'StructureDefinition': DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where); break;
-        default:
-          throw Errogr(`what's a ${entry.resourceType}`);
-        }
+        const where = `[${argNo}][${entryNo}]`; // make it easy to debug duplicate defintions
+        this.indexDefinition(entries, entryNo, where);
       }
+    }
+  }
+
+  indexDefinition (entries, entryNo, where) {
+    const entry = entries[entryNo];
+    switch (entry.resourceType) {
+      case 'CodeSystem':
+        DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, where);
+        break;
+      case 'ValueSet':
+        DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where);
+        break;
+      case 'CapabilityStatement':
+      case 'CompartmentDefinition':
+      case 'OperationDefinition':
+        break;
+      case 'StructureDefinition':
+        DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where);
+        break;
+      default:
+        throw Errogr(`what's a ${entry.resourceType}`);
     }
   }
 
