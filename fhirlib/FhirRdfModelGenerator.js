@@ -1,4 +1,4 @@
-const { indexBundle } = require('./indexBundle');
+const { DefinitionIndex } = require('./DefinitionIndex');
 const { StructureError } = require('./errors');
 
 /**
@@ -18,8 +18,8 @@ class PropertyMapping {
 
 class DefinitionBundleLoader {
   constructor() {
-    this.structureDefinitions = new Map();
-    this.codesystemUrls = new Map();
+    this.structureDefinitions = new DefinitionIndex();
+    this.codesystemUrls = new DefinitionIndex();
 
     for (let argNo = 0; argNo < arguments.length; ++argNo) {
       const arg = arguments[argNo];
@@ -30,50 +30,33 @@ class DefinitionBundleLoader {
           : [arg];
       for (let entryNo = 0; entryNo < entries.length; ++entryNo) {
         const where = `[${argNo}][${entryNo}]`; // make it easy to debug duplicate defintions
-        this.indexDefinition(entries, entryNo, where);
+        this.indexDefinition(entries[entryNo], where);
       }
     }
   }
 
-  indexDefinition (entries, entryNo, where) {
-    const entry = entries[entryNo];
+  indexDefinition (entry, where) {
     switch (entry.resourceType) {
       case 'CodeSystem':
-        DefinitionBundleLoader.addToIndex(this.codesystemUrls, entry.url, entry, where);
+        this.codesystemUrls.add(entry.url, entry, where);
         break;
       case 'ValueSet':
-        DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where);
+        this.structureDefinitions.add(entry.id, entry, where);
         break;
       case 'CapabilityStatement':
       case 'CompartmentDefinition':
       case 'OperationDefinition':
         break;
       case 'StructureDefinition':
-        DefinitionBundleLoader.addToIndex(this.structureDefinitions, entry.id, entry, where);
+        this.structureDefinitions.add(entry.id, entry, where);
         break;
       default:
         throw Errogr(`what's a ${entry.resourceType}`);
     }
   }
 
-  getStructureDefinitionByName (target) { return DefinitionBundleLoader.getFromIndex(this.structureDefinitions, target); }
-  getCodesystemByUrl (target) { return DefinitionBundleLoader.getFromIndex(this.codesystemUrls, target); }
-
-  static addToIndex(index, id, entry, where) {
-    if (index.has(id)) {
-      const old = index.get(id)
-      console.warn(`duplicate ${id}
-old: ${old.entry.resourceType} ${old.entry.kind} at ${old.where},
-new: ${entry.resourceType} ${entry.kind} at ${where}`);
-    }
-    index.set(id, {where, entry});
-  }
-
-  static getFromIndex (index, target) {
-    return index.has(target)
-        ? index.get(target).entry
-        : undefined;
-  }
+  getStructureDefinitionByName (target) { return this.structureDefinitions.get(target); }
+  getCodesystemByUrl (target) { return this.codesystemUrls.get(target); }
 }
 
 class ModelVisitor {
