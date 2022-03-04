@@ -4,7 +4,8 @@ const Fs = require('fs');
 const Path = require('path');
 const FhirShExJGenerator = require('../FhirShExJGenerator.js');
 const { program } = require('commander');
-const {DefinitionBundleLoader} = require("../DefinitionBundleLoader");
+const {BundleDefinitionLoader} = require("../BundleDefinitionLoader");
+const {FshDefinitionLoader} = require("../FshDefinitionLoader");
 
 const Errors = [];
 const GEN_SHEXJ_CONTEXT_CONFIG = {
@@ -26,25 +27,22 @@ program
   .version('0.0.2')
   .option('--flat', 'name and hoist all embeded shapes (default)')
   .option('--nest', 'embed shapes where possible')
-  .arguments('<resources> <datatypes> <valuesets> <result>')
+  .option('--fsh [start]', 'starting definition in a FSH dir')
+  .arguments('<output> [resources or bundles...]')
   .action(generate)
   .parse(process.argv);
 
-// generate(process.argv.slice(2));
-// async function generate([resources, datatypes, valuesets, got]) {
-
-async function generate(resources, datatypes, valuesets, result) {
+async function generate(result, sources) {
   try {
-    const [parsedResources, parsedDatatypes, parsedValuesets] =
-          await Promise.all(
-            [resources, datatypes, valuesets].map(readJsonProfile)
-          );
-    const definitionLoader = new DefinitionBundleLoader(parsedResources, parsedDatatypes, parsedValuesets);
+    const definitions = await Promise.all(sources.map(readJsonProfile));
+    const definitionLoader = program.opts().fsh
+          ? new FshDefinitionLoader(program.opts().fsh, ...definitions)
+          : new BundleDefinitionLoader(...definitions);
     let generator = new FhirShExJGenerator(
         definitionLoader,
         GEN_SHEXJ_CONTEXT_CONFIG
     );
-    const raw = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets]);
+    const raw = await generator.genShExJ(program.opts().fsh ? [{entry: [{resource: JSON.parse(await definitionLoader.getStart())}]}] : definitions);
     if (Errors.length > 0) {
       console.error("Errors from run:\n", Errors/*.map(e => e.message)*/);
     }
@@ -54,10 +52,6 @@ async function generate(resources, datatypes, valuesets, result) {
 
     await writeShExJ(result, schema, true); // TODO: add switch for pretty-printing
     console.log(`wrote ${schema.shapes.length} shape expressions into ${result}`);
-    // if (errors.length) {
-    //   console.log(`writing ${errors.length} errors to stderr`);
-    //   errors.forEach(e => console.warn("error trying to genShExJ:" + e.stack));
-    // }
   } catch (e) {
     console.error(e);
     process.exit(1);

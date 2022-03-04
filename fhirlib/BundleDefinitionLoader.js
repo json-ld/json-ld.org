@@ -1,12 +1,14 @@
+const { DefinitionLoader } = require('./DefinitionLoader');
 const { DefinitionIndex } = require('./DefinitionIndex');
 
-class DefinitionBundleLoader {
-  constructor() {
+class BundleDefinitionLoader extends DefinitionLoader {
+  constructor(...definitions) {
+    super();
     this.structureDefinitions = new DefinitionIndex();
     this.codesystemUrls = new DefinitionIndex();
 
-    for (let argNo = 0; argNo < arguments.length; ++argNo) {
-      const arg = arguments[argNo];
+    for (let argNo = 0; argNo < definitions.length; ++argNo) {
+      const arg = definitions[argNo];
       const entries = arg.resourceType === "Bundle"
           ? arg.entry.map(e => e.resource)
           : Array.isArray(arg)
@@ -44,4 +46,4 @@ class DefinitionBundleLoader {
 }
 
 if (typeof module !== 'undefined')
-  module.exports = {DefinitionBundleLoader};
+  module.exports = {BundleDefinitionLoader};

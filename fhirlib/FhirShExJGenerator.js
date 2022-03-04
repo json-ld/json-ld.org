@@ -77,7 +77,6 @@ class FhirShExJGenerator extends ModelVisitor {
   genShExJ (sources, skip = []) {
     const generated = sources.reduce((generated, source) => {
       return source.entry.reduce((generated, entry) => {
-        const url = entry.fullUrl;
         const genMe = entry.resource.id;
         if (skip.indexOf(genMe) !== -1)
           return generated;

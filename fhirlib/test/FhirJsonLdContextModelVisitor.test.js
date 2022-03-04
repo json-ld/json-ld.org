@@ -2,7 +2,7 @@ const Fs = require('fs');
 const Path = require('path');
 const Jsonld  = require('jsonld');
 const JsonLdError = require('jsonld/lib/JsonLdError');
-const {DefinitionBundleLoader} = require('../DefinitionBundleLoader');
+const {BundleDefinitionLoader} = require('../BundleDefinitionLoader');
 const FhirJsonLdContextModelVisitor = require('../FhirJsonLdContextModelVisitor');
 const FhirPreprocessors = require('../FhirPreprocessors');
 
@@ -25,7 +25,7 @@ const Generatod = {}; // all generated contexts by URL
 Jsonld.documentLoader = function(url) {
   if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
     const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
-    const definitionLoader = new DefinitionBundleLoader(R5Resources, R5Datatypes /* valuesets not needed for JSON-LD context generation */);
+    const definitionLoader = new BundleDefinitionLoader(R5Resources, R5Datatypes /* valuesets not needed for JSON-LD context generation */);
     const generator = new FhirJsonLdContextModelVisitor(definitionLoader);
     const resourceDef = definitionLoader.getStructureDefinitionByName(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const context = generator.genJsonldContext(resourceDef || {id: 'root'}, GEN_JSONLD_CONTEXT_CONFIG);

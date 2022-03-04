@@ -39,7 +39,7 @@ class FhirResourceDefinitionError extends StructureError {
 class FhirElementDefinitionError extends StructureError {
   constructor (msg, resourceDef, elt) {
     const ordinal = resourceDef.differential.element.indexOf(elt);
-    super(`Error in ${resourceDef.id} differential.element[${ordinal}]] ${elt.id}: ${msg}`);
+    super(`Error in ${resourceDef.id} differential.element[${ordinal}] ${elt.id}: ${msg}`);
     this.resourceDef = resourceDef;
     this.elt = elt;
     this.ordinal = ordinal;
