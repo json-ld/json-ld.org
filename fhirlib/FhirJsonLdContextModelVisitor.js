@@ -37,7 +37,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
     this.cache = new Map(); // not used yet
   }
 
-  genJsonldContext (resourceDef, config) {
+  async genJsonldContext (resourceDef, config) {
     if (!(resourceDef.id in this.cache)) {
       this.ret = [{
         '@context': Object.assign(
@@ -56,7 +56,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
           else
             throw e;
         }
-        modelGenerator.visitResource(resourceDef, this, config);
+        await modelGenerator.visitResource(resourceDef, this, config);
       }
       this.cache.set(resourceDef.id, this.ret[0]);
     }

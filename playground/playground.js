@@ -91,7 +91,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       profile.resources = r[0];
       profile.datatypes = d[0];
       profile.valuesets = v[0];
-      generateShExJFromProfile(profile);
+      return generateShExJFromProfile(profile);
     });
   }
 
@@ -105,7 +105,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       })
   }
 
-  function generateShExJFromProfile (profile) {
+  async function generateShExJFromProfile (profile) {
     $('#processing-errors').hide().empty();
     let reportMe = null;
     try {
@@ -118,7 +118,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       });
       const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, config);
 
-      playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      playground.fhircat.shexj = await shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
       if (Object.keys(config.missing).length > 0) {
         console.warn('missing items reported while generating ShExJ:\n', config.missing);
       }
@@ -482,7 +482,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         fileInputButton.innerText = m ? m[1] : '??';
         fileInputButton.title = version + `\n\nuploaded ${new Date().toISOString()} from\n${source}`;
 
-        generateShExJFromProfile({resources, datatypes, valuesets});
+        await generateShExJFromProfile({resources, datatypes, valuesets});
 
         async function expectEntry (re) {
           const oneEntry = entries.filter(e => e.filename.match(re));

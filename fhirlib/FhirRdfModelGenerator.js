@@ -127,22 +127,22 @@ class FhirRdfModelGenerator {
   /**
    * Recursive function to generate a content model for a FHIR Resource
    */
-  visitResource (resourceDef, visitor, config) {
-    this.visitElement(resourceDef, visitor, config);
+  async visitResource (resourceDef, visitor, config) {
+    await this.visitElement(resourceDef, visitor, config);
     this.stack.reverse().forEach(n => visitor.exit(n));
     this.stack = [];
   }
 
-  visitElementByName (target, visitor, config) {
-    const resourceDef = this.definitionLoader.getStructureDefinitionByName(target);
+  async visitElementByName (target, visitor, config) {
+    const resourceDef = await this.definitionLoader.getStructureDefinitionByName(target);
     if (resourceDef === null) {
       return [];
     }
 
-    return this.visitElement(resourceDef, visitor, config);
+    return await this.visitElement(resourceDef, visitor, config);
   }
 
-  visitElement (resourceDef, visitor, config) {
+  async visitElement (resourceDef, visitor, config) {
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))) {
       this.myError(new FhirResourceDefinitionError(`Don't know where to look for base structure ${resourceDef.baseDefinition}`, resourceDef));
       return [];
@@ -152,11 +152,12 @@ class FhirRdfModelGenerator {
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
       if (recursionTarget !== 'base')
-        baseElts = this.visitElementByName(recursionTarget, visitor, config); // Get content model from base type
+        baseElts = await this.visitElementByName(recursionTarget, visitor, config); // Get content model from base type
     }
 
     // Walk differential elements
-    return resourceDef.differential.element.slice(1).reduce((visitedElts, elt) => {
+    return await resourceDef.differential.element.slice(1).reduce(async (visitedEltsP, elt) => {
+      const visitedElts = await visitedEltsP;
       if (elt.id !== elt.path) { // test assumptions
         this.myError(new FhirElementDefinitionError(`id !== path in ${resourceDef.id} ${elt.id}`, resourceDef, elt));
         return visitedElts;
@@ -197,7 +198,8 @@ class FhirRdfModelGenerator {
       // aggregate element's types into a disjunction
       const disjointPMaps = "contentReference" in elt
             ? [new PropertyMapping(false, elt, name, FhirRdfModelGenerator.NS_fhir + [resourceName].concat(path).concat(name).join('.'), elt.contentReference.slice(1), null, [])]
-            : elt.type.reduce((acc, typeEntry, idx) => {
+            : await elt.type.reduce(async (accP, typeEntry, idx) => {
+              const acc = await accP;
               if (typeof typeEntry !== "object"
                   || !("code" in typeEntry)
                   || typeof typeEntry.code !== "string") {
@@ -236,9 +238,9 @@ class FhirRdfModelGenerator {
                 // so save and hide the stack.
                 const saveStack = this.stack;
                 this.stack = [];
-                this.visitElementByName(nestedTarget, visitor, config);
+                await this.visitElementByName(nestedTarget, visitor, config);
                 this.stack = saveStack;
-                return [];
+                return []; // return await acc ?
               } else {
                 const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
                 const trimmedTypeCode = isFhirPath
@@ -273,12 +275,12 @@ class FhirRdfModelGenerator {
                   return acc.concat([pMap]);
                 }
               }
-            }, []);
+            }, Promise.resolve([]));
 
       if (disjointPMaps.length) // will be 0 if elt.id was in NestedStructureTypeCodes, as verified by (elt.type.length > 1) assertions
         visitor.element(disjointPMaps);
       return visitedElts.concat([disjointPMaps]);
-    }, []);
+    }, Promise.resolve([]));
   }
 
   static expectFhirType (resourceDef, elt, typeEntry) {

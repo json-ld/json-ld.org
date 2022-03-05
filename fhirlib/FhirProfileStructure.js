@@ -31,10 +31,10 @@ class FhirProfileStructure extends ModelVisitor {
         super(resources, datatypes, valuesets);
     }
 
-    walk (target, config) {
+    async walk (target, config) {
         this.ret = [[]];
         const modelGenerator = new FhirRdfModelGenerator(this.resources, this.datatypes, this.valuesets);
-        modelGenerator.visitResource(target, this, config);
+        await modelGenerator.visitResource(target, this, config);
         return this.ret[0];
     }
 

@@ -22,20 +22,21 @@ beforeAll(async () => {
 
 const Generatod = {}; // all generated contexts by URL
 
-Jsonld.documentLoader = function(url) {
+Jsonld.documentLoader = async function (url) {
+  await Promise.resolve();
   if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
     const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
     const definitionLoader = new BundleDefinitionLoader(R5Resources, R5Datatypes /* valuesets not needed for JSON-LD context generation */);
     const generator = new FhirJsonLdContextModelVisitor(definitionLoader);
-    const resourceDef = definitionLoader.getStructureDefinitionByName(genMe, GEN_JSONLD_CONTEXT_CONFIG);
-    const context = generator.genJsonldContext(resourceDef || {id: 'root'}, GEN_JSONLD_CONTEXT_CONFIG);
+    const resourceDef = await definitionLoader.getStructureDefinitionByName(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+    const context = await generator.genJsonldContext(resourceDef || {id: 'root'}, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {
       contextUrl: null,
       documentUrl: url,
       document: JSON.stringify(context, null, 2)
     };
     Generatod[url] = context;
-    return Promise.resolve(ret);
+    return ret;
   }
   throw new Error(`Expected only FhirRdf URLs; got ${url}`);
   // return xhrDocumentLoader(url);

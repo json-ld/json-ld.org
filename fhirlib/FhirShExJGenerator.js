@@ -74,12 +74,13 @@ class FhirShExJGenerator extends ModelVisitor {
     }
   }
 
-  genShExJ (sources, skip = []) {
-    const generated = sources.reduce((generated, source) => {
-      return source.entry.reduce((generated, entry) => {
+  async genShExJ (sources, skip = []) {
+    const generated = await sources.reduce(async (generated1, source) => {
+      return source.entry.reduce(async (last, entry) => {
+        const generated2 = await last;
         const genMe = entry.resource.id;
         if (skip.indexOf(genMe) !== -1)
-          return generated;
+          return generated2;
 
         switch (entry.resource.resourceType) {
           // can optimize by passing entry.resource, but for now, exercise generation by name
@@ -88,15 +89,16 @@ class FhirShExJGenerator extends ModelVisitor {
         case "CompartmentDefinition":
         case "OperationDefinition":
           break;
-        case "ValueSet": this.genValueset(entry.resource, this.config); break;
-        case "StructureDefinition": this.genShape(entry.resource, true, this.config); break;
+        case "ValueSet": await this.genValueset(entry.resource, this.config); break;
+        case "StructureDefinition": await this.genShape(entry.resource, true, this.config); break;
         default:
           this.myError(Error(`Unknown resourceType: ${entry.resource.resourceType} for ${entry.fullUrl}`));
-          return generated;
+          return generated2;
         }
-        return generated.concat(genMe);
-      }, generated);
-    }, [])
+        return generated2.concat(genMe);
+      }, generated1);
+    }, Promise.resolve([]))
+
     const allTypesLabel = Prefixes.fhirvs + 'all-types';
     generated.push('all-types');
     this.genAllTypes(allTypesLabel, this.config);
@@ -109,7 +111,7 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator} this.
    */
-  genShape (resourceDef, root, generatorConfig = this.config) {
+  async genShape (resourceDef, root, generatorConfig = this.config) {
     const isParent = FhirShExJGenerator.PARENT_TYPES.indexOf(resourceDef.id) === -1;
     const label = Prefixes.fhirshex + resourceDef.id;
     this.added.push(label);
@@ -149,7 +151,7 @@ class FhirShExJGenerator extends ModelVisitor {
         {min: 0, max: 1}
       ));
     }
-    this.modelGenerator.visitResource(resourceDef, this, generatorConfig);
+    await this.modelGenerator.visitResource(resourceDef, this, generatorConfig);
     // this.resources._index.entries.forEach(
     //   entry => { if (this.skip.indexOf(entry)) modelGenerator.visitResource(target, this, generatorConfig); }
     // );
@@ -309,7 +311,7 @@ class FhirShExJGenerator extends ModelVisitor {
    * @param config control predicates and lists in RDF model.
    * @returns {FhirShExJGenerator}
    */
-  genValueset (resourceDef, generatorConfig = this.config) {
+  async genValueset (resourceDef, generatorConfig = this.config) {
     const label = Prefixes.fhirvs + resourceDef.id;
     if ("baseDefinition" in resourceDef && !(resourceDef.baseDefinition.startsWith(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT))) {
       this.myError(Error(`Don't know where to look for base structure ${resourceDef.baseDefinition}`));
@@ -318,10 +320,10 @@ class FhirShExJGenerator extends ModelVisitor {
 
     if ("baseDefinition" in resourceDef) {
       const recursionTarget = resourceDef.baseDefinition.substr(FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT.length);
-      this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
+      await this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
     }
 
-    const values = this.parseCompose(resourceDef.compose);
+    const values = await this.parseCompose(resourceDef.compose);
     let nodeConstraint = {
       type: "NodeConstraint",
       id: label
@@ -334,10 +336,11 @@ class FhirShExJGenerator extends ModelVisitor {
     return this;
   }
 
-  parseCompose (compose) {
-    return compose.include.reduce((acc, i) => {
+  async parseCompose (compose) {
+    return await compose.include.reduce(async (accP, i) => {
+      let acc = await accP;
       if ("system" in i) {
-        const cs = this.definitionLoader.getCodesystemByUrl(i.system);
+        const cs = await this.definitionLoader.getCodesystemByUrl(i.system);
         if (cs !== undefined) {
           if ("concept" in cs) {
             acc = acc.concat(this.parseConcept(cs.concept));
@@ -349,11 +352,10 @@ class FhirShExJGenerator extends ModelVisitor {
           this.missing("codesystems", i.system);
         }
       }
-      if ("concept" in i) {
-        acc = acc.concat(i.concept.map(c => ({value: c.code})));
-      }
-      return acc;
-    }, [])
+      return ("concept" in i)
+        ? acc.concat(i.concept.map(c => ({value: c.code})))
+        : acc;
+    }, Promise.resolve([]))
   }
 
   missing (type, missing) {

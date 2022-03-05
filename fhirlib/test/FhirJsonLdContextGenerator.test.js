@@ -70,7 +70,7 @@ function makeTester (shexjFile, nestings, axes) {
 }
 
 function makeDocumentLoader (contextGenerator, generatedContexts) {
-  return function (url) {
+  return async function (url) {
     // Make sure its one we know how to generate.
     if (url.startsWith(FhirJsonLdContextGenerator.STEM) && url.endsWith(FhirJsonLdContextGenerator.SUFFIX)) {
 
@@ -78,7 +78,7 @@ function makeDocumentLoader (contextGenerator, generatedContexts) {
       const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
       try {
         // Generate the context and store create a JSON-LD API document for it.
-        const context = contextGenerator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+        const context = await contextGenerator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
         const ret = {
           contextUrl: null,
           documentUrl: url,
