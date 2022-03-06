@@ -60,6 +60,23 @@ class FhirRdfModelGenerator {
   static NS_xsd = "http://www.w3.org/2001/XMLSchema#";
   static NS_s2j = "http://shex2json.example/map#"
 
+  // Override predicate and NodeConstraint for specific paths
+  static pathOverrides = {
+    'uri.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'anyURI' }}, // FHIR type String
+    'base64Binary.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'base64Binary' }}, // also type String
+    'instant.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'dateTime' }}, // Datetime
+    'dateTime.value': {predicate: 'value', nodeConstraint: { "type": "ShapeOr", "shapeExprs": [
+      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'dateTime'   },
+      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'date'       },
+      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'gYearMonth' },
+      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'gYear'      },
+    ], "annotations": FhirRdfModelGenerator.unTyped() } }, // Datetime
+    'integer64.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'long' }}, // Datetime
+    'Narrative.div': {predicate: 'Narrative.div', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'string' }}, // XHTML narrative text
+//    'positiveInt.value': {predicate: '@@', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'positiveInt' }} // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
+  };
+
+  // Map datatype for specific types
   static fhirScalarTypeToXsd = { // overrides by trimmedTypeCode
     "Boolean": { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + "boolean" },
     "String": { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + "string" },
@@ -79,30 +96,17 @@ class FhirRdfModelGenerator {
   };
 
   // fault-tolerance - construct name with "UNKNOWN" in it if missing from fhirScalarTypeToXsd
-  static synthesizeUnknownName (resourceDef, elt, typeString) {
-    return (function () {
-      const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${typeString}`, resourceDef, elt);
-      console.warn(e.stack);
-      return `UNKNOWN-${resourceDef.id}-${elt.id}-${typeString}`;
-    })();
+  static synthesizeScalarTypeName (resourceDef, elt, typeString) {
+    if (typeString in FhirRdfModelGenerator.fhirScalarTypeToXsd)
+      return FhirRdfModelGenerator.fhirScalarTypeToXsd[typeString];
+
+    const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${typeString}`, resourceDef, elt);
+    console.warn(e.stack);
+    return `UNKNOWN-${resourceDef.id}-${elt.id}-${typeString}`;
   }
 
-  static pathOverrides = { // overrides by elt.id
-    'uri.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'anyURI' }}, // FHIR type String
-    'base64Binary.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'base64Binary' }}, // also type String
-    'instant.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'dateTime' }}, // Datetime
-    'dateTime.value': {predicate: 'value', nodeConstraint: { "type": "ShapeOr", "shapeExprs": [
-      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'dateTime'   },
-      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'date'       },
-      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'gYearMonth' },
-      { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'gYear'      },
-    ], "annotations": FhirRdfModelGenerator.unTyped() } }, // Datetime
-    'integer64.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'long' }}, // Datetime
-    'Narrative.div': {predicate: 'Narrative.div', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'string' }}, // XHTML narrative text
-//    'positiveInt.value': {predicate: '@@', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'positiveInt' }} // this doesn't work because the value was already defined by `"baseDefinition": ".../integer"`
-  };
-
-  static NestedStructureTypeCodes = ["BackboneElement", "BackboneType", "Element"];
+  // These element.type.code imply following elements are in a nested structure.
+  static NestedStructureTypeCodes = ["BackboneElement", /*"BackboneType", ?*/ "Element"];
 
   static FhirTypeExtension = "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type";
 
@@ -255,8 +259,7 @@ class FhirRdfModelGenerator {
 
                   // Calculate XML Schema datatype
                   const nodeConstraint = (propertyOverride ? propertyOverride.nodeConstraint : null)
-                        || FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
-                        || FhirRdfModelGenerator.synthesizeUnknownName(resourceDef, elt, trimmedTypeCode);
+                        || FhirRdfModelGenerator.synthesizeScalarTypeName(resourceDef, elt, trimmedTypeCode);
                   const overrideName = propertyOverride ? propertyOverride.predicate : curriedName
                   const overridePredicate = FhirRdfModelGenerator.NS_fhir + overrideName;
                   const pMap = new PropertyMapping(true, elt, curriedName, overridePredicate, nodeConstraint, null, specializes);
