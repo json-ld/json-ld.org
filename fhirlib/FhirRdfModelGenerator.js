@@ -168,8 +168,8 @@ class FhirRdfModelGenerator {
         return visitedElts;
       }
       const [curried, name] = "type" in elt && elt.type.length > 1
-          ? [true, rawName.substr(0, rawName.length - "[x]".length)]
-          : [false, rawName];
+            ? [true, rawName.substr(0, rawName.length - "[x]".length)]
+            : [false, rawName];
 
       // Trim down any nested properties we've passed as evidenced by them not having a corresponding name in the path.
       for (let i = this.stack.length - 1; i >= 0; --i) {
@@ -183,88 +183,88 @@ class FhirRdfModelGenerator {
 
       // aggregate element's types into a disjunction
       const disjointPMaps = "contentReference" in elt
-        ? [new PropertyMapping(false, elt, name, FhirRdfModelGenerator.NS_fhir + [resourceName].concat(path).concat(name).join('.'), elt.contentReference.slice(1), null, [])]
-        : elt.type.reduce((acc, typeEntry, idx) => {
-        if (typeof typeEntry !== "object"
-            || !("code" in typeEntry)
-            || typeof typeEntry.code !== "string") {
-          this.myError(new FhirElementDefinitionError(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(elt.id)}`, resourceDef, elt));
-          return visitedElts;
-        }
+            ? [new PropertyMapping(false, elt, name, FhirRdfModelGenerator.NS_fhir + [resourceName].concat(path).concat(name).join('.'), elt.contentReference.slice(1), null, [])]
+            : elt.type.reduce((acc, typeEntry, idx) => {
+              if (typeof typeEntry !== "object"
+                  || !("code" in typeEntry)
+                  || typeof typeEntry.code !== "string") {
+                this.myError(new FhirElementDefinitionError(`${idx}th type entry not recognized '${JSON.stringify(typeEntry)}' in ${JSON.stringify(elt.id)}`, resourceDef, elt));
+                return visitedElts;
+              }
 
-        // Calculate final element name.
-        const typeCode = typeEntry.code;
-        const curriedName = curried
-              ? name + typeCode.substr(0, 1).toUpperCase() + typeCode.substr(1)
-              : name;
+              // Calculate final element name.
+              const typeCode = typeEntry.code;
+              const curriedName = curried
+                    ? name + typeCode.substr(0, 1).toUpperCase() + typeCode.substr(1)
+                    : name;
 
-        // Elements and BackboneElements indicate a nested structure.
-        const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
-              [resourceName].concat(path).concat(curriedName).join('.');
-        if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
-          if (elt.type.length > 1) {
-            this.myError(new FhirElementDefinitionError(`expected exactly one type for nested structure '${elt.id}'`, resourceDef));
-          }
+              // Elements and BackboneElements indicate a nested structure.
+              const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
+                    [resourceName].concat(path).concat(curriedName).join('.');
+              if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
+                if (elt.type.length > 1) {
+                  this.myError(new FhirElementDefinitionError(`expected exactly one type for nested structure '${elt.id}'`, resourceDef));
+                }
 
-          // Construct a Nesting for this property and visitor.enter it.
-          const n = new PropertyMapping(false, elt, curriedName, predicate, FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT + typeCode, null, []);
-          this.stack.push(n);
-          visitor.enter(n);
+                // Construct a Nesting for this property and visitor.enter it.
+                const n = new PropertyMapping(false, elt, curriedName, predicate, FhirRdfModelGenerator.STRUCTURE_DEFN_ROOT + typeCode, null, []);
+                this.stack.push(n);
+                visitor.enter(n);
 
-          // if this element extends another, process the base.
-          // This is probably always true BackboneElements extend DomainResource and Elements extend BackboneType or Datatype.
-          if (elt.id === resourceDef.id) {
-            this.myError(new FhirElementDefinitionError(`Resource root element should not have a type and so shouldn't get here. got type '${elt.type}'`, resourceDef, elt));
-          }
-          const nestedTarget = typeCode;
+                // if this element extends another, process the base.
+                // This is probably always true BackboneElements extend DomainResource and Elements extend BackboneType or Datatype.
+                if (elt.id === resourceDef.id) {
+                  this.myError(new FhirElementDefinitionError(`Resource root element should not have a type and so shouldn't get here. got type '${elt.type}'`, resourceDef, elt));
+                }
+                const nestedTarget = typeCode;
 
-          // Because the nested element has a different name, we will appear to have exited any nested elements,
-          // so save and hide the stack.
-          const saveStack = this.stack;
-          this.stack = [];
-          this.visitElementByName(nestedTarget, visitor, config);
-          this.stack = saveStack;
-          return [];
-        } else {
-          const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
-          const trimmedTypeCode = isFhirPath
-                ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
-                : typeCode;                                                   // Address -> Address, uri -> uri
+                // Because the nested element has a different name, we will appear to have exited any nested elements,
+                // so save and hide the stack.
+                const saveStack = this.stack;
+                this.stack = [];
+                this.visitElementByName(nestedTarget, visitor, config);
+                this.stack = saveStack;
+                return [];
+              } else {
+                const isFhirPath = typeCode.startsWith(FhirRdfModelGenerator.FHIRPATH_ROOT);
+                const trimmedTypeCode = isFhirPath
+                      ? typeCode.substr(FhirRdfModelGenerator.FHIRPATH_ROOT.length) // http://hl7.org/fhirpath/System.String -> String
+                      : typeCode;                                                   // Address -> Address, uri -> uri
 
-          let propertyOverride = FhirRdfModelGenerator.pathOverrides[elt.id];
-          const isScalar = (elt.id === resourceDef.id + ".value" && "representation" in elt && elt.representation[0] === "xmlAttr") //  e.g. elt.id is "string.value", "date.value"
-                || !!propertyOverride;
-          const specializes = path.length > 0
-              ? []
-              : baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName)) || [];
+                let propertyOverride = FhirRdfModelGenerator.pathOverrides[elt.id];
+                const isScalar = (elt.id === resourceDef.id + ".value" && "representation" in elt && elt.representation[0] === "xmlAttr") //  e.g. elt.id is "string.value", "date.value"
+                      || !!propertyOverride;
+                const specializes = path.length > 0
+                      ? []
+                      : baseElts.find(disjuncts => disjuncts.find(pMap => pMap.property === curriedName)) || [];
 
-          if (isScalar) {
-            if (elt.type.length > 1) {
-              this.myError(new FhirElementDefinitionError(`expected exactly one type for scalar '${elt.id}'`, resourceDef, elt));
-            }
+                if (isScalar) {
+                  if (elt.type.length > 1) {
+                    this.myError(new FhirElementDefinitionError(`expected exactly one type for scalar '${elt.id}'`, resourceDef, elt));
+                  }
 
-            // Calculate XML Schema datatype
-            const nodeConstraint = (propertyOverride ? propertyOverride.nodeConstraint : null)
-                       || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
-                       || (function () {
-                         const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
-                            console.warn(e.stack);
-                            return `UNKNOWN-${resourceDef.id}-${elt.id}-${trimmedTypeCode}`;
-                       })());
-            const finalName = propertyOverride ? propertyOverride.predicate : curriedName
-            const predicate2 = FhirRdfModelGenerator.NS_fhir + finalName;
-            const pMap = new PropertyMapping(true, elt, curriedName, predicate2, nodeConstraint, null, specializes);
-            return acc.concat([pMap]);
-          } else {
-            const binding = 'binding' in elt ? elt.binding : null;
-            const shapeLabel = isFhirPath
-                ? FhirRdfModelGenerator.expectFhirType(resourceDef, elt, typeEntry)
-                : typeCode;
-            const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding, specializes);
-            return acc.concat([pMap]);
-          }
-        }
-      }, []);
+                  // Calculate XML Schema datatype
+                  const nodeConstraint = (propertyOverride ? propertyOverride.nodeConstraint : null)
+                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
+                            || (function () {
+                              const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
+                              console.warn(e.stack);
+                              return `UNKNOWN-${resourceDef.id}-${elt.id}-${trimmedTypeCode}`;
+                            })());
+                  const finalName = propertyOverride ? propertyOverride.predicate : curriedName
+                  const predicate2 = FhirRdfModelGenerator.NS_fhir + finalName;
+                  const pMap = new PropertyMapping(true, elt, curriedName, predicate2, nodeConstraint, null, specializes);
+                  return acc.concat([pMap]);
+                } else {
+                  const binding = 'binding' in elt ? elt.binding : null;
+                  const shapeLabel = isFhirPath
+                        ? FhirRdfModelGenerator.expectFhirType(resourceDef, elt, typeEntry)
+                        : typeCode;
+                  const pMap = new PropertyMapping(false, elt, curriedName, predicate, shapeLabel, binding, specializes);
+                  return acc.concat([pMap]);
+                }
+              }
+            }, []);
 
       if (disjointPMaps.length) // will be 0 if elt.id was in NestedStructureTypeCodes, as verified by (elt.type.length > 1) assertions
         visitor.element(disjointPMaps);
@@ -289,13 +289,15 @@ class FhirRdfModelGenerator {
     } ];
   }
 
-  static propAnnot (property) { return null;
+  /*
+  static propAnnot (property) {
     return [ {
       "type": "Annotation",
       "predicate": FhirRdfModelGenerator.NS_s2j + "property",
       "object": { "value": property }
     } ];
   }
+  */
 }
 
 if (typeof module !== 'undefined')
