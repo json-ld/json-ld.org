@@ -78,6 +78,15 @@ class FhirRdfModelGenerator {
     "DateTime": { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + "dateTime" },
   };
 
+  // fault-tolerance - construct name with "UNKNOWN" in it if missing from fhirScalarTypeToXsd
+  static synthesizeUnknownName (resourceDef, elt, typeString) {
+    return (function () {
+      const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${typeString}`, resourceDef, elt);
+      console.warn(e.stack);
+      return `UNKNOWN-${resourceDef.id}-${elt.id}-${typeString}`;
+    })();
+  }
+
   static pathOverrides = { // overrides by elt.id
     'uri.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'anyURI' }}, // FHIR type String
     'base64Binary.value': {predicate: 'value', nodeConstraint: { "type": "NodeConstraint", "datatype": FhirRdfModelGenerator.NS_xsd + 'base64Binary' }}, // also type String
@@ -201,6 +210,7 @@ class FhirRdfModelGenerator {
               // Elements and BackboneElements indicate a nested structure.
               const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
                     [resourceName].concat(path).concat(curriedName).join('.');
+
               if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
                 if (elt.type.length > 1) {
                   this.myError(new FhirElementDefinitionError(`expected exactly one type for nested structure '${elt.id}'`, resourceDef));
@@ -245,12 +255,8 @@ class FhirRdfModelGenerator {
 
                   // Calculate XML Schema datatype
                   const nodeConstraint = (propertyOverride ? propertyOverride.nodeConstraint : null)
-                        || (FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
-                            || (function () {
-                              const e = new FhirElementDefinitionError(`unknown mapping to XSD for target: ${resourceDef.id}, id: ${elt.id}, code: ${trimmedTypeCode}`, resourceDef, elt);
-                              console.warn(e.stack);
-                              return `UNKNOWN-${resourceDef.id}-${elt.id}-${trimmedTypeCode}`;
-                            })());
+                        || FhirRdfModelGenerator.fhirScalarTypeToXsd[trimmedTypeCode]
+                        || FhirRdfModelGenerator.synthesizeUnknownName(resourceDef, elt, trimmedTypeCode);
                   const overrideName = propertyOverride ? propertyOverride.predicate : curriedName
                   const overridePredicate = FhirRdfModelGenerator.NS_fhir + overrideName;
                   const pMap = new PropertyMapping(true, elt, curriedName, overridePredicate, nodeConstraint, null, specializes);
