@@ -251,9 +251,9 @@ class FhirRdfModelGenerator {
                               console.warn(e.stack);
                               return `UNKNOWN-${resourceDef.id}-${elt.id}-${trimmedTypeCode}`;
                             })());
-                  const finalName = propertyOverride ? propertyOverride.predicate : curriedName
-                  const predicate2 = FhirRdfModelGenerator.NS_fhir + finalName;
-                  const pMap = new PropertyMapping(true, elt, curriedName, predicate2, nodeConstraint, null, specializes);
+                  const overrideName = propertyOverride ? propertyOverride.predicate : curriedName
+                  const overridePredicate = FhirRdfModelGenerator.NS_fhir + overrideName;
+                  const pMap = new PropertyMapping(true, elt, curriedName, overridePredicate, nodeConstraint, null, specializes);
                   return acc.concat([pMap]);
                 } else {
                   const binding = 'binding' in elt ? elt.binding : null;
