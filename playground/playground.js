@@ -988,7 +988,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
    *
    * @return a promise to perform the action
    */
-  playground.performAction = function(input, param, t) {
+  playground.performAction = function(input, param) {
     // set options
     var options = {
       // base IRI
@@ -1414,9 +1414,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     playground.activeContextMap = {};
     var errors = false;
     var markup = playground.editors.markup.getValue();
-
-    var t = playground.editors.markup;
-
     var input;
 
     // nothing to process
@@ -1468,7 +1465,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     var debounced = playground.process !== playground._process;
 
     // no errors, perform the action and display the output
-    return playground.performAction(input, param, t)
+    return playground.performAction(input, param)
       .then(
         function(){
           playground.permalink();
