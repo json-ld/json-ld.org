@@ -360,7 +360,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       $(this).tab('show');
     }).on("show", playground.tabSelected);
 
-    $('#tab-signed-rsa').click(function (e) {
+    $('#tab-final-jsonld').click(function (e) {
       e.preventDefault();
       $(this).tab('show');
     }).on("show", playground.tabSelected);
@@ -937,7 +937,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed',
-      /* 'tab-signed-rsa', 'tab-signed-koblitz',*/ ].indexOf(id) > -1) {
+      /* 'tab-final-jsonld', 'tab-signed-koblitz',*/ ].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
       $('#frame-div, #privatekey-rsa-div, #privatekey-koblitz-div, ' +
@@ -948,7 +948,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       } else if(id==='tab-framed') {
         $('#param-type').html('JSON-LD Frame');
         $('#frame-div').show();
-      } else if(id === 'tab-signed-rsa') {
+      } else if(id === 'tab-final-jsonld') {
         $('#param-type').html('PEM-encoded Private Key');
         $('#privatekey-rsa-div').show();
       } else if(id === 'tab-signed-koblitz') {
@@ -988,7 +988,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
    *
    * @return a promise to perform the action
    */
-  playground.performAction = function(input, param, t) {
+  playground.performAction = function(input, param) {
     // set options
     var options = {
       // base IRI
@@ -1140,7 +1140,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         d3.jsonldVis(input, '#visualized');
       });
     }
-    else if(playground.activeTab === 'tab-signed-rsa') {
+    else if(playground.activeTab === 'tab-final-jsonld') {
       promise = new Promise(function(resolve, reject) {
         var output = fhirPreprocessR4(input);
         playground.jsonld = output;
@@ -1414,9 +1414,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     playground.activeContextMap = {};
     var errors = false;
     var markup = playground.editors.markup.getValue();
-
-    var t = playground.editors.markup;
-
     var input;
 
     // nothing to process
@@ -1468,7 +1465,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     var debounced = playground.process !== playground._process;
 
     // no errors, perform the action and display the output
-    return playground.performAction(input, param, t)
+    return playground.performAction(input, param)
       .then(
         function(){
           playground.permalink();
