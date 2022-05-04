@@ -323,7 +323,8 @@ class FhirShExJGenerator extends ModelVisitor {
       await this.visitElement(recursionTarget, visitor, generatorConfig); // Get content model from base type
     }
 
-    const values = await this.parseCompose(resourceDef.compose);
+    // added empty default because https://build.fhir.org/valueset-device-operational-state-mode.html has no expansion as of 2022-05-04
+    const values = await this.parseCompose(resourceDef.compose || {include:[]});
     let nodeConstraint = {
       type: "NodeConstraint",
       id: label
