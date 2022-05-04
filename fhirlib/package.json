@@ -1,0 +1,28 @@
+{
+  "name": "fhirlib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "(node -e \"if (! require('fs').existsSync('_downloads/profiles-resources.json')) {process.exit(1)} \" || npm run downloadFHIR) && npm run bundleToShExJ",
+    "debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
+    "downloadFHIR": "rm -rf _downloads; mkdir -p _downloads; curl https://build.fhir.org/definitions.json.zip --output _downloads/definitions.json.zip; unzip -d _downloads _downloads/definitions.json.zip",
+    "bundleToShExJ": "for form in flat nest; do node ./bin/fhirToShExJ --$form fhir-$form.shexj _downloads/profiles-resources.json _downloads/profiles-types.json _downloads/valuesets.json; done",
+    "fshToShExJ": "./bin/fhirToShExJ --flat --fsh ../../../fhircat/shexmap-prototype/fsh-generated/resources/StructureDefinition-BloodPressurePanelLM.json fhir-fsh.shexj _downloads/profiles-resources.json _downloads/profiles-types.json _downloads/valuesets.json",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^27.3.1"
+  },
+  "dependencies": {
+    "@shexjs/node": "^1.0.0-alpha.15",
+    "@shexjs/util": "^1.0.0-alpha.15",
+    "@shexjs/validator": "^1.0.0-alpha.17",
+    "commander": "^8.3.0",
+    "jsonld": "^5.2.0",
+    "n3": "^1.11.2"
+  }
+}

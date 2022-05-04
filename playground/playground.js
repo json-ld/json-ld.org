@@ -7,6 +7,11 @@
  * @author Nicholas Bollweg
  * @author Markus Lanthaler
  */
+const GEN_JSONLD_CONTEXT_CONFIG = {
+  oloIndexes: true,
+  addTypesTo: ["Coding"]
+};
+
 ;(function($, CodeMirror, jsonld, Promise){
   "use strict";
   // assume nothing
@@ -32,6 +37,7 @@
 
   // ... and outputs
   playground.outputs = {};
+  playground.jsonld = "";
 
   // default theme
   playground.theme = "neat";
@@ -63,205 +69,89 @@
   // whether a remote document should be used
   playground.useRemote = docs();
 
-  const CODE_SYSTEM_MAP = {
-    "http://snomed.info/sct": "sct",
-    "http://loinc.org": "loinc"
+  playground.fhircat = {
+    shexj: null,
+    profile: {
+      resources: null,
+      datatypes: null,
+      valuesets: null
+    },
+    profileUrls: {
+      resources: "R5-Resources-no-ws.json",
+      datatypes: "R5-Datatypes-no-ws.json",
+      valuesets: "R5-Valuesets-no-ws.json",
+    }
   };
 
-  function parseResourceType(resourceType) {
-    return resourceType.includes(':') ? resourceType.split(':')[1] : resourceType
+  function loadFhirProfile (profileUrls, profile) {
+    $.when(
+      ajaxProfileFileLoader(profileUrls.resources),
+      ajaxProfileFileLoader(profileUrls.datatypes),
+      ajaxProfileFileLoader(profileUrls.valuesets),
+    ).done((r, d, v) => {
+      profile.resources = r[0];
+      profile.datatypes = d[0];
+      profile.valuesets = v[0];
+      return generateShExJFromProfile(profile);
+    });
   }
 
-  class FhirR5Preprocessor {
-    constructor() {
-      this.resourceTypeSet = new Set();
-    }
-
-    preprocess(input) {
-      if ('@context' in input) {
-        return "input preprocessed";
-      }
-      let resourceType;
-      if (input.resourceType) {
-        resourceType = parseResourceType(input.resourceType);
-        this.resourceTypeSet.add(resourceType);
-      }
-      input['nodeRole'] = 'fhir:treeRoot';
-
-      // TODO: replace this with @included once the bug is fixed
-      let graph = this.processFhirObject(input, resourceType);
-
-      // add ontology header
-      let hdr = {};
-      hdr['@id'] = graph['@id'] + '.ttl';
-      hdr['owl:versionIRI'] = hdr['@id'];
-      hdr['owl:imports'] = 'fhir:fhir.ttl';
-      hdr["@type"] = 'owl:Ontology';
-
-      let output = { ...graph, "@included": hdr };
-
-      let context = [];
-      if (this.resourceTypeSet.size > 0) {
-        Array.from(this.resourceTypeSet).sort().forEach(rt => {
-          context.push(this.getFhirContextUrl(rt));
-        })
-        context.push(this.getFhirContextUrl('root'));
-      }
-      context.push({
-        '@base': 'http://hl7.org/fhir/',
-        'nodeRole': { '@type': '@id', '@id': 'fhir:nodeRole' },
-        'owl:imports': { '@type': '@id' },
-        'owl:versionIRI': { '@type': '@id' },
-      });
-      output = { '@context': context, ...output };
-
-      return JSON.stringify(output, null, 2);
-    }
-
-    getFhirContextUrl(resourceType) {
-      return `https://fhircat.org/fhir-r5/original/contexts/${resourceType.toLowerCase()}.context.jsonld`
-      // return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
-      // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
-    }
-
-    fromFhirValue(value) {
-      return value['value'] || value
-    }
-
-    toFhirValue(value) {
-      return value;
-    };
-
-    addTypeArc(value) {
-      if (value.system && value.code) {
-        let system = this.fromFhirValue(value.system);
-        let code = this.fromFhirValue(value.code);
-        let system_root = '/#'.includes(system.slice(-1)) ? system.slice(0, -1) : system;
-        let base;
-        if (system_root in CODE_SYSTEM_MAP) {
-          base = CODE_SYSTEM_MAP[system_root] + ':'
-        } else {
-          base = system + ('/#'.includes(system.slice(-1)) ? '' : '/')
-        }
-        value['@type'] = base + code
-      }
-      return value
-    }
-
-    processFhirObject(fhirObj, resourceType, inside=false) {
-      for (let key in fhirObj) {
-        let value = fhirObj[key];
-        if (key.startsWith('@')) {
-          continue;
-        } else if (Array.isArray(value)) {
-          fhirObj[key] = this.processFhirArray(key, value);
-        } else if (typeof value === 'object') {
-          fhirObj[key] = this.processFhirObject(value, resourceType, true)
-        } else if (key === 'id') {
-          fhirObj['@id'] = (inside && !value.startsWith('#') ? '#' : resourceType + '/') + value
-          fhirObj.id = this.toFhirValue(fhirObj.id)
-        } else if (key === 'reference') {
-          if (!('link' in fhirObj)) {
-            fhirObj['fhir:link'] = this.genFhirReference(fhirObj);
-          }
-          fhirObj[key] = this.toFhirValue(value)
-        } else if (key === 'resourceType' && !(value.startsWith('fhir:'))) {
-          this.resourceTypeSet.add(value);
-          fhirObj[key] = 'fhir:' + value;
-        } else if (!['nodeRole', 'index', 'div'].includes(key)) {
-          fhirObj[key] = this.toFhirValue(value);
-        }
-        if (key === 'coding') {
-          fhirObj[key] = value.map(n => this.addTypeArc(n))
-        }
-      }
-      return fhirObj;
-    }
-
-    processExtensions(fhirObj) {
-      // merge extensions
-      for (let key in fhirObj) {
-        if (!key.startsWith('_')) {
-          continue;
-        }
-        let baseKey = key.substr(1);
-        if (fhirObj[baseKey] && typeof fhirObj[baseKey] === 'object') {
-          for (let subkey in fhirObj[key]) {
-            if (subkey in fhirObj[baseKey]) {
-              console.log(`Extension object ${subkey} is already in the base for ${key}`)
-            } else {
-              fhirObj[baseKey][subkey] = fhirObj[key][subkey]
-            }
-          }
-        } else {
-          console.log(`Badly formed extension element: ${key}`);
-        }
-        delete fhirObj[key]
-      }
-      return fhirObj;
-    }
-
-    processFhirArray(key, value) {
-      return value.map((e, i) => {
-        if (Array.isArray(e)) {
-          console.log(`Problem: ${key} has a list in a list`)
-        } else if (typeof e === 'object') {
-          let v = this.processFhirObject(e)
-          v['index'] = i
-          return v
-        } else {
-          let v = this.toFhirValue(e)
-          if (typeof v === 'object') {
-            v['index'] = i
-          }
-          return v
-        }
+  function ajaxProfileFileLoader (url) {
+    return $.ajax({
+        url: url,
+        dataType: "json"
       })
-    }
-
-    genFhirReference(fhirObj) {
-      let typ, link
-      if (!fhirObj.reference.includes('://') && !fhirObj.reference.startsWith('/')) {
-        typ = 'type' in fhirObj ? fhirObj.type : fhirObj.reference.split('/', 1)[0]
-        link = '../' + fhirObj.reference
-      } else {
-        link = fhirObj.reference;
-        typ = fhirObj.type
-      }
-      let rval = { '@id': link };
-      if (typ) {
-        rval['@type'] = 'fhir:' + typ
-      }
-      return rval
-    }
+      .fail(function(){
+        throw Error(`Could not load FHIR Profile component ${url}.`);
+      })
   }
 
-  class FhirR4Preprocessor extends FhirR5Preprocessor {
-    toFhirValue(value) {
-      return { 'value': value }
-    }
+  async function generateShExJFromProfile (profile) {
+    $('#processing-errors').hide().empty();
+    let reportMe = null;
+    try {
+      const generationErrors = [];
+      const config = Object.assign({}, GEN_JSONLD_CONTEXT_CONFIG, {
+        error: (err) => {
+          generationErrors.push(err);
+        },
+        missing: {}
+      });
+      const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, config);
 
-    processFhirObject(fhirObj, resourceType, inside=false) {
-      fhirObj = super.processFhirObject(fhirObj, resourceType, inside);
-      fhirObj = this.processExtensions(fhirObj);
-      return fhirObj;
-    }
+      playground.fhircat.shexj = await shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      if (Object.keys(config.missing).length > 0) {
+        console.warn('missing items reported while generating ShExJ:\n', config.missing);
+      }
+      if (generationErrors) {
+        console.error('errors reported while generating ShExJ:\n', generationErrors);
+        reportMe = `${generationErrors.length} errors reported while generating ShExJ. See console for list`;
+      }
 
-    getFhirContextUrl(resourceType) {
-      return `https://fhircat.org/fhir-r4/original/contexts/${resourceType.toLowerCase()}.context.jsonld`
-      // return `https://fhircat.org/fhir/contexts/r5/${resourceType.toLowerCase()}.context.jsonld`
-      // return `https://raw.githubusercontent.com/fhircat/jsonld_context_files/master/contextFiles/${resourceType.toLowerCase()}.context.jsonld`;
+      playground.fhircat.shexj._index = ShExUtil.index(playground.fhircat.shexj);
+    } catch (err) {
+      if (typeof err === 'object' && err instanceof StructureError) {
+        err.logMessage(console.log);
+        reportMe = playground.humanize(err);
+      }
+    }
+    if (reportMe) {
+      $('#processing-errors')
+        .append('Processing error:')
+        .append(
+          $('<pre>').text(reportMe))
+        .show();
     }
   }
 
   const fhirPreprocessR4 = function (input) {
-    let processor = new FhirR4Preprocessor();
+    let processor = new FhirPreprocessor.R4(playground.fhircat.shexj);
     return processor.preprocess(input);
   };
 
 
   const fhirPreprocessR5 = function (input) {
-    let processor = new FhirR5Preprocessor();
+    let processor = new FhirPreprocessor.R5(playground.fhircat.shexj);
     return processor.preprocess(input);
   };
 
@@ -465,6 +355,16 @@
       $(this).tab('show');
     }).on("show", playground.tabSelected);
 
+    $('#output-tabs2 a').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    }).on("show", playground.tabSelected);
+
+    $('#tab-final-jsonld').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    }).on("show", playground.tabSelected);
+
     // show keybaord shortcuts
     $('.popover-info').popover({
       placement: "left",
@@ -514,9 +414,6 @@
       });
     });
 
-    // setup options
-    $("#options-input-processingMode")[0].value = playground.options.input.processingMode;
-
     // process on option changes
     $("#options-input-processingMode").change(function(e) {
       playground.options.input.processingMode = e.target.value;
@@ -534,7 +431,7 @@
 
     // load the schema
     $.ajax({
-        url: "/schemas/jsonld-schema.json",
+        url: "../schemas/jsonld-schema.json",
         dataType: "json"
       })
       .done(function(schema){
@@ -543,6 +440,82 @@
       .fail(function(){
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
+
+    zip.configure({ workerScripts: { inflate: ['lib/z-worker.js'] } });
+    const fileInput = document.getElementById('file-input');
+    const fileInputButton = document.getElementById('file-input-button');
+    fileInput.onchange = uploadDefinitionsZip;
+    fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent('click'));
+    fileInputButton.ondragenter = handleDrag;
+    fileInputButton.ondragover = handleDrag;
+    fileInputButton.ondrop = evt => {
+      handleDrag(evt);
+      $('#processing-errors').hide().empty();
+      const dt = evt.dataTransfer;
+      const url = dt.getData('URL');
+      if (url) {
+        unzipDefinitions(new zip.HttpReader(url), url);
+      } else if (dt.files.length > 0) {
+        unzipDefinitions(new zip.BlobReader(dt.files[0]), 'file upload ' + dt.files[0].name);
+      } else {
+        $('#processing-errors')
+          .append('Error loading profile: unknown drag event')
+          .show();
+      }
+    }
+
+    function handleDrag (evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
+
+    async function uploadDefinitionsZip () {
+      await unzipDefinitions(new zip.BlobReader(fileInput.files[0]), 'file upload');
+    }
+
+    async function unzipDefinitions (reader, source) {
+      $('#processing-errors').hide().empty();
+      fileInputButton.disabled = true;
+      try {
+        const zipper = new zip.ZipReader(reader);
+        const entries = await zipper.getEntries({ filenameEncoding: 'utf-8' });
+
+        const resources = await expectJson(/resource/i);
+        const datatypes = await expectJson(/type/i);
+        const valuesets = await expectJson(/value/i);
+
+        const version = await expectEntry(/version/i);
+        const m = version.match(/version=([^\r\n]+)/);
+        fileInputButton.innerText = m ? m[1] : '??';
+        fileInputButton.title = version + `\n\nuploaded ${new Date().toISOString()} from\n${source}`;
+
+        await generateShExJFromProfile({resources, datatypes, valuesets});
+
+        async function expectEntry (re) {
+          const oneEntry = entries.filter(e => e.filename.match(re));
+          if (oneEntry.length !== 1) {
+            throw Error(`Expected 1 entry to match ${re} in ${entries.map(e => e.filename).join(', ')}`);
+          }
+          const text = await oneEntry[0].getData(new zip.TextWriter());
+          return text;
+        }
+
+        async function expectJson (re) {
+          return JSON.parse(await expectEntry(re));
+        }
+      } catch (err) {
+        $('#processing-errors')
+          .append('Error loading profile:')
+          .append(
+            $('<pre>').text(playground.humanize(err)))
+          .show();
+      } finally {
+        fileInputButton.disabled = false;
+        fileInput.value = '';
+      }
+    }
+
+    loadFhirProfile(playground.fhircat.profileUrls, playground.fhircat.profile);
 
     if(window.location.search || window.location.hash) {
       playground.processQueryParameters();
@@ -964,7 +937,7 @@
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed',
-      /* 'tab-signed-rsa', 'tab-signed-koblitz',*/ ].indexOf(id) > -1) {
+      /* 'tab-final-jsonld', 'tab-signed-koblitz',*/ ].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
       $('#frame-div, #privatekey-rsa-div, #privatekey-koblitz-div, ' +
@@ -975,7 +948,7 @@
       } else if(id==='tab-framed') {
         $('#param-type').html('JSON-LD Frame');
         $('#frame-div').show();
-      } else if(id === 'tab-signed-rsa') {
+      } else if(id === 'tab-final-jsonld') {
         $('#param-type').html('PEM-encoded Private Key');
         $('#privatekey-rsa-div').show();
       } else if(id === 'tab-signed-koblitz') {
@@ -1037,35 +1010,68 @@
       promise = jsonld.flatten(input, param, options);
     }
     else if(playground.activeTab === 'tab-framed') {
+      input = JSON.parse(playground.jsonld);
       promise = jsonld.frame(input, param, options);
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
-      promise = jsonld.toRDF(input, options);
-        // .then(dataset => {
-        //
-        //   // Use N3.Parser to extract quads.
-        //   // Currently input is n-quads so it won't emit any prefixes.
-        //   const quads = [];
-        //   const parser = new N3.Parser({
-        //     baseIRI: document.baseURI,
-        //     blankNodePrefix: '' // avoid _:b0_b0
-        //   });
-        //   return new Promise((resolve, reject) => {
-        //     parser.parse(dataset, (error, quad, prefixes) => {
-        //       // vanilla N3.Parser .parse() handler:
-        //       if (error) reject(error);
-        //       if (prefixes && Object.keys(prefixes) > 0)
-        //         // assumptions have changed; need coder intervention
-        //         throw Error("apparently there are prefixes "
-        //                     + JSON.stringify(prefixes)
-        //                     + " defined in input:\n"
-        //                     + JSON.stringify(input, null, 2));
-        //       if (quad) quads.push(quad);
-        //       else resolve(quads);
-        //     });
-        //   });
-        // })
+      input = JSON.parse(playground.jsonld);
+
+      promise = jsonld.toRDF(input, options)
+        .then(dataset => {
+          // Use N3.Parser to extract quads.
+          // Currently input is n-quads so it won't emit any prefixes.
+          const quads = [];
+          const parser = new N3.Parser({
+            baseIRI: document.baseURI,
+            blankNodePrefix: '' // avoid _:b0_b0
+          });
+          return new Promise((resolve, reject) => {
+            parser.parse(dataset, (error, quad, prefixes) => {
+              // vanilla N3.Parser .parse() handler:
+              if (error) reject(error);
+              if (prefixes && Object.keys(prefixes) > 0)
+                // assumptions have changed; need coder intervention
+                throw Error("apparently there are prefixes "
+                            + JSON.stringify(prefixes)
+                            + " defined in input:\n"
+                            + JSON.stringify(input, null, 2));
+              if (quad) quads.push(quad);
+              else resolve(quads);
+            });
+          });
+        })
+        .then(quads => {
+          // db has the passed quads. restDb will receive quads not part of the FHIR Resource.
+          const db = new N3.Store();
+          db.addQuads(quads);
+          const restDb = new N3.Store();
+
+          // The FhirTurtleSerializer passes FHIR Resource quads to the NestedWriter.
+          const writer = new NestedWriter.Writer(null, {
+            // lists: {}, -- lists will require some thinking
+            format: 'text/turtle',
+            // baseIRI: resource.base,
+            prefixes: P,
+            version: 1.1,
+            indent: '    ',
+            checkCorefs: n => false,
+          });
+          const serializer = new FhirTurtleSerializer.Serializer(playground.fhircat.shexj);
+          serializer.addResource({store: db}, writer, {}, restDb);
+
+          // Append a comment and the remaining triples.
+          serializer.addRest(restDb, writer, {}, "\n# Triples not in FHIR Resource:");
+
+          // Get the ouput following NestedWriter's stream convention.
+          let pretty = null;
+          writer.end((error, result) => {
+            if (error)
+              throw new Error(error);
+            pretty = result;
+          });
+          return pretty;
+        });
         // .then(quads => {
         //
         //   // Dig through @context for likely candidates for prefixes.
@@ -1134,9 +1140,10 @@
         d3.jsonldVis(input, '#visualized');
       });
     }
-    else if(playground.activeTab === 'tab-signed-rsa') {
+    else if(playground.activeTab === 'tab-final-jsonld') {
       promise = new Promise(function(resolve, reject) {
         var output = fhirPreprocessR4(input);
+        playground.jsonld = output;
         if (output) {
           resolve(output);
         } else {
@@ -1821,6 +1828,22 @@
         ].join('');
       }
 
+      if (url.startsWith(FhirJsonLdContextGenerator.STEM) && url.endsWith(FhirJsonLdContextGenerator.SUFFIX)) {
+        try {
+          const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
+          const generator = new FhirJsonLdContextGenerator(playground.fhircat.shexj);
+          const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+          const ret = {
+            contextUrl: null,
+            documentUrl: url,
+            document: JSON.stringify(context, null, 2)
+          };
+          return Promise.resolve(ret);
+        } catch (e) {
+          console.warn("error trying to genJsonldContext:" + e.stack);
+          throw e; // not that anyone appears to care
+        }
+      }
       return xhrDocumentLoader(url);
     };
 
