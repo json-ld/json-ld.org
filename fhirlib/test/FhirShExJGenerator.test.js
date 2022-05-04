@@ -13,7 +13,7 @@ const GEN_SHEXJ_CONTEXT_CONFIG = {
 const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];
 
 const GenTests = [
-  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-expected.shexj', got: 'fhir/medreq-min-got.shexj'}
+  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-RDVch-expected.shexj', got: 'fhir/medreq-min-RDVch-got.shexj'}
 ].map(t => {
   (["resources", "datatypes", "valuesets", "expected", "got"]).forEach(attr => {
     t[attr + "Rel"] = Path.relative(process.env.PWD, Path.join(__dirname, t[attr]));
