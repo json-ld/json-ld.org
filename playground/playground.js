@@ -37,6 +37,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
   // ... and outputs
   playground.outputs = {};
+  playground.jsonld = "";
 
   // default theme
   playground.theme = "neat";
@@ -91,7 +92,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       profile.resources = r[0];
       profile.datatypes = d[0];
       profile.valuesets = v[0];
-      generateShExJFromProfile(profile);
+      return generateShExJFromProfile(profile);
     });
   }
 
@@ -105,7 +106,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       })
   }
 
-  function generateShExJFromProfile (profile) {
+  async function generateShExJFromProfile (profile) {
     $('#processing-errors').hide().empty();
     let reportMe = null;
     try {
@@ -118,7 +119,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       });
       const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, config);
 
-      playground.fhircat.shexj = shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      playground.fhircat.shexj = await shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
       if (Object.keys(config.missing).length > 0) {
         console.warn('missing items reported while generating ShExJ:\n', config.missing);
       }
@@ -128,7 +129,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       }
 
       playground.fhircat.shexj._index = ShExUtil.index(playground.fhircat.shexj);
-      console.log('generated ShExJ:\n', playground.fhircat.shexj);
     } catch (err) {
       if (typeof err === 'object' && err instanceof StructureError) {
         err.logMessage(console.log);
@@ -355,6 +355,16 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       $(this).tab('show');
     }).on("show", playground.tabSelected);
 
+    $('#output-tabs2 a').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    }).on("show", playground.tabSelected);
+
+    $('#tab-signed-rsa').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    }).on("show", playground.tabSelected);
+
     // show keybaord shortcuts
     $('.popover-info').popover({
       placement: "left",
@@ -403,9 +413,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         playground.toggleRemote(key);
       });
     });
-
-    // setup options
-    $("#options-input-processingMode")[0].value = playground.options.input.processingMode;
 
     // process on option changes
     $("#options-input-processingMode").change(function(e) {
@@ -482,7 +489,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         fileInputButton.innerText = m ? m[1] : '??';
         fileInputButton.title = version + `\n\nuploaded ${new Date().toISOString()} from\n${source}`;
 
-        generateShExJFromProfile({resources, datatypes, valuesets});
+        await generateShExJFromProfile({resources, datatypes, valuesets});
 
         async function expectEntry (re) {
           const oneEntry = entries.filter(e => e.filename.match(re));
@@ -981,7 +988,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
    *
    * @return a promise to perform the action
    */
-  playground.performAction = function(input, param) {
+  playground.performAction = function(input, param, t) {
     // set options
     var options = {
       // base IRI
@@ -1003,10 +1010,13 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       promise = jsonld.flatten(input, param, options);
     }
     else if(playground.activeTab === 'tab-framed') {
+      input = JSON.parse(playground.jsonld);
       promise = jsonld.frame(input, param, options);
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
+      input = JSON.parse(playground.jsonld);
+
       promise = jsonld.toRDF(input, options)
         .then(dataset => {
           // Use N3.Parser to extract quads.
@@ -1133,6 +1143,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     else if(playground.activeTab === 'tab-signed-rsa') {
       promise = new Promise(function(resolve, reject) {
         var output = fhirPreprocessR4(input);
+        playground.jsonld = output;
         if (output) {
           resolve(output);
         } else {
@@ -1403,6 +1414,9 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     playground.activeContextMap = {};
     var errors = false;
     var markup = playground.editors.markup.getValue();
+
+    var t = playground.editors.markup;
+
     var input;
 
     // nothing to process
@@ -1454,7 +1468,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     var debounced = playground.process !== playground._process;
 
     // no errors, perform the action and display the output
-    return playground.performAction(input, param)
+    return playground.performAction(input, param, t)
       .then(
         function(){
           playground.permalink();

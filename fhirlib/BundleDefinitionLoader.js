@@ -41,8 +41,8 @@ class BundleDefinitionLoader extends DefinitionLoader {
     }
   }
 
-  getStructureDefinitionByName (target) { return this.structureDefinitions.get(target); }
-  getCodesystemByUrl (target) { return this.codesystemUrls.get(target); }
+  async getStructureDefinitionByName (target) { return this.structureDefinitions.get(target); }
+  async getCodesystemByUrl (target) { return this.codesystemUrls.get(target); }
 }
 
 if (typeof module !== 'undefined')

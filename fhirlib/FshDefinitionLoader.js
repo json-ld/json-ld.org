@@ -15,12 +15,12 @@ class FshDefinitionLoader extends DefinitionLoader {
 
   async getStart () { return Fs.promises.readFile(Path.join(this.fshDir, this.start), 'utf-8'); }
 
-  getStructureDefinitionByName (target) {
+  async getStructureDefinitionByName (target) {
     console.log(target); process.exit();
     return this.defs.getStructureDefinitionByName(target);
   }
 
-  getCodesystemByUrl (target) {
+  async getCodesystemByUrl (target) {
     console.log(target); process.exit();
     return this.defs.getCodesystemByUrl(target);
   }

@@ -5,7 +5,7 @@
 class DefinitionLoader {
 
   async getStructureDefinitionByName (target) { throw new Error(`DefinitionLoader.getStructureDefinitionByName(${target}) must be overloaded`); }
-  getCodesystemByUrl (target) { throw new Error(`DefinitionLoader.getCodesystemByUrl(${target}) must be overloaded`); }
+  async getCodesystemByUrl (target) { throw new Error(`DefinitionLoader.getCodesystemByUrl(${target}) must be overloaded`); }
 }
 
 if (typeof module !== 'undefined')
