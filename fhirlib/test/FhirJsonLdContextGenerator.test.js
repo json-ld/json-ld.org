@@ -55,8 +55,12 @@ function makeTester (shexjFile, nestings, axes) {
     // Test against (or generate, if first time this TestJsonResourceInstances has been run) expected contexts:
     if (Fs.existsSync(referenceContexts)) {
       // test the expected contexts.
-      // await Fs.promises.writeFile(referenceContexts + '-got', JSON.stringify(generatedContexts))
-      expect(generatedContexts).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
+      try {
+        expect(generatedContexts).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
+      } catch (e) {
+        await Fs.promises.writeFile(referenceContexts + '-got', JSON.stringify(generatedContexts, null, 2));
+        throw e;
+      }
     } else {
       // still generating them, ideally should happen once per test addition.
       Fs.writeFileSync(referenceContexts, JSON.stringify(generatedContexts, null, 2));
