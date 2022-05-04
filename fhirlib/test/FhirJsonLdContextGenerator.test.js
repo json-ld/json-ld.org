@@ -37,7 +37,7 @@ function makeTester (shexjFile, nestings, axes) {
   return async (filename) => { // the WebStorm recipe has a space in the name
     // Calculate paths for source and expected data.
     const instanceFile = Path.join(__dirname, `json/${filename}.json`);
-    const referenceContexts = Path.join(__dirname, `json/${filename}-${nestings}-contexts.json`);
+    const referenceContexts = Path.join(__dirname, `json/${filename}-${nestings}-contexts-${axes}.json`);
 
     // Parse and pre-process source data.
     const json = await Fs.promises.readFile(instanceFile, 'utf8');
