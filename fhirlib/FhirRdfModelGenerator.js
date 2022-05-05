@@ -294,7 +294,7 @@ class FhirRdfModelGenerator {
           ? (
             this.opts.axes.d
               ? [resourceName].concat(path).concat(curriedName).join('.')
-              : curriendName
+              : curriedName
           )
           : this.opts.axes.r
           ? [resourceName].concat(path).concat(curriedName).join('.')

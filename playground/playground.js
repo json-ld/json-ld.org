@@ -145,6 +145,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       if (typeof err === 'object' && err instanceof StructureError) {
         err.logMessage(console.log);
         reportMe = playground.humanize(err);
+      } else {
+        throw err;
       }
     }
     if (reportMe) {
