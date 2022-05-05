@@ -10,8 +10,9 @@ function parseResourceType(resourceType) {
 }
 
 class FhirR5Preprocessor {
-  constructor (shexj) {
+  constructor (shexj, opts = {axes: {r:true, d:true, v:true, c:false, h:false}}) {
     this.shexj = shexj;
+    this.opts = opts;
     this.resourceTypeSet = new Set();
   }
 
@@ -72,8 +73,8 @@ class FhirR5Preprocessor {
 
   addTypeArc(value) {
     if (value.system && value.code) {
-      let system = this.fromFhirValue(value.system)['@value'];
-      let code = this.fromFhirValue(value.code)['@value'];
+      let system = this.valueOf(this.fromFhirValue(value.system));
+      let code = this.valueOf(this.fromFhirValue(value.code));
       let system_root = '/#'.includes(system.slice(-1)) ? system.slice(0, -1) : system;
       let base;
       if (system_root in CODE_SYSTEM_MAP) {
@@ -84,6 +85,12 @@ class FhirR5Preprocessor {
       value['@type'] = base + code
     }
     return value
+
+  }
+
+  valueOf (v) {
+    if (this.opts.axes.h) { return v; }
+    return v['@value'];
   }
 
   processFhirObject(fhirObj, schemaObject, resourceType, inside = false) {
@@ -227,6 +234,8 @@ const UnionedTypes = {
 
 class FhirR4Preprocessor extends FhirR5Preprocessor {
   toFhirValue(value, schemaObject, nestType) {
+    if (this.opts.axes.h) { return value; }
+
     const [nestScalar, t] = this.lookupNestedObject(schemaObject, nestType, "value");
     if (nestScalar.type === "NodeConstraint") {
       return { value: {

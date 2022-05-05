@@ -111,6 +111,16 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     await regenShExJ();
   }
 
+  function constructAxes () {
+    return {
+      r: $("#btn-Resource").is(":checked"),
+      d: $("#btn-Datatype").is(":checked"),
+      v: $("#btn-Valuetype").is(":checked"),
+      c: $("#btn-Collections").is(":checked"),
+      h: $("#btn-HoistScalars").is(":checked"),
+    }
+  }
+
   async function regenShExJ () {
     $('#processing-errors').hide().empty();
     let reportMe = null;
@@ -121,13 +131,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
           generationErrors.push(err);
         },
         missing: {},
-        axes: {
-          r: $("#btn-Resource").is(":checked"),
-          d: $("#btn-Datatype").is(":checked"),
-          v: $("#btn-Valuetype").is(":checked"),
-          c: $("#btn-Collections").is(":checked"),
-          h: $("#btn-HoistScalars").is(":checked"),
-        }
+        axes: constructAxes(),
       });
       const shexjGenerator = new FhirShExJGenerator(playground.fhircat.definitionLoader, config);
 
@@ -159,7 +163,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   }
 
   const fhirPreprocessR4 = function (input) {
-    let processor = new FhirPreprocessor.R4(playground.fhircat.shexj);
+    let processor = new FhirPreprocessor.R4(playground.fhircat.shexj, { axes: constructAxes() });
     return processor.preprocess(input);
   };
 
