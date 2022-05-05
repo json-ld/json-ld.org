@@ -380,6 +380,16 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     }).on("show", playground.tabSelected);
 
     $("#btn-Resource, #btn-Datatype, #btn-Valuetype, #btn-Collections, #btn-HoistScalars").on("change", regenShExJ);
+    $("#btn-Resource").on("change", () => { editRdvchStatusText(0, $("#btn-Resource").is(":checked") ? 'R' : 'r'); });
+    $("#btn-Datatype").on("change", () => { editRdvchStatusText(1, $("#btn-Datatype").is(":checked") ? 'D' : 'd'); });
+    $("#btn-Valuetype").on("change", () => { editRdvchStatusText(2, $("#btn-Valuetype").is(":checked") ? 'V' : 'v'); });
+    $("#btn-Collections").on("change", () => { editRdvchStatusText(3, $("#btn-RdfCollections").is(":checked") ? 'C' : 'c'); });
+    $("#btn-HoistScalars").on("change", () => { editRdvchStatusText(4, $("#btn-HoistScalars").is(":checked") ? 'H' : 'h'); });
+    function editRdvchStatusText (pos, value) {
+      let text = $("#rdvchStatus").text().split('');
+      text[pos] = value;
+      $("#rdvchStatus").text(text.join(''));
+    }
 
     // show keybaord shortcuts
     $('.popover-info').popover({
