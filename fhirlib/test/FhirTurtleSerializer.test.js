@@ -75,6 +75,11 @@ function makeTester (shexjFile, rdvch) {
     // console.log(restDb.size + "\n" + pretty);
 
     expect(pretty.length).toBeGreaterThan(1);
-    expect(restDb.size).toEqual(extraQuads); // playground-Patient has 5 remaining triples
+    try {
+      expect(restDb.size).toEqual(extraQuads); // playground-Patient has 5 remaining triples
+    } catch (e) {debugger;
+      e.message += "\n got:" + restDb.getQuads().map(q => (['subject', 'predicate', 'object']).map(pos => q[pos].id).join(" ")).join("\n     ");
+      throw e;
+    }
   }
 }

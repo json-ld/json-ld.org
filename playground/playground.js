@@ -8,7 +8,6 @@
  * @author Markus Lanthaler
  */
 const GEN_JSONLD_CONTEXT_CONFIG = {
-  oloIndexes: true,
   addTypesTo: ["Coding"]
 };
 
@@ -107,6 +106,12 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   }
 
   async function generateShExJFromProfile (profile) {
+    playground.fhircat.definitionLoader = new BundleDefinitionLoader(profile.resources, profile.datatypes, profile.valuesets);
+    playground.fhircat.sources = [profile.resources, profile.datatypes, profile.valuesets];
+    await regenShExJ();
+  }
+
+  async function regenShExJ () {
     $('#processing-errors').hide().empty();
     let reportMe = null;
     try {
@@ -115,11 +120,18 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         error: (err) => {
           generationErrors.push(err);
         },
-        missing: {}
+        missing: {},
+        axes: {
+          r: $("#btn-Resource").is(":checked"),
+          d: $("#btn-Datatype").is(":checked"),
+          v: $("#btn-Valuetype").is(":checked"),
+          c: $("#btn-Collections").is(":checked"),
+          h: $("#btn-HoistScalars").is(":checked"),
+        }
       });
-      const shexjGenerator = new FhirShExJGenerator(profile.resources, profile.datatypes, profile.valuesets, config);
+      const shexjGenerator = new FhirShExJGenerator(playground.fhircat.definitionLoader, config);
 
-      playground.fhircat.shexj = await shexjGenerator.genShExJ(["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      playground.fhircat.shexj = await shexjGenerator.genShExJ(playground.fhircat.sources, ["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
       if (Object.keys(config.missing).length > 0) {
         console.warn('missing items reported while generating ShExJ:\n', config.missing);
       }
@@ -364,6 +376,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       e.preventDefault();
       $(this).tab('show');
     }).on("show", playground.tabSelected);
+
+    $("#btn-Resource, #btn-Datatype, #btn-Valuetype, #btn-Collections, #btn-HoistScalars").on("change", regenShExJ);
 
     // show keybaord shortcuts
     $('.popover-info').popover({

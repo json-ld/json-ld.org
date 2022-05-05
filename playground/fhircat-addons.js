@@ -7,6 +7,7 @@ globalThis.N3 = {
 globalThis.ShExUtil = require('@shexjs/util');
 globalThis.StructureError = require('../fhirlib/errors').StructureError;
 globalThis.FhirJsonLdContextGenerator = require('../fhirlib/FhirJsonLdContextGenerator');
+globalThis.BundleDefinitionLoader = require('../fhirlib/BundleDefinitionLoader').BundleDefinitionLoader;
 globalThis.FhirShExJGenerator = require('../fhirlib/FhirShExJGenerator');
 globalThis.FhirTurtleSerializer = require('../fhirlib/FhirTurtleSerializer');
 globalThis.NestedWriter = require('../fhirlib/NestedWriter');
