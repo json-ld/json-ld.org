@@ -384,14 +384,14 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     }).on("show", playground.tabSelected);
 
     $("#btn-Resource, #btn-Datatype, #btn-Valuetype, #btn-Collections, #btn-HoistScalars").on("change", regenShExJ);
-    $("#btn-Resource").on("change", () => { editRdvchStatusText(0, $("#btn-Resource").is(":checked") ? 'R' : 'r'); });
-    $("#btn-Datatype").on("change", () => { editRdvchStatusText(1, $("#btn-Datatype").is(":checked") ? 'D' : 'd'); });
-    $("#btn-Valuetype").on("change", () => { editRdvchStatusText(2, $("#btn-Valuetype").is(":checked") ? 'V' : 'v'); });
-    $("#btn-Collections").on("change", () => { editRdvchStatusText(3, $("#btn-RdfCollections").is(":checked") ? 'C' : 'c'); });
-    $("#btn-HoistScalars").on("change", () => { editRdvchStatusText(4, $("#btn-HoistScalars").is(":checked") ? 'H' : 'h'); });
-    function editRdvchStatusText (pos, value) {
+    $("#btn-Resource"    ).on("change", function () { editRdvchStatusText(0, this); });
+    $("#btn-Datatype"    ).on("change", function () { editRdvchStatusText(1, this); });
+    $("#btn-Valuetype"   ).on("change", function () { editRdvchStatusText(2, this); });
+    $("#btn-Collections" ).on("change", function () { editRdvchStatusText(3, this); });
+    $("#btn-HoistScalars").on("change", function () { editRdvchStatusText(4, this); });
+    function editRdvchStatusText (pos, elt) {
       let text = $("#rdvchStatus").text().split('');
-      text[pos] = value;
+      text[pos] = $(elt).is(":checked") ? text[pos].toUpperCase() : text[pos].toLowerCase();
       $("#rdvchStatus").text(text.join(''));
     }
 
