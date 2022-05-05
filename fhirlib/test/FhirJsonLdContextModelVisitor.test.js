@@ -27,7 +27,7 @@ Jsonld.documentLoader = async function (url) {
   if (url.startsWith(FhirJsonLdContextModelVisitor.STEM) && url.endsWith(FhirJsonLdContextModelVisitor.SUFFIX)) {
     const genMe = url.substr(FhirJsonLdContextModelVisitor.STEM.length, url.length - FhirJsonLdContextModelVisitor.STEM.length - FhirJsonLdContextModelVisitor.SUFFIX.length);
     const definitionLoader = new BundleDefinitionLoader(R5Resources, R5Datatypes /* valuesets not needed for JSON-LD context generation */);
-    const generator = new FhirJsonLdContextModelVisitor(definitionLoader);
+    const generator = new FhirJsonLdContextModelVisitor(definitionLoader, {axes: {r:true, d:true, v:true, c:false, h:false}});
     const resourceDef = await definitionLoader.getStructureDefinitionByName(genMe, GEN_JSONLD_CONTEXT_CONFIG);
     const context = await generator.genJsonldContext(resourceDef || {id: 'root'}, GEN_JSONLD_CONTEXT_CONFIG);
     const ret = {
@@ -57,7 +57,7 @@ describe('RDVch', () => {
   const axes = 'RDVch';
   test.each(compareMe)('nquads(%s)', async (filename) => {
     const instanceFile = Path.join(__dirname, `json/${filename}.json`);
-    const schemaFile = Path.join(__dirname, `../fhir-flat.shexj`);
+    const schemaFile = Path.join(__dirname, `../fhir-flat-${axes}.shexj`);
     const referenceContexts = Path.join(__dirname, `json/${filename}-contexts.json`);
 
     const patient = JSON.parse(await Fs.promises.readFile(instanceFile, 'utf8'));

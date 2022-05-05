@@ -26,7 +26,7 @@ const TestJsonResourceInstances = [
 ['flat', 'nest'].forEach(
   n =>
     describe(`${n} schema`, () => {
-      const tester = makeTester(`../fhir-${n}.shexj`, 'RDVch');
+      const tester = makeTester(`../fhir-${n}-RDVch.shexj`, 'RDVch');
       test.each(TestJsonResourceInstances)('serialize %s +%d extra triples', ({f, extra}) => tester(f, extra));
     } )
 )

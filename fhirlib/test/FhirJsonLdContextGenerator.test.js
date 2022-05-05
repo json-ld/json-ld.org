@@ -22,11 +22,11 @@ const TestJsonResourceInstances = [
 ];
 
 describe("flat", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat.shexj', 'flat', 'RDVch'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-flat-RDVch.shexj', 'flat', 'RDVch'));
 });
 
 describe("nested", () => {
-  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest.shexj', 'nest', 'RDVch'));
+  test.each(TestJsonResourceInstances)('nquads(%s) ', makeTester('../fhir-nest-RDVch.shexj', 'nest', 'RDVch'));
 });
 
 function makeTester (shexjFile, nestings, axes) {
@@ -58,7 +58,9 @@ function makeTester (shexjFile, nestings, axes) {
       try {
         expect(generatedContexts).toEqual(JSON.parse(await Fs.promises.readFile(referenceContexts, 'utf8')));
       } catch (e) {
-        await Fs.promises.writeFile(referenceContexts + '-got', JSON.stringify(generatedContexts, null, 2));
+        const gotFilePath = referenceContexts + '-got';
+        await Fs.promises.writeFile(gotFilePath, JSON.stringify(generatedContexts, null, 2));
+        e.message += `\n    compare ${gotFilePath}\n    to ${referenceContexts}`;
         throw e;
       }
     } else {

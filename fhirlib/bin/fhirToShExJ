@@ -25,6 +25,8 @@ const indexFhir = (acc, entry) => {
 
 program
   .version('0.0.2')
+  .option('-q, --quiet', 'don\'t whine about non-fatal input errors', 'false')
+  .option('-a, --axes [rdvch]]', 'Resouce+Datatype+Valuetype+Collections+Hoist scalars', 'RDVch')
   .option('--flat', 'name and hoist all embeded shapes (default)')
   .option('--nest', 'embed shapes where possible')
   .option('--fsh [start]', 'starting definition in a FSH dir')
@@ -38,12 +40,13 @@ async function generate(result, sources) {
     const definitionLoader = program.opts().fsh
           ? new FshDefinitionLoader(program.opts().fsh, ...definitions)
           : new BundleDefinitionLoader(...definitions);
+    const axes = program.opts().axes;
     let generator = new FhirShExJGenerator(
-        definitionLoader,
-        GEN_SHEXJ_CONTEXT_CONFIG
+      definitionLoader,
+      Object.assign({axes}, GEN_SHEXJ_CONTEXT_CONFIG),
     );
     const raw = await generator.genShExJ(program.opts().fsh ? [{entry: [{resource: JSON.parse(await definitionLoader.getStart())}]}] : definitions);
-    if (Errors.length > 0) {
+    if (Errors.length > 0 && !program.opts().quiet) {
       console.error("Errors from run:\n", Errors/*.map(e => e.message)*/);
     }
     const schema = program.opts().nest

@@ -197,7 +197,7 @@ class FhirRdfModelGenerator {
 
       // aggregate element's types into a disjunction
       const disjointPMaps = "contentReference" in elt
-            ? [new PropertyMapping(false, elt, name, FhirRdfModelGenerator.NS_fhir + [resourceName].concat(path).concat(name).join('.'), elt.contentReference.slice(1), null, [])]
+            ? [new PropertyMapping(false, elt, name, this.makePredicate(resourceDef, path, resourceName, name), elt.contentReference.slice(1), null, [])]
             : await elt.type.reduce(async (accP, typeEntry, idx) => {
               const acc = await accP;
               if (typeof typeEntry !== "object"
@@ -212,10 +212,8 @@ class FhirRdfModelGenerator {
               const curriedName = curried
                     ? name + typeCode.substr(0, 1).toUpperCase() + typeCode.substr(1)
                     : name;
-
               // Elements and BackboneElements indicate a nested structure.
-              const predicate = FhirRdfModelGenerator.NS_fhir + // elt.id
-                    [resourceName].concat(path).concat(curriedName).join('.');
+              const predicate = this.makePredicate(resourceDef, path, resourceName, curriedName);
 
               if (FhirRdfModelGenerator.NestedStructureTypeCodes.indexOf(typeCode) !== -1) {
                 if (elt.type.length > 1) {
@@ -282,6 +280,28 @@ class FhirRdfModelGenerator {
       return visitedElts.concat([disjointPMaps]);
     }, Promise.resolve([]));
   }
+
+
+  makePredicate (resourceDef, path, resourceName, curriedName) {
+    return FhirRdfModelGenerator.NS_fhir + // elt.id
+      (
+        ([
+          "http://hl7.org/fhir/StructureDefinition/DataType",
+          "http://hl7.org/fhir/StructureDefinition/PrimitiveType",
+        ]).indexOf(resourceDef.baseDefinition) !== -1 || ([
+          "Timing"
+        ]).indexOf(resourceDef.id) !== -1
+          ? (
+            this.opts.axes.d
+              ? [resourceName].concat(path).concat(curriedName).join('.')
+              : curriendName
+          )
+          : this.opts.axes.r
+          ? [resourceName].concat(path).concat(curriedName).join('.')
+          : curriedName
+      );
+  }
+
 
   static expectFhirType (resourceDef, elt, typeEntry) {
     const ft = (typeEntry.extension || []).find(ext => ext.url === FhirRdfModelGenerator.FhirTypeExtension);

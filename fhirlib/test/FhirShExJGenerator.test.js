@@ -5,7 +5,6 @@ const {BundleDefinitionLoader} = require('../BundleDefinitionLoader');
 
 const GEN_SHEXJ_CONTEXT_CONFIG = {
   addValueSetVersionAnnotation: false, // handle e.g. "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.6.0"
-  oloIndexes: true,
   addTypesTo: ["Coding"],
   missing: {}
 };
@@ -13,16 +12,17 @@ const GEN_SHEXJ_CONTEXT_CONFIG = {
 const SKIP = ['BackboneElement', 'base', 'DomainResource', 'Element', 'integer', 'BackboneType', 'DataType', 'PrimitiveType'];
 
 const GenTests = [
-  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-RDVch-expected.shexj', got: 'fhir/medreq-min-RDVch-got.shexj'}
+  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-RDVch-expected.shexj', got: 'fhir/medreq-min-RDVch-got.shexj', axes: 'RDVch'},
+  {resources: 'fhir/medreq-min-resources.json', datatypes: 'fhir/medreq-min-types.json', valuesets: 'fhir/medreq-min-valuesets.json', skip: SKIP, expected: 'fhir/medreq-min-rDVch-expected.shexj', got: 'fhir/medreq-min-rDVch-got.shexj', axes: 'rDVch'},
 ].map(t => {
-  (["resources", "datatypes", "valuesets", "expected", "got"]).forEach(attr => {
+  (["resources", "datatypes", "valuesets", "expected", "got", "axes"]).forEach(attr => {
     t[attr + "Rel"] = Path.relative(process.env.PWD, Path.join(__dirname, t[attr]));
   });
   return t;
 });
 
 // test('generate $ expected from $ resources and $ datatypes', async () => {const {resources, datatypes, skip, expected, got} = GenTests[0];
-test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel', async ({resources, datatypes, valuesets, skip, expected, got, expectedRel, resourcesRel, datatypesRel}) => {
+test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel', async ({resources, datatypes, valuesets, skip, expected, got, expectedRel, resourcesRel, datatypesRel, axes}) => {
   // Generate in memory
   // const generator = new FhirShExJGenerator(FHIRStructureMap, FHIRDatatypeMap);
   const parsedResources = await readJsonProfile(Path.join(__dirname, resources));
@@ -30,8 +30,8 @@ test.each(GenTests)('generate $expectedRel from $resourcesRel and $datatypesRel'
   const parsedValuesets = await readJsonProfile(Path.join(__dirname, valuesets));
   const definitionLoader = new BundleDefinitionLoader(parsedResources, parsedDatatypes, parsedValuesets);
   const generator = new FhirShExJGenerator(
-      definitionLoader,
-      GEN_SHEXJ_CONTEXT_CONFIG
+    definitionLoader,
+    Object.assign({axes}, GEN_SHEXJ_CONTEXT_CONFIG),
   );
   const generated = await generator.genShExJ([parsedResources, parsedDatatypes, parsedValuesets], skip);
 

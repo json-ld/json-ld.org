@@ -32,9 +32,10 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
   static STEM = "https://fhircat.org/fhir-r4/original/contexts/"; // could be a parameter but convenient to write in one place
   static SUFFIX = ".context.jsonld";
 
-  constructor(definitionLoader) {
+  constructor(definitionLoader, opts) {
     super(definitionLoader);
     this.cache = new Map(); // not used yet
+    this.opts = opts;
   }
 
   async genJsonldContext (resourceDef, config) {
@@ -48,7 +49,7 @@ class FhirJsonLdContextModelVisitor extends ModelVisitor {
         )
       }];
       if (resourceDef.id !== 'root') { // grumble
-        const modelGenerator = new FhirRdfModelGenerator(this.definitionLoader);
+        const modelGenerator = new FhirRdfModelGenerator(this.definitionLoader, this.opts);
         if (resourceDef === null) {
           const e = new StructureError(`Key ${target} not found`);
           if ('error' in config)

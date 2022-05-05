@@ -52,6 +52,16 @@ class FhirShExJGenerator extends ModelVisitor {
   constructor (definitionLoader, config = {}) {
     super(definitionLoader);
     this.config = config;
+    if (typeof config.axes === "undefined")
+      config.axes = 'RDVch';
+    if (typeof config.axes === "string") {
+      if (!config.axes.match(/^rdvch$/i))
+        throw Error(`expected axes string "${rdvch}" to match /rdvch/i`);
+      config.axes = Array.from(config.axes).reduce((acc, l) => {
+        acc[l.toLowerCase()] = l === l.toUpperCase();
+        return acc;
+      }, {});
+    }
     // make a fresh copy of the prototype schema.
     this.schema = JSON.parse(JSON.stringify(FhirShExJGenerator.EMPTY_FHIR_RESOURCE_SCHEMA));
     // conjunctions of TripleExpressions to add to current shape.
@@ -160,12 +170,13 @@ class FhirShExJGenerator extends ModelVisitor {
   }
 
   enter (propertyMapping) {
+    const shapeName = Prefixes.fhirshex + propertyMapping.element.id;
     this.add(this.indexTripleConstraint(
       propertyMapping,
-      Prefixes.fhirshex + propertyMapping.predicate.substr(Prefixes.fhir.length),
+      shapeName,
       this.makeCard(propertyMapping.element.min, propertyMapping.element.max)
     ));
-    this.pushShape(Prefixes.fhirshex + propertyMapping.element.id, true); // TODO: would break if nested *inside* a DomainResource.
+    this.pushShape(shapeName, true); // TODO: would break if nested *inside* a DomainResource.
   }
 
   element (propertyMappings) {
@@ -258,7 +269,7 @@ class FhirShExJGenerator extends ModelVisitor {
     const teList = this.teListStack.shift();
     if (teList.length === 0 && name !== "Base")
       throw new Error(`Unexpected 0-length TE list when serializing ${name}?`);
-    if (this.config.oloIndexes && FhirShExJGenerator.PARENT_TYPES.indexOf(name) === -1) {
+    if (!this.config.axes.c && FhirShExJGenerator.PARENT_TYPES.indexOf(name) === -1) {
       teList.push(FhirShExJGenerator.INDEX);
     }
     this.shapeStack.pop().expression = teList.length === 1
