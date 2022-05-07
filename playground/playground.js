@@ -76,9 +76,9 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       valuesets: null
     },
     profileUrls: {
-      resources: "R5-Resources-no-ws.json",
-      datatypes: "R5-Datatypes-no-ws.json",
-      valuesets: "R5-Valuesets-no-ws.json",
+      resources: "playground/R5-Resources-no-ws.json",
+      datatypes: "playground/R5-Datatypes-no-ws.json",
+      valuesets: "playground/R5-Valuesets-no-ws.json",
     }
   };
 
@@ -465,7 +465,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
     // load the schema
     $.ajax({
-        url: "../schemas/jsonld-schema.json",
+        url: "schemas/jsonld-schema.json",
         dataType: "json"
       })
       .done(function(schema){
