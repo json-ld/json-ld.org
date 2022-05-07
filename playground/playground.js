@@ -160,6 +160,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
           $('<pre>').text(reportMe))
         .show();
     }
+
+    playground.process();
   }
 
   const fhirPreprocessR4 = function (input) {
@@ -423,6 +425,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       });
     };
 
+    // TODO: ericP wonders if this is responsible for redundant process() invocations per editor.on("change", process)
+    // initializing only the markup editor didn't work: $("#markup").each(function(){ playground.init.editor(this); })
     $(".codemirror-input").each(function(){ playground.init.editor(this); });
     $(".codemirror-output").each(function(){ playground.init.output(this); });
 
@@ -1028,25 +1032,21 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     if(playground.options.input.processingMode !== '') {
       options.processingMode = playground.options.input.processingMode;
     }
-
     var promise;
     if(playground.activeTab === 'tab-compacted') {
       promise = jsonld.compact(input, param, options);
     }
     else if(playground.activeTab === 'tab-expanded') {
-      promise = jsonld.expand(input, options);
+      promise = jsonld.expand(input, options)
     }
     else if(playground.activeTab === 'tab-flattened') {
       promise = jsonld.flatten(input, param, options);
     }
     else if(playground.activeTab === 'tab-framed') {
-      input = JSON.parse(playground.jsonld);
       promise = jsonld.frame(input, param, options);
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
-      input = JSON.parse(playground.jsonld);
-
       promise = jsonld.toRDF(input, options)
         .then(dataset => {
           // Use N3.Parser to extract quads.
@@ -1453,7 +1453,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      input = playground.lastParsed.markup = JSON.parse(markup);
+      const raw = playground.lastParsed.markup = JSON.parse(markup);
+      const human = playground.humanize(fhirPreprocessR4(raw)); // output of preprocessor is input to active tab
+      playground.outputs['final-jsonld'].setValue(human);
+      input = JSON.parse(human);
     }
     catch(e) {
       $('#markup-errors')
@@ -1495,8 +1498,9 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     var debounced = playground.process !== playground._process;
 
     // no errors, perform the action and display the output
-    return playground.performAction(input, param)
-      .then(
+    return new Promise(accept => { setTimeout(accept, 0); }).then(() => {
+      return playground.performAction(input, param);
+    }).then(
         function(){
           playground.permalink();
           playground.process = playground._process;
@@ -1753,7 +1757,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
    */
   playground.populateWithJSON = function(data) {
     var hasData = false;
-
     $.each(playground.editors, function(key, editor){
       if(key in data && data[key] !== null){
         hasData = true;
@@ -1769,10 +1772,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     if(playground.copyContext){
       playground.toggleCopyContext(true);
     }
-
     if(hasData) {
       // perform processing on the data provided in the input boxes
-      return playground.process();
+      const ret = playground.process();
+      return ret;
     }
   };
 
