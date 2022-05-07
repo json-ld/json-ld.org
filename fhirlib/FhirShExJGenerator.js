@@ -212,18 +212,26 @@ class FhirShExJGenerator extends ModelVisitor {
                   }]
                 }
                 : {};
-          const expression = Object.assign(
-            {
-              type: "TripleConstraint",
-              predicate: Prefixes.fhir + 'value',
-              valueExpr: valueSet
-            },
-            annotations
-          );
-          valueExpr = {
-            type: "ShapeAnd",
-            shapeExprs: [valueExpr, {type: "Shape", expression}]
-          };
+          if (this.config.axes.h) {
+            valueExpr = {
+              type: "ShapeAnd",
+              shapeExprs: [valueExpr, valueSet]
+              // TODO: does not pass annotation into triple constraint
+            };
+          } else {
+            const expression = Object.assign(
+              {
+                type: "TripleConstraint",
+                predicate: Prefixes.fhir + 'value',
+                valueExpr: valueSet
+              },
+              annotations
+            );
+            valueExpr = {
+              type: "ShapeAnd",
+              shapeExprs: [valueExpr, {type: "Shape", expression}]
+            };
+          }
         }
       }
       return acc.concat([this.indexTripleConstraint(
