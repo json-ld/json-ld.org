@@ -1097,24 +1097,52 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             // Get the ouput following NestedWriter's stream convention.
             let pretty = null;
             writer.end((error, result) => {
-              if (!error) {
-                pretty = result;
-              } else fallbackToN3Writer(error)
+              if (error) { throw error; }
+              pretty = result;
             });
             return pretty;
-          } catch (e) {
-            return fallbackToN3Writer(e).then(ret => { console.warn(1106, ret); return ret; });
+          } catch (error) {
+            // const prefixes = {'fhir': 'http://hl7.org/fhir/'};
+            return extractPrefixesAndBaseFromJsonld(input["@context"] || {})
+              .then(prefixesAndBase => renderWithN3Writer(prefixesAndBase, error));
           }
 
-          function fallbackToN3Writer (error) {
+          function extractPrefixesAndBaseFromJsonld (context) {
             // Dig through @context for likely candidates for prefixes.
-            const prefixes = [] || Object.entries(input["@context"] || {}).reduce(
-              (acc, pair) =>
-                typeof pair[1] === "string" && pair[0].indexOf(":") === -1
-                ? setKey(acc, pair[0], pair[1])
-                : acc,
-              {} // empty starting set of prefixes
-            )
+            if (Array.isArray(context))
+              return Promise.all(context.map(extractPrefixesAndBaseFromJsonld))
+              .then(
+                objs => Object.assign.apply(Object, [{}].concat(objs))
+              );
+            if (typeof context === "object") {
+              return Promise.resolve(Object.entries(context).reduce((acc, pair) => {
+                if (typeof pair[1] !== "string")
+                  return acc;
+                if (pair[0] === "@base")
+                  return setKey(acc, pair[0], pair[1]); // hide base in prefixes
+                if (pair[0].charAt(0) === '@')
+                  return acc;
+                return setKey(acc, pair[0], pair[1]);
+              }, {})) // empty starting set of prefixes
+            }
+            if (typeof context === "string")
+              return jsonld.documentLoader(context).then(function(remoteDoc) {
+                return extractPrefixesAndBaseFromJsonld(JSON.parse(remoteDoc.document)["@context"]);
+              });
+            throw Error(`Unknown @context format: ${context}`);
+
+            function setKey (obj, key, val) {
+              obj[key] = val;
+              return obj;
+            }
+          }
+
+          function renderWithN3Writer (prefixesAndBase, error) {
+            let baseIRI = document.baseURI;
+            if ("@base" in prefixesAndBase) {
+              baseIRI = prefixesAndBase["@base"];
+              delete prefixesAndBase["@base"];
+            }
 
             // Extract rdf:Collection heads.
             const lists = db.extractLists({
@@ -1123,8 +1151,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
             // Serialize with an N3.Writer.
             const writer = new N3.Writer({
-              baseIRI: document.baseURI,
-              prefixes,
+              baseIRI,
+              prefixes: prefixesAndBase,
               lists
             });
             writer.addQuads(db.getQuads());
@@ -1151,11 +1179,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
                 reject(error);
               });
             });
-
-            function setKey (obj, key, val) {
-              obj[key] = val;
-              return obj;
-            }
           }
         });
     }
