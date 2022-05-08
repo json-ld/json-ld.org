@@ -1088,72 +1088,76 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             checkCorefs: n => false,
           });
           const serializer = new FhirTurtleSerializer.Serializer(playground.fhircat.shexj);
-          serializer.addResource({store: db}, writer, {}, restDb);
+          try {
+            serializer.addResource({store: db}, writer, {}, restDb);
 
-          // Append a comment and the remaining triples.
-          serializer.addRest(restDb, writer, {}, "\n# Triples not in FHIR Resource:");
+            // Append a comment and the remaining triples.
+            serializer.addRest(restDb, writer, {}, "\n# Triples not in FHIR Resource:");
 
-          // Get the ouput following NestedWriter's stream convention.
-          let pretty = null;
-          writer.end((error, result) => {
-            if (error)
-              throw new Error(error);
-            pretty = result;
-          });
-          return pretty;
+            // Get the ouput following NestedWriter's stream convention.
+            let pretty = null;
+            writer.end((error, result) => {
+              if (!error) {
+                pretty = result;
+              } else fallbackToN3Writer(error)
+            });
+            return pretty;
+          } catch (e) {
+            return fallbackToN3Writer(e).then(ret => { console.warn(1106, ret); return ret; });
+          }
+
+          function fallbackToN3Writer (error) {
+            // Dig through @context for likely candidates for prefixes.
+            const prefixes = [] || Object.entries(input["@context"] || {}).reduce(
+              (acc, pair) =>
+                typeof pair[1] === "string" && pair[0].indexOf(":") === -1
+                ? setKey(acc, pair[0], pair[1])
+                : acc,
+              {} // empty starting set of prefixes
+            )
+
+            // Extract rdf:Collection heads.
+            const lists = db.extractLists({
+              remove: true // Remove quads involved in lists (RDF Collections).
+            });
+
+            // Serialize with an N3.Writer.
+            const writer = new N3.Writer({
+              baseIRI: document.baseURI,
+              prefixes,
+              lists
+            });
+            writer.addQuads(db.getQuads());
+            return new Promise((resolve, reject) => {
+
+              // Wrap N3.Writer .end() in a promise.
+              writer.end((writerError, result) => {
+                if (writerError) reject(writerError);
+
+                // Change /@prefix a: <>./PREFIX a: <>/
+                const rows = result.split(/\n/);
+                for (let rowNo = 0; rowNo < rows.length; ++rowNo) {
+                  const m = rows[rowNo]
+                        .match(/^@(prefix|base)( *[^:]+: *<.*?>) *\.$/);
+                  if (m)
+                    rows[rowNo] = m[1].toUpperCase() + m[2]
+                  else
+                    break;
+                }
+
+                // Resolve with Turtle.
+                var outputTab = playground.activeTab.substr('tab-'.length);
+                playground.outputs[outputTab].setValue(rows.join("\n"));
+                reject(error);
+              });
+            });
+
+            function setKey (obj, key, val) {
+              obj[key] = val;
+              return obj;
+            }
+          }
         });
-        // .then(quads => {
-        //
-        //   // Dig through @context for likely candidates for prefixes.
-        //   const prefixes = Object.entries(input["@context"] || {}).reduce(
-        //     (acc, pair) =>
-        //       typeof pair[1] === "string" && pair[0].indexOf(":") === -1
-        //       ? setKey(acc, pair[0], pair[1])
-        //       : acc,
-        //     {} // empty starting set of prefixes
-        //   )
-        //
-        //   // Extract rdf:Collection heads.
-        //   const store = new N3.Store();
-        //   store.addQuads(quads);
-        //   const lists = store.extractLists({
-        //     remove: true // Remove quads involved in lists (RDF Collections).
-        //   });
-        //
-        //   // Serialize with an N3.Writer.
-        //   const writer = new N3.Writer({
-        //     baseIRI: document.baseURI,
-        //     prefixes,
-        //     lists
-        //   });
-        //   writer.addQuads(store.getQuads());
-        //   return new Promise((resolve, reject) => {
-        //
-        //     // Wrap N3.Writer .end() in a promise.
-        //     writer.end((error, result) => {
-        //       if (error) reject(error);
-        //
-        //       // Change /@prefix a: <>./PREFIX a: <>/
-        //       const rows = result.split(/\n/);
-        //       for (let rowNo = 0; rowNo < rows.length; ++rowNo) {
-        //         const m = rows[rowNo]
-        //               .match(/^@(prefix|base)( *[^:]+: *<.*?>) *\.$/);
-        //         if (m)
-        //           rows[rowNo] = m[1].toUpperCase() + m[2]
-        //         else
-        //           break;
-        //       }
-        //
-        //       // Resolve with Turtle.
-        //       resolve(rows.join("\n"));
-        //     });
-        //   });
-        //
-        //   function setKey (obj, key, val) {
-        //     obj[key] = val;
-        //     return obj;
-        //   }
-        // });
     }
     else if(playground.activeTab === 'tab-normalized') {
       options.format = 'application/n-quads';
