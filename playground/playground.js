@@ -475,7 +475,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         console.warn("Schema could not be loaded. Schema validation disabled.");
       });
 
-    zip.configure({ workerScripts: { inflate: ['lib/z-worker.js'] } });
+    zip.configure({ workerScripts: { inflate: ['playground/lib/z-worker.js'] } });
     const fileInput = document.getElementById('file-input');
     const fileInputButton = document.getElementById('file-input-button');
     fileInput.onchange = uploadDefinitionsZip;
