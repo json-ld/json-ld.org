@@ -83,32 +83,35 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
   };
 
   function loadFhirProfile (profileUrls, profile) {
-    $.when(
+    return Promise.all([
       ajaxProfileFileLoader(profileUrls.resources),
       ajaxProfileFileLoader(profileUrls.datatypes),
       ajaxProfileFileLoader(profileUrls.valuesets),
-    ).done((r, d, v) => {
-      profile.resources = r[0];
-      profile.datatypes = d[0];
-      profile.valuesets = v[0];
+    ]).then(([r, d, v]) => {
+      profile.resources = r;
+      profile.datatypes = d;
+      profile.valuesets = v;
       return generateShExJFromProfile(profile);
     });
   }
 
-  function ajaxProfileFileLoader (url) {
-    return $.ajax({
+  async function ajaxProfileFileLoader (url) {
+    return new Promise((resolve, reject) => {
+      $.ajax({
         url: url,
-        dataType: "json"
+        dataType: "json",
+        success: function (data, status, xhrResponse) {
+          resolve(data)
+        },
+        error: error => reject(Error(`Could not load FHIR Profile component ${url}: ${error}`))
       })
-      .fail(function(){
-        throw Error(`Could not load FHIR Profile component ${url}.`);
-      })
+    })
   }
 
   async function generateShExJFromProfile (profile) {
     playground.fhircat.definitionLoader = new BundleDefinitionLoader(profile.resources, profile.datatypes, profile.valuesets);
     playground.fhircat.sources = [profile.resources, profile.datatypes, profile.valuesets];
-    await regenShExJ();
+    return await regenShExJ();
   }
 
   function constructAxes () {
@@ -116,7 +119,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       r: $("#btn-Resource").is(":checked"),
       d: $("#btn-Datatype").is(":checked"),
       v: $("#btn-Valuetype").is(":checked"),
-      c: $("#btn-Collections").is(":checked"),
+      c: $("#btn-RdfCollections").is(":checked"),
       h: $("#btn-HoistScalars").is(":checked"),
     }
   }
@@ -135,7 +138,8 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       });
       const shexjGenerator = new FhirShExJGenerator(playground.fhircat.definitionLoader, config);
 
-      playground.fhircat.shexj = await shexjGenerator.genShExJ(playground.fhircat.sources, ["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      globalThis.ShExJ = playground.fhircat.shexj = await shexjGenerator.genShExJ(playground.fhircat.sources, ["AdministrableProductDefinition"]); // , "FHIR-version", "implantStatus", "catalogType"
+      console.log('ShExJ:', playground.fhircat.shexj);
       if (Object.keys(config.missing).length > 0) {
         console.warn('missing items reported while generating ShExJ:\n', config.missing);
       }
@@ -161,7 +165,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         .show();
     }
 
-    playground.process();
+    return await playground.process();
   }
 
   const fhirPreprocessR4 = function (input) {
@@ -317,7 +321,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
     // build deferreds
     var jsonLdDeferred = handleParameter(
-      getParameterByName('json-ld'), 'markup', 'JSON-LD');
+      getParameterByName('markup'), 'markup', 'JSON-LD');
 
     var frameDeferred = handleParameter(
       getParameterByName('frame'), 'frame', 'frame');
@@ -385,12 +389,12 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       $(this).tab('show');
     }).on("show", playground.tabSelected);
 
-    $("#btn-Resource, #btn-Datatype, #btn-Valuetype, #btn-Collections, #btn-HoistScalars").on("change", regenShExJ);
-    $("#btn-Resource"    ).on("change", function () { editRdvchStatusText(0, this); });
-    $("#btn-Datatype"    ).on("change", function () { editRdvchStatusText(1, this); });
-    $("#btn-Valuetype"   ).on("change", function () { editRdvchStatusText(2, this); });
-    $("#btn-Collections" ).on("change", function () { editRdvchStatusText(3, this); });
-    $("#btn-HoistScalars").on("change", function () { editRdvchStatusText(4, this); });
+    $("#btn-Resource, #btn-Datatype, #btn-Valuetype, #btn-RdfCollections, #btn-HoistScalars").on("change", regenShExJ);
+    $("#btn-Resource"      ).on("change", function () { editRdvchStatusText(0, this); });
+    $("#btn-Datatype"      ).on("change", function () { editRdvchStatusText(1, this); });
+    $("#btn-Valuetype"     ).on("change", function () { editRdvchStatusText(2, this); });
+    $("#btn-RdfCollections").on("change", function () { editRdvchStatusText(3, this); });
+    $("#btn-HoistScalars"  ).on("change", function () { editRdvchStatusText(4, this); });
     function editRdvchStatusText (pos, elt) {
       let text = $("#rdvchStatus").text().split('');
       text[pos] = $(elt).is(":checked") ? text[pos].toUpperCase() : text[pos].toLowerCase();
@@ -549,17 +553,22 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
       }
     }
 
-    loadFhirProfile(playground.fhircat.profileUrls, playground.fhircat.profile);
-
-    if(window.location.search || window.location.hash) {
-      playground.processQueryParameters();
-    }
-    $(".loading").fadeOut(function(){
-      $(this).remove();
-      $(".loaded").fadeIn();
-      playground.editor.refresh();
-      playground.editor.refresh(playground.outputs);
-    });
+    loadFhirProfile(playground.fhircat.profileUrls, playground.fhircat.profile)
+      .then(statusMessage => { // statusMessage is only used for debugging
+        if(window.location.search || window.location.hash) {
+          playground.processQueryParameters();
+        }
+        $(".loading").fadeOut(function(){
+          $(this).remove();
+          $(".loaded").fadeIn();
+          playground.editor.refresh();
+          playground.editor.refresh(playground.outputs);
+        });
+      }, e => {
+        alert("unhandeled initialization error in console");
+        console.error(e);
+        debugger;
+      });
   };
 
 
@@ -1047,8 +1056,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     }
     else if(playground.activeTab === 'tab-nquads') {
       options.format = 'application/n-quads';
+      globalThis.Contexts = {}
       promise = jsonld.toRDF(input, options)
         .then(dataset => {
+          console.log("@Contexts:", globalThis.Contexts);
           // Use N3.Parser to extract quads.
           // Currently input is n-quads so it won't emit any prefixes.
           const quads = [];
@@ -1066,16 +1077,47 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
                             + JSON.stringify(prefixes)
                             + " defined in input:\n"
                             + JSON.stringify(input, null, 2));
-              if (quad) quads.push(quad);
-              else resolve(quads);
+              if (quad) {
+                // Horrible hack to deal with https://tinyurl.com/4fvskrkf
+                // TODO: move to preprocessor by quoting value
+                const o = quad.object;
+                if (o.termType === "Literal" &&
+                    o.datatypeString === 'http://www.w3.org/2001/XMLSchema#decimal') {
+                  const m = o.value.match(/([+-]?(?:[0-9]+\.[0-9]*|\.[0-9]+|[0-9]+))[eE]([+-]?[0-9]+)$/);
+                  if (m) {
+                    const v = parseFloat(m[1]) * 10 ** parseInt(m[2]);
+                    quad = N3.Factory.quad(quad.subject, quad.predicate, N3.Factory.literal(v, o.datatype), quad.graph);
+                  }
+                }
+                quads.push(quad);
+              } else {
+                resolve(quads);
+              }
             });
           });
         })
         .then(quads => {
           // db has the passed quads. restDb will receive quads not part of the FHIR Resource.
           const db = new N3.Store();
+          const all = new N3.Store();
           db.addQuads(quads);
+          all.addQuads(quads);
           const restDb = new N3.Store();
+
+          // Extract rdf:Collection heads.
+          const lists = db.extractLists({
+            remove: true // Remove quads involved in lists (RDF Collections).
+          });
+
+          const n3w = new NestedWriter.Writer();
+          const F = N3.Factory;
+          n3w.addQuad(F.namedNode('a1'), F.namedNode('b'), n3w.list([F.blankNode('c'), F.blankNode('d'), F.blankNode('e')]));
+          n3w.addQuad(F.blankNode('c'), F.namedNode('c1'), F.literal('c2'));
+          n3w.addQuad(F.blankNode('d'), F.namedNode('d1'), F.literal('d2'));
+          n3w.addQuad(F.blankNode('e'), F.namedNode('e1'), F.literal('e2'));
+          n3w.end(function (error, output) {
+            console.log(output === '<a1> <b> (<c> <d> <e>).\n' || output);
+          });
 
           // The FhirTurtleSerializer passes FHIR Resource quads to the NestedWriter.
           const writer = new NestedWriter.Writer(null, {
@@ -1083,13 +1125,19 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             format: 'text/turtle',
             // baseIRI: resource.base,
             prefixes: P,
+            lists,
             version: 1.1,
             indent: '    ',
             checkCorefs: n => false,
+            debug: true,
           });
           const serializer = new FhirTurtleSerializer.Serializer(playground.fhircat.shexj);
           try {
-            serializer.addResource({store: db}, writer, {}, restDb);
+            const markupResource = {
+              base: playground.remoteUrl.markup || window.location.href,
+              store: all,
+            };
+            serializer.addResource(markupResource, writer, {}, restDb);
 
             // Append a comment and the remaining triples.
             serializer.addRest(restDb, writer, {}, "\n# Triples not in FHIR Resource:");
@@ -1143,11 +1191,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
               baseIRI = prefixesAndBase["@base"];
               delete prefixesAndBase["@base"];
             }
-
-            // Extract rdf:Collection heads.
-            const lists = db.extractLists({
-              remove: true // Remove quads involved in lists (RDF Collections).
-            });
 
             // Serialize with an N3.Writer.
             const writer = new N3.Writer({
@@ -1475,12 +1518,13 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
 
     // nothing to process
     if(markup === '') {
-      return;
+      return Promise.resolve("markup empty");
     }
 
     // check to see if the JSON-LD markup is valid JSON
     try {
-      const raw = playground.lastParsed.markup = JSON.parse(markup);
+      playground.lastParsed.markup = JSON.parse(markup);
+      const raw = JSON.parse(markup); // raw gets munged by the preprocessor
       const human = playground.humanize(fhirPreprocessR4(raw)); // output of preprocessor is input to active tab
       playground.outputs['final-jsonld'].setValue(human);
       input = JSON.parse(human);
@@ -1528,13 +1572,14 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     return new Promise(accept => { setTimeout(accept, 0); }).then(() => {
       return playground.performAction(input, param);
     }).then(
-        function(){
+        function() {
           playground.permalink();
           playground.process = playground._process;
+          return "SUCCESS";
         },
         function(err){
           // FIXME: add better error handling output
-          console.error(err);
+          console.error('Processing error:', err);
           $('#processing-errors')
             .append('Processing error:')
             .append(
@@ -1718,8 +1763,7 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
     // encode and concat the hash components
     $.each(params, function(key, val){
       if(!val){ return; }
-      hash += (hash ? "&" : "#") +
-        (key === "markup" ? "json-ld" : key) + "=" + encodeURIComponent(val);
+      hash += (hash ? "&" : "#") + key + "=" + encodeURIComponent(val);
     });
 
     playground.permalink.url = window.location.href.replace(/[#\?].*$/, "") +
@@ -1892,7 +1936,10 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
         try {
           const genMe = url.substr(FhirJsonLdContextGenerator.STEM.length, url.length - FhirJsonLdContextGenerator.STEM.length - FhirJsonLdContextGenerator.SUFFIX.length);
           const generator = new FhirJsonLdContextGenerator(playground.fhircat.shexj);
-          const context = generator.genJsonldContext(genMe, GEN_JSONLD_CONTEXT_CONFIG);
+          const context = generator.genJsonldContext(genMe, Object.assign({}, GEN_JSONLD_CONTEXT_CONFIG, {
+            axes: constructAxes(),
+          }));
+          globalThis.Contexts[genMe] = context;
           const ret = {
             contextUrl: null,
             documentUrl: url,
