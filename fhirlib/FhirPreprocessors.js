@@ -64,7 +64,7 @@ class FhirR5Preprocessor {
   }
 
   fromFhirValue(value) {
-    return value['value'] || value
+    return value['value'] || value['@value'] || value
   }
 
   toFhirValue(value) {
@@ -140,25 +140,31 @@ class FhirR5Preprocessor {
             tc = eachOfTE;
           }
         } else if (eachOfTE.type === "OneOf") {
-          tc = eachOfTE.expressions.find(oneOfTE => oneOfTE.predicate.endsWith('.' + key));
+          tc = eachOfTE.expressions.find(oneOfTE => oneOfTE.predicate.endsWith('.' + key) || oneOfTE.predicate.endsWith('/' + key));
         } else throw Error("HERE");
       }
     }
-    if (!tc) throw Error(`Can't find ${resourceType}.${key} in ${schemaObject}`);
+    if (!tc) throw Error(`Can't find ${resourceType}.${key} in ${JSON.stringify(schemaObject, null, 2)}`);
     let te = null;
-    if (typeof tc.valueExpr === "object") {
-      if (tc.valueExpr.type === "ShapeAnd") {
-        te = tc.valueExpr.shapeExprs[0];
-      } else if (tc.valueExpr.type === "ShapeOr") {
-        return [tc.valueExpr, resourceType];
-      } else if (tc.valueExpr.type === "NodeConstraint") {
-        return [tc.valueExpr, resourceType];
-      } else if (tc.valueExpr.type === "Shape") { // nested shapes shows up only in nested schemas
-        return [tc.valueExpr, resourceType];
+    let valueExpr = tc.valueExpr;
+    const Pfhirshex = "http://hl7.org/fhir/shape/";
+    const listOfStem = Pfhirshex + "OneOrMore_";
+    if (typeof valueExpr === "string" && valueExpr.startsWith(listOfStem)) {
+      valueExpr = Pfhirshex + valueExpr.substr(listOfStem.length);
+    }
+    if (typeof valueExpr === "object") {
+      if (valueExpr.type === "ShapeAnd") {
+        te = valueExpr.shapeExprs[0];
+      } else if (valueExpr.type === "ShapeOr") {
+        return [valueExpr, resourceType];
+      } else if (valueExpr.type === "NodeConstraint") {
+        return [valueExpr, resourceType];
+      } else if (valueExpr.type === "Shape") { // nested shapes shows up only in nested schemas
+        return [valueExpr, resourceType];
       } else throw Error("HERE");
-    } else if (typeof tc.valueExpr === "string") {
-      if (!tc.valueExpr.startsWith(NS_fhir)) throw Error(`unexpected valueExpr in ${tc}`);
-      te = tc.valueExpr;
+    } else if (typeof valueExpr === "string") {
+      if (!valueExpr.startsWith(NS_fhir)) throw Error(`unexpected valueExpr in ${tc}`);
+      te = valueExpr;
     } else throw Error("HERE");
     const nestObject = this.shexj.shapes.find(se => se.id === te);
     const nestType = te.substr(NS_fhir.length);
@@ -190,19 +196,25 @@ class FhirR5Preprocessor {
 
   processFhirArray(key, value, schemaObject, resourceType) {
     return value.map((e, i) => {
+      let v = null
       if (Array.isArray(e)) {
-        console.log(`Problem: ${key} has a list in a list`)
+        throw Error(`Problem: ${key} has a list in a list`)
       } else if (typeof e === 'object') {
-        let v = this.processFhirObject(e, schemaObject, resourceType)
-        v['index'] = i
-        return v
+        v = this.processFhirObject(e, schemaObject, resourceType)
       } else {
-        let v = this.toFhirValue(e, schemaObject, resourceType)
-        if (typeof v === 'object') {
-          v['index'] = i
-        }
-        return v
+        v = this.toFhirValue(e, schemaObject, resourceType)
       }
+      if (this.opts.axes.c) {
+        return v // handled by the @context's "@container": "@list"
+      }
+      if (typeof v === "string")
+        throw Error(`Can't add index to RDF literal \"${v}\" for ${resourceType}.${key}`)
+      if (typeof v !== 'object')
+        throw Error(`Can't add index to \"${JSON.stringify(v)}\" for ${resourceType}.${key}`)
+      if ("@value" in v)
+        throw Error(`Can't add index to RDF literal \"${JSON.stringify(v)}\" for ${resourceType}.${key}`)
+      v['index'] = i
+      return v
     })
   }
 
@@ -233,26 +245,26 @@ const UnionedTypes = {
 };
 
 class FhirR4Preprocessor extends FhirR5Preprocessor {
-  toFhirValue(value, schemaObject, nestType) {
-    if (this.opts.axes.h) { return value; }
+  toFhirValue(jsonValue, schemaObject, nestType) {
+    let typedValue = null;
 
     const [nestScalar, t] = this.lookupNestedObject(schemaObject, nestType, "value");
     if (nestScalar.type === "NodeConstraint") {
-      return { value: {
+      typedValue = {
         "@type": nestScalar.datatype.replace(/^http:\/\/www\.w3\.org\/2001\/XMLSchema#/, "xsd:"),
-        "@value": value,
-      } }
+        "@value": jsonValue,
+      };
     } else if (nestScalar.type === "ShapeOr") {
       const ut = nestScalar.shapeExprs.map(
           nc => UnionedTypes[nc.datatype.substr(NS_xsd.length)]
       ).find(
-          t => t.pattern.test(value)
+          t => t.pattern.test(jsonValue)
       );
-      return { value: { '@type': ut.dt, '@value': value } };
+      typedValue = { '@type': ut.dt, '@value': jsonValue };
     } else {
-      console.log("HERE");
+      throw new Error(`deal with toFhirValue(${JSON.stringify(jsonValue)}, ${JSON.stringify(schemaObject)}, ${JSON.stringify(nestType)})`);
     }
-    return { 'value': value }
+    return this.opts.axes.h ? typedValue : { 'value': typedValue };
   }
 
   processFhirObject(fhirObj, schemaObject, resourceType, inside = false) {

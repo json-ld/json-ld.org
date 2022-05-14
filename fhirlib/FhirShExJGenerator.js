@@ -74,6 +74,12 @@ class FhirShExJGenerator extends ModelVisitor {
     this.modelGenerator = new FhirRdfModelGenerator(this.definitionLoader, config);
     // be able to look up TripleConstraints by the PropertyMapping that begat them.
     this.pMap2TC = new Map();
+    // rdf:Collection type to add
+    this.lists = new Set();
+  }
+
+  listName (typeName) {
+    return 'OneOrMore_' + typeName;
   }
 
   myError (error) {
@@ -107,7 +113,27 @@ class FhirShExJGenerator extends ModelVisitor {
         }
         return generated2.concat(genMe);
       }, generated1);
-    }, Promise.resolve([]))
+    }, Promise.resolve([]));
+    for (let type of this.lists) {
+      const listName = this.listName(type);
+      const listShape = {
+        "type": "Shape",
+        "id": P.fhirshex + listName,
+        "closed": true,
+        "expression": {
+          "type": "EachOf",
+          "expressions": [
+            { "type": "TripleConstraint", "predicate": P.rdf + "first", "valueExpr": P.fhirshex + type },
+            { "type": "TripleConstraint",
+              "predicate": P.rdf + "rest",
+              "valueExpr": {
+                "type": "ShapeOr",
+                "shapeExprs": [
+                  { "type": "NodeConstraint", "values": [ P.rdf + "nil" ] },
+                  P.fhirshex + listName
+      ] } } ] } };
+      this.schema.shapes.push(listShape);
+    }
 
     const allTypesLabel = Prefixes.fhirvs + 'all-types';
     generated.push('all-types');
@@ -171,9 +197,14 @@ class FhirShExJGenerator extends ModelVisitor {
 
   enter (propertyMapping) {
     const shapeName = Prefixes.fhirshex + propertyMapping.element.id;
+    let typeName = propertyMapping.element.id;
+    if (this.config.axes.c && propertyMapping.element.max !== "1") {
+      this.lists.add(typeName);
+      typeName = this.listName(typeName);
+    }
     this.add(this.indexTripleConstraint(
       propertyMapping,
-      shapeName,
+      Prefixes.fhirshex + typeName,
       this.makeCard(propertyMapping.element.min, propertyMapping.element.max)
     ));
     this.pushShape(shapeName, true); // TODO: would break if nested *inside* a DomainResource.
@@ -195,12 +226,18 @@ class FhirShExJGenerator extends ModelVisitor {
       let annotations = null;
       if (propertyMapping.isScalar) {
         valueExpr = Object.assign({}, propertyMapping.type); // e.g. http://www.w3.org/2001/XMLSchema#string"
+        // TODO: by luck, there are (so far) no scalars with propertyMapping.element.max !== "1"
         if ("annotations" in valueExpr) {
           annotations = valueExpr.annotations;
           delete valueExpr.annotations;
         }
       } else {
-        valueExpr = Prefixes.fhirshex + propertyMapping.type;
+        let typeName = propertyMapping.type
+        if (this.config.axes.c && propertyMapping.element.max !== "1") {
+          this.lists.add(typeName);
+          typeName = this.listName(typeName);
+        }
+        valueExpr = Prefixes.fhirshex + typeName;
         if (propertyMapping.binding && propertyMapping.binding.strength === 'required') {
           const [valueSet, version] = propertyMapping.binding.valueSet.split(/\|/);
           const annotations = this.config.addValueSetVersionAnnotation && version

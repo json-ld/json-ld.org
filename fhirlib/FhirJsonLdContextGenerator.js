@@ -67,7 +67,7 @@ class FhirJsonLdContextGenerator {
 
   genJsonldContext (target, config) {
     if (!this.cache.has(target)) {
-      const v = new Converter(this.shexj);
+      const v = new Converter(this.shexj, config);
       const ret = v.convert(this.index.shapeExprs['http://hl7.org/fhir/shape/' + target]);
       this.cache.set(target, ret);
     }
@@ -76,8 +76,9 @@ class FhirJsonLdContextGenerator {
 };
 
 class Converter {
-  constructor (schema) {
-    this.schema = schema
+  constructor (schema, config) {
+    this.schema = schema;
+    this.config = config;
   }
 
   convert (shexpr) {
@@ -120,13 +121,15 @@ class Converter {
           return {"resourceType": {"@id": "rdf:type", "@type": "@id"}}
         const ret = {}
         ret[property] = {'@id': id}
+        if ("max" in expr && expr.max !== 1 && this.config.axes.c)
+          ret[property]["@container"] = "@list"
         if (typeof expr.valueExpr === "string") {
           if (false && expr.valueExpr.substr(Ns_fhsh.length).match(/\./)) { // would need cycle detection, currently left up to
             // '.'d reference to a nested Shape, e.g. `fhirs:Patient.contact`
             ret[property]['@context'] = this.visit(this.lookup(expr.valueExpr))
           } else {
             // all other references (Datatypes, Resources)
-            ret[property]['@context'] = StupidBaseUrl(expr.valueExpr.substr(Ns_fhsh.length))
+            ret[property]['@context'] = StupidBaseUrl(expr.valueExpr.substr(Ns_fhsh.length).replace(/OneOrMore_/, ''))
           }
         } else if (typeof expr.valueExpr === 'object') {
           const a = (expr.annotations || []).find(a => a.predicate === "http://shex2json.example/map#property");
@@ -146,7 +149,7 @@ class Converter {
             // e.g. `fhir:gender @fhirs:code AND { fhir:value @fhirvs:adminstritative-gender }`
             const ref = firstRef(expr.valueExpr);
             if (ref) {
-              ret[property]['@context'] = StupidBaseUrl(ref.substr(Ns_fhsh.length))
+              ret[property]['@context'] = StupidBaseUrl(ref.substr(Ns_fhsh.length).replace(/OneOrMore_/, ''))
             }
           }
         }

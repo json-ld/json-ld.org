@@ -37,7 +37,7 @@ class BundleDefinitionLoader extends DefinitionLoader {
         this.structureDefinitions.add(entry.id, entry, where);
         break;
       default:
-        throw Errogr(`what's a ${entry.resourceType}`);
+        throw Error(`what's a ${entry.resourceType}`);
     }
   }
 
