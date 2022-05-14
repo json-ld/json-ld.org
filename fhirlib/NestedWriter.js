@@ -57,7 +57,7 @@ class Writer {
     if (!outputStream) {
       let output = '';
       this._outputStream = {
-        write(chunk, encoding, done) { output += chunk; done && done(); },
+        write(chunk, encoding, done) { if (options.debug) { console.log({chunk, output}); } output += chunk; done && done(); },
         end: done => { done && done(null, output); },
       };
       this._endStream = true;
@@ -140,8 +140,27 @@ class Writer {
           this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
       }
 
-      let objectStr, nestable;
-      if (object.termType === 'BlankNode'
+      let objectStr, nestable, curList;
+      if (this._lists && (object.value in this._lists)) {
+        objectStr = '( [';
+        nestable = false;
+        curList = this._lists[object.value];
+      } else if (this._nestings.length > 0
+                 && this._nestings[0].curList && this._nestings[0].curList.length > 0
+                 && this._nestings[0].curList[0].equals(subject)) {
+        this._write('\n] [')
+        this._nestings[0].subject = this._nestings[0].curList.shift();
+        objectStr = this._encodeObject(object);
+        nestable = false;
+        curList = this._lists[object.value];
+      } else if (this._nestings.length > 0
+                 && this._nestings[0].curList && this._nestings[0].curList.length === 0) {
+        this._write('\n] ) .')
+        // this._nestings[0].subject = null; -- i guess it won't be the same entity anyways
+        objectStr = this._encodeObject(object);
+        nestable = false;
+        curList = null;
+      } else if (object.termType === 'BlankNode'
           && this._checkCorefs
           && !this._checkCorefs(object)) {
         objectStr = '[';
@@ -192,9 +211,11 @@ class Writer {
                     objectStr}`, done);
         } else {
           this._nestings.unshift({
-            subject: subject,
+            subject: curList ? curList.shift() : subject,
             predicate: predicate,
-            indent: ''
+            indent: '',
+            curList,
+            fresh: !!curList,
           });
           this._write(`${
                     this._encodeSubject(subject)} ${
@@ -202,7 +223,8 @@ class Writer {
                     objectStr}`, done);
         }
       }
-      this._nestings[0].fresh  = false;
+      if (!curList)
+        this._nestings[0].fresh = false;
       if (nestable) {
         this._nestings.unshift({
           subject: object,
@@ -213,14 +235,16 @@ class Writer {
         });
       }
     }
-    catch (error) { done && done(error); }
+    catch (error) { if (done) done(error); else throw error;  }
   }
 
   _finish() {
     const oldLength = this._nestings.length;
     if (this._nestings.length > 0)
       while (this._nestings.length > 0) {
-        this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
+        if (this._nestings.length > 1)
+          this._write('\n');
+        this._write(this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
         this._nestings.shift();
       }
     if (oldLength !== 0) {
@@ -269,8 +293,6 @@ class Writer {
     // A blank node or list is represented as-is
     if (entity.termType !== 'NamedNode') {
       // If it is a list head, pretty-print it
-      if (this._lists && (entity.value in this._lists))
-        entity = this.list(this._lists[entity.value]);
       return 'id' in entity ? entity.id : `_:${entity.value}`;
     }
     let iri = entity.value;
