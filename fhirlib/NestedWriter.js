@@ -47,7 +47,7 @@ class Writer {
     options = options || {};
     this._lists = options.lists;
     this._indent = options.indent || '  ';
-    this._checkCorefs = options.checkCorefs || (n => true);
+    this._checkCorefs = options.checkCorefs || (n => false); // if unsupplied; assume a tree
     this._version = options.version || 1.0;
     this._localName = this._version === 1.0
         ? rdf10LocalName
@@ -136,30 +136,17 @@ class Writer {
         this._write((this._nestings.length === 0 ? '' : (this._inDefaultGraph ? '.\n' : '\n}\n')) +
                     (DEFAULTGRAPH.equals(graph) ? '' : `${this._encodeIriOrBlank(graph)} {\n`));
         this._graph = graph;
-        for (let i = 0; i < this._nestings.length && this._nestings.subject.equals(subject); ++i)
+        for (let i = 0; i < this._nestings.length && subject.equals(this._nestings[i].subject); ++i)
           this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
       }
 
-      let objectStr, nestable, curList;
+      const oldLength = this._nestings.length;
+      let curList = this._scan(subject);
+
+      let objectStr, nestable;
       if (this._lists && (object.value in this._lists)) {
-        objectStr = '( [';
-        nestable = false;
+        objectStr = '( ';
         curList = this._lists[object.value];
-      } else if (this._nestings.length > 0
-                 && this._nestings[0].curList && this._nestings[0].curList.length > 0
-                 && this._nestings[0].curList[0].equals(subject)) {
-        this._write('\n] [')
-        this._nestings[0].subject = this._nestings[0].curList.shift();
-        objectStr = this._encodeObject(object);
-        nestable = false;
-        curList = this._lists[object.value];
-      } else if (this._nestings.length > 0
-                 && this._nestings[0].curList && this._nestings[0].curList.length === 0) {
-        this._write('\n] ) .')
-        // this._nestings[0].subject = null; -- i guess it won't be the same entity anyways
-        objectStr = this._encodeObject(object);
-        nestable = false;
-        curList = null;
       } else if (object.termType === 'BlankNode'
           && this._checkCorefs
           && !this._checkCorefs(object)) {
@@ -171,11 +158,6 @@ class Writer {
       }
 
       // see if we're already serializing this subject
-      const oldLength = this._nestings.length;
-      while (this._nestings.length > 0 && !this._nestings[0].subject.equals(subject)) {
-        this._write('\n' + this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
-        this._nestings.shift();
-      }
       const reuseFrame = this._nestings.length > 0
             ? this._nestings[0]
             : null;
@@ -210,20 +192,22 @@ class Writer {
                     this._encodePredicate(predicate)} ${
                     objectStr}`, done);
         } else {
-          this._nestings.unshift({
-            subject: curList ? curList.shift() : subject,
-            predicate: predicate,
-            indent: '',
-            curList,
-            fresh: !!curList,
-          });
+          if (curList || nestable) {
+            this._nestings.unshift({
+              subject: curList ? null : subject,
+              predicate: predicate,
+              indent: '',
+              curList,
+              fresh: !!curList,
+            });
+          }
           this._write(`${
                     this._encodeSubject(subject)} ${
                     this._encodePredicate(predicate)} ${
                     objectStr}`, done);
         }
       }
-      if (!curList)
+      if (this._nestings.length > 0)
         this._nestings[0].fresh = false;
       if (nestable) {
         this._nestings.unshift({
@@ -238,18 +222,65 @@ class Writer {
     catch (error) { if (done) done(error); else throw error;  }
   }
 
+  _scan (subject) {
+    let curList;
+
+    while (this._nestings.length > 0
+           && !subject.equals(this._nestings[0].subject)) {
+      if (this._nestings[0].curList) {
+        if (this._nestings[0].curList.length === 0) {
+          this._nestings.shift();
+          this._write("\n" + (this._nestings.length > 0 ? this._nestings[0].indent : '') + ')');
+          if (this._nestings.length === 0)
+            this._write(".\n");
+        } else {
+          const li = this._nestings[0].curList.shift();
+          if (this._nestings[0].subject) {
+            this._write(this._encodeObject(this._nestings[0].subject) + ' ');
+            this._nestings[0].subject = null; // don't serialize again if e.g. returning from nested list
+          }
+          if (li.value in this._lists) {
+            this._write('( ')
+            curList = this._lists[li.value];
+            this._nestings.unshift({
+              subject: curList.shift(),
+              predicate: null,
+              indent: this._nestings[0].indent + '  ',
+              curList,
+              fresh: true,
+            });
+          } else {
+            this._nestings[0].subject = li;
+            if (li.equals(subject)) {
+              this._write("\n" + this._nestings[0].indent + '[');
+              this._nestings.unshift({
+                subject: subject,
+                predicate: null,
+                indent: this._nestings[0].indent + '  ',
+                curList: null,
+                fresh: true,
+              });
+            }
+          }
+        }
+      } else {
+        this._nestings.shift();
+        if (this._nestings.length > 0) {
+          this._nestings[0].subject = null;
+          this._write('\n' + this._nestings[0].indent + ']');
+        } else {
+          this._write('.');
+        }
+      }
+    }
+    return curList;
+  }
+
   _finish() {
     const oldLength = this._nestings.length;
-    if (this._nestings.length > 0)
-      while (this._nestings.length > 0) {
-        if (this._nestings.length > 1)
-          this._write('\n');
-        this._write(this._nestings[0].indent + (this._nestings[0].nested ? ']' : ''));
-        this._nestings.shift();
-      }
+    this._scan(DEFAULTGRAPH); // TODO: should be fresh bnode or null-ish thingy
     if (oldLength !== 0) {
       if (this._inDefaultGraph) {
-        this._write('.\n');
       } else {
         this._write('\n}\n');
       }
