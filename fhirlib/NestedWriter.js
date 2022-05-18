@@ -35,6 +35,43 @@ class SerializedTerm extends Term {
   }
 }
 
+const INDENT = '  ';
+
+class Nesting {
+  constructor (stream, indent, subject, predicate) {
+    if (this.constructor === Nesting)
+      throw new TypeError(`Cannot construct ${new.target.name} instances directly`);
+    const missing = (['close']).filter(m => this[m] === Nesting.prototype[m]);
+    if (missing.length)
+      throw new TypeError(`${new.target.name} missing methods: ${missing.join(', ')}`);
+
+    this._stream = stream;
+    this._indent = indent;
+    this._subject = subject;
+    this._predicate = predicate; // gets updated by _writeQuad()
+  }
+
+  close (done) { this._abstract('close'); }
+
+  _abstract (method) { throw new TypeError(`${this.constructor.name}.${method} not implemented`); }
+}
+
+class Root extends Nesting {
+  constructor (stream, subject, predicate) { super(stream, '', subject, predicate); }
+  close (done) { if (this.used) this._stream._write('.\n', done); }
+}
+
+class BNode extends Nesting {
+  constructor (stream, indent, node) { super(stream, indent, node, null); }
+  close (done, p) { this._stream._write(`\n${p._indent}]`, done); }
+}
+
+class Collection extends Nesting {
+  constructor (stream, indent, members) { super(stream, indent, null, null); this._members = members; }
+  close (done, p) { this._stream._write(`\n${p._indent})`, done); }
+}
+
+
 // ## Constructor
 class Writer {
   constructor(outputStream, options) {
@@ -68,7 +105,7 @@ class Writer {
     }
 
     // Initialize writer, depending on the format
-    this._nestings = [];
+    this._nestings = [new Root(this, null, null)];
     if (!(/triple|quad/i).test(options.format)) {
       this._lineMode = false;
       this._graph = DEFAULTGRAPH;
@@ -79,17 +116,6 @@ class Writer {
     else {
       this._lineMode = true;
       this._writeQuad = this._writeQuadLine;
-    }
-  }
-
-  indentFunc (str) {
-    const parts = str.split(/\n/);
-    const tail = parts.pop();
-    return function () {
-      const indent = this._nestings.length > 0
-            ? this._nestings[0].indent
-            : '';
-      return parts.map(s => s + '\n' + indent).join('') + tail;
     }
   }
 
@@ -106,180 +132,116 @@ class Writer {
     this._outputStream.write(string, 'utf8', callback);
   }
 
-  _closeNestings(targetSubject) {
-    const oldLength = this._nestings.length;
-    let i = 0;
-    for (; i < this._nestings.length && this._nestings.subject.equals(targetSubject); ++i)
-      this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
-
-    this._nestings = this._nestings.slice(i);
-    if (this._nestings.length === 0 && oldLength > 0)
-      this._write('.\n');
-    if (targetSubject !== null) {
-      this._write();
-      this._nestings.unshift({
-        subject: targetSubject,
-        predicate: null,
-        indent: this._nestings.length > 0
-          ? this._nestings[0].indent + this._indent
-          : ''
-      });
-    }
-  }
-
   // ### `_writeQuad` writes the quad to the output stream
   _writeQuad(subject, predicate, object, graph, done) { // console.log(`${subject.id} ${predicate.id} ${object.id} ${graph.id}`);
     try {
       // Write the graph's label if it has changed
       if (!graph.equals(this._graph)) {
         // Close the previous graph and start the new one
-        this._write((this._nestings.length === 0 ? '' : (this._inDefaultGraph ? '.\n' : '\n}\n')) +
+        this._getNestingForSubject(DEFAULTGRAPH); // TODO: should be fresh bnode or null-ish thingy
+        this._write((this._nestings.length === 1 ? '' : (this._inDefaultGraph ? '.\n' : '\n}\n')) +
                     (DEFAULTGRAPH.equals(graph) ? '' : `${this._encodeIriOrBlank(graph)} {\n`));
         this._graph = graph;
-        for (let i = 0; i < this._nestings.length && subject.equals(this._nestings[i].subject); ++i)
-          this._write('\n' + this._nestings[i].indent + (this._nestings[i].nested ? ']' : ''));
       }
 
       const oldLength = this._nestings.length;
-      let curList = this._scan(subject);
+      let [nesting, matched] = this._getNestingForSubject(subject);
 
-      let objectStr, nestable;
+      let objectStr;
       if (this._lists && (object.value in this._lists)) {
         objectStr = '( ';
-        curList = this._lists[object.value];
+        this._nestings.push(new Collection(this, nesting._indent + INDENT, this._lists[object.value]));
       } else if (object.termType === 'BlankNode'
           && this._checkCorefs
           && !this._checkCorefs(object)) {
         objectStr = '[';
-        nestable = true;
+        this._nestings.push(new BNode(this, nesting._indent + INDENT, object));
       } else {
         objectStr = this._encodeObject(object);
-        nestable = false;
       }
 
-      // see if we're already serializing this subject
-      const reuseFrame = this._nestings.length > 0
-            ? this._nestings[0]
-            : null;
-
       // Don't repeat the subject if it's the same
-      if (this._nestings.length > 0 && subject.equals(this._nestings[0].subject)) {
+      if (matched) {
         // Don't repeat the predicate if it's the same
-        if (predicate.equals(this._nestings[0].predicate)) {
+        if (predicate.equals(nesting.predicate)) {
           this._write(`, ${objectStr}`, done);
           // Same subject, different predicate
-        } else if (this._nestings[0].fresh) {
-          this._write(`\n${this._nestings[0].indent + this._indent}${
-              this._encodePredicate(this._nestings[0].predicate = predicate)} ${
-              objectStr}`, done);
         } else {
-          this._write(`;\n${this._nestings[0].indent + this._indent}${
-              this._encodePredicate(this._nestings[0].predicate = predicate)} ${
+          this._write(`${nesting.used ? ';' : ''}\n${nesting instanceof Root ? '  ' : nesting._indent}${
+              this._encodePredicate(nesting.predicate = predicate)} ${
               objectStr}`, done);
         }
       }
       // Different subject; write the whole quad
       else {
-        if (reuseFrame && oldLength > 0)
-          this._write('.\n');
-        if (reuseFrame) {
-          this._nestings.unshift({
-            subject: subject,
-            predicate: predicate,
-            indent: reuseFrame.indent + this._indent
-          });
-          this._write(`${
-                    this._encodePredicate(predicate)} ${
-                    objectStr}`, done);
-        } else {
-          if (curList || nestable) {
-            this._nestings.unshift({
-              subject: curList ? null : subject,
-              predicate: predicate,
-              indent: '',
-              curList,
-              fresh: !!curList,
-            });
-          }
-          this._write(`${
+        nesting._subject = subject; nesting._predicate = predicate;
+        this._write(`${
                     this._encodeSubject(subject)} ${
                     this._encodePredicate(predicate)} ${
                     objectStr}`, done);
-        }
       }
-      if (this._nestings.length > 0)
-        this._nestings[0].fresh = false;
-      if (nestable) {
-        this._nestings.unshift({
-          subject: object,
-          predicate: null,
-          indent: this._nestings[0].indent + this._indent,
-          nested: true,
-          fresh: true,
-        });
-      }
+      nesting.used = true;
     }
     catch (error) { if (done) done(error); else throw error;  }
   }
 
-  _scan (subject) {
-    let curList;
+  /*
+    closes BNodes and iterates and closes Collections until finding subject.
+   */
+  _getNestingForSubject (subject) {
+    let nesting = this._nestings.length > 0
+        ? this._nestings[this._nestings.length - 1]
+        : null;
 
-    while (this._nestings.length > 0
-           && !subject.equals(this._nestings[0].subject)) {
-      if (this._nestings[0].curList) {
-        if (this._nestings[0].curList.length === 0) {
-          this._nestings.shift();
-          this._write("\n" + (this._nestings.length > 0 ? this._nestings[0].indent : '') + ')');
-          if (this._nestings.length === 0)
-            this._write(".\n");
+    while (nesting && !subject.equals(nesting._subject)) {
+
+      if (nesting instanceof Collection) {
+
+        if (nesting._members.length === 0) {
+          nesting = this._closeNesting();
         } else {
-          const li = this._nestings[0].curList.shift();
-          if (this._nestings[0].subject) {
-            this._write(this._encodeObject(this._nestings[0].subject) + ' ');
-            this._nestings[0].subject = null; // don't serialize again if e.g. returning from nested list
+          const li = nesting._members.shift();
+          if (nesting._subject) {
+            this._write(this._encodeObject(nesting._subject) + ' ');
+            nesting._subject = null; // don't serialize again if e.g. returning from nested list
           }
           if (li.value in this._lists) {
+            // list in a list
             this._write('( ')
-            curList = this._lists[li.value];
-            this._nestings.unshift({
-              subject: curList.shift(),
-              predicate: null,
-              indent: this._nestings[0].indent + '  ',
-              curList,
-              fresh: true,
-            });
+            this._nestings.push(nesting = new Collection(this, nesting._indent + INDENT, this._lists[li.value]));
           } else {
-            this._nestings[0].subject = li;
+            // any other element in the list
             if (li.equals(subject)) {
-              this._write("\n" + this._nestings[0].indent + '[');
-              this._nestings.unshift({
-                subject: subject,
-                predicate: null,
-                indent: this._nestings[0].indent + '  ',
-                curList: null,
-                fresh: true,
-              });
+              this._write("\n" + nesting._indent + '[');
+              nesting._subject = null;
+              this._nestings.push(nesting = new BNode(this, nesting._indent + INDENT, subject));
+            } else {
+              nesting._subject = li;
             }
           }
         }
+      } else if (nesting instanceof BNode) {
+        nesting = this._closeNesting();
       } else {
-        this._nestings.shift();
-        if (this._nestings.length > 0) {
-          this._nestings[0].subject = null;
-          this._write('\n' + this._nestings[0].indent + ']');
-        } else {
-          this._write('.');
-        }
+        nesting.close();
+        return [nesting, false]; // didn't match subject
       }
     }
-    return curList;
+    return [nesting, subject.equals(nesting._subject)]; // hard code true?
+
+  }
+
+  _closeNesting () {
+    const nesting = this._nestings.pop();
+    const ret = this._nestings[this._nestings.length - 1];
+    nesting.close(null, ret);
+    return ret;
   }
 
   _finish() {
     const oldLength = this._nestings.length;
-    this._scan(DEFAULTGRAPH); // TODO: should be fresh bnode or null-ish thingy
-    if (oldLength !== 0) {
+    this._getNestingForSubject(DEFAULTGRAPH); // TODO: should be fresh bnode or null-ish thingy
+    if (oldLength !== 1) {
       if (this._inDefaultGraph) {
       } else {
         this._write('\n}\n');
