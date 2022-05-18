@@ -1109,16 +1109,6 @@ const GEN_JSONLD_CONTEXT_CONFIG = {
             remove: true // Remove quads involved in lists (RDF Collections).
           });
 
-          const n3w = new NestedWriter.Writer();
-          const F = N3.Factory;
-          n3w.addQuad(F.namedNode('a1'), F.namedNode('b'), n3w.list([F.blankNode('c'), F.blankNode('d'), F.blankNode('e')]));
-          n3w.addQuad(F.blankNode('c'), F.namedNode('c1'), F.literal('c2'));
-          n3w.addQuad(F.blankNode('d'), F.namedNode('d1'), F.literal('d2'));
-          n3w.addQuad(F.blankNode('e'), F.namedNode('e1'), F.literal('e2'));
-          n3w.end(function (error, output) {
-            console.log(output === '<a1> <b> (<c> <d> <e>).\n' || output);
-          });
-
           // The FhirTurtleSerializer passes FHIR Resource quads to the NestedWriter.
           const writer = new NestedWriter.Writer(null, {
             // lists: {}, -- lists will require some thinking

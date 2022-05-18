@@ -46,7 +46,7 @@ class Serializer {
       matched.forEach(q => rest.removeQuad(q)); // the matched taketh away
     }
 
-    printer.addQuads(matched);
+    printer.addQuads(matched.filter(q => (['first', 'rest']).map(l => P.rdf + l).indexOf(q.predicate.value) === -1));
     return this;
   }
 
