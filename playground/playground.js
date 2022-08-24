@@ -90,9 +90,16 @@
    */
   playground.humanize = function(value) {
     switch($.type(value)) {
-      case 'string': return value;
-      case 'error': return value.toString();
-      default: return JSON.stringify(value, null, 2);
+      case 'string':
+        return value;
+      case 'error':
+        var str = value.toString();
+        if('details' in value) {
+          str += '\n' + JSON.stringify(value.details, null, 2);
+        }
+        return str;
+      default:
+        return JSON.stringify(value, null, 2);
     }
   };
 
