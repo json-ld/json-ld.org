@@ -256,7 +256,8 @@
         // TODO: add other API options
         processingMode: '',
         compactArrays: true,
-        compactToRelative: true
+        compactToRelative: true,
+        safe: ''
       }
     };
 
@@ -330,6 +331,12 @@
       'checked', playground.options.api.compactArrays);
     $("#options-api-compactToRelative").prop(
       'checked', playground.options.api.compactToRelative);
+    $("#options-api-safeDefault").prop(
+      'checked', playground.options.api.safe === '');
+    $("#options-api-safeFalse").prop(
+      'checked', playground.options.api.safe === false);
+    $("#options-api-safeTrue").prop(
+      'checked', playground.options.api.safe === true);
 
     // process on option changes
     $("#options-api-processingMode").change(function(e) {
@@ -342,6 +349,18 @@
     });
     $("#options-api-compactToRelative").change(function(e) {
       playground.options.api.compactToRelative = e.target.checked;
+      playground.process();
+    });
+    $("#options-api-safeDefault").change(function(e) {
+      playground.options.api.safe = '';
+      playground.process();
+    });
+    $("#options-api-safeFalse").change(function(e) {
+      playground.options.api.safe = false;
+      playground.process();
+    });
+    $("#options-api-safeTrue").change(function(e) {
+      playground.options.api.safe = true;
       playground.process();
     });
 
@@ -843,6 +862,9 @@
     }
     options.compactArrays = playground.options.api.compactArrays;
     options.compactToRelative = playground.options.api.compactToRelative;
+    if(playground.options.api.safe !== '') {
+      options.safe = playground.options.api.safe;
+    }
 
     var promise;
     if(playground.activeTab === 'tab-compacted') {
