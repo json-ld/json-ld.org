@@ -93,9 +93,16 @@
       case 'string':
         return value;
       case 'error':
+        // TODO: limit output size
         var str = value.toString();
         if('details' in value) {
-          str += '\n' + JSON.stringify(value.details, null, 2);
+          // TODO: improve error handling
+          // special cases as of jsonld.js 8.0.0
+          if('event' in value.details) {
+            str += '\n' + JSON.stringify(value.details.event, null, 2);
+          }
+          // some error and event details can be verbose and need good handling
+          // all errors and events should have type codes that can be used
         }
         return str;
       default:
