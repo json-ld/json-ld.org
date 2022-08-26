@@ -805,7 +805,7 @@
     var id = playground.activeTab = evt.target.id;
 
     if(['tab-compacted', 'tab-flattened', 'tab-framed',
-      'tab-signed-rsa', 'tab-signed-koblitz', ].indexOf(id) > -1) {
+      /*'tab-signed-rsa', 'tab-signed-koblitz'*/].indexOf(id) > -1) {
       // these options require more UI inputs, so compress UI space
       $('#markup-div').removeClass('span12').addClass('span6');
       $('#frame-div, #privatekey-rsa-div, #privatekey-koblitz-div, ' +
@@ -998,14 +998,19 @@
         throw(e)
       });
     }
+    else if(playground.activeTab === 'tab-signatures') {
+      promise = Promise.resolve();
+    }
     else {
       promise = Promise.reject(new Error('Invalid tab selection.'));
     }
 
     return promise.then(function(result) {
       var outputTab = playground.activeTab.substr('tab-'.length);
-      result = playground.humanize(result);
-      playground.outputs[outputTab].setValue(result);
+      if(outputTab in playground.outputs) {
+        result = playground.humanize(result);
+        playground.outputs[outputTab].setValue(result);
+      }
     });
   };
 
