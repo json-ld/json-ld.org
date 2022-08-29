@@ -576,7 +576,7 @@
       output = playground.outputs[key] = CodeMirror.fromTextArea(node, {
         readOnly: true,
         lineWrapping: true,
-        mode: ["normalized", "nquads"].indexOf(key) > -1 ?
+        mode: ["canonized", "nquads"].indexOf(key) > -1 ?
           "text/n-triples" :
           "application/ld+json",
         theme: playground.theme
@@ -932,9 +932,9 @@
       options.format = 'application/n-quads';
       promise = jsonld.toRDF(input, options);
     }
-    else if(playground.activeTab === 'tab-normalized') {
+    else if(playground.activeTab === 'tab-canonized') {
       options.format = 'application/n-quads';
-      promise = jsonld.normalize(input, options);
+      promise = jsonld.canonize(input, options);
     }
     else if(playground.activeTab === 'tab-table') {
       return jsonld.toRDF(input, options)
