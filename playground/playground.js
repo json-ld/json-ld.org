@@ -262,6 +262,8 @@
       api: {
         // TODO: add other API options
         processingMode: '',
+        base: '',
+        baseUrl: '',
         compactArrays: true,
         compactToRelative: true,
         safe: ''
@@ -332,41 +334,78 @@
     });
 
     // setup options
-    $("#options-api-processingMode")[0].value =
-      playground.options.api.processingMode;
+    $("#options-api-processingMode-default").prop(
+      'checked', playground.options.api.processingMode === '');
+    $("#options-api-processingMode-1-0").prop(
+      'checked', playground.options.api.processingMode === 'json-ld-1.0');
+    $("#options-api-processingMode-1-1").prop(
+      'checked', playground.options.api.processingMode === 'json-ld-1.1');
+
+    $("#options-api-base-default").prop(
+      'checked', playground.options.api.base === '');
+    $("#options-api-base-custom").prop(
+      'checked', playground.options.api.base === 'custom');
+
+    $("#options-api-base-url").value = playground.options.api.baseUrl;
+
     $("#options-api-compactArrays").prop(
       'checked', playground.options.api.compactArrays);
+
     $("#options-api-compactToRelative").prop(
       'checked', playground.options.api.compactToRelative);
-    $("#options-api-safeDefault").prop(
+
+    $("#options-api-safe-default").prop(
       'checked', playground.options.api.safe === '');
-    $("#options-api-safeFalse").prop(
+    $("#options-api-safe-false").prop(
       'checked', playground.options.api.safe === false);
-    $("#options-api-safeTrue").prop(
+    $("#options-api-safe-true").prop(
       'checked', playground.options.api.safe === true);
 
     // process on option changes
-    $("#options-api-processingMode").change(function(e) {
+    $("#options-api-processingMode-default, " +
+      "#options-api-processingMode-1-0, " +
+      "#options-api-processingMode-1-1").change(function(e) {
       playground.options.api.processingMode = e.target.value;
       playground.process();
     });
+
+    $("#options-api-base-default, " +
+      "#options-api-base-custom").change(function(e) {
+      playground.options.api.base = e.target.value;
+      playground.process();
+    });
+
+    $("#options-api-base-url").on('keypress', function(e) {
+      var keyPressed = e.keyCode || e.which;
+      if(keyPressed === 13) {
+        e.preventDefault();
+        return false;
+      }
+    });
+    $("#options-api-base-url").on('input', function(e) {
+      playground.options.api.baseUrl = e.target.value;
+      playground.process();
+    });
+
     $("#options-api-compactArrays").change(function(e) {
       playground.options.api.compactArrays = e.target.checked;
       playground.process();
     });
+
     $("#options-api-compactToRelative").change(function(e) {
       playground.options.api.compactToRelative = e.target.checked;
       playground.process();
     });
-    $("#options-api-safeDefault").change(function(e) {
+
+    $("#options-api-safe-default" ).change(function(e) {
       playground.options.api.safe = '';
       playground.process();
     });
-    $("#options-api-safeFalse").change(function(e) {
+    $("#options-api-safe-false").change(function(e) {
       playground.options.api.safe = false;
       playground.process();
     });
-    $("#options-api-safeTrue").change(function(e) {
+    $("#options-api-safe-true").change(function(e) {
       playground.options.api.safe = true;
       playground.process();
     });
@@ -859,13 +898,16 @@
    */
   playground.performAction = function(input, param) {
     // set options
-    var options = {
-      // base IRI
-      base: (playground.useRemote.markup && playground.remoteUrl.markup) ||
-        document.baseURI || document.URL
-    };
+    var options = {};
     if(playground.options.api.processingMode !== '') {
       options.processingMode = playground.options.api.processingMode;
+    }
+    if(playground.options.api.base === 'custom') {
+      options.base = playground.options.api.baseUrl || '';
+    } else {
+      // default base IRI is based on remote url or set to null
+      options.base =
+        (playground.useRemote.markup && playground.remoteUrl.markup) || null;
     }
     options.compactArrays = playground.options.api.compactArrays;
     options.compactToRelative = playground.options.api.compactToRelative;
