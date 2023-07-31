@@ -282,12 +282,13 @@
     $('#output-tabs a').click(function (e) {
       e.preventDefault();
       $(this).tab('show');
-    }).on("show", playground.tabSelected);
+    }).on("show.bs.tab", playground.tabSelected);
 
     // show keybaord shortcuts
     $('.popover-info').popover({
       placement: "left",
       html: true,
+      sanitize: false,
       content: $(".popover-info-content").html()
     });
 
@@ -600,10 +601,6 @@
       !playground.copyContext;
 
     playground.editor.setReadOnly(editor, val);
-
-    setTimeout(function(){
-      $("#copy-context").toggleClass("toggle", val);
-    }, 1);
 
     if(val){
       return playground.toggleCopyContext.copy();
@@ -1351,44 +1348,40 @@
     }
   };
 
-  playground.gist.title = function(){
-    return $("<div/>").text("Gist");
-  };
-
   playground.gist.content = function(){
-    var content = $("<div/>").css({width: 320});
-
+    var content = $("<div/>");
 
     content.append($("<p/>").text("Try to load a gist into the playground."));
 
-    var idWrap = $("<div/>", {"class": "input-append"})
+    var idWrap = $("<div/>", {"class": "input-group"})
       .appendTo(content);
 
-    content.append($("<p/>").text(
+    content.append($("<p/>", {"class": "my-3"}).text(
       "Create a public forkable, commentable version of the current playground configuration."
     ));
 
-    var descWrap = $("<div/>", {"class": "input-append"})
+    var descWrap = $("<div/>", {"class": "input-group"})
       .appendTo(content);
 
     var gistId = $("<input/>", {
           "type": "text",
-          "placeholder": "<gist id> or <user>/<gist id>"
+          "placeholder": "<gist id> or <user>/<gist id>",
+          "class": "form-control",
         })
         .appendTo(idWrap),
 
       gistDesc = $("<input/>", {
           "type": "text",
-          "placeholder": "New Gist description"
+          "placeholder": "New Gist description",
+          "class": "form-control",
         })
         .appendTo(descWrap);
 
+	const iconCloudDownload = $("<i/>", {"class": "icon icon-cloud-download"});
+
     $("<button/>", {"class": "btn btn-info"})
       .css({width: 100})
-      .append(
-        $("<i/>", {"class": "icon icon-cloud-download pull-left"}),
-        $("<span/>").text("Load")
-      )
+      .append(iconCloudDownload)
       .click(function(){
         playground.gist(gistId.val()).done(function(gist){
           gistDesc.val(gist.description);
@@ -1397,12 +1390,13 @@
       })
       .appendTo(idWrap);
 
+	iconCloudDownload.after(" Load");
+
+	const iconCloudUpload = $("<i/>", {"class": "icon icon-cloud-upload"});
+
     $("<button/>", {"class": "btn btn-primary"})
       .css({width: 100})
-      .append(
-        $("<i/>", {"class": "icon icon-cloud-upload pull-left"}),
-        $("<span/>").text("Create")
-      )
+      .append(iconCloudUpload)
       .click(function(){
         playground.gist(null, gistDesc.val()).done(function(gist){
           gistDesc.val(null);
@@ -1410,6 +1404,8 @@
         });
       })
       .appendTo(descWrap);
+
+	iconCloudUpload.after(" Create")
 
     return content;
   };
@@ -1634,14 +1630,15 @@
       placement: "left",
       title: playground.permalink.title,
       content: playground.permalink.content,
-      html: true
+      html: true,
+      sanitize: false,
     });
 
     $("#gist").popover({
       placement: "left",
-      title: playground.gist.title,
       content: playground.gist.content,
-      html: true
+      html: true,
+      sanitize: false,
     });
   });
   return playground;
