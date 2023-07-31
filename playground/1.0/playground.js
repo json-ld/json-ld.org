@@ -1467,7 +1467,7 @@
         }
       }
       // rewrite URLs that we know have secure JSON-LD Contexts
-      if(url === 'http://schema.org/') {
+      if(url === 'http://schema.org/' || url === 'http://schema.org') {
         url = 'https://schema.org/';
       }
 
