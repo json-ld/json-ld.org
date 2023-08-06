@@ -16,13 +16,12 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
     <!-- Style Sheets -->
-    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
-    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="../common/prettify.css" type="text/css" />
     <link rel="shortcut icon" href="../favicon.ico" />
 
     <!-- script tags -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" async></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 
     <script>
@@ -67,68 +66,66 @@ function getDrafts($spec)
 ?>
 
   <body>
-    <div class="navbar navbar-static-top">
-      <div class="navbar-inner">
-        <div class="row-fluid">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="../"><img src="../images/json-ld-data-24.png" alt="JSON-LD logo"> JSON-LD</a>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li>
-                <a href="../playground/"><span class="icon-beer"></span> Playground</a>
-              </li>
-              <li>
-                <a href="../learn.html"><span class="icon-book"></span> Documentation</a>
-              </li>
-              <li><a href="../#developers"><span class="icon-beaker"></span> Developers</a></li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                  <span class="icon-folder-open"></span> Specifications <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu">
-                  <li class="nav-header"><strong>W3C Recommendations</strong></li>
-                  <li><a href="https://www.w3.org/TR/json-ld/">Syntax</a></li>
-                  <li><a href="https://www.w3.org/TR/json-ld-api/">Processing Algorithms and API</a></li>
-                  <li><a href="https://www.w3.org/TR/json-ld-framing/">Framing</a></li>
-                  <li class="divider"></li>
-                  <li class="nav-header"><strong>Latest Drafts</strong></li>
-                  <li><a href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
-                  <li><a href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
-                  <li><a href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
-                  <li><a href="https://w3c.github.io/json-ld-bp/">Best Practices</a></li>
-                  <li><a href="https://w3c.github.io/json-ld-streaming/">Streaming</a></li>
-                  <li><a href="https://json-ld.github.io/json-ld-star/">JSON-LD-star</a></li>
-                  <li><a href="https://w3c.github.io/json-ld-cbor/">CBOR</a></li>
-                  <li><a href="https://github.com/w3c/json-ld-rc/">Recommended Context</a></li>
-                  <li><a href="https://json-ld.github.io/yaml-ld/">YAML-LD</a></li>
-                  <li><a href="/spec/">1.0 drafts (historic)</a></li>
-                </ul>
-              </li>
-              <li><a href="../images/"><span class="icon-picture"></span> Branding</a></li>
-            </ul>
-          </div>
-          <!--/.nav-collapse -->
+    <nav class="navbar navbar-expand-md sticky-top bg-body">
+      <div class="container">
+        <a class="navbar-brand active" href="../">
+          <img class="align-text-top" src="../images/json-ld-data-24.png" alt="JSON-LD logo">
+          JSON-LD
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="../playground/">Playground</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../learn.html">Documentation</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../#developers">Developers</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Specifications</a>
+              <ul class="dropdown-menu">
+                <li class="dropdown-header"><strong>W3C Recommendations</strong></li>
+                <li><a class="dropdown-item" href="https://www.w3.org/TR/json-ld/">Syntax</a></li>
+                <li><a class="dropdown-item" href="https://www.w3.org/TR/json-ld-api/">Processing Algorithms and API</a></li>
+                <li><a class="dropdown-item" href="https://www.w3.org/TR/json-ld-framing/">Framing</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="dropdown-header"><strong>Latest Drafts</strong></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-syntax/">Syntax</a></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-api/">Processing Algorithms and API</a></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-framing/">Framing</a></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-bp/">Best Practices</a></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-streaming/">Streaming</a></li>
+                <li><a class="dropdown-item" href="https://json-ld.github.io/json-ld-star/">JSON-LD-star</a></li>
+                <li><a class="dropdown-item" href="https://w3c.github.io/json-ld-cbor/">CBOR</a></li>
+                <li><a class="dropdown-item" href="https://github.com/w3c/json-ld-rc/">Recommended Context</a></li>
+                <li><a class="dropdown-item" href="https://json-ld.github.io/yaml-ld/">YAML-LD</a></li>
+                <li><a class="dropdown-item" href="/spec/">1.0 drafts (historic)</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../images/">Branding</a>
+            </li>
+          </ul>
         </div>
       </div>
-    </div>
+    </nav>
 
-    <div class="container">
-      <br>
+    <div class="container my-4">
       <h1>Specifications</h1>
-      <p>
+      <p class="my-4">
 JSON-LD has been designed to be a modular set of specifications. It consists of
 two base specifications: The JSON-LD Syntax and the JSON-LD API. All other
 JSON-LD specifications are layered upon the previous two specifications,
 allowing the community to build experimental extensions on top of the base
 specifications.
       <p>
-      <div id="syntax">
       <h2><a href="latest/json-ld/">The JSON-LD Syntax</a></h2>
-      <p>
+      <p class="mt-4">
 Defines JSON-LD, a JSON-based format to serialize Linked Data. The syntax is
 designed to easily integrate into deployed systems that already use JSON,
 and provides a smooth upgrade path from JSON to JSON-LD. It is primarily
@@ -136,22 +133,20 @@ intended to be a way to use Linked Data in Web-based programming environments,
 to build interoperable Web services, and to store Linked Data in JSON-based
 storage engines.
       </p>
-      <p>
+      <p class="mb-4">
 Links to JSON-LD specifications: <a href="latest/json-ld/">Latest</a><?php
 $drafts = getDrafts('json-ld') + getDrafts('json-ld-syntax');
 foreach ($drafts as $date => $dir) {
    print(", <a href=\"$dir/\">$date</a>");
 }
 ?>
-               </div>
-               <div id="api">
                <h2><a href="latest/json-ld-api/">The JSON-LD API</a></h2>
-               <p>
+               <p class="mt-4">
 An Application Programming Interface (API) and a set of algorithms for
 programmatic transformations of JSON-LD documents. This API defines algorithms
 for applying and removing JSON-LD contexts.
                </p>
-               <p>
+               <p class="mb-4">
 Links to JSON-LD API specifications: <a href="latest/json-ld-api/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-api');
@@ -162,13 +157,11 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </p>
-               </div>
-               <div id="best-practices">
                <h2><a href="https://w3c.github.io/json-ld-bp">JSON-LD Best Practices</a></h2>
-               <p>
+               <p class="mt-4">
 Best practices for publishing JSON-LD and building APIs.
                </p>
-               <p>
+               <p class="mb-4">
 Links to JSON-LD API specifications: <a href="https://w3c.github.io/json-ld-bp">Latest</a><?php
 
 $drafts = getDrafts('json-ld-api-best-practices');
@@ -179,17 +172,15 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </p>
-               </div>
-               <div id="framing">
                <h2><a href="latest/json-ld-framing/">JSON-LD Framing</a></h2>
-               <p>
+               <p class="mt-4">
 JSON-LD Framing allows developers to perform <em>query by example</em>
 and force a specific tree layout to a JSON-LD document. It allows developers
 to restructure data retrieved from the Web according to the specific needs of
 their application. Restructuring JSON-LD data before your application processes
 it leads to simpler code when processing data from external sources.
                </p>
-               <p>
+               <p class="mb-4">
 Links to JSON-LD Framing specifications: <a href="latest/json-ld-framing/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-framing');
@@ -200,14 +191,12 @@ foreach ($drafts as $date => $dir) {
 
 ?>
                </p>
-
-               </div>
                <h2><a href="latest/json-ld-rdf/">JSON-LD RDF API</a></h2>
-               <p>
+               <p class="mt-4">
 JSON-LD RDF API describes access methods for transforming and abstract RDF
 represention into JSON-LD and back.
                </p>
-               <p>
+               <p class="mb-4">
 Links to JSON-LD RDF API specifications: <a href="latest/json-ld-rdf/">Latest</a><?php
 
 $drafts = getDrafts('json-ld-rdf');
@@ -218,19 +207,18 @@ foreach ($drafts as $date => $dir) {
 
 ?>
       </p>
-
-      <hr>
-      <div id="footer">
-        <p id="copyright">
-         JSON-LD Specifications are covered by the <a href="https://www.w3.org/Consortium/Legal/2015/doc-license">W3C DOCUMENT LICENSE</a> except where an alternate is specified.
-         Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
-        </p>
-      </div>
-
     </div> <!-- /container -->
 
+    <div class="container pt-4 pb-3">
+      <footer>
+        <p class="text-body-secondary">
+          JSON-LD Specifications are covered by the <a href="https://www.w3.org/Consortium/Legal/2015/doc-license">W3C DOCUMENT LICENSE</a> except where an alternate is specified.
+          Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
+        </p>
+      </footer>
+    </div>
+
     <!-- script tags -->
-    <script type="text/javascript" src="../static/js/bootstrap/bootstrap.js"></script>
     <script type="text/javascript">
       $('#markup,#context,#frame').bind('keyup', function() {
         $('.btn-group > .btn').each(function () {
