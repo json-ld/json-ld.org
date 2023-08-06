@@ -21,7 +21,6 @@ print <<< htmlcode
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/bootstrap-responsive.css">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap/font-awesome.css">
-    <link rel="stylesheet" href="../common/prettify.css" type="text/css" />
     <link rel="shortcut icon" href="../favicon.ico" />
 
     <!-- script tags -->
