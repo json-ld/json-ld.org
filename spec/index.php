@@ -207,10 +207,8 @@ foreach ($drafts as $date => $dir) {
 
 ?>
       </p>
-    </div> <!-- /container -->
 
-    <div class="container pt-4 pb-3">
-      <footer>
+      <footer class="pt-4 pb-3">
         <p class="text-body-secondary">
           JSON-LD Specifications are covered by the <a href="https://www.w3.org/Consortium/Legal/2015/doc-license">W3C DOCUMENT LICENSE</a> except where an alternate is specified.
           Part of the <a href="http://payswarm.com/">PaySwarm</a> standardization initiative.
