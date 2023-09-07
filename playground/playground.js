@@ -266,6 +266,7 @@
         baseUrl: '',
         compactArrays: true,
         compactToRelative: true,
+        rdfDirection: '',
         safe: ''
       }
     };
@@ -354,6 +355,13 @@
     $("#options-api-compactToRelative").prop(
       'checked', playground.options.api.compactToRelative);
 
+    $("#options-api-rdfDirection-default").prop(
+      'checked', playground.options.api.rdfDirection === '');
+    $("#options-api-rdfDirection-i18n-datatype").prop(
+      'checked', playground.options.api.rdfDireciton === 'i18n-datatype');
+    //$("#options-api-rdfDirection-compound-literal").prop(
+    //  'checked', playground.options.api.rdfDirection === 'compound-literal');
+
     $("#options-api-safe-default").prop(
       'checked', playground.options.api.safe === '');
     $("#options-api-safe-false").prop(
@@ -396,6 +404,19 @@
       playground.options.api.compactToRelative = e.target.checked;
       playground.process();
     });
+
+    $("#options-api-rdfDirection-default" ).change(function(e) {
+      playground.options.api.rdfDirection = '';
+      playground.process();
+    });
+    $("#options-api-rdfDirection-i18n-datatype").change(function(e) {
+      playground.options.api.rdfDirection = 'i18n-datatype';
+      playground.process();
+    });
+    //$("#options-api-rdfDirection-compound-literal").change(function(e) {
+    //  playground.options.api.rdfDirection = 'compound-literal';
+    //  playground.process();
+    //});
 
     $("#options-api-safe-default" ).change(function(e) {
       playground.options.api.safe = '';
@@ -911,6 +932,9 @@
     }
     options.compactArrays = playground.options.api.compactArrays;
     options.compactToRelative = playground.options.api.compactToRelative;
+    if(playground.options.api.rdfDirection !== '') {
+      options.rdfDirection = playground.options.api.rdfDirection;
+    }
     if(playground.options.api.safe !== '') {
       options.safe = playground.options.api.safe;
     }
