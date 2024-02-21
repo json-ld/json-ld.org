@@ -1284,9 +1284,13 @@
         },
         function(err){
           // FIXME: add better error handling output
-          console.error(err);
+          // log to allow console inspection
+          console.error('Processing Error:', {error: err});
           $('#processing-errors')
             .append('Processing error:')
+            .append(
+              $('<span style="font-size: 0.7em; text-align=right">')
+                .text(' (See console for details.)'))
             .append(
               $('<pre>').text(playground.humanize(err)))
             .show();
