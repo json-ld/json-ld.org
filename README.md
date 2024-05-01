@@ -62,7 +62,37 @@ A list of all previous specification drafts is also available.
 
 https://json-ld.org/spec/
 
-[list of users]: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
+Website Development
+-------------------
+
+- This site is published using [Eleventy][].
+- The site is deployed using [Cloudflare Pages][].
+- The [playground][] has a special proxy to handle `http:` URLs.
+
+To develop this website locally:
+
+```sh
+# install dependencies
+npm i
+# to rebuild on changes and run a server:
+npm run serve
+# to rebuild on changes:
+npm run watch
+```
+
+Additionally, if you want to use or test the playground `http:` proxy, also run
+the [Wrangler][] server to emulate the [Cloudflare Pages Functions][] code:
+
+```sh
+npm run dev
+```
+
+[Cloudflare Pages Functions]: https://developers.cloudflare.com/pages/functions/
+[Cloudflare Pages]: https://pages.cloudflare.com/
+[Eleventy]: https://www.11ty.dev/
 [JSON-LD 1.1 - A JSON-based Serialization for Linked Data]: http://www.w3.org/TR/json-ld/
-[JSON-LD 1.1 Processing Algorithms and API]: https://www.w3.org/TR/json-ld-api/
 [JSON-LD 1.1 Framing]: https://www.w3.org/TR/json-ld-framing/
+[JSON-LD 1.1 Processing Algorithms and API]: https://www.w3.org/TR/json-ld-api/
+[Wrangler]: https://developers.cloudflare.com/workers/wrangler/
+[list of users]: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
+[playground]: https://json-ld.org/playground/
