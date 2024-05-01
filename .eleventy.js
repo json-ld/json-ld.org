@@ -33,7 +33,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('utils');
   eleventyConfig.ignores.add('CONTRIBUTING.md');
   eleventyConfig.ignores.add('LICENSE.md');
-  eleventyConfig.ignores.add('README.rst');
+  eleventyConfig.ignores.add('README.md');
   eleventyConfig.ignores.add('benchmarks/README.md');
   eleventyConfig.ignores.add('contexts/person.html');
   eleventyConfig.ignores.add('examples');
