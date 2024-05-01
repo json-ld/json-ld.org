@@ -10,6 +10,7 @@ const drafts = [
 ];
 
 module.exports = function(eleventyConfig) {
+  eleventyConfig.addPassthroughCopy('404.html');
   eleventyConfig.addPassthroughCopy('.htaccess');
   eleventyConfig.addPassthroughCopy('LICENSE.md');
   eleventyConfig.addPassthroughCopy('benchmarks/**/*.{jsonld,nq,md}');
