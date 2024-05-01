@@ -1,3 +1,6 @@
+// development host for playground proxy
+const PLAYGROUND_PROXY_HOST = 'http://localhost:8788';
+
 const drafts = [
   'CG-FINAL',
   'CR',
@@ -18,6 +21,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('examples/**/*.{html,ttl,txt,json}');
   eleventyConfig.addPassthroughCopy('favicon.ico');
   eleventyConfig.addPassthroughCopy('fonts');
+  eleventyConfig.addPassthroughCopy('functions/**/*.js');
   eleventyConfig.addPassthroughCopy('images/**/*.{htaccess,png,svg,xcf}');
   eleventyConfig.addPassthroughCopy('ns/**/*.{html,jsonld}');
   eleventyConfig.addPassthroughCopy('playground/**/*.{css,php,js}');
@@ -49,4 +53,39 @@ module.exports = function(eleventyConfig) {
     eleventyConfig.ignores.add(`spec/${draft}`);
   }
   eleventyConfig.ignores.add('test-suite');
+
+  // setup development proxy to cloudflare pages function server
+  if(process.env.ELEVENTY_RUN_MODE === 'serve') {
+    eleventyConfig.setServerOptions({
+      onRequest: {
+        '/playground/proxy': playgroundProxy
+      }
+    });
+  }
 };
+
+// proxy to worker proxy
+async function playgroundProxy({url}) {
+  const targetUrl = url.searchParams.get('url');
+  // eleventy only provides the URL
+  // approximate what the live playground does
+  const search = new URLSearchParams();
+  search.set('url', targetUrl);
+  const proxyUrl =
+    new URL(`${PLAYGROUND_PROXY_HOST}/playground/proxy?${search}`);
+  const res = await fetch(proxyUrl, {
+    headers: {
+      'Accept': 'application/ld+json, application/json'
+    }
+  });
+  // create headers object and filter properties
+  // suffient for the site development purposes
+  const headers = Object.fromEntries(
+    Array.from(res.headers.entries()).filter(
+      v => !['content-length', 'content-encoding'].includes(v[0])));
+  return {
+    status: res.status,
+    headers,
+    body: await res.text()
+  }
+}
