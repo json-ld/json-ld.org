@@ -1,9 +1,12 @@
+json-ld.org
+===========
+
 Introduction
 ------------
 
-.. image:: https://badges.gitter.im/json-ld/json-ld.org.svg
-   :alt: Join the chat at https://gitter.im/json-ld/json-ld.org
-   :target: https://gitter.im/json-ld/json-ld.org?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+[![Join the chat at https://gitter.im/json-ld/json-ld.org](https://badges.gitter.im/json-ld/json-ld.org.svg)](https://gitter.im/json-ld/json-ld.org)
+
+This is the source for the https://json-ld.org/ website.
 
 JSON-LD (JavaScript Object Notation for Linking Data) is a lightweight Linked
 Data format. It is easy for humans to read and write. It is easy for machines
@@ -15,7 +18,7 @@ These properties make JSON-LD an ideal Linked Data interchange language for
 JavaScript environments, Web services, and unstructured databases such as
 CouchDB and MongoDB.
 
-If you are already using JSON-LD, add yourself to the `list of users`_ in our wiki.
+If you are already using JSON-LD, add yourself to the [list of users][] in our wiki.
 
 
 A Simple Example
@@ -23,13 +26,15 @@ A Simple Example
 
 A simple example of a JSON object with added semantics::
 
- {
-   "@context": "https://json-ld.org/contexts/person.jsonld",
-   "@id": "http://dbpedia.org/resource/John_Lennon",
-   "name": "John Lennon",
-   "born": "1940-10-09",
-   "spouse": "http://dbpedia.org/resource/Cynthia_Lennon"
- }
+```json
+{
+  "@context": "https://json-ld.org/contexts/person.jsonld",
+  "@id": "http://dbpedia.org/resource/John_Lennon",
+  "name": "John Lennon",
+  "born": "1940-10-09",
+  "spouse": "http://dbpedia.org/resource/Cynthia_Lennon"
+}
+```
 
 The example above describes a person whose name is John Lennon. The difference
 between regular JSON and JSON-LD is that the JSON-LD object above uniquely
@@ -49,15 +54,15 @@ The Specifications
 If you are a developer, you may be interested in the official JSON-LD W3C
 specifications:
 
-* `JSON-LD 1.1 - A JSON-based Serialization for Linked Data`_
-* `JSON-LD 1.1 Processing Algorithms and API`_
-* `JSON-LD 1.1 Framing`_
+* [JSON-LD 1.1 - A JSON-based Serialization for Linked Data][]
+* [JSON-LD 1.1 Processing Algorithms and API][]
+* [JSON-LD 1.1 Framing][]
 
 A list of all previous specification drafts is also available.
 
 https://json-ld.org/spec/
 
-.. _list of users: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
-.. _JSON-LD 1.1 - A JSON-based Serialization for Linked Data: http://www.w3.org/TR/json-ld/
-.. _JSON-LD 1.1 Processing Algorithms and API: http://www.w3.org/TR/json-ld-api/
-.. _JSON-LD 1.1 Framing: http://www.w3.org/TR/json-ld-framing/
+[list of users]: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
+[JSON-LD 1.1 - A JSON-based Serialization for Linked Data]: http://www.w3.org/TR/json-ld/
+[JSON-LD 1.1 Processing Algorithms and API]: https://www.w3.org/TR/json-ld-api/
+[JSON-LD 1.1 Framing]: https://www.w3.org/TR/json-ld-framing/
