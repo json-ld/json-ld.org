@@ -763,6 +763,8 @@
               obj[key] = remoteDoc.document[key];
             }
             remoteDoc.document = obj;
+          } else {
+            console.error("remoteDoc.document: unknown type");
           }
         }
         success(remoteDoc.document);
