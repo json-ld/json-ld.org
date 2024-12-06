@@ -751,6 +751,9 @@
         injected @context. */
         if(remoteDoc.contextUrl) {
           // TODO: flash link header injection notice on UI
+          if(typeof remoteDoc.document === 'string') {
+            remoteDoc.document = JSON.parse(remoteDoc.document);
+          }
           if(Array.isArray(remoteDoc.document)) {
             remoteDoc.document = {
               '@context': remoteDoc.contextUrl,
@@ -763,6 +766,8 @@
               obj[key] = remoteDoc.document[key];
             }
             remoteDoc.document = obj;
+          } else {
+            console.error("remoteDoc.document: unknown type");
           }
         }
         success(remoteDoc.document);
