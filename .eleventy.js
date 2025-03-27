@@ -44,6 +44,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.ignores.add('benchmarks/README.md');
   eleventyConfig.ignores.add('contexts/person.html');
   eleventyConfig.ignores.add('examples');
+  eleventyConfig.ignores.add('images/Makefile');
   eleventyConfig.ignores.add('images/README.md');
   eleventyConfig.ignores.add('minutes/**/*');
   eleventyConfig.ignores.add('ns/json-ld.html');
