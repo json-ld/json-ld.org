@@ -78,6 +78,10 @@ npm i
 npm run serve
 # to rebuild on changes:
 npm run watch
+# to just build the static files to `_site/`
+npm run build
+# to serve `_site/` with Cloudflare Pages feature support
+npm run pages # visit http://localhost:8788/
 ```
 
 Additionally, if you want to use or test the playground `http:` proxy, also run
