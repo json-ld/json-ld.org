@@ -16,6 +16,8 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('404.html');
   eleventyConfig.addPassthroughCopy('.htaccess');
   eleventyConfig.addPassthroughCopy('LICENSE.md');
+  eleventyConfig.addPassthroughCopy('_headers');
+  eleventyConfig.addPassthroughCopy('_redirects');
   eleventyConfig.addPassthroughCopy('benchmarks/**/*.{jsonld,nq,md}');
   eleventyConfig.addPassthroughCopy('contexts/**/*.{htaccess,html,jsonld}');
   eleventyConfig.addPassthroughCopy('contexts/{event,person,place,recipe,remote-context}');
