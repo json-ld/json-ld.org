@@ -37,7 +37,6 @@ module.exports = function(eleventyConfig) {
   }
   eleventyConfig.addPassthroughCopy('static');
   eleventyConfig.addPassthroughCopy('test-suite');
-  eleventyConfig.addPassthroughCopy('utils');
   eleventyConfig.ignores.add('CONTRIBUTING.md');
   eleventyConfig.ignores.add('LICENSE.md');
   eleventyConfig.ignores.add('README.md');
