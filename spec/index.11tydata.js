@@ -1,5 +1,8 @@
-const fs = require('node:fs/promises');
-const path = require('node:path');
+import { fileURLToPath } from 'url';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const specStatuses = ['ED', 'FCGS', 'WD', 'CR', 'PR', 'REC'/*, 'CG-FINAL'*/];
 
@@ -33,14 +36,14 @@ async function getDrafts(spec) {
 
 const specs = [
   'json-ld',
-  'json-ld-syntax', 
-  'json-ld-api', 
-  'json-ld-api-best-practices', 
-  'json-ld-framing', 
+  'json-ld-syntax',
+  'json-ld-api',
+  'json-ld-api-best-practices',
+  'json-ld-framing',
   'json-ld-rdf'
 ];
 
-module.exports = async function() {
+export default async function() {
   return {
     specs: Object.fromEntries(await Promise.all(specs.map(async spec => {
       return [spec, await getDrafts(spec)];
