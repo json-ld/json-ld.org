@@ -2,23 +2,13 @@ import assert from 'node:assert/strict';
 
 const baseUri = 'http://localhost:8788';
 
+// Test _headers
 (async () => {
   // test json-ld media type
   const url = `${baseUri}/contexts/event.jsonld`;
   const resp = await fetch(url);
   assert(resp.headers.get('Content-Type') === 'application/ld+json',
     `Content-Type for ${url} should be application/ld+json.`);
-})();
-
-(async () => {
-  // test that /playground-dev redirects to /playground
-  const url = `${baseUri}/playground-dev`;
-  const resp = await fetch(url, {redirect: 'manual'});
-  assert(resp.status === 302,
-    `Should be a 302 redirect.`);
-  const location = resp.headers.get('Location');
-  assert(location === '/playground',
-    `Old /playground-dev should redirect to /playground`);
 })();
 
 (async () => {
@@ -98,4 +88,16 @@ const baseUri = 'http://localhost:8788';
         `Link header for ${url} should be ${intendedHeaderValue}; got ${actualLinkValue}.`);
     })
   );
+})();
+
+// Test _redirects
+(async () => {
+  // test that /playground-dev redirects to /playground
+  const url = `${baseUri}/playground-dev`;
+  const resp = await fetch(url, {redirect: 'manual'});
+  assert(resp.status === 302,
+    `Should be a 302 redirect.`);
+  const location = resp.headers.get('Location');
+  assert(location === '/playground',
+    `Old /playground-dev should redirect to /playground`);
 })();
