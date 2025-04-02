@@ -74,12 +74,10 @@ To develop this website locally:
 ```sh
 # install dependencies
 npm i
-# to rebuild on changes and run a server:
-npm run serve
-# to rebuild on changes:
-npm run watch
 # to just build the static files to `_site/`
 npm run build
+# to rebuild the files on changes
+npm run watch
 # to serve `_site/` with Cloudflare Pages feature support
 npm run pages # visit http://localhost:8788/
 ```
