@@ -76,3 +76,26 @@ const baseUri = 'http://localhost:8788';
   assert(contentType === 'application/jldTest',
     `Content-Type for ${url} should be application/jldTest; got ${contentType}.`);
 })();
+
+(async () => {
+  // test link headers
+  const urlsToLinkHeaderValues = {
+    '/test-suite/tests/remote-doc-0009-in.jsonld':
+      `<remote-doc-0009-context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"`,
+    '/test-suite/tests/remote-doc-0010-in.json':
+      `<remote-doc-0010-context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"`,
+    '/test-suite/tests/remote-doc-0011-in.jldt':
+      `<remote-doc-0011-context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"`,
+    '/test-suite/tests/remote-doc-0012-in.json':
+      `<remote-doc-0012-context1.jsonld>; rel="http://www.w3.org/ns/json-ld#context", <remote-doc-0012-context2.jsonld>; rel="http://www.w3.org/ns/json-ld#context"`
+  };
+  Promise.all(Object.entries(urlsToLinkHeaderValues)
+    .map(async ([absoultePath, intendedHeaderValue]) => {
+      const url = `${baseUri}${absoultePath}`;
+      const resp = await fetch(url);
+      const actualLinkValue = resp.headers.get('Link');
+      assert(actualLinkValue === intendedHeaderValue,
+        `Link header for ${url} should be ${intendedHeaderValue}; got ${actualLinkValue}.`);
+    })
+  );
+})();
