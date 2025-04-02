@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 
 const baseUri = 'http://localhost:8788';
 
@@ -92,12 +93,24 @@ const baseUri = 'http://localhost:8788';
 
 // Test _redirects
 (async () => {
-  // test that /playground-dev redirects to /playground
-  const url = `${baseUri}/playground-dev`;
-  const resp = await fetch(url, {redirect: 'manual'});
-  assert(resp.status === 302,
-    `Should be a 302 redirect.`);
-  const location = resp.headers.get('Location');
-  assert(location === '/playground',
-    `Old /playground-dev should redirect to /playground`);
+  const _redirects = await fs.readFile('./_redirects', 'utf-8');
+  Promise.all(_redirects.split('\n')
+    .filter((v) => (v[0] !== '#') ? v : null)
+    .map(async (line) => {
+      let [source, destination, code] = line.split(/\s/);
+      if(source.endsWith('*')) {
+        // remove *
+        source = source.slice(0, source.length - 1);
+        // remove :splat
+        destination = destination.slice(0, destination.length - 6);
+      }
+      const url = `${baseUri}${source}`;
+      const resp = await fetch(url, {redirect: 'manual'});
+      assert(resp.status === code || 302,
+        `Should be a 302 redirect.`);
+      const location = resp.headers.get('Location');
+      assert(location === destination,
+        `Old ${source} should redirect to ${destination}, got ${location}`);
+    })
+  );
 })();
