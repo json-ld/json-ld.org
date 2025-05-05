@@ -89,6 +89,18 @@ the [Wrangler][] server to emulate the [Cloudflare Pages Functions][] code:
 npm run dev
 ```
 
+Website Analytics
+-----------------
+
+Google Analytics has been used on this site since 2013. There are to GA
+identifiers in use:
+
+* UA-40462488-1 for `primer/`, `spec/`, and `requirements/`
+* UA-42886053-1 for everything else (per the default).
+
+The default code can be overridden by setting `ga` to a specific number (ex:
+`40462488`) in the page's front matter.
+
 [Cloudflare Pages Functions]: https://developers.cloudflare.com/pages/functions/
 [Cloudflare Pages]: https://pages.cloudflare.com/
 [Eleventy]: https://www.11ty.dev/
