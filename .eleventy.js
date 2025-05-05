@@ -13,7 +13,6 @@ const drafts = [
 ];
 
 export default async function(eleventyConfig) {
-  eleventyConfig.addPassthroughCopy('404.html');
   eleventyConfig.addPassthroughCopy('.htaccess');
   eleventyConfig.addPassthroughCopy('LICENSE.md');
   eleventyConfig.addPassthroughCopy('_headers');
@@ -65,6 +64,12 @@ export default async function(eleventyConfig) {
       }
     });
   }
+
+  return {
+    dir: {
+      layouts: '_layouts'
+    }
+  };
 };
 
 // proxy to worker proxy
