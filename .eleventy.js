@@ -20,7 +20,7 @@ export default async function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('benchmarks/**/*.{jsonld,nq,md}');
   eleventyConfig.addPassthroughCopy('contexts/**/*.{htaccess,html,jsonld}');
   eleventyConfig.addPassthroughCopy('contexts/{event,person,place,recipe,remote-context}');
-  eleventyConfig.addPassthroughCopy('examples/**/*.{html,ttl,txt,json}');
+  eleventyConfig.addPassthroughCopy('examples/**/*.{html,ttl,txt,json,jsonld}');
   eleventyConfig.addPassthroughCopy('favicon.ico');
   eleventyConfig.addPassthroughCopy('fonts');
   eleventyConfig.addPassthroughCopy('functions/**/*.js');
