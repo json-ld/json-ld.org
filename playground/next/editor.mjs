@@ -1,6 +1,7 @@
 import {autocompletion, completeFromList} from '@codemirror/autocomplete';
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
+import {EditorState} from '@codemirror/state'
 import {indentWithTab} from '@codemirror/commands';
 import {json, jsonParseLinter} from "@codemirror/lang-json";
 import {keymap} from '@codemirror/view';
@@ -39,9 +40,19 @@ const editor = new EditorView({
   ]
 });
 
-window.editor = editor;
+const readOnlyEditor = new EditorView({
+  parent: document.getElementById('read-only-editor'),
+  doc: `{}`,
+  extensions: [
+    basicSetup,
+    json(),
+    EditorState.readOnly.of(true),
+    EditorView.editable.of(false),
+    EditorView.contentAttributes.of({tabindex: '0'})
+  ]
+})
 
-window.app = createApp({
+createApp({
   doc: {},
   // methods
   async loadExample(file) {
@@ -51,6 +62,14 @@ window.app = createApp({
       changes: {
         from: 0,
         to: editor.state.doc.length,
+        insert: JSON.stringify(this.doc, null, 2)
+      }
+    });
+    // TODO: this should happen elsewhere...like a watcher
+    readOnlyEditor.dispatch({
+      changes: {
+        from: 0,
+        to: readOnlyEditor.state.doc.length,
         insert: JSON.stringify(this.doc, null, 2)
       }
     });
