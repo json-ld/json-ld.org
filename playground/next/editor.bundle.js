@@ -26630,9 +26630,19 @@
     ]
   });
 
-  window.editor = editor;
+  const readOnlyEditor = new EditorView({
+    parent: document.getElementById('read-only-editor'),
+    doc: `{}`,
+    extensions: [
+      basicSetup,
+      json(),
+      EditorState.readOnly.of(true),
+      EditorView.editable.of(false),
+      EditorView.contentAttributes.of({tabindex: "0"})
+    ]
+  });
 
-  window.app = Qe({
+  Qe({
     doc: {},
     // methods
     async loadExample(file) {
@@ -26642,6 +26652,14 @@
         changes: {
           from: 0,
           to: editor.state.doc.length,
+          insert: JSON.stringify(this.doc, null, 2)
+        }
+      });
+      // TODO: this should happen elsewhere...like a watcher
+      readOnlyEditor.dispatch({
+        changes: {
+          from: 0,
+          to: readOnlyEditor.state.doc.length,
           insert: JSON.stringify(this.doc, null, 2)
         }
       });
