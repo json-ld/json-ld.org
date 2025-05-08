@@ -82,6 +82,7 @@ const readOnlyEditor = new EditorView({
 
 createApp({
   doc: {},
+  tab: 'expanded',
   // methods
   async loadExample(file) {
     const rv = await fetch(`/examples/playground/${file}`);
@@ -93,14 +94,42 @@ createApp({
         insert: JSON.stringify(this.doc, null, 2)
       }
     });
-    // TODO: this should happen elsewhere...like a watcher
-    const expanded = await jsonld.expand(this.doc);
-    readOnlyEditor.dispatch({
-      changes: {
-        from: 0,
-        to: readOnlyEditor.state.doc.length,
-        insert: JSON.stringify(expanded, null, 2)
-      }
-    });
+    this.setTab(this.tab);
+  },
+  async setTab(value) {
+    this.tab = value;
+
+    switch (this.tab) {
+      case 'expanded':
+        // TODO: this should happen elsewhere...like a watcher
+        const expanded = await jsonld.expand(this.doc);
+        readOnlyEditor.dispatch({
+          changes: {
+            from: 0,
+            to: readOnlyEditor.state.doc.length,
+            insert: JSON.stringify(expanded, null, 2)
+          }
+        });
+        break;
+      case 'flattened':
+        // TODO: this should happen elsewhere...like a watcher
+        const flattened = await jsonld.flatten(this.doc);
+        readOnlyEditor.dispatch({
+          changes: {
+            from: 0,
+            to: readOnlyEditor.state.doc.length,
+            insert: JSON.stringify(flattened, null, 2)
+          }
+        });
+        break;
+      default:
+        readOnlyEditor.dispatch({
+          changes: {
+            from: 0,
+            to: readOnlyEditor.state.doc.length,
+            insert: JSON.stringify({}, null, 2)
+          }
+        });
+    }
   }
 }).mount();
