@@ -1,3 +1,5 @@
+/* globals: jsonld */
+
 import {autocompletion, completeFromList} from '@codemirror/autocomplete';
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
@@ -6,6 +8,32 @@ import {indentWithTab} from '@codemirror/commands';
 import {json, jsonParseLinter} from "@codemirror/lang-json";
 import {keymap} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
+
+// Setup JSON-LD documentLoader
+const xhrDocumentLoader = jsonld.documentLoaders.xhr();
+// FIXME: add UI to let users control and set context mapping
+jsonld.documentLoader = function(url) {
+  // rewrite URLs that we know have secure JSON-LD Contexts
+  if(url === 'http://schema.org/' || url === 'http://schema.org') {
+    url = 'https://schema.org/';
+  }
+
+  // if a non-HTTPS URL, use the proxy since we run in HTTPS only mode
+  if(!url.startsWith('https://')) {
+    url = [
+      location.protocol,
+      '//',
+      location.host,
+      // NOTE: using hard-coded path so file can be shared with dev page
+      //location.pathname,
+      '/playground/',
+      'proxy?url=',
+      url
+    ].join('');
+  }
+
+  return xhrDocumentLoader(url);
+};
 
 const jsonLdAtTerms = [
   { label: "@context", type: "keyword", info: "Defines the JSON-LD context" },
@@ -66,11 +94,12 @@ createApp({
       }
     });
     // TODO: this should happen elsewhere...like a watcher
+    const expanded = await jsonld.expand(this.doc);
     readOnlyEditor.dispatch({
       changes: {
         from: 0,
         to: readOnlyEditor.state.doc.length,
-        insert: JSON.stringify(this.doc, null, 2)
+        insert: JSON.stringify(expanded, null, 2)
       }
     });
   }
