@@ -26671,6 +26671,16 @@
     ]
   });
 
+  function setEditorValue(_editor, doc) {
+    _editor.dispatch({
+      changes: {
+        from: 0,
+        to: _editor.state.doc.length,
+        insert: JSON.stringify(doc, null, 2)
+      }
+    });
+  }
+
   Qe({
     doc: {},
     tab: 'expanded',
@@ -26678,13 +26688,7 @@
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
       this.doc = await rv.json();
-      editor.dispatch({
-        changes: {
-          from: 0,
-          to: editor.state.doc.length,
-          insert: JSON.stringify(this.doc, null, 2)
-        }
-      });
+      setEditorValue(editor, this.doc);
       this.setTab(this.tab);
     },
     async setTab(value) {
@@ -26694,33 +26698,15 @@
         case 'expanded':
           // TODO: this should happen elsewhere...like a watcher
           const expanded = await jsonld.expand(this.doc);
-          readOnlyEditor.dispatch({
-            changes: {
-              from: 0,
-              to: readOnlyEditor.state.doc.length,
-              insert: JSON.stringify(expanded, null, 2)
-            }
-          });
+          setEditorValue(readOnlyEditor, expanded);
           break;
         case 'flattened':
           // TODO: this should happen elsewhere...like a watcher
           const flattened = await jsonld.flatten(this.doc);
-          readOnlyEditor.dispatch({
-            changes: {
-              from: 0,
-              to: readOnlyEditor.state.doc.length,
-              insert: JSON.stringify(flattened, null, 2)
-            }
-          });
+          setEditorValue(readOnlyEditor, flattened);
           break;
         default:
-          readOnlyEditor.dispatch({
-            changes: {
-              from: 0,
-              to: readOnlyEditor.state.doc.length,
-              insert: JSON.stringify({}, null, 2)
-            }
-          });
+          setEditorValue(readOnlyEditor, {});
       }
     }
   }).mount();
