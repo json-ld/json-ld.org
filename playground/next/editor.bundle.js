@@ -26647,6 +26647,24 @@
     { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" }
   ];
 
+  // the main document we're working with throughout (see `v-scope`)
+  const store = D({
+    doc: {}
+  });
+
+  let updateListenerExtension = EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+      // set the global `doc` to the latest string from the editor
+      // TODO: parse as JSON and throw errors before setting to store.doc
+      // TODO: probably also change `store.doc` to be an object
+      try {
+        const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
+        store.doc = parsed;
+      } catch (err) {
+        console.error(err);
+      }  }
+  });
+
   const editor = new EditorView({
     parent: document.getElementById('editor'),
     doc: `{}`,
@@ -26655,7 +26673,8 @@
       keymap.of([indentWithTab]),
       json(),
       linter(jsonParseLinter()),
-      autocompletion({override: [completeFromList(jsonLdAtTerms)]})
+      autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+      updateListenerExtension
     ]
   });
 
@@ -26681,33 +26700,37 @@
     });
   }
 
-  Qe({
-    doc: {},
+  window.app = Qe({
+    store,
     tab: 'expanded',
     // methods
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
-      this.doc = await rv.json();
-      setEditorValue(editor, this.doc);
+      this.store.doc = await rv.json();
+      setEditorValue(editor, this.store.doc);
       this.setTab(this.tab);
     },
     async setTab(value) {
       this.tab = value;
-
+      const doc = this.store.doc;
       switch (this.tab) {
         case 'expanded':
           // TODO: this should happen elsewhere...like a watcher
-          const expanded = await jsonld.expand(this.doc);
+          const expanded = await jsonld.expand(doc);
           setEditorValue(readOnlyEditor, expanded);
           break;
         case 'flattened':
           // TODO: this should happen elsewhere...like a watcher
-          const flattened = await jsonld.flatten(this.doc);
+          const flattened = await jsonld.flatten(doc);
           setEditorValue(readOnlyEditor, flattened);
           break;
         default:
           setEditorValue(readOnlyEditor, {});
       }
+    },
+    async docChanged(v) {
+      console.log('doc changed', v);
+      this.setTab(this.tab);
     }
   }).mount();
 
