@@ -58,7 +58,8 @@ const jsonLdAtTerms = [
 
 // the main document we're working with throughout (see `v-scope`)
 const store = reactive({
-  doc: {}
+  doc: {},
+  parseError: ''
 });
 
 let updateListenerExtension = EditorView.updateListener.of((update) => {
@@ -69,8 +70,9 @@ let updateListenerExtension = EditorView.updateListener.of((update) => {
     try {
       const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
       store.doc = parsed;
+      store.parseError = '';
     } catch (err) {
-      console.error(err);
+      store.parseError = err.message;
     };
   }
 });
