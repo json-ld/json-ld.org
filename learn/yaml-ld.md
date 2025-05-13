@@ -41,8 +41,8 @@ title: YAML-LD
       </h2>
       <p class="text-justify">
         YAML-LD relies upon APIs and algorithms of JSON-LD, but applies them
-        to YAML instead of JSON. Since YAML is a superset of JSON, this, in
-        most aspects, is straightforward.
+        to YAML instead of JSON. Since YAML is a superset of JSON, and JSON-LD
+        is a subset of JSON, this, in most aspects, is straightforward.
       </p>
     </div>
     <!-- End span -->
