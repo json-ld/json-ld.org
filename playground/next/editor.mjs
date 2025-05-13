@@ -114,18 +114,18 @@ function setEditorValue(_editor, doc) {
 
 window.app = createApp({
   store,
-  tab: 'expanded',
+  outputTab: 'expanded',
   // methods
   async loadExample(file) {
     const rv = await fetch(`/examples/playground/${file}`);
     this.store.doc = await rv.json();
     setEditorValue(editor, this.store.doc);
-    this.setTab(this.tab);
+    this.setOutputTab(this.outputTab);
   },
-  async setTab(value) {
-    this.tab = value;
+  async setOutputTab(value) {
+    this.outputTab = value;
     const doc = this.store.doc;
-    switch (this.tab) {
+    switch (this.outputTab) {
       case 'expanded':
         // TODO: this should happen elsewhere...like a watcher
         const expanded = await jsonld.expand(doc);
@@ -141,6 +141,6 @@ window.app = createApp({
     }
   },
   async docChanged(v) {
-    this.setTab(this.tab);
+    this.setOutputTab(this.outputTab);
   }
 }).mount();
