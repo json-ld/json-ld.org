@@ -3,12 +3,11 @@ layout: default
 title: YAML-LD
 ---
 
-<div class="container">
-  <br>
-  <div id="publ"  class="span12 text-justify">
-    <h1>YAML-LD</h1>
-  </div>
-</div>
+    <div class="hero-unit">
+      <h1>YAML-LD</h1>
+      <br>
+      <p class="tagline">YAML for Linked Data</p>
+    </div>
 
 <div class="container">
   <div class="row">
