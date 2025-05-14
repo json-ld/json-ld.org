@@ -197,7 +197,7 @@ window.app = createApp({
     });
 
     // Used for context, frame, or other secondary document provision
-    new EditorView({
+    this.sideEditor = new EditorView({
       parent: document.getElementById('side-editor'),
       doc: JSON.stringify(this.store.sideDoc, null, 2),
       extensions: [
@@ -209,5 +209,10 @@ window.app = createApp({
         sideEditorListener
       ]
     });
+  },
+  copyContext() {
+    console.log('copy context');
+    this.store.sideDoc['@context'] = this.store.doc['@context'];
+    setEditorValue(this.sideEditor, this.store.sideDoc);
   }
 }).mount();
