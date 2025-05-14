@@ -26704,7 +26704,17 @@
 
   window.app = Qe({
     store,
+    inputTab: 'json-ld',
     outputTab: 'expanded',
+    options: {
+      processingMode: '',
+      base: '',
+      baseUrl: '',
+      compactArrays: true,
+      compactToRelative: true,
+      rdfDirection: '',
+      safe: ''
+    },
     // methods
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
@@ -26718,13 +26728,23 @@
       switch (this.outputTab) {
         case 'expanded':
           // TODO: this should happen elsewhere...like a watcher
-          const expanded = await jsonld.expand(doc);
-          setEditorValue(readOnlyEditor, expanded);
+          try {
+            const expanded = await jsonld.expand(doc, this.options);
+            setEditorValue(readOnlyEditor, expanded);
+            this.store.parseError = '';
+          } catch(err) {
+            this.store.parseError = err.message;
+          }
           break;
         case 'flattened':
           // TODO: this should happen elsewhere...like a watcher
-          const flattened = await jsonld.flatten(doc);
-          setEditorValue(readOnlyEditor, flattened);
+          try {
+            const flattened = await jsonld.flatten(doc, {}, this.options);
+            setEditorValue(readOnlyEditor, flattened);
+            this.store.parseError = '';
+          } catch(err) {
+            this.store.parseError = err.message;
+          }
           break;
         default:
           setEditorValue(readOnlyEditor, {});
