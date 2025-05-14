@@ -26744,6 +26744,10 @@
           break;
         case 'compacted':
           const context = this.store.sideDoc;
+          if (JSON.stringify(context) === '{}' && '@context' in doc) {
+            // no context set yet, so copy in the main document's
+            context['@context'] = doc['@context'];
+          }
           try {
             const compacted = await jsonld.compact(doc, context['@context'] || {}, this.options);
             setEditorValue(readOnlyEditor, compacted);
