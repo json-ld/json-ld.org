@@ -93,10 +93,134 @@ title: Next Playground
       </tbody>
     </table>
   </div>
-
-  <div class="ui fitted resizable scrolling segment">
+  <!-- main editor area -->
+  <div class="ui top attached tabular menu">
+    <div :class="{ active: inputTab == 'json-ld' }" class="item" @click="inputTab = 'json-ld'"><i class="pencil alternate icon"></i> JSON-LD Input</div>
+    <div :class="{ active: inputTab == 'options' }" class="item" @click="inputTab = 'options'"><i class="wrench icon"></i> Options</div>
+  </div>
+  <div class="ui bottom attached fitted resizable scrolling segment" v-show="inputTab == 'json-ld'">
     <div id="editor" v-effect="docChanged(store.doc)"><!-- replaced by CodeMirror --></div>
   </div>
+  <div class="ui bottom attached segment" v-show="inputTab == 'options'">
+    <form class="ui form">
+      <div class="inline fields" id="options-api-processingMode">
+        <label for="options-api-processingMode" class="two wide field">Processing Mode</label>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="options-api-processingMode-default" name="processingMode" value="" checked
+              v-model="options.processingMode">
+            <label for="options-api-processingMode-default">Default</label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="options-api-processingMode-1-0" name="processingMode" value="json-ld-1.0"
+              v-model="options.processingMode">
+            <label for="options-api-processingMode-1-0">JSON-LD 1.0</label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="options-api-processingMode-1-1" name="processingMode" value="json-ld-1.1"
+              v-model="options.processingMode">
+            <label for="options-api-processingMode-1-1">JSON-LD 1.1</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="inline fields" id="options-api-base">
+        <label for="options-api-base" class="two wide field">Base</label>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="options-api-base-default" name="base" value="" checked
+              v-model="options.base">
+            <label for="options-api-base-default">Default</label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="options-api-base-custom" name="base" value="custom"
+              v-model="options.base">
+            <label for="options-api-base-custom">Custom URL</label>
+          </div>
+        </div>
+        <div class="eleven wide field">
+          <input type="text" id="options-api-base-url" placeholder="URL"
+            v-model="options.baseUrl">
+        </div>
+      </div>
+
+      <div class="inline fields">
+        <label class="two wide field"></label>
+        <div class="field">
+          <div class="ui checkbox">
+            <input type="checkbox" id="options-api-compactArrays"
+              v-model="options.compactArrays">
+            <label for="options-api-compactArrays">Compact Arrays</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="inline fields">
+        <label class="two wide field"></label>
+        <div class="field">
+          <div class="ui checkbox">
+            <input type="checkbox" id="options-api-compactToRelative"
+              v-model="options.compactToRelative">
+            <label for="options-api-compactToRelative">Compact To Relative</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="inline fields" id="options-api-rdfDirection">
+          <label for="options-api-rdfDirection" class="two wide field">RDF Direction Mode</label>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" id="options-api-rdfDirection-default" name="rdfDirection" value="" checked
+                v-model="options.rdfDirection">
+              <label for="options-api-rdfDirection-default">Default (null)</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" id="options-api-rdfDirection-i18n-datatype" name="rdfDirection" value="i18n-datatype"
+                v-model="options.rdfDirection">
+              <label for="options-api-rdfDirection-i18n-datatype">"i18n-datatype"</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="inline fields" id="options-api-safe">
+          <label for="options-api-safe" class="two wide field">Safe</label>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" id="options-api-safe-default" name="safe" value="" checked
+                v-model="options.safe">
+              <label for="options-api-safe-default">Default</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" id="options-api-safe-false" name="safe" value="false"
+                v-model="options.safe">
+              <label for="options-api-safe-false">False</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="ui radio checkbox">
+              <input type="radio" id="options-api-safe-true" name="safe" value="true"
+                v-model="options.safe">
+              <label for="options-api-safe-true">True</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- errors -->
   <div class="ui error message" v-show="store.parseError" v-text="store.parseError"></div>
   <!-- outputs and renderings -->
   <div class="ui top attached tabular menu">
