@@ -26650,14 +26650,13 @@
   // the main document we're working with throughout (see `v-scope`)
   const store = D({
     doc: {},
+    sideDoc: {},
     parseError: ''
   });
 
-  let updateListenerExtension = EditorView.updateListener.of((update) => {
+  const mainEditorListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       // set the global `doc` to the latest string from the editor
-      // TODO: parse as JSON and throw errors before setting to store.doc
-      // TODO: probably also change `store.doc` to be an object
       try {
         const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
         store.doc = parsed;
@@ -26676,7 +26675,7 @@
       json(),
       linter(jsonParseLinter()),
       autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-      updateListenerExtension
+      mainEditorListener
     ]
   });
 
@@ -26743,6 +26742,16 @@
             this.store.parseError = err.message;
           }
           break;
+        case 'compacted':
+          const context = this.store.sideDoc;
+          try {
+            const compacted = await jsonld.compact(doc, context['@context'] || {}, this.options);
+            setEditorValue(readOnlyEditor, compacted);
+            this.store.parseError = '';
+          } catch(err) {
+            this.store.parseError = err.message;
+          }
+          break;
         case 'flattened':
           // TODO: this should happen elsewhere...like a watcher
           try {
@@ -26759,6 +26768,32 @@
     },
     async docChanged(v) {
       this.setOutputTab(this.outputTab);
+    },
+    initSideEditor() {
+      const sideEditorListener = EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          try {
+            const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
+            store.sideDoc = parsed;
+            store.parseError = '';
+          } catch (err) {
+            store.parseError = err.message;
+          }      }
+      });
+
+      // Used for context, frame, or other secondary document provision
+      new EditorView({
+        parent: document.getElementById('side-editor'),
+        doc: JSON.stringify(this.store.sideDoc, null, 2),
+        extensions: [
+          basicSetup,
+          keymap.of([indentWithTab]),
+          json(),
+          linter(jsonParseLinter()),
+          autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+          sideEditorListener
+        ]
+      });
     }
   }).mount();
 
