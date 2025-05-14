@@ -26715,6 +26715,13 @@
       rdfDirection: '',
       safe: ''
     },
+    // computed
+    get editorColumns() {
+      if (this.outputTab === 'compacted') {
+        return 'two column';
+      }
+      return '';
+    },
     // methods
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
