@@ -26650,7 +26650,7 @@
   // the main document we're working with throughout (see `v-scope`)
   const store = D({
     doc: {},
-    sideDoc: {}, // TODO: refactor to `contextDoc`
+    contextDoc: {},
     frameDoc: {},
     parseError: ''
   });
@@ -26753,15 +26753,15 @@
           }
           break;
         case 'compacted':
-          let context = this.store.sideDoc;
+          let context = this.store.contextDoc;
           if (JSON.stringify(context) === '{}' && '@context' in doc) {
             // no context set yet, so copy in the main document's
             context = {
               '@context': doc['@context']
             };
-            this.store.sideDoc = context;
+            this.store.contextDoc = context;
           }
-          setEditorValue(this.sideEditor, this.store.sideDoc);
+          setEditorValue(this.contextEditor, this.store.contextDoc);
           try {
             const compacted = await jsonld.compact(doc, context['@context'] || {}, this.options);
             setEditorValue(readOnlyEditor, compacted);
@@ -26798,28 +26798,28 @@
     async docChanged(v) {
       this.setOutputTab(this.outputTab);
     },
-    initSideEditor() {
-      const sideEditorListener = EditorView.updateListener.of((update) => {
+    initContextEditor() {
+      const contextEditorListener = EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           try {
             const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-            store.sideDoc = parsed;
+            store.contextDoc = parsed;
             store.parseError = '';
           } catch (err) {
             store.parseError = err.message;
           }      }
       });
 
-      this.sideEditor = new EditorView({
-        parent: document.getElementById('side-editor'),
-        doc: JSON.stringify(this.store.sideDoc, null, 2),
+      this.contextEditor = new EditorView({
+        parent: document.getElementById('context-editor'),
+        doc: JSON.stringify(this.store.contextDoc, null, 2),
         extensions: [
           basicSetup,
           keymap.of([indentWithTab]),
           json(),
           linter(jsonParseLinter()),
           autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-          sideEditorListener
+          contextEditorListener
         ]
       });
     },
@@ -26849,10 +26849,10 @@
       });
     },
     copyContext() {
-      this.store.sideDoc = {
+      this.store.contextDoc = {
         '@context': this.store.doc['@context']
       };
-      setEditorValue(this.sideEditor, this.store.sideDoc);
+      setEditorValue(this.contextEditor, this.store.contextDoc);
     }
   }).mount();
 
