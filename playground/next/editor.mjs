@@ -59,7 +59,8 @@ const jsonLdAtTerms = [
 // the main document we're working with throughout (see `v-scope`)
 const store = reactive({
   doc: {},
-  sideDoc: {},
+  sideDoc: {}, // TODO: refactor to `contextDoc`
+  frameDoc: {},
   parseError: ''
 });
 
@@ -102,13 +103,15 @@ const readOnlyEditor = new EditorView({
 });
 
 function setEditorValue(_editor, doc) {
-  _editor.dispatch({
-    changes: {
-      from: 0,
-      to: _editor.state.doc.length,
-      insert: JSON.stringify(doc, null, 2)
-    }
-  });
+  if (_editor) {
+    _editor.dispatch({
+      changes: {
+        from: 0,
+        to: _editor.state.doc.length,
+        insert: JSON.stringify(doc, null, 2)
+      }
+    });
+  }
 }
 
 window.app = createApp({
@@ -126,7 +129,7 @@ window.app = createApp({
   },
   // computed
   get editorColumns() {
-    if (this.outputTab === 'compacted') {
+    if (this.outputTab === 'compacted' || this.outputTab === 'framed') {
       return 'two column';
     }
     return '';
@@ -136,6 +139,13 @@ window.app = createApp({
     const rv = await fetch(`/examples/playground/${file}`);
     this.store.doc = await rv.json();
     setEditorValue(editor, this.store.doc);
+    // TODO: make this less of a hack...so we can provide other frames
+    if (file === 'library.jsonld') {
+      const frame = await fetch(`/examples/playground/library-frame.jsonld`);
+      this.store.frameDoc = await frame.json();
+    } else {
+      this.store.frameDoc = {};
+    }
     this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
@@ -153,11 +163,15 @@ window.app = createApp({
         }
         break;
       case 'compacted':
-        const context = this.store.sideDoc;
+        let context = this.store.sideDoc;
         if (JSON.stringify(context) === '{}' && '@context' in doc) {
           // no context set yet, so copy in the main document's
-          context['@context'] = doc['@context'];
+          context = {
+            '@context': doc['@context']
+          };
+          this.store.sideDoc = context;
         }
+        setEditorValue(this.sideEditor, this.store.sideDoc);
         try {
           const compacted = await jsonld.compact(doc, context['@context'] || {}, this.options);
           setEditorValue(readOnlyEditor, compacted);
@@ -176,6 +190,17 @@ window.app = createApp({
           this.store.parseError = err.message;
         }
         break;
+      case 'framed':
+        const frameDoc = this.store.frameDoc;
+        setEditorValue(this.sideEditor, frameDoc);
+        try {
+          const framed = await jsonld.frame(doc, frameDoc, this.options);
+          setEditorValue(readOnlyEditor, framed);
+          this.store.parseError = '';
+        } catch(err) {
+          this.store.parseError = err.message;
+        }
+        break;
       default:
         setEditorValue(readOnlyEditor, {});
     }
@@ -188,7 +213,12 @@ window.app = createApp({
       if (update.docChanged) {
         try {
           const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          store.sideDoc = parsed;
+          // TODO: this multiple side editor stuff needs rethinking/refactoring
+          if (this.outputTab === 'framed') {
+            store.frameDoc = parsed;
+          } else {
+            store.sideDoc = parsed;
+          }
           store.parseError = '';
         } catch (err) {
           store.parseError = err.message;
@@ -197,9 +227,12 @@ window.app = createApp({
     });
 
     // Used for context, frame, or other secondary document provision
+    const doc = this.outputTab === 'framed'
+      ? this.store.frameDoc
+      : this.store.sideDoc;
     this.sideEditor = new EditorView({
       parent: document.getElementById('side-editor'),
-      doc: JSON.stringify(this.store.sideDoc, null, 2),
+      doc: JSON.stringify(doc, null, 2),
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
@@ -211,8 +244,9 @@ window.app = createApp({
     });
   },
   copyContext() {
-    console.log('copy context');
-    this.store.sideDoc['@context'] = this.store.doc['@context'];
+    this.store.sideDoc = {
+      '@context': this.store.doc['@context']
+    };
     setEditorValue(this.sideEditor, this.store.sideDoc);
   }
 }).mount();
