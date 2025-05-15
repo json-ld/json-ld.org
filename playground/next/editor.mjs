@@ -192,7 +192,7 @@ window.app = createApp({
         break;
       case 'framed':
         const frameDoc = this.store.frameDoc;
-        setEditorValue(this.sideEditor, frameDoc);
+        setEditorValue(this.frameEditor, frameDoc);
         try {
           const framed = await jsonld.frame(doc, frameDoc, this.options);
           setEditorValue(readOnlyEditor, framed);
@@ -213,12 +213,7 @@ window.app = createApp({
       if (update.docChanged) {
         try {
           const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          // TODO: this multiple side editor stuff needs rethinking/refactoring
-          if (this.outputTab === 'framed') {
-            store.frameDoc = parsed;
-          } else {
-            store.sideDoc = parsed;
-          }
+          store.sideDoc = parsed;
           store.parseError = '';
         } catch (err) {
           store.parseError = err.message;
@@ -226,13 +221,9 @@ window.app = createApp({
       }
     });
 
-    // Used for context, frame, or other secondary document provision
-    const doc = this.outputTab === 'framed'
-      ? this.store.frameDoc
-      : this.store.sideDoc;
     this.sideEditor = new EditorView({
       parent: document.getElementById('side-editor'),
-      doc: JSON.stringify(doc, null, 2),
+      doc: JSON.stringify(this.store.sideDoc, null, 2),
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
@@ -240,6 +231,32 @@ window.app = createApp({
         linter(jsonParseLinter()),
         autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
         sideEditorListener
+      ]
+    });
+  },
+  initFrameEditor() {
+    const frameEditorListener = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        try {
+          const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
+          store.frameDoc = parsed;
+          store.parseError = '';
+        } catch (err) {
+          store.parseError = err.message;
+        };
+      }
+    });
+
+    this.frameEditor = new EditorView({
+      parent: document.getElementById('frame-editor'),
+      doc: JSON.stringify(this.store.frameDoc, null, 2),
+      extensions: [
+        basicSetup,
+        keymap.of([indentWithTab]),
+        json(),
+        linter(jsonParseLinter()),
+        autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+        frameEditorListener
       ]
     });
   },
