@@ -2,7 +2,7 @@
 
 import {autocompletion, completeFromList} from '@codemirror/autocomplete';
 import {EditorView, basicSetup} from 'codemirror';
-import {createApp, reactive} from "petite-vue";
+import {createApp} from "petite-vue";
 import {EditorState} from '@codemirror/state'
 import {indentWithTab} from '@codemirror/commands';
 import {json, jsonParseLinter} from "@codemirror/lang-json";
@@ -56,14 +56,6 @@ const jsonLdAtTerms = [
   { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" }
 ];
 
-// the main document we're working with throughout (see `v-scope`)
-const store = reactive({
-  doc: {},
-  contextDoc: {},
-  frameDoc: {},
-  parseError: ''
-});
-
 const readOnlyEditor = new EditorView({
   parent: document.getElementById('read-only-editor'),
   doc: `{}`,
@@ -89,7 +81,10 @@ function setEditorValue(_editor, doc) {
 }
 
 window.app = createApp({
-  store,
+  doc: {},
+  contextDoc: {},
+  frameDoc: {},
+  parseError: '',
   inputTab: 'json-ld',
   outputTab: 'expanded',
   options: {
@@ -111,75 +106,78 @@ window.app = createApp({
   // methods
   async loadExample(file) {
     const rv = await fetch(`/examples/playground/${file}`);
-    this.store.doc = await rv.json();
-    setEditorValue(this.mainEditor, this.store.doc);
+    this.doc = await rv.json();
+    setEditorValue(this.mainEditor, this.doc);
     // TODO: make this less of a hack...so we can provide other frames
     if (file === 'library.jsonld') {
       const frame = await fetch(`/examples/playground/library-frame.jsonld`);
-      this.store.frameDoc = await frame.json();
+      this.frameDoc = await frame.json();
     } else {
-      this.store.frameDoc = {};
+      this.frameDoc = {};
     }
     this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
     this.outputTab = value;
-    const doc = this.store.doc;
     switch (this.outputTab) {
       case 'expanded':
         // TODO: this should happen elsewhere...like a watcher
         try {
-          const expanded = await jsonld.expand(doc, this.options);
+          const expanded = await jsonld.expand(this.doc, this.options);
           setEditorValue(readOnlyEditor, expanded);
-          this.store.parseError = '';
+          this.parseError = '';
         } catch(err) {
-          this.store.parseError = err.message;
+          this.parseError = err.message;
         }
         break;
       case 'compacted':
-        let context = this.store.contextDoc;
-        if (JSON.stringify(context) === '{}' && '@context' in doc) {
+        let context = this.contextDoc;
+        if (JSON.stringify(context) === '{}' && '@context' in this.doc) {
           // no context set yet, so copy in the main document's
           context = {
-            '@context': doc['@context']
+            '@context': this.doc['@context']
           };
-          this.store.contextDoc = context;
+          this.contextDoc = context;
         }
-        setEditorValue(this.contextEditor, this.store.contextDoc);
+        setEditorValue(this.contextEditor, this.contextDoc);
         try {
-          const compacted = await jsonld.compact(doc, context['@context'] || {}, this.options);
+          const compacted = await jsonld.compact(this.doc, context['@context'] || {}, this.options);
           setEditorValue(readOnlyEditor, compacted);
-          this.store.parseError = '';
+          this.parseError = '';
         } catch(err) {
-          this.store.parseError = err.message;
+          this.parseError = err.message;
         }
         break;
       case 'flattened':
         // TODO: this should happen elsewhere...like a watcher
         try {
-          const flattened = await jsonld.flatten(doc, {}, this.options);
+          const flattened = await jsonld.flatten(this.doc, {}, this.options);
           setEditorValue(readOnlyEditor, flattened);
-          this.store.parseError = '';
+          this.parseError = '';
         } catch(err) {
-          this.store.parseError = err.message;
+          this.parseError = err.message;
         }
         break;
       case 'framed':
-        const frameDoc = this.store.frameDoc;
+        const frameDoc = this.frameDoc;
         setEditorValue(this.frameEditor, frameDoc);
         try {
-          const framed = await jsonld.frame(doc, frameDoc, this.options);
+          const framed = await jsonld.frame(this.doc, frameDoc, this.options);
           setEditorValue(readOnlyEditor, framed);
-          this.store.parseError = '';
+          this.parseError = '';
         } catch(err) {
-          this.store.parseError = err.message;
+          this.parseError = err.message;
         }
         break;
       default:
         setEditorValue(readOnlyEditor, {});
     }
   },
-  async docChanged(v) {
+  async docChanged(docName, v) {
+    // TODO: see if this could work as a "component"
+    if (docName === 'main') this.doc = v;
+    if (docName === 'context') this.contextDoc = v;
+    if (docName === 'frame') this.frameDoc = v;
     this.setOutputTab(this.outputTab);
   },
   initContextEditor() {
@@ -187,17 +185,17 @@ window.app = createApp({
       if (update.docChanged) {
         try {
           const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          store.contextDoc = parsed;
-          store.parseError = '';
+          this.contextDoc = parsed;
+          this.parseError = '';
         } catch (err) {
-          store.parseError = err.message;
+          this.parseError = err.message;
         };
       }
     });
 
     this.contextEditor = new EditorView({
       parent: document.getElementById('context-editor'),
-      doc: JSON.stringify(this.store.contextDoc, null, 2),
+      doc: JSON.stringify(this.contextDoc, null, 2),
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
@@ -213,17 +211,17 @@ window.app = createApp({
       if (update.docChanged) {
         try {
           const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          store.frameDoc = parsed;
-          store.parseError = '';
+          this.frameDoc = parsed;
+          this.parseError = '';
         } catch (err) {
-          store.parseError = err.message;
+          this.parseError = err.message;
         };
       }
     });
 
     this.frameEditor = new EditorView({
       parent: document.getElementById('frame-editor'),
-      doc: JSON.stringify(this.store.frameDoc, null, 2),
+      doc: JSON.stringify(this.frameDoc, null, 2),
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
@@ -240,10 +238,10 @@ window.app = createApp({
         // set the global `doc` to the latest string from the editor
         try {
           const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          this.store.doc = parsed;
-          this.store.parseError = '';
+          this.doc = parsed;
+          this.parseError = '';
         } catch (err) {
-          this.store.parseError = err.message;
+          this.parseError = err.message;
         };
       }
     });
@@ -262,9 +260,9 @@ window.app = createApp({
     });
   },
   copyContext() {
-    this.store.contextDoc = {
-      '@context': this.store.doc['@context']
+    this.contextDoc = {
+      '@context': this.doc['@context']
     };
-    setEditorValue(this.contextEditor, this.store.contextDoc);
+    setEditorValue(this.contextEditor, this.contextDoc);
   }
 }).mount();
