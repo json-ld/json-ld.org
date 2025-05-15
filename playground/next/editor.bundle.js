@@ -26655,31 +26655,6 @@
     parseError: ''
   });
 
-  const mainEditorListener = EditorView.updateListener.of((update) => {
-    if (update.docChanged) {
-      // set the global `doc` to the latest string from the editor
-      try {
-        const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-        store.doc = parsed;
-        store.parseError = '';
-      } catch (err) {
-        store.parseError = err.message;
-      }  }
-  });
-
-  const editor = new EditorView({
-    parent: document.getElementById('editor'),
-    doc: `{}`,
-    extensions: [
-      basicSetup,
-      keymap.of([indentWithTab]),
-      json(),
-      linter(jsonParseLinter()),
-      autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-      mainEditorListener
-    ]
-  });
-
   const readOnlyEditor = new EditorView({
     parent: document.getElementById('read-only-editor'),
     doc: `{}`,
@@ -26728,7 +26703,7 @@
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
       this.store.doc = await rv.json();
-      setEditorValue(editor, this.store.doc);
+      setEditorValue(this.mainEditor, this.store.doc);
       // TODO: make this less of a hack...so we can provide other frames
       if (file === 'library.jsonld') {
         const frame = await fetch(`/examples/playground/library-frame.jsonld`);
@@ -26845,6 +26820,32 @@
           linter(jsonParseLinter()),
           autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
           frameEditorListener
+        ]
+      });
+    },
+    initMainEditor() {
+      const mainEditorListener = EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          // set the global `doc` to the latest string from the editor
+          try {
+            const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
+            this.store.doc = parsed;
+            this.store.parseError = '';
+          } catch (err) {
+            this.store.parseError = err.message;
+          }      }
+      });
+
+      this.mainEditor = new EditorView({
+        parent: document.getElementById('editor'),
+        doc: `{}`,
+        extensions: [
+          basicSetup,
+          keymap.of([indentWithTab]),
+          json(),
+          linter(jsonParseLinter()),
+          autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+          mainEditorListener
         ]
       });
     },
