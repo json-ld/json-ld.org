@@ -56,6 +56,36 @@ const jsonLdAtTerms = [
   { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" }
 ];
 
+// TODO: the next two functions could probably become a petite-vue component
+function editorListener(docName) {
+  return EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+      // set the global `doc` to the latest string from the editor
+      try {
+        const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
+        this[docName] = parsed;
+        this.parseError = '';
+      } catch (err) {
+        this.parseError = err.message;
+      };
+    }
+  });
+}
+function initEditor(id, content, varName) {
+  return new EditorView({
+    parent: document.getElementById(id),
+    doc: JSON.stringify(content, null, 2),
+    extensions: [
+      basicSetup,
+      keymap.of([indentWithTab]),
+      json(),
+      linter(jsonParseLinter()),
+      autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+      editorListener.call(this, varName)
+    ]
+  });
+}
+
 const readOnlyEditor = new EditorView({
   parent: document.getElementById('read-only-editor'),
   doc: `{}`,
@@ -181,83 +211,15 @@ window.app = createApp({
     this.setOutputTab(this.outputTab);
   },
   initContextEditor() {
-    const contextEditorListener = EditorView.updateListener.of((update) => {
-      if (update.docChanged) {
-        try {
-          const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          this.contextDoc = parsed;
-          this.parseError = '';
-        } catch (err) {
-          this.parseError = err.message;
-        };
-      }
-    });
-
-    this.contextEditor = new EditorView({
-      parent: document.getElementById('context-editor'),
-      doc: JSON.stringify(this.contextDoc, null, 2),
-      extensions: [
-        basicSetup,
-        keymap.of([indentWithTab]),
-        json(),
-        linter(jsonParseLinter()),
-        autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-        contextEditorListener
-      ]
-    });
+    this.contextEditor = initEditor.call(this, 'context-editor',
+      this.contextDoc, 'contextDoc');
   },
   initFrameEditor() {
-    const frameEditorListener = EditorView.updateListener.of((update) => {
-      if (update.docChanged) {
-        try {
-          const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          this.frameDoc = parsed;
-          this.parseError = '';
-        } catch (err) {
-          this.parseError = err.message;
-        };
-      }
-    });
-
-    this.frameEditor = new EditorView({
-      parent: document.getElementById('frame-editor'),
-      doc: JSON.stringify(this.frameDoc, null, 2),
-      extensions: [
-        basicSetup,
-        keymap.of([indentWithTab]),
-        json(),
-        linter(jsonParseLinter()),
-        autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-        frameEditorListener
-      ]
-    });
+    this.frameEditor = initEditor.call(this, 'frame-editor', this.frameDoc,
+      'frameDoc');
   },
   initMainEditor() {
-    const mainEditorListener = EditorView.updateListener.of((update) => {
-      if (update.docChanged) {
-        // set the global `doc` to the latest string from the editor
-        try {
-          const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          this.doc = parsed;
-          this.parseError = '';
-        } catch (err) {
-          this.parseError = err.message;
-        };
-      }
-    });
-
-    this.mainEditor = new EditorView({
-      parent: document.getElementById('editor'),
-      doc: `{}`,
-      extensions: [
-        basicSetup,
-        keymap.of([indentWithTab]),
-        json(),
-        linter(jsonParseLinter()),
-        autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
-        mainEditorListener
-      ]
-    });
+    this.mainEditor = initEditor.call(this, 'editor', {}, 'doc');
   },
   copyContext() {
     this.contextDoc = {
