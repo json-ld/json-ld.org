@@ -27341,6 +27341,7 @@
     doc: {},
     contextDoc: {},
     frameDoc: {},
+    tableQuads: {},
     parseError: '',
     inputTab: 'json-ld',
     outputTab: 'expanded',
@@ -27359,6 +27360,9 @@
         return 'two column';
       }
       return '';
+    },
+    get hasTableQuads() {
+      return Object.keys(this.tableQuads).length > 0;
     },
     // methods
     async loadExample(file) {
@@ -27446,6 +27450,16 @@
               format: 'application/n-quads', ...this.options
             });
             setEditorValue(readOnlyEditor, output);
+            this.parseError = '';
+          } catch(err) {
+            this.parseError = err.message;
+          }
+          break;
+        case 'table':
+          // TODO: this should happen elsewhere...like a watcher
+          try {
+            const output = await jsonld.toRDF(this.doc, this.options);
+            this.tableQuads = output;
             this.parseError = '';
           } catch(err) {
             this.parseError = err.message;
