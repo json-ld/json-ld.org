@@ -27428,9 +27428,23 @@
           break;
         case 'nquads':
           // TODO: this should happen elsewhere...like a watcher
-          const options = {format: 'application/n-quads', ...this.options};
           try {
-            const output = await jsonld.toRDF(this.doc, options);
+            const output = await jsonld.toRDF(this.doc, {
+              format: 'application/n-quads',
+              ...this.options
+            });
+            setEditorValue(readOnlyEditor, output);
+            this.parseError = '';
+          } catch(err) {
+            this.parseError = err.message;
+          }
+          break;
+        case 'canonized':
+          // TODO: this should happen elsewhere...like a watcher
+          try {
+            const output = await jsonld.canonize(this.doc, {
+              format: 'application/n-quads', ...this.options
+            });
             setEditorValue(readOnlyEditor, output);
             this.parseError = '';
           } catch(err) {
