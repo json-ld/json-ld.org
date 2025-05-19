@@ -3,9 +3,11 @@
 import {autocompletion, completeFromList} from '@codemirror/autocomplete';
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
-import {EditorState} from '@codemirror/state'
+import {Compartment, EditorState} from '@codemirror/state'
 import {indentWithTab} from '@codemirror/commands';
 import {json, jsonParseLinter} from "@codemirror/lang-json";
+import {StreamLanguage} from '@codemirror/language';
+import {ntriples} from '@codemirror/legacy-modes/mode/ntriples';
 import {keymap} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
 
@@ -86,12 +88,14 @@ function initEditor(id, content, varName) {
   });
 }
 
+const language = new Compartment();
+
 const readOnlyEditor = new EditorView({
   parent: document.getElementById('read-only-editor'),
   doc: `{}`,
   extensions: [
     basicSetup,
-    json(),
+    language.of(json()),
     EditorState.readOnly.of(true),
     EditorView.editable.of(false),
     EditorView.contentAttributes.of({tabindex: '0'})
@@ -104,8 +108,14 @@ function setEditorValue(_editor, doc) {
       changes: {
         from: 0,
         to: _editor.state.doc.length,
-        insert: JSON.stringify(doc, null, 2)
-      }
+        insert: typeof(doc) === 'object'
+          ? JSON.stringify(doc, null, 2)
+          : doc
+      },
+      // set the correct language
+      effects: language.reconfigure(typeof(doc) === 'object'
+        ? json()
+        : StreamLanguage.define(ntriples))
     });
   }
 }
@@ -194,6 +204,17 @@ window.app = createApp({
         try {
           const framed = await jsonld.frame(this.doc, frameDoc, this.options);
           setEditorValue(readOnlyEditor, framed);
+          this.parseError = '';
+        } catch(err) {
+          this.parseError = err.message;
+        }
+        break;
+      case 'nquads':
+        // TODO: this should happen elsewhere...like a watcher
+        const options = {format: 'application/n-quads', ...this.options};
+        try {
+          const output = await jsonld.toRDF(this.doc, options);
+          setEditorValue(readOnlyEditor, output);
           this.parseError = '';
         } catch(err) {
           this.parseError = err.message;
