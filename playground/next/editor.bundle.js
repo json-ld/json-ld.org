@@ -27278,16 +27278,28 @@
 
   // TODO: the next two functions could probably become a petite-vue component
   function editorListener(docName) {
+    let changes = []; // keep the changes as a list; then pick the last one
+    let timer; // we only want one timer, once the last one is done, use the result
+    function debounce(fn, delay) {
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+      };
+    }
+
     return EditorView.updateListener.of((update) => {
       if (update.docChanged) {
-        // set the global `doc` to the latest string from the editor
-        try {
-          const parsed = JSON.parse(update.state.sliceDoc(0, update.state.doc.length));
-          this[docName] = parsed;
-          this.parseError = '';
-        } catch (err) {
-          this.parseError = err.message;
-        }    }
+        changes.push(update.state.doc.toString());
+        debounce((docName) => {
+          // set the global `doc` to the latest string from the editor
+          try {
+            const parsed = JSON.parse(changes[changes.length-1]);
+            this[docName] = parsed;
+            this.parseError = '';
+          } catch (err) {
+            this.parseError = err.message;
+          }      }, 1000).call(this, docName);
+      }
     });
   }
   function initEditor(id, content, varName) {
