@@ -27374,6 +27374,8 @@
         }
         this.doc = await rv.json();
         setEditorValue(this.mainEditor, this.doc);
+        // clear the remoteDocURL to avoid confusion around state
+        this.remoteDocURL = '';
       } catch (err) {
         this.parseError = err.message;
       }
