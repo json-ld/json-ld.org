@@ -27357,7 +27357,7 @@
     },
     // computed
     get editorColumns() {
-      if (this.outputTab === 'compacted' || this.outputTab === 'framed') {
+      if (['compacted', 'flattened', 'framed'].indexOf(this.outputTab) > -1) {
         return 'two column';
       }
       return '';
@@ -27395,6 +27395,7 @@
     },
     async setOutputTab(value) {
       this.outputTab = value;
+      let context = this.contextDoc;
       switch (this.outputTab) {
         case 'expanded':
           // TODO: this should happen elsewhere...like a watcher
@@ -27407,7 +27408,6 @@
           }
           break;
         case 'compacted':
-          let context = this.contextDoc;
           if (JSON.stringify(context) === '{}' && '@context' in this.doc) {
             // no context set yet, so copy in the main document's
             context = {
@@ -27425,9 +27425,15 @@
           }
           break;
         case 'flattened':
-          // TODO: this should happen elsewhere...like a watcher
+          if (JSON.stringify(context) === '{}' && '@context' in this.doc) {
+            // no context set yet, so copy in the main document's
+            context = {
+              '@context': this.doc['@context']
+            };
+            this.contextDoc = context;
+          }
           try {
-            const flattened = await jsonld.flatten(this.doc, {}, this.options);
+            const flattened = await jsonld.flatten(this.doc, {'@context': context['@context'] || {}}, this.options);
             setEditorValue(readOnlyEditor, flattened);
             this.parseError = '';
           } catch(err) {
