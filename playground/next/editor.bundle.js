@@ -27343,6 +27343,7 @@
     frameDoc: {},
     tableQuads: {},
     remoteDocURL: '',
+    remoteSideDocURL: '',
     parseError: '',
     inputTab: 'json-ld',
     outputTab: 'expanded',
@@ -27365,17 +27366,39 @@
     get hasTableQuads() {
       return Object.keys(this.tableQuads).length > 0;
     },
+    get sideDoc() {
+      if (this.outputTab === 'framed') {
+        return 'frameDoc';
+      } else {
+        return 'contextDoc';
+      }
+    },
+    get sideEditor() {
+      if (this.outputTab === 'framed') {
+        return this.frameEditor;
+      } else {
+        return this.contextEditor;
+      }
+    },
+    get sideEditorURLFieldPlaceholderText() {
+      if (this.outputTab === 'framed') {
+        return 'Frame URL';
+      } else {
+        return 'Context URL';
+      }
+    },
     // methods
-    async retrieveDoc() {
+    async retrieveDoc(_editor, docVar, url) {
       try {
-        const rv = await fetch(this.remoteDocURL);
+        const rv = await fetch(url);
         if (!rv.ok) {
           throw new Error(`HTTP error status: ${rv.status}`);
         }
-        this.doc = await rv.json();
-        setEditorValue(this.mainEditor, this.doc);
+        this[docVar] = await rv.json();
+        setEditorValue(_editor, this[docVar]);
         // clear the remoteDocURL to avoid confusion around state
         this.remoteDocURL = '';
+        this.remoteSideDocURL = '';
       } catch (err) {
         this.parseError = err.message;
       }
