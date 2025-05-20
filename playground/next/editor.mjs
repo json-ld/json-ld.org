@@ -200,7 +200,7 @@ window.app = createApp({
         }
         setEditorValue(this.contextEditor, this.contextDoc);
         try {
-          const compacted = await jsonld.compact(this.doc, context['@context'] || {}, this.options);
+          const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
           setEditorValue(readOnlyEditor, compacted);
           this.parseError = '';
         } catch(err) {
