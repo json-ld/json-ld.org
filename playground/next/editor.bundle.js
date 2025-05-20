@@ -27423,8 +27423,10 @@
       if (file === 'library.jsonld') {
         const frame = await fetch(`/examples/playground/library-frame.jsonld`);
         this.frameDoc = await frame.json();
+        setEditorValue(this.frameEditor, this.frameDoc);
       } else {
         this.frameDoc = {};
+        setEditorValue(this.frameEditor, this.frameDoc);
       }
       this.setOutputTab(this.outputTab);
     },
@@ -27450,7 +27452,6 @@
             };
             this.contextDoc = context;
           }
-          setEditorValue(this.contextEditor, this.contextDoc);
           try {
             const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
             setEditorValue(readOnlyEditor, compacted);
@@ -27476,10 +27477,8 @@
           }
           break;
         case 'framed':
-          const frameDoc = this.frameDoc;
-          setEditorValue(this.frameEditor, frameDoc);
           try {
-            const framed = await jsonld.frame(this.doc, frameDoc, this.options);
+            const framed = await jsonld.frame(this.doc, this.frameDoc, this.options);
             setEditorValue(readOnlyEditor, framed);
             this.parseError = '';
           } catch(err) {
