@@ -214,7 +214,7 @@ window.app = createApp({
     this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
-    this.outputTab = value;
+    if (value) this.outputTab = value;
     let context = this.contextDoc;
     switch (this.outputTab) {
       case 'expanded':
@@ -306,13 +306,6 @@ window.app = createApp({
       default:
         setEditorValue(readOnlyEditor, {});
     }
-  },
-  async docChanged(docName, v) {
-    // TODO: see if this could work as a "component"
-    if (docName === 'main') this.doc = v;
-    if (docName === 'context') this.contextDoc = v;
-    if (docName === 'frame') this.frameDoc = v;
-    this.setOutputTab(this.outputTab);
   },
   initContextEditor() {
     this.contextEditor = initEditor.call(this, 'context-editor',
