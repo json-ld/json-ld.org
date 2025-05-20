@@ -27342,6 +27342,7 @@
     contextDoc: {},
     frameDoc: {},
     tableQuads: {},
+    remoteDocURL: '',
     parseError: '',
     inputTab: 'json-ld',
     outputTab: 'expanded',
@@ -27365,6 +27366,18 @@
       return Object.keys(this.tableQuads).length > 0;
     },
     // methods
+    async retrieveDoc() {
+      try {
+        const rv = await fetch(this.remoteDocURL);
+        if (!rv.ok) {
+          throw new Error(`HTTP error status: ${rv.status}`);
+        }
+        this.doc = await rv.json();
+        setEditorValue(this.mainEditor, this.doc);
+      } catch (err) {
+        this.parseError = err.message;
+      }
+    },
     async loadExample(file) {
       const rv = await fetch(`/examples/playground/${file}`);
       this.doc = await rv.json();
