@@ -10,6 +10,8 @@ import {StreamLanguage} from '@codemirror/language';
 import {ntriples} from '@codemirror/legacy-modes/mode/ntriples';
 import {keymap} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
+import YAML from 'yaml';
+import {yaml} from '@codemirror/lang-yaml';
 
 // Setup JSON-LD documentLoader
 const xhrDocumentLoader = jsonld.documentLoaders.xhr();
@@ -114,8 +116,14 @@ const readOnlyEditor = new EditorView({
   ]
 });
 
-function setEditorValue(_editor, doc) {
+function setEditorValue(_editor, doc, lang) {
+  // TODO: this runs more often than it should (because v-effect); maybe debounce
   if (_editor) {
+    // set the correct language
+    let effects = language.reconfigure(json());
+    if (lang === 'yaml') effects = language.reconfigure(yaml());
+    else effects = language.reconfigure(StreamLanguage.define(ntriples));
+
     _editor.dispatch({
       changes: {
         from: 0,
@@ -137,6 +145,7 @@ window.app = createApp({
   contextDoc: {},
   frameDoc: {},
   tableQuads: {},
+  yamlLD: '',
   remoteDocURL: '',
   remoteSideDocURL: '',
   parseError: '',
@@ -302,6 +311,10 @@ window.app = createApp({
         } catch(err) {
           this.parseError = err.message;
         }
+        break;
+      case 'yamlld':
+        this.yamlLD = YAML.stringify(this.doc);
+        setEditorValue(readOnlyEditor, this.yamlLD, 'yaml');
         break;
       default:
         setEditorValue(readOnlyEditor, {});
