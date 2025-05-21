@@ -167,9 +167,6 @@ window.app = createApp({
     }
     return '';
   },
-  get hasTableQuads() {
-    return Object.keys(this.tableQuads).length > 0;
-  },
   get sideDoc() {
     if (this.outputTab === 'framed') {
       return 'frameDoc';
