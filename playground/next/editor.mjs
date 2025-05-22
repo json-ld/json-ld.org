@@ -12,6 +12,7 @@ import {keymap} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
 import YAML from 'yaml';
 import {yaml} from '@codemirror/lang-yaml';
+import * as cborld from '@digitalbazaar/cborld';
 
 // Setup JSON-LD documentLoader
 const xhrDocumentLoader = jsonld.documentLoaders.xhr();
@@ -146,6 +147,13 @@ window.app = createApp({
   frameDoc: {},
   tableQuads: {},
   yamlLD: '',
+  cborLD: {
+    bytes: {},
+    hex: '',
+    jsonldSize: 0,
+    size: 0,
+    percentage: 0
+  },
   remoteDocURL: '',
   remoteSideDocURL: '',
   parseError: '',
@@ -312,6 +320,28 @@ window.app = createApp({
       case 'yamlld':
         this.yamlLD = YAML.stringify(this.doc);
         setEditorValue(readOnlyEditor, this.yamlLD, 'yaml');
+        break;
+      case 'cborld':
+        try {
+          this.cborLD.jsonldSize = JSON.stringify(this.doc).length;
+          this.cborLD.bytes = await cborld.encode({
+            jsonldDocument: this.doc,
+            documentLoader: jsonld.documentLoader,
+            // use standard compression (set to `0` to use no compression)
+            registryEntryId: 1
+          });
+          this.cborLD.size = this.cborLD.bytes.length;
+          this.cborLD.hex = Array.from(this.cborLD.bytes, byte =>
+            byte.toString(16).padStart(2, '0')).join('');
+          this.cborLD.percentage =
+            Math.floor(((this.cborLD.jsonldSize - this.cborLD.size) / this.cborLD.jsonldSize) * 100);
+          setEditorValue(readOnlyEditor, this.cborLD.bytes, 'cbor');
+          this.parseError = '';
+        } catch (err) {
+          // TODO: currently, the editor keeps it's old value...unupdated...
+          this.parseError = err.message;
+          console.error(err);
+        }
         break;
       default:
         setEditorValue(readOnlyEditor, {});
