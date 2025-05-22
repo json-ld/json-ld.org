@@ -165,7 +165,7 @@
       Return a cursor that iterates over the given range of lines,
       _without_ returning the line breaks between, and yielding empty
       strings for empty lines.
-      
+
       When `from` and `to` are given, they should be 1-based line numbers.
       */
       iterLines(from, to) {
@@ -615,16 +615,16 @@
       /**
       The position of the start of the line.
       */
-      from, 
+      from,
       /**
       The position at the end of the line (_before_ the line break,
       or at the end of document for the last line).
       */
-      to, 
+      to,
       /**
       This line's line number (1-based).
       */
-      number, 
+      number,
       /**
       The line's content.
       */
@@ -780,7 +780,7 @@
       `fromA`/`toA` provides the extent of the change in the starting
       document, `fromB`/`toB` the extent of the replacement in the
       changed document.
-      
+
       When `individual` is true, adjacent changes (which are kept
       separate for [position mapping](https://codemirror.net/6/docs/ref/#state.ChangeDesc.mapPos)) are
       reported separately.
@@ -889,7 +889,7 @@
   with exactly that length.
   */
   class ChangeSet extends ChangeDesc {
-      constructor(sections, 
+      constructor(sections,
       /**
       @internal
       */
@@ -943,7 +943,7 @@
       applied to the document produced by applying `other`. When
       `before` is `true`, order changes as if `this` comes before
       `other`, otherwise (the default) treat `other` as coming first.
-      
+
       Given two changes `A` and `B`, `A.compose(B.map(A))` and
       `B.compose(A.map(B, true))` will produce the same document. This
       provides a basic form of [operational
@@ -956,7 +956,7 @@
       each, with the range in the original document (`fromA`-`toA`)
       and the range that replaces it in the new document
       (`fromB`-`toB`).
-      
+
       When `individual` is true, adjacent changes are reported
       separately.
       */
@@ -1340,7 +1340,7 @@
       /**
       The lower boundary of the range.
       */
-      from, 
+      from,
       /**
       The upper boundary of the range.
       */
@@ -1448,7 +1448,7 @@
       The ranges in the selection, sorted by position. Ranges cannot
       overlap (but they may touch, if they aren't empty).
       */
-      ranges, 
+      ranges,
       /**
       The index of the _main_ range in the selection (which is
       usually the range that was added last).
@@ -1607,11 +1607,11 @@
       /**
       @internal
       */
-      combine, 
+      combine,
       /**
       @internal
       */
-      compareInput, 
+      compareInput,
       /**
       @internal
       */
@@ -1649,7 +1649,7 @@
       state. You must take care to declare the parts of the state that
       this value depends on, since your function is only called again
       for a new state when one of those parts changed.
-      
+
       In cases where your value depends only on a single field, you'll
       want to use the [`from`](https://codemirror.net/6/docs/ref/#state.Facet.from) method instead.
       */
@@ -1809,7 +1809,7 @@
       /**
       @internal
       */
-      id, createF, updateF, compareF, 
+      id, createF, updateF, compareF,
       /**
       @internal
       */
@@ -2130,7 +2130,7 @@
       /**
       The annotation type.
       */
-      type, 
+      type,
       /**
       The value of this annotation.
       */
@@ -2192,7 +2192,7 @@
       /**
       @internal
       */
-      type, 
+      type,
       /**
       The value of this effect.
       */
@@ -2264,24 +2264,24 @@
       /**
       The state from which the transaction starts.
       */
-      startState, 
+      startState,
       /**
       The document changes made by this transaction.
       */
-      changes, 
+      changes,
       /**
       The selection set by this transaction, or undefined if it
       doesn't explicitly set a selection.
       */
-      selection, 
+      selection,
       /**
       The effects added to the transaction.
       */
-      effects, 
+      effects,
       /**
       @internal
       */
-      annotations, 
+      annotations,
       /**
       Whether the selection should be scrolled into view after this
       transaction is dispatched.
@@ -2602,15 +2602,15 @@
       /**
       @internal
       */
-      config, 
+      config,
       /**
       The current document.
       */
-      doc, 
+      doc,
       /**
       The current selection.
       */
-      selection, 
+      selection,
       /**
       @internal
       */
@@ -2846,7 +2846,7 @@
       Look up a translation for the given phrase (via the
       [`phrases`](https://codemirror.net/6/docs/ref/#state.EditorState^phrases) facet), or return the
       original string if no translation is found.
-      
+
       If additional arguments are passed, they will be inserted in
       place of markers like `$1` (for the first value) and `$2`, etc.
       A single `$` is equivalent to `$1`, and `$$` will produce a
@@ -2870,9 +2870,9 @@
       /**
       Find the values for a given language data field, provided by the
       the [`languageData`](https://codemirror.net/6/docs/ref/#state.EditorState^languageData) facet.
-      
+
       Examples of language data fields are...
-      
+
       - [`"commentTokens"`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) for specifying
         comment syntax.
       - [`"autocomplete"`](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion^config.override)
@@ -2897,7 +2897,7 @@
       Return a function that can categorize strings (expected to
       represent a single [grapheme cluster](https://codemirror.net/6/docs/ref/#state.findClusterBreak))
       into one of:
-      
+
        - Word (contains an alphanumeric character or a character
          explicitly listed in the local language's `"wordChars"`
          language data, which should be a string)
@@ -3099,11 +3099,11 @@
       /**
       The range's start position.
       */
-      from, 
+      from,
       /**
       Its end position.
       */
-      to, 
+      to,
       /**
       The value associated with this range.
       */
@@ -3123,7 +3123,7 @@
       return a.from - b.from || a.value.startSide - b.value.startSide;
   }
   class Chunk {
-      constructor(from, to, value, 
+      constructor(from, to, value,
       // Chunks are marked with the largest point that occurs
       // in them (or -1 for no points), so that scans that are
       // only interested in points (such as the
@@ -3202,15 +3202,15 @@
       /**
       @internal
       */
-      chunkPos, 
+      chunkPos,
       /**
       @internal
       */
-      chunk, 
+      chunk,
       /**
       @internal
       */
-      nextLayer, 
+      nextLayer,
       /**
       @internal
       */
@@ -3253,7 +3253,7 @@
       /**
       Update the range set, optionally adding new ranges or filtering
       out existing ones.
-      
+
       (Note: The type parameter is just there as a kludge to work
       around TypeScript variance issues that prevented `RangeSet<X>`
       from being a subtype of `RangeSet<Y>` when `X` is a subtype of
@@ -3359,12 +3359,12 @@
       Iterate over two groups of sets, calling methods on `comparator`
       to notify it of possible differences.
       */
-      static compare(oldSets, newSets, 
+      static compare(oldSets, newSets,
       /**
       This indicates how the underlying data changed between these
       ranges, and is needed to synchronize the iteration.
       */
-      textDiff, comparator, 
+      textDiff, comparator,
       /**
       Can be used to ignore all non-point ranges, and points below
       the given size. When -1, all ranges are compared.
@@ -3375,9 +3375,9 @@
           let sharedChunks = findSharedChunks(a, b, textDiff);
           let sideA = new SpanCursor(a, sharedChunks, minPointSize);
           let sideB = new SpanCursor(b, sharedChunks, minPointSize);
-          textDiff.iterGaps((fromA, fromB, length) => compare(sideA, fromA, sideB, fromB, length, comparator));
+          textDiff.iterGaps((fromA, fromB, length) => compare$1(sideA, fromA, sideB, fromB, length, comparator));
           if (textDiff.empty && textDiff.length == 0)
-              compare(sideA, 0, sideB, 0, 0, comparator);
+              compare$1(sideA, 0, sideB, 0, 0, comparator);
       }
       /**
       Compare the contents of two groups of range sets, returning true
@@ -3412,7 +3412,7 @@
       [`SpanIterator.span`](https://codemirror.net/6/docs/ref/#state.SpanIterator.span)) at the end
       of the iteration.
       */
-      static spans(sets, from, to, iterator, 
+      static spans(sets, from, to, iterator,
       /**
       When given and greater than -1, only points of at least this
       size are taken into account.
@@ -3867,7 +3867,7 @@
           return open;
       }
   }
-  function compare(a, startA, b, startB, length, comparator) {
+  function compare$1(a, startA, b, startB, length, comparator) {
       a.goto(startA);
       b.goto(startB);
       let endB = startB + length;
@@ -4219,15 +4219,15 @@
   var ie$2 = typeof navigator != "undefined" && /MSIE \d|Trident\/(?:[7-9]|\d{2,})\..*rv:(\d+)/.exec(navigator.userAgent);
 
   // Fill in the digit keys
-  for (var i = 0; i < 10; i++) base[48 + i] = base[96 + i] = String(i);
+  for (var i$2 = 0; i$2 < 10; i$2++) base[48 + i$2] = base[96 + i$2] = String(i$2);
 
   // The function keys
-  for (var i = 1; i <= 24; i++) base[i + 111] = "F" + i;
+  for (var i$2 = 1; i$2 <= 24; i$2++) base[i$2 + 111] = "F" + i$2;
 
   // And the alphabetic keys
-  for (var i = 65; i <= 90; i++) {
-    base[i] = String.fromCharCode(i + 32);
-    shift[i] = String.fromCharCode(i);
+  for (var i$2 = 65; i$2 <= 90; i$2++) {
+    base[i$2] = String.fromCharCode(i$2 + 32);
+    shift[i$2] = String.fromCharCode(i$2);
   }
 
   // For each code that doesn't have a shift-equivalent, copy the base name
@@ -5517,15 +5517,15 @@
       /**
       @internal
       */
-      startSide, 
+      startSide,
       /**
       @internal
       */
-      endSide, 
+      endSide,
       /**
       @internal
       */
-      widget, 
+      widget,
       /**
       The config object used to create this decoration. You can
       include additional properties in there to store metadata about
@@ -6187,11 +6187,11 @@
       /**
       The start of the span (relative to the start of the line).
       */
-      from, 
+      from,
       /**
       The end of the span.
       */
-      to, 
+      to,
       /**
       The ["bidi
       level"](https://unicode.org/reports/tr9/#Basic_Display_Algorithm)
@@ -6626,7 +6626,7 @@
   });
   const scrollHandler = /*@__PURE__*/Facet.define();
   class ScrollTarget {
-      constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5, 
+      constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5,
       // This data structure is abused to also store precise scroll
       // snapshots, instead of a `scrollIntoView` request. When this
       // flag is `true`, `range` points at a position in the reference
@@ -6688,15 +6688,15 @@
       /**
       @internal
       */
-      id, 
+      id,
       /**
       @internal
       */
-      create, 
+      create,
       /**
       @internal
       */
-      domEventHandlers, 
+      domEventHandlers,
       /**
       @internal
       */
@@ -6906,11 +6906,11 @@
       /**
       The editor view that the update is associated with.
       */
-      view, 
+      view,
       /**
       The new editor state.
       */
-      state, 
+      state,
       /**
       The transactions involved in the update. May be empty.
       */
@@ -9376,20 +9376,20 @@
       /**
       The start of the element in the document.
       */
-      from, 
+      from,
       /**
       The length of the element.
       */
-      length, 
+      length,
       /**
       The top position of the element (relative to the top of the
       document).
       */
-      top, 
+      top,
       /**
       Its height.
       */
-      height, 
+      height,
       /**
       @internal Weird packed field that holds an array of children
       for composite blocks, a decoration for block widgets, and a
@@ -12256,7 +12256,7 @@
       When the start position was the last one on the line, the
       returned position will be across the line break. If there is no
       further line, the original position is returned.
-      
+
       By default, this method moves over a single cluster. The
       optional `by` argument can be used to move across more. It will
       be called with the first cluster as argument, and should return
@@ -12300,7 +12300,7 @@
       it defaults to moving to the next line (including wrapped
       lines). Otherwise, `distance` should provide a positive distance
       in pixels.
-      
+
       When `start` has a
       [`goalColumn`](https://codemirror.net/6/docs/ref/#state.SelectionRange.goalColumn), the vertical
       motion will use that as a target horizontal position. Otherwise,
@@ -12315,7 +12315,7 @@
       Find the DOM parent node and offset (child offset if `node` is
       an element, character offset when it is a text node) at the
       given document position.
-      
+
       Note that for positions that aren't currently in
       `visibleRanges`, the resulting DOM position isn't necessarily
       meaningful (it may just point before or after a placeholder
@@ -12492,7 +12492,7 @@
       only affects the editor's own scrollable element, not parents.
       See also
       [`EditorViewConfig.scrollTo`](https://codemirror.net/6/docs/ref/#view.EditorViewConfig.scrollTo).
-      
+
       The effect should be used with a document identical to the one
       it was created for. Failing to do so is not an error, but may
       not scroll to the expected position. You can
@@ -12508,7 +12508,7 @@
       for Tab and Shift-Tab, letting the browser's default
       focus-changing behavior go through instead. This is useful to
       prevent trapping keyboard users in your editor.
-      
+
       Without argument, this toggles the mode. With a boolean, it
       enables (true) or disables it (false). Given a number, it
       temporarily enables the mode until that number of milliseconds
@@ -12553,14 +12553,14 @@
       [`style-mod`](https://github.com/marijnh/style-mod#documentation)
       style spec providing the styles for the theme. These will be
       prefixed with a generated class for the style.
-      
+
       Because the selectors will be prefixed with a scope class, rule
       that directly match the editor's [wrapper
       element](https://codemirror.net/6/docs/ref/#view.EditorView.dom)—to which the scope class will be
       added—need to be explicitly differentiated by adding an `&` to
       the selector for that element—for example
       `&.cm-focused`.
-      
+
       When `dark` is set to true, the theme will be marked as dark,
       which will cause the `&dark` rules from [base
       themes](https://codemirror.net/6/docs/ref/#view.EditorView^baseTheme) to be used (as opposed to
@@ -13032,19 +13032,19 @@
       Create a marker with the given class and dimensions. If `width`
       is null, the DOM element will get no width style.
       */
-      constructor(className, 
+      constructor(className,
       /**
       The left position of the marker (in pixels, document-relative).
       */
-      left, 
+      left,
       /**
       The top position of the marker.
       */
-      top, 
+      top,
       /**
       The width of the marker, or null if it shouldn't get a width assigned.
       */
-      width, 
+      width,
       /**
       The height of the marker.
       */
@@ -15374,7 +15374,7 @@
       /**
       The inner tree.
       */
-      tree, 
+      tree,
       /**
       If this is null, this tree replaces the entire node (it will
       be included in the regular iteration instead of its host
@@ -15384,7 +15384,7 @@
       only entered by [`resolveInner`](#common.Tree.resolveInner)
       and [`enter`](#common.SyntaxNode.enter).
       */
-      overlay, 
+      overlay,
       /**
       The parser used to create this subtree.
       */
@@ -15415,16 +15415,16 @@
       same name within a node set should play the same semantic
       role.
       */
-      name, 
+      name,
       /**
       @internal
       */
-      props, 
+      props,
       /**
       The id of this node in its set. Corresponds to the term ids
       used in the parser.
       */
-      id, 
+      id,
       /**
       @internal
       */
@@ -15618,20 +15618,20 @@
       /**
       The type of the top node.
       */
-      type, 
+      type,
       /**
       This node's child nodes.
       */
-      children, 
+      children,
       /**
       The positions (offsets relative to the start of this tree) of
       the children.
       */
-      positions, 
+      positions,
       /**
       The total length of this tree
       */
-      length, 
+      length,
       /**
       Per-node [node props](#common.NodeProp) to associate with this node.
       */
@@ -15703,7 +15703,7 @@
       position. If 1, it'll move into nodes that start at the
       position. With 0, it'll only enter nodes that cover the position
       from both sides.
-      
+
       Note that this will not enter
       [overlays](#common.MountedTree.overlay), and you often want
       [`resolveInner`](#common.Tree.resolveInner) instead.
@@ -15828,11 +15828,11 @@
       /**
       The buffer's content.
       */
-      buffer, 
+      buffer,
       /**
       The total length of the group of nodes in the buffer.
       */
-      length, 
+      length,
       /**
       The node set used in this buffer.
       */
@@ -15977,7 +15977,7 @@
       get next() { return this.parent; }
   }
   class TreeNode extends BaseNode {
-      constructor(_tree, from, 
+      constructor(_tree, from,
       // Index in parent node, set to -1 if the node is not a direct child of _parent.node (overlay)
       index, _parent) {
           super();
@@ -16220,7 +16220,7 @@
       /**
       @internal
       */
-      constructor(node, 
+      constructor(node,
       /**
       @internal
       */
@@ -16770,17 +16770,17 @@
   }
   function balanceRange(
   // The type the balanced tree's inner nodes.
-  balanceType, 
+  balanceType,
   // The direct children and their positions
-  children, positions, 
+  children, positions,
   // The index range in children/positions to use
-  from, to, 
+  from, to,
   // The start position of the nodes, relative to their parent.
-  start, 
+  start,
   // Length of the outer node
-  length, 
+  length,
   // Function to build the top node of the balanced tree
-  mkTop, 
+  mkTop,
   // Function to build internal nodes for the balanced tree
   mkTree) {
       let total = 0;
@@ -16839,15 +16839,15 @@
       This refers to an offset in the _updated_ document (as opposed
       to the original tree).
       */
-      from, 
+      from,
       /**
       The end of the unchanged range.
       */
-      to, 
+      to,
       /**
       The tree that this fragment is based on.
       */
-      tree, 
+      tree,
       /**
       The offset between the fragment's tree and the document that
       this fragment can be used against. Add this when going from
@@ -16930,7 +16930,7 @@
       Start a parse, returning a [partial parse](#common.PartialParse)
       object. [`fragments`](#common.TreeFragment) can be passed in to
       make the parse incremental.
-      
+
       By default, the entire input is parsed. You can pass `ranges`,
       which should be a sorted array of non-empty, non-overlapping
       ranges, to parse only those ranges. The tree returned in that
@@ -16993,17 +16993,17 @@
       /**
       The optional name of the base tag @internal
       */
-      name, 
+      name,
       /**
       The set of this tag and all its parent tags, starting with
       this one itself and sorted in order of decreasing specificity.
       */
-      set, 
+      set,
       /**
       The base unmodified tag that this one is based on, if it's
       modified @internal
       */
-      base, 
+      base,
       /**
       The modifiers applied to this.base @internal
       */
@@ -17043,7 +17043,7 @@
       same modifier to a twice tag will return the same value (`m1(t1)
       == m1(t1)`) and applying multiple modifiers will, regardless or
       order, produce the same tag (`m1(m2(t1)) == m2(m1(t1))`).
-      
+
       When multiple modifiers are applied to a given base tag, each
       smaller set of modifiers is registered as a parent, so that for
       example `m1(m2(m3(t1)))` is a subtype of `m1(m2(t1))`,
@@ -17252,17 +17252,17 @@
   [`highlightCode`](#highlight.highlightCode) function is easier to
   use.
   */
-  function highlightTree(tree, highlighter, 
+  function highlightTree(tree, highlighter,
   /**
   Assign styling to a region of the text. Will be called, in order
   of position, for any ranges where more than zero classes apply.
   `classes` is a space separated string of CSS classes.
   */
-  putStyle, 
+  putStyle,
   /**
   The start of the range to highlight.
   */
-  from = 0, 
+  from = 0,
   /**
   The end of the range.
   */
@@ -17363,8 +17363,8 @@
           rule = rule.next;
       return rule || null;
   }
-  const t = Tag$1.define;
-  const comment = t(), name = t(), typeName = t(name), propertyName = t(name), literal = t(), string$1 = t(literal), number = t(literal), content = t(), heading = t(content), keyword = t(), operator = t(), punctuation = t(), bracket = t(punctuation), meta = t();
+  const t$1 = Tag$1.define;
+  const comment = t$1(), name = t$1(), typeName = t$1(name), propertyName = t$1(name), literal = t$1(), string$1 = t$1(literal), number = t$1(literal), content = t$1(), heading = t$1(content), keyword = t$1(), operator = t$1(), punctuation = t$1(), bracket = t$1(punctuation), meta = t$1();
   /**
   The default set of highlighting [tags](#highlight.Tag).
 
@@ -17393,15 +17393,15 @@
       /**
       A line [comment](#highlight.tags.comment).
       */
-      lineComment: t(comment),
+      lineComment: t$1(comment),
       /**
       A block [comment](#highlight.tags.comment).
       */
-      blockComment: t(comment),
+      blockComment: t$1(comment),
       /**
       A documentation [comment](#highlight.tags.comment).
       */
-      docComment: t(comment),
+      docComment: t$1(comment),
       /**
       Any kind of identifier.
       */
@@ -17409,7 +17409,7 @@
       /**
       The [name](#highlight.tags.name) of a variable.
       */
-      variableName: t(name),
+      variableName: t$1(name),
       /**
       A type [name](#highlight.tags.name).
       */
@@ -17417,7 +17417,7 @@
       /**
       A tag name (subtag of [`typeName`](#highlight.tags.typeName)).
       */
-      tagName: t(typeName),
+      tagName: t$1(typeName),
       /**
       A property or field [name](#highlight.tags.name).
       */
@@ -17425,23 +17425,23 @@
       /**
       An attribute name (subtag of [`propertyName`](#highlight.tags.propertyName)).
       */
-      attributeName: t(propertyName),
+      attributeName: t$1(propertyName),
       /**
       The [name](#highlight.tags.name) of a class.
       */
-      className: t(name),
+      className: t$1(name),
       /**
       A label [name](#highlight.tags.name).
       */
-      labelName: t(name),
+      labelName: t$1(name),
       /**
       A namespace [name](#highlight.tags.name).
       */
-      namespace: t(name),
+      namespace: t$1(name),
       /**
       The [name](#highlight.tags.name) of a macro.
       */
-      macroName: t(name),
+      macroName: t$1(name),
       /**
       A literal value.
       */
@@ -17453,15 +17453,15 @@
       /**
       A documentation [string](#highlight.tags.string).
       */
-      docString: t(string$1),
+      docString: t$1(string$1),
       /**
       A character literal (subtag of [string](#highlight.tags.string)).
       */
-      character: t(string$1),
+      character: t$1(string$1),
       /**
       An attribute value (subtag of [string](#highlight.tags.string)).
       */
-      attributeValue: t(string$1),
+      attributeValue: t$1(string$1),
       /**
       A number [literal](#highlight.tags.literal).
       */
@@ -17469,32 +17469,32 @@
       /**
       An integer [number](#highlight.tags.number) literal.
       */
-      integer: t(number),
+      integer: t$1(number),
       /**
       A floating-point [number](#highlight.tags.number) literal.
       */
-      float: t(number),
+      float: t$1(number),
       /**
       A boolean [literal](#highlight.tags.literal).
       */
-      bool: t(literal),
+      bool: t$1(literal),
       /**
       Regular expression [literal](#highlight.tags.literal).
       */
-      regexp: t(literal),
+      regexp: t$1(literal),
       /**
       An escape [literal](#highlight.tags.literal), for example a
       backslash escape in a string.
       */
-      escape: t(literal),
+      escape: t$1(literal),
       /**
       A color [literal](#highlight.tags.literal).
       */
-      color: t(literal),
+      color: t$1(literal),
       /**
       A URL [literal](#highlight.tags.literal).
       */
-      url: t(literal),
+      url: t$1(literal),
       /**
       A language keyword.
       */
@@ -17503,40 +17503,40 @@
       The [keyword](#highlight.tags.keyword) for the self or this
       object.
       */
-      self: t(keyword),
+      self: t$1(keyword),
       /**
       The [keyword](#highlight.tags.keyword) for null.
       */
-      null: t(keyword),
+      null: t$1(keyword),
       /**
       A [keyword](#highlight.tags.keyword) denoting some atomic value.
       */
-      atom: t(keyword),
+      atom: t$1(keyword),
       /**
       A [keyword](#highlight.tags.keyword) that represents a unit.
       */
-      unit: t(keyword),
+      unit: t$1(keyword),
       /**
       A modifier [keyword](#highlight.tags.keyword).
       */
-      modifier: t(keyword),
+      modifier: t$1(keyword),
       /**
       A [keyword](#highlight.tags.keyword) that acts as an operator.
       */
-      operatorKeyword: t(keyword),
+      operatorKeyword: t$1(keyword),
       /**
       A control-flow related [keyword](#highlight.tags.keyword).
       */
-      controlKeyword: t(keyword),
+      controlKeyword: t$1(keyword),
       /**
       A [keyword](#highlight.tags.keyword) that defines something.
       */
-      definitionKeyword: t(keyword),
+      definitionKeyword: t$1(keyword),
       /**
       A [keyword](#highlight.tags.keyword) related to defining or
       interfacing with modules.
       */
-      moduleKeyword: t(keyword),
+      moduleKeyword: t$1(keyword),
       /**
       An operator.
       */
@@ -17544,39 +17544,39 @@
       /**
       An [operator](#highlight.tags.operator) that dereferences something.
       */
-      derefOperator: t(operator),
+      derefOperator: t$1(operator),
       /**
       Arithmetic-related [operator](#highlight.tags.operator).
       */
-      arithmeticOperator: t(operator),
+      arithmeticOperator: t$1(operator),
       /**
       Logical [operator](#highlight.tags.operator).
       */
-      logicOperator: t(operator),
+      logicOperator: t$1(operator),
       /**
       Bit [operator](#highlight.tags.operator).
       */
-      bitwiseOperator: t(operator),
+      bitwiseOperator: t$1(operator),
       /**
       Comparison [operator](#highlight.tags.operator).
       */
-      compareOperator: t(operator),
+      compareOperator: t$1(operator),
       /**
       [Operator](#highlight.tags.operator) that updates its operand.
       */
-      updateOperator: t(operator),
+      updateOperator: t$1(operator),
       /**
       [Operator](#highlight.tags.operator) that defines something.
       */
-      definitionOperator: t(operator),
+      definitionOperator: t$1(operator),
       /**
       Type-related [operator](#highlight.tags.operator).
       */
-      typeOperator: t(operator),
+      typeOperator: t$1(operator),
       /**
       Control-flow [operator](#highlight.tags.operator).
       */
-      controlOperator: t(operator),
+      controlOperator: t$1(operator),
       /**
       Program or markup punctuation.
       */
@@ -17585,7 +17585,7 @@
       [Punctuation](#highlight.tags.punctuation) that separates
       things.
       */
-      separator: t(punctuation),
+      separator: t$1(punctuation),
       /**
       Bracket-style [punctuation](#highlight.tags.punctuation).
       */
@@ -17594,22 +17594,22 @@
       Angle [brackets](#highlight.tags.bracket) (usually `<` and `>`
       tokens).
       */
-      angleBracket: t(bracket),
+      angleBracket: t$1(bracket),
       /**
       Square [brackets](#highlight.tags.bracket) (usually `[` and `]`
       tokens).
       */
-      squareBracket: t(bracket),
+      squareBracket: t$1(bracket),
       /**
       Parentheses (usually `(` and `)` tokens). Subtag of
       [bracket](#highlight.tags.bracket).
       */
-      paren: t(bracket),
+      paren: t$1(bracket),
       /**
       Braces (usually `{` and `}` tokens). Subtag of
       [bracket](#highlight.tags.bracket).
       */
-      brace: t(bracket),
+      brace: t$1(bracket),
       /**
       Content, for example plain text in XML or markup documents.
       */
@@ -17621,77 +17621,77 @@
       /**
       A level 1 [heading](#highlight.tags.heading).
       */
-      heading1: t(heading),
+      heading1: t$1(heading),
       /**
       A level 2 [heading](#highlight.tags.heading).
       */
-      heading2: t(heading),
+      heading2: t$1(heading),
       /**
       A level 3 [heading](#highlight.tags.heading).
       */
-      heading3: t(heading),
+      heading3: t$1(heading),
       /**
       A level 4 [heading](#highlight.tags.heading).
       */
-      heading4: t(heading),
+      heading4: t$1(heading),
       /**
       A level 5 [heading](#highlight.tags.heading).
       */
-      heading5: t(heading),
+      heading5: t$1(heading),
       /**
       A level 6 [heading](#highlight.tags.heading).
       */
-      heading6: t(heading),
+      heading6: t$1(heading),
       /**
       A prose [content](#highlight.tags.content) separator (such as a horizontal rule).
       */
-      contentSeparator: t(content),
+      contentSeparator: t$1(content),
       /**
       [Content](#highlight.tags.content) that represents a list.
       */
-      list: t(content),
+      list: t$1(content),
       /**
       [Content](#highlight.tags.content) that represents a quote.
       */
-      quote: t(content),
+      quote: t$1(content),
       /**
       [Content](#highlight.tags.content) that is emphasized.
       */
-      emphasis: t(content),
+      emphasis: t$1(content),
       /**
       [Content](#highlight.tags.content) that is styled strong.
       */
-      strong: t(content),
+      strong: t$1(content),
       /**
       [Content](#highlight.tags.content) that is part of a link.
       */
-      link: t(content),
+      link: t$1(content),
       /**
       [Content](#highlight.tags.content) that is styled as code or
       monospace.
       */
-      monospace: t(content),
+      monospace: t$1(content),
       /**
       [Content](#highlight.tags.content) that has a strike-through
       style.
       */
-      strikethrough: t(content),
+      strikethrough: t$1(content),
       /**
       Inserted text in a change-tracking format.
       */
-      inserted: t(),
+      inserted: t$1(),
       /**
       Deleted text.
       */
-      deleted: t(),
+      deleted: t$1(),
       /**
       Changed text.
       */
-      changed: t(),
+      changed: t$1(),
       /**
       An invalid or unsyntactic element.
       */
-      invalid: t(),
+      invalid: t$1(),
       /**
       Metadata or meta-instruction.
       */
@@ -17700,17 +17700,17 @@
       [Metadata](#highlight.tags.meta) that applies to the entire
       document.
       */
-      documentMeta: t(meta),
+      documentMeta: t$1(meta),
       /**
       [Metadata](#highlight.tags.meta) that annotates or adds
       attributes to a given syntactic element.
       */
-      annotation: t(meta),
+      annotation: t$1(meta),
       /**
       Processing instruction or preprocessor directive. Subtag of
       [meta](#highlight.tags.meta).
       */
-      processingInstruction: t(meta),
+      processingInstruction: t$1(meta),
       /**
       [Modifier](#highlight.Tag^defineModifier) that indicates that a
       given element is being defined. Expected to be used with the
@@ -17883,7 +17883,7 @@
       The [language data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt) facet
       used for this language.
       */
-      data, parser, extraExtensions = [], 
+      data, parser, extraExtensions = [],
       /**
       A language name.
       */
@@ -18060,23 +18060,23 @@
   A parse context provided to parsers working on the editor content.
   */
   class ParseContext {
-      constructor(parser, 
+      constructor(parser,
       /**
       The current editor state.
       */
-      state, 
+      state,
       /**
       Tree fragments that can be reused by incremental re-parses.
       */
-      fragments = [], 
+      fragments = [],
       /**
       @internal
       */
-      tree, 
+      tree,
       /**
       @internal
       */
-      treeLen, 
+      treeLen,
       /**
       The current editor viewport (or some overapproximation
       thereof). Intended to be used for opportunistically avoiding
@@ -18085,11 +18085,11 @@
       should be called to make sure the parser is restarted when the
       skipped region becomes visible).
       */
-      viewport, 
+      viewport,
       /**
       @internal
       */
-      skipped, 
+      skipped,
       /**
       This is where skipping parsers can register a promise that,
       when resolved, will schedule a new parse. It is cleared when
@@ -18253,7 +18253,7 @@
       asynchronously loading a nested parser. It'll skip its input and
       mark it as not-really-parsed, so that the next update will parse
       it again.
-      
+
       When `until` is given, a reparse will be scheduled when that
       promise resolves.
       */
@@ -18459,7 +18459,7 @@
       /**
       The language object.
       */
-      language, 
+      language,
       /**
       An optional set of supporting extensions. When nesting a
       language in another language, the outer language is encouraged
@@ -18561,7 +18561,7 @@
       /**
       The editor state.
       */
-      state, 
+      state,
       /**
       @internal
       */
@@ -18690,11 +18690,11 @@
   methods to indentation functions registered on syntax nodes.
   */
   class TreeIndentContext extends IndentContext {
-      constructor(base, 
+      constructor(base,
       /**
       The position at which indentation is being computed.
       */
-      pos, 
+      pos,
       /**
       @internal
       */
@@ -19295,7 +19295,7 @@
       that rely on external styling), or a
       [`style-mod`](https://github.com/marijnh/style-mod#documentation)-style
       set of CSS properties (which define the styling for those tags).
-      
+
       The CSS rules created for a highlighter will be emitted in the
       order of the spec's properties. That means that for elements that
       have multiple tags associated with them, styles defined further
@@ -19610,7 +19610,7 @@
       /**
       The line.
       */
-      string, tabSize, 
+      string, tabSize,
       /**
       The current indent unit size.
       */
@@ -19726,10 +19726,10 @@
       Match the input against the given string or regular expression
       (which should start with a `^`). Return true or the regexp match
       if it matches.
-      
+
       Unless `consume` is set to `false`, this will move `this.pos`
       past the matched text.
-      
+
       When matching a string `caseInsensitive` can be set to true to
       make the match case-insensitive.
       */
@@ -20152,18 +20152,18 @@
       /**
       The editor state that the completion happens in.
       */
-      state, 
+      state,
       /**
       The position at which the completion is happening.
       */
-      pos, 
+      pos,
       /**
       Indicates whether completion was activated explicitly, or
       implicitly by typing. The usual way to respond to this is to
       only return completions when either there is part of a
       completable entity before the cursor, or `explicit` is true.
       */
-      explicit, 
+      explicit,
       /**
       The editor view. May be undefined if the context was created
       in a situation where there is no such view available, such as
@@ -20217,7 +20217,7 @@
       Allows you to register abort handlers, which will be called when
       the query is
       [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
-      
+
       By default, running queries will not be aborted for regular
       typing or backspacing, on the assumption that they are likely to
       return a result with a
@@ -22079,14 +22079,14 @@
       // events before the first change, in which case a special type of
       // instance is created which doesn't hold any changes, with
       // changes == startSelection == undefined
-      changes, 
+      changes,
       // The effects associated with this event
-      effects, 
+      effects,
       // Accumulated mapping (from addToHistory==false) that should be
       // applied to events below this one.
-      mapped, 
+      mapped,
       // The selection before this event
-      startSelection, 
+      startSelection,
       // Stores selection changes after this event, to be used for
       // selection undo/redo.
       selectionsAfter) {
@@ -23260,12 +23260,12 @@
       /**
       Create a text cursor. The query is the search string, `from` to
       `to` provides the region to search.
-      
+
       When `normalize` is given, it will be called, on both the query
       string and the content it is matched against, before comparing.
       You can, for example, create a case-insensitive search by
       passing `s => s.toLowerCase()`.
-      
+
       Text is always normalized with
       [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
       (when supported).
@@ -25204,7 +25204,7 @@
       ])
   ])();
 
-  var tt=Object.defineProperty;var nt=(e,t,n)=>t in e?tt(e,t,{enumerable:true,configurable:true,writable:true,value:n}):e[t]=n;var $=(e,t,n)=>(nt(e,typeof t!="symbol"?t+"":t,n),n);function st(e,t){const n=Object.create(null),s=e.split(",");for(let r=0;r<s.length;r++)n[s[r]]=true;return r=>!!n[r]}function de(e){if(y(e)){const t={};for(let n=0;n<e.length;n++){const s=e[n],r=N(s)?it(s):de(s);if(r)for(const i in r)t[i]=r[i];}return t}else {if(N(e))return e;if(S(e))return e}}const rt=/;(?![^(]*\))/g,ot=/:(.+)/;function it(e){const t={};return e.split(rt).forEach(n=>{if(n){const s=n.split(ot);s.length>1&&(t[s[0].trim()]=s[1].trim());}}),t}function me(e){let t="";if(N(e))t=e;else if(y(e))for(let n=0;n<e.length;n++){const s=me(e[n]);s&&(t+=s+" ");}else if(S(e))for(const n in e)e[n]&&(t+=n+" ");return t.trim()}function ct(e,t){if(e.length!==t.length)return  false;let n=true;for(let s=0;n&&s<e.length;s++)n=I(e[s],t[s]);return n}function I(e,t){if(e===t)return  true;let n=ge(e),s=ge(t);if(n||s)return n&&s?e.getTime()===t.getTime():false;if(n=y(e),s=y(t),n||s)return n&&s?ct(e,t):false;if(n=S(e),s=S(t),n||s){if(!n||!s)return  false;const r=Object.keys(e).length,i=Object.keys(t).length;if(r!==i)return  false;for(const c in e){const o=e.hasOwnProperty(c),l=t.hasOwnProperty(c);if(o&&!l||!o&&l||!I(e[c],t[c]))return  false}}return String(e)===String(t)}function G(e,t){return e.findIndex(n=>I(n,t))}const lt=Object.assign,ft=(e,t)=>{const n=e.indexOf(t);n>-1&&e.splice(n,1);},at=Object.prototype.hasOwnProperty,U=(e,t)=>at.call(e,t),y=Array.isArray,Y=e=>ye(e)==="[object Map]",ge=e=>e instanceof Date,N=e=>typeof e=="string",Q=e=>typeof e=="symbol",S=e=>e!==null&&typeof e=="object",ut=Object.prototype.toString,ye=e=>ut.call(e),pt=e=>ye(e).slice(8,-1),X=e=>N(e)&&e!=="NaN"&&e[0]!=="-"&&""+parseInt(e,10)===e,be=e=>{const t=Object.create(null);return n=>t[n]||(t[n]=e(n))},ht=/-(\w)/g,dt=be(e=>e.replace(ht,(t,n)=>n?n.toUpperCase():"")),mt=/\B([A-Z])/g,xe=be(e=>e.replace(mt,"-$1").toLowerCase()),gt=(e,t)=>!Object.is(e,t),ve=e=>{const t=parseFloat(e);return isNaN(t)?e:t};let yt;function we(e,t){t=t||yt,t&&t.active&&t.effects.push(e);}const _e=e=>{const t=new Set(e);return t.w=0,t.n=0,t},Ee=e=>(e.w&O)>0,$e=e=>(e.n&O)>0,bt=({deps:e})=>{if(e.length)for(let t=0;t<e.length;t++)e[t].w|=O;},xt=e=>{const{deps:t}=e;if(t.length){let n=0;for(let s=0;s<t.length;s++){const r=t[s];Ee(r)&&!$e(r)?r.delete(e):t[n++]=r,r.w&=~O,r.n&=~O;}t.length=n;}},ee=new WeakMap;let B=0,O=1;const te=30,z=[];let C;const W=Symbol(""),Se=Symbol("");class vt{constructor(t,n=null,s){this.fn=t,this.scheduler=n,this.active=true,this.deps=[],we(this,s);}run(){if(!this.active)return this.fn();if(!z.includes(this))try{return z.push(C=this),$t(),O=1<<++B,B<=te?bt(this):Oe(this),this.fn()}finally{B<=te&&xt(this),O=1<<--B,ke(),z.pop();const t=z.length;C=t>0?z[t-1]:void 0;}}stop(){this.active&&(Oe(this),this.onStop&&this.onStop(),this.active=false);}}function Oe(e){const{deps:t}=e;if(t.length){for(let n=0;n<t.length;n++)t[n].delete(e);t.length=0;}}function wt(e,t){e.effect&&(e=e.effect.fn);const n=new vt(e);t&&(lt(n,t),t.scope&&we(n,t.scope)),(!t||!t.lazy)&&n.run();const s=n.run.bind(n);return s.effect=n,s}function _t(e){e.effect.stop();}let K=true;const ne=[];function Et(){ne.push(K),K=false;}function $t(){ne.push(K),K=true;}function ke(){const e=ne.pop();K=e===void 0?true:e;}function F(e,t,n){if(!St())return;let s=ee.get(e);s||ee.set(e,s=new Map);let r=s.get(n);r||s.set(n,r=_e()),Ot(r);}function St(){return K&&C!==void 0}function Ot(e,t){let n=false;B<=te?$e(e)||(e.n|=O,n=!Ee(e)):n=!e.has(C),n&&(e.add(C),C.deps.push(e));}function se(e,t,n,s,r,i){const c=ee.get(e);if(!c)return;let o=[];if(t==="clear")o=[...c.values()];else if(n==="length"&&y(e))c.forEach((l,f)=>{(f==="length"||f>=s)&&o.push(l);});else switch(n!==void 0&&o.push(c.get(n)),t){case "add":y(e)?X(n)&&o.push(c.get("length")):(o.push(c.get(W)),Y(e)&&o.push(c.get(Se)));break;case "delete":y(e)||(o.push(c.get(W)),Y(e)&&o.push(c.get(Se)));break;case "set":Y(e)&&o.push(c.get(W));break}if(o.length===1)o[0]&&Te(o[0]);else {const l=[];for(const f of o)f&&l.push(...f);Te(_e(l));}}function Te(e,t){for(const n of y(e)?e:[...e])(n!==C||n.allowRecurse)&&(n.scheduler?n.scheduler():n.run());}const kt=st("__proto__,__v_isRef,__isVue"),Ae=new Set(Object.getOwnPropertyNames(Symbol).map(e=>Symbol[e]).filter(Q)),Tt=Me(),At=Me(true),Re=Rt();function Rt(){const e={};return ["includes","indexOf","lastIndexOf"].forEach(t=>{e[t]=function(...n){const s=j(this);for(let i=0,c=this.length;i<c;i++)F(s,"get",i+"");const r=s[t](...n);return r===-1||r===false?s[t](...n.map(j)):r};}),["push","pop","shift","unshift","splice"].forEach(t=>{e[t]=function(...n){Et();const s=j(this)[t].apply(this,n);return ke(),s};}),e}function Me(e=false,t=false){return function(s,r,i){if(r==="__v_isReactive")return !e;if(r==="__v_isReadonly")return e;if(r==="__v_raw"&&i===(e?t?zt:je:t?Bt:Ce).get(s))return s;const c=y(s);if(!e&&c&&U(Re,r))return Reflect.get(Re,r,i);const o=Reflect.get(s,r,i);return (Q(r)?Ae.has(r):kt(r))||(e||F(s,"get",r),t)?o:re(o)?!c||!X(r)?o.value:o:S(o)?e?Ht(o):D(o):o}}const Mt=Ct();function Ct(e=false){return function(n,s,r,i){let c=n[s];if(!e&&!Lt(r)&&(r=j(r),c=j(c),!y(n)&&re(c)&&!re(r)))return c.value=r,true;const o=y(n)&&X(s)?Number(s)<n.length:U(n,s),l=Reflect.set(n,s,r,i);return n===j(i)&&(o?gt(r,c)&&se(n,"set",s,r):se(n,"add",s,r)),l}}function jt(e,t){const n=U(e,t);e[t];const s=Reflect.deleteProperty(e,t);return s&&n&&se(e,"delete",t,void 0),s}function Pt(e,t){const n=Reflect.has(e,t);return (!Q(t)||!Ae.has(t))&&F(e,"has",t),n}function It(e){return F(e,"iterate",y(e)?"length":W),Reflect.ownKeys(e)}const Nt={get:Tt,set:Mt,deleteProperty:jt,has:Pt,ownKeys:It},Kt={get:At,set(e,t){return  true},deleteProperty(e,t){return  true}},Ce=new WeakMap,Bt=new WeakMap,je=new WeakMap,zt=new WeakMap;function Dt(e){switch(e){case "Object":case "Array":return 1;case "Map":case "Set":case "WeakMap":case "WeakSet":return 2;default:return 0}}function Vt(e){return e.__v_skip||!Object.isExtensible(e)?0:Dt(pt(e))}function D(e){return e&&e.__v_isReadonly?e:Pe(e,false,Nt,null,Ce)}function Ht(e){return Pe(e,true,Kt,null,je)}function Pe(e,t,n,s,r){if(!S(e)||e.__v_raw&&!(t&&e.__v_isReactive))return e;const i=r.get(e);if(i)return i;const c=Vt(e);if(c===0)return e;const o=new Proxy(e,c===2?s:n);return r.set(e,o),o}function Lt(e){return !!(e&&e.__v_isReadonly)}function j(e){const t=e&&e.__v_raw;return t?j(t):e}function re(e){return Boolean(e&&e.__v_isRef===true)}Promise.resolve();let oe=false;const q=[],Wt=Promise.resolve(),V=e=>Wt.then(e),Ie=e=>{q.includes(e)||q.push(e),oe||(oe=true,V(Ft));},Ft=()=>{for(const e of q)e();q.length=0,oe=false;},qt=/^(spellcheck|draggable|form|list|type)$/,ie=({el:e,get:t,effect:n,arg:s,modifiers:r})=>{let i;s==="class"&&(e._class=e.className),n(()=>{let c=t();if(s)(r==null?void 0:r.camel)&&(s=dt(s)),ce(e,s,c,i);else {for(const o in c)ce(e,o,c[o],i&&i[o]);for(const o in i)(!c||!(o in c))&&ce(e,o,null);}i=c;});},ce=(e,t,n,s)=>{if(t==="class")e.setAttribute("class",me(e._class?[e._class,n]:n)||"");else if(t==="style"){n=de(n);const{style:r}=e;if(!n)e.removeAttribute("style");else if(N(n))n!==s&&(r.cssText=n);else {for(const i in n)le(r,i,n[i]);if(s&&!N(s))for(const i in s)n[i]==null&&le(r,i,"");}}else !(e instanceof SVGElement)&&t in e&&!qt.test(t)?(e[t]=n,t==="value"&&(e._value=n)):t==="true-value"?e._trueValue=n:t==="false-value"?e._falseValue=n:n!=null?e.setAttribute(t,n):e.removeAttribute(t);},Ne=/\s*!important$/,le=(e,t,n)=>{y(n)?n.forEach(s=>le(e,t,s)):t.startsWith("--")?e.setProperty(t,n):Ne.test(n)?e.setProperty(xe(t),n.replace(Ne,""),"important"):e[t]=n;},k=(e,t)=>{const n=e.getAttribute(t);return n!=null&&e.removeAttribute(t),n},T=(e,t,n,s)=>{e.addEventListener(t,n,s);},Jt=/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['[^']*?']|\["[^"]*?"]|\[\d+]|\[[A-Za-z_$][\w$]*])*$/,Zt=["ctrl","shift","alt","meta"],Gt={stop:e=>e.stopPropagation(),prevent:e=>e.preventDefault(),self:e=>e.target!==e.currentTarget,ctrl:e=>!e.ctrlKey,shift:e=>!e.shiftKey,alt:e=>!e.altKey,meta:e=>!e.metaKey,left:e=>"button"in e&&e.button!==0,middle:e=>"button"in e&&e.button!==1,right:e=>"button"in e&&e.button!==2,exact:(e,t)=>Zt.some(n=>e[`${n}Key`]&&!t[n])},Ke=({el:e,get:t,exp:n,arg:s,modifiers:r})=>{if(!s)return;let i=Jt.test(n)?t(`(e => ${n}(e))`):t(`($event => { ${n} })`);if(s==="vue:mounted"){V(i);return}else if(s==="vue:unmounted")return ()=>i();if(r){s==="click"&&(r.right&&(s="contextmenu"),r.middle&&(s="mouseup"));const c=i;i=o=>{if(!("key"in o&&!(xe(o.key)in r))){for(const l in r){const f=Gt[l];if(f&&f(o,r))return}return c(o)}};}T(e,s,i,r);},Ut=({el:e,get:t,effect:n})=>{const s=e.style.display;n(()=>{e.style.display=t()?s:"none";});},Be=({el:e,get:t,effect:n})=>{n(()=>{e.textContent=ze(t());});},ze=e=>e==null?"":S(e)?JSON.stringify(e,null,2):String(e),Yt=({el:e,get:t,effect:n})=>{n(()=>{e.innerHTML=t();});},Qt=({el:e,exp:t,get:n,effect:s,modifiers:r})=>{const i=e.type,c=n(`(val) => { ${t} = val }`),{trim:o,number:l=i==="number"}=r||{};if(e.tagName==="SELECT"){const f=e;T(e,"change",()=>{const a=Array.prototype.filter.call(f.options,u=>u.selected).map(u=>l?ve(A(u)):A(u));c(f.multiple?a:a[0]);}),s(()=>{const a=n(),u=f.multiple;for(let p=0,x=f.options.length;p<x;p++){const b=f.options[p],v=A(b);if(u)y(a)?b.selected=G(a,v)>-1:b.selected=a.has(v);else if(I(A(b),a)){f.selectedIndex!==p&&(f.selectedIndex=p);return}}!u&&f.selectedIndex!==-1&&(f.selectedIndex=-1);});}else if(i==="checkbox"){T(e,"change",()=>{const a=n(),u=e.checked;if(y(a)){const p=A(e),x=G(a,p),b=x!==-1;if(u&&!b)c(a.concat(p));else if(!u&&b){const v=[...a];v.splice(x,1),c(v);}}else c(De(e,u));});let f;s(()=>{const a=n();y(a)?e.checked=G(a,A(e))>-1:a!==f&&(e.checked=I(a,De(e,true))),f=a;});}else if(i==="radio"){T(e,"change",()=>{c(A(e));});let f;s(()=>{const a=n();a!==f&&(e.checked=I(a,A(e)));});}else {const f=a=>o?a.trim():l?ve(a):a;T(e,"compositionstart",Xt),T(e,"compositionend",en),T(e,(r==null?void 0:r.lazy)?"change":"input",()=>{e.composing||c(f(e.value));}),o&&T(e,"change",()=>{e.value=e.value.trim();}),s(()=>{if(e.composing)return;const a=e.value,u=n();document.activeElement===e&&f(a)===u||a!==u&&(e.value=u);});}},A=e=>"_value"in e?e._value:e.value,De=(e,t)=>{const n=t?"_trueValue":"_falseValue";return n in e?e[n]:t},Xt=e=>{e.target.composing=true;},en=e=>{const t=e.target;t.composing&&(t.composing=false,tn(t,"input"));},tn=(e,t)=>{const n=document.createEvent("HTMLEvents");n.initEvent(t,true,true),e.dispatchEvent(n);},Ve=Object.create(null),H=(e,t,n)=>He(e,`return(${t})`,n),He=(e,t,n)=>{const s=Ve[t]||(Ve[t]=nn(t));try{return s(e,n)}catch(r){console.error(r);}},nn=e=>{try{return new Function("$data","$el",`with($data){${e}}`)}catch(t){return console.error(`${t.message} in expression: ${e}`),()=>{}}},sn=({el:e,ctx:t,exp:n,effect:s})=>{V(()=>s(()=>He(t.scope,n,e)));},rn={bind:ie,on:Ke,show:Ut,text:Be,html:Yt,model:Qt,effect:sn},on=(e,t,n)=>{const s=e.parentElement,r=new Comment("v-if");s.insertBefore(r,e);const i=[{exp:t,el:e}];let c,o;for(;(c=e.nextElementSibling)&&(o=null,k(c,"v-else")===""||(o=k(c,"v-else-if")));)s.removeChild(c),i.push({exp:o,el:c});const l=e.nextSibling;s.removeChild(e);let f,a=-1;const u=()=>{f&&(s.insertBefore(r,f.el),f.remove(),f=void 0);};return n.effect(()=>{for(let p=0;p<i.length;p++){const{exp:x,el:b}=i[p];if(!x||H(n.scope,x)){p!==a&&(u(),f=new ue(b,n),f.insert(s,r),s.removeChild(r),a=p);return}}a=-1,u();}),l},cn=/([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/,Le=/,([^,\}\]]*)(?:,([^,\}\]]*))?$/,ln=/^\(|\)$/g,fn=/^[{[]\s*((?:[\w_$]+\s*,?\s*)+)[\]}]$/,an=(e,t,n)=>{const s=t.match(cn);if(!s)return;const r=e.nextSibling,i=e.parentElement,c=new Text("");i.insertBefore(c,e),i.removeChild(e);const o=s[2].trim();let l=s[1].trim().replace(ln,"").trim(),f,a=false,u,p,x="key",b=e.getAttribute(x)||e.getAttribute(x=":key")||e.getAttribute(x="v-bind:key");b&&(e.removeAttribute(x),x==="key"&&(b=JSON.stringify(b)));let v;(v=l.match(Le))&&(l=l.replace(Le,"").trim(),u=v[1].trim(),v[2]&&(p=v[2].trim())),(v=l.match(fn))&&(f=v[1].split(",").map(m=>m.trim()),a=l[0]==="[");let pe=false,R,L,J;const et=m=>{const w=new Map,h=[];if(y(m))for(let d=0;d<m.length;d++)h.push(Z(w,m[d],d));else if(typeof m=="number")for(let d=0;d<m;d++)h.push(Z(w,d+1,d));else if(S(m)){let d=0;for(const g in m)h.push(Z(w,m[g],d++,g));}return [h,w]},Z=(m,w,h,d)=>{const g={};f?f.forEach((M,E)=>g[M]=w[a?E:M]):g[l]=w,d?(u&&(g[u]=d),p&&(g[p]=h)):u&&(g[u]=h);const P=Ge(n,g),_=b?H(P.scope,b):h;return m.set(_,h),P.key=_,P},he=(m,w)=>{const h=new ue(e,m);return h.key=m.key,h.insert(i,w),h};return n.effect(()=>{const m=H(n.scope,o),w=J;if([L,J]=et(m),!pe)R=L.map(h=>he(h,c)),pe=true;else {for(let _=0;_<R.length;_++)J.has(R[_].key)||R[_].remove();const h=[];let d=L.length,g,P;for(;d--;){const _=L[d],M=w.get(_.key);let E;M==null?E=he(_,g?g.el:c):(E=R[M],Object.assign(E.ctx.scope,_.scope),M!==d&&(R[M+1]!==g||P===g)&&(P=E,E.insert(i,g?g.el:c))),h.unshift(g=E);}R=h;}}),r},We=({el:e,ctx:{scope:{$refs:t}},get:n,effect:s})=>{let r;return s(()=>{const i=n();t[i]=e,r&&i!==r&&delete t[r],r=i;}),()=>{r&&delete t[r];}},un=/^(?:v-|:|@)/,pn=/\.([\w-]+)/g;let fe=false;const Fe=(e,t)=>{const n=e.nodeType;if(n===1){const s=e;if(s.hasAttribute("v-pre"))return;k(s,"v-cloak");let r;if(r=k(s,"v-if"))return on(s,r,t);if(r=k(s,"v-for"))return an(s,r,t);if((r=k(s,"v-scope"))||r===""){const o=r?H(t.scope,r):{};t=Ge(t,o),o.$template&&hn(s,o.$template);}const i=k(s,"v-once")!=null;i&&(fe=true),(r=k(s,"ref"))&&ae(s,We,`"${r}"`,t),qe(s,t);const c=[];for(const{name:o,value:l}of [...s.attributes])un.test(o)&&o!=="v-cloak"&&(o==="v-model"?c.unshift([o,l]):o[0]==="@"||/^v-on\b/.test(o)?c.push([o,l]):Je(s,o,l,t));for(const[o,l]of c)Je(s,o,l,t);i&&(fe=false);}else if(n===3){const s=e.data;if(s.includes(t.delimiters[0])){let r=[],i=0,c;for(;c=t.delimitersRE.exec(s);){const o=s.slice(i,c.index);o&&r.push(JSON.stringify(o)),r.push(`$s(${c[1]})`),i=c.index+c[0].length;}i<s.length&&r.push(JSON.stringify(s.slice(i))),ae(e,Be,r.join("+"),t);}}else n===11&&qe(e,t);},qe=(e,t)=>{let n=e.firstChild;for(;n;)n=Fe(n,t)||n.nextSibling;},Je=(e,t,n,s)=>{let r,i,c;if(t=t.replace(pn,(o,l)=>((c||(c={}))[l]=true,"")),t[0]===":")r=ie,i=t.slice(1);else if(t[0]==="@")r=Ke,i=t.slice(1);else {const o=t.indexOf(":"),l=o>0?t.slice(2,o):t.slice(2);r=rn[l]||s.dirs[l],i=o>0?t.slice(o+1):void 0;}r&&(r===ie&&i==="ref"&&(r=We),ae(e,r,n,s,i,c),e.removeAttribute(t));},ae=(e,t,n,s,r,i)=>{const c=t({el:e,get:(o=n)=>H(s.scope,o,e),effect:s.effect,ctx:s,exp:n,arg:r,modifiers:i});c&&s.cleanups.push(c);},hn=(e,t)=>{if(t[0]==="#"){const n=document.querySelector(t);e.appendChild(n.content.cloneNode(true));return}e.innerHTML=t;},Ze=e=>{const t={delimiters:["{{","}}"],delimitersRE:/\{\{([^]+?)\}\}/g,...e,scope:e?e.scope:D({}),dirs:e?e.dirs:{},effects:[],blocks:[],cleanups:[],effect:n=>{if(fe)return Ie(n),n;const s=wt(n,{scheduler:()=>Ie(s)});return t.effects.push(s),s}};return t},Ge=(e,t={})=>{const n=e.scope,s=Object.create(n);Object.defineProperties(s,Object.getOwnPropertyDescriptors(t)),s.$refs=Object.create(n.$refs);const r=D(new Proxy(s,{set(i,c,o,l){return l===r&&!i.hasOwnProperty(c)?Reflect.set(n,c,o):Reflect.set(i,c,o,l)}}));return Ue(r),{...e,scope:r}},Ue=e=>{for(const t of Object.keys(e))typeof e[t]=="function"&&(e[t]=e[t].bind(e));};class ue{constructor(t,n,s=false){$(this,"template");$(this,"ctx");$(this,"key");$(this,"parentCtx");$(this,"isFragment");$(this,"start");$(this,"end");this.isFragment=t instanceof HTMLTemplateElement,s?this.template=t:this.isFragment?this.template=t.content.cloneNode(true):this.template=t.cloneNode(true),s?this.ctx=n:(this.parentCtx=n,n.blocks.push(this),this.ctx=Ze(n)),Fe(this.template,this.ctx);}get el(){return this.start||this.template}insert(t,n=null){if(this.isFragment)if(this.start){let s=this.start,r;for(;s&&(r=s.nextSibling,t.insertBefore(s,n),s!==this.end);)s=r;}else this.start=new Text(""),this.end=new Text(""),t.insertBefore(this.end,n),t.insertBefore(this.start,this.end),t.insertBefore(this.template,this.end);else t.insertBefore(this.template,n);}remove(){if(this.parentCtx&&ft(this.parentCtx.blocks,this),this.start){const t=this.start.parentNode;let n=this.start,s;for(;n&&(s=n.nextSibling,t.removeChild(n),n!==this.end);)n=s;}else this.template.parentNode.removeChild(this.template);this.teardown();}teardown(){this.ctx.blocks.forEach(t=>{t.teardown();}),this.ctx.effects.forEach(_t),this.ctx.cleanups.forEach(t=>t());}}const Ye=e=>e.replace(/[-.*+?^${}()|[\]\/\\]/g,"\\$&"),Qe=e=>{const t=Ze();if(e&&(t.scope=D(e),Ue(t.scope),e.$delimiters)){const[s,r]=t.delimiters=e.$delimiters;t.delimitersRE=new RegExp(Ye(s)+"([^]+?)"+Ye(r),"g");}t.scope.$s=ze,t.scope.$nextTick=V,t.scope.$refs=Object.create(null);let n;return {directive(s,r){return r?(t.dirs[s]=r,this):t.dirs[s]},mount(s){if(typeof s=="string"&&(s=document.querySelector(s),!s))return;s=s||document.documentElement;let r;return s.hasAttribute("v-scope")?r=[s]:r=[...s.querySelectorAll("[v-scope]")].filter(i=>!i.matches("[v-scope] [v-scope]")),r.length||(r=[s]),n=r.map(i=>new ue(i,t,true)),this},unmount(){n.forEach(s=>s.teardown());}}},Xe=document.currentScript;Xe&&Xe.hasAttribute("init")&&Qe().mount();
+  var tt=Object.defineProperty;var nt=(e,t,n)=>t in e?tt(e,t,{enumerable:true,configurable:true,writable:true,value:n}):e[t]=n;var $$2=(e,t,n)=>(nt(e,typeof t!="symbol"?t+"":t,n),n);function st(e,t){const n=Object.create(null),s=e.split(",");for(let r=0;r<s.length;r++)n[s[r]]=true;return r=>!!n[r]}function de(e){if(y$5(e)){const t={};for(let n=0;n<e.length;n++){const s=e[n],r=N$3(s)?it(s):de(s);if(r)for(const i in r)t[i]=r[i];}return t}else {if(N$3(e))return e;if(S$2(e))return e}}const rt=/;(?![^(]*\))/g,ot=/:(.+)/;function it(e){const t={};return e.split(rt).forEach(n=>{if(n){const s=n.split(ot);s.length>1&&(t[s[0].trim()]=s[1].trim());}}),t}function me(e){let t="";if(N$3(e))t=e;else if(y$5(e))for(let n=0;n<e.length;n++){const s=me(e[n]);s&&(t+=s+" ");}else if(S$2(e))for(const n in e)e[n]&&(t+=n+" ");return t.trim()}function ct(e,t){if(e.length!==t.length)return  false;let n=true;for(let s=0;n&&s<e.length;s++)n=I$1(e[s],t[s]);return n}function I$1(e,t){if(e===t)return  true;let n=ge(e),s=ge(t);if(n||s)return n&&s?e.getTime()===t.getTime():false;if(n=y$5(e),s=y$5(t),n||s)return n&&s?ct(e,t):false;if(n=S$2(e),s=S$2(t),n||s){if(!n||!s)return  false;const r=Object.keys(e).length,i=Object.keys(t).length;if(r!==i)return  false;for(const c in e){const o=e.hasOwnProperty(c),l=t.hasOwnProperty(c);if(o&&!l||!o&&l||!I$1(e[c],t[c]))return  false}}return String(e)===String(t)}function G(e,t){return e.findIndex(n=>I$1(n,t))}const lt=Object.assign,ft=(e,t)=>{const n=e.indexOf(t);n>-1&&e.splice(n,1);},at=Object.prototype.hasOwnProperty,U$3=(e,t)=>at.call(e,t),y$5=Array.isArray,Y$1=e=>ye(e)==="[object Map]",ge=e=>e instanceof Date,N$3=e=>typeof e=="string",Q$1=e=>typeof e=="symbol",S$2=e=>e!==null&&typeof e=="object",ut=Object.prototype.toString,ye=e=>ut.call(e),pt=e=>ye(e).slice(8,-1),X$1=e=>N$3(e)&&e!=="NaN"&&e[0]!=="-"&&""+parseInt(e,10)===e,be=e=>{const t=Object.create(null);return n=>t[n]||(t[n]=e(n))},ht=/-(\w)/g,dt=be(e=>e.replace(ht,(t,n)=>n?n.toUpperCase():"")),mt=/\B([A-Z])/g,xe=be(e=>e.replace(mt,"-$1").toLowerCase()),gt=(e,t)=>!Object.is(e,t),ve=e=>{const t=parseFloat(e);return isNaN(t)?e:t};let yt;function we(e,t){t=t||yt,t&&t.active&&t.effects.push(e);}const _e=e=>{const t=new Set(e);return t.w=0,t.n=0,t},Ee=e=>(e.w&O$3)>0,$e=e=>(e.n&O$3)>0,bt=({deps:e})=>{if(e.length)for(let t=0;t<e.length;t++)e[t].w|=O$3;},xt=e=>{const{deps:t}=e;if(t.length){let n=0;for(let s=0;s<t.length;s++){const r=t[s];Ee(r)&&!$e(r)?r.delete(e):t[n++]=r,r.w&=~O$3,r.n&=~O$3;}t.length=n;}},ee=new WeakMap;let B$1=0,O$3=1;const te=30,z$1=[];let C;const W=Symbol(""),Se=Symbol("");class vt{constructor(t,n=null,s){this.fn=t,this.scheduler=n,this.active=true,this.deps=[],we(this,s);}run(){if(!this.active)return this.fn();if(!z$1.includes(this))try{return z$1.push(C=this),$t(),O$3=1<<++B$1,B$1<=te?bt(this):Oe(this),this.fn()}finally{B$1<=te&&xt(this),O$3=1<<--B$1,ke(),z$1.pop();const t=z$1.length;C=t>0?z$1[t-1]:void 0;}}stop(){this.active&&(Oe(this),this.onStop&&this.onStop(),this.active=false);}}function Oe(e){const{deps:t}=e;if(t.length){for(let n=0;n<t.length;n++)t[n].delete(e);t.length=0;}}function wt(e,t){e.effect&&(e=e.effect.fn);const n=new vt(e);t&&(lt(n,t),t.scope&&we(n,t.scope)),(!t||!t.lazy)&&n.run();const s=n.run.bind(n);return s.effect=n,s}function _t(e){e.effect.stop();}let K$1=true;const ne=[];function Et(){ne.push(K$1),K$1=false;}function $t(){ne.push(K$1),K$1=true;}function ke(){const e=ne.pop();K$1=e===void 0?true:e;}function F$1(e,t,n){if(!St())return;let s=ee.get(e);s||ee.set(e,s=new Map);let r=s.get(n);r||s.set(n,r=_e()),Ot(r);}function St(){return K$1&&C!==void 0}function Ot(e,t){let n=false;B$1<=te?$e(e)||(e.n|=O$3,n=!Ee(e)):n=!e.has(C),n&&(e.add(C),C.deps.push(e));}function se(e,t,n,s,r,i){const c=ee.get(e);if(!c)return;let o=[];if(t==="clear")o=[...c.values()];else if(n==="length"&&y$5(e))c.forEach((l,f)=>{(f==="length"||f>=s)&&o.push(l);});else switch(n!==void 0&&o.push(c.get(n)),t){case "add":y$5(e)?X$1(n)&&o.push(c.get("length")):(o.push(c.get(W)),Y$1(e)&&o.push(c.get(Se)));break;case "delete":y$5(e)||(o.push(c.get(W)),Y$1(e)&&o.push(c.get(Se)));break;case "set":Y$1(e)&&o.push(c.get(W));break}if(o.length===1)o[0]&&Te(o[0]);else {const l=[];for(const f of o)f&&l.push(...f);Te(_e(l));}}function Te(e,t){for(const n of y$5(e)?e:[...e])(n!==C||n.allowRecurse)&&(n.scheduler?n.scheduler():n.run());}const kt=st("__proto__,__v_isRef,__isVue"),Ae=new Set(Object.getOwnPropertyNames(Symbol).map(e=>Symbol[e]).filter(Q$1)),Tt=Me(),At=Me(true),Re=Rt();function Rt(){const e={};return ["includes","indexOf","lastIndexOf"].forEach(t=>{e[t]=function(...n){const s=j$1(this);for(let i=0,c=this.length;i<c;i++)F$1(s,"get",i+"");const r=s[t](...n);return r===-1||r===false?s[t](...n.map(j$1)):r};}),["push","pop","shift","unshift","splice"].forEach(t=>{e[t]=function(...n){Et();const s=j$1(this)[t].apply(this,n);return ke(),s};}),e}function Me(e=false,t=false){return function(s,r,i){if(r==="__v_isReactive")return !e;if(r==="__v_isReadonly")return e;if(r==="__v_raw"&&i===(e?t?zt:je:t?Bt:Ce).get(s))return s;const c=y$5(s);if(!e&&c&&U$3(Re,r))return Reflect.get(Re,r,i);const o=Reflect.get(s,r,i);return (Q$1(r)?Ae.has(r):kt(r))||(e||F$1(s,"get",r),t)?o:re(o)?!c||!X$1(r)?o.value:o:S$2(o)?e?Ht(o):D$1(o):o}}const Mt=Ct();function Ct(e=false){return function(n,s,r,i){let c=n[s];if(!e&&!Lt(r)&&(r=j$1(r),c=j$1(c),!y$5(n)&&re(c)&&!re(r)))return c.value=r,true;const o=y$5(n)&&X$1(s)?Number(s)<n.length:U$3(n,s),l=Reflect.set(n,s,r,i);return n===j$1(i)&&(o?gt(r,c)&&se(n,"set",s,r):se(n,"add",s,r)),l}}function jt(e,t){const n=U$3(e,t);e[t];const s=Reflect.deleteProperty(e,t);return s&&n&&se(e,"delete",t,void 0),s}function Pt(e,t){const n=Reflect.has(e,t);return (!Q$1(t)||!Ae.has(t))&&F$1(e,"has",t),n}function It(e){return F$1(e,"iterate",y$5(e)?"length":W),Reflect.ownKeys(e)}const Nt={get:Tt,set:Mt,deleteProperty:jt,has:Pt,ownKeys:It},Kt={get:At,set(e,t){return  true},deleteProperty(e,t){return  true}},Ce=new WeakMap,Bt=new WeakMap,je=new WeakMap,zt=new WeakMap;function Dt(e){switch(e){case "Object":case "Array":return 1;case "Map":case "Set":case "WeakMap":case "WeakSet":return 2;default:return 0}}function Vt(e){return e.__v_skip||!Object.isExtensible(e)?0:Dt(pt(e))}function D$1(e){return e&&e.__v_isReadonly?e:Pe(e,false,Nt,null,Ce)}function Ht(e){return Pe(e,true,Kt,null,je)}function Pe(e,t,n,s,r){if(!S$2(e)||e.__v_raw&&!(t&&e.__v_isReactive))return e;const i=r.get(e);if(i)return i;const c=Vt(e);if(c===0)return e;const o=new Proxy(e,c===2?s:n);return r.set(e,o),o}function Lt(e){return !!(e&&e.__v_isReadonly)}function j$1(e){const t=e&&e.__v_raw;return t?j$1(t):e}function re(e){return Boolean(e&&e.__v_isRef===true)}Promise.resolve();let oe=false;const q$2=[],Wt=Promise.resolve(),V$1=e=>Wt.then(e),Ie=e=>{q$2.includes(e)||q$2.push(e),oe||(oe=true,V$1(Ft));},Ft=()=>{for(const e of q$2)e();q$2.length=0,oe=false;},qt=/^(spellcheck|draggable|form|list|type)$/,ie=({el:e,get:t,effect:n,arg:s,modifiers:r})=>{let i;s==="class"&&(e._class=e.className),n(()=>{let c=t();if(s)(r==null?void 0:r.camel)&&(s=dt(s)),ce$1(e,s,c,i);else {for(const o in c)ce$1(e,o,c[o],i&&i[o]);for(const o in i)(!c||!(o in c))&&ce$1(e,o,null);}i=c;});},ce$1=(e,t,n,s)=>{if(t==="class")e.setAttribute("class",me(e._class?[e._class,n]:n)||"");else if(t==="style"){n=de(n);const{style:r}=e;if(!n)e.removeAttribute("style");else if(N$3(n))n!==s&&(r.cssText=n);else {for(const i in n)le(r,i,n[i]);if(s&&!N$3(s))for(const i in s)n[i]==null&&le(r,i,"");}}else !(e instanceof SVGElement)&&t in e&&!qt.test(t)?(e[t]=n,t==="value"&&(e._value=n)):t==="true-value"?e._trueValue=n:t==="false-value"?e._falseValue=n:n!=null?e.setAttribute(t,n):e.removeAttribute(t);},Ne=/\s*!important$/,le=(e,t,n)=>{y$5(n)?n.forEach(s=>le(e,t,s)):t.startsWith("--")?e.setProperty(t,n):Ne.test(n)?e.setProperty(xe(t),n.replace(Ne,""),"important"):e[t]=n;},k$3=(e,t)=>{const n=e.getAttribute(t);return n!=null&&e.removeAttribute(t),n},T$3=(e,t,n,s)=>{e.addEventListener(t,n,s);},Jt=/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['[^']*?']|\["[^"]*?"]|\[\d+]|\[[A-Za-z_$][\w$]*])*$/,Zt=["ctrl","shift","alt","meta"],Gt={stop:e=>e.stopPropagation(),prevent:e=>e.preventDefault(),self:e=>e.target!==e.currentTarget,ctrl:e=>!e.ctrlKey,shift:e=>!e.shiftKey,alt:e=>!e.altKey,meta:e=>!e.metaKey,left:e=>"button"in e&&e.button!==0,middle:e=>"button"in e&&e.button!==1,right:e=>"button"in e&&e.button!==2,exact:(e,t)=>Zt.some(n=>e[`${n}Key`]&&!t[n])},Ke=({el:e,get:t,exp:n,arg:s,modifiers:r})=>{if(!s)return;let i=Jt.test(n)?t(`(e => ${n}(e))`):t(`($event => { ${n} })`);if(s==="vue:mounted"){V$1(i);return}else if(s==="vue:unmounted")return ()=>i();if(r){s==="click"&&(r.right&&(s="contextmenu"),r.middle&&(s="mouseup"));const c=i;i=o=>{if(!("key"in o&&!(xe(o.key)in r))){for(const l in r){const f=Gt[l];if(f&&f(o,r))return}return c(o)}};}T$3(e,s,i,r);},Ut=({el:e,get:t,effect:n})=>{const s=e.style.display;n(()=>{e.style.display=t()?s:"none";});},Be=({el:e,get:t,effect:n})=>{n(()=>{e.textContent=ze(t());});},ze=e=>e==null?"":S$2(e)?JSON.stringify(e,null,2):String(e),Yt=({el:e,get:t,effect:n})=>{n(()=>{e.innerHTML=t();});},Qt=({el:e,exp:t,get:n,effect:s,modifiers:r})=>{const i=e.type,c=n(`(val) => { ${t} = val }`),{trim:o,number:l=i==="number"}=r||{};if(e.tagName==="SELECT"){const f=e;T$3(e,"change",()=>{const a=Array.prototype.filter.call(f.options,u=>u.selected).map(u=>l?ve(A$3(u)):A$3(u));c(f.multiple?a:a[0]);}),s(()=>{const a=n(),u=f.multiple;for(let p=0,x=f.options.length;p<x;p++){const b=f.options[p],v=A$3(b);if(u)y$5(a)?b.selected=G(a,v)>-1:b.selected=a.has(v);else if(I$1(A$3(b),a)){f.selectedIndex!==p&&(f.selectedIndex=p);return}}!u&&f.selectedIndex!==-1&&(f.selectedIndex=-1);});}else if(i==="checkbox"){T$3(e,"change",()=>{const a=n(),u=e.checked;if(y$5(a)){const p=A$3(e),x=G(a,p),b=x!==-1;if(u&&!b)c(a.concat(p));else if(!u&&b){const v=[...a];v.splice(x,1),c(v);}}else c(De(e,u));});let f;s(()=>{const a=n();y$5(a)?e.checked=G(a,A$3(e))>-1:a!==f&&(e.checked=I$1(a,De(e,true))),f=a;});}else if(i==="radio"){T$3(e,"change",()=>{c(A$3(e));});let f;s(()=>{const a=n();a!==f&&(e.checked=I$1(a,A$3(e)));});}else {const f=a=>o?a.trim():l?ve(a):a;T$3(e,"compositionstart",Xt),T$3(e,"compositionend",en),T$3(e,(r==null?void 0:r.lazy)?"change":"input",()=>{e.composing||c(f(e.value));}),o&&T$3(e,"change",()=>{e.value=e.value.trim();}),s(()=>{if(e.composing)return;const a=e.value,u=n();document.activeElement===e&&f(a)===u||a!==u&&(e.value=u);});}},A$3=e=>"_value"in e?e._value:e.value,De=(e,t)=>{const n=t?"_trueValue":"_falseValue";return n in e?e[n]:t},Xt=e=>{e.target.composing=true;},en=e=>{const t=e.target;t.composing&&(t.composing=false,tn(t,"input"));},tn=(e,t)=>{const n=document.createEvent("HTMLEvents");n.initEvent(t,true,true),e.dispatchEvent(n);},Ve=Object.create(null),H$2=(e,t,n)=>He(e,`return(${t})`,n),He=(e,t,n)=>{const s=Ve[t]||(Ve[t]=nn(t));try{return s(e,n)}catch(r){console.error(r);}},nn=e=>{try{return new Function("$data","$el",`with($data){${e}}`)}catch(t){return console.error(`${t.message} in expression: ${e}`),()=>{}}},sn=({el:e,ctx:t,exp:n,effect:s})=>{V$1(()=>s(()=>He(t.scope,n,e)));},rn={bind:ie,on:Ke,show:Ut,text:Be,html:Yt,model:Qt,effect:sn},on=(e,t,n)=>{const s=e.parentElement,r=new Comment("v-if");s.insertBefore(r,e);const i=[{exp:t,el:e}];let c,o;for(;(c=e.nextElementSibling)&&(o=null,k$3(c,"v-else")===""||(o=k$3(c,"v-else-if")));)s.removeChild(c),i.push({exp:o,el:c});const l=e.nextSibling;s.removeChild(e);let f,a=-1;const u=()=>{f&&(s.insertBefore(r,f.el),f.remove(),f=void 0);};return n.effect(()=>{for(let p=0;p<i.length;p++){const{exp:x,el:b}=i[p];if(!x||H$2(n.scope,x)){p!==a&&(u(),f=new ue(b,n),f.insert(s,r),s.removeChild(r),a=p);return}}a=-1,u();}),l},cn=/([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/,Le=/,([^,\}\]]*)(?:,([^,\}\]]*))?$/,ln=/^\(|\)$/g,fn=/^[{[]\s*((?:[\w_$]+\s*,?\s*)+)[\]}]$/,an=(e,t,n)=>{const s=t.match(cn);if(!s)return;const r=e.nextSibling,i=e.parentElement,c=new Text("");i.insertBefore(c,e),i.removeChild(e);const o=s[2].trim();let l=s[1].trim().replace(ln,"").trim(),f,a=false,u,p,x="key",b=e.getAttribute(x)||e.getAttribute(x=":key")||e.getAttribute(x="v-bind:key");b&&(e.removeAttribute(x),x==="key"&&(b=JSON.stringify(b)));let v;(v=l.match(Le))&&(l=l.replace(Le,"").trim(),u=v[1].trim(),v[2]&&(p=v[2].trim())),(v=l.match(fn))&&(f=v[1].split(",").map(m=>m.trim()),a=l[0]==="[");let pe=false,R,L,J;const et=m=>{const w=new Map,h=[];if(y$5(m))for(let d=0;d<m.length;d++)h.push(Z(w,m[d],d));else if(typeof m=="number")for(let d=0;d<m;d++)h.push(Z(w,d+1,d));else if(S$2(m)){let d=0;for(const g in m)h.push(Z(w,m[g],d++,g));}return [h,w]},Z=(m,w,h,d)=>{const g={};f?f.forEach((M,E)=>g[M]=w[a?E:M]):g[l]=w,d?(u&&(g[u]=d),p&&(g[p]=h)):u&&(g[u]=h);const P=Ge(n,g),_=b?H$2(P.scope,b):h;return m.set(_,h),P.key=_,P},he=(m,w)=>{const h=new ue(e,m);return h.key=m.key,h.insert(i,w),h};return n.effect(()=>{const m=H$2(n.scope,o),w=J;if([L,J]=et(m),!pe)R=L.map(h=>he(h,c)),pe=true;else {for(let _=0;_<R.length;_++)J.has(R[_].key)||R[_].remove();const h=[];let d=L.length,g,P;for(;d--;){const _=L[d],M=w.get(_.key);let E;M==null?E=he(_,g?g.el:c):(E=R[M],Object.assign(E.ctx.scope,_.scope),M!==d&&(R[M+1]!==g||P===g)&&(P=E,E.insert(i,g?g.el:c))),h.unshift(g=E);}R=h;}}),r},We=({el:e,ctx:{scope:{$refs:t}},get:n,effect:s})=>{let r;return s(()=>{const i=n();t[i]=e,r&&i!==r&&delete t[r],r=i;}),()=>{r&&delete t[r];}},un=/^(?:v-|:|@)/,pn=/\.([\w-]+)/g;let fe=false;const Fe=(e,t)=>{const n=e.nodeType;if(n===1){const s=e;if(s.hasAttribute("v-pre"))return;k$3(s,"v-cloak");let r;if(r=k$3(s,"v-if"))return on(s,r,t);if(r=k$3(s,"v-for"))return an(s,r,t);if((r=k$3(s,"v-scope"))||r===""){const o=r?H$2(t.scope,r):{};t=Ge(t,o),o.$template&&hn(s,o.$template);}const i=k$3(s,"v-once")!=null;i&&(fe=true),(r=k$3(s,"ref"))&&ae(s,We,`"${r}"`,t),qe(s,t);const c=[];for(const{name:o,value:l}of [...s.attributes])un.test(o)&&o!=="v-cloak"&&(o==="v-model"?c.unshift([o,l]):o[0]==="@"||/^v-on\b/.test(o)?c.push([o,l]):Je(s,o,l,t));for(const[o,l]of c)Je(s,o,l,t);i&&(fe=false);}else if(n===3){const s=e.data;if(s.includes(t.delimiters[0])){let r=[],i=0,c;for(;c=t.delimitersRE.exec(s);){const o=s.slice(i,c.index);o&&r.push(JSON.stringify(o)),r.push(`$s(${c[1]})`),i=c.index+c[0].length;}i<s.length&&r.push(JSON.stringify(s.slice(i))),ae(e,Be,r.join("+"),t);}}else n===11&&qe(e,t);},qe=(e,t)=>{let n=e.firstChild;for(;n;)n=Fe(n,t)||n.nextSibling;},Je=(e,t,n,s)=>{let r,i,c;if(t=t.replace(pn,(o,l)=>((c||(c={}))[l]=true,"")),t[0]===":")r=ie,i=t.slice(1);else if(t[0]==="@")r=Ke,i=t.slice(1);else {const o=t.indexOf(":"),l=o>0?t.slice(2,o):t.slice(2);r=rn[l]||s.dirs[l],i=o>0?t.slice(o+1):void 0;}r&&(r===ie&&i==="ref"&&(r=We),ae(e,r,n,s,i,c),e.removeAttribute(t));},ae=(e,t,n,s,r,i)=>{const c=t({el:e,get:(o=n)=>H$2(s.scope,o,e),effect:s.effect,ctx:s,exp:n,arg:r,modifiers:i});c&&s.cleanups.push(c);},hn=(e,t)=>{if(t[0]==="#"){const n=document.querySelector(t);e.appendChild(n.content.cloneNode(true));return}e.innerHTML=t;},Ze=e=>{const t={delimiters:["{{","}}"],delimitersRE:/\{\{([^]+?)\}\}/g,...e,scope:e?e.scope:D$1({}),dirs:e?e.dirs:{},effects:[],blocks:[],cleanups:[],effect:n=>{if(fe)return Ie(n),n;const s=wt(n,{scheduler:()=>Ie(s)});return t.effects.push(s),s}};return t},Ge=(e,t={})=>{const n=e.scope,s=Object.create(n);Object.defineProperties(s,Object.getOwnPropertyDescriptors(t)),s.$refs=Object.create(n.$refs);const r=D$1(new Proxy(s,{set(i,c,o,l){return l===r&&!i.hasOwnProperty(c)?Reflect.set(n,c,o):Reflect.set(i,c,o,l)}}));return Ue(r),{...e,scope:r}},Ue=e=>{for(const t of Object.keys(e))typeof e[t]=="function"&&(e[t]=e[t].bind(e));};class ue{constructor(t,n,s=false){$$2(this,"template");$$2(this,"ctx");$$2(this,"key");$$2(this,"parentCtx");$$2(this,"isFragment");$$2(this,"start");$$2(this,"end");this.isFragment=t instanceof HTMLTemplateElement,s?this.template=t:this.isFragment?this.template=t.content.cloneNode(true):this.template=t.cloneNode(true),s?this.ctx=n:(this.parentCtx=n,n.blocks.push(this),this.ctx=Ze(n)),Fe(this.template,this.ctx);}get el(){return this.start||this.template}insert(t,n=null){if(this.isFragment)if(this.start){let s=this.start,r;for(;s&&(r=s.nextSibling,t.insertBefore(s,n),s!==this.end);)s=r;}else this.start=new Text(""),this.end=new Text(""),t.insertBefore(this.end,n),t.insertBefore(this.start,this.end),t.insertBefore(this.template,this.end);else t.insertBefore(this.template,n);}remove(){if(this.parentCtx&&ft(this.parentCtx.blocks,this),this.start){const t=this.start.parentNode;let n=this.start,s;for(;n&&(s=n.nextSibling,t.removeChild(n),n!==this.end);)n=s;}else this.template.parentNode.removeChild(this.template);this.teardown();}teardown(){this.ctx.blocks.forEach(t=>{t.teardown();}),this.ctx.effects.forEach(_t),this.ctx.cleanups.forEach(t=>t());}}const Ye=e=>e.replace(/[-.*+?^${}()|[\]\/\\]/g,"\\$&"),Qe=e=>{const t=Ze();if(e&&(t.scope=D$1(e),Ue(t.scope),e.$delimiters)){const[s,r]=t.delimiters=e.$delimiters;t.delimitersRE=new RegExp(Ye(s)+"([^]+?)"+Ye(r),"g");}t.scope.$s=ze,t.scope.$nextTick=V$1,t.scope.$refs=Object.create(null);let n;return {directive(s,r){return r?(t.dirs[s]=r,this):t.dirs[s]},mount(s){if(typeof s=="string"&&(s=document.querySelector(s),!s))return;s=s||document.documentElement;let r;return s.hasAttribute("v-scope")?r=[s]:r=[...s.querySelectorAll("[v-scope]")].filter(i=>!i.matches("[v-scope] [v-scope]")),r.length||(r=[s]),n=r.map(i=>new ue(i,t,true)),this},unmount(){n.forEach(s=>s.teardown());}}},Xe=document.currentScript;Xe&&Xe.hasAttribute("init")&&Qe().mount();
 
   /**
   A parse stack. These are used internally by the parser to track
@@ -25220,16 +25220,16 @@
       /**
       The parse that this stack is part of @internal
       */
-      p, 
+      p,
       /**
       Holds state, input pos, buffer index triplets for all but the
       top state @internal
       */
-      stack, 
+      stack,
       /**
       The current parse state @internal
       */
-      state, 
+      state,
       // The position at which the next reduce should take place. This
       // can be less than `this.pos` when skipped expressions have been
       // added to the stack (which should be moved outside of the next
@@ -25237,24 +25237,24 @@
       /**
       @internal
       */
-      reducePos, 
+      reducePos,
       /**
       The input position up to which this stack has parsed.
       */
-      pos, 
+      pos,
       /**
       The dynamic score of the stack, including dynamic precedence
       and error-recovery penalties
       @internal
       */
-      score, 
+      score,
       // The output buffer. Holds (type, start, end, size) quads
       // representing nodes created by the parser, where `size` is
       // amount of buffer array entries covered by this node.
       /**
       @internal
       */
-      buffer, 
+      buffer,
       // The base offset of the buffer. When stacks are split, the split
       // instance shared the buffer history with its parent up to
       // `bufferBase`, which is the absolute offset (including the
@@ -25263,15 +25263,15 @@
       /**
       @internal
       */
-      bufferBase, 
+      bufferBase,
       /**
       @internal
       */
-      curContext, 
+      curContext,
       /**
       @internal
       */
-      lookAhead = 0, 
+      lookAhead = 0,
       // A parent stack from which this was split off, if any. This is
       // set up so that it always points to a stack that has some
       // additional buffer content, never to a stack with an equal
@@ -25868,7 +25868,7 @@
       /**
       @internal
       */
-      input, 
+      input,
       /**
       @internal
       */
@@ -25940,7 +25940,7 @@
       Look at a code unit near the stream position. `.peek(0)` equals
       `.next`, `.peek(-1)` gives you the previous character, and so
       on.
-      
+
       Note that looking around during tokenizing creates dependencies
       on potentially far-away content, which may reduce the
       effectiveness incremental parsing—when looking forward—or even
@@ -30629,7 +30629,7 @@
               replacer = undefined;
           }
           const { aliasDuplicateObjects, anchorPrefix, flow, keepUndefined, onTagObj, tag } = options ?? {};
-          const { onAnchor, setAnchors, sourceObjects } = createNodeAnchors(this, 
+          const { onAnchor, setAnchors, sourceObjects } = createNodeAnchors(this,
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           anchorPrefix || 'a');
           const ctx = {
@@ -32780,7 +32780,7 @@
   }
 
   /** The byte order mark */
-  const BOM = '\u{FEFF}';
+  const BOM$1 = '\u{FEFF}';
   /** Start of doc-mode */
   const DOCUMENT = '\x02'; // C0: Start of Text
   /** Unexpected end of flow-mode */
@@ -32799,7 +32799,7 @@
   /** Get a printable representation of a lexer token */
   function prettyToken(token) {
       switch (token) {
-          case BOM:
+          case BOM$1:
               return '<BOM>';
           case DOCUMENT:
               return '<DOC>';
@@ -32814,7 +32814,7 @@
   /** Identify the type of a lexer token. May return `null` for unknown tokens. */
   function tokenType(source) {
       switch (source) {
-          case BOM:
+          case BOM$1:
               return 'byte-order-mark';
           case DOCUMENT:
               return 'doc-mode';
@@ -32874,7 +32874,7 @@
 
   var cst = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    BOM: BOM,
+    BOM: BOM$1,
     DOCUMENT: DOCUMENT,
     FLOW_END: FLOW_END,
     SCALAR: SCALAR,
@@ -33133,7 +33133,7 @@
           let line = this.getLine();
           if (line === null)
               return this.setNext('stream');
-          if (line[0] === BOM) {
+          if (line[0] === BOM$1) {
               yield* this.pushCount(1);
               line = line.substring(1);
           }
@@ -34653,7 +34653,7 @@
       }
       return doc;
   }
-  function parse(src, reviver, options) {
+  function parse$1(src, reviver, options) {
       let _reviver = undefined;
       if (typeof reviver === 'function') {
           _reviver = reviver;
@@ -34722,7 +34722,7 @@
     isPair: isPair,
     isScalar: isScalar$1,
     isSeq: isSeq,
-    parse: parse,
+    parse: parse$1,
     parseAllDocuments: parseAllDocuments,
     parseDocument: parseDocument,
     stringify: stringify,
@@ -34944,7 +34944,7 @@
     input.advance();
     while (!isSep(input.next) && charTag(input.tag) != "f") input.advance();
   }
-    
+
   function readQuoted(input, scan) {
     let quote = input.next, lineBreak = false, start = input.pos;
     input.advance();
@@ -35168,6 +35168,4176 @@
       return new LanguageSupport(yamlLanguage);
   }
 
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+  const KEYWORDS_TABLE = new Map([
+    // ordered is important, do not change
+    ['@context', 0],
+    ['@type', 2],
+    ['@id', 4],
+    ['@value', 6],
+    // alphabetized after `@context`, `@type`, `@id`, `@value`
+    // IDs <= 24 represented with 1 byte, IDs > 24 use 2+ bytes
+    ['@direction', 8],
+    ['@graph', 10],
+    ['@included', 12],
+    ['@index', 14],
+    ['@json', 16],
+    ['@language', 18],
+    ['@list', 20],
+    ['@nest', 22],
+    ['@reverse', 24],
+    // these only appear in frames and contexts, not docs
+    ['@base', 26],
+    ['@container', 28],
+    ['@default', 30],
+    ['@embed', 32],
+    ['@explicit', 34],
+    ['@none', 36],
+    ['@omitDefault', 38],
+    ['@prefix', 40],
+    ['@preserve', 42],
+    ['@protected', 44],
+    ['@requireAll', 46],
+    ['@set', 48],
+    ['@version', 50],
+    ['@vocab', 52],
+    // `@propagate` added later
+    ['@propagate', 54]
+  ]);
+
+  /**
+   * These are from the legacy registry.
+   *
+   * @see https://digitalbazaar.github.io/cbor-ld-spec/#term-codec-registry
+   */
+  const STRING_TABLE = new Map([
+    // 0x00 - 0x0F: reserved
+    ['https://www.w3.org/ns/activitystreams', 16],
+    ['https://www.w3.org/2018/credentials/v1', 17],
+    ['https://www.w3.org/ns/did/v1', 18],
+    ['https://w3id.org/security/suites/ed25519-2018/v1', 19],
+    ['https://w3id.org/security/suites/ed25519-2020/v1', 20],
+    ['https://w3id.org/cit/v1', 21],
+    ['https://w3id.org/age/v1', 22],
+    ['https://w3id.org/security/suites/x25519-2020/v1', 23],
+    ['https://w3id.org/veres-one/v1', 24],
+    ['https://w3id.org/webkms/v1', 25],
+    ['https://w3id.org/zcap/v1', 26],
+    ['https://w3id.org/security/suites/hmac-2019/v1', 27],
+    ['https://w3id.org/security/suites/aes-2019/v1', 28],
+    ['https://w3id.org/vaccination/v1', 29],
+    ['https://w3id.org/vc-revocation-list-2020/v1', 30],
+    ['https://w3id.org/dcc/v1', 31],
+    ['https://w3id.org/vc/status-list/v1', 32],
+    ['https://www.w3.org/ns/credentials/v2', 33],
+    // 0x22 - 0x2F (34-47): available
+    ['https://w3id.org/security/data-integrity/v1', 48],
+    ['https://w3id.org/security/multikey/v1', 49],
+    // 0x32 (50): reserved (in legacy spec)
+    // FIXME: Unclear on how to handle the openbadges URLs and versioning.
+    // This value was never in the spec, but was added here, and potentially
+    // elsewhere.
+    ['https://purl.imsglobal.org/spec/ob/v3p0/context.json', 50],
+    ['https://w3id.org/security/data-integrity/v2', 51]
+    // 0x34 - 0x36 (52-54): reserved; removed experimental cryptosuite
+    // registrations
+  ]);
+
+  const URL_SCHEME_TABLE = new Map([
+    ['http://', 1],
+    ['https://', 2],
+    ['urn:uuid:', 3],
+    ['data:', 4],
+    ['did:v1:nym:', 1024],
+    ['did:key:', 1025]
+  ]);
+
+  reverseMap(URL_SCHEME_TABLE);
+
+  const cryptosuiteTypedTable = new Map([
+    ['ecdsa-rdfc-2019', 1],
+    ['ecdsa-sd-2023', 2],
+    ['eddsa-rdfc-2022', 3],
+    ['ecdsa-xi-2023', 4]
+  ]);
+
+  const TYPE_TABLE = new Map([
+    ['context', STRING_TABLE],
+    ['url', STRING_TABLE],
+    ['none', STRING_TABLE],
+    ['https://w3id.org/security#cryptosuiteString', cryptosuiteTypedTable]
+  ]);
+  const FIRST_CUSTOM_TERM_ID = 100;
+
+  function createLegacyTypeTable({typeTable, appContextMap} = {}) {
+    if(typeTable) {
+      throw new TypeError(
+        '"typeTable" must not be passed when using "legacy" mode.');
+    }
+
+    // generate legacy type table
+    typeTable = new Map(TYPE_TABLE);
+
+    if(appContextMap) {
+      // add `appContextMap` to legacy mode combined string table
+      const stringTable = new Map(STRING_TABLE);
+      for(const [key, value] of appContextMap) {
+        stringTable.set(key, value);
+      }
+      typeTable.set('context', stringTable);
+      typeTable.set('url', stringTable);
+      typeTable.set('none', stringTable);
+    }
+
+    return typeTable;
+  }
+
+  function createTypeTable({typeTable} = {}) {
+    // ensure `typeTable` has empty maps for core types
+    typeTable = new Map(typeTable);
+    if(!typeTable.has('context')) {
+      typeTable.set('context', new Map());
+    }
+    if(!typeTable.has('url')) {
+      typeTable.set('url', new Map());
+    }
+    if(!typeTable.has('none')) {
+      typeTable.set('none', new Map());
+    }
+    return typeTable;
+  }
+
+  function reverseMap(m) {
+    return new Map(Array.from(m, e => e.reverse()));
+  }
+
+  /*!
+   * Copyright (c) 2020-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+  class CborldError extends Error {
+    constructor(code, message) {
+      super(message);
+      this.code = code;
+      // backwards compatibility, `this.value`
+      this.value = code;
+      this.stack = (new Error(`${code}: ${message}`)).stack;
+      this.name = this.constructor.name;
+    }
+  }
+
+  /*!
+   * Copyright (c) 2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // if a value with `termType` was compressed using the type table, then
+  // the encoded value will either be a `number` or a `Uint8Array`
+  const LEGACY_TYPE_TABLE_ENCODED_AS_BYTES = new Set([
+    /* Note: In legacy mode, the `url` table values are encoded as integers,
+    which means that if the legacy global URL table is appended to and an
+    encoder uses the new version whilst a decoder uses the old version, the
+    decoder might misinterpret the new entry as some term from a context. This
+    can also happen with `appContextMap`, but could only occur if the number
+    of terms used in the contexts in play were greater than 32K. The non-legacy
+    version of CBOR-LD encodes values from the URL table as bytes, preventing
+    any possibility of collision -- and any different view of a table would
+    instead result in an error. */
+    'none',
+    'http://www.w3.org/2001/XMLSchema#date',
+    'http://www.w3.org/2001/XMLSchema#dateTime'
+  ]);
+  const TYPE_TABLE_ENCODED_AS_BYTES = new Set(
+    LEGACY_TYPE_TABLE_ENCODED_AS_BYTES);
+  TYPE_TABLE_ENCODED_AS_BYTES.add('url');
+
+  function bytesFromUint({intValue}) {
+    let buffer;
+    let dataview;
+    if(intValue < 0xFF) {
+      buffer = new ArrayBuffer(1);
+      dataview = new DataView(buffer);
+      dataview.setUint8(0, intValue);
+    } else if(intValue < 0xFFFF) {
+      buffer = new ArrayBuffer(2);
+      dataview = new DataView(buffer);
+      dataview.setUint16(0, intValue);
+    } else if(intValue < 0xFFFFFFFF) {
+      buffer = new ArrayBuffer(4);
+      dataview = new DataView(buffer);
+      dataview.setUint32(0, intValue);
+    } else if(intValue < Number.MAX_SAFE_INTEGER) {
+      buffer = new ArrayBuffer(8);
+      dataview = new DataView(buffer);
+      dataview.setBigUint64(0, BigInt(intValue));
+    } else {
+      throw new CborldError(
+        'ERR_COMPRESSION_VALUE_TOO_LARGE',
+        `Compression value "${intValue}" too large.`);
+    }
+    const bytes = new Uint8Array(buffer);
+    return bytes;
+  }
+
+  function bytesFromInt({intValue}) {
+    let buffer;
+    let dataview;
+    if(intValue < 0x7F) {
+      buffer = new ArrayBuffer(1);
+      dataview = new DataView(buffer);
+      dataview.setInt8(0, intValue);
+    } else if(intValue < 0x7FFF) {
+      buffer = new ArrayBuffer(2);
+      dataview = new DataView(buffer);
+      dataview.setInt16(0, intValue);
+    } else if(intValue < 0x7FFFFFFF) {
+      buffer = new ArrayBuffer(4);
+      dataview = new DataView(buffer);
+      dataview.setInt32(0, intValue);
+    } else if(intValue < Number.MAX_SAFE_INTEGER) {
+      buffer = new ArrayBuffer(8);
+      dataview = new DataView(buffer);
+      dataview.setBigInt64(0, BigInt(intValue));
+    } else {
+      throw new CborldError(
+        'ERR_COMPRESSION_VALUE_TOO_LARGE',
+        `Compression value "${intValue}" too large.`);
+    }
+    const bytes = new Uint8Array(buffer);
+    return bytes;
+  }
+
+  // FIXME: consider moving this out of helpers elsewhere
+  function getTableType({termInfo, termType}) {
+    const {term, def} = termInfo;
+
+    // handle `@id`, `@type`, their aliases, and `@vocab`
+    if(term === '@id' || def['@id'] === '@id' ||
+      term === '@type' || def['@id'] === '@type' ||
+      termType === '@id' || termType === '@vocab') {
+      return 'url';
+    }
+    return termType ?? 'none';
+  }
+
+  /*!
+   * Copyright (c) 2021-2025 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class ActiveContext {
+    constructor({
+      termMap = new Map(),
+      previous,
+      contextLoader = previous?.contextLoader,
+    } = {}) {
+      this.termMap = termMap;
+      this.previous = previous;
+      this.contextLoader = contextLoader;
+
+      // compute all type terms (`@type` and aliases)
+      this.typeTerms = ['@type'];
+      for(const [term, def] of termMap) {
+        if(def['@id'] === '@type') {
+          this.typeTerms.push(term);
+        }
+      }
+    }
+
+    /**
+     * Apply the embedded JSON-LD contexts in the given object to produce a new
+     * active context which can be used to get type information about the object
+     * prior to applying any type-scoped contexts.
+     *
+     * @param {object} options - The options to use.
+     * @param {object} options.obj - The object to get the active context for.
+     *
+     * @returns {Promise<ActiveContext>} - The active context instance.
+     */
+    async applyEmbeddedContexts({obj}) {
+      // add any local embedded contexts to active term map
+      const termMap = await _updateTermMap({
+        activeTermMap: this.termMap,
+        contexts: obj['@context'],
+        contextLoader: this.contextLoader
+      });
+      return new ActiveContext({termMap, previous: this});
+    }
+
+    /**
+     * Apply any property-scoped JSON-LD context associated with the given term
+     * to produce a new active context that can be used with the values
+     * associated with the term.
+     *
+     * @param {object} options - The options to use.
+     * @param {string} options.term - The term to get the active context for.
+     *
+     * @returns {Promise<ActiveContext>} - The active context instance.
+     */
+    async applyPropertyScopedContext({term}) {
+      // always revert active context's term map when recursing into a property
+      // to remove any non-propagating terms
+      const termMap = await _updateTermMap({
+        activeTermMap: _revertTermMap({activeCtx: this}),
+        // get context from current active context (not reverted one)
+        contexts: this.termMap.get(term)?.['@context'],
+        contextLoader: this.contextLoader,
+        propertyScope: true
+      });
+      return new ActiveContext({termMap, previous: this});
+    }
+
+    /**
+     * Apply any type-scoped JSON-LD contexts associated with the given object
+     * types to produce a new active context that can be used to get the term
+     * information for each key in the object.
+     *
+     * @param {object} options - The options to use.
+     * @param {Set} options.objectTypes - The set of object types (strings) to
+     *   to use to produce the new active context.
+     *
+     * @returns {Promise<ActiveContext>} - The active context instance.
+     */
+    async applyTypeScopedContexts({objectTypes}) {
+      // apply type-scoped contexts in lexicographically type-sorted order
+      // (per JSON-LD spec)
+      objectTypes = [...objectTypes].sort();
+      let {termMap} = this;
+      for(const type of objectTypes) {
+        termMap = await _updateTermMap({
+          activeTermMap: termMap,
+          contexts: termMap.get(type)?.['@context'],
+          contextLoader: this.contextLoader,
+          typeScope: true
+        });
+      }
+      return new ActiveContext({termMap, previous: this});
+    }
+
+    getIdForTerm({term, plural}) {
+      return this.contextLoader.getIdForTerm({term, plural});
+    }
+
+    getTermDefinition({term}) {
+      return this.termMap.get(term) ?? {};
+    }
+
+    getTermInfo({id}) {
+      // get term and term definition
+      const {term, plural} = this.contextLoader.getTermForId({id});
+      const def = this.getTermDefinition({term});
+      return {term, termId: id, plural, def};
+    }
+
+    getTypeTerms() {
+      return this.typeTerms;
+    }
+  }
+
+  function _deepEqual(obj1, obj2, top = false) {
+    const isObject1 = obj1 && typeof obj1 === 'object';
+    const isObject2 = obj2 && typeof obj2 === 'object';
+    if(isObject1 !== isObject2) {
+      return false;
+    }
+    if(!isObject1) {
+      return obj1 === obj2;
+    }
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if(keys1.length !== keys2.length) {
+      return false;
+    }
+    for(const k of keys1) {
+      if(top && (k === 'protected' || k === 'propagate')) {
+        continue;
+      }
+      if(!_deepEqual(obj1[k], obj2[k])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function _resolveCurie({activeTermMap, context, possibleCurie}) {
+    if(possibleCurie === undefined || !possibleCurie.includes(':')) {
+      return possibleCurie;
+    }
+    // check for potential CURIE values
+    const [prefix, ...suffix] = possibleCurie.split(':');
+    const prefixDef = context[prefix] ?? activeTermMap.get(prefix);
+    if(prefixDef === undefined) {
+      // no CURIE
+      return possibleCurie;
+    }
+    // handle CURIE
+    const id = typeof prefixDef === 'string' ? prefixDef : prefixDef['@id'];
+    possibleCurie = id + suffix.join(':');
+    return _resolveCurie({activeTermMap, context, possibleCurie});
+  }
+
+  function _resolveCuries({activeTermMap, context, newTermMap}) {
+    for(const [key, def] of newTermMap.entries()) {
+      const id = def['@id'];
+      const type = def['@type'];
+      if(id !== undefined) {
+        def['@id'] = _resolveCurie({
+          activeTermMap, context, possibleCurie: id
+        });
+      } else {
+        // if `key` is a CURIE/absolute URL, then "@id" can be computed
+        const resolved = _resolveCurie({
+          activeTermMap, context, possibleCurie: key
+        });
+        if(resolved.includes(':')) {
+          def['@id'] = resolved;
+        }
+      }
+      if(type !== undefined) {
+        def['@type'] = _resolveCurie({
+          activeTermMap, context, possibleCurie: type
+        });
+      }
+      if(typeof def['@id'] !== 'string') {
+        throw new CborldError(
+          'ERR_INVALID_TERM_DEFINITION',
+          `Invalid JSON-LD term definition for "${key}"; the "@id" value ` +
+          'could not be determined.');
+      }
+    }
+  }
+
+  function _revertTermMap({activeCtx}) {
+    const newTermMap = new Map();
+
+    // keep every propagating term
+    const {termMap} = activeCtx;
+    const nonPropagating = [];
+    for(const [term, def] of termMap) {
+      if(!def.propagate) {
+        nonPropagating.push(term);
+        continue;
+      }
+      newTermMap.set(term, def);
+    }
+
+    // revert every non-propagating term
+    for(const term of nonPropagating) {
+      let currentCtx = activeCtx;
+      let def;
+      do {
+        currentCtx = currentCtx.previous;
+        def = currentCtx.termMap.get(term);
+      } while(def !== undefined && !def.propagate);
+      if(def !== undefined) {
+        newTermMap.set(term, def);
+      }
+    }
+
+    return newTermMap;
+  }
+
+  async function _updateTermMap({
+    activeTermMap, contexts = [{}], contextLoader,
+    propertyScope = false, typeScope = false
+  }) {
+    // normalize new contexts to an array
+    if(!Array.isArray(contexts)) {
+      contexts = [contexts];
+    }
+
+    // set flags based on context scope
+    const allowProtectedOverride = propertyScope;
+    const propagateDefault = typeScope ? false : true;
+
+    // load each context
+    for(let context of contexts) {
+      // load and get newly resolved context
+      const entry = await contextLoader.load({context});
+      ({context} = entry);
+
+      // clone entry `termMap` for creating new active context
+      const propagate = context['@propagate'] ?? propagateDefault;
+      // shallow-copy term definitions and set `propagate` value
+      const newTermMap = new Map([...entry.termMap.entries()].map(
+        ([k, v]) => [k, {...v, propagate}]));
+
+      // resolve any CURIE values in definitions
+      _resolveCuries({activeTermMap, context, newTermMap});
+
+      // update new terms map based on existing `activeTermMap`
+      for(const [term, activeDef] of activeTermMap) {
+        let def = newTermMap.get(term);
+        if(def !== undefined) {
+          // disallow overriding of protected terms unless explicitly permitted
+          if(activeDef.protected) {
+            if(!allowProtectedOverride && !_deepEqual(def, activeDef, true)) {
+              throw new CborldError(
+                'ERR_PROTECTED_TERM_REDEFINITION',
+                `Unexpected redefinition of protected term "${term}".`);
+            }
+            // ensure `def` remains protected, propagation can change as it
+            // does not affect protection
+            def = {...activeDef, propagate: def.propagate};
+          }
+        } else if(context[term] !== null) {
+          // since `context` does not explictly clear `key`, copy it
+          newTermMap.set(term, {...activeDef});
+        }
+      }
+
+      // update active term map
+      activeTermMap = newTermMap;
+    }
+
+    return activeTermMap;
+  }
+
+  /*!
+   * Copyright (c) 2021-2025 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class ContextLoader {
+    /**
+     * Creates a new ContextLoader.
+     *
+     * @param {object} options - The options to use.
+     * @param {documentLoaderFunction} options.documentLoader -The document
+     *   loader to use when resolving JSON-LD Context URLs.
+     * @param {boolean} [options.buildReverseMap=false] - `true` to build a
+     *   reverse map, `false` not to.
+     */
+    constructor({documentLoader, buildReverseMap = false} = {}) {
+      this.documentLoader = documentLoader;
+      this.contextMap = new Map();
+      this.nextTermId = FIRST_CUSTOM_TERM_ID;
+      this.termToId = new Map(KEYWORDS_TABLE);
+      if(buildReverseMap) {
+        this.idToTerm = reverseMap(KEYWORDS_TABLE);
+      }
+    }
+
+    getIdForTerm({term, plural = false}) {
+      // check `termToId` table
+      const id = this.termToId.get(term);
+      if(id === undefined) {
+        // return uncompressed `term` as-is
+        return term;
+      }
+      return plural ? id + 1 : id;
+    }
+
+    getTermForId({id}) {
+      if(typeof id === 'string') {
+        // dynamically generate term info for uncompressed term; `plural`
+        // as `false` will cause the associated value to pass through
+        // without any valence-related modifications
+        return {term: id, plural: false};
+      }
+      const plural = (id & 1) === 1;
+      const term = this.idToTerm.get(plural ? id - 1 : id);
+      if(term === undefined) {
+        throw new CborldError(
+          'ERR_UNKNOWN_CBORLD_TERM_ID',
+          `Unknown term ID "${id}" was detected in the CBOR-LD input.`);
+      }
+      return {term, plural};
+    }
+
+    hasTermId({id}) {
+      return this.idToTerm.has(id);
+    }
+
+    async load({context}) {
+      const entry = this.contextMap.get(context);
+      if(entry) {
+        // already loaded, return it
+        return entry;
+      }
+      let ctx = context;
+      let contextUrl;
+      if(typeof context === 'string') {
+        // fetch context
+        contextUrl = context;
+        ({'@context': ctx} = await this._getDocument({url: contextUrl}));
+      }
+      // FIXME: validate `ctx` to ensure its a valid JSON-LD context value
+      // add context
+      return this._addContext({context: ctx, contextUrl});
+    }
+
+    async _addContext({context, contextUrl}) {
+      const {contextMap, termToId, idToTerm} = this;
+
+      // handle `@import`
+      const importUrl = context['@import'];
+      if(importUrl) {
+        let importEntry = contextMap.get(importUrl);
+        if(!importEntry) {
+          const {'@context': importCtx} = await this._getDocument({
+            url: importUrl
+          });
+          importEntry = await this._addContext({
+            context: importCtx, contextUrl: importUrl
+          });
+        }
+        context = {...importEntry.context, ...context};
+      }
+
+      // create context entry
+      const termMap = new Map();
+      const entry = {context, termMap};
+
+      // process context keys in sorted order to ensure term IDs are assigned
+      // consistently
+      const keys = Object.keys(context).sort();
+      const isProtected = !!context['@protected'];
+      for(const key of keys) {
+        if(KEYWORDS_TABLE.has(key)) {
+          // skip `KEYWORDS_TABLE` to avoid adding unnecessary term defns
+          continue;
+        }
+
+        let def = context[key];
+        if(def === null) {
+          // no term definition
+          continue;
+        }
+
+        // normalize definition to an object
+        if(typeof def === 'string') {
+          def = {'@id': def};
+        } else if(Object.prototype.toString.call(def) !== '[object Object]') {
+          throw new CborldError(
+            'ERR_INVALID_TERM_DEFINITION',
+            `Invalid JSON-LD term definition for "${key}"; it must be ` +
+            'a string or an object.');
+        }
+
+        // set term definition
+        termMap.set(key, {...def, protected: isProtected});
+
+        // ensure the term has been assigned an ID
+        if(!termToId.has(key)) {
+          const id = this.nextTermId;
+          this.nextTermId += 2;
+          termToId.set(key, id);
+          if(idToTerm) {
+            idToTerm.set(id, key);
+          }
+        }
+      }
+
+      // add entry for context URL or context object
+      contextMap.set(contextUrl || context, entry);
+
+      return entry;
+    }
+
+    async _getDocument({url}) {
+      const {document} = await this.documentLoader(url);
+      if(typeof document === 'string') {
+        return JSON.parse(document);
+      }
+      return document;
+    }
+  }
+
+  /**
+   * Fetches a resource given a URL and returns it as a string.
+   *
+   * @callback documentLoaderFunction
+   * @param {string} url - The URL to retrieve.
+   *
+   * @returns {string} The resource associated with the URL as a string.
+   */
+
+  /*!
+   * Copyright (c) 2021-2025 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class Converter {
+    /**
+     * Creates a new Converter for converting CBOR-LD <=> JSON-LD.
+     *
+     * @param {object} options - The options to use.
+     * @param {object} options.strategy - The conversion strategy to use,
+     *   e.g., a compressor or decompressor.
+     * @param {documentLoaderFunction} options.documentLoader -The document
+     *   loader to use when resolving JSON-LD Context URLs.
+     * @param {boolean} [options.legacy=false] - True if legacy mode is in
+     *   effect, false if not.
+     */
+    constructor({strategy, documentLoader, legacy = false} = {}) {
+      this.strategy = strategy;
+      this.legacy = legacy;
+      const contextLoader = new ContextLoader({
+        documentLoader, buildReverseMap: !!strategy.reverseTypeTable
+      });
+      this.contextLoader = contextLoader;
+      this.initialActiveCtx = new ActiveContext({contextLoader});
+
+      // FIXME: consider moving to strategies for better separation of concerns
+      this.typeTableEncodedAsBytesSet = legacy ?
+        LEGACY_TYPE_TABLE_ENCODED_AS_BYTES : TYPE_TABLE_ENCODED_AS_BYTES;
+    }
+
+    /**
+     * CBOR-LD is a semantic compression format; it uses the contextual
+     * information provided by JSON-LD contexts to compress JSON-LD objects
+     * to CBOR-LD (and vice versa).
+     *
+     * This `convert()` function is used to either convert from JSON-LD to
+     * CBOR-LD (compression) or vice versa (decompression). The type of
+     * conversion (compression or decompression) is called a `strategy`; this
+     * `strategy` is passed to the `Converter` constructor so it can be used
+     * during conversion.
+     *
+     * When compressing, the conversion maps JSON keys (strings) encountered in
+     * the JSON-LD object to CBOR-LD IDs (integers) and value encoders.
+     *
+     * When decompressing, the conversion maps CBOR-LD IDs (integers) and
+     * decoded values from value decoders.
+     *
+     * A follow-on process can then serialize these abstract outputs to either
+     * JSON or CBOR by using the `cborg` library.
+     *
+     * In order to match each JSON key / CBOR-LD ID with the right context term
+     * definition, it's important to understand how context is applied in
+     * JSON-LD, i.e., which context is "active" at a certain place in the input.
+     *
+     * There are three ways contexts become active:
+     *
+     * 1. Embedded contexts. An embedded context is expressed by using the
+     *    `@context` keyword in a JSON-LD object. It is active on the object
+     *    where it appears and propagates to any nested objects.
+     * 2. Type-scoped contexts. Such a context is defined in another context
+     *    and bound to a particular type. It will become active based on the
+     *    presence of the `@type` property (or an alias of it) and a matching
+     *    type value. By default, it *does not* propagate to nested objects,
+     *    i.e., it becomes inactive when a nested object does not have a matching
+     *    type.
+     * 3. Property-scoped contexts. Such a context is defined in another context
+     *    and bound to a particular property. It will become active based on the
+     *    presence of a particular term, i.e., JSON key. By default, it
+     *    propagates, i.e., all terms defined by the context will be applicable
+     *    to the whole subtree associated with the property in the JSON object.
+     *
+     * The internal conversion process follows this basic algorithm, which takes
+     * an input and an output (to be populated):
+     *
+     * 1. Converting any contexts in the input (i.e., "embedded contexts") and
+     *    producing an active context for converting other elements in the input.
+     *    Every term in the top-level contexts (excludes scoped-contexts) will be
+     *    auto-assigned CBOR-LD IDs.
+     * 2. Getting all type information associated with the input and using it
+     *    to update the active context. Any terms from any type-scoped contexts
+     *    will be auto-assigned CBOR-LD IDs.
+     * 3. For every term => value(s) entry in the input:
+     *    3.1. Update the active context using any property-scoped contextt
+     *         associated with the term. Any terms in this property-scoped
+     *         context will be auto-assigned CBOR-LD IDs.
+     *    3.2. Create an array of outputs to be populated from converting
+     *         all of the value(s).
+     *    3.3. For every value in value(s), perform conversion:
+     *         3.3.1. If the value is `null`, add it to the outputs as-is and
+     *                continue.
+     *         3.3.2. Try to use the strategy to convert the value; this involves
+     *                checking the value type and using value-specific codecs,
+     *                only values that must be recursed (e.g., objects and
+     *                arrays) will not be converted by a strategy; add any
+     *                successfully converted value to the outputs and continue.
+     *         3.2.3. If the value is an array, create an output array and
+     *                recursively convert each of its elements; add the output
+     *                array to the outputs and continue.
+     *         3.2.4. Create a new output according to the strategy, add it to
+     *                the outputs and recurse with the value as the new input
+     *                and the new output as the new output.
+     *    3.4. Add an term => value(s) entry to the output using the current term
+     *         information and the outputs as the value(s).
+     *
+     * @param {object} options - The options to use.
+     * @param {Map|object} options.input - The input to convert.
+     *
+     * @returns {Promise<Map|object>} - The output.
+     */
+    async convert({input} = {}) {
+      // handle single or multiple inputs
+      const isArray = Array.isArray(input);
+      const inputs = isArray ? input : [input];
+      const outputs = [];
+      // note: could be performed in parallel as long as order is preserved
+      for(const input of inputs) {
+        const output = this.strategy.createNewOutput();
+        outputs.push(await this._convert({input, output}));
+      }
+      return isArray ? outputs : outputs[0];
+    }
+
+    async _convert({activeCtx = this.initialActiveCtx, input, output}) {
+      // convert contexts according to strategy
+      const {strategy} = this;
+      activeCtx = await strategy.convertContexts({activeCtx, input, output});
+
+      // get unique `@type` (and alias) values for the input
+      const objectTypes = strategy.getObjectTypes({
+        activeCtx, input, output, converter: this
+      });
+
+      // apply type-scoped contexts
+      activeCtx = await activeCtx.applyTypeScopedContexts({objectTypes});
+
+      // walk each term => value(s) input entry to convert them all
+      const termEntries = strategy.getInputEntries({activeCtx, input});
+      for(const [termInfo, value] of termEntries) {
+        // apply any property-scoped context for `term` to get active context
+        // to use with each value
+        const {term} = termInfo;
+        const valueActiveCtx = await activeCtx.applyPropertyScopedContext({term});
+
+        // iterate through all values for the current term to produce new outputs
+        const {plural, def: {'@type': termType}} = termInfo;
+        const values = plural ? value : [value];
+        const outputs = [];
+        // note: could be performed in parallel as long as order is preserved
+        for(const value of values) {
+          outputs.push(await this._convertValue({
+            activeCtx: valueActiveCtx, termType, value, termInfo
+          }));
+        }
+        strategy.addOutputEntry({
+          termInfo, values: plural ? outputs : outputs[0], output
+        });
+      }
+      return output;
+    }
+
+    async _convertValue({activeCtx, termType, value, termInfo}) {
+      // `null` is never converted
+      if(value === null) {
+        return null;
+      }
+      // convert value via strategy if possible
+      let output = this.strategy.convertValue({
+        termType, value, termInfo, converter: this
+      });
+      if(output !== undefined) {
+        return output;
+      }
+      if(Array.isArray(value)) {
+        // recurse into array
+        const array = value;
+        const outputs = [];
+        // note: could be performed in parallel as long as order is preserved
+        for(const value of array) {
+          outputs.push(await this._convertValue({
+            activeCtx, termType, value, termInfo
+          }));
+        }
+        return outputs;
+      }
+      // recurse into object and populate new output
+      output = this.strategy.createNewOutput();
+      return this._convert({activeCtx, input: value, output});
+    }
+  }
+
+  /**
+   * Fetches a resource given a URL and returns it as a string.
+   *
+   * @callback documentLoaderFunction
+   * @param {string} url - The URL to retrieve.
+   *
+   * @returns {string} The resource associated with the URL as a string.
+   */
+
+  /*!
+   * Copyright (c) 2018-2022 Digital Bazaar, Inc. All rights reserved.
+   */
+  /**
+   * Encode/Decode input according to the "Base64url Encoding" format as specified
+   * in JSON Web Signature (JWS) RFC7517. A URL safe character set is used and
+   * trailing '=', line breaks, whitespace, and other characters are omitted.
+   *
+   * @module base64url-universal
+   */
+
+  const _alphabetIdx = [
+    62, -1, -1,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
+    -1, -1, -1, 64, -1, -1, -1,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    -1, -1, -1, -1, 63, -1,
+    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+    39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+  ];
+
+  /**
+   * Decodes input according to the "Base64url Encoding" format as specified
+   * in JSON Web Signature (JWS) RFC7517. A URL safe character set is used and
+   * trailing '=', line breaks, whitespace, and other characters are omitted.
+   *
+   * @alias module:base64url-universal
+   * @param {string} input - The data to decode.
+   *
+   * @returns {Uint8Array} The decoded value.
+   */
+  function decode$4(input) {
+    let length = input.length;
+    const mod4 = length % 4;
+    if(mod4 === 1) {
+      throw new Error('Illegal base64 string.');
+    }
+    let diff = 0;
+    if(mod4 > 0) {
+      diff = 4 - mod4;
+      length += diff;
+    }
+
+    const output = new Uint8Array(length / 4 * 3 - diff);
+
+    let enc1;
+    let enc2;
+    let enc3;
+    let enc4;
+    let i = 0;
+    let j = 0;
+
+    while(i < length) {
+      enc1 = _alphabetIdx[input.charCodeAt(i++) - 45];
+      enc2 = _alphabetIdx[input.charCodeAt(i++) - 45];
+
+      output[j++] = (enc1 << 2) | (enc2 >> 4);
+      if(i < input.length) {
+        // can decode at least 2 bytes
+        enc3 = _alphabetIdx[input.charCodeAt(i++) - 45];
+        output[j++] = ((enc2 & 15) << 4) | (enc3 >> 2);
+        if(i < input.length) {
+          // can decode 3 bytes
+          enc4 = _alphabetIdx[input.charCodeAt(i++) - 45];
+          output[j++] = ((enc3 & 3) << 6) | enc4;
+        }
+      }
+    }
+
+    return output;
+  }
+
+  /**
+   *  base64.ts
+   *
+   *  Licensed under the BSD 3-Clause License.
+   *    http://opensource.org/licenses/BSD-3-Clause
+   *
+   *  References:
+   *    http://en.wikipedia.org/wiki/Base64
+   *
+   * @author Dan Kogai (https://github.com/dankogai)
+   */
+  const version = '3.7.7';
+  /**
+   * @deprecated use lowercase `version`.
+   */
+  const VERSION = version;
+  const _hasBuffer = typeof Buffer === 'function';
+  const _TD = typeof TextDecoder === 'function' ? new TextDecoder() : undefined;
+  const _TE = typeof TextEncoder === 'function' ? new TextEncoder() : undefined;
+  const b64ch = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  const b64chs = Array.prototype.slice.call(b64ch);
+  const b64tab = ((a) => {
+      let tab = {};
+      a.forEach((c, i) => tab[c] = i);
+      return tab;
+  })(b64chs);
+  const b64re = /^(?:[A-Za-z\d+\/]{4})*?(?:[A-Za-z\d+\/]{2}(?:==)?|[A-Za-z\d+\/]{3}=?)?$/;
+  const _fromCC = String.fromCharCode.bind(String);
+  const _U8Afrom = typeof Uint8Array.from === 'function'
+      ? Uint8Array.from.bind(Uint8Array)
+      : (it) => new Uint8Array(Array.prototype.slice.call(it, 0));
+  const _mkUriSafe = (src) => src
+      .replace(/=/g, '').replace(/[+\/]/g, (m0) => m0 == '+' ? '-' : '_');
+  const _tidyB64 = (s) => s.replace(/[^A-Za-z0-9\+\/]/g, '');
+  /**
+   * polyfill version of `btoa`
+   */
+  const btoaPolyfill = (bin) => {
+      // console.log('polyfilled');
+      let u32, c0, c1, c2, asc = '';
+      const pad = bin.length % 3;
+      for (let i = 0; i < bin.length;) {
+          if ((c0 = bin.charCodeAt(i++)) > 255 ||
+              (c1 = bin.charCodeAt(i++)) > 255 ||
+              (c2 = bin.charCodeAt(i++)) > 255)
+              throw new TypeError('invalid character found');
+          u32 = (c0 << 16) | (c1 << 8) | c2;
+          asc += b64chs[u32 >> 18 & 63]
+              + b64chs[u32 >> 12 & 63]
+              + b64chs[u32 >> 6 & 63]
+              + b64chs[u32 & 63];
+      }
+      return pad ? asc.slice(0, pad - 3) + "===".substring(pad) : asc;
+  };
+  /**
+   * does what `window.btoa` of web browsers do.
+   * @param {String} bin binary string
+   * @returns {string} Base64-encoded string
+   */
+  const _btoa = typeof btoa === 'function' ? (bin) => btoa(bin)
+      : _hasBuffer ? (bin) => Buffer.from(bin, 'binary').toString('base64')
+          : btoaPolyfill;
+  const _fromUint8Array = _hasBuffer
+      ? (u8a) => Buffer.from(u8a).toString('base64')
+      : (u8a) => {
+          // cf. https://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string/12713326#12713326
+          const maxargs = 0x1000;
+          let strs = [];
+          for (let i = 0, l = u8a.length; i < l; i += maxargs) {
+              strs.push(_fromCC.apply(null, u8a.subarray(i, i + maxargs)));
+          }
+          return _btoa(strs.join(''));
+      };
+  /**
+   * converts a Uint8Array to a Base64 string.
+   * @param {boolean} [urlsafe] URL-and-filename-safe a la RFC4648 §5
+   * @returns {string} Base64 string
+   */
+  const fromUint8Array = (u8a, urlsafe = false) => urlsafe ? _mkUriSafe(_fromUint8Array(u8a)) : _fromUint8Array(u8a);
+  // This trick is found broken https://github.com/dankogai/js-base64/issues/130
+  // const utob = (src: string) => unescape(encodeURIComponent(src));
+  // reverting good old fationed regexp
+  const cb_utob = (c) => {
+      if (c.length < 2) {
+          var cc = c.charCodeAt(0);
+          return cc < 0x80 ? c
+              : cc < 0x800 ? (_fromCC(0xc0 | (cc >>> 6))
+                  + _fromCC(0x80 | (cc & 0x3f)))
+                  : (_fromCC(0xe0 | ((cc >>> 12) & 0x0f))
+                      + _fromCC(0x80 | ((cc >>> 6) & 0x3f))
+                      + _fromCC(0x80 | (cc & 0x3f)));
+      }
+      else {
+          var cc = 0x10000
+              + (c.charCodeAt(0) - 0xD800) * 0x400
+              + (c.charCodeAt(1) - 0xDC00);
+          return (_fromCC(0xf0 | ((cc >>> 18) & 0x07))
+              + _fromCC(0x80 | ((cc >>> 12) & 0x3f))
+              + _fromCC(0x80 | ((cc >>> 6) & 0x3f))
+              + _fromCC(0x80 | (cc & 0x3f)));
+      }
+  };
+  const re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+  /**
+   * @deprecated should have been internal use only.
+   * @param {string} src UTF-8 string
+   * @returns {string} UTF-16 string
+   */
+  const utob = (u) => u.replace(re_utob, cb_utob);
+  //
+  const _encode = _hasBuffer
+      ? (s) => Buffer.from(s, 'utf8').toString('base64')
+      : _TE
+          ? (s) => _fromUint8Array(_TE.encode(s))
+          : (s) => _btoa(utob(s));
+  /**
+   * converts a UTF-8-encoded string to a Base64 string.
+   * @param {boolean} [urlsafe] if `true` make the result URL-safe
+   * @returns {string} Base64 string
+   */
+  const encode$2 = (src, urlsafe = false) => urlsafe
+      ? _mkUriSafe(_encode(src))
+      : _encode(src);
+  /**
+   * converts a UTF-8-encoded string to URL-safe Base64 RFC4648 §5.
+   * @returns {string} Base64 string
+   */
+  const encodeURI = (src) => encode$2(src, true);
+  // This trick is found broken https://github.com/dankogai/js-base64/issues/130
+  // const btou = (src: string) => decodeURIComponent(escape(src));
+  // reverting good old fationed regexp
+  const re_btou = /[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3}/g;
+  const cb_btou = (cccc) => {
+      switch (cccc.length) {
+          case 4:
+              var cp = ((0x07 & cccc.charCodeAt(0)) << 18)
+                  | ((0x3f & cccc.charCodeAt(1)) << 12)
+                  | ((0x3f & cccc.charCodeAt(2)) << 6)
+                  | (0x3f & cccc.charCodeAt(3)), offset = cp - 0x10000;
+              return (_fromCC((offset >>> 10) + 0xD800)
+                  + _fromCC((offset & 0x3FF) + 0xDC00));
+          case 3:
+              return _fromCC(((0x0f & cccc.charCodeAt(0)) << 12)
+                  | ((0x3f & cccc.charCodeAt(1)) << 6)
+                  | (0x3f & cccc.charCodeAt(2)));
+          default:
+              return _fromCC(((0x1f & cccc.charCodeAt(0)) << 6)
+                  | (0x3f & cccc.charCodeAt(1)));
+      }
+  };
+  /**
+   * @deprecated should have been internal use only.
+   * @param {string} src UTF-16 string
+   * @returns {string} UTF-8 string
+   */
+  const btou = (b) => b.replace(re_btou, cb_btou);
+  /**
+   * polyfill version of `atob`
+   */
+  const atobPolyfill = (asc) => {
+      // console.log('polyfilled');
+      asc = asc.replace(/\s+/g, '');
+      if (!b64re.test(asc))
+          throw new TypeError('malformed base64.');
+      asc += '=='.slice(2 - (asc.length & 3));
+      let u24, bin = '', r1, r2;
+      for (let i = 0; i < asc.length;) {
+          u24 = b64tab[asc.charAt(i++)] << 18
+              | b64tab[asc.charAt(i++)] << 12
+              | (r1 = b64tab[asc.charAt(i++)]) << 6
+              | (r2 = b64tab[asc.charAt(i++)]);
+          bin += r1 === 64 ? _fromCC(u24 >> 16 & 255)
+              : r2 === 64 ? _fromCC(u24 >> 16 & 255, u24 >> 8 & 255)
+                  : _fromCC(u24 >> 16 & 255, u24 >> 8 & 255, u24 & 255);
+      }
+      return bin;
+  };
+  /**
+   * does what `window.atob` of web browsers do.
+   * @param {String} asc Base64-encoded string
+   * @returns {string} binary string
+   */
+  const _atob = typeof atob === 'function' ? (asc) => atob(_tidyB64(asc))
+      : _hasBuffer ? (asc) => Buffer.from(asc, 'base64').toString('binary')
+          : atobPolyfill;
+  //
+  const _toUint8Array = _hasBuffer
+      ? (a) => _U8Afrom(Buffer.from(a, 'base64'))
+      : (a) => _U8Afrom(_atob(a).split('').map(c => c.charCodeAt(0)));
+  /**
+   * converts a Base64 string to a Uint8Array.
+   */
+  const toUint8Array = (a) => _toUint8Array(_unURI(a));
+  //
+  const _decode = _hasBuffer
+      ? (a) => Buffer.from(a, 'base64').toString('utf8')
+      : _TD
+          ? (a) => _TD.decode(_toUint8Array(a))
+          : (a) => btou(_atob(a));
+  const _unURI = (a) => _tidyB64(a.replace(/[-_]/g, (m0) => m0 == '-' ? '+' : '/'));
+  /**
+   * converts a Base64 string to a UTF-8 string.
+   * @param {String} src Base64 string.  Both normal and URL-safe are supported
+   * @returns {string} UTF-8 string
+   */
+  const decode$3 = (src) => _decode(_unURI(src));
+  /**
+   * check if a value is a valid Base64 string
+   * @param {String} src a value to check
+    */
+  const isValid = (src) => {
+      if (typeof src !== 'string')
+          return false;
+      const s = src.replace(/\s+/g, '').replace(/={0,2}$/, '');
+      return !/[^\s0-9a-zA-Z\+/]/.test(s) || !/[^\s0-9a-zA-Z\-_]/.test(s);
+  };
+  //
+  const _noEnum = (v) => {
+      return {
+          value: v, enumerable: false, writable: true, configurable: true
+      };
+  };
+  /**
+   * extend String.prototype with relevant methods
+   */
+  const extendString = function () {
+      const _add = (name, body) => Object.defineProperty(String.prototype, name, _noEnum(body));
+      _add('fromBase64', function () { return decode$3(this); });
+      _add('toBase64', function (urlsafe) { return encode$2(this, urlsafe); });
+      _add('toBase64URI', function () { return encode$2(this, true); });
+      _add('toBase64URL', function () { return encode$2(this, true); });
+      _add('toUint8Array', function () { return toUint8Array(this); });
+  };
+  /**
+   * extend Uint8Array.prototype with relevant methods
+   */
+  const extendUint8Array = function () {
+      const _add = (name, body) => Object.defineProperty(Uint8Array.prototype, name, _noEnum(body));
+      _add('toBase64', function (urlsafe) { return fromUint8Array(this, urlsafe); });
+      _add('toBase64URI', function () { return fromUint8Array(this, true); });
+      _add('toBase64URL', function () { return fromUint8Array(this, true); });
+  };
+  /**
+   * extend Builtin prototypes with relevant methods
+   */
+  const extendBuiltins = () => {
+      extendString();
+      extendUint8Array();
+  };
+  const gBase64 = {
+      version: version,
+      VERSION: VERSION,
+      atob: _atob,
+      atobPolyfill: atobPolyfill,
+      btoa: _btoa,
+      btoaPolyfill: btoaPolyfill,
+      fromBase64: decode$3,
+      toBase64: encode$2,
+      encode: encode$2,
+      encodeURI: encodeURI,
+      encodeURL: encodeURI,
+      utob: utob,
+      btou: btou,
+      decode: decode$3,
+      isValid: isValid,
+      fromUint8Array: fromUint8Array,
+      toUint8Array: toUint8Array,
+      extendString: extendString,
+      extendUint8Array: extendUint8Array,
+      extendBuiltins: extendBuiltins
+  };
+
+  /**
+   * Base-N/Base-X encoding/decoding functions.
+   *
+   * Original implementation from base-x:
+   * https://github.com/cryptocoinjs/base-x
+   *
+   * Which is MIT licensed:
+   *
+   * The MIT License (MIT)
+   *
+   * Copyright base-x contributors (c) 2016
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy
+   * of this software and associated documentation files (the "Software"), to deal
+   * in the Software without restriction, including without limitation the rights
+   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is
+   * furnished to do so, subject to the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in
+   * all copies or substantial portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   * DEALINGS IN THE SOFTWARE.
+   */
+  // baseN alphabet indexes
+  const _reverseAlphabets = {};
+
+  /**
+   * Decodes a baseN-encoded (using the given alphabet) string to a
+   * Uint8Array.
+   *
+   * @param {string} input - The baseN-encoded input string.
+   * @param {string} alphabet - The alphabet to use for decoding.
+   *
+   * @returns {Uint8Array} The decoded bytes in a Uint8Array.
+   */
+  function decode$2(input, alphabet) {
+    if(typeof input !== 'string') {
+      throw new TypeError('"input" must be a string.');
+    }
+    if(input.length === 0) {
+      return new Uint8Array();
+    }
+
+    let table = _reverseAlphabets[alphabet];
+    if(!table) {
+      // compute reverse alphabet
+      table = _reverseAlphabets[alphabet] = [];
+      for(let i = 0; i < alphabet.length; ++i) {
+        table[alphabet.charCodeAt(i)] = i;
+      }
+    }
+
+    // remove whitespace characters
+    input = input.replace(/\s/g, '');
+
+    const base = alphabet.length;
+    const first = alphabet.charAt(0);
+    const bytes = [0];
+    for(let i = 0; i < input.length; i++) {
+      const value = table[input.charCodeAt(i)];
+      if(value === undefined) {
+        return;
+      }
+
+      let carry = value;
+      for(let j = 0; j < bytes.length; ++j) {
+        carry += bytes[j] * base;
+        bytes[j] = carry & 0xff;
+        carry >>= 8;
+      }
+
+      while(carry > 0) {
+        bytes.push(carry & 0xff);
+        carry >>= 8;
+      }
+    }
+
+    // deal with leading zeros
+    for(let k = 0; input[k] === first && k < input.length - 1; ++k) {
+      bytes.push(0);
+    }
+
+    return new Uint8Array(bytes.reverse());
+  }
+
+  /*!
+   * Copyright (c) 2019-2022 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // base58 characters (Bitcoin alphabet)
+  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  function decode$1(input) {
+    return decode$2(input, alphabet);
+  }
+
+  var REGEX = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/i;
+
+  function validate(uuid) {
+    return typeof uuid === 'string' && REGEX.test(uuid);
+  }
+
+  function parse(uuid) {
+    if (!validate(uuid)) {
+      throw TypeError('Invalid UUID');
+    }
+    var v;
+    var arr = new Uint8Array(16);
+
+    // Parse ########-....-....-....-............
+    arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+    arr[1] = v >>> 16 & 0xff;
+    arr[2] = v >>> 8 & 0xff;
+    arr[3] = v & 0xff;
+
+    // Parse ........-####-....-....-............
+    arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+    arr[5] = v & 0xff;
+
+    // Parse ........-....-####-....-............
+    arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+    arr[7] = v & 0xff;
+
+    // Parse ........-....-....-####-............
+    arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+    arr[9] = v & 0xff;
+
+    // Parse ........-....-....-....-############
+    // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+    arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+    arr[11] = v / 0x100000000 & 0xff;
+    arr[12] = v >>> 24 & 0xff;
+    arr[13] = v >>> 16 & 0xff;
+    arr[14] = v >>> 8 & 0xff;
+    arr[15] = v & 0xff;
+    return arr;
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  KEYWORDS_TABLE.get('@context');
+
+  // browser support
+  /* eslint-env browser */
+  /* eslint-disable-next-line no-unused-vars */
+  function inspect(data, options) {
+    return JSON.stringify(data, null, 2);
+  }
+
+  // This is an unfortunate replacement for @sindresorhus/is that we need to
+  // re-implement for performance purposes. In particular the is.observable()
+  // check is expensive, and unnecessary for our purposes. The values returned
+  // are compatible with @sindresorhus/is, however.
+
+  const typeofs = [
+    'string',
+    'number',
+    'bigint',
+    'symbol'
+  ];
+
+  const objectTypeNames = [
+    'Function',
+    'Generator',
+    'AsyncGenerator',
+    'GeneratorFunction',
+    'AsyncGeneratorFunction',
+    'AsyncFunction',
+    'Observable',
+    'Array',
+    'Buffer',
+    'Object',
+    'RegExp',
+    'Date',
+    'Error',
+    'Map',
+    'Set',
+    'WeakMap',
+    'WeakSet',
+    'ArrayBuffer',
+    'SharedArrayBuffer',
+    'DataView',
+    'Promise',
+    'URL',
+    'HTMLElement',
+    'Int8Array',
+    'Uint8Array',
+    'Uint8ClampedArray',
+    'Int16Array',
+    'Uint16Array',
+    'Int32Array',
+    'Uint32Array',
+    'Float32Array',
+    'Float64Array',
+    'BigInt64Array',
+    'BigUint64Array'
+  ];
+
+  /**
+   * @param {any} value
+   * @returns {string}
+   */
+  function is (value) {
+    if (value === null) {
+      return 'null'
+    }
+    if (value === undefined) {
+      return 'undefined'
+    }
+    if (value === true || value === false) {
+      return 'boolean'
+    }
+    const typeOf = typeof value;
+    if (typeofs.includes(typeOf)) {
+      return typeOf
+    }
+    /* c8 ignore next 4 */
+    // not going to bother testing this, it's not going to be valid anyway
+    if (typeOf === 'function') {
+      return 'Function'
+    }
+    if (Array.isArray(value)) {
+      return 'Array'
+    }
+    if (isBuffer$1(value)) {
+      return 'Buffer'
+    }
+    const objectType = getObjectType(value);
+    if (objectType) {
+      return objectType
+    }
+    /* c8 ignore next */
+    return 'Object'
+  }
+
+  /**
+   * @param {any} value
+   * @returns {boolean}
+   */
+  function isBuffer$1 (value) {
+    return value && value.constructor && value.constructor.isBuffer && value.constructor.isBuffer.call(null, value)
+  }
+
+  /**
+   * @param {any} value
+   * @returns {string|undefined}
+   */
+  function getObjectType (value) {
+    const objectTypeName = Object.prototype.toString.call(value).slice(8, -1);
+    if (objectTypeNames.includes(objectTypeName)) {
+      return objectTypeName
+    }
+    /* c8 ignore next */
+    return undefined
+  }
+
+  class Type {
+    /**
+     * @param {number} major
+     * @param {string} name
+     * @param {boolean} terminal
+     */
+    constructor (major, name, terminal) {
+      this.major = major;
+      this.majorEncoded = major << 5;
+      this.name = name;
+      this.terminal = terminal;
+    }
+
+    /* c8 ignore next 3 */
+    toString () {
+      return `Type[${this.major}].${this.name}`
+    }
+
+    /**
+     * @param {Type} typ
+     * @returns {number}
+     */
+    compare (typ) {
+      /* c8 ignore next 1 */
+      return this.major < typ.major ? -1 : this.major > typ.major ? 1 : 0
+    }
+  }
+
+  // convert to static fields when better supported
+  Type.uint = new Type(0, 'uint', true);
+  Type.negint = new Type(1, 'negint', true);
+  Type.bytes = new Type(2, 'bytes', true);
+  Type.string = new Type(3, 'string', true);
+  Type.array = new Type(4, 'array', false);
+  Type.map = new Type(5, 'map', false);
+  Type.tag = new Type(6, 'tag', false); // terminal?
+  Type.float = new Type(7, 'float', true);
+  Type.false = new Type(7, 'false', true);
+  Type.true = new Type(7, 'true', true);
+  Type.null = new Type(7, 'null', true);
+  Type.undefined = new Type(7, 'undefined', true);
+  Type.break = new Type(7, 'break', true);
+  // Type.indefiniteLength = new Type(0, 'indefiniteLength', true)
+
+  class Token {
+    /**
+     * @param {Type} type
+     * @param {any} [value]
+     * @param {number} [encodedLength]
+     */
+    constructor (type, value, encodedLength) {
+      this.type = type;
+      this.value = value;
+      this.encodedLength = encodedLength;
+      /** @type {Uint8Array|undefined} */
+      this.encodedBytes = undefined;
+      /** @type {Uint8Array|undefined} */
+      this.byteValue = undefined;
+    }
+
+    /* c8 ignore next 3 */
+    toString () {
+      return `Token[${this.type}].${this.value}`
+    }
+  }
+
+  // Use Uint8Array directly in the browser, use Buffer in Node.js but don't
+  // speak its name directly to avoid bundlers pulling in the `Buffer` polyfill
+
+  // @ts-ignore
+  const useBuffer = globalThis.process &&
+    // @ts-ignore
+    !globalThis.process.browser &&
+    // @ts-ignore
+    globalThis.Buffer &&
+    // @ts-ignore
+    typeof globalThis.Buffer.isBuffer === 'function';
+
+  new TextDecoder();
+  const textEncoder = new TextEncoder();
+
+  /**
+   * @param {Uint8Array} buf
+   * @returns {boolean}
+   */
+  function isBuffer (buf) {
+    // @ts-ignore
+    return useBuffer && globalThis.Buffer.isBuffer(buf)
+  }
+
+  /**
+   * @param {Uint8Array|number[]} buf
+   * @returns {Uint8Array}
+   */
+  function asU8A (buf) {
+    /* c8 ignore next */
+    if (!(buf instanceof Uint8Array)) {
+      return Uint8Array.from(buf)
+    }
+    return isBuffer(buf) ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength) : buf
+  }
+
+  const fromString = useBuffer
+    ? // eslint-disable-line operator-linebreak
+      /**
+       * @param {string} string
+       */
+      (string) => {
+        return string.length > 64
+          ? // eslint-disable-line operator-linebreak
+        // @ts-ignore
+          globalThis.Buffer.from(string)
+          : utf8ToBytes(string)
+      }
+    /* c8 ignore next 7 */
+    : // eslint-disable-line operator-linebreak
+      /**
+       * @param {string} string
+       */
+      (string) => {
+        return string.length > 64 ? textEncoder.encode(string) : utf8ToBytes(string)
+      };
+
+  /**
+   * Buffer variant not fast enough for what we need
+   * @param {number[]} arr
+   * @returns {Uint8Array}
+   */
+  const fromArray = (arr) => {
+    return Uint8Array.from(arr)
+  };
+
+  const slice = useBuffer
+    ? // eslint-disable-line operator-linebreak
+      /**
+       * @param {Uint8Array} bytes
+       * @param {number} start
+       * @param {number} end
+       */
+      (bytes, start, end) => {
+        if (isBuffer(bytes)) {
+          return new Uint8Array(bytes.subarray(start, end))
+        }
+        return bytes.slice(start, end)
+      }
+    /* c8 ignore next 9 */
+    : // eslint-disable-line operator-linebreak
+      /**
+       * @param {Uint8Array} bytes
+       * @param {number} start
+       * @param {number} end
+       */
+      (bytes, start, end) => {
+        return bytes.slice(start, end)
+      };
+
+  const concat = useBuffer
+    ? // eslint-disable-line operator-linebreak
+      /**
+       * @param {Uint8Array[]} chunks
+       * @param {number} length
+       * @returns {Uint8Array}
+       */
+      (chunks, length) => {
+        // might get a stray plain Array here
+        /* c8 ignore next 1 */
+        chunks = chunks.map((c) => c instanceof Uint8Array
+          ? c
+          // this case is occasionally missed during test runs so becomes coverage-flaky
+          /* c8 ignore next 4 */
+          : // eslint-disable-line operator-linebreak
+          // @ts-ignore
+          globalThis.Buffer.from(c));
+        // @ts-ignore
+        return asU8A(globalThis.Buffer.concat(chunks, length))
+      }
+    /* c8 ignore next 19 */
+    : // eslint-disable-line operator-linebreak
+      /**
+       * @param {Uint8Array[]} chunks
+       * @param {number} length
+       * @returns {Uint8Array}
+       */
+      (chunks, length) => {
+        const out = new Uint8Array(length);
+        let off = 0;
+        for (let b of chunks) {
+          if (off + b.length > out.length) {
+            // final chunk that's bigger than we need
+            b = b.subarray(0, out.length - off);
+          }
+          out.set(b, off);
+          off += b.length;
+        }
+        return out
+      };
+
+  const alloc = useBuffer
+    ? // eslint-disable-line operator-linebreak
+      /**
+       * @param {number} size
+       * @returns {Uint8Array}
+       */
+      (size) => {
+        // we always write over the contents we expose so this should be safe
+        // @ts-ignore
+        return globalThis.Buffer.allocUnsafe(size)
+      }
+    /* c8 ignore next 8 */
+    : // eslint-disable-line operator-linebreak
+      /**
+       * @param {number} size
+       * @returns {Uint8Array}
+       */
+      (size) => {
+        return new Uint8Array(size)
+      };
+
+  /**
+   * @param {Uint8Array} b1
+   * @param {Uint8Array} b2
+   * @returns {number}
+   */
+  function compare (b1, b2) {
+    /* c8 ignore next 5 */
+    if (isBuffer(b1) && isBuffer(b2)) {
+      // probably not possible to get here in the current API
+      // @ts-ignore Buffer
+      return b1.compare(b2)
+    }
+    for (let i = 0; i < b1.length; i++) {
+      if (b1[i] === b2[i]) {
+        continue
+      }
+      return b1[i] < b2[i] ? -1 : 1
+    } /* c8 ignore next 3 */
+    return 0
+  }
+
+  // The below code is taken from https://github.com/google/closure-library/blob/8598d87242af59aac233270742c8984e2b2bdbe0/closure/goog/crypt/crypt.js#L117-L143
+  // Licensed Apache-2.0.
+
+  /**
+   * @param {string} str
+   * @returns {number[]}
+   */
+  function utf8ToBytes (str) {
+    const out = [];
+    let p = 0;
+    for (let i = 0; i < str.length; i++) {
+      let c = str.charCodeAt(i);
+      if (c < 128) {
+        out[p++] = c;
+      } else if (c < 2048) {
+        out[p++] = (c >> 6) | 192;
+        out[p++] = (c & 63) | 128;
+      } else if (
+        ((c & 0xFC00) === 0xD800) && (i + 1) < str.length &&
+        ((str.charCodeAt(i + 1) & 0xFC00) === 0xDC00)) {
+        // Surrogate Pair
+        c = 0x10000 + ((c & 0x03FF) << 10) + (str.charCodeAt(++i) & 0x03FF);
+        out[p++] = (c >> 18) | 240;
+        out[p++] = ((c >> 12) & 63) | 128;
+        out[p++] = ((c >> 6) & 63) | 128;
+        out[p++] = (c & 63) | 128;
+      } else {
+        out[p++] = (c >> 12) | 224;
+        out[p++] = ((c >> 6) & 63) | 128;
+        out[p++] = (c & 63) | 128;
+      }
+    }
+    return out
+  }
+
+  /**
+   * Bl is a list of byte chunks, similar to https://github.com/rvagg/bl but for
+   * writing rather than reading.
+   * A Bl object accepts set() operations for individual bytes and copyTo() for
+   * inserting byte arrays. These write operations don't automatically increment
+   * the internal cursor so its "length" won't be changed. Instead, increment()
+   * must be called to extend its length to cover the inserted data.
+   * The toBytes() call will convert all internal memory to a single Uint8Array of
+   * the correct length, truncating any data that is stored but hasn't been
+   * included by an increment().
+   * get() can retrieve a single byte.
+   * All operations (except toBytes()) take an "offset" argument that will perform
+   * the write at the offset _from the current cursor_. For most operations this
+   * will be `0` to write at the current cursor position but it can be ahead of
+   * the current cursor. Negative offsets probably work but are untested.
+   */
+
+
+  // the ts-ignores in this file are almost all for the `Uint8Array|number[]` duality that exists
+  // for perf reasons. Consider better approaches to this or removing it entirely, it is quite
+  // risky because of some assumptions about small chunks === number[] and everything else === Uint8Array.
+
+  const defaultChunkSize = 256;
+
+  class Bl {
+    /**
+     * @param {number} [chunkSize]
+     */
+    constructor (chunkSize = defaultChunkSize) {
+      this.chunkSize = chunkSize;
+      /** @type {number} */
+      this.cursor = 0;
+      /** @type {number} */
+      this.maxCursor = -1;
+      /** @type {(Uint8Array|number[])[]} */
+      this.chunks = [];
+      // keep the first chunk around if we can to save allocations for future encodes
+      /** @type {Uint8Array|number[]|null} */
+      this._initReuseChunk = null;
+    }
+
+    reset () {
+      this.cursor = 0;
+      this.maxCursor = -1;
+      if (this.chunks.length) {
+        this.chunks = [];
+      }
+      if (this._initReuseChunk !== null) {
+        this.chunks.push(this._initReuseChunk);
+        this.maxCursor = this._initReuseChunk.length - 1;
+      }
+    }
+
+    /**
+     * @param {Uint8Array|number[]} bytes
+     */
+    push (bytes) {
+      let topChunk = this.chunks[this.chunks.length - 1];
+      const newMax = this.cursor + bytes.length;
+      if (newMax <= this.maxCursor + 1) {
+        // we have at least one chunk and we can fit these bytes into that chunk
+        const chunkPos = topChunk.length - (this.maxCursor - this.cursor) - 1;
+        // @ts-ignore
+        topChunk.set(bytes, chunkPos);
+      } else {
+        // can't fit it in
+        if (topChunk) {
+          // trip the last chunk to `cursor` if we need to
+          const chunkPos = topChunk.length - (this.maxCursor - this.cursor) - 1;
+          if (chunkPos < topChunk.length) {
+            // @ts-ignore
+            this.chunks[this.chunks.length - 1] = topChunk.subarray(0, chunkPos);
+            this.maxCursor = this.cursor - 1;
+          }
+        }
+        if (bytes.length < 64 && bytes.length < this.chunkSize) {
+          // make a new chunk and copy the new one into it
+          topChunk = alloc(this.chunkSize);
+          this.chunks.push(topChunk);
+          this.maxCursor += topChunk.length;
+          if (this._initReuseChunk === null) {
+            this._initReuseChunk = topChunk;
+          }
+          // @ts-ignore
+          topChunk.set(bytes, 0);
+        } else {
+          // push the new bytes in as its own chunk
+          this.chunks.push(bytes);
+          this.maxCursor += bytes.length;
+        }
+      }
+      this.cursor += bytes.length;
+    }
+
+    /**
+     * @param {boolean} [reset]
+     * @returns {Uint8Array}
+     */
+    toBytes (reset = false) {
+      let byts;
+      if (this.chunks.length === 1) {
+        const chunk = this.chunks[0];
+        if (reset && this.cursor > chunk.length / 2) {
+          /* c8 ignore next 2 */
+          // @ts-ignore
+          byts = this.cursor === chunk.length ? chunk : chunk.subarray(0, this.cursor);
+          this._initReuseChunk = null;
+          this.chunks = [];
+        } else {
+          // @ts-ignore
+          byts = slice(chunk, 0, this.cursor);
+        }
+      } else {
+        // @ts-ignore
+        byts = concat(this.chunks, this.cursor);
+      }
+      if (reset) {
+        this.reset();
+      }
+      return byts
+    }
+  }
+
+  const decodeErrPrefix = 'CBOR decode error:';
+  const encodeErrPrefix = 'CBOR encode error:';
+
+  /* globals BigInt */
+
+
+  const uintBoundaries = [24, 256, 65536, 4294967296, BigInt('18446744073709551616')];
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeUint (buf, token) {
+    return encodeUintValue(buf, 0, token.value)
+  }
+
+  /**
+   * @param {Bl} buf
+   * @param {number} major
+   * @param {number|bigint} uint
+   */
+  function encodeUintValue (buf, major, uint) {
+    if (uint < uintBoundaries[0]) {
+      const nuint = Number(uint);
+      // pack into one byte, minor=0, additional=value
+      buf.push([major | nuint]);
+    } else if (uint < uintBoundaries[1]) {
+      const nuint = Number(uint);
+      // pack into two byte, minor=0, additional=24
+      buf.push([major | 24, nuint]);
+    } else if (uint < uintBoundaries[2]) {
+      const nuint = Number(uint);
+      // pack into three byte, minor=0, additional=25
+      buf.push([major | 25, nuint >>> 8, nuint & 0xff]);
+    } else if (uint < uintBoundaries[3]) {
+      const nuint = Number(uint);
+      // pack into five byte, minor=0, additional=26
+      buf.push([major | 26, (nuint >>> 24) & 0xff, (nuint >>> 16) & 0xff, (nuint >>> 8) & 0xff, nuint & 0xff]);
+    } else {
+      const buint = BigInt(uint);
+      if (buint < uintBoundaries[4]) {
+        // pack into nine byte, minor=0, additional=27
+        const set = [major | 27, 0, 0, 0, 0, 0, 0, 0];
+        // simulate bitwise above 32 bits
+        let lo = Number(buint & BigInt(0xffffffff));
+        let hi = Number(buint >> BigInt(32) & BigInt(0xffffffff));
+        set[8] = lo & 0xff;
+        lo = lo >> 8;
+        set[7] = lo & 0xff;
+        lo = lo >> 8;
+        set[6] = lo & 0xff;
+        lo = lo >> 8;
+        set[5] = lo & 0xff;
+        set[4] = hi & 0xff;
+        hi = hi >> 8;
+        set[3] = hi & 0xff;
+        hi = hi >> 8;
+        set[2] = hi & 0xff;
+        hi = hi >> 8;
+        set[1] = hi & 0xff;
+        buf.push(set);
+      } else {
+        throw new Error(`${decodeErrPrefix} encountered BigInt larger than allowable range`)
+      }
+    }
+  }
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeUint.encodedSize = function encodedSize (token) {
+    return encodeUintValue.encodedSize(token.value)
+  };
+
+  /**
+   * @param {number} uint
+   * @returns {number}
+   */
+  encodeUintValue.encodedSize = function encodedSize (uint) {
+    if (uint < uintBoundaries[0]) {
+      return 1
+    }
+    if (uint < uintBoundaries[1]) {
+      return 2
+    }
+    if (uint < uintBoundaries[2]) {
+      return 3
+    }
+    if (uint < uintBoundaries[3]) {
+      return 5
+    }
+    return 9
+  };
+
+  /**
+   * @param {Token} tok1
+   * @param {Token} tok2
+   * @returns {number}
+   */
+  encodeUint.compareTokens = function compareTokens (tok1, tok2) {
+    return tok1.value < tok2.value ? -1 : tok1.value > tok2.value ? 1 : /* c8 ignore next */ 0
+  };
+
+  /* eslint-env es2020 */
+
+
+  const neg1b = BigInt(-1);
+  const pos1b = BigInt(1);
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeNegint (buf, token) {
+    const negint = token.value;
+    const unsigned = (typeof negint === 'bigint' ? (negint * neg1b - pos1b) : (negint * -1 - 1));
+    encodeUintValue(buf, token.type.majorEncoded, unsigned);
+  }
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeNegint.encodedSize = function encodedSize (token) {
+    const negint = token.value;
+    const unsigned = (typeof negint === 'bigint' ? (negint * neg1b - pos1b) : (negint * -1 - 1));
+    /* c8 ignore next 4 */
+    // handled by quickEncode, we shouldn't get here but it's included for completeness
+    if (unsigned < uintBoundaries[0]) {
+      return 1
+    }
+    if (unsigned < uintBoundaries[1]) {
+      return 2
+    }
+    if (unsigned < uintBoundaries[2]) {
+      return 3
+    }
+    if (unsigned < uintBoundaries[3]) {
+      return 5
+    }
+    return 9
+  };
+
+  /**
+   * @param {Token} tok1
+   * @param {Token} tok2
+   * @returns {number}
+   */
+  encodeNegint.compareTokens = function compareTokens (tok1, tok2) {
+    // opposite of the uint comparison since we store the uint version in bytes
+    return tok1.value < tok2.value ? 1 : tok1.value > tok2.value ? -1 : /* c8 ignore next */ 0
+  };
+
+  /**
+   * `encodedBytes` allows for caching when we do a byte version of a string
+   * for key sorting purposes
+   * @param {Token} token
+   * @returns {Uint8Array}
+   */
+  function tokenBytes (token) {
+    if (token.encodedBytes === undefined) {
+      token.encodedBytes = token.type === Type.string ? fromString(token.value) : token.value;
+    }
+    // @ts-ignore c'mon
+    return token.encodedBytes
+  }
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeBytes (buf, token) {
+    const bytes = tokenBytes(token);
+    encodeUintValue(buf, token.type.majorEncoded, bytes.length);
+    buf.push(bytes);
+  }
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeBytes.encodedSize = function encodedSize (token) {
+    const bytes = tokenBytes(token);
+    return encodeUintValue.encodedSize(bytes.length) + bytes.length
+  };
+
+  /**
+   * @param {Token} tok1
+   * @param {Token} tok2
+   * @returns {number}
+   */
+  encodeBytes.compareTokens = function compareTokens (tok1, tok2) {
+    return compareBytes(tokenBytes(tok1), tokenBytes(tok2))
+  };
+
+  /**
+   * @param {Uint8Array} b1
+   * @param {Uint8Array} b2
+   * @returns {number}
+   */
+  function compareBytes (b1, b2) {
+    return b1.length < b2.length ? -1 : b1.length > b2.length ? 1 : compare(b1, b2)
+  }
+
+  const encodeString = encodeBytes;
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeArray (buf, token) {
+    encodeUintValue(buf, Type.array.majorEncoded, token.value);
+  }
+
+  // using an array as a map key, are you sure about this? we can only sort
+  // by map length here, it's up to the encoder to decide to look deeper
+  encodeArray.compareTokens = encodeUint.compareTokens;
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeArray.encodedSize = function encodedSize (token) {
+    return encodeUintValue.encodedSize(token.value)
+  };
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeMap (buf, token) {
+    encodeUintValue(buf, Type.map.majorEncoded, token.value);
+  }
+
+  // using a map as a map key, are you sure about this? we can only sort
+  // by map length here, it's up to the encoder to decide to look deeper
+  encodeMap.compareTokens = encodeUint.compareTokens;
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeMap.encodedSize = function encodedSize (token) {
+    return encodeUintValue.encodedSize(token.value)
+  };
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   */
+  function encodeTag (buf, token) {
+    encodeUintValue(buf, Type.tag.majorEncoded, token.value);
+  }
+
+  encodeTag.compareTokens = encodeUint.compareTokens;
+
+  /**
+   * @param {Token} token
+   * @returns {number}
+   */
+  encodeTag.encodedSize = function encodedSize (token) {
+    return encodeUintValue.encodedSize(token.value)
+  };
+
+  // TODO: shift some of the bytes logic to bytes-utils so we can use Buffer
+  // where possible
+
+
+  /**
+   * @typedef {import('./bl.js').Bl} Bl
+   * @typedef {import('../interface').DecodeOptions} DecodeOptions
+   * @typedef {import('../interface').EncodeOptions} EncodeOptions
+   */
+
+  const MINOR_FALSE = 20;
+  const MINOR_TRUE = 21;
+  const MINOR_NULL = 22;
+  const MINOR_UNDEFINED = 23;
+
+  /**
+   * @param {Bl} buf
+   * @param {Token} token
+   * @param {EncodeOptions} options
+   */
+  function encodeFloat (buf, token, options) {
+    const float = token.value;
+
+    if (float === false) {
+      buf.push([Type.float.majorEncoded | MINOR_FALSE]);
+    } else if (float === true) {
+      buf.push([Type.float.majorEncoded | MINOR_TRUE]);
+    } else if (float === null) {
+      buf.push([Type.float.majorEncoded | MINOR_NULL]);
+    } else if (float === undefined) {
+      buf.push([Type.float.majorEncoded | MINOR_UNDEFINED]);
+    } else {
+      let decoded;
+      let success = false;
+      if (!options || options.float64 !== true) {
+        encodeFloat16(float);
+        decoded = readFloat16(ui8a, 1);
+        if (float === decoded || Number.isNaN(float)) {
+          ui8a[0] = 0xf9;
+          buf.push(ui8a.slice(0, 3));
+          success = true;
+        } else {
+          encodeFloat32(float);
+          decoded = readFloat32(ui8a, 1);
+          if (float === decoded) {
+            ui8a[0] = 0xfa;
+            buf.push(ui8a.slice(0, 5));
+            success = true;
+          }
+        }
+      }
+      if (!success) {
+        encodeFloat64(float);
+        decoded = readFloat64(ui8a, 1);
+        ui8a[0] = 0xfb;
+        buf.push(ui8a.slice(0, 9));
+      }
+    }
+  }
+
+  /**
+   * @param {Token} token
+   * @param {EncodeOptions} options
+   * @returns {number}
+   */
+  encodeFloat.encodedSize = function encodedSize (token, options) {
+    const float = token.value;
+
+    if (float === false || float === true || float === null || float === undefined) {
+      return 1
+    }
+
+    if (!options || options.float64 !== true) {
+      encodeFloat16(float);
+      let decoded = readFloat16(ui8a, 1);
+      if (float === decoded || Number.isNaN(float)) {
+        return 3
+      }
+      encodeFloat32(float);
+      decoded = readFloat32(ui8a, 1);
+      if (float === decoded) {
+        return 5
+      }
+    }
+    return 9
+  };
+
+  const buffer = new ArrayBuffer(9);
+  const dataView = new DataView(buffer, 1);
+  const ui8a = new Uint8Array(buffer, 0);
+
+  /**
+   * @param {number} inp
+   */
+  function encodeFloat16 (inp) {
+    if (inp === Infinity) {
+      dataView.setUint16(0, 0x7c00, false);
+    } else if (inp === -Infinity) {
+      dataView.setUint16(0, 0xfc00, false);
+    } else if (Number.isNaN(inp)) {
+      dataView.setUint16(0, 0x7e00, false);
+    } else {
+      dataView.setFloat32(0, inp);
+      const valu32 = dataView.getUint32(0);
+      const exponent = (valu32 & 0x7f800000) >> 23;
+      const mantissa = valu32 & 0x7fffff;
+
+      /* c8 ignore next 6 */
+      if (exponent === 0xff) {
+        // too big, Infinity, but this should be hard (impossible?) to trigger
+        dataView.setUint16(0, 0x7c00, false);
+      } else if (exponent === 0x00) {
+        // 0.0, -0.0 and subnormals, shouldn't be possible to get here because 0.0 should be counted as an int
+        dataView.setUint16(0, ((inp & 0x80000000) >> 16) | (mantissa >> 13), false);
+      } else { // standard numbers
+        // chunks of logic here borrowed from https://github.com/PJK/libcbor/blob/c78f437182533e3efa8d963ff4b945bb635c2284/src/cbor/encoding.c#L127
+        const logicalExponent = exponent - 127;
+        // Now we know that 2^exponent <= 0 logically
+        /* c8 ignore next 6 */
+        if (logicalExponent < -24) {
+          /* No unambiguous representation exists, this float is not a half float
+            and is too small to be represented using a half, round off to zero.
+            Consistent with the reference implementation. */
+          // should be difficult (impossible?) to get here in JS
+          dataView.setUint16(0, 0);
+        } else if (logicalExponent < -14) {
+          /* Offset the remaining decimal places by shifting the significand, the
+            value is lost. This is an implementation decision that works around the
+            absence of standard half-float in the language. */
+          dataView.setUint16(0, ((valu32 & 0x80000000) >> 16) | /* sign bit */ (1 << (24 + logicalExponent)), false);
+        } else {
+          dataView.setUint16(0, ((valu32 & 0x80000000) >> 16) | ((logicalExponent + 15) << 10) | (mantissa >> 13), false);
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {Uint8Array} ui8a
+   * @param {number} pos
+   * @returns {number}
+   */
+  function readFloat16 (ui8a, pos) {
+    if (ui8a.length - pos < 2) {
+      throw new Error(`${decodeErrPrefix} not enough data for float16`)
+    }
+
+    const half = (ui8a[pos] << 8) + ui8a[pos + 1];
+    if (half === 0x7c00) {
+      return Infinity
+    }
+    if (half === 0xfc00) {
+      return -Infinity
+    }
+    if (half === 0x7e00) {
+      return NaN
+    }
+    const exp = (half >> 10) & 0x1f;
+    const mant = half & 0x3ff;
+    let val;
+    if (exp === 0) {
+      val = mant * (2 ** -24);
+    } else if (exp !== 31) {
+      val = (mant + 1024) * (2 ** (exp - 25));
+    /* c8 ignore next 4 */
+    } else {
+      // may not be possible to get here
+      val = mant === 0 ? Infinity : NaN;
+    }
+    return (half & 0x8000) ? -val : val
+  }
+
+  /**
+   * @param {number} inp
+   */
+  function encodeFloat32 (inp) {
+    dataView.setFloat32(0, inp, false);
+  }
+
+  /**
+   * @param {Uint8Array} ui8a
+   * @param {number} pos
+   * @returns {number}
+   */
+  function readFloat32 (ui8a, pos) {
+    if (ui8a.length - pos < 4) {
+      throw new Error(`${decodeErrPrefix} not enough data for float32`)
+    }
+    const offset = (ui8a.byteOffset || 0) + pos;
+    return new DataView(ui8a.buffer, offset, 4).getFloat32(0, false)
+  }
+
+  /**
+   * @param {number} inp
+   */
+  function encodeFloat64 (inp) {
+    dataView.setFloat64(0, inp, false);
+  }
+
+  /**
+   * @param {Uint8Array} ui8a
+   * @param {number} pos
+   * @returns {number}
+   */
+  function readFloat64 (ui8a, pos) {
+    if (ui8a.length - pos < 8) {
+      throw new Error(`${decodeErrPrefix} not enough data for float64`)
+    }
+    const offset = (ui8a.byteOffset || 0) + pos;
+    return new DataView(ui8a.buffer, offset, 8).getFloat64(0, false)
+  }
+
+  /**
+   * @param {Token} _tok1
+   * @param {Token} _tok2
+   * @returns {number}
+   */
+  encodeFloat.compareTokens = encodeUint.compareTokens;
+  /*
+  encodeFloat.compareTokens = function compareTokens (_tok1, _tok2) {
+    return _tok1
+    throw new Error(`${encodeErrPrefix} cannot use floats as map keys`)
+  }
+  */
+
+  /**
+   * @param {Token} token
+   * @returns {Uint8Array|undefined}
+   */
+  function quickEncodeToken (token) {
+    switch (token.type) {
+      case Type.false:
+        return fromArray([0xf4])
+      case Type.true:
+        return fromArray([0xf5])
+      case Type.null:
+        return fromArray([0xf6])
+      case Type.bytes:
+        if (!token.value.length) {
+          return fromArray([0x40])
+        }
+        return
+      case Type.string:
+        if (token.value === '') {
+          return fromArray([0x60])
+        }
+        return
+      case Type.array:
+        if (token.value === 0) {
+          return fromArray([0x80])
+        }
+        /* c8 ignore next 2 */
+        // shouldn't be possible if this were called when there was only one token
+        return
+      case Type.map:
+        if (token.value === 0) {
+          return fromArray([0xa0])
+        }
+        /* c8 ignore next 2 */
+        // shouldn't be possible if this were called when there was only one token
+        return
+      case Type.uint:
+        if (token.value < 24) {
+          return fromArray([Number(token.value)])
+        }
+        return
+      case Type.negint:
+        if (token.value >= -24) {
+          return fromArray([31 - Number(token.value)])
+        }
+    }
+  }
+
+  /**
+   * @typedef {import('../interface').EncodeOptions} EncodeOptions
+   * @typedef {import('../interface').OptionalTypeEncoder} OptionalTypeEncoder
+   * @typedef {import('../interface').Reference} Reference
+   * @typedef {import('../interface').StrictTypeEncoder} StrictTypeEncoder
+   * @typedef {import('../interface').TokenTypeEncoder} TokenTypeEncoder
+   * @typedef {import('../interface').TokenOrNestedTokens} TokenOrNestedTokens
+   */
+
+  /** @type {EncodeOptions} */
+  const defaultEncodeOptions = {
+    float64: false,
+    mapSorter,
+    quickEncodeToken
+  };
+
+  /** @returns {TokenTypeEncoder[]} */
+  function makeCborEncoders () {
+    const encoders = [];
+    encoders[Type.uint.major] = encodeUint;
+    encoders[Type.negint.major] = encodeNegint;
+    encoders[Type.bytes.major] = encodeBytes;
+    encoders[Type.string.major] = encodeString;
+    encoders[Type.array.major] = encodeArray;
+    encoders[Type.map.major] = encodeMap;
+    encoders[Type.tag.major] = encodeTag;
+    encoders[Type.float.major] = encodeFloat;
+    return encoders
+  }
+
+  const cborEncoders = makeCborEncoders();
+
+  const buf = new Bl();
+
+  /** @implements {Reference} */
+  class Ref {
+    /**
+     * @param {object|any[]} obj
+     * @param {Reference|undefined} parent
+     */
+    constructor (obj, parent) {
+      this.obj = obj;
+      this.parent = parent;
+    }
+
+    /**
+     * @param {object|any[]} obj
+     * @returns {boolean}
+     */
+    includes (obj) {
+      /** @type {Reference|undefined} */
+      let p = this;
+      do {
+        if (p.obj === obj) {
+          return true
+        }
+      } while (p = p.parent) // eslint-disable-line
+      return false
+    }
+
+    /**
+     * @param {Reference|undefined} stack
+     * @param {object|any[]} obj
+     * @returns {Reference}
+     */
+    static createCheck (stack, obj) {
+      if (stack && stack.includes(obj)) {
+        throw new Error(`${encodeErrPrefix} object contains circular references`)
+      }
+      return new Ref(obj, stack)
+    }
+  }
+
+  const simpleTokens = {
+    null: new Token(Type.null, null),
+    undefined: new Token(Type.undefined, undefined),
+    true: new Token(Type.true, true),
+    false: new Token(Type.false, false),
+    emptyArray: new Token(Type.array, 0),
+    emptyMap: new Token(Type.map, 0)
+  };
+
+  /** @type {{[typeName: string]: StrictTypeEncoder}} */
+  const typeEncoders$1 = {
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    number (obj, _typ, _options, _refStack) {
+      if (!Number.isInteger(obj) || !Number.isSafeInteger(obj)) {
+        return new Token(Type.float, obj)
+      } else if (obj >= 0) {
+        return new Token(Type.uint, obj)
+      } else {
+        return new Token(Type.negint, obj)
+      }
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    bigint (obj, _typ, _options, _refStack) {
+      if (obj >= BigInt(0)) {
+        return new Token(Type.uint, obj)
+      } else {
+        return new Token(Type.negint, obj)
+      }
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    Uint8Array (obj, _typ, _options, _refStack) {
+      return new Token(Type.bytes, obj)
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    string (obj, _typ, _options, _refStack) {
+      return new Token(Type.string, obj)
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    boolean (obj, _typ, _options, _refStack) {
+      return obj ? simpleTokens.true : simpleTokens.false
+    },
+
+    /**
+     * @param {any} _obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    null (_obj, _typ, _options, _refStack) {
+      return simpleTokens.null
+    },
+
+    /**
+     * @param {any} _obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    undefined (_obj, _typ, _options, _refStack) {
+      return simpleTokens.undefined
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    ArrayBuffer (obj, _typ, _options, _refStack) {
+      return new Token(Type.bytes, new Uint8Array(obj))
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} _options
+     * @param {Reference} [_refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    DataView (obj, _typ, _options, _refStack) {
+      return new Token(Type.bytes, new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength))
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} _typ
+     * @param {EncodeOptions} options
+     * @param {Reference} [refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    Array (obj, _typ, options, refStack) {
+      if (!obj.length) {
+        if (options.addBreakTokens === true) {
+          return [simpleTokens.emptyArray, new Token(Type.break)]
+        }
+        return simpleTokens.emptyArray
+      }
+      refStack = Ref.createCheck(refStack, obj);
+      const entries = [];
+      let i = 0;
+      for (const e of obj) {
+        entries[i++] = objectToTokens(e, options, refStack);
+      }
+      if (options.addBreakTokens) {
+        return [new Token(Type.array, obj.length), entries, new Token(Type.break)]
+      }
+      return [new Token(Type.array, obj.length), entries]
+    },
+
+    /**
+     * @param {any} obj
+     * @param {string} typ
+     * @param {EncodeOptions} options
+     * @param {Reference} [refStack]
+     * @returns {TokenOrNestedTokens}
+     */
+    Object (obj, typ, options, refStack) {
+      // could be an Object or a Map
+      const isMap = typ !== 'Object';
+      // it's slightly quicker to use Object.keys() than Object.entries()
+      const keys = isMap ? obj.keys() : Object.keys(obj);
+      const length = isMap ? obj.size : keys.length;
+      if (!length) {
+        if (options.addBreakTokens === true) {
+          return [simpleTokens.emptyMap, new Token(Type.break)]
+        }
+        return simpleTokens.emptyMap
+      }
+      refStack = Ref.createCheck(refStack, obj);
+      /** @type {TokenOrNestedTokens[]} */
+      const entries = [];
+      let i = 0;
+      for (const key of keys) {
+        entries[i++] = [
+          objectToTokens(key, options, refStack),
+          objectToTokens(isMap ? obj.get(key) : obj[key], options, refStack)
+        ];
+      }
+      sortMapEntries(entries, options);
+      if (options.addBreakTokens) {
+        return [new Token(Type.map, length), entries, new Token(Type.break)]
+      }
+      return [new Token(Type.map, length), entries]
+    }
+  };
+
+  typeEncoders$1.Map = typeEncoders$1.Object;
+  typeEncoders$1.Buffer = typeEncoders$1.Uint8Array;
+  for (const typ of 'Uint8Clamped Uint16 Uint32 Int8 Int16 Int32 BigUint64 BigInt64 Float32 Float64'.split(' ')) {
+    typeEncoders$1[`${typ}Array`] = typeEncoders$1.DataView;
+  }
+
+  /**
+   * @param {any} obj
+   * @param {EncodeOptions} [options]
+   * @param {Reference} [refStack]
+   * @returns {TokenOrNestedTokens}
+   */
+  function objectToTokens (obj, options = {}, refStack) {
+    const typ = is(obj);
+    const customTypeEncoder = (options && options.typeEncoders && /** @type {OptionalTypeEncoder} */ options.typeEncoders[typ]) || typeEncoders$1[typ];
+    if (typeof customTypeEncoder === 'function') {
+      const tokens = customTypeEncoder(obj, typ, options, refStack);
+      if (tokens != null) {
+        return tokens
+      }
+    }
+    const typeEncoder = typeEncoders$1[typ];
+    if (!typeEncoder) {
+      throw new Error(`${encodeErrPrefix} unsupported type: ${typ}`)
+    }
+    return typeEncoder(obj, typ, options, refStack)
+  }
+
+  /*
+  CBOR key sorting is a mess.
+
+  The canonicalisation recommendation from https://tools.ietf.org/html/rfc7049#section-3.9
+  includes the wording:
+
+  > The keys in every map must be sorted lowest value to highest.
+  > Sorting is performed on the bytes of the representation of the key
+  > data items without paying attention to the 3/5 bit splitting for
+  > major types.
+  > ...
+  >  *  If two keys have different lengths, the shorter one sorts
+        earlier;
+  >  *  If two keys have the same length, the one with the lower value
+        in (byte-wise) lexical order sorts earlier.
+
+  1. It is not clear what "bytes of the representation of the key" means: is it
+     the CBOR representation, or the binary representation of the object itself?
+     Consider the int and uint difference here.
+  2. It is not clear what "without paying attention to" means: do we include it
+     and compare on that? Or do we omit the special prefix byte, (mostly) treating
+     the key in its plain binary representation form.
+
+  The FIDO 2.0: Client To Authenticator Protocol spec takes the original CBOR
+  wording and clarifies it according to their understanding.
+  https://fidoalliance.org/specs/fido-v2.0-rd-20170927/fido-client-to-authenticator-protocol-v2.0-rd-20170927.html#message-encoding
+
+  > The keys in every map must be sorted lowest value to highest. Sorting is
+  > performed on the bytes of the representation of the key data items without
+  > paying attention to the 3/5 bit splitting for major types. The sorting rules
+  > are:
+  >  * If the major types are different, the one with the lower value in numerical
+  >    order sorts earlier.
+  >  * If two keys have different lengths, the shorter one sorts earlier;
+  >  * If two keys have the same length, the one with the lower value in
+  >    (byte-wise) lexical order sorts earlier.
+
+  Some other implementations, such as borc, do a full encode then do a
+  length-first, byte-wise-second comparison:
+  https://github.com/dignifiedquire/borc/blob/b6bae8b0bcde7c3976b0f0f0957208095c392a36/src/encoder.js#L358
+  https://github.com/dignifiedquire/borc/blob/b6bae8b0bcde7c3976b0f0f0957208095c392a36/src/utils.js#L143-L151
+
+  This has the benefit of being able to easily handle arbitrary keys, including
+  complex types (maps and arrays).
+
+  We'll opt for the FIDO approach, since it affords some efficies since we don't
+  need a full encode of each key to determine order and can defer to the types
+  to determine how to most efficiently order their values (i.e. int and uint
+  ordering can be done on the numbers, no need for byte-wise, for example).
+
+  Recommendation: stick to single key types or you'll get into trouble, and prefer
+  string keys because it's much simpler that way.
+  */
+
+  /*
+  (UPDATE, Dec 2020)
+  https://tools.ietf.org/html/rfc8949 is the updated CBOR spec and clarifies some
+  of the questions above with a new recommendation for sorting order being much
+  closer to what would be expected in other environments (i.e. no length-first
+  weirdness).
+  This new sorting order is not yet implemented here but could be added as an
+  option. "Determinism" (canonicity) is system dependent and it's difficult to
+  change existing systems that are built with existing expectations. So if a new
+  ordering is introduced here, the old needs to be kept as well with the user
+  having the option.
+  */
+
+  /**
+   * @param {TokenOrNestedTokens[]} entries
+   * @param {EncodeOptions} options
+   */
+  function sortMapEntries (entries, options) {
+    if (options.mapSorter) {
+      entries.sort(options.mapSorter);
+    }
+  }
+
+  /**
+   * @param {(Token|Token[])[]} e1
+   * @param {(Token|Token[])[]} e2
+   * @returns {number}
+   */
+  function mapSorter (e1, e2) {
+    // the key position ([0]) could have a single token or an array
+    // almost always it'll be a single token but complex key might get involved
+    /* c8 ignore next 2 */
+    const keyToken1 = Array.isArray(e1[0]) ? e1[0][0] : e1[0];
+    const keyToken2 = Array.isArray(e2[0]) ? e2[0][0] : e2[0];
+
+    // different key types
+    if (keyToken1.type !== keyToken2.type) {
+      return keyToken1.type.compare(keyToken2.type)
+    }
+
+    const major = keyToken1.type.major;
+    // TODO: handle case where cmp === 0 but there are more keyToken e. complex type)
+    const tcmp = cborEncoders[major].compareTokens(keyToken1, keyToken2);
+    /* c8 ignore next 5 */
+    if (tcmp === 0) {
+      // duplicate key or complex type where the first token matched,
+      // i.e. a map or array and we're only comparing the opening token
+      console.warn('WARNING: complex key types used, CBOR key sorting guarantees are gone');
+    }
+    return tcmp
+  }
+
+  /**
+   * @param {Bl} buf
+   * @param {TokenOrNestedTokens} tokens
+   * @param {TokenTypeEncoder[]} encoders
+   * @param {EncodeOptions} options
+   */
+  function tokensToEncoded (buf, tokens, encoders, options) {
+    if (Array.isArray(tokens)) {
+      for (const token of tokens) {
+        tokensToEncoded(buf, token, encoders, options);
+      }
+    } else {
+      encoders[tokens.type.major](buf, tokens, options);
+    }
+  }
+
+  /**
+   * @param {any} data
+   * @param {TokenTypeEncoder[]} encoders
+   * @param {EncodeOptions} options
+   * @returns {Uint8Array}
+   */
+  function encodeCustom (data, encoders, options) {
+    const tokens = objectToTokens(data, options);
+    if (!Array.isArray(tokens) && options.quickEncodeToken) {
+      const quickBytes = options.quickEncodeToken(tokens);
+      if (quickBytes) {
+        return quickBytes
+      }
+      const encoder = encoders[tokens.type.major];
+      if (encoder.encodedSize) {
+        const size = encoder.encodedSize(tokens, options);
+        const buf = new Bl(size);
+        encoder(buf, tokens, options);
+        /* c8 ignore next 4 */
+        // this would be a problem with encodedSize() functions
+        if (buf.chunks.length !== 1) {
+          throw new Error(`Unexpected error: pre-calculated length for ${tokens} was wrong`)
+        }
+        return asU8A(buf.chunks[0])
+      }
+    }
+    buf.reset();
+    tokensToEncoded(buf, tokens, encoders, options);
+    return buf.toBytes(true)
+  }
+
+  /**
+   * @param {any} data
+   * @param {EncodeOptions} [options]
+   * @returns {Uint8Array}
+   */
+  function encode$1 (data, options) {
+    options = Object.assign({}, defaultEncodeOptions, options);
+    return encodeCustom(data, cborEncoders, options)
+  }
+
+  var encode_1;
+  var hasRequiredEncode;
+
+  function requireEncode () {
+  	if (hasRequiredEncode) return encode_1;
+  	hasRequiredEncode = 1;
+  	encode_1 = encode;
+
+  	var MSB = 0x80
+  	  , MSBALL = -128
+  	  , INT = Math.pow(2, 31);
+
+  	function encode(num, out, offset) {
+  	  if (Number.MAX_SAFE_INTEGER && num > Number.MAX_SAFE_INTEGER) {
+  	    encode.bytes = 0;
+  	    throw new RangeError('Could not encode varint')
+  	  }
+  	  out = out || [];
+  	  offset = offset || 0;
+  	  var oldOffset = offset;
+
+  	  while(num >= INT) {
+  	    out[offset++] = (num & 0xFF) | MSB;
+  	    num /= 128;
+  	  }
+  	  while(num & MSBALL) {
+  	    out[offset++] = (num & 0xFF) | MSB;
+  	    num >>>= 7;
+  	  }
+  	  out[offset] = num | 0;
+
+  	  encode.bytes = offset - oldOffset + 1;
+
+  	  return out
+  	}
+  	return encode_1;
+  }
+
+  var decode;
+  var hasRequiredDecode;
+
+  function requireDecode () {
+  	if (hasRequiredDecode) return decode;
+  	hasRequiredDecode = 1;
+  	decode = read;
+
+  	var MSB = 0x80
+  	  , REST = 0x7F;
+
+  	function read(buf, offset) {
+  	  var res    = 0
+  	    , offset = offset || 0
+  	    , shift  = 0
+  	    , counter = offset
+  	    , b
+  	    , l = buf.length;
+
+  	  do {
+  	    if (counter >= l || shift > 49) {
+  	      read.bytes = 0;
+  	      throw new RangeError('Could not decode varint')
+  	    }
+  	    b = buf[counter++];
+  	    res += shift < 28
+  	      ? (b & REST) << shift
+  	      : (b & REST) * Math.pow(2, shift);
+  	    shift += 7;
+  	  } while (b >= MSB)
+
+  	  read.bytes = counter - offset;
+
+  	  return res
+  	}
+  	return decode;
+  }
+
+  var length;
+  var hasRequiredLength;
+
+  function requireLength () {
+  	if (hasRequiredLength) return length;
+  	hasRequiredLength = 1;
+  	var N1 = Math.pow(2,  7);
+  	var N2 = Math.pow(2, 14);
+  	var N3 = Math.pow(2, 21);
+  	var N4 = Math.pow(2, 28);
+  	var N5 = Math.pow(2, 35);
+  	var N6 = Math.pow(2, 42);
+  	var N7 = Math.pow(2, 49);
+  	var N8 = Math.pow(2, 56);
+  	var N9 = Math.pow(2, 63);
+
+  	length = function (value) {
+  	  return (
+  	    value < N1 ? 1
+  	  : value < N2 ? 2
+  	  : value < N3 ? 3
+  	  : value < N4 ? 4
+  	  : value < N5 ? 5
+  	  : value < N6 ? 6
+  	  : value < N7 ? 7
+  	  : value < N8 ? 8
+  	  : value < N9 ? 9
+  	  :              10
+  	  )
+  	};
+  	return length;
+  }
+
+  var varint;
+  var hasRequiredVarint;
+
+  function requireVarint () {
+  	if (hasRequiredVarint) return varint;
+  	hasRequiredVarint = 1;
+  	varint = {
+  	    encode: requireEncode()
+  	  , decode: requireDecode()
+  	  , encodingLength: requireLength()
+  	};
+  	return varint;
+  }
+
+  var varintExports = requireVarint();
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+  class CborldEncoder {
+    encode() {
+      throw new Error('Must be implemented by derived class.');
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class ContextEncoder extends CborldEncoder {
+    constructor({context, contextTable} = {}) {
+      super();
+      this.context = context;
+      this.contextTable = contextTable;
+    }
+
+    encode() {
+      const {context, contextTable} = this;
+      const id = contextTable.get(context);
+      if(id === undefined) {
+        return new Token(Type.string, context);
+      }
+      return new Token(Type.uint, id);
+    }
+
+    static createEncoder({value, typeTable} = {}) {
+      if(typeof value !== 'string') {
+        return;
+      }
+      const contextTable = typeTable.get('context');
+      return new ContextEncoder({context: value, contextTable});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // this class is used to encode a multibase encoded value in CBOR-LD, which
+  // actually means transforming a multibase-encoded string to bytes
+  class MultibaseEncoder extends CborldEncoder {
+    constructor({value} = {}) {
+      super();
+      this.value = value;
+    }
+
+    encode() {
+      const {value} = this;
+
+      let prefix;
+      let suffix;
+      if(value[0] === 'z') {
+        // 0x7a === 'z' (multibase code for base58btc)
+        prefix = 0x7a;
+        suffix = decode$1(value.slice(1));
+      } else if(value[0] === 'u') {
+        // 0x75 === 'u' (multibase code for base64url)
+        prefix = 0x75;
+        const buffer = decode$4(value.slice(1));
+        suffix = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+      } else if(value[0] === 'M') {
+        // 0x4d === 'M' (multibase code for base64pad)
+        prefix = 0x4d;
+        suffix = gBase64.toUint8Array(value.slice(1));
+      }
+
+      const bytes = new Uint8Array(1 + suffix.length);
+      bytes[0] = prefix;
+      bytes.set(suffix, 1);
+      return new Token(Type.bytes, bytes);
+    }
+
+    static createEncoder({value} = {}) {
+      if(typeof value !== 'string') {
+        return;
+      }
+      // supported multibase encodings:
+      // 0x7a === 'z' (multibase code for base58btc)
+      // 0x75 === 'u' (multibase code for base64url)
+      // 0x4d === 'M' (multibase code for base64pad)
+      if(value[0] === 'z' || value[0] === 'u' || value[0] === 'M') {
+        return new MultibaseEncoder({value});
+      }
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  const SCHEME_TO_ID = new Map([
+    ['did:v1:nym:', 1024],
+    ['did:key:', 1025]
+  ]);
+
+  class Base58DidUrlEncoder extends CborldEncoder {
+    constructor({value, scheme, schemeCompressed} = {}) {
+      super();
+      this.value = value;
+      this.scheme = scheme;
+      this.schemeCompressed = schemeCompressed;
+    }
+
+    encode() {
+      const {value, scheme, schemeCompressed} = this;
+      const suffix = value.slice(scheme.length);
+      const [authority, fragment] = suffix.split('#');
+      const entries = [
+        new Token(Type.uint, schemeCompressed),
+        _multibase58ToToken(authority)
+      ];
+      if(fragment !== undefined) {
+        entries.push(_multibase58ToToken(fragment));
+      }
+      return [new Token(Type.array, entries.length), entries];
+    }
+
+    static createEncoder({value} = {}) {
+      for(const [key, schemeCompressed] of SCHEME_TO_ID) {
+        if(value.startsWith(key)) {
+          return new Base58DidUrlEncoder({
+            value,
+            scheme: key,
+            schemeCompressed
+          });
+        }
+      }
+    }
+  }
+
+  function _multibase58ToToken(str) {
+    if(str.startsWith('z')) {
+      const decoded = decode$1(str.slice(1));
+      if(decoded) {
+        return new Token(Type.bytes, decoded);
+      }
+    }
+    // cannot compress suffix
+    return new Token(Type.string, str);
+  }
+
+  /*!
+   * Copyright (c) 2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  /*
+  Data URL codec for base64 data.
+
+  References:
+  https://www.rfc-editor.org/rfc/rfc2397
+  https://fetch.spec.whatwg.org/#data-urls
+  https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
+
+  Data URL format:
+  data:[<mediatype>][;base64],<data>
+
+  This codec must be able to round-trip the data. The parsing is minimal and
+  designed to only binary encode well-formed base64 data that can be decoded to
+  the same input. The mediatype (with optional parameters) is stored as-is, with
+  the exception of ";base64" if correct base64 encoding is detected. In the case
+  of a non-base64 data URI, all but the "data:" prefix is encoded as a string.
+
+  base64 encoding: [string, data]
+  non-base64 encoding: [string]
+
+  TODO: An optimization could use a registry of well-known base mediatypes (ie,
+  image/png, text/plain, etc).
+  */
+
+  // base64 data uri regex
+  // when using this, use round trip code to ensure decoder will work
+  const DATA_BASE64_REGEX = /^data:(?<mediatype>.*);base64,(?<data>.*)$/;
+
+  class DataUrlEncoder extends CborldEncoder {
+    constructor({value, base64} = {}) {
+      super();
+      this.value = value;
+      this.base64 = base64;
+    }
+
+    encode() {
+      const {value, base64} = this;
+
+      const entries = [new Token(Type.uint, URL_SCHEME_TABLE.get('data:'))];
+
+      if(base64) {
+        // base64 mode
+        // [string, bytes]
+        const parsed = DATA_BASE64_REGEX.exec(value);
+        entries.push(
+          new Token(Type.string, parsed.groups.mediatype));
+        entries.push(
+          new Token(Type.bytes, gBase64.toUint8Array(parsed.groups.data)));
+      } else {
+        // non-base64 mode
+        // [string]
+        entries.push(
+          new Token(Type.string, value.slice('data:'.length)));
+      }
+
+      return [new Token(Type.array, entries.length), entries];
+    }
+
+    static createEncoder({value} = {}) {
+      // quick check
+      if(!value.startsWith('data:')) {
+        return;
+      }
+      // attempt to parse as a base64
+      const parsed = DATA_BASE64_REGEX.exec(value);
+      if(parsed) {
+        // check to ensure data can be restored
+        // this avoids issues with variations in encoding
+        const data = parsed.groups.data;
+        if(data === gBase64.fromUint8Array(gBase64.toUint8Array(data))) {
+          return new DataUrlEncoder({value, base64: true});
+        }
+      }
+      return new DataUrlEncoder({value, base64: false});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class HttpUrlEncoder extends CborldEncoder {
+    constructor({value, scheme} = {}) {
+      super();
+      this.value = value;
+      this.scheme = scheme;
+    }
+
+    encode() {
+      const {value, scheme} = this;
+      const entries = [
+        new Token(Type.uint, URL_SCHEME_TABLE.get(scheme)),
+        new Token(Type.string, value.slice(scheme.length))
+      ];
+      return [new Token(Type.array, entries.length), entries];
+    }
+
+    static createEncoder({value} = {}) {
+      // presume HTTPS is more common, check for it first
+      if(value.startsWith('https://')) {
+        return new HttpUrlEncoder({value, scheme: 'https://'});
+      }
+      if(value.startsWith('http://')) {
+        return new HttpUrlEncoder({value, scheme: 'http://'});
+      }
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class UuidUrnEncoder extends CborldEncoder {
+    constructor({value} = {}) {
+      super();
+      this.value = value;
+    }
+
+    encode() {
+      const {value} = this;
+      const rest = value.slice('urn:uuid:'.length);
+      const entries = [new Token(
+        Type.uint,
+        URL_SCHEME_TABLE.get('urn:uuid:'))];
+      if(rest.toLowerCase() === rest) {
+        const uuidBytes = parse(rest);
+        entries.push(new Token(Type.bytes, uuidBytes));
+      } else {
+        // cannot compress UUID value
+        entries.push(new Token(Type.string, rest));
+      }
+      return [new Token(Type.array, entries.length), entries];
+    }
+
+    static createEncoder({value} = {}) {
+      if(!value.startsWith('urn:uuid:')) {
+        return;
+      }
+      return new UuidUrnEncoder({value});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // an encoded URL is an array with the first element being an integer that
+  // signals which encoder was used:
+  // `0` reserved
+  // `1` http
+  // `2` https
+  // `3` urn:uuid
+  // `4` data (RFC 2397)
+  // `1024` did:v1:nym
+  // `1025` did:key
+  const SCHEME_TO_ENCODER = new Map([
+    ['http', HttpUrlEncoder],
+    ['https', HttpUrlEncoder],
+    ['urn:uuid', UuidUrnEncoder],
+    ['data', DataUrlEncoder],
+    ['did:v1:nym', Base58DidUrlEncoder],
+    ['did:key', Base58DidUrlEncoder]
+  ]);
+
+  class UrlEncoder extends CborldEncoder {
+    constructor({termId} = {}) {
+      super();
+      this.termId = termId;
+    }
+
+    encode() {
+      return new Token(Type.uint, this.termId);
+    }
+
+    static createEncoder({value, converter} = {}) {
+      // see if a term ID exists that matches the value first
+      const termId = converter.contextLoader.getIdForTerm({term: value});
+      if(typeof termId !== 'string') {
+        return new UrlEncoder({termId});
+      }
+
+      // check URI prefix codecs
+      // get full colon-delimited prefix
+      let scheme;
+      try {
+        // this handles URIs both with authority followed by `//` and without
+        const {protocol, pathname} = new URL(value);
+        scheme = protocol;
+        if(pathname.includes(':')) {
+          scheme += pathname;
+        }
+        const split = value.split(':');
+        split.pop();
+        scheme = split.join(':');
+      } catch(e) {
+        return;
+      }
+
+      const EncoderClass = SCHEME_TO_ENCODER.get(scheme);
+      return EncoderClass && EncoderClass.createEncoder({value, converter});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class XsdDateEncoder extends CborldEncoder {
+    constructor({value, parsed} = {}) {
+      super();
+      this.value = value;
+      this.parsed = parsed;
+    }
+
+    encode() {
+      const {value, parsed} = this;
+
+      const secondsSinceEpoch = Math.floor(parsed / 1000);
+      const dateString = new Date(secondsSinceEpoch * 1000).toISOString();
+      const expectedDate = dateString.slice(0, dateString.indexOf('T'));
+      if(value !== expectedDate) {
+        // compression would be lossy, do not compress
+        return new Token(Type.string, value);
+      }
+      return new Token(Type.uint, secondsSinceEpoch);
+    }
+
+    static createEncoder({value} = {}) {
+      if(value.includes('T')) {
+        // time included, cannot compress
+        return;
+      }
+      const parsed = Date.parse(value);
+      if(isNaN(parsed)) {
+        // no date parsed, cannot compress
+        return;
+      }
+      return new XsdDateEncoder({value, parsed});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  class XsdDateTimeEncoder extends CborldEncoder {
+    constructor({value, parsed} = {}) {
+      super();
+      this.value = value;
+      this.parsed = parsed;
+    }
+
+    encode() {
+      const {value, parsed} = this;
+      const secondsSinceEpoch = Math.floor(parsed / 1000);
+      const secondsToken = new Token(Type.uint, secondsSinceEpoch);
+      const millisecondIndex = value.indexOf('.');
+      if(millisecondIndex === -1) {
+        const expectedDate = new Date(
+          secondsSinceEpoch * 1000).toISOString().replace('.000Z', 'Z');
+        if(value !== expectedDate) {
+          // compression would be lossy, do not compress
+          return new Token(Type.string, value);
+        }
+        // compress with second precision
+        return secondsToken;
+      }
+
+      const milliseconds = parseInt(value.slice(millisecondIndex + 1), 10);
+      const expectedDate = new Date(
+        secondsSinceEpoch * 1000 + milliseconds).toISOString();
+      if(value !== expectedDate) {
+        // compress would be lossy, do not compress
+        return new Token(Type.string, value);
+      }
+
+      // compress with subsecond precision
+      const entries = [
+        secondsToken,
+        new Token(Type.uint, milliseconds)
+      ];
+      return [new Token(Type.array, entries.length), entries];
+    }
+
+    static createEncoder({value} = {}) {
+      if(!value.includes('T')) {
+        // no time included, cannot compress
+        return;
+      }
+      const parsed = Date.parse(value);
+      if(isNaN(parsed)) {
+        // no date parsed, cannot compress
+        return;
+      }
+      return new XsdDateTimeEncoder({value, parsed});
+    }
+  }
+
+  /*!
+   * Copyright (c) 2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // constants based on "default" processing mode
+  const PROCESSING_MODE_TYPE_ENCODERS = new Map([
+    ['url', UrlEncoder],
+    ['https://w3id.org/security#multibase', MultibaseEncoder],
+    ['http://www.w3.org/2001/XMLSchema#date', XsdDateEncoder],
+    ['http://www.w3.org/2001/XMLSchema#dateTime', XsdDateTimeEncoder]
+  ]);
+
+  class ValueEncoder extends CborldEncoder {
+    constructor({intValue, convertToBytes, includeSign} = {}) {
+      super();
+      this.intValue = intValue;
+      this.convertToBytes = convertToBytes;
+      this.includeSign = includeSign;
+    }
+
+    encode() {
+      const {intValue, convertToBytes, includeSign} = this;
+      if(convertToBytes) {
+        const toBytes = includeSign ? bytesFromInt : bytesFromUint;
+        const bytes = toBytes({intValue});
+        return new Token(Type.bytes, bytes);
+      }
+      return new Token(Type.uint, intValue);
+    }
+
+    static createEncoder({value, converter, termInfo, termType} = {}) {
+      const tableType = getTableType({termInfo, termType});
+      if(tableType === 'url' && typeof value !== 'string') {
+        throw new CborldError(
+          'ERR_UNSUPPORTED_JSON_TYPE',
+          `Invalid value type "${typeof value}" for URL; expected "string".`);
+      }
+
+      // if a subtable exists for `tableType`...
+      const subTable = converter.strategy.typeTable.get(tableType);
+      if(subTable) {
+        let intValue = subTable.get(value);
+        let convertToBytes;
+        let includeSign;
+        if(intValue !== undefined) {
+          // determine if ID from table must be expressed as bytes for `tableType`
+          const {typeTableEncodedAsBytesSet} = converter;
+          convertToBytes = typeTableEncodedAsBytesSet.has(tableType);
+          includeSign = false;
+        } else if(tableType !== 'none' && Number.isInteger(value)) {
+          /* Note: Here is an unusual case that a type subtable has been defined
+          for a custom type, but the user data still includes a native JSON
+          integer. This integer has to be encoded to CBOR as bytes to ensure no
+          conflicts with any subtable values which are encoded as CBOR integers.
+          Despite being an unusual case, it is supported here by encoding the
+          integer as a signed integer expressed in bytes (two's complement). */
+          intValue = value;
+          convertToBytes = includeSign = true;
+        }
+        if(intValue !== undefined) {
+          return new ValueEncoder({intValue, convertToBytes, includeSign});
+        }
+      }
+
+      // lastly, try to get a processing-mode-specific type encoder
+      const encoder = PROCESSING_MODE_TYPE_ENCODERS.get(tableType)?.createEncoder(
+        {value, converter, termInfo});
+      if(encoder) {
+        return encoder;
+      }
+
+      // return passthrough value
+      return value;
+    }
+  }
+
+  /*!
+   * Copyright (c) 2021-2024 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  const CONTEXT_TERM_ID = KEYWORDS_TABLE.get('@context');
+  const CONTEXT_TERM_ID_PLURAL = CONTEXT_TERM_ID + 1;
+
+  class Compressor {
+    /**
+     * Creates a new Compressor for generating compressed CBOR-LD from a
+     * JSON-LD document. The created instance may only be used on a single
+     * JSON-LD document at a time.
+     *
+     * @param {object} options - The options to use.
+     * @param {Map} options.typeTable - A map of possible value types, including
+     *  `context`, `url`, `none`, and any JSON-LD type, each of which maps to
+     *   another map of values of that type to their associated CBOR-LD integer
+     *   values.
+     */
+    constructor({typeTable} = {}) {
+      this.typeTable = typeTable;
+    }
+
+    addOutputEntry({termInfo, values, output}) {
+      output.set(termInfo.termId, values);
+    }
+
+    async convertContexts({activeCtx, input: obj, output}) {
+      activeCtx = activeCtx.applyEmbeddedContexts({obj});
+
+      // if no `@context` is present, return early
+      const context = obj['@context'];
+      if(!context) {
+        return activeCtx;
+      }
+
+      // encode `@context`...
+      const {typeTable} = this;
+      const encodedContexts = [];
+      const isArray = Array.isArray(context);
+      const contexts = isArray ? context : [context];
+      for(const value of contexts) {
+        const encoder = ContextEncoder.createEncoder({value, typeTable});
+        encodedContexts.push(encoder || value);
+      }
+      const id = isArray ? CONTEXT_TERM_ID_PLURAL : CONTEXT_TERM_ID;
+      output.set(id, isArray ? encodedContexts : encodedContexts[0]);
+
+      return activeCtx;
+    }
+
+    convertValue({termType, value, termInfo, converter}) {
+      if(typeof value === 'object') {
+        return;
+      }
+      return ValueEncoder.createEncoder({value, converter, termInfo, termType});
+    }
+
+    createNewOutput() {
+      return new Map();
+    }
+
+    getInputEntries({activeCtx, input}) {
+      // get input entries to be converted and sort by *term* to ensure term
+      // IDs will be assigned in the same order that the decompressor will
+      const entries = [];
+      const keys = Object.keys(input).sort();
+      for(const key of keys) {
+        // skip `@context`; context already converted early
+        if(key === '@context') {
+          continue;
+        }
+        // create term info
+        const value = input[key];
+        const plural = Array.isArray(value);
+        const termId = activeCtx.getIdForTerm({term: key, plural});
+        const def = activeCtx.getTermDefinition({term: key});
+        entries.push([{term: key, termId, plural, def}, value]);
+      }
+      return entries;
+    }
+
+    getObjectTypes({activeCtx, input}) {
+      const objectTypes = new Set();
+      const typeTerms = activeCtx.getTypeTerms();
+      for(const term of typeTerms) {
+        const types = input[term];
+        if(types !== undefined) {
+          if(Array.isArray(types)) {
+            types.forEach(objectTypes.add, objectTypes);
+          } else {
+            objectTypes.add(types);
+          }
+        }
+      }
+      return objectTypes;
+    }
+  }
+
+  /*!
+   * Copyright (c) 2020-2025 Digital Bazaar, Inc. All rights reserved.
+   */
+
+  // override cborg object encoder to use cborld encoders
+  const typeEncoders = {
+    Object(obj) {
+      if(obj instanceof CborldEncoder) {
+        return obj.encode({obj});
+      }
+    }
+  };
+
+  /**
+   * Encodes a given JSON-LD document into a CBOR-LD byte array.
+   *
+   * @param {object} options - The options to use when encoding to CBOR-LD.
+   * @param {object} options.jsonldDocument - The JSON-LD Document to convert to
+   *   CBOR-LD bytes.
+   * @param {documentLoaderFunction} options.documentLoader - The document loader
+   *   to use when resolving JSON-LD Context URLs.
+   * @param {string} [options.format='cbor-ld-1.0'] - The CBOR-LD output format
+   *   to use; this will default to `cbor-ld-1.0` to use CBOR-LD 1.0 tag
+   *   `0xcb1d` (51997); to create output with a pre-1.0 CBOR-LD tag, then
+   *   'legacy-range' can be passed to use tags `0x0600-0x06ff` (1526-1791) and
+   *   'legacy-singleton' can be passed to use tags `0x0500-0x0501`.
+  * @param {number|string} [options.registryEntryId] - The registry
+   *   entry ID for the registry entry associated with the resulting CBOR-LD
+   *   payload.
+   * @param {Function} [options.typeTableLoader] - The `typeTable` loader to use
+   *   to resolve `registryEntryId` to a `typeTable`. A `typeTable` is a Map of
+   *   possible value types, including `context`, `url`, `none`, and any JSON-LD
+   *   type, each of which maps to another Map of values of that type to their
+   *   associated CBOR-LD integer values.
+   * @param {diagnosticFunction} [options.diagnose] - A function that, if
+   *   provided, is called with diagnostic information.
+   * @param {Map} [options.appContextMap] - Only for use with the
+   *   'legacy-singleton' format.
+   * @param {number} [options.compressionMode] - Only for use with the
+   *   'legacy-singleton' format.
+   * @param {*} [options.typeTable] - NOT permitted; use `typeTableLoader`.
+   *
+   * @returns {Promise<Uint8Array>} - The encoded CBOR-LD bytes.
+   */
+  async function encode({
+    jsonldDocument,
+    documentLoader,
+    format = 'cbor-ld-1.0',
+    registryEntryId,
+    typeTableLoader,
+    diagnose,
+    // for "legacy-singleton" format only
+    appContextMap,
+    compressionMode,
+    // no longer permitted
+    typeTable
+  } = {}) {
+    // validate `format`
+    if(!(format === 'cbor-ld-1.0' || format === 'legacy-range' ||
+      format === 'legacy-singleton')) {
+      throw new TypeError(
+        `Invalid "format" "${format}"; "format" must be ` +
+        '"cbor-ld-1.0" (tag 0xcb1d = 51997) or ' +
+        '"legacy-range" (tags 0x0600-0x06ff = 1536-1791) or ' +
+        '"legacy-singleton" (tags 0x0500-0x0501 = 1280-1281).');
+    }
+    // throw on `typeTable` param which is no longer permitted
+    if(typeTable !== undefined) {
+      throw new TypeError('"typeTable" is not allowed; use "typeTableLoader".');
+    }
+
+    // validate parameter combinations
+    let compressPayload;
+    if(format === 'legacy-singleton') {
+      if(registryEntryId !== undefined) {
+        throw new TypeError(
+          '"registryEntryId" must not be used with format "legacy-singleton".');
+      }
+      if(typeTableLoader !== undefined) {
+        throw new TypeError(
+          '"typeTableLoader" must not be used with format "legacy-singleton".');
+      }
+
+      // default compression mode to `1`
+      compressionMode = compressionMode ?? 1;
+      if(!(compressionMode === 0 || compressionMode === 1)) {
+        throw new TypeError(
+          '"compressionMode" must be "0" (no compression) or "1" ' +
+          'for compression mode version 1.');
+      }
+      compressPayload = compressionMode === 1;
+
+      // generate legacy type table
+      typeTable = createLegacyTypeTable({typeTable, appContextMap});
+    } else {
+      // validate that an acceptable value for `registryEntryId` was passed
+      if(!(typeof registryEntryId === 'number' && registryEntryId >= 0)) {
+        throw new TypeError('"registryEntryId" must be a non-negative integer.');
+      }
+
+      if(appContextMap !== undefined) {
+        throw new TypeError(
+          '"appContextMap" must only be used with format "legacy-singleton".');
+      }
+      if(compressionMode !== undefined) {
+        throw new TypeError(
+          '"compressionMode" must only be used with format "legacy-singleton".');
+      }
+      if(registryEntryId !== 0) {
+        if(registryEntryId === 1) {
+          // use default table (empty) for registry entry ID `1`
+          typeTable = createTypeTable({typeTable});
+        } else {
+          if(typeof typeTableLoader !== 'function') {
+            throw new TypeError('"typeTableLoader" must be a function.');
+          }
+          typeTable = await typeTableLoader({registryEntryId});
+          if(!(typeTable instanceof Map)) {
+            throw new CborldError(
+              'ERR_NO_TYPETABLE',
+              '"typeTable" not found for "registryEntryId" ' +
+              `"${registryEntryId}".`);
+          }
+          // check to make sure unsupported types not present in `typeTable`
+          if(typeTable.has('http://www.w3.org/2001/XMLSchema#integer') ||
+            typeTable.has('http://www.w3.org/2001/XMLSchema#double') ||
+            typeTable.has('http://www.w3.org/2001/XMLSchema#boolean')) {
+            throw new CborldError(
+              'ERR_UNSUPPORTED_LITERAL_TYPE',
+              '"typeTable" must not contain XSD integers, doubles, or booleans.');
+          }
+          // normalize type table
+          typeTable = createTypeTable({typeTable});
+        }
+      }
+      // any registry entry ID other than zero uses compression by default
+      compressPayload = registryEntryId !== 0;
+    }
+
+    // compute CBOR-LD suffix
+    let suffix;
+    if(!compressPayload) {
+      // output uncompressed CBOR-LD
+      suffix = encode$1(jsonldDocument);
+    } else {
+      const converter = new Converter({
+        // compress JSON-LD => CBOR-LD
+        strategy: new Compressor({typeTable}),
+        documentLoader,
+        legacy: format === 'legacy-singleton'
+      });
+      const output = await converter.convert({input: jsonldDocument});
+      if(diagnose) {
+        diagnose('Diagnostic CBOR-LD compression transform map(s):');
+        diagnose(inspect(output));
+      }
+      suffix = encode$1(output, {typeEncoders});
+    }
+
+    // concatenate prefix and suffix
+    const prefix = _getPrefix({format, compressionMode, registryEntryId});
+    const length = prefix.length + suffix.length;
+    const bytes = new Uint8Array(length);
+    bytes.set(prefix);
+    bytes.set(suffix, prefix.length);
+
+    if(diagnose) {
+      diagnose('Diagnostic CBOR-LD result:');
+      diagnose(inspect(bytes));
+    }
+
+    return bytes;
+  }
+
+  function _getPrefix({format, compressionMode, registryEntryId}) {
+    if(format === 'legacy-singleton') {
+      return new Uint8Array([
+        0xd9, // CBOR major type 6 + 2 byte tag size
+        0x05, // legacy CBOR-LD tag
+        compressionMode // compression flag
+      ]);
+    }
+
+    if(format === 'legacy-range') {
+      if(registryEntryId < 128) {
+        return new Uint8Array([
+          0xd9, // CBOR major type 6 + 2 byte tag size
+          0x06, // non-legacy CBOR-LD tag
+          registryEntryId // low-value type table id
+          // encoded document appended in caller
+        ]);
+      }
+      const idVarint = varintExports.encode(registryEntryId);
+
+      return new Uint8Array([
+        0xd9, // CBOR major type 6 + 2 byte tag size
+        0x06, // non-legacy CBOR-LD tag
+        idVarint[0],
+        ...[
+          0x82, // 2 element array
+          ...encode$1(Uint8Array.from(idVarint.slice(1)))
+          // encoded document appended as second element in caller
+        ]
+      ]);
+    }
+
+    // otherwise, use current tag system
+    return new Uint8Array([
+      0xd9, // CBOR major type 6 + 2 byte tag size
+      0xcb, 0x1d, // CBOR-LD 1.0 tag
+      ...[
+        0x82, // 2 element array
+        ...encode$1(registryEntryId)
+        // encoded document appended as second element in caller
+      ]
+    ]);
+  }
+
+  /**
+   * A diagnostic function that is called with diagnostic information. Typically
+   * set to `console.log` when debugging.
+   *
+   * @callback diagnosticFunction
+   * @param {string} message - The diagnostic message.
+   */
+
+  /**
+   * Fetches a resource given a URL and returns it as a string.
+   *
+   * @callback documentLoaderFunction
+  ￼* @param {string} url - The URL to retrieve.
+
+  ￼* @returns {Promise<string>} The resource associated with the URL as a string.
+   */
+
+  const f$4={POS_INT:0,NEG_INT:1,BYTE_STRING:2,UTF8_STRING:3,ARRAY:4,MAP:5,TAG:6,SIMPLE_FLOAT:7},I={DATE_STRING:0,DATE_EPOCH:1,POS_BIGINT:2,NEG_BIGINT:3,CBOR:24,URI:32,BASE64URL:33,BASE64:34,SET:258,JSON:262,WTF8:273,REGEXP:21066,SELF_DESCRIBED:55799,INVALID_16:65535,INVALID_32:4294967295,INVALID_64:0xffffffffffffffffn},o$2={ZERO:0,ONE:24,TWO:25,FOUR:26,EIGHT:27,INDEFINITE:31},T$2={FALSE:20,TRUE:21,NULL:22,UNDEFINED:23};let N$2 = class N{static BREAK=Symbol.for("github.com/hildjj/cbor2/break");static ENCODED=Symbol.for("github.com/hildjj/cbor2/cbor-encoded");static LENGTH=Symbol.for("github.com/hildjj/cbor2/length")};const S$1={MIN:-(2n**63n),MAX:2n**64n-1n};
+
+  let i$1 = class i{static#e=new Map;tag;contents;constructor(e,t=void 0){this.tag=e,this.contents=t;}get noChildren(){return !!i.#e.get(this.tag)?.noChildren}static registerDecoder(e,t,n){const o=this.#e.get(e);return this.#e.set(e,t),o&&("comment"in t||(t.comment=o.comment),"noChildren"in t||(t.noChildren=o.noChildren)),n&&!t.comment&&(t.comment=()=>`(${n})`),o}static clearDecoder(e){const t=this.#e.get(e);return this.#e.delete(e),t}static getDecoder(e){return this.#e.get(e)}static getAllDecoders(){return new Map(this.#e)}*[Symbol.iterator](){yield this.contents;}push(e){return this.contents=e,1}decode(e){const t=e?.tags?.get(this.tag)??i.#e.get(this.tag);return t?t(this,e):this}comment(e,t){const n=e?.tags?.get(this.tag)??i.#e.get(this.tag);if(n?.comment)return n.comment(this,e,t)}toCBOR(){return [this.tag,this.contents]}[Symbol.for("nodejs.util.inspect.custom")](e,t,n){return `${this.tag}(${n(this.contents,t)})`}};
+
+  function f$3(n){if(n!=null&&typeof n=="object")return n[N$2.ENCODED]}function s$2(n){if(n!=null&&typeof n=="object")return n[N$2.LENGTH]}function u(n,e){Object.defineProperty(n,N$2.ENCODED,{configurable:true,enumerable:false,value:e});}function d$2(n,e){const r=Object(n);return u(r,e),r}
+
+  const g$2=Symbol("CBOR_RANGES");function c$1(r,n){Object.defineProperty(r,g$2,{configurable:false,enumerable:false,writable:false,value:n});}function f$2(r){return r[g$2]}function l$2(r){return f$2(r)!==void 0}function R$1(r,n=0,t=r.length-1){const o=r.subarray(n,t),a=f$2(r);if(a){const s=[];for(const e of a)if(e[0]>=n&&e[0]+e[1]<=t){const i=[...e];i[0]-=n,s.push(i);}s.length&&c$1(o,s);}return o}function b$1(r){let n=Math.ceil(r.length/2);const t=new Uint8Array(n);n--;for(let o=r.length,a=o-2;o>=0;o=a,a-=2,n--)t[n]=parseInt(r.substring(a,o),16);return t}function A$2(r){return r.reduce((n,t)=>n+t.toString(16).padStart(2,"0"),"")}function d$1(r){const n=r.reduce((e,i)=>e+i.length,0),t=r.some(e=>l$2(e)),o=[],a=new Uint8Array(n);let s=0;for(const e of r){if(!(e instanceof Uint8Array))throw new TypeError(`Invalid array: ${e}`);if(a.set(e,s),t){const i=e[g$2]??[[0,e.length]];for(const u of i)u[0]+=s;o.push(...i);}s+=e.length;}return t&&c$1(a,o),a}function y$4(r){const n=atob(r);return Uint8Array.from(n,t=>t.codePointAt(0))}const p$2={"-":"+",_:"/"};function x$2(r){const n=r.replace(/[_-]/g,t=>p$2[t]);return y$4(n.padEnd(Math.ceil(n.length/4)*4,"="))}function h$2(){const r=new Uint8Array(4),n=new Uint32Array(r.buffer);return !((n[0]=1)&r[0])}function U$2(r){let n="";for(const t of r){const o=t.codePointAt(0)?.toString(16).padStart(4,"0");n&&(n+=", "),n+=`U+${o}`;}return n}
+
+  let s$1 = class s{#e=new Map;registerEncoder(e,t){const n=this.#e.get(e);return this.#e.set(e,t),n}get(e){return this.#e.get(e)}delete(e){return this.#e.delete(e)}clear(){this.#e.clear();}};
+
+  function f$1(c,d){const[u,a,n]=c,[l,s,t]=d,r=Math.min(n.length,t.length);for(let o=0;o<r;o++){const e=n[o]-t[o];if(e!==0)return e}return 0}
+
+  class e{static defaultOptions={chunkSize:4096};#r;#i=[];#s=null;#t=0;#a=0;constructor(t={}){if(this.#r={...e.defaultOptions,...t},this.#r.chunkSize<8)throw new RangeError(`Expected size >= 8, got ${this.#r.chunkSize}`);this.#n();}get length(){return this.#a}read(){this.#o();const t=new Uint8Array(this.#a);let i=0;for(const s of this.#i)t.set(s,i),i+=s.length;return this.#n(),t}write(t){const i=t.length;i>this.#l()?(this.#o(),i>this.#r.chunkSize?(this.#i.push(t),this.#n()):(this.#n(),this.#i[this.#i.length-1].set(t),this.#t=i)):(this.#i[this.#i.length-1].set(t,this.#t),this.#t+=i),this.#a+=i;}writeUint8(t){this.#e(1),this.#s.setUint8(this.#t,t),this.#h(1);}writeUint16(t,i=false){this.#e(2),this.#s.setUint16(this.#t,t,i),this.#h(2);}writeUint32(t,i=false){this.#e(4),this.#s.setUint32(this.#t,t,i),this.#h(4);}writeBigUint64(t,i=false){this.#e(8),this.#s.setBigUint64(this.#t,t,i),this.#h(8);}writeInt16(t,i=false){this.#e(2),this.#s.setInt16(this.#t,t,i),this.#h(2);}writeInt32(t,i=false){this.#e(4),this.#s.setInt32(this.#t,t,i),this.#h(4);}writeBigInt64(t,i=false){this.#e(8),this.#s.setBigInt64(this.#t,t,i),this.#h(8);}writeFloat32(t,i=false){this.#e(4),this.#s.setFloat32(this.#t,t,i),this.#h(4);}writeFloat64(t,i=false){this.#e(8),this.#s.setFloat64(this.#t,t,i),this.#h(8);}clear(){this.#a=0,this.#i=[],this.#n();}#n(){const t=new Uint8Array(this.#r.chunkSize);this.#i.push(t),this.#t=0,this.#s=new DataView(t.buffer,t.byteOffset,t.byteLength);}#o(){if(this.#t===0){this.#i.pop();return}const t=this.#i.length-1;this.#i[t]=this.#i[t].subarray(0,this.#t),this.#t=0,this.#s=null;}#l(){const t=this.#i.length-1;return this.#i[t].length-this.#t}#e(t){this.#l()<t&&(this.#o(),this.#n());}#h(t){this.#t+=t,this.#a+=t;}}
+
+  function o$1(e,n=0,t=false){const r=e[n]&128?-1:1,f=(e[n]&124)>>2,a=(e[n]&3)<<8|e[n+1];if(f===0){if(t&&a!==0)throw new Error(`Unwanted subnormal: ${r*5960464477539063e-23*a}`);return r*5960464477539063e-23*a}else if(f===31)return a?NaN:r*(1/0);return r*2**(f-25)*(1024+a)}function s(e){const n=new DataView(new ArrayBuffer(4));n.setFloat32(0,e,false);const t=n.getUint32(0,false);if((t&8191)!==0)return null;let r=t>>16&32768;const f=t>>23&255,a=t&8388607;if(!(f===0&&a===0))if(f>=113&&f<=142)r+=(f-112<<10)+(a>>13);else if(f>=103&&f<113){if(a&(1<<126-f)-1)return null;r+=a+8388608>>126-f;}else if(f===255)r|=31744,r|=a>>13;else return null;return r}function i(e){if(e!==0){const n=new ArrayBuffer(8),t=new DataView(n);t.setFloat64(0,e,false);const r=t.getBigUint64(0,false);if((r&0x7ff0000000000000n)===0n)return r&0x8000000000000000n?-0:0}return e}function l$1(e){switch(e.length){case 2:o$1(e,0,true);break;case 4:{const n=new DataView(e.buffer,e.byteOffset,e.byteLength),t=n.getUint32(0,false);if((t&2139095040)===0&&t&8388607)throw new Error(`Unwanted subnormal: ${n.getFloat32(0,false)}`);break}case 8:{const n=new DataView(e.buffer,e.byteOffset,e.byteLength),t=n.getBigUint64(0,false);if((t&0x7ff0000000000000n)===0n&&t&0x000fffffffffffn)throw new Error(`Unwanted subnormal: ${n.getFloat64(0,false)}`);break}default:throw new TypeError(`Bad input to isSubnormal: ${e}`)}}
+
+  class DecodeError extends TypeError {
+      code = 'ERR_ENCODING_INVALID_ENCODED_DATA';
+      constructor() {
+          super('The encoded data was not valid for encoding wtf-8');
+      }
+  }
+  class InvalidEncodingError extends RangeError {
+      code = 'ERR_ENCODING_NOT_SUPPORTED';
+      constructor(label) {
+          super(`Invalid encoding: "${label}"`);
+      }
+  }
+
+  const BOM = 0xfeff;
+  const EMPTY = new Uint8Array(0);
+  const MIN_HIGH_SURROGATE = 0xd800;
+  const MIN_LOW_SURROGATE = 0xdc00;
+  const REPLACEMENT = 0xfffd;
+  const WTF8 = 'wtf-8';
+
+  function isArrayBufferView(input) {
+      return (input &&
+          !(input instanceof ArrayBuffer) &&
+          input.buffer instanceof ArrayBuffer);
+  }
+  function getUint8(input) {
+      if (!input) {
+          return EMPTY;
+      }
+      if (input instanceof Uint8Array) {
+          return input;
+      }
+      if (isArrayBufferView(input)) {
+          return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+      }
+      return new Uint8Array(input);
+  }
+  const REMAINDER = [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      -1,
+      -1,
+      -1,
+      1,
+      1,
+      2,
+      3,
+  ];
+  class Wtf8Decoder {
+      static DEFAULT_BUFFERSIZE = 0x1000;
+      encoding = WTF8;
+      fatal;
+      ignoreBOM;
+      bufferSize;
+      #left = 0;
+      #cur = 0;
+      #pending = 0;
+      #first = true;
+      #buf;
+      constructor(label = 'wtf8', options = undefined) {
+          if (label.toLowerCase().replace('-', '') !== 'wtf8') {
+              throw new InvalidEncodingError(label);
+          }
+          this.fatal = Boolean(options?.fatal);
+          this.ignoreBOM = Boolean(options?.ignoreBOM);
+          this.bufferSize = Math.floor(options?.bufferSize ?? Wtf8Decoder.DEFAULT_BUFFERSIZE);
+          if (isNaN(this.bufferSize) || (this.bufferSize < 1)) {
+              throw new RangeError(`Invalid buffer size: ${options?.bufferSize}`);
+          }
+          this.#buf = new Uint16Array(this.bufferSize);
+      }
+      decode(input, options) {
+          const streaming = Boolean(options?.stream);
+          const bytes = getUint8(input);
+          const res = [];
+          const out = this.#buf;
+          const maxSize = this.bufferSize - 3;
+          let pos = 0;
+          const fatal = () => {
+              this.#cur = 0;
+              this.#left = 0;
+              this.#pending = 0;
+              if (this.fatal) {
+                  throw new DecodeError();
+              }
+              out[pos++] = REPLACEMENT;
+          };
+          const fatals = () => {
+              const p = this.#pending;
+              for (let i = 0; i < p; i++) {
+                  fatal();
+              }
+          };
+          const oneByte = (b) => {
+              if (this.#left === 0) {
+                  const n = REMAINDER[b >> 4];
+                  switch (n) {
+                      case -1:
+                          fatal();
+                          break;
+                      case 0:
+                          out[pos++] = b;
+                          break;
+                      case 1:
+                          this.#cur = b & 0x1f;
+                          if ((this.#cur & 0x1e) === 0) {
+                              fatal();
+                          }
+                          else {
+                              this.#left = 1;
+                              this.#pending = 1;
+                          }
+                          break;
+                      case 2:
+                          this.#cur = b & 0x0f;
+                          this.#left = 2;
+                          this.#pending = 1;
+                          break;
+                      case 3:
+                          if (b & 0x08) {
+                              fatal();
+                          }
+                          else {
+                              this.#cur = b & 0x07;
+                              this.#left = 3;
+                              this.#pending = 1;
+                          }
+                          break;
+                  }
+              }
+              else {
+                  if ((b & 0xc0) !== 0x80) {
+                      fatals();
+                      return oneByte(b);
+                  }
+                  if ((this.#pending === 1) &&
+                      (this.#left === 2) &&
+                      (this.#cur === 0) &&
+                      ((b & 0x20) === 0)) {
+                      fatals();
+                      return oneByte(b);
+                  }
+                  if ((this.#left === 3) && (this.#cur === 0) && ((b & 0x30) === 0)) {
+                      fatals();
+                      return oneByte(b);
+                  }
+                  this.#cur = (this.#cur << 6) | (b & 0x3f);
+                  this.#pending++;
+                  if (--this.#left === 0) {
+                      if (this.ignoreBOM || !this.#first || (this.#cur !== BOM)) {
+                          if (this.#cur < 0x10000) {
+                              out[pos++] = this.#cur;
+                          }
+                          else {
+                              const cp = this.#cur - 0x10000;
+                              out[pos++] = ((cp >>> 10) & 0x3ff) | MIN_HIGH_SURROGATE;
+                              out[pos++] = (cp & 0x3ff) | MIN_LOW_SURROGATE;
+                          }
+                      }
+                      this.#cur = 0;
+                      this.#pending = 0;
+                      this.#first = false;
+                  }
+              }
+          };
+          for (const b of bytes) {
+              if (pos >= maxSize) {
+                  res.push(String.fromCharCode.apply(null, out.subarray(0, pos)));
+                  pos = 0;
+              }
+              oneByte(b);
+          }
+          if (!streaming) {
+              this.#first = true;
+              if (this.#cur || this.#left) {
+                  fatals();
+              }
+          }
+          if (pos > 0) {
+              res.push(String.fromCharCode.apply(null, out.subarray(0, pos)));
+          }
+          return res.join('');
+      }
+  }
+
+  function utf8length(str) {
+      let len = 0;
+      for (const s of str) {
+          const cp = s.codePointAt(0);
+          if (cp < 0x80) {
+              len++;
+          }
+          else if (cp < 0x800) {
+              len += 2;
+          }
+          else if (cp < 0x10000) {
+              len += 3;
+          }
+          else {
+              len += 4;
+          }
+      }
+      return len;
+  }
+  class Wtf8Encoder {
+      encoding = WTF8;
+      encode(input) {
+          if (!input) {
+              return EMPTY;
+          }
+          const buf = new Uint8Array(utf8length(String(input)));
+          this.encodeInto(input, buf);
+          return buf;
+      }
+      encodeInto(source, destination) {
+          const str = String(source);
+          const len = str.length;
+          const outLen = destination.length;
+          let written = 0;
+          let read = 0;
+          for (read = 0; read < len; read++) {
+              const c = str.codePointAt(read);
+              if (c < 0x80) {
+                  if (written >= outLen) {
+                      break;
+                  }
+                  destination[written++] = c;
+              }
+              else if (c < 0x800) {
+                  if (written >= outLen - 1) {
+                      break;
+                  }
+                  destination[written++] = 0xc0 | (c >> 6);
+                  destination[written++] = 0x80 | (c & 0x3f);
+              }
+              else if (c < 0x10000) {
+                  if (written >= outLen - 2) {
+                      break;
+                  }
+                  destination[written++] = 0xe0 | (c >> 12);
+                  destination[written++] = 0x80 | ((c >> 6) & 0x3f);
+                  destination[written++] = 0x80 | (c & 0x3f);
+              }
+              else {
+                  if (written >= outLen - 3) {
+                      break;
+                  }
+                  destination[written++] = 0xf0 | (c >> 18);
+                  destination[written++] = 0x80 | ((c >> 12) & 0x3f);
+                  destination[written++] = 0x80 | ((c >> 6) & 0x3f);
+                  destination[written++] = 0x80 | (c & 0x3f);
+                  read++;
+              }
+          }
+          return {
+              read,
+              written,
+          };
+      }
+  }
+
+  const U$1=f$4.SIMPLE_FLOAT<<5|o$2.TWO,h$1=f$4.SIMPLE_FLOAT<<5|o$2.FOUR,B=f$4.SIMPLE_FLOAT<<5|o$2.EIGHT,j=f$4.SIMPLE_FLOAT<<5|T$2.TRUE,P=f$4.SIMPLE_FLOAT<<5|T$2.FALSE,$$1=f$4.SIMPLE_FLOAT<<5|T$2.UNDEFINED,q$1=f$4.SIMPLE_FLOAT<<5|T$2.NULL,z=new TextEncoder,K=new Wtf8Encoder,k$2={...e.defaultOptions,avoidInts:false,cde:false,collapseBigInts:true,dcbor:false,float64:false,flushToZero:false,forceEndian:null,ignoreOriginalEncoding:false,largeNegativeAsBigInt:false,reduceUnsafeNumbers:false,rejectBigInts:false,rejectCustomSimples:false,rejectDuplicateKeys:false,rejectFloats:false,rejectUndefined:false,simplifyNegativeZero:false,sortKeys:null,stringNormalization:null,types:null,wtf8:false},F={cde:true,ignoreOriginalEncoding:true,sortKeys:f$1},H$1={...F,dcbor:true,largeNegativeAsBigInt:true,reduceUnsafeNumbers:true,rejectCustomSimples:true,rejectDuplicateKeys:true,rejectUndefined:true,simplifyNegativeZero:true,stringNormalization:"NFC"};function y$3(e){const n=e<0;return typeof e=="bigint"?[n?-e-1n:e,n]:[n?-e-1:e,n]}function T$1(e,n,t){if(t.rejectFloats)throw new Error(`Attempt to encode an unwanted floating point number: ${e}`);if(isNaN(e))n.writeUint8(U$1),n.writeUint16(32256);else if(!t.float64&&Math.fround(e)===e){const r=s(e);r===null?(n.writeUint8(h$1),n.writeFloat32(e)):(n.writeUint8(U$1),n.writeUint16(r));}else n.writeUint8(B),n.writeFloat64(e);}function a$1(e,n,t){const[r,i]=y$3(e);if(i&&t)throw new TypeError(`Negative size: ${e}`);t??=i?f$4.NEG_INT:f$4.POS_INT,t<<=5,r<24?n.writeUint8(t|r):r<=255?(n.writeUint8(t|o$2.ONE),n.writeUint8(r)):r<=65535?(n.writeUint8(t|o$2.TWO),n.writeUint16(r)):r<=4294967295?(n.writeUint8(t|o$2.FOUR),n.writeUint32(r)):(n.writeUint8(t|o$2.EIGHT),n.writeBigUint64(BigInt(r)));}function p$1(e,n,t){typeof e=="number"?a$1(e,n,f$4.TAG):typeof e=="object"&&!t.ignoreOriginalEncoding&&N$2.ENCODED in e?n.write(e[N$2.ENCODED]):e<=Number.MAX_SAFE_INTEGER?a$1(Number(e),n,f$4.TAG):(n.writeUint8(f$4.TAG<<5|o$2.EIGHT),n.writeBigUint64(BigInt(e)));}function N$1(e,n,t){const[r,i]=y$3(e);if(t.collapseBigInts&&(!t.largeNegativeAsBigInt||e>=-0x8000000000000000n)){if(r<=0xffffffffn){a$1(Number(e),n);return}if(r<=0xffffffffffffffffn){const E=(i?f$4.NEG_INT:f$4.POS_INT)<<5;n.writeUint8(E|o$2.EIGHT),n.writeBigUint64(r);return}}if(t.rejectBigInts)throw new Error(`Attempt to encode unwanted bigint: ${e}`);const o=i?I.NEG_BIGINT:I.POS_BIGINT,c=r.toString(16),s=c.length%2?"0":"";p$1(o,n,t);const u=b$1(s+c);a$1(u.length,n,f$4.BYTE_STRING),n.write(u);}function Y(e,n,t){t.flushToZero&&(e=i(e)),Object.is(e,-0)?t.simplifyNegativeZero?t.avoidInts?T$1(0,n,t):a$1(0,n):T$1(e,n,t):!t.avoidInts&&Number.isSafeInteger(e)?a$1(e,n):t.reduceUnsafeNumbers&&Math.floor(e)===e&&e>=S$1.MIN&&e<=S$1.MAX?N$1(BigInt(e),n,t):T$1(e,n,t);}function Z(e,n,t){const r=t.stringNormalization?e.normalize(t.stringNormalization):e;if(t.wtf8&&!e.isWellFormed()){const i=K.encode(r);p$1(I.WTF8,n,t),a$1(i.length,n,f$4.BYTE_STRING),n.write(i);}else {const i=z.encode(r);a$1(i.length,n,f$4.UTF8_STRING),n.write(i);}}function J(e,n,t){const r=e;R(r,r.length,f$4.ARRAY,n,t);for(const i of r)g$1(i,n,t);}function V(e,n){a$1(e.length,n,f$4.BYTE_STRING),n.write(e);}const b=new s$1;b.registerEncoder(Array,J),b.registerEncoder(Uint8Array,V);function ce(e,n){return b.registerEncoder(e,n)}function R(e,n,t,r,i){const o=s$2(e);o&&!i.ignoreOriginalEncoding?r.write(o):a$1(n,r,t);}function X(e,n,t){if(e===null){n.writeUint8(q$1);return}if(!t.ignoreOriginalEncoding&&N$2.ENCODED in e){n.write(e[N$2.ENCODED]);return}const r=e.constructor;if(r){const o=t.types?.get(r)??b.get(r);if(o){const c=o(e,n,t);if(c!==void 0){if(!Array.isArray(c)||c.length!==2)throw new Error("Invalid encoder return value");(typeof c[0]=="bigint"||isFinite(Number(c[0])))&&p$1(c[0],n,t),g$1(c[1],n,t);}return}}if(typeof e.toCBOR=="function"){const o=e.toCBOR(n,t);o&&((typeof o[0]=="bigint"||isFinite(Number(o[0])))&&p$1(o[0],n,t),g$1(o[1],n,t));return}if(typeof e.toJSON=="function"){g$1(e.toJSON(),n,t);return}const i=Object.entries(e).map(o=>[o[0],o[1],Q(o[0],t)]);t.sortKeys&&i.sort(t.sortKeys),R(e,i.length,f$4.MAP,n,t);for(const[o,c,s]of i)n.write(s),g$1(c,n,t);}function g$1(e,n,t){switch(typeof e){case "number":Y(e,n,t);break;case "bigint":N$1(e,n,t);break;case "string":Z(e,n,t);break;case "boolean":n.writeUint8(e?j:P);break;case "undefined":if(t.rejectUndefined)throw new Error("Attempt to encode unwanted undefined.");n.writeUint8($$1);break;case "object":X(e,n,t);break;case "symbol":throw new TypeError(`Unknown symbol: ${e.toString()}`);default:throw new TypeError(`Unknown type: ${typeof e}, ${String(e)}`)}}function Q(e$1,n={}){const t={...k$2};n.dcbor?Object.assign(t,H$1):n.cde&&Object.assign(t,F),Object.assign(t,n);const r=new e(t);return g$1(e$1,r,t),r.read()}
+
+  var o=(e=>(e[e.NEVER=-1]="NEVER",e[e.PREFERRED=0]="PREFERRED",e[e.ALWAYS=1]="ALWAYS",e))(o||{});
+
+  class t{static KnownSimple=new Map([[T$2.FALSE,false],[T$2.TRUE,true],[T$2.NULL,null],[T$2.UNDEFINED,void 0]]);value;constructor(e){this.value=e;}static create(e){return t.KnownSimple.has(e)?t.KnownSimple.get(e):new t(e)}toCBOR(e,i){if(i.rejectCustomSimples)throw new Error(`Cannot encode non-standard Simple value: ${this.value}`);a$1(this.value,e,f$4.SIMPLE_FLOAT);}toString(){return `simple(${this.value})`}decode(){return t.KnownSimple.has(this.value)?t.KnownSimple.get(this.value):this}[Symbol.for("nodejs.util.inspect.custom")](e,i,r){return `simple(${r(this.value,i)})`}}
+
+  const p=new TextDecoder("utf8",{fatal:true,ignoreBOM:true});let y$2 = class y{static defaultOptions={maxDepth:1024,encoding:"hex",requirePreferred:false};#t;#r;#e=0;#i;constructor(t,r){if(this.#i={...y.defaultOptions,...r},typeof t=="string")switch(this.#i.encoding){case "hex":this.#t=b$1(t);break;case "base64":this.#t=y$4(t);break;default:throw new TypeError(`Encoding not implemented: "${this.#i.encoding}"`)}else this.#t=t;this.#r=new DataView(this.#t.buffer,this.#t.byteOffset,this.#t.byteLength);}toHere(t){return R$1(this.#t,t,this.#e)}*[Symbol.iterator](){if(yield*this.#n(0),this.#e!==this.#t.length)throw new Error("Extra data in input")}*seq(){for(;this.#e<this.#t.length;)yield*this.#n(0);}*#n(t$1){if(t$1++>this.#i.maxDepth)throw new Error(`Maximum depth ${this.#i.maxDepth} exceeded`);const r=this.#e,c=this.#r.getUint8(this.#e++),i=c>>5,n=c&31;let e=n,f=false,a=0;switch(n){case o$2.ONE:if(a=1,e=this.#r.getUint8(this.#e),i===f$4.SIMPLE_FLOAT){if(e<32)throw new Error(`Invalid simple encoding in extra byte: ${e}`);f=true;}else if(this.#i.requirePreferred&&e<24)throw new Error(`Unexpectedly long integer encoding (1) for ${e}`);break;case o$2.TWO:if(a=2,i===f$4.SIMPLE_FLOAT)e=o$1(this.#t,this.#e);else if(e=this.#r.getUint16(this.#e,false),this.#i.requirePreferred&&e<=255)throw new Error(`Unexpectedly long integer encoding (2) for ${e}`);break;case o$2.FOUR:if(a=4,i===f$4.SIMPLE_FLOAT)e=this.#r.getFloat32(this.#e,false);else if(e=this.#r.getUint32(this.#e,false),this.#i.requirePreferred&&e<=65535)throw new Error(`Unexpectedly long integer encoding (4) for ${e}`);break;case o$2.EIGHT:{if(a=8,i===f$4.SIMPLE_FLOAT)e=this.#r.getFloat64(this.#e,false);else if(e=this.#r.getBigUint64(this.#e,false),e<=Number.MAX_SAFE_INTEGER&&(e=Number(e)),this.#i.requirePreferred&&e<=4294967295)throw new Error(`Unexpectedly long integer encoding (8) for ${e}`);break}case 28:case 29:case 30:throw new Error(`Additional info not implemented: ${n}`);case o$2.INDEFINITE:switch(i){case f$4.POS_INT:case f$4.NEG_INT:case f$4.TAG:throw new Error(`Invalid indefinite encoding for MT ${i}`);case f$4.SIMPLE_FLOAT:yield [i,n,N$2.BREAK,r,0];return}e=1/0;break;default:f=true;}switch(this.#e+=a,i){case f$4.POS_INT:yield [i,n,e,r,a];break;case f$4.NEG_INT:yield [i,n,typeof e=="bigint"?-1n-e:-1-Number(e),r,a];break;case f$4.BYTE_STRING:e===1/0?yield*this.#s(i,t$1,r):yield [i,n,this.#a(e),r,e];break;case f$4.UTF8_STRING:e===1/0?yield*this.#s(i,t$1,r):yield [i,n,p.decode(this.#a(e)),r,e];break;case f$4.ARRAY:if(e===1/0)yield*this.#s(i,t$1,r,false);else {const o=Number(e);yield [i,n,o,r,a];for(let h=0;h<o;h++)yield*this.#n(t$1+1);}break;case f$4.MAP:if(e===1/0)yield*this.#s(i,t$1,r,false);else {const o=Number(e);yield [i,n,o,r,a];for(let h=0;h<o;h++)yield*this.#n(t$1),yield*this.#n(t$1);}break;case f$4.TAG:yield [i,n,e,r,a],yield*this.#n(t$1);break;case f$4.SIMPLE_FLOAT:{const o=e;f&&(e=t.create(Number(e))),yield [i,n,e,r,o];break}}}#a(t){const r=R$1(this.#t,this.#e,this.#e+=t);if(r.length!==t)throw new Error(`Unexpected end of stream reading ${t} bytes, got ${r.length}`);return r}*#s(t,r,c,i=true){for(yield [t,o$2.INDEFINITE,1/0,c,1/0];;){const n=this.#n(r),e=n.next(),[f,a,o]=e.value;if(o===N$2.BREAK){yield e.value,n.next();return}if(i){if(f!==t)throw new Error(`Unmatched major type.  Expected ${t}, got ${f}.`);if(a===o$2.INDEFINITE)throw new Error("New stream started in typed stream")}yield e.value,yield*n;}}};
+
+  const v=new Map([[o$2.ZERO,1],[o$2.ONE,2],[o$2.TWO,3],[o$2.FOUR,5],[o$2.EIGHT,9]]),A$1=new Uint8Array(0);function k$1(d,r){return !r.boxed&&!r.preferMap&&d.every(([i])=>typeof i=="string")?Object.fromEntries(d):new Map(d)}let w$1 = class w{static defaultDecodeOptions={...y$2.defaultOptions,ParentType:w,boxed:false,cde:false,dcbor:false,diagnosticSizes:o.PREFERRED,convertUnsafeIntsToFloat:false,createObject:k$1,pretty:false,preferMap:false,rejectLargeNegatives:false,rejectBigInts:false,rejectDuplicateKeys:false,rejectFloats:false,rejectInts:false,rejectLongLoundNaN:false,rejectLongFloats:false,rejectNegativeZero:false,rejectSimple:false,rejectStreaming:false,rejectStringsNotNormalizedAs:null,rejectSubnormals:false,rejectUndefined:false,rejectUnsafeFloatInts:false,saveOriginal:false,sortKeys:null,tags:null};static cdeDecodeOptions={cde:true,rejectStreaming:true,requirePreferred:true,sortKeys:f$1};static dcborDecodeOptions={...this.cdeDecodeOptions,dcbor:true,convertUnsafeIntsToFloat:true,rejectDuplicateKeys:true,rejectLargeNegatives:true,rejectLongLoundNaN:true,rejectLongFloats:true,rejectNegativeZero:true,rejectSimple:true,rejectUndefined:true,rejectUnsafeFloatInts:true,rejectStringsNotNormalizedAs:"NFC"};parent;mt;ai;left;offset;count=0;children=[];depth=0;#e;#t=null;constructor(r,i,e,t){if([this.mt,this.ai,,this.offset]=r,this.left=i,this.parent=e,this.#e=t,e&&(this.depth=e.depth+1),this.mt===f$4.MAP&&(this.#e.sortKeys||this.#e.rejectDuplicateKeys)&&(this.#t=[]),this.#e.rejectStreaming&&this.ai===o$2.INDEFINITE)throw new Error("Streaming not supported")}get isStreaming(){return this.left===1/0}get done(){return this.left===0}static create(r,i,e,t$1){const[s,l,n,c]=r;switch(s){case f$4.POS_INT:case f$4.NEG_INT:{if(e.rejectInts)throw new Error(`Unexpected integer: ${n}`);if(e.rejectLargeNegatives&&n<-0x8000000000000000n)throw new Error(`Invalid 65bit negative number: ${n}`);let o=n;return e.convertUnsafeIntsToFloat&&o>=S$1.MIN&&o<=S$1.MAX&&(o=Number(n)),e.boxed?d$2(o,t$1.toHere(c)):o}case f$4.SIMPLE_FLOAT:if(l>o$2.ONE){if(e.rejectFloats)throw new Error(`Decoding unwanted floating point number: ${n}`);if(e.rejectNegativeZero&&Object.is(n,-0))throw new Error("Decoding negative zero");if(e.rejectLongLoundNaN&&isNaN(n)){const o=t$1.toHere(c);if(o.length!==3||o[1]!==126||o[2]!==0)throw new Error(`Invalid NaN encoding: "${A$2(o)}"`)}if(e.rejectSubnormals&&l$1(t$1.toHere(c+1)),e.rejectLongFloats){const o=Q(n,{chunkSize:9,reduceUnsafeNumbers:e.rejectUnsafeFloatInts});if(o[0]>>5!==s)throw new Error(`Should have been encoded as int, not float: ${n}`);if(o.length<v.get(l))throw new Error(`Number should have been encoded shorter: ${n}`)}if(typeof n=="number"&&e.boxed)return d$2(n,t$1.toHere(c))}else {if(e.rejectSimple&&n instanceof t)throw new Error(`Invalid simple value: ${n}`);if(e.rejectUndefined&&n===void 0)throw new Error("Unexpected undefined")}return n;case f$4.BYTE_STRING:case f$4.UTF8_STRING:if(n===1/0)return new e.ParentType(r,1/0,i,e);if(e.rejectStringsNotNormalizedAs&&typeof n=="string"){const o=n.normalize(e.rejectStringsNotNormalizedAs);if(n!==o)throw new Error(`String not normalized as "${e.rejectStringsNotNormalizedAs}", got [${U$2(n)}] instead of [${U$2(o)}]`)}return e.boxed?d$2(n,t$1.toHere(c)):n;case f$4.ARRAY:return new e.ParentType(r,n,i,e);case f$4.MAP:return new e.ParentType(r,n*2,i,e);case f$4.TAG:{const o=new e.ParentType(r,1,i,e);return o.children=new i$1(n),o}}throw new TypeError(`Invalid major type: ${s}`)}static decodeToEncodeOpts(r){return {...k$2,avoidInts:r.rejectInts,float64:!r.rejectLongFloats,flushToZero:r.rejectSubnormals,largeNegativeAsBigInt:r.rejectLargeNegatives,sortKeys:r.sortKeys}}push(r,i,e){if(this.children.push(r),this.#t){const t=f$3(r)||i.toHere(e);this.#t.push(t);}return --this.left}replaceLast(r,i,e){let t,s=-1/0;if(this.children instanceof i$1?(s=0,t=this.children.contents,this.children.contents=r):(s=this.children.length-1,t=this.children[s],this.children[s]=r),this.#t){const l=f$3(r)||e.toHere(i.offset);this.#t[s]=l;}return t}convert(r){let i;switch(this.mt){case f$4.ARRAY:i=this.children;break;case f$4.MAP:{const e=this.#r();if(this.#e.sortKeys){let t;for(const s of e){if(t&&this.#e.sortKeys(t,s)>=0)throw new Error(`Duplicate or out of order key: "0x${s[2]}"`);t=s;}}else if(this.#e.rejectDuplicateKeys){const t=new Set;for(const[s,l,n]of e){const c=A$2(n);if(t.has(c))throw new Error(`Duplicate key: "0x${c}"`);t.add(c);}}i=this.#e.createObject(e,this.#e);break}case f$4.BYTE_STRING:return d$1(this.children);case f$4.UTF8_STRING:{const e=this.children.join("");i=this.#e.boxed?d$2(e,r.toHere(this.offset)):e;break}case f$4.TAG:i=this.children.decode(this.#e);break;default:throw new TypeError(`Invalid mt on convert: ${this.mt}`)}return this.#e.saveOriginal&&i&&typeof i=="object"&&u(i,r.toHere(this.offset)),i}#r(){const r=this.children,i=r.length;if(i%2)throw new Error("Missing map value");const e=new Array(i/2);if(this.#t)for(let t=0;t<i;t+=2)e[t>>1]=[r[t],r[t+1],this.#t[t]];else for(let t=0;t<i;t+=2)e[t>>1]=[r[t],r[t+1],A$1];return e}};
+
+  const O$2="  ",y$1=new TextEncoder;class g extends w$1{close="";quote='"';get isEmptyStream(){return (this.mt===f$4.UTF8_STRING||this.mt===f$4.BYTE_STRING)&&this.count===0}}function a(m,l,n,p){let t="";if(l===o$2.INDEFINITE)t+="_";else {if(p.diagnosticSizes===o.NEVER)return "";{let r=p.diagnosticSizes===o.ALWAYS;if(!r){let e=o$2.ZERO;if(Object.is(n,-0))e=o$2.TWO;else if(m===f$4.POS_INT||m===f$4.NEG_INT){const T=n<0,u=typeof n=="bigint"?1n:1,o=T?-n-u:n;o<=23?e=Number(o):o<=255?e=o$2.ONE:o<=65535?e=o$2.TWO:o<=4294967295?e=o$2.FOUR:e=o$2.EIGHT;}else isFinite(n)?Math.fround(n)===n?s(n)==null?e=o$2.FOUR:e=o$2.TWO:e=o$2.EIGHT:e=o$2.TWO;r=e!==l;}r&&(t+="_",l<o$2.ONE?t+="i":t+=String(l-24));}}return t}function M(m,l){const n={...w$1.defaultDecodeOptions,...l,ParentType:g},p=new y$2(m,n);let t$1,r,e="";for(const T of p){const[u,o,i]=T;switch(t$1&&(t$1.count>0&&i!==N$2.BREAK&&(t$1.mt===f$4.MAP&&t$1.count%2?e+=": ":(e+=",",n.pretty||(e+=" "))),n.pretty&&(t$1.mt!==f$4.MAP||t$1.count%2===0)&&(e+=`
+${O$2.repeat(t$1.depth+1)}`)),r=w$1.create(T,t$1,n,p),u){case f$4.POS_INT:case f$4.NEG_INT:e+=String(i),e+=a(u,o,i,n);break;case f$4.SIMPLE_FLOAT:if(i!==N$2.BREAK)if(typeof i=="number"){const c=Object.is(i,-0)?"-0.0":String(i);e+=c,isFinite(i)&&!/[.e]/.test(c)&&(e+=".0"),e+=a(u,o,i,n);}else i instanceof t?(e+="simple(",e+=String(i.value),e+=a(f$4.POS_INT,o,i.value,n),e+=")"):e+=String(i);break;case f$4.BYTE_STRING:i===1/0?(e+="(_ ",r.close=")",r.quote="'"):(e+="h'",e+=A$2(i),e+="'",e+=a(f$4.POS_INT,o,i.length,n));break;case f$4.UTF8_STRING:i===1/0?(e+="(_ ",r.close=")"):(e+=JSON.stringify(i),e+=a(f$4.POS_INT,o,y$1.encode(i).length,n));break;case f$4.ARRAY:{e+="[";const c=a(f$4.POS_INT,o,i,n);e+=c,c&&(e+=" "),n.pretty&&i?r.close=`
+${O$2.repeat(r.depth)}]`:r.close="]";break}case f$4.MAP:{e+="{";const c=a(f$4.POS_INT,o,i,n);e+=c,c&&(e+=" "),n.pretty&&i?r.close=`
+${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.POS_INT,o,i,n),e+="(",r.close=")";break}if(r===N$2.BREAK)if(t$1?.isStreaming)t$1.left=0;else throw new Error("Unexpected BREAK");else t$1&&(t$1.count++,t$1.left--);for(r instanceof g&&(t$1=r);t$1?.done;){if(t$1.isEmptyStream)e=e.slice(0,-3),e+=`${t$1.quote}${t$1.quote}_`;else {if(t$1.mt===f$4.MAP&&t$1.count%2!==0)throw new Error(`Odd streaming map size: ${t$1.count}`);e+=t$1.close;}t$1=t$1.parent;}}return e}
+
+  const H=new TextDecoder;class A extends w$1{depth=0;leaf=false;value;length;[N$2.ENCODED];constructor(a,f,e,n){super(a,f,e,n),this.parent?this.depth=this.parent.depth+1:this.depth=n.initialDepth,[,,this.value,,this.length]=a;}numBytes(){switch(this.ai){case o$2.ONE:return 1;case o$2.TWO:return 2;case o$2.FOUR:return 4;case o$2.EIGHT:return 8}return 0}}function k(t){return t instanceof A}function O$1(t,a){return t===1/0?"Indefinite":a?`${t} ${a}${t!==1&&t!==1n?"s":""}`:String(t)}function y(t){return "".padStart(t," ")}function x$1(t$1,a,f){let e="";e+=y(t$1.depth*2);const n=f$3(t$1);e+=A$2(n.subarray(0,1));const r=t$1.numBytes();r&&(e+=" ",e+=A$2(n.subarray(1,r+1))),e=e.padEnd(a.minCol+1," "),e+="-- ",f!==void 0&&(e+=y(t$1.depth*2),f!==""&&(e+=`[${f}] `));let p=false;const[s]=t$1.children;switch(t$1.mt){case f$4.POS_INT:e+=`Unsigned: ${s}`,typeof s=="bigint"&&(e+="n");break;case f$4.NEG_INT:e+=`Negative: ${s}`,typeof s=="bigint"&&(e+="n");break;case f$4.BYTE_STRING:e+=`Bytes (Length: ${O$1(t$1.length)})`;break;case f$4.UTF8_STRING:e+=`UTF8 (Length: ${O$1(t$1.length)})`,t$1.length!==1/0&&(e+=`: ${JSON.stringify(s)}`);break;case f$4.ARRAY:e+=`Array (Length: ${O$1(t$1.value,"item")})`;break;case f$4.MAP:e+=`Map (Length: ${O$1(t$1.value,"pair")})`;break;case f$4.TAG:{e+=`Tag #${t$1.value}`;const o=t$1.children,[m]=o.contents.children,i=new i$1(o.tag,m);u(i,n);const l=i.comment(a,t$1.depth);l&&(e+=": ",e+=l),p||=i.noChildren;break}case f$4.SIMPLE_FLOAT:s===N$2.BREAK?e+="BREAK":t$1.ai>o$2.ONE?Object.is(s,-0)?e+="Float: -0":e+=`Float: ${s}`:(e+="Simple: ",s instanceof t?e+=s.value:e+=s);break}if(!p)if(t$1.leaf){if(e+=`
+`,n.length>r+1){const o=y((t$1.depth+1)*2),m=f$2(n);if(m?.length){m.sort((l,c)=>{const g=l[0]-c[0];return g||c[1]-l[1]});let i=0;for(const[l,c,g]of m)if(!(l<i)){if(i=l+c,g==="<<"){e+=y(a.minCol+1),e+="--",e+=o,e+="<< ";const d=R$1(n,l,l+c),h=f$2(d);if(h){const $=h.findIndex(([w,D,v])=>w===0&&D===c&&v==="<<");$>=0&&h.splice($,1);}e+=M(d),e+=` >>
+`,e+=L(d,{initialDepth:t$1.depth+1,minCol:a.minCol,noPrefixHex:true});continue}else g==="'"&&(e+=y(a.minCol+1),e+="--",e+=o,e+="'",e+=H.decode(n.subarray(l,l+c)),e+=`'
+`);if(l>r)for(let d=l;d<l+c;d+=8){const h=Math.min(d+8,l+c);e+=o,e+=A$2(n.subarray(d,h)),e+=`
+`;}}}else for(let i=r+1;i<n.length;i+=8)e+=o,e+=A$2(n.subarray(i,i+8)),e+=`
+`;}}else {e+=`
+`;let o=0;for(const m of t$1.children){if(k(m)){let i=String(o);t$1.mt===f$4.MAP?i=o%2?`val ${(o-1)/2}`:`key ${o/2}`:t$1.mt===f$4.TAG&&(i=""),e+=x$1(m,a,i);}o++;}}return e}const q={...w$1.defaultDecodeOptions,initialDepth:0,noPrefixHex:false,minCol:0};function L(t,a){const f={...q,...a,ParentType:A,saveOriginal:true},e=new y$2(t,f);let n,r;for(const s of e){if(r=w$1.create(s,n,f,e),s[2]===N$2.BREAK)if(n?.isStreaming)n.left=1;else throw new Error("Unexpected BREAK");if(!k(r)){const i=new A(s,0,n,f);i.leaf=true,i.children.push(r),u(i,e.toHere(s[3])),r=i;}let o=(r.depth+1)*2;const m=r.numBytes();for(m&&(o+=1,o+=m*2),f.minCol=Math.max(f.minCol,o),n&&n.push(r,e,s[3]),n=r;n?.done;)r=n,r.leaf||u(r,e.toHere(r.offset)),{parent:n}=n;}a&&(a.minCol=f.minCol);let p=f.noPrefixHex?"":`0x${A$2(e.toHere(0))}
+`;return p+=x$1(r,f),p}
+
+  const S=!h$2();function O(e){if(typeof e=="object"&&e){if(e.constructor!==Number)throw new Error(`Expected number: ${e}`)}else if(typeof e!="number")throw new Error(`Expected number: ${e}`)}function E(e){if(typeof e=="object"&&e){if(e.constructor!==String)throw new Error(`Expected string: ${e}`)}else if(typeof e!="string")throw new Error(`Expected string: ${e}`)}function f(e){if(!(e instanceof Uint8Array))throw new Error(`Expected Uint8Array: ${e}`)}function U(e){if(!Array.isArray(e))throw new Error(`Expected Array: ${e}`)}ce(Map,(e,r,n)=>{const t=[...e.entries()].map(o=>[o[0],o[1],Q(o[0],n)]);if(n.rejectDuplicateKeys){const o=new Set;for(const[d,u,y]of t){const g=A$2(y);if(o.has(g))throw new Error(`Duplicate map key: 0x${g}`);o.add(g);}}n.sortKeys&&t.sort(n.sortKeys),R(e,e.size,f$4.MAP,r,n);for(const[o,d,u]of t)r.write(u),g$1(d,r,n);});function h(e){return E(e.contents),new Date(e.contents)}h.comment=e=>(E(e.contents),`(String Date) ${new Date(e.contents).toISOString()}`),i$1.registerDecoder(I.DATE_STRING,h);function N(e){return O(e.contents),new Date(e.contents*1e3)}N.comment=e=>(O(e.contents),`(Epoch Date) ${new Date(e.contents*1e3).toISOString()}`),i$1.registerDecoder(I.DATE_EPOCH,N),ce(Date,e=>[I.DATE_EPOCH,e.valueOf()/1e3]);function T(e,r,n){if(f(r.contents),n.rejectBigInts)throw new Error(`Decoding unwanted big integer: ${r}(h'${A$2(r.contents)}')`);if(n.requirePreferred&&r.contents[0]===0)throw new Error(`Decoding overly-large bigint: ${r.tag}(h'${A$2(r.contents)})`);let t=r.contents.reduce((o,d)=>o<<8n|BigInt(d),0n);if(e&&(t=-1n-t),n.requirePreferred&&t>=Number.MIN_SAFE_INTEGER&&t<=Number.MAX_SAFE_INTEGER)throw new Error(`Decoding bigint that could have been int: ${t}n`);return n.boxed?d$2(t,r.contents):t}const _=T.bind(null,false),$=T.bind(null,true);_.comment=(e,r)=>`(Positive BigInt) ${T(false,e,r)}n`,$.comment=(e,r)=>`(Negative BigInt) ${T(true,e,r)}n`,i$1.registerDecoder(I.POS_BIGINT,_),i$1.registerDecoder(I.NEG_BIGINT,$);function D(e,r){return f(e.contents),e}D.comment=(e,r,n)=>{f(e.contents);const t={...r,initialDepth:n+2,noPrefixHex:true},o=f$3(e);let u=2**((o[0]&31)-24)+1;const y=o[u]&31;let g=A$2(o.subarray(u,++u));y>=24&&(g+=" ",g+=A$2(o.subarray(u,u+2**(y-24)))),t.minCol=Math.max(t.minCol,(n+1)*2+g.length);const p=L(e.contents,t);let I=`Embedded CBOR
+`;return I+=`${"".padStart((n+1)*2," ")}${g}`.padEnd(t.minCol+1," "),I+=`-- Bytes (Length: ${e.contents.length})
+`,I+=p,I},D.noChildren=true,i$1.registerDecoder(I.CBOR,D),i$1.registerDecoder(I.URI,e=>(E(e.contents),new URL(e.contents)),"URI"),ce(URL,e=>[I.URI,e.toString()]),i$1.registerDecoder(I.BASE64URL,e=>(E(e.contents),x$2(e.contents)),"Base64url-encoded"),i$1.registerDecoder(I.BASE64,e=>(E(e.contents),y$4(e.contents)),"Base64-encoded"),i$1.registerDecoder(35,e=>(E(e.contents),new RegExp(e.contents)),"RegExp"),i$1.registerDecoder(21065,e=>{E(e.contents);const r=`^(?:${e.contents})$`;return new RegExp(r,"u")},"I-RegExp"),i$1.registerDecoder(I.REGEXP,e=>{if(U(e.contents),e.contents.length<1||e.contents.length>2)throw new Error(`Invalid RegExp Array: ${e.contents}`);return new RegExp(e.contents[0],e.contents[1])},"RegExp"),ce(RegExp,e=>[I.REGEXP,[e.source,e.flags]]),i$1.registerDecoder(64,e=>(f(e.contents),e.contents),"uint8 Typed Array");function c(e,r,n){f(e.contents);let t=e.contents.length;if(t%r.BYTES_PER_ELEMENT!==0)throw new Error(`Number of bytes must be divisible by ${r.BYTES_PER_ELEMENT}, got: ${t}`);t/=r.BYTES_PER_ELEMENT;const o=new r(t),d=new DataView(e.contents.buffer,e.contents.byteOffset,e.contents.byteLength),u=d[`get${r.name.replace(/Array/,"")}`].bind(d);for(let y=0;y<t;y++)o[y]=u(y*r.BYTES_PER_ELEMENT,n);return o}function l(e,r,n,t,o){const d=o.forceEndian??S;if(p$1(d?r:n,e,o),a$1(t.byteLength,e,f$4.BYTE_STRING),S===d)e.write(new Uint8Array(t.buffer,t.byteOffset,t.byteLength));else {const y=`write${t.constructor.name.replace(/Array/,"")}`,g=e[y].bind(e);for(const p of t)g(p,d);}}i$1.registerDecoder(65,e=>c(e,Uint16Array,false),"uint16, big endian, Typed Array"),i$1.registerDecoder(66,e=>c(e,Uint32Array,false),"uint32, big endian, Typed Array"),i$1.registerDecoder(67,e=>c(e,BigUint64Array,false),"uint64, big endian, Typed Array"),i$1.registerDecoder(68,e=>(f(e.contents),new Uint8ClampedArray(e.contents)),"uint8 Typed Array, clamped arithmetic"),ce(Uint8ClampedArray,e=>[68,new Uint8Array(e.buffer,e.byteOffset,e.byteLength)]),i$1.registerDecoder(69,e=>c(e,Uint16Array,true),"uint16, little endian, Typed Array"),ce(Uint16Array,(e,r,n)=>l(r,69,65,e,n)),i$1.registerDecoder(70,e=>c(e,Uint32Array,true),"uint32, little endian, Typed Array"),ce(Uint32Array,(e,r,n)=>l(r,70,66,e,n)),i$1.registerDecoder(71,e=>c(e,BigUint64Array,true),"uint64, little endian, Typed Array"),ce(BigUint64Array,(e,r,n)=>l(r,71,67,e,n)),i$1.registerDecoder(72,e=>(f(e.contents),new Int8Array(e.contents)),"sint8 Typed Array"),ce(Int8Array,e=>[72,new Uint8Array(e.buffer,e.byteOffset,e.byteLength)]),i$1.registerDecoder(73,e=>c(e,Int16Array,false),"sint16, big endian, Typed Array"),i$1.registerDecoder(74,e=>c(e,Int32Array,false),"sint32, big endian, Typed Array"),i$1.registerDecoder(75,e=>c(e,BigInt64Array,false),"sint64, big endian, Typed Array"),i$1.registerDecoder(77,e=>c(e,Int16Array,true),"sint16, little endian, Typed Array"),ce(Int16Array,(e,r,n)=>l(r,77,73,e,n)),i$1.registerDecoder(78,e=>c(e,Int32Array,true),"sint32, little endian, Typed Array"),ce(Int32Array,(e,r,n)=>l(r,78,74,e,n)),i$1.registerDecoder(79,e=>c(e,BigInt64Array,true),"sint64, little endian, Typed Array"),ce(BigInt64Array,(e,r,n)=>l(r,79,75,e,n)),i$1.registerDecoder(81,e=>c(e,Float32Array,false),"IEEE 754 binary32, big endian, Typed Array"),i$1.registerDecoder(82,e=>c(e,Float64Array,false),"IEEE 754 binary64, big endian, Typed Array"),i$1.registerDecoder(85,e=>c(e,Float32Array,true),"IEEE 754 binary32, little endian, Typed Array"),ce(Float32Array,(e,r,n)=>l(r,85,81,e,n)),i$1.registerDecoder(86,e=>c(e,Float64Array,true),"IEEE 754 binary64, big endian, Typed Array"),ce(Float64Array,(e,r,n)=>l(r,86,82,e,n)),i$1.registerDecoder(I.SET,(e,r)=>{if(U(e.contents),r.sortKeys){const n=w$1.decodeToEncodeOpts(r);let t=null;for(const o of e.contents){const d=[o,void 0,Q(o,n)];if(t&&r.sortKeys(t,d)>=0)throw new Error(`Set items out of order in tag #${I.SET}`);t=d;}}return new Set(e.contents)},"Set"),ce(Set,(e,r,n)=>{let t=[...e];if(n.sortKeys){const o=t.map(d=>[d,void 0,Q(d,n)]);o.sort(n.sortKeys),t=o.map(([d])=>d);}return [I.SET,t]}),i$1.registerDecoder(I.JSON,e=>(E(e.contents),JSON.parse(e.contents)),"JSON-encoded");function x(e){return f(e.contents),new Wtf8Decoder().decode(e.contents)}x.comment=e=>{f(e.contents);const r=new Wtf8Decoder;return `(WTF8 string): ${JSON.stringify(r.decode(e.contents))}`},i$1.registerDecoder(I.WTF8,x),i$1.registerDecoder(I.SELF_DESCRIBED,e=>e.contents,"Self-Described"),i$1.registerDecoder(I.INVALID_16,()=>{throw new Error(`Tag always invalid: ${I.INVALID_16}`)},"Invalid"),i$1.registerDecoder(I.INVALID_32,()=>{throw new Error(`Tag always invalid: ${I.INVALID_32}`)},"Invalid"),i$1.registerDecoder(I.INVALID_64,()=>{throw new Error(`Tag always invalid: ${I.INVALID_64}`)},"Invalid");function w(e){throw new Error(`Encoding ${e.constructor.name} intentionally unimplmented.  It is not concrete enough to interoperate.  Convert to Uint8Array first.`)}ce(ArrayBuffer,w),ce(DataView,w),typeof SharedArrayBuffer<"u"&&ce(SharedArrayBuffer,w);function m(e){return [NaN,e.valueOf()]}ce(Boolean,m),ce(Number,m),ce(String,m),ce(BigInt,m);
+
+  const{cdeDecodeOptions:r,dcborDecodeOptions:n,defaultDecodeOptions:d}=w$1;
+
   /* globals: jsonld */
 
 
@@ -35274,7 +39444,7 @@
   });
 
   function setEditorValue(_editor, doc, lang) {
-    console.trace(arguments);
+    // TODO: this runs more often than it should (because v-effect); maybe debounce
     if (_editor) {
       // set the correct language
       language.reconfigure(json());
@@ -35303,6 +39473,13 @@
     frameDoc: {},
     tableQuads: {},
     yamlLD: '',
+    cborLD: {
+      bytes: {},
+      hex: '',
+      jsonldSize: 0,
+      size: 0,
+      percentage: 0
+    },
     remoteDocURL: '',
     remoteSideDocURL: '',
     parseError: '',
@@ -35469,6 +39646,30 @@
         case 'yamlld':
           this.yamlLD = YAML.stringify(this.doc);
           setEditorValue(readOnlyEditor, this.yamlLD, 'yaml');
+          break;
+        case 'cborld':
+          try {
+            this.cborLD.jsonldSize = JSON.stringify(this.doc).length;
+            this.cborLD.bytes = await encode({
+              jsonldDocument: this.doc,
+              documentLoader: jsonld.documentLoader,
+              // use standard compression (set to `0` to use no compression)
+              registryEntryId: 1
+            });
+            this.cborLD.size = this.cborLD.bytes.length;
+            this.cborLD.hex = Array.from(this.cborLD.bytes, byte =>
+              byte.toString(16).padStart(2, '0')).join('');
+            this.cborLD.percentage =
+              Math.floor(((this.cborLD.jsonldSize - this.cborLD.size) / this.cborLD.jsonldSize) * 100);
+            this.cborLD.diagnostics = M(this.cborLD.bytes, {
+              pretty: true});
+            setEditorValue(readOnlyEditor, this.cborLD.diagnostics, 'cbor');
+            this.parseError = '';
+          } catch (err) {
+            // TODO: currently, the editor keeps it's old value...unupdated...
+            this.parseError = err.message;
+            console.error(err);
+          }
           break;
         default:
           setEditorValue(readOnlyEditor, {});
