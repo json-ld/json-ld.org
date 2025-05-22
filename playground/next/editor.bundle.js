@@ -39494,6 +39494,17 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
       rdfDirection: '',
       safe: ''
     },
+    tabs: {
+      expanded: {icon: 'expanded alternate', label: 'Expanded'},
+      compacted: {icon: 'compress alternate', label: 'Compacted'},
+      flattened: {icon: 'bars', label: 'Flattened'},
+      framed: {icon: 'crop alternate', label: 'Framed'},
+      nquads: {icon: 'rdf-icon-rdf', label: 'N-Quads'},
+      canonized: {icon: 'archive', label: 'Canonized'},
+      table: {icon: 'th', label: 'Table'},
+      yamlld: {icon: 'stream', label: 'YAML-LD'},
+      cborld: {icon: 'robot', label: 'CBOR-LD'}
+    },
     // computed
     get editorColumns() {
       if (['compacted', 'flattened', 'framed'].indexOf(this.outputTab) > -1) {
