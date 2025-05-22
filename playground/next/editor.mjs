@@ -13,6 +13,7 @@ import {linter} from '@codemirror/lint';
 import YAML from 'yaml';
 import {yaml} from '@codemirror/lang-yaml';
 import * as cborld from '@digitalbazaar/cborld';
+import * as cbor2 from 'cbor2';
 
 // Setup JSON-LD documentLoader
 const xhrDocumentLoader = jsonld.documentLoaders.xhr();
@@ -335,7 +336,9 @@ window.app = createApp({
             byte.toString(16).padStart(2, '0')).join('');
           this.cborLD.percentage =
             Math.floor(((this.cborLD.jsonldSize - this.cborLD.size) / this.cborLD.jsonldSize) * 100);
-          setEditorValue(readOnlyEditor, this.cborLD.bytes, 'cbor');
+          this.cborLD.diagnostics = cbor2.diagnose(this.cborLD.bytes, {
+            pretty: true})
+          setEditorValue(readOnlyEditor, this.cborLD.diagnostics, 'cbor');
           this.parseError = '';
         } catch (err) {
           // TODO: currently, the editor keeps it's old value...unupdated...
