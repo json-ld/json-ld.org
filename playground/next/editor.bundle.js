@@ -165,7 +165,7 @@
       Return a cursor that iterates over the given range of lines,
       _without_ returning the line breaks between, and yielding empty
       strings for empty lines.
-
+      
       When `from` and `to` are given, they should be 1-based line numbers.
       */
       iterLines(from, to) {
@@ -615,16 +615,16 @@
       /**
       The position of the start of the line.
       */
-      from,
+      from, 
       /**
       The position at the end of the line (_before_ the line break,
       or at the end of document for the last line).
       */
-      to,
+      to, 
       /**
       This line's line number (1-based).
       */
-      number,
+      number, 
       /**
       The line's content.
       */
@@ -780,7 +780,7 @@
       `fromA`/`toA` provides the extent of the change in the starting
       document, `fromB`/`toB` the extent of the replacement in the
       changed document.
-
+      
       When `individual` is true, adjacent changes (which are kept
       separate for [position mapping](https://codemirror.net/6/docs/ref/#state.ChangeDesc.mapPos)) are
       reported separately.
@@ -889,7 +889,7 @@
   with exactly that length.
   */
   class ChangeSet extends ChangeDesc {
-      constructor(sections,
+      constructor(sections, 
       /**
       @internal
       */
@@ -943,7 +943,7 @@
       applied to the document produced by applying `other`. When
       `before` is `true`, order changes as if `this` comes before
       `other`, otherwise (the default) treat `other` as coming first.
-
+      
       Given two changes `A` and `B`, `A.compose(B.map(A))` and
       `B.compose(A.map(B, true))` will produce the same document. This
       provides a basic form of [operational
@@ -956,7 +956,7 @@
       each, with the range in the original document (`fromA`-`toA`)
       and the range that replaces it in the new document
       (`fromB`-`toB`).
-
+      
       When `individual` is true, adjacent changes are reported
       separately.
       */
@@ -1340,7 +1340,7 @@
       /**
       The lower boundary of the range.
       */
-      from,
+      from, 
       /**
       The upper boundary of the range.
       */
@@ -1448,7 +1448,7 @@
       The ranges in the selection, sorted by position. Ranges cannot
       overlap (but they may touch, if they aren't empty).
       */
-      ranges,
+      ranges, 
       /**
       The index of the _main_ range in the selection (which is
       usually the range that was added last).
@@ -1607,11 +1607,11 @@
       /**
       @internal
       */
-      combine,
+      combine, 
       /**
       @internal
       */
-      compareInput,
+      compareInput, 
       /**
       @internal
       */
@@ -1649,7 +1649,7 @@
       state. You must take care to declare the parts of the state that
       this value depends on, since your function is only called again
       for a new state when one of those parts changed.
-
+      
       In cases where your value depends only on a single field, you'll
       want to use the [`from`](https://codemirror.net/6/docs/ref/#state.Facet.from) method instead.
       */
@@ -1809,7 +1809,7 @@
       /**
       @internal
       */
-      id, createF, updateF, compareF,
+      id, createF, updateF, compareF, 
       /**
       @internal
       */
@@ -2130,7 +2130,7 @@
       /**
       The annotation type.
       */
-      type,
+      type, 
       /**
       The value of this annotation.
       */
@@ -2192,7 +2192,7 @@
       /**
       @internal
       */
-      type,
+      type, 
       /**
       The value of this effect.
       */
@@ -2264,24 +2264,24 @@
       /**
       The state from which the transaction starts.
       */
-      startState,
+      startState, 
       /**
       The document changes made by this transaction.
       */
-      changes,
+      changes, 
       /**
       The selection set by this transaction, or undefined if it
       doesn't explicitly set a selection.
       */
-      selection,
+      selection, 
       /**
       The effects added to the transaction.
       */
-      effects,
+      effects, 
       /**
       @internal
       */
-      annotations,
+      annotations, 
       /**
       Whether the selection should be scrolled into view after this
       transaction is dispatched.
@@ -2602,15 +2602,15 @@
       /**
       @internal
       */
-      config,
+      config, 
       /**
       The current document.
       */
-      doc,
+      doc, 
       /**
       The current selection.
       */
-      selection,
+      selection, 
       /**
       @internal
       */
@@ -2846,7 +2846,7 @@
       Look up a translation for the given phrase (via the
       [`phrases`](https://codemirror.net/6/docs/ref/#state.EditorState^phrases) facet), or return the
       original string if no translation is found.
-
+      
       If additional arguments are passed, they will be inserted in
       place of markers like `$1` (for the first value) and `$2`, etc.
       A single `$` is equivalent to `$1`, and `$$` will produce a
@@ -2870,9 +2870,9 @@
       /**
       Find the values for a given language data field, provided by the
       the [`languageData`](https://codemirror.net/6/docs/ref/#state.EditorState^languageData) facet.
-
+      
       Examples of language data fields are...
-
+      
       - [`"commentTokens"`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) for specifying
         comment syntax.
       - [`"autocomplete"`](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion^config.override)
@@ -2897,7 +2897,7 @@
       Return a function that can categorize strings (expected to
       represent a single [grapheme cluster](https://codemirror.net/6/docs/ref/#state.findClusterBreak))
       into one of:
-
+      
        - Word (contains an alphanumeric character or a character
          explicitly listed in the local language's `"wordChars"`
          language data, which should be a string)
@@ -3099,11 +3099,11 @@
       /**
       The range's start position.
       */
-      from,
+      from, 
       /**
       Its end position.
       */
-      to,
+      to, 
       /**
       The value associated with this range.
       */
@@ -3123,7 +3123,7 @@
       return a.from - b.from || a.value.startSide - b.value.startSide;
   }
   class Chunk {
-      constructor(from, to, value,
+      constructor(from, to, value, 
       // Chunks are marked with the largest point that occurs
       // in them (or -1 for no points), so that scans that are
       // only interested in points (such as the
@@ -3202,15 +3202,15 @@
       /**
       @internal
       */
-      chunkPos,
+      chunkPos, 
       /**
       @internal
       */
-      chunk,
+      chunk, 
       /**
       @internal
       */
-      nextLayer,
+      nextLayer, 
       /**
       @internal
       */
@@ -3253,7 +3253,7 @@
       /**
       Update the range set, optionally adding new ranges or filtering
       out existing ones.
-
+      
       (Note: The type parameter is just there as a kludge to work
       around TypeScript variance issues that prevented `RangeSet<X>`
       from being a subtype of `RangeSet<Y>` when `X` is a subtype of
@@ -3359,12 +3359,12 @@
       Iterate over two groups of sets, calling methods on `comparator`
       to notify it of possible differences.
       */
-      static compare(oldSets, newSets,
+      static compare(oldSets, newSets, 
       /**
       This indicates how the underlying data changed between these
       ranges, and is needed to synchronize the iteration.
       */
-      textDiff, comparator,
+      textDiff, comparator, 
       /**
       Can be used to ignore all non-point ranges, and points below
       the given size. When -1, all ranges are compared.
@@ -3412,7 +3412,7 @@
       [`SpanIterator.span`](https://codemirror.net/6/docs/ref/#state.SpanIterator.span)) at the end
       of the iteration.
       */
-      static spans(sets, from, to, iterator,
+      static spans(sets, from, to, iterator, 
       /**
       When given and greater than -1, only points of at least this
       size are taken into account.
@@ -5517,15 +5517,15 @@
       /**
       @internal
       */
-      startSide,
+      startSide, 
       /**
       @internal
       */
-      endSide,
+      endSide, 
       /**
       @internal
       */
-      widget,
+      widget, 
       /**
       The config object used to create this decoration. You can
       include additional properties in there to store metadata about
@@ -6187,11 +6187,11 @@
       /**
       The start of the span (relative to the start of the line).
       */
-      from,
+      from, 
       /**
       The end of the span.
       */
-      to,
+      to, 
       /**
       The ["bidi
       level"](https://unicode.org/reports/tr9/#Basic_Display_Algorithm)
@@ -6626,7 +6626,7 @@
   });
   const scrollHandler = /*@__PURE__*/Facet.define();
   class ScrollTarget {
-      constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5,
+      constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5, 
       // This data structure is abused to also store precise scroll
       // snapshots, instead of a `scrollIntoView` request. When this
       // flag is `true`, `range` points at a position in the reference
@@ -6688,15 +6688,15 @@
       /**
       @internal
       */
-      id,
+      id, 
       /**
       @internal
       */
-      create,
+      create, 
       /**
       @internal
       */
-      domEventHandlers,
+      domEventHandlers, 
       /**
       @internal
       */
@@ -6906,11 +6906,11 @@
       /**
       The editor view that the update is associated with.
       */
-      view,
+      view, 
       /**
       The new editor state.
       */
-      state,
+      state, 
       /**
       The transactions involved in the update. May be empty.
       */
@@ -9376,20 +9376,20 @@
       /**
       The start of the element in the document.
       */
-      from,
+      from, 
       /**
       The length of the element.
       */
-      length,
+      length, 
       /**
       The top position of the element (relative to the top of the
       document).
       */
-      top,
+      top, 
       /**
       Its height.
       */
-      height,
+      height, 
       /**
       @internal Weird packed field that holds an array of children
       for composite blocks, a decoration for block widgets, and a
@@ -10681,7 +10681,7 @@
           }
       });
   }
-  const baseTheme$1$2 = /*@__PURE__*/buildTheme("." + baseThemeID, {
+  const baseTheme$1$3 = /*@__PURE__*/buildTheme("." + baseThemeID, {
       "&": {
           position: "relative !important",
           boxSizing: "border-box",
@@ -12134,7 +12134,7 @@
       mountStyles() {
           this.styleModules = this.state.facet(styleModule);
           let nonce = this.state.facet(EditorView.cspNonce);
-          StyleModule.mount(this.root, this.styleModules.concat(baseTheme$1$2).reverse(), nonce ? { nonce } : undefined);
+          StyleModule.mount(this.root, this.styleModules.concat(baseTheme$1$3).reverse(), nonce ? { nonce } : undefined);
       }
       readMeasured() {
           if (this.updateState == 2 /* UpdateState.Updating */)
@@ -12256,7 +12256,7 @@
       When the start position was the last one on the line, the
       returned position will be across the line break. If there is no
       further line, the original position is returned.
-
+      
       By default, this method moves over a single cluster. The
       optional `by` argument can be used to move across more. It will
       be called with the first cluster as argument, and should return
@@ -12300,7 +12300,7 @@
       it defaults to moving to the next line (including wrapped
       lines). Otherwise, `distance` should provide a positive distance
       in pixels.
-
+      
       When `start` has a
       [`goalColumn`](https://codemirror.net/6/docs/ref/#state.SelectionRange.goalColumn), the vertical
       motion will use that as a target horizontal position. Otherwise,
@@ -12315,7 +12315,7 @@
       Find the DOM parent node and offset (child offset if `node` is
       an element, character offset when it is a text node) at the
       given document position.
-
+      
       Note that for positions that aren't currently in
       `visibleRanges`, the resulting DOM position isn't necessarily
       meaningful (it may just point before or after a placeholder
@@ -12492,7 +12492,7 @@
       only affects the editor's own scrollable element, not parents.
       See also
       [`EditorViewConfig.scrollTo`](https://codemirror.net/6/docs/ref/#view.EditorViewConfig.scrollTo).
-
+      
       The effect should be used with a document identical to the one
       it was created for. Failing to do so is not an error, but may
       not scroll to the expected position. You can
@@ -12508,7 +12508,7 @@
       for Tab and Shift-Tab, letting the browser's default
       focus-changing behavior go through instead. This is useful to
       prevent trapping keyboard users in your editor.
-
+      
       Without argument, this toggles the mode. With a boolean, it
       enables (true) or disables it (false). Given a number, it
       temporarily enables the mode until that number of milliseconds
@@ -12553,14 +12553,14 @@
       [`style-mod`](https://github.com/marijnh/style-mod#documentation)
       style spec providing the styles for the theme. These will be
       prefixed with a generated class for the style.
-
+      
       Because the selectors will be prefixed with a scope class, rule
       that directly match the editor's [wrapper
       element](https://codemirror.net/6/docs/ref/#view.EditorView.dom)—to which the scope class will be
       added—need to be explicitly differentiated by adding an `&` to
       the selector for that element—for example
       `&.cm-focused`.
-
+      
       When `dark` is set to true, the theme will be marked as dark,
       which will cause the `&dark` rules from [base
       themes](https://codemirror.net/6/docs/ref/#view.EditorView^baseTheme) to be used (as opposed to
@@ -13032,19 +13032,19 @@
       Create a marker with the given class and dimensions. If `width`
       is null, the DOM element will get no width style.
       */
-      constructor(className,
+      constructor(className, 
       /**
       The left position of the marker (in pixels, document-relative).
       */
-      left,
+      left, 
       /**
       The top position of the marker.
       */
-      top,
+      top, 
       /**
       The width of the marker, or null if it shouldn't get a width assigned.
       */
-      width,
+      width, 
       /**
       The height of the marker.
       */
@@ -14248,7 +14248,7 @@
       if (isNaN(current) || Math.abs(value - current) > 1)
           elt.style.left = value + "px";
   }
-  const baseTheme$5 = /*@__PURE__*/EditorView.baseTheme({
+  const baseTheme$4 = /*@__PURE__*/EditorView.baseTheme({
       ".cm-tooltip": {
           zIndex: 500,
           boxSizing: "border-box"
@@ -14315,7 +14315,7 @@
   Facet to which an extension can add a value to show a tooltip.
   */
   const showTooltip = /*@__PURE__*/Facet.define({
-      enables: [tooltipPlugin, baseTheme$5]
+      enables: [tooltipPlugin, baseTheme$4]
   });
   const showHoverTooltip = /*@__PURE__*/Facet.define({
       combine: inputs => inputs.reduce((a, i) => a.concat(i), [])
@@ -15374,7 +15374,7 @@
       /**
       The inner tree.
       */
-      tree,
+      tree, 
       /**
       If this is null, this tree replaces the entire node (it will
       be included in the regular iteration instead of its host
@@ -15384,7 +15384,7 @@
       only entered by [`resolveInner`](#common.Tree.resolveInner)
       and [`enter`](#common.SyntaxNode.enter).
       */
-      overlay,
+      overlay, 
       /**
       The parser used to create this subtree.
       */
@@ -15415,16 +15415,16 @@
       same name within a node set should play the same semantic
       role.
       */
-      name,
+      name, 
       /**
       @internal
       */
-      props,
+      props, 
       /**
       The id of this node in its set. Corresponds to the term ids
       used in the parser.
       */
-      id,
+      id, 
       /**
       @internal
       */
@@ -15618,20 +15618,20 @@
       /**
       The type of the top node.
       */
-      type,
+      type, 
       /**
       This node's child nodes.
       */
-      children,
+      children, 
       /**
       The positions (offsets relative to the start of this tree) of
       the children.
       */
-      positions,
+      positions, 
       /**
       The total length of this tree
       */
-      length,
+      length, 
       /**
       Per-node [node props](#common.NodeProp) to associate with this node.
       */
@@ -15703,7 +15703,7 @@
       position. If 1, it'll move into nodes that start at the
       position. With 0, it'll only enter nodes that cover the position
       from both sides.
-
+      
       Note that this will not enter
       [overlays](#common.MountedTree.overlay), and you often want
       [`resolveInner`](#common.Tree.resolveInner) instead.
@@ -15828,11 +15828,11 @@
       /**
       The buffer's content.
       */
-      buffer,
+      buffer, 
       /**
       The total length of the group of nodes in the buffer.
       */
-      length,
+      length, 
       /**
       The node set used in this buffer.
       */
@@ -15977,7 +15977,7 @@
       get next() { return this.parent; }
   }
   class TreeNode extends BaseNode {
-      constructor(_tree, from,
+      constructor(_tree, from, 
       // Index in parent node, set to -1 if the node is not a direct child of _parent.node (overlay)
       index, _parent) {
           super();
@@ -16220,7 +16220,7 @@
       /**
       @internal
       */
-      constructor(node,
+      constructor(node, 
       /**
       @internal
       */
@@ -16770,17 +16770,17 @@
   }
   function balanceRange(
   // The type the balanced tree's inner nodes.
-  balanceType,
+  balanceType, 
   // The direct children and their positions
-  children, positions,
+  children, positions, 
   // The index range in children/positions to use
-  from, to,
+  from, to, 
   // The start position of the nodes, relative to their parent.
-  start,
+  start, 
   // Length of the outer node
-  length,
+  length, 
   // Function to build the top node of the balanced tree
-  mkTop,
+  mkTop, 
   // Function to build internal nodes for the balanced tree
   mkTree) {
       let total = 0;
@@ -16839,15 +16839,15 @@
       This refers to an offset in the _updated_ document (as opposed
       to the original tree).
       */
-      from,
+      from, 
       /**
       The end of the unchanged range.
       */
-      to,
+      to, 
       /**
       The tree that this fragment is based on.
       */
-      tree,
+      tree, 
       /**
       The offset between the fragment's tree and the document that
       this fragment can be used against. Add this when going from
@@ -16930,7 +16930,7 @@
       Start a parse, returning a [partial parse](#common.PartialParse)
       object. [`fragments`](#common.TreeFragment) can be passed in to
       make the parse incremental.
-
+      
       By default, the entire input is parsed. You can pass `ranges`,
       which should be a sorted array of non-empty, non-overlapping
       ranges, to parse only those ranges. The tree returned in that
@@ -16993,17 +16993,17 @@
       /**
       The optional name of the base tag @internal
       */
-      name,
+      name, 
       /**
       The set of this tag and all its parent tags, starting with
       this one itself and sorted in order of decreasing specificity.
       */
-      set,
+      set, 
       /**
       The base unmodified tag that this one is based on, if it's
       modified @internal
       */
-      base,
+      base, 
       /**
       The modifiers applied to this.base @internal
       */
@@ -17043,7 +17043,7 @@
       same modifier to a twice tag will return the same value (`m1(t1)
       == m1(t1)`) and applying multiple modifiers will, regardless or
       order, produce the same tag (`m1(m2(t1)) == m2(m1(t1))`).
-
+      
       When multiple modifiers are applied to a given base tag, each
       smaller set of modifiers is registered as a parent, so that for
       example `m1(m2(m3(t1)))` is a subtype of `m1(m2(t1))`,
@@ -17252,17 +17252,17 @@
   [`highlightCode`](#highlight.highlightCode) function is easier to
   use.
   */
-  function highlightTree(tree, highlighter,
+  function highlightTree(tree, highlighter, 
   /**
   Assign styling to a region of the text. Will be called, in order
   of position, for any ranges where more than zero classes apply.
   `classes` is a space separated string of CSS classes.
   */
-  putStyle,
+  putStyle, 
   /**
   The start of the range to highlight.
   */
-  from = 0,
+  from = 0, 
   /**
   The end of the range.
   */
@@ -17883,7 +17883,7 @@
       The [language data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt) facet
       used for this language.
       */
-      data, parser, extraExtensions = [],
+      data, parser, extraExtensions = [], 
       /**
       A language name.
       */
@@ -18060,23 +18060,23 @@
   A parse context provided to parsers working on the editor content.
   */
   class ParseContext {
-      constructor(parser,
+      constructor(parser, 
       /**
       The current editor state.
       */
-      state,
+      state, 
       /**
       Tree fragments that can be reused by incremental re-parses.
       */
-      fragments = [],
+      fragments = [], 
       /**
       @internal
       */
-      tree,
+      tree, 
       /**
       @internal
       */
-      treeLen,
+      treeLen, 
       /**
       The current editor viewport (or some overapproximation
       thereof). Intended to be used for opportunistically avoiding
@@ -18085,11 +18085,11 @@
       should be called to make sure the parser is restarted when the
       skipped region becomes visible).
       */
-      viewport,
+      viewport, 
       /**
       @internal
       */
-      skipped,
+      skipped, 
       /**
       This is where skipping parsers can register a promise that,
       when resolved, will schedule a new parse. It is cleared when
@@ -18253,7 +18253,7 @@
       asynchronously loading a nested parser. It'll skip its input and
       mark it as not-really-parsed, so that the next update will parse
       it again.
-
+      
       When `until` is given, a reparse will be scheduled when that
       promise resolves.
       */
@@ -18459,7 +18459,7 @@
       /**
       The language object.
       */
-      language,
+      language, 
       /**
       An optional set of supporting extensions. When nesting a
       language in another language, the outer language is encouraged
@@ -18561,7 +18561,7 @@
       /**
       The editor state.
       */
-      state,
+      state, 
       /**
       @internal
       */
@@ -18690,11 +18690,11 @@
   methods to indentation functions registered on syntax nodes.
   */
   class TreeIndentContext extends IndentContext {
-      constructor(base,
+      constructor(base, 
       /**
       The position at which indentation is being computed.
       */
-      pos,
+      pos, 
       /**
       @internal
       */
@@ -19125,7 +19125,7 @@
   Create an extension that configures code folding.
   */
   function codeFolding(config) {
-      let result = [foldState, baseTheme$1$1];
+      let result = [foldState, baseTheme$1$2];
       return result;
   }
   function widgetToDOM(view, prepared) {
@@ -19241,7 +19241,7 @@
           codeFolding()
       ];
   }
-  const baseTheme$1$1 = /*@__PURE__*/EditorView.baseTheme({
+  const baseTheme$1$2 = /*@__PURE__*/EditorView.baseTheme({
       ".cm-foldPlaceholder": {
           backgroundColor: "#eee",
           border: "1px solid #ddd",
@@ -19295,7 +19295,7 @@
       that rely on external styling), or a
       [`style-mod`](https://github.com/marijnh/style-mod#documentation)-style
       set of CSS properties (which define the styling for those tags).
-
+      
       The CSS rules created for a highlighter will be emitted in the
       order of the spec's properties. That means that for elements that
       have multiple tags associated with them, styles defined further
@@ -19419,7 +19419,7 @@
           color: "#f00" }
   ]);
 
-  const baseTheme$4 = /*@__PURE__*/EditorView.baseTheme({
+  const baseTheme$3 = /*@__PURE__*/EditorView.baseTheme({
       "&.cm-focused .cm-matchingBracket": { backgroundColor: "#328c8252" },
       "&.cm-focused .cm-nonmatchingBracket": { backgroundColor: "#bb555544" }
   });
@@ -19467,7 +19467,7 @@
   });
   const bracketMatchingUnique = [
       bracketMatchingState,
-      baseTheme$4
+      baseTheme$3
   ];
   /**
   Create an extension that enables bracket matching. Whenever the
@@ -19610,7 +19610,7 @@
       /**
       The line.
       */
-      string, tabSize,
+      string, tabSize, 
       /**
       The current indent unit size.
       */
@@ -19726,10 +19726,10 @@
       Match the input against the given string or regular expression
       (which should start with a `^`). Return true or the regexp match
       if it matches.
-
+      
       Unless `consume` is set to `false`, this will move `this.pos`
       past the matched text.
-
+      
       When matching a string `caseInsensitive` can be set to true to
       make the match case-insensitive.
       */
@@ -20140,1652 +20140,6 @@
       ltr: /*@__PURE__*/Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "ltr" }, bidiIsolate: Direction.LTR })});
 
   /**
-  An instance of this is passed to completion source functions.
-  */
-  class CompletionContext {
-      /**
-      Create a new completion context. (Mostly useful for testing
-      completion sources—in the editor, the extension will create
-      these for you.)
-      */
-      constructor(
-      /**
-      The editor state that the completion happens in.
-      */
-      state,
-      /**
-      The position at which the completion is happening.
-      */
-      pos,
-      /**
-      Indicates whether completion was activated explicitly, or
-      implicitly by typing. The usual way to respond to this is to
-      only return completions when either there is part of a
-      completable entity before the cursor, or `explicit` is true.
-      */
-      explicit,
-      /**
-      The editor view. May be undefined if the context was created
-      in a situation where there is no such view available, such as
-      in synchronous updates via
-      [`CompletionResult.update`](https://codemirror.net/6/docs/ref/#autocomplete.CompletionResult.update)
-      or when called by test code.
-      */
-      view) {
-          this.state = state;
-          this.pos = pos;
-          this.explicit = explicit;
-          this.view = view;
-          /**
-          @internal
-          */
-          this.abortListeners = [];
-          /**
-          @internal
-          */
-          this.abortOnDocChange = false;
-      }
-      /**
-      Get the extent, content, and (if there is a token) type of the
-      token before `this.pos`.
-      */
-      tokenBefore(types) {
-          let token = syntaxTree(this.state).resolveInner(this.pos, -1);
-          while (token && types.indexOf(token.name) < 0)
-              token = token.parent;
-          return token ? { from: token.from, to: this.pos,
-              text: this.state.sliceDoc(token.from, this.pos),
-              type: token.type } : null;
-      }
-      /**
-      Get the match of the given expression directly before the
-      cursor.
-      */
-      matchBefore(expr) {
-          let line = this.state.doc.lineAt(this.pos);
-          let start = Math.max(line.from, this.pos - 250);
-          let str = line.text.slice(start - line.from, this.pos - line.from);
-          let found = str.search(ensureAnchor(expr, false));
-          return found < 0 ? null : { from: start + found, to: this.pos, text: str.slice(found) };
-      }
-      /**
-      Yields true when the query has been aborted. Can be useful in
-      asynchronous queries to avoid doing work that will be ignored.
-      */
-      get aborted() { return this.abortListeners == null; }
-      /**
-      Allows you to register abort handlers, which will be called when
-      the query is
-      [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
-
-      By default, running queries will not be aborted for regular
-      typing or backspacing, on the assumption that they are likely to
-      return a result with a
-      [`validFor`](https://codemirror.net/6/docs/ref/#autocomplete.CompletionResult.validFor) field that
-      allows the result to be used after all. Passing `onDocChange:
-      true` will cause this query to be aborted for any document
-      change.
-      */
-      addEventListener(type, listener, options) {
-          if (type == "abort" && this.abortListeners) {
-              this.abortListeners.push(listener);
-              if (options && options.onDocChange)
-                  this.abortOnDocChange = true;
-          }
-      }
-  }
-  function toSet(chars) {
-      let flat = Object.keys(chars).join("");
-      let words = /\w/.test(flat);
-      if (words)
-          flat = flat.replace(/\w/g, "");
-      return `[${words ? "\\w" : ""}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
-  }
-  function prefixMatch(options) {
-      let first = Object.create(null), rest = Object.create(null);
-      for (let { label } of options) {
-          first[label[0]] = true;
-          for (let i = 1; i < label.length; i++)
-              rest[label[i]] = true;
-      }
-      let source = toSet(first) + toSet(rest) + "*$";
-      return [new RegExp("^" + source), new RegExp(source)];
-  }
-  /**
-  Given a a fixed array of options, return an autocompleter that
-  completes them.
-  */
-  function completeFromList(list) {
-      let options = list.map(o => typeof o == "string" ? { label: o } : o);
-      let [validFor, match] = options.every(o => /^\w+$/.test(o.label)) ? [/\w*$/, /\w+$/] : prefixMatch(options);
-      return (context) => {
-          let token = context.matchBefore(match);
-          return token || context.explicit ? { from: token ? token.from : context.pos, options, validFor } : null;
-      };
-  }
-  class Option {
-      constructor(completion, source, match, score) {
-          this.completion = completion;
-          this.source = source;
-          this.match = match;
-          this.score = score;
-      }
-  }
-  function cur(state) { return state.selection.main.from; }
-  // Make sure the given regexp has a $ at its end and, if `start` is
-  // true, a ^ at its start.
-  function ensureAnchor(expr, start) {
-      var _a;
-      let { source } = expr;
-      let addStart = start && source[0] != "^", addEnd = source[source.length - 1] != "$";
-      if (!addStart && !addEnd)
-          return expr;
-      return new RegExp(`${addStart ? "^" : ""}(?:${source})${addEnd ? "$" : ""}`, (_a = expr.flags) !== null && _a !== void 0 ? _a : (expr.ignoreCase ? "i" : ""));
-  }
-  /**
-  This annotation is added to transactions that are produced by
-  picking a completion.
-  */
-  const pickedCompletion = /*@__PURE__*/Annotation.define();
-  /**
-  Helper function that returns a transaction spec which inserts a
-  completion's text in the main selection range, and any other
-  selection range that has the same text in front of it.
-  */
-  function insertCompletionText(state, text, from, to) {
-      let { main } = state.selection, fromOff = from - main.from, toOff = to - main.from;
-      return Object.assign(Object.assign({}, state.changeByRange(range => {
-          if (range != main && from != to &&
-              state.sliceDoc(range.from + fromOff, range.from + toOff) != state.sliceDoc(from, to))
-              return { range };
-          let lines = state.toText(text);
-          return {
-              changes: { from: range.from + fromOff, to: to == main.from ? range.to : range.from + toOff, insert: lines },
-              range: EditorSelection.cursor(range.from + fromOff + lines.length)
-          };
-      })), { scrollIntoView: true, userEvent: "input.complete" });
-  }
-  const SourceCache = /*@__PURE__*/new WeakMap();
-  function asSource(source) {
-      if (!Array.isArray(source))
-          return source;
-      let known = SourceCache.get(source);
-      if (!known)
-          SourceCache.set(source, known = completeFromList(source));
-      return known;
-  }
-  const startCompletionEffect = /*@__PURE__*/StateEffect.define();
-  const closeCompletionEffect = /*@__PURE__*/StateEffect.define();
-
-  // A pattern matcher for fuzzy completion matching. Create an instance
-  // once for a pattern, and then use that to match any number of
-  // completions.
-  class FuzzyMatcher {
-      constructor(pattern) {
-          this.pattern = pattern;
-          this.chars = [];
-          this.folded = [];
-          // Buffers reused by calls to `match` to track matched character
-          // positions.
-          this.any = [];
-          this.precise = [];
-          this.byWord = [];
-          this.score = 0;
-          this.matched = [];
-          for (let p = 0; p < pattern.length;) {
-              let char = codePointAt(pattern, p), size = codePointSize(char);
-              this.chars.push(char);
-              let part = pattern.slice(p, p + size), upper = part.toUpperCase();
-              this.folded.push(codePointAt(upper == part ? part.toLowerCase() : upper, 0));
-              p += size;
-          }
-          this.astral = pattern.length != this.chars.length;
-      }
-      ret(score, matched) {
-          this.score = score;
-          this.matched = matched;
-          return this;
-      }
-      // Matches a given word (completion) against the pattern (input).
-      // Will return a boolean indicating whether there was a match and,
-      // on success, set `this.score` to the score, `this.matched` to an
-      // array of `from, to` pairs indicating the matched parts of `word`.
-      //
-      // The score is a number that is more negative the worse the match
-      // is. See `Penalty` above.
-      match(word) {
-          if (this.pattern.length == 0)
-              return this.ret(-100 /* Penalty.NotFull */, []);
-          if (word.length < this.pattern.length)
-              return null;
-          let { chars, folded, any, precise, byWord } = this;
-          // For single-character queries, only match when they occur right
-          // at the start
-          if (chars.length == 1) {
-              let first = codePointAt(word, 0), firstSize = codePointSize(first);
-              let score = firstSize == word.length ? 0 : -100 /* Penalty.NotFull */;
-              if (first == chars[0]) ;
-              else if (first == folded[0])
-                  score += -200 /* Penalty.CaseFold */;
-              else
-                  return null;
-              return this.ret(score, [0, firstSize]);
-          }
-          let direct = word.indexOf(this.pattern);
-          if (direct == 0)
-              return this.ret(word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */, [0, this.pattern.length]);
-          let len = chars.length, anyTo = 0;
-          if (direct < 0) {
-              for (let i = 0, e = Math.min(word.length, 200); i < e && anyTo < len;) {
-                  let next = codePointAt(word, i);
-                  if (next == chars[anyTo] || next == folded[anyTo])
-                      any[anyTo++] = i;
-                  i += codePointSize(next);
-              }
-              // No match, exit immediately
-              if (anyTo < len)
-                  return null;
-          }
-          // This tracks the extent of the precise (non-folded, not
-          // necessarily adjacent) match
-          let preciseTo = 0;
-          // Tracks whether there is a match that hits only characters that
-          // appear to be starting words. `byWordFolded` is set to true when
-          // a case folded character is encountered in such a match
-          let byWordTo = 0, byWordFolded = false;
-          // If we've found a partial adjacent match, these track its state
-          let adjacentTo = 0, adjacentStart = -1, adjacentEnd = -1;
-          let hasLower = /[a-z]/.test(word), wordAdjacent = true;
-          // Go over the option's text, scanning for the various kinds of matches
-          for (let i = 0, e = Math.min(word.length, 200), prevType = 0 /* Tp.NonWord */; i < e && byWordTo < len;) {
-              let next = codePointAt(word, i);
-              if (direct < 0) {
-                  if (preciseTo < len && next == chars[preciseTo])
-                      precise[preciseTo++] = i;
-                  if (adjacentTo < len) {
-                      if (next == chars[adjacentTo] || next == folded[adjacentTo]) {
-                          if (adjacentTo == 0)
-                              adjacentStart = i;
-                          adjacentEnd = i + 1;
-                          adjacentTo++;
-                      }
-                      else {
-                          adjacentTo = 0;
-                      }
-                  }
-              }
-              let ch, type = next < 0xff
-                  ? (next >= 48 && next <= 57 || next >= 97 && next <= 122 ? 2 /* Tp.Lower */ : next >= 65 && next <= 90 ? 1 /* Tp.Upper */ : 0 /* Tp.NonWord */)
-                  : ((ch = fromCodePoint(next)) != ch.toLowerCase() ? 1 /* Tp.Upper */ : ch != ch.toUpperCase() ? 2 /* Tp.Lower */ : 0 /* Tp.NonWord */);
-              if (!i || type == 1 /* Tp.Upper */ && hasLower || prevType == 0 /* Tp.NonWord */ && type != 0 /* Tp.NonWord */) {
-                  if (chars[byWordTo] == next || (folded[byWordTo] == next && (byWordFolded = true)))
-                      byWord[byWordTo++] = i;
-                  else if (byWord.length)
-                      wordAdjacent = false;
-              }
-              prevType = type;
-              i += codePointSize(next);
-          }
-          if (byWordTo == len && byWord[0] == 0 && wordAdjacent)
-              return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0), byWord, word);
-          if (adjacentTo == len && adjacentStart == 0)
-              return this.ret(-200 /* Penalty.CaseFold */ - word.length + (adjacentEnd == word.length ? 0 : -100 /* Penalty.NotFull */), [0, adjacentEnd]);
-          if (direct > -1)
-              return this.ret(-700 /* Penalty.NotStart */ - word.length, [direct, direct + this.pattern.length]);
-          if (adjacentTo == len)
-              return this.ret(-200 /* Penalty.CaseFold */ + -700 /* Penalty.NotStart */ - word.length, [adjacentStart, adjacentEnd]);
-          if (byWordTo == len)
-              return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0) + -700 /* Penalty.NotStart */ +
-                  (wordAdjacent ? 0 : -1100 /* Penalty.Gap */), byWord, word);
-          return chars.length == 2 ? null
-              : this.result((any[0] ? -700 /* Penalty.NotStart */ : 0) + -200 /* Penalty.CaseFold */ + -1100 /* Penalty.Gap */, any, word);
-      }
-      result(score, positions, word) {
-          let result = [], i = 0;
-          for (let pos of positions) {
-              let to = pos + (this.astral ? codePointSize(codePointAt(word, pos)) : 1);
-              if (i && result[i - 1] == pos)
-                  result[i - 1] = to;
-              else {
-                  result[i++] = pos;
-                  result[i++] = to;
-              }
-          }
-          return this.ret(score - word.length, result);
-      }
-  }
-  class StrictMatcher {
-      constructor(pattern) {
-          this.pattern = pattern;
-          this.matched = [];
-          this.score = 0;
-          this.folded = pattern.toLowerCase();
-      }
-      match(word) {
-          if (word.length < this.pattern.length)
-              return null;
-          let start = word.slice(0, this.pattern.length);
-          let match = start == this.pattern ? 0 : start.toLowerCase() == this.folded ? -200 /* Penalty.CaseFold */ : null;
-          if (match == null)
-              return null;
-          this.matched = [0, start.length];
-          this.score = match + (word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */);
-          return this;
-      }
-  }
-
-  const completionConfig = /*@__PURE__*/Facet.define({
-      combine(configs) {
-          return combineConfig(configs, {
-              activateOnTyping: true,
-              activateOnCompletion: () => false,
-              activateOnTypingDelay: 100,
-              selectOnOpen: true,
-              override: null,
-              closeOnBlur: true,
-              maxRenderedOptions: 100,
-              defaultKeymap: true,
-              tooltipClass: () => "",
-              optionClass: () => "",
-              aboveCursor: false,
-              icons: true,
-              addToOptions: [],
-              positionInfo: defaultPositionInfo,
-              filterStrict: false,
-              compareCompletions: (a, b) => a.label.localeCompare(b.label),
-              interactionDelay: 75,
-              updateSyncTime: 100
-          }, {
-              defaultKeymap: (a, b) => a && b,
-              closeOnBlur: (a, b) => a && b,
-              icons: (a, b) => a && b,
-              tooltipClass: (a, b) => c => joinClass(a(c), b(c)),
-              optionClass: (a, b) => c => joinClass(a(c), b(c)),
-              addToOptions: (a, b) => a.concat(b),
-              filterStrict: (a, b) => a || b,
-          });
-      }
-  });
-  function joinClass(a, b) {
-      return a ? b ? a + " " + b : a : b;
-  }
-  function defaultPositionInfo(view, list, option, info, space, tooltip) {
-      let rtl = view.textDirection == Direction.RTL, left = rtl, narrow = false;
-      let side = "top", offset, maxWidth;
-      let spaceLeft = list.left - space.left, spaceRight = space.right - list.right;
-      let infoWidth = info.right - info.left, infoHeight = info.bottom - info.top;
-      if (left && spaceLeft < Math.min(infoWidth, spaceRight))
-          left = false;
-      else if (!left && spaceRight < Math.min(infoWidth, spaceLeft))
-          left = true;
-      if (infoWidth <= (left ? spaceLeft : spaceRight)) {
-          offset = Math.max(space.top, Math.min(option.top, space.bottom - infoHeight)) - list.top;
-          maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight);
-      }
-      else {
-          narrow = true;
-          maxWidth = Math.min(400 /* Info.Width */, (rtl ? list.right : space.right - list.left) - 30 /* Info.Margin */);
-          let spaceBelow = space.bottom - list.bottom;
-          if (spaceBelow >= infoHeight || spaceBelow > list.top) { // Below the completion
-              offset = option.bottom - list.top;
-          }
-          else { // Above it
-              side = "bottom";
-              offset = list.bottom - option.top;
-          }
-      }
-      let scaleY = (list.bottom - list.top) / tooltip.offsetHeight;
-      let scaleX = (list.right - list.left) / tooltip.offsetWidth;
-      return {
-          style: `${side}: ${offset / scaleY}px; max-width: ${maxWidth / scaleX}px`,
-          class: "cm-completionInfo-" + (narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right")
-      };
-  }
-
-  function optionContent(config) {
-      let content = config.addToOptions.slice();
-      if (config.icons)
-          content.push({
-              render(completion) {
-                  let icon = document.createElement("div");
-                  icon.classList.add("cm-completionIcon");
-                  if (completion.type)
-                      icon.classList.add(...completion.type.split(/\s+/g).map(cls => "cm-completionIcon-" + cls));
-                  icon.setAttribute("aria-hidden", "true");
-                  return icon;
-              },
-              position: 20
-          });
-      content.push({
-          render(completion, _s, _v, match) {
-              let labelElt = document.createElement("span");
-              labelElt.className = "cm-completionLabel";
-              let label = completion.displayLabel || completion.label, off = 0;
-              for (let j = 0; j < match.length;) {
-                  let from = match[j++], to = match[j++];
-                  if (from > off)
-                      labelElt.appendChild(document.createTextNode(label.slice(off, from)));
-                  let span = labelElt.appendChild(document.createElement("span"));
-                  span.appendChild(document.createTextNode(label.slice(from, to)));
-                  span.className = "cm-completionMatchedText";
-                  off = to;
-              }
-              if (off < label.length)
-                  labelElt.appendChild(document.createTextNode(label.slice(off)));
-              return labelElt;
-          },
-          position: 50
-      }, {
-          render(completion) {
-              if (!completion.detail)
-                  return null;
-              let detailElt = document.createElement("span");
-              detailElt.className = "cm-completionDetail";
-              detailElt.textContent = completion.detail;
-              return detailElt;
-          },
-          position: 80
-      });
-      return content.sort((a, b) => a.position - b.position).map(a => a.render);
-  }
-  function rangeAroundSelected(total, selected, max) {
-      if (total <= max)
-          return { from: 0, to: total };
-      if (selected < 0)
-          selected = 0;
-      if (selected <= (total >> 1)) {
-          let off = Math.floor(selected / max);
-          return { from: off * max, to: (off + 1) * max };
-      }
-      let off = Math.floor((total - selected) / max);
-      return { from: total - (off + 1) * max, to: total - off * max };
-  }
-  class CompletionTooltip {
-      constructor(view, stateField, applyCompletion) {
-          this.view = view;
-          this.stateField = stateField;
-          this.applyCompletion = applyCompletion;
-          this.info = null;
-          this.infoDestroy = null;
-          this.placeInfoReq = {
-              read: () => this.measureInfo(),
-              write: (pos) => this.placeInfo(pos),
-              key: this
-          };
-          this.space = null;
-          this.currentClass = "";
-          let cState = view.state.field(stateField);
-          let { options, selected } = cState.open;
-          let config = view.state.facet(completionConfig);
-          this.optionContent = optionContent(config);
-          this.optionClass = config.optionClass;
-          this.tooltipClass = config.tooltipClass;
-          this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
-          this.dom = document.createElement("div");
-          this.dom.className = "cm-tooltip-autocomplete";
-          this.updateTooltipClass(view.state);
-          this.dom.addEventListener("mousedown", (e) => {
-              let { options } = view.state.field(stateField).open;
-              for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
-                  if (dom.nodeName == "LI" && (match = /-(\d+)$/.exec(dom.id)) && +match[1] < options.length) {
-                      this.applyCompletion(view, options[+match[1]]);
-                      e.preventDefault();
-                      return;
-                  }
-              }
-          });
-          this.dom.addEventListener("focusout", (e) => {
-              let state = view.state.field(this.stateField, false);
-              if (state && state.tooltip && view.state.facet(completionConfig).closeOnBlur &&
-                  e.relatedTarget != view.contentDOM)
-                  view.dispatch({ effects: closeCompletionEffect.of(null) });
-          });
-          this.showOptions(options, cState.id);
-      }
-      mount() { this.updateSel(); }
-      showOptions(options, id) {
-          if (this.list)
-              this.list.remove();
-          this.list = this.dom.appendChild(this.createListBox(options, id, this.range));
-          this.list.addEventListener("scroll", () => {
-              if (this.info)
-                  this.view.requestMeasure(this.placeInfoReq);
-          });
-      }
-      update(update) {
-          var _a;
-          let cState = update.state.field(this.stateField);
-          let prevState = update.startState.field(this.stateField);
-          this.updateTooltipClass(update.state);
-          if (cState != prevState) {
-              let { options, selected, disabled } = cState.open;
-              if (!prevState.open || prevState.open.options != options) {
-                  this.range = rangeAroundSelected(options.length, selected, update.state.facet(completionConfig).maxRenderedOptions);
-                  this.showOptions(options, cState.id);
-              }
-              this.updateSel();
-              if (disabled != ((_a = prevState.open) === null || _a === void 0 ? void 0 : _a.disabled))
-                  this.dom.classList.toggle("cm-tooltip-autocomplete-disabled", !!disabled);
-          }
-      }
-      updateTooltipClass(state) {
-          let cls = this.tooltipClass(state);
-          if (cls != this.currentClass) {
-              for (let c of this.currentClass.split(" "))
-                  if (c)
-                      this.dom.classList.remove(c);
-              for (let c of cls.split(" "))
-                  if (c)
-                      this.dom.classList.add(c);
-              this.currentClass = cls;
-          }
-      }
-      positioned(space) {
-          this.space = space;
-          if (this.info)
-              this.view.requestMeasure(this.placeInfoReq);
-      }
-      updateSel() {
-          let cState = this.view.state.field(this.stateField), open = cState.open;
-          if (open.selected > -1 && open.selected < this.range.from || open.selected >= this.range.to) {
-              this.range = rangeAroundSelected(open.options.length, open.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
-              this.showOptions(open.options, cState.id);
-          }
-          if (this.updateSelectedOption(open.selected)) {
-              this.destroyInfo();
-              let { completion } = open.options[open.selected];
-              let { info } = completion;
-              if (!info)
-                  return;
-              let infoResult = typeof info === "string" ? document.createTextNode(info) : info(completion);
-              if (!infoResult)
-                  return;
-              if ("then" in infoResult) {
-                  infoResult.then(obj => {
-                      if (obj && this.view.state.field(this.stateField, false) == cState)
-                          this.addInfoPane(obj, completion);
-                  }).catch(e => logException(this.view.state, e, "completion info"));
-              }
-              else {
-                  this.addInfoPane(infoResult, completion);
-              }
-          }
-      }
-      addInfoPane(content, completion) {
-          this.destroyInfo();
-          let wrap = this.info = document.createElement("div");
-          wrap.className = "cm-tooltip cm-completionInfo";
-          if (content.nodeType != null) {
-              wrap.appendChild(content);
-              this.infoDestroy = null;
-          }
-          else {
-              let { dom, destroy } = content;
-              wrap.appendChild(dom);
-              this.infoDestroy = destroy || null;
-          }
-          this.dom.appendChild(wrap);
-          this.view.requestMeasure(this.placeInfoReq);
-      }
-      updateSelectedOption(selected) {
-          let set = null;
-          for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
-              if (opt.nodeName != "LI" || !opt.id) {
-                  i--; // A section header
-              }
-              else if (i == selected) {
-                  if (!opt.hasAttribute("aria-selected")) {
-                      opt.setAttribute("aria-selected", "true");
-                      set = opt;
-                  }
-              }
-              else {
-                  if (opt.hasAttribute("aria-selected"))
-                      opt.removeAttribute("aria-selected");
-              }
-          }
-          if (set)
-              scrollIntoView(this.list, set);
-          return set;
-      }
-      measureInfo() {
-          let sel = this.dom.querySelector("[aria-selected]");
-          if (!sel || !this.info)
-              return null;
-          let listRect = this.dom.getBoundingClientRect();
-          let infoRect = this.info.getBoundingClientRect();
-          let selRect = sel.getBoundingClientRect();
-          let space = this.space;
-          if (!space) {
-              let docElt = this.dom.ownerDocument.documentElement;
-              space = { left: 0, top: 0, right: docElt.clientWidth, bottom: docElt.clientHeight };
-          }
-          if (selRect.top > Math.min(space.bottom, listRect.bottom) - 10 ||
-              selRect.bottom < Math.max(space.top, listRect.top) + 10)
-              return null;
-          return this.view.state.facet(completionConfig).positionInfo(this.view, listRect, selRect, infoRect, space, this.dom);
-      }
-      placeInfo(pos) {
-          if (this.info) {
-              if (pos) {
-                  if (pos.style)
-                      this.info.style.cssText = pos.style;
-                  this.info.className = "cm-tooltip cm-completionInfo " + (pos.class || "");
-              }
-              else {
-                  this.info.style.cssText = "top: -1e6px";
-              }
-          }
-      }
-      createListBox(options, id, range) {
-          const ul = document.createElement("ul");
-          ul.id = id;
-          ul.setAttribute("role", "listbox");
-          ul.setAttribute("aria-expanded", "true");
-          ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
-          ul.addEventListener("mousedown", e => {
-              // Prevent focus change when clicking the scrollbar
-              if (e.target == ul)
-                  e.preventDefault();
-          });
-          let curSection = null;
-          for (let i = range.from; i < range.to; i++) {
-              let { completion, match } = options[i], { section } = completion;
-              if (section) {
-                  let name = typeof section == "string" ? section : section.name;
-                  if (name != curSection && (i > range.from || range.from == 0)) {
-                      curSection = name;
-                      if (typeof section != "string" && section.header) {
-                          ul.appendChild(section.header(section));
-                      }
-                      else {
-                          let header = ul.appendChild(document.createElement("completion-section"));
-                          header.textContent = name;
-                      }
-                  }
-              }
-              const li = ul.appendChild(document.createElement("li"));
-              li.id = id + "-" + i;
-              li.setAttribute("role", "option");
-              let cls = this.optionClass(completion);
-              if (cls)
-                  li.className = cls;
-              for (let source of this.optionContent) {
-                  let node = source(completion, this.view.state, this.view, match);
-                  if (node)
-                      li.appendChild(node);
-              }
-          }
-          if (range.from)
-              ul.classList.add("cm-completionListIncompleteTop");
-          if (range.to < options.length)
-              ul.classList.add("cm-completionListIncompleteBottom");
-          return ul;
-      }
-      destroyInfo() {
-          if (this.info) {
-              if (this.infoDestroy)
-                  this.infoDestroy();
-              this.info.remove();
-              this.info = null;
-          }
-      }
-      destroy() {
-          this.destroyInfo();
-      }
-  }
-  function completionTooltip(stateField, applyCompletion) {
-      return (view) => new CompletionTooltip(view, stateField, applyCompletion);
-  }
-  function scrollIntoView(container, element) {
-      let parent = container.getBoundingClientRect();
-      let self = element.getBoundingClientRect();
-      let scaleY = parent.height / container.offsetHeight;
-      if (self.top < parent.top)
-          container.scrollTop -= (parent.top - self.top) / scaleY;
-      else if (self.bottom > parent.bottom)
-          container.scrollTop += (self.bottom - parent.bottom) / scaleY;
-  }
-
-  // Used to pick a preferred option when two options with the same
-  // label occur in the result.
-  function score(option) {
-      return (option.boost || 0) * 100 + (option.apply ? 10 : 0) + (option.info ? 5 : 0) +
-          (option.type ? 1 : 0);
-  }
-  function sortOptions(active, state) {
-      let options = [];
-      let sections = null;
-      let addOption = (option) => {
-          options.push(option);
-          let { section } = option.completion;
-          if (section) {
-              if (!sections)
-                  sections = [];
-              let name = typeof section == "string" ? section : section.name;
-              if (!sections.some(s => s.name == name))
-                  sections.push(typeof section == "string" ? { name } : section);
-          }
-      };
-      let conf = state.facet(completionConfig);
-      for (let a of active)
-          if (a.hasResult()) {
-              let getMatch = a.result.getMatch;
-              if (a.result.filter === false) {
-                  for (let option of a.result.options) {
-                      addOption(new Option(option, a.source, getMatch ? getMatch(option) : [], 1e9 - options.length));
-                  }
-              }
-              else {
-                  let pattern = state.sliceDoc(a.from, a.to), match;
-                  let matcher = conf.filterStrict ? new StrictMatcher(pattern) : new FuzzyMatcher(pattern);
-                  for (let option of a.result.options)
-                      if (match = matcher.match(option.label)) {
-                          let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
-                          addOption(new Option(option, a.source, matched, match.score + (option.boost || 0)));
-                      }
-              }
-          }
-      if (sections) {
-          let sectionOrder = Object.create(null), pos = 0;
-          let cmp = (a, b) => { var _a, _b; return ((_a = a.rank) !== null && _a !== void 0 ? _a : 1e9) - ((_b = b.rank) !== null && _b !== void 0 ? _b : 1e9) || (a.name < b.name ? -1 : 1); };
-          for (let s of sections.sort(cmp)) {
-              pos -= 1e5;
-              sectionOrder[s.name] = pos;
-          }
-          for (let option of options) {
-              let { section } = option.completion;
-              if (section)
-                  option.score += sectionOrder[typeof section == "string" ? section : section.name];
-          }
-      }
-      let result = [], prev = null;
-      let compare = conf.compareCompletions;
-      for (let opt of options.sort((a, b) => (b.score - a.score) || compare(a.completion, b.completion))) {
-          let cur = opt.completion;
-          if (!prev || prev.label != cur.label || prev.detail != cur.detail ||
-              (prev.type != null && cur.type != null && prev.type != cur.type) ||
-              prev.apply != cur.apply || prev.boost != cur.boost)
-              result.push(opt);
-          else if (score(opt.completion) > score(prev))
-              result[result.length - 1] = opt;
-          prev = opt.completion;
-      }
-      return result;
-  }
-  class CompletionDialog {
-      constructor(options, attrs, tooltip, timestamp, selected, disabled) {
-          this.options = options;
-          this.attrs = attrs;
-          this.tooltip = tooltip;
-          this.timestamp = timestamp;
-          this.selected = selected;
-          this.disabled = disabled;
-      }
-      setSelected(selected, id) {
-          return selected == this.selected || selected >= this.options.length ? this
-              : new CompletionDialog(this.options, makeAttrs(id, selected), this.tooltip, this.timestamp, selected, this.disabled);
-      }
-      static build(active, state, id, prev, conf, didSetActive) {
-          if (prev && !didSetActive && active.some(s => s.isPending))
-              return prev.setDisabled();
-          let options = sortOptions(active, state);
-          if (!options.length)
-              return prev && active.some(a => a.isPending) ? prev.setDisabled() : null;
-          let selected = state.facet(completionConfig).selectOnOpen ? 0 : -1;
-          if (prev && prev.selected != selected && prev.selected != -1) {
-              let selectedValue = prev.options[prev.selected].completion;
-              for (let i = 0; i < options.length; i++)
-                  if (options[i].completion == selectedValue) {
-                      selected = i;
-                      break;
-                  }
-          }
-          return new CompletionDialog(options, makeAttrs(id, selected), {
-              pos: active.reduce((a, b) => b.hasResult() ? Math.min(a, b.from) : a, 1e8),
-              create: createTooltip,
-              above: conf.aboveCursor,
-          }, prev ? prev.timestamp : Date.now(), selected, false);
-      }
-      map(changes) {
-          return new CompletionDialog(this.options, this.attrs, Object.assign(Object.assign({}, this.tooltip), { pos: changes.mapPos(this.tooltip.pos) }), this.timestamp, this.selected, this.disabled);
-      }
-      setDisabled() {
-          return new CompletionDialog(this.options, this.attrs, this.tooltip, this.timestamp, this.selected, true);
-      }
-  }
-  class CompletionState {
-      constructor(active, id, open) {
-          this.active = active;
-          this.id = id;
-          this.open = open;
-      }
-      static start() {
-          return new CompletionState(none$1, "cm-ac-" + Math.floor(Math.random() * 2e6).toString(36), null);
-      }
-      update(tr) {
-          let { state } = tr, conf = state.facet(completionConfig);
-          let sources = conf.override ||
-              state.languageDataAt("autocomplete", cur(state)).map(asSource);
-          let active = sources.map(source => {
-              let value = this.active.find(s => s.source == source) ||
-                  new ActiveSource(source, this.active.some(a => a.state != 0 /* State.Inactive */) ? 1 /* State.Pending */ : 0 /* State.Inactive */);
-              return value.update(tr, conf);
-          });
-          if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
-              active = this.active;
-          let open = this.open, didSet = tr.effects.some(e => e.is(setActiveEffect));
-          if (open && tr.docChanged)
-              open = open.map(tr.changes);
-          if (tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
-              !sameResults(active, this.active) || didSet)
-              open = CompletionDialog.build(active, state, this.id, open, conf, didSet);
-          else if (open && open.disabled && !active.some(a => a.isPending))
-              open = null;
-          if (!open && active.every(a => !a.isPending) && active.some(a => a.hasResult()))
-              active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* State.Inactive */) : a);
-          for (let effect of tr.effects)
-              if (effect.is(setSelectedEffect))
-                  open = open && open.setSelected(effect.value, this.id);
-          return active == this.active && open == this.open ? this : new CompletionState(active, this.id, open);
-      }
-      get tooltip() { return this.open ? this.open.tooltip : null; }
-      get attrs() { return this.open ? this.open.attrs : this.active.length ? baseAttrs : noAttrs; }
-  }
-  function sameResults(a, b) {
-      if (a == b)
-          return true;
-      for (let iA = 0, iB = 0;;) {
-          while (iA < a.length && !a[iA].hasResult())
-              iA++;
-          while (iB < b.length && !b[iB].hasResult())
-              iB++;
-          let endA = iA == a.length, endB = iB == b.length;
-          if (endA || endB)
-              return endA == endB;
-          if (a[iA++].result != b[iB++].result)
-              return false;
-      }
-  }
-  const baseAttrs = {
-      "aria-autocomplete": "list"
-  };
-  const noAttrs = {};
-  function makeAttrs(id, selected) {
-      let result = {
-          "aria-autocomplete": "list",
-          "aria-haspopup": "listbox",
-          "aria-controls": id
-      };
-      if (selected > -1)
-          result["aria-activedescendant"] = id + "-" + selected;
-      return result;
-  }
-  const none$1 = [];
-  function getUpdateType(tr, conf) {
-      if (tr.isUserEvent("input.complete")) {
-          let completion = tr.annotation(pickedCompletion);
-          if (completion && conf.activateOnCompletion(completion))
-              return 4 /* UpdateType.Activate */ | 8 /* UpdateType.Reset */;
-      }
-      let typing = tr.isUserEvent("input.type");
-      return typing && conf.activateOnTyping ? 4 /* UpdateType.Activate */ | 1 /* UpdateType.Typing */
-          : typing ? 1 /* UpdateType.Typing */
-              : tr.isUserEvent("delete.backward") ? 2 /* UpdateType.Backspacing */
-                  : tr.selection ? 8 /* UpdateType.Reset */
-                      : tr.docChanged ? 16 /* UpdateType.ResetIfTouching */ : 0 /* UpdateType.None */;
-  }
-  class ActiveSource {
-      constructor(source, state, explicit = false) {
-          this.source = source;
-          this.state = state;
-          this.explicit = explicit;
-      }
-      hasResult() { return false; }
-      get isPending() { return this.state == 1 /* State.Pending */; }
-      update(tr, conf) {
-          let type = getUpdateType(tr, conf), value = this;
-          if ((type & 8 /* UpdateType.Reset */) || (type & 16 /* UpdateType.ResetIfTouching */) && this.touches(tr))
-              value = new ActiveSource(value.source, 0 /* State.Inactive */);
-          if ((type & 4 /* UpdateType.Activate */) && value.state == 0 /* State.Inactive */)
-              value = new ActiveSource(this.source, 1 /* State.Pending */);
-          value = value.updateFor(tr, type);
-          for (let effect of tr.effects) {
-              if (effect.is(startCompletionEffect))
-                  value = new ActiveSource(value.source, 1 /* State.Pending */, effect.value);
-              else if (effect.is(closeCompletionEffect))
-                  value = new ActiveSource(value.source, 0 /* State.Inactive */);
-              else if (effect.is(setActiveEffect))
-                  for (let active of effect.value)
-                      if (active.source == value.source)
-                          value = active;
-          }
-          return value;
-      }
-      updateFor(tr, type) { return this.map(tr.changes); }
-      map(changes) { return this; }
-      touches(tr) {
-          return tr.changes.touchesRange(cur(tr.state));
-      }
-  }
-  class ActiveResult extends ActiveSource {
-      constructor(source, explicit, limit, result, from, to) {
-          super(source, 3 /* State.Result */, explicit);
-          this.limit = limit;
-          this.result = result;
-          this.from = from;
-          this.to = to;
-      }
-      hasResult() { return true; }
-      updateFor(tr, type) {
-          var _a;
-          if (!(type & 3 /* UpdateType.SimpleInteraction */))
-              return this.map(tr.changes);
-          let result = this.result;
-          if (result.map && !tr.changes.empty)
-              result = result.map(result, tr.changes);
-          let from = tr.changes.mapPos(this.from), to = tr.changes.mapPos(this.to, 1);
-          let pos = cur(tr.state);
-          if (pos > to || !result ||
-              (type & 2 /* UpdateType.Backspacing */) && (cur(tr.startState) == this.from || pos < this.limit))
-              return new ActiveSource(this.source, type & 4 /* UpdateType.Activate */ ? 1 /* State.Pending */ : 0 /* State.Inactive */);
-          let limit = tr.changes.mapPos(this.limit);
-          if (checkValid(result.validFor, tr.state, from, to))
-              return new ActiveResult(this.source, this.explicit, limit, result, from, to);
-          if (result.update &&
-              (result = result.update(result, from, to, new CompletionContext(tr.state, pos, false))))
-              return new ActiveResult(this.source, this.explicit, limit, result, result.from, (_a = result.to) !== null && _a !== void 0 ? _a : cur(tr.state));
-          return new ActiveSource(this.source, 1 /* State.Pending */, this.explicit);
-      }
-      map(mapping) {
-          if (mapping.empty)
-              return this;
-          let result = this.result.map ? this.result.map(this.result, mapping) : this.result;
-          if (!result)
-              return new ActiveSource(this.source, 0 /* State.Inactive */);
-          return new ActiveResult(this.source, this.explicit, mapping.mapPos(this.limit), this.result, mapping.mapPos(this.from), mapping.mapPos(this.to, 1));
-      }
-      touches(tr) {
-          return tr.changes.touchesRange(this.from, this.to);
-      }
-  }
-  function checkValid(validFor, state, from, to) {
-      if (!validFor)
-          return false;
-      let text = state.sliceDoc(from, to);
-      return typeof validFor == "function" ? validFor(text, from, to, state) : ensureAnchor(validFor, true).test(text);
-  }
-  const setActiveEffect = /*@__PURE__*/StateEffect.define({
-      map(sources, mapping) { return sources.map(s => s.map(mapping)); }
-  });
-  const setSelectedEffect = /*@__PURE__*/StateEffect.define();
-  const completionState = /*@__PURE__*/StateField.define({
-      create() { return CompletionState.start(); },
-      update(value, tr) { return value.update(tr); },
-      provide: f => [
-          showTooltip.from(f, val => val.tooltip),
-          EditorView.contentAttributes.from(f, state => state.attrs)
-      ]
-  });
-  function applyCompletion(view, option) {
-      const apply = option.completion.apply || option.completion.label;
-      let result = view.state.field(completionState).active.find(a => a.source == option.source);
-      if (!(result instanceof ActiveResult))
-          return false;
-      if (typeof apply == "string")
-          view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
-      else
-          apply(view, option.completion, result.from, result.to);
-      return true;
-  }
-  const createTooltip = /*@__PURE__*/completionTooltip(completionState, applyCompletion);
-
-  /**
-  Returns a command that moves the completion selection forward or
-  backward by the given amount.
-  */
-  function moveCompletionSelection(forward, by = "option") {
-      return (view) => {
-          let cState = view.state.field(completionState, false);
-          if (!cState || !cState.open || cState.open.disabled ||
-              Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-              return false;
-          let step = 1, tooltip;
-          if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
-              step = Math.max(2, Math.floor(tooltip.dom.offsetHeight /
-                  tooltip.dom.querySelector("li").offsetHeight) - 1);
-          let { length } = cState.open.options;
-          let selected = cState.open.selected > -1 ? cState.open.selected + step * (forward ? 1 : -1) : forward ? 0 : length - 1;
-          if (selected < 0)
-              selected = by == "page" ? 0 : length - 1;
-          else if (selected >= length)
-              selected = by == "page" ? length - 1 : 0;
-          view.dispatch({ effects: setSelectedEffect.of(selected) });
-          return true;
-      };
-  }
-  /**
-  Accept the current completion.
-  */
-  const acceptCompletion = (view) => {
-      let cState = view.state.field(completionState, false);
-      if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 || cState.open.disabled ||
-          Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-          return false;
-      return applyCompletion(view, cState.open.options[cState.open.selected]);
-  };
-  /**
-  Explicitly start autocompletion.
-  */
-  const startCompletion = (view) => {
-      let cState = view.state.field(completionState, false);
-      if (!cState)
-          return false;
-      view.dispatch({ effects: startCompletionEffect.of(true) });
-      return true;
-  };
-  /**
-  Close the currently active completion.
-  */
-  const closeCompletion = (view) => {
-      let cState = view.state.field(completionState, false);
-      if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
-          return false;
-      view.dispatch({ effects: closeCompletionEffect.of(null) });
-      return true;
-  };
-  class RunningQuery {
-      constructor(active, context) {
-          this.active = active;
-          this.context = context;
-          this.time = Date.now();
-          this.updates = [];
-          // Note that 'undefined' means 'not done yet', whereas 'null' means
-          // 'query returned null'.
-          this.done = undefined;
-      }
-  }
-  const MaxUpdateCount = 50, MinAbortTime = 1000;
-  const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-      constructor(view) {
-          this.view = view;
-          this.debounceUpdate = -1;
-          this.running = [];
-          this.debounceAccept = -1;
-          this.pendingStart = false;
-          this.composing = 0 /* CompositionState.None */;
-          for (let active of view.state.field(completionState).active)
-              if (active.isPending)
-                  this.startQuery(active);
-      }
-      update(update) {
-          let cState = update.state.field(completionState);
-          let conf = update.state.facet(completionConfig);
-          if (!update.selectionSet && !update.docChanged && update.startState.field(completionState) == cState)
-              return;
-          let doesReset = update.transactions.some(tr => {
-              let type = getUpdateType(tr, conf);
-              return (type & 8 /* UpdateType.Reset */) || (tr.selection || tr.docChanged) && !(type & 3 /* UpdateType.SimpleInteraction */);
-          });
-          for (let i = 0; i < this.running.length; i++) {
-              let query = this.running[i];
-              if (doesReset ||
-                  query.context.abortOnDocChange && update.docChanged ||
-                  query.updates.length + update.transactions.length > MaxUpdateCount && Date.now() - query.time > MinAbortTime) {
-                  for (let handler of query.context.abortListeners) {
-                      try {
-                          handler();
-                      }
-                      catch (e) {
-                          logException(this.view.state, e);
-                      }
-                  }
-                  query.context.abortListeners = null;
-                  this.running.splice(i--, 1);
-              }
-              else {
-                  query.updates.push(...update.transactions);
-              }
-          }
-          if (this.debounceUpdate > -1)
-              clearTimeout(this.debounceUpdate);
-          if (update.transactions.some(tr => tr.effects.some(e => e.is(startCompletionEffect))))
-              this.pendingStart = true;
-          let delay = this.pendingStart ? 50 : conf.activateOnTypingDelay;
-          this.debounceUpdate = cState.active.some(a => a.isPending && !this.running.some(q => q.active.source == a.source))
-              ? setTimeout(() => this.startUpdate(), delay) : -1;
-          if (this.composing != 0 /* CompositionState.None */)
-              for (let tr of update.transactions) {
-                  if (tr.isUserEvent("input.type"))
-                      this.composing = 2 /* CompositionState.Changed */;
-                  else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
-                      this.composing = 3 /* CompositionState.ChangedAndMoved */;
-              }
-      }
-      startUpdate() {
-          this.debounceUpdate = -1;
-          this.pendingStart = false;
-          let { state } = this.view, cState = state.field(completionState);
-          for (let active of cState.active) {
-              if (active.isPending && !this.running.some(r => r.active.source == active.source))
-                  this.startQuery(active);
-          }
-          if (this.running.length && cState.open && cState.open.disabled)
-              this.debounceAccept = setTimeout(() => this.accept(), this.view.state.facet(completionConfig).updateSyncTime);
-      }
-      startQuery(active) {
-          let { state } = this.view, pos = cur(state);
-          let context = new CompletionContext(state, pos, active.explicit, this.view);
-          let pending = new RunningQuery(active, context);
-          this.running.push(pending);
-          Promise.resolve(active.source(context)).then(result => {
-              if (!pending.context.aborted) {
-                  pending.done = result || null;
-                  this.scheduleAccept();
-              }
-          }, err => {
-              this.view.dispatch({ effects: closeCompletionEffect.of(null) });
-              logException(this.view.state, err);
-          });
-      }
-      scheduleAccept() {
-          if (this.running.every(q => q.done !== undefined))
-              this.accept();
-          else if (this.debounceAccept < 0)
-              this.debounceAccept = setTimeout(() => this.accept(), this.view.state.facet(completionConfig).updateSyncTime);
-      }
-      // For each finished query in this.running, try to create a result
-      // or, if appropriate, restart the query.
-      accept() {
-          var _a;
-          if (this.debounceAccept > -1)
-              clearTimeout(this.debounceAccept);
-          this.debounceAccept = -1;
-          let updated = [];
-          let conf = this.view.state.facet(completionConfig), cState = this.view.state.field(completionState);
-          for (let i = 0; i < this.running.length; i++) {
-              let query = this.running[i];
-              if (query.done === undefined)
-                  continue;
-              this.running.splice(i--, 1);
-              if (query.done) {
-                  let pos = cur(query.updates.length ? query.updates[0].startState : this.view.state);
-                  let limit = Math.min(pos, query.done.from + (query.active.explicit ? 0 : 1));
-                  let active = new ActiveResult(query.active.source, query.active.explicit, limit, query.done, query.done.from, (_a = query.done.to) !== null && _a !== void 0 ? _a : pos);
-                  // Replay the transactions that happened since the start of
-                  // the request and see if that preserves the result
-                  for (let tr of query.updates)
-                      active = active.update(tr, conf);
-                  if (active.hasResult()) {
-                      updated.push(active);
-                      continue;
-                  }
-              }
-              let current = cState.active.find(a => a.source == query.active.source);
-              if (current && current.isPending) {
-                  if (query.done == null) {
-                      // Explicitly failed. Should clear the pending status if it
-                      // hasn't been re-set in the meantime.
-                      let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
-                      for (let tr of query.updates)
-                          active = active.update(tr, conf);
-                      if (!active.isPending)
-                          updated.push(active);
-                  }
-                  else {
-                      // Cleared by subsequent transactions. Restart.
-                      this.startQuery(current);
-                  }
-              }
-          }
-          if (updated.length || cState.open && cState.open.disabled)
-              this.view.dispatch({ effects: setActiveEffect.of(updated) });
-      }
-  }, {
-      eventHandlers: {
-          blur(event) {
-              let state = this.view.state.field(completionState, false);
-              if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
-                  let dialog = state.open && getTooltip(this.view, state.open.tooltip);
-                  if (!dialog || !dialog.dom.contains(event.relatedTarget))
-                      setTimeout(() => this.view.dispatch({ effects: closeCompletionEffect.of(null) }), 10);
-              }
-          },
-          compositionstart() {
-              this.composing = 1 /* CompositionState.Started */;
-          },
-          compositionend() {
-              if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
-                  // Safari fires compositionend events synchronously, possibly
-                  // from inside an update, so dispatch asynchronously to avoid reentrancy
-                  setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
-              }
-              this.composing = 0 /* CompositionState.None */;
-          }
-      }
-  });
-  const windows = typeof navigator == "object" && /*@__PURE__*//Win/.test(navigator.platform);
-  const commitCharacters = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.domEventHandlers({
-      keydown(event, view) {
-          let field = view.state.field(completionState, false);
-          if (!field || !field.open || field.open.disabled || field.open.selected < 0 ||
-              event.key.length > 1 || event.ctrlKey && !(windows && event.altKey) || event.metaKey)
-              return false;
-          let option = field.open.options[field.open.selected];
-          let result = field.active.find(a => a.source == option.source);
-          let commitChars = option.completion.commitCharacters || result.result.commitCharacters;
-          if (commitChars && commitChars.indexOf(event.key) > -1)
-              applyCompletion(view, option);
-          return false;
-      }
-  }));
-
-  const baseTheme$3 = /*@__PURE__*/EditorView.baseTheme({
-      ".cm-tooltip.cm-tooltip-autocomplete": {
-          "& > ul": {
-              fontFamily: "monospace",
-              whiteSpace: "nowrap",
-              overflow: "hidden auto",
-              maxWidth_fallback: "700px",
-              maxWidth: "min(700px, 95vw)",
-              minWidth: "250px",
-              maxHeight: "10em",
-              height: "100%",
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              "& > li, & > completion-section": {
-                  padding: "1px 3px",
-                  lineHeight: 1.2
-              },
-              "& > li": {
-                  overflowX: "hidden",
-                  textOverflow: "ellipsis",
-                  cursor: "pointer"
-              },
-              "& > completion-section": {
-                  display: "list-item",
-                  borderBottom: "1px solid silver",
-                  paddingLeft: "0.5em",
-                  opacity: 0.7
-              }
-          }
-      },
-      "&light .cm-tooltip-autocomplete ul li[aria-selected]": {
-          background: "#17c",
-          color: "white",
-      },
-      "&light .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
-          background: "#777",
-      },
-      "&dark .cm-tooltip-autocomplete ul li[aria-selected]": {
-          background: "#347",
-          color: "white",
-      },
-      "&dark .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
-          background: "#444",
-      },
-      ".cm-completionListIncompleteTop:before, .cm-completionListIncompleteBottom:after": {
-          content: '"···"',
-          opacity: 0.5,
-          display: "block",
-          textAlign: "center"
-      },
-      ".cm-tooltip.cm-completionInfo": {
-          position: "absolute",
-          padding: "3px 9px",
-          width: "max-content",
-          maxWidth: `${400 /* Info.Width */}px`,
-          boxSizing: "border-box",
-          whiteSpace: "pre-line"
-      },
-      ".cm-completionInfo.cm-completionInfo-left": { right: "100%" },
-      ".cm-completionInfo.cm-completionInfo-right": { left: "100%" },
-      ".cm-completionInfo.cm-completionInfo-left-narrow": { right: `${30 /* Info.Margin */}px` },
-      ".cm-completionInfo.cm-completionInfo-right-narrow": { left: `${30 /* Info.Margin */}px` },
-      "&light .cm-snippetField": { backgroundColor: "#00000022" },
-      "&dark .cm-snippetField": { backgroundColor: "#ffffff22" },
-      ".cm-snippetFieldPosition": {
-          verticalAlign: "text-top",
-          width: 0,
-          height: "1.15em",
-          display: "inline-block",
-          margin: "0 -0.7px -.7em",
-          borderLeft: "1.4px dotted #888"
-      },
-      ".cm-completionMatchedText": {
-          textDecoration: "underline"
-      },
-      ".cm-completionDetail": {
-          marginLeft: "0.5em",
-          fontStyle: "italic"
-      },
-      ".cm-completionIcon": {
-          fontSize: "90%",
-          width: ".8em",
-          display: "inline-block",
-          textAlign: "center",
-          paddingRight: ".6em",
-          opacity: "0.6",
-          boxSizing: "content-box"
-      },
-      ".cm-completionIcon-function, .cm-completionIcon-method": {
-          "&:after": { content: "'ƒ'" }
-      },
-      ".cm-completionIcon-class": {
-          "&:after": { content: "'○'" }
-      },
-      ".cm-completionIcon-interface": {
-          "&:after": { content: "'◌'" }
-      },
-      ".cm-completionIcon-variable": {
-          "&:after": { content: "'𝑥'" }
-      },
-      ".cm-completionIcon-constant": {
-          "&:after": { content: "'𝐶'" }
-      },
-      ".cm-completionIcon-type": {
-          "&:after": { content: "'𝑡'" }
-      },
-      ".cm-completionIcon-enum": {
-          "&:after": { content: "'∪'" }
-      },
-      ".cm-completionIcon-property": {
-          "&:after": { content: "'□'" }
-      },
-      ".cm-completionIcon-keyword": {
-          "&:after": { content: "'🔑\uFE0E'" } // Disable emoji rendering
-      },
-      ".cm-completionIcon-namespace": {
-          "&:after": { content: "'▢'" }
-      },
-      ".cm-completionIcon-text": {
-          "&:after": { content: "'abc'", fontSize: "50%", verticalAlign: "middle" }
-      }
-  });
-
-  const defaults = {
-      brackets: ["(", "[", "{", "'", '"'],
-      before: ")]}:;>",
-      stringPrefixes: []
-  };
-  const closeBracketEffect = /*@__PURE__*/StateEffect.define({
-      map(value, mapping) {
-          let mapped = mapping.mapPos(value, -1, MapMode.TrackAfter);
-          return mapped == null ? undefined : mapped;
-      }
-  });
-  const closedBracket = /*@__PURE__*/new class extends RangeValue {
-  };
-  closedBracket.startSide = 1;
-  closedBracket.endSide = -1;
-  const bracketState = /*@__PURE__*/StateField.define({
-      create() { return RangeSet.empty; },
-      update(value, tr) {
-          value = value.map(tr.changes);
-          if (tr.selection) {
-              let line = tr.state.doc.lineAt(tr.selection.main.head);
-              value = value.update({ filter: from => from >= line.from && from <= line.to });
-          }
-          for (let effect of tr.effects)
-              if (effect.is(closeBracketEffect))
-                  value = value.update({ add: [closedBracket.range(effect.value, effect.value + 1)] });
-          return value;
-      }
-  });
-  /**
-  Extension to enable bracket-closing behavior. When a closeable
-  bracket is typed, its closing bracket is immediately inserted
-  after the cursor. When closing a bracket directly in front of a
-  closing bracket inserted by the extension, the cursor moves over
-  that bracket.
-  */
-  function closeBrackets() {
-      return [inputHandler, bracketState];
-  }
-  const definedClosing = "()[]{}<>«»»«［］｛｝";
-  function closing(ch) {
-      for (let i = 0; i < definedClosing.length; i += 2)
-          if (definedClosing.charCodeAt(i) == ch)
-              return definedClosing.charAt(i + 1);
-      return fromCodePoint(ch < 128 ? ch : ch + 1);
-  }
-  function config(state, pos) {
-      return state.languageDataAt("closeBrackets", pos)[0] || defaults;
-  }
-  const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
-  const inputHandler = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, insert) => {
-      if ((android ? view.composing : view.compositionStarted) || view.state.readOnly)
-          return false;
-      let sel = view.state.selection.main;
-      if (insert.length > 2 || insert.length == 2 && codePointSize(codePointAt(insert, 0)) == 1 ||
-          from != sel.from || to != sel.to)
-          return false;
-      let tr = insertBracket(view.state, insert);
-      if (!tr)
-          return false;
-      view.dispatch(tr);
-      return true;
-  });
-  /**
-  Command that implements deleting a pair of matching brackets when
-  the cursor is between them.
-  */
-  const deleteBracketPair = ({ state, dispatch }) => {
-      if (state.readOnly)
-          return false;
-      let conf = config(state, state.selection.main.head);
-      let tokens = conf.brackets || defaults.brackets;
-      let dont = null, changes = state.changeByRange(range => {
-          if (range.empty) {
-              let before = prevChar(state.doc, range.head);
-              for (let token of tokens) {
-                  if (token == before && nextChar(state.doc, range.head) == closing(codePointAt(token, 0)))
-                      return { changes: { from: range.head - token.length, to: range.head + token.length },
-                          range: EditorSelection.cursor(range.head - token.length) };
-              }
-          }
-          return { range: dont = range };
-      });
-      if (!dont)
-          dispatch(state.update(changes, { scrollIntoView: true, userEvent: "delete.backward" }));
-      return !dont;
-  };
-  /**
-  Close-brackets related key bindings. Binds Backspace to
-  [`deleteBracketPair`](https://codemirror.net/6/docs/ref/#autocomplete.deleteBracketPair).
-  */
-  const closeBracketsKeymap = [
-      { key: "Backspace", run: deleteBracketPair }
-  ];
-  /**
-  Implements the extension's behavior on text insertion. If the
-  given string counts as a bracket in the language around the
-  selection, and replacing the selection with it requires custom
-  behavior (inserting a closing version or skipping past a
-  previously-closed bracket), this function returns a transaction
-  representing that custom behavior. (You only need this if you want
-  to programmatically insert brackets—the
-  [`closeBrackets`](https://codemirror.net/6/docs/ref/#autocomplete.closeBrackets) extension will
-  take care of running this for user input.)
-  */
-  function insertBracket(state, bracket) {
-      let conf = config(state, state.selection.main.head);
-      let tokens = conf.brackets || defaults.brackets;
-      for (let tok of tokens) {
-          let closed = closing(codePointAt(tok, 0));
-          if (bracket == tok)
-              return closed == tok ? handleSame(state, tok, tokens.indexOf(tok + tok + tok) > -1, conf)
-                  : handleOpen(state, tok, closed, conf.before || defaults.before);
-          if (bracket == closed && closedBracketAt(state, state.selection.main.from))
-              return handleClose(state, tok, closed);
-      }
-      return null;
-  }
-  function closedBracketAt(state, pos) {
-      let found = false;
-      state.field(bracketState).between(0, state.doc.length, from => {
-          if (from == pos)
-              found = true;
-      });
-      return found;
-  }
-  function nextChar(doc, pos) {
-      let next = doc.sliceString(pos, pos + 2);
-      return next.slice(0, codePointSize(codePointAt(next, 0)));
-  }
-  function prevChar(doc, pos) {
-      let prev = doc.sliceString(pos - 2, pos);
-      return codePointSize(codePointAt(prev, 0)) == prev.length ? prev : prev.slice(1);
-  }
-  function handleOpen(state, open, close, closeBefore) {
-      let dont = null, changes = state.changeByRange(range => {
-          if (!range.empty)
-              return { changes: [{ insert: open, from: range.from }, { insert: close, from: range.to }],
-                  effects: closeBracketEffect.of(range.to + open.length),
-                  range: EditorSelection.range(range.anchor + open.length, range.head + open.length) };
-          let next = nextChar(state.doc, range.head);
-          if (!next || /\s/.test(next) || closeBefore.indexOf(next) > -1)
-              return { changes: { insert: open + close, from: range.head },
-                  effects: closeBracketEffect.of(range.head + open.length),
-                  range: EditorSelection.cursor(range.head + open.length) };
-          return { range: dont = range };
-      });
-      return dont ? null : state.update(changes, {
-          scrollIntoView: true,
-          userEvent: "input.type"
-      });
-  }
-  function handleClose(state, _open, close) {
-      let dont = null, changes = state.changeByRange(range => {
-          if (range.empty && nextChar(state.doc, range.head) == close)
-              return { changes: { from: range.head, to: range.head + close.length, insert: close },
-                  range: EditorSelection.cursor(range.head + close.length) };
-          return dont = { range };
-      });
-      return dont ? null : state.update(changes, {
-          scrollIntoView: true,
-          userEvent: "input.type"
-      });
-  }
-  // Handles cases where the open and close token are the same, and
-  // possibly triple quotes (as in `"""abc"""`-style quoting).
-  function handleSame(state, token, allowTriple, config) {
-      let stringPrefixes = config.stringPrefixes || defaults.stringPrefixes;
-      let dont = null, changes = state.changeByRange(range => {
-          if (!range.empty)
-              return { changes: [{ insert: token, from: range.from }, { insert: token, from: range.to }],
-                  effects: closeBracketEffect.of(range.to + token.length),
-                  range: EditorSelection.range(range.anchor + token.length, range.head + token.length) };
-          let pos = range.head, next = nextChar(state.doc, pos), start;
-          if (next == token) {
-              if (nodeStart(state, pos)) {
-                  return { changes: { insert: token + token, from: pos },
-                      effects: closeBracketEffect.of(pos + token.length),
-                      range: EditorSelection.cursor(pos + token.length) };
-              }
-              else if (closedBracketAt(state, pos)) {
-                  let isTriple = allowTriple && state.sliceDoc(pos, pos + token.length * 3) == token + token + token;
-                  let content = isTriple ? token + token + token : token;
-                  return { changes: { from: pos, to: pos + content.length, insert: content },
-                      range: EditorSelection.cursor(pos + content.length) };
-              }
-          }
-          else if (allowTriple && state.sliceDoc(pos - 2 * token.length, pos) == token + token &&
-              (start = canStartStringAt(state, pos - 2 * token.length, stringPrefixes)) > -1 &&
-              nodeStart(state, start)) {
-              return { changes: { insert: token + token + token + token, from: pos },
-                  effects: closeBracketEffect.of(pos + token.length),
-                  range: EditorSelection.cursor(pos + token.length) };
-          }
-          else if (state.charCategorizer(pos)(next) != CharCategory.Word) {
-              if (canStartStringAt(state, pos, stringPrefixes) > -1 && !probablyInString(state, pos, token, stringPrefixes))
-                  return { changes: { insert: token + token, from: pos },
-                      effects: closeBracketEffect.of(pos + token.length),
-                      range: EditorSelection.cursor(pos + token.length) };
-          }
-          return { range: dont = range };
-      });
-      return dont ? null : state.update(changes, {
-          scrollIntoView: true,
-          userEvent: "input.type"
-      });
-  }
-  function nodeStart(state, pos) {
-      let tree = syntaxTree(state).resolveInner(pos + 1);
-      return tree.parent && tree.from == pos;
-  }
-  function probablyInString(state, pos, quoteToken, prefixes) {
-      let node = syntaxTree(state).resolveInner(pos, -1);
-      let maxPrefix = prefixes.reduce((m, p) => Math.max(m, p.length), 0);
-      for (let i = 0; i < 5; i++) {
-          let start = state.sliceDoc(node.from, Math.min(node.to, node.from + quoteToken.length + maxPrefix));
-          let quotePos = start.indexOf(quoteToken);
-          if (!quotePos || quotePos > -1 && prefixes.indexOf(start.slice(0, quotePos)) > -1) {
-              let first = node.firstChild;
-              while (first && first.from == node.from && first.to - first.from > quoteToken.length + quotePos) {
-                  if (state.sliceDoc(first.to - quoteToken.length, first.to) == quoteToken)
-                      return false;
-                  first = first.firstChild;
-              }
-              return true;
-          }
-          let parent = node.to == pos && node.parent;
-          if (!parent)
-              break;
-          node = parent;
-      }
-      return false;
-  }
-  function canStartStringAt(state, pos, prefixes) {
-      let charCat = state.charCategorizer(pos);
-      if (charCat(state.sliceDoc(pos - 1, pos)) != CharCategory.Word)
-          return pos;
-      for (let prefix of prefixes) {
-          let start = pos - prefix.length;
-          if (state.sliceDoc(start, pos) == prefix && charCat(state.sliceDoc(start - 1, start)) != CharCategory.Word)
-              return start;
-      }
-      return -1;
-  }
-
-  /**
-  Returns an extension that enables autocompletion.
-  */
-  function autocompletion(config = {}) {
-      return [
-          commitCharacters,
-          completionState,
-          completionConfig.of(config),
-          completionPlugin,
-          completionKeymapExt,
-          baseTheme$3
-      ];
-  }
-  /**
-  Basic keybindings for autocompletion.
-
-   - Ctrl-Space (and Alt-\` on macOS): [`startCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.startCompletion)
-   - Escape: [`closeCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.closeCompletion)
-   - ArrowDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true)`
-   - ArrowUp: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(false)`
-   - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
-   - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
-   - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
-  */
-  const completionKeymap = [
-      { key: "Ctrl-Space", run: startCompletion },
-      { mac: "Alt-`", run: startCompletion },
-      { key: "Escape", run: closeCompletion },
-      { key: "ArrowDown", run: /*@__PURE__*/moveCompletionSelection(true) },
-      { key: "ArrowUp", run: /*@__PURE__*/moveCompletionSelection(false) },
-      { key: "PageDown", run: /*@__PURE__*/moveCompletionSelection(true, "page") },
-      { key: "PageUp", run: /*@__PURE__*/moveCompletionSelection(false, "page") },
-      { key: "Enter", run: acceptCompletion }
-  ];
-  const completionKeymapExt = /*@__PURE__*/Prec.highest(/*@__PURE__*/keymap.computeN([completionConfig], state => state.facet(completionConfig).defaultKeymap ? [completionKeymap] : []));
-
-  /**
   Comment or uncomment the current selection. Will use line comments
   if available, otherwise falling back to block comments.
   */
@@ -22079,14 +20433,14 @@
       // events before the first change, in which case a special type of
       // instance is created which doesn't hold any changes, with
       // changes == startSelection == undefined
-      changes,
+      changes, 
       // The effects associated with this event
-      effects,
+      effects, 
       // Accumulated mapping (from addToHistory==false) that should be
       // applied to events below this one.
-      mapped,
+      mapped, 
       // The selection before this event
-      startSelection,
+      startSelection, 
       // Stores selection changes after this event, to be used for
       // selection undo/redo.
       selectionsAfter) {
@@ -22115,7 +20469,7 @@
       // transaction needs to be converted to an item. Returns null when
       // there are no changes or effects in the transaction.
       static fromTransaction(tr, selection) {
-          let effects = none;
+          let effects = none$1;
           for (let invert of tr.startState.facet(invertedEffects)) {
               let result = invert(tr);
               if (result.length)
@@ -22123,10 +20477,10 @@
           }
           if (!effects.length && tr.changes.empty)
               return null;
-          return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, selection || tr.startState.selection, none);
+          return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, selection || tr.startState.selection, none$1);
       }
       static selection(selections) {
-          return new HistEvent(undefined, none, undefined, undefined, selections);
+          return new HistEvent(undefined, none$1, undefined, undefined, selections);
       }
   }
   function updateBranch(branch, to, maxLen, newEvent) {
@@ -22154,7 +20508,7 @@
   function conc(a, b) {
       return !a.length ? b : !b.length ? a : a.concat(b);
   }
-  const none = [];
+  const none$1 = [];
   const MaxSelectionsPerEvent = 200;
   function addSelection(branch, selection) {
       if (!branch.length) {
@@ -22182,7 +20536,7 @@
   function addMappingToBranch(branch, mapping) {
       if (!branch.length)
           return branch;
-      let length = branch.length, selections = none;
+      let length = branch.length, selections = none$1;
       while (length) {
           let event = mapEvent(branch[length - 1], mapping, selections);
           if (event.changes && !event.changes.empty || event.effects.length) { // Event survived mapping
@@ -22196,10 +20550,10 @@
               selections = event.selectionsAfter;
           }
       }
-      return selections.length ? [HistEvent.selection(selections)] : none;
+      return selections.length ? [HistEvent.selection(selections)] : none$1;
   }
   function mapEvent(event, mapping, extraSelections) {
-      let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none, extraSelections);
+      let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none$1, extraSelections);
       // Change-less events don't store mappings (they are always the last event in a branch)
       if (!event.changes)
           return HistEvent.selection(selections);
@@ -22227,15 +20581,15 @@
                   config.joinToEvent(tr, isAdjacent(lastEvent.changes, event.changes))) ||
                   // For compose (but not compose.start) events, always join with previous event
                   userEvent == "input.type.compose")) {
-              done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(StateEffect.mapEffects(event.effects, lastEvent.changes), lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
+              done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(StateEffect.mapEffects(event.effects, lastEvent.changes), lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none$1));
           }
           else {
               done = updateBranch(done, done.length, config.minDepth, event);
           }
-          return new HistoryState(done, none, time, userEvent);
+          return new HistoryState(done, none$1, time, userEvent);
       }
       addSelection(selection, time, userEvent, newGroupDelay) {
-          let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none;
+          let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none$1;
           if (last.length > 0 &&
               time - this.prevTime < newGroupDelay &&
               userEvent == this.prevUserEvent && userEvent && /^select($|\.)/.test(userEvent) &&
@@ -22263,7 +20617,7 @@
               return null;
           }
           else {
-              let rest = branch.length == 1 ? none : branch.slice(0, branch.length - 1);
+              let rest = branch.length == 1 ? none$1 : branch.slice(0, branch.length - 1);
               if (event.mapped)
                   rest = addMappingToBranch(rest, event.mapped);
               return state.update({
@@ -22278,7 +20632,7 @@
           }
       }
   }
-  HistoryState.empty = /*@__PURE__*/new HistoryState(none, none);
+  HistoryState.empty = /*@__PURE__*/new HistoryState(none$1, none$1);
   /**
   Default key bindings for the undo history.
 
@@ -23260,12 +21614,12 @@
       /**
       Create a text cursor. The query is the search string, `from` to
       `to` provides the region to search.
-
+      
       When `normalize` is given, it will be called, on both the query
       string and the content it is matched against, before comparing.
       You can, for example, create a case-insensitive search by
       passing `s => s.toLowerCase()`.
-
+      
       Text is always normalized with
       [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
       (when supported).
@@ -23635,7 +21989,7 @@
       if (!panel) {
           let effects = [dialogEffect.of(true)];
           if (view.state.field(dialogField, false) == null)
-              effects.push(StateEffect.appendConfig.of([dialogField, baseTheme$1]));
+              effects.push(StateEffect.appendConfig.of([dialogField, baseTheme$1$1]));
           view.dispatch({ effects });
           panel = getPanel(view, createLineDialog);
       }
@@ -23643,7 +21997,7 @@
           panel.dom.querySelector("input").select();
       return true;
   };
-  const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
+  const baseTheme$1$1 = /*@__PURE__*/EditorView.baseTheme({
       ".cm-panel.cm-gotoLine": {
           padding: "2px 6px 4px",
           position: "relative",
@@ -24471,6 +22825,1652 @@
       baseTheme$2
   ];
 
+  /**
+  An instance of this is passed to completion source functions.
+  */
+  class CompletionContext {
+      /**
+      Create a new completion context. (Mostly useful for testing
+      completion sources—in the editor, the extension will create
+      these for you.)
+      */
+      constructor(
+      /**
+      The editor state that the completion happens in.
+      */
+      state, 
+      /**
+      The position at which the completion is happening.
+      */
+      pos, 
+      /**
+      Indicates whether completion was activated explicitly, or
+      implicitly by typing. The usual way to respond to this is to
+      only return completions when either there is part of a
+      completable entity before the cursor, or `explicit` is true.
+      */
+      explicit, 
+      /**
+      The editor view. May be undefined if the context was created
+      in a situation where there is no such view available, such as
+      in synchronous updates via
+      [`CompletionResult.update`](https://codemirror.net/6/docs/ref/#autocomplete.CompletionResult.update)
+      or when called by test code.
+      */
+      view) {
+          this.state = state;
+          this.pos = pos;
+          this.explicit = explicit;
+          this.view = view;
+          /**
+          @internal
+          */
+          this.abortListeners = [];
+          /**
+          @internal
+          */
+          this.abortOnDocChange = false;
+      }
+      /**
+      Get the extent, content, and (if there is a token) type of the
+      token before `this.pos`.
+      */
+      tokenBefore(types) {
+          let token = syntaxTree(this.state).resolveInner(this.pos, -1);
+          while (token && types.indexOf(token.name) < 0)
+              token = token.parent;
+          return token ? { from: token.from, to: this.pos,
+              text: this.state.sliceDoc(token.from, this.pos),
+              type: token.type } : null;
+      }
+      /**
+      Get the match of the given expression directly before the
+      cursor.
+      */
+      matchBefore(expr) {
+          let line = this.state.doc.lineAt(this.pos);
+          let start = Math.max(line.from, this.pos - 250);
+          let str = line.text.slice(start - line.from, this.pos - line.from);
+          let found = str.search(ensureAnchor(expr, false));
+          return found < 0 ? null : { from: start + found, to: this.pos, text: str.slice(found) };
+      }
+      /**
+      Yields true when the query has been aborted. Can be useful in
+      asynchronous queries to avoid doing work that will be ignored.
+      */
+      get aborted() { return this.abortListeners == null; }
+      /**
+      Allows you to register abort handlers, which will be called when
+      the query is
+      [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
+      
+      By default, running queries will not be aborted for regular
+      typing or backspacing, on the assumption that they are likely to
+      return a result with a
+      [`validFor`](https://codemirror.net/6/docs/ref/#autocomplete.CompletionResult.validFor) field that
+      allows the result to be used after all. Passing `onDocChange:
+      true` will cause this query to be aborted for any document
+      change.
+      */
+      addEventListener(type, listener, options) {
+          if (type == "abort" && this.abortListeners) {
+              this.abortListeners.push(listener);
+              if (options && options.onDocChange)
+                  this.abortOnDocChange = true;
+          }
+      }
+  }
+  function toSet(chars) {
+      let flat = Object.keys(chars).join("");
+      let words = /\w/.test(flat);
+      if (words)
+          flat = flat.replace(/\w/g, "");
+      return `[${words ? "\\w" : ""}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
+  }
+  function prefixMatch(options) {
+      let first = Object.create(null), rest = Object.create(null);
+      for (let { label } of options) {
+          first[label[0]] = true;
+          for (let i = 1; i < label.length; i++)
+              rest[label[i]] = true;
+      }
+      let source = toSet(first) + toSet(rest) + "*$";
+      return [new RegExp("^" + source), new RegExp(source)];
+  }
+  /**
+  Given a a fixed array of options, return an autocompleter that
+  completes them.
+  */
+  function completeFromList(list) {
+      let options = list.map(o => typeof o == "string" ? { label: o } : o);
+      let [validFor, match] = options.every(o => /^\w+$/.test(o.label)) ? [/\w*$/, /\w+$/] : prefixMatch(options);
+      return (context) => {
+          let token = context.matchBefore(match);
+          return token || context.explicit ? { from: token ? token.from : context.pos, options, validFor } : null;
+      };
+  }
+  class Option {
+      constructor(completion, source, match, score) {
+          this.completion = completion;
+          this.source = source;
+          this.match = match;
+          this.score = score;
+      }
+  }
+  function cur(state) { return state.selection.main.from; }
+  // Make sure the given regexp has a $ at its end and, if `start` is
+  // true, a ^ at its start.
+  function ensureAnchor(expr, start) {
+      var _a;
+      let { source } = expr;
+      let addStart = start && source[0] != "^", addEnd = source[source.length - 1] != "$";
+      if (!addStart && !addEnd)
+          return expr;
+      return new RegExp(`${addStart ? "^" : ""}(?:${source})${addEnd ? "$" : ""}`, (_a = expr.flags) !== null && _a !== void 0 ? _a : (expr.ignoreCase ? "i" : ""));
+  }
+  /**
+  This annotation is added to transactions that are produced by
+  picking a completion.
+  */
+  const pickedCompletion = /*@__PURE__*/Annotation.define();
+  /**
+  Helper function that returns a transaction spec which inserts a
+  completion's text in the main selection range, and any other
+  selection range that has the same text in front of it.
+  */
+  function insertCompletionText(state, text, from, to) {
+      let { main } = state.selection, fromOff = from - main.from, toOff = to - main.from;
+      return Object.assign(Object.assign({}, state.changeByRange(range => {
+          if (range != main && from != to &&
+              state.sliceDoc(range.from + fromOff, range.from + toOff) != state.sliceDoc(from, to))
+              return { range };
+          let lines = state.toText(text);
+          return {
+              changes: { from: range.from + fromOff, to: to == main.from ? range.to : range.from + toOff, insert: lines },
+              range: EditorSelection.cursor(range.from + fromOff + lines.length)
+          };
+      })), { scrollIntoView: true, userEvent: "input.complete" });
+  }
+  const SourceCache = /*@__PURE__*/new WeakMap();
+  function asSource(source) {
+      if (!Array.isArray(source))
+          return source;
+      let known = SourceCache.get(source);
+      if (!known)
+          SourceCache.set(source, known = completeFromList(source));
+      return known;
+  }
+  const startCompletionEffect = /*@__PURE__*/StateEffect.define();
+  const closeCompletionEffect = /*@__PURE__*/StateEffect.define();
+
+  // A pattern matcher for fuzzy completion matching. Create an instance
+  // once for a pattern, and then use that to match any number of
+  // completions.
+  class FuzzyMatcher {
+      constructor(pattern) {
+          this.pattern = pattern;
+          this.chars = [];
+          this.folded = [];
+          // Buffers reused by calls to `match` to track matched character
+          // positions.
+          this.any = [];
+          this.precise = [];
+          this.byWord = [];
+          this.score = 0;
+          this.matched = [];
+          for (let p = 0; p < pattern.length;) {
+              let char = codePointAt(pattern, p), size = codePointSize(char);
+              this.chars.push(char);
+              let part = pattern.slice(p, p + size), upper = part.toUpperCase();
+              this.folded.push(codePointAt(upper == part ? part.toLowerCase() : upper, 0));
+              p += size;
+          }
+          this.astral = pattern.length != this.chars.length;
+      }
+      ret(score, matched) {
+          this.score = score;
+          this.matched = matched;
+          return this;
+      }
+      // Matches a given word (completion) against the pattern (input).
+      // Will return a boolean indicating whether there was a match and,
+      // on success, set `this.score` to the score, `this.matched` to an
+      // array of `from, to` pairs indicating the matched parts of `word`.
+      //
+      // The score is a number that is more negative the worse the match
+      // is. See `Penalty` above.
+      match(word) {
+          if (this.pattern.length == 0)
+              return this.ret(-100 /* Penalty.NotFull */, []);
+          if (word.length < this.pattern.length)
+              return null;
+          let { chars, folded, any, precise, byWord } = this;
+          // For single-character queries, only match when they occur right
+          // at the start
+          if (chars.length == 1) {
+              let first = codePointAt(word, 0), firstSize = codePointSize(first);
+              let score = firstSize == word.length ? 0 : -100 /* Penalty.NotFull */;
+              if (first == chars[0]) ;
+              else if (first == folded[0])
+                  score += -200 /* Penalty.CaseFold */;
+              else
+                  return null;
+              return this.ret(score, [0, firstSize]);
+          }
+          let direct = word.indexOf(this.pattern);
+          if (direct == 0)
+              return this.ret(word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */, [0, this.pattern.length]);
+          let len = chars.length, anyTo = 0;
+          if (direct < 0) {
+              for (let i = 0, e = Math.min(word.length, 200); i < e && anyTo < len;) {
+                  let next = codePointAt(word, i);
+                  if (next == chars[anyTo] || next == folded[anyTo])
+                      any[anyTo++] = i;
+                  i += codePointSize(next);
+              }
+              // No match, exit immediately
+              if (anyTo < len)
+                  return null;
+          }
+          // This tracks the extent of the precise (non-folded, not
+          // necessarily adjacent) match
+          let preciseTo = 0;
+          // Tracks whether there is a match that hits only characters that
+          // appear to be starting words. `byWordFolded` is set to true when
+          // a case folded character is encountered in such a match
+          let byWordTo = 0, byWordFolded = false;
+          // If we've found a partial adjacent match, these track its state
+          let adjacentTo = 0, adjacentStart = -1, adjacentEnd = -1;
+          let hasLower = /[a-z]/.test(word), wordAdjacent = true;
+          // Go over the option's text, scanning for the various kinds of matches
+          for (let i = 0, e = Math.min(word.length, 200), prevType = 0 /* Tp.NonWord */; i < e && byWordTo < len;) {
+              let next = codePointAt(word, i);
+              if (direct < 0) {
+                  if (preciseTo < len && next == chars[preciseTo])
+                      precise[preciseTo++] = i;
+                  if (adjacentTo < len) {
+                      if (next == chars[adjacentTo] || next == folded[adjacentTo]) {
+                          if (adjacentTo == 0)
+                              adjacentStart = i;
+                          adjacentEnd = i + 1;
+                          adjacentTo++;
+                      }
+                      else {
+                          adjacentTo = 0;
+                      }
+                  }
+              }
+              let ch, type = next < 0xff
+                  ? (next >= 48 && next <= 57 || next >= 97 && next <= 122 ? 2 /* Tp.Lower */ : next >= 65 && next <= 90 ? 1 /* Tp.Upper */ : 0 /* Tp.NonWord */)
+                  : ((ch = fromCodePoint(next)) != ch.toLowerCase() ? 1 /* Tp.Upper */ : ch != ch.toUpperCase() ? 2 /* Tp.Lower */ : 0 /* Tp.NonWord */);
+              if (!i || type == 1 /* Tp.Upper */ && hasLower || prevType == 0 /* Tp.NonWord */ && type != 0 /* Tp.NonWord */) {
+                  if (chars[byWordTo] == next || (folded[byWordTo] == next && (byWordFolded = true)))
+                      byWord[byWordTo++] = i;
+                  else if (byWord.length)
+                      wordAdjacent = false;
+              }
+              prevType = type;
+              i += codePointSize(next);
+          }
+          if (byWordTo == len && byWord[0] == 0 && wordAdjacent)
+              return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0), byWord, word);
+          if (adjacentTo == len && adjacentStart == 0)
+              return this.ret(-200 /* Penalty.CaseFold */ - word.length + (adjacentEnd == word.length ? 0 : -100 /* Penalty.NotFull */), [0, adjacentEnd]);
+          if (direct > -1)
+              return this.ret(-700 /* Penalty.NotStart */ - word.length, [direct, direct + this.pattern.length]);
+          if (adjacentTo == len)
+              return this.ret(-200 /* Penalty.CaseFold */ + -700 /* Penalty.NotStart */ - word.length, [adjacentStart, adjacentEnd]);
+          if (byWordTo == len)
+              return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0) + -700 /* Penalty.NotStart */ +
+                  (wordAdjacent ? 0 : -1100 /* Penalty.Gap */), byWord, word);
+          return chars.length == 2 ? null
+              : this.result((any[0] ? -700 /* Penalty.NotStart */ : 0) + -200 /* Penalty.CaseFold */ + -1100 /* Penalty.Gap */, any, word);
+      }
+      result(score, positions, word) {
+          let result = [], i = 0;
+          for (let pos of positions) {
+              let to = pos + (this.astral ? codePointSize(codePointAt(word, pos)) : 1);
+              if (i && result[i - 1] == pos)
+                  result[i - 1] = to;
+              else {
+                  result[i++] = pos;
+                  result[i++] = to;
+              }
+          }
+          return this.ret(score - word.length, result);
+      }
+  }
+  class StrictMatcher {
+      constructor(pattern) {
+          this.pattern = pattern;
+          this.matched = [];
+          this.score = 0;
+          this.folded = pattern.toLowerCase();
+      }
+      match(word) {
+          if (word.length < this.pattern.length)
+              return null;
+          let start = word.slice(0, this.pattern.length);
+          let match = start == this.pattern ? 0 : start.toLowerCase() == this.folded ? -200 /* Penalty.CaseFold */ : null;
+          if (match == null)
+              return null;
+          this.matched = [0, start.length];
+          this.score = match + (word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */);
+          return this;
+      }
+  }
+
+  const completionConfig = /*@__PURE__*/Facet.define({
+      combine(configs) {
+          return combineConfig(configs, {
+              activateOnTyping: true,
+              activateOnCompletion: () => false,
+              activateOnTypingDelay: 100,
+              selectOnOpen: true,
+              override: null,
+              closeOnBlur: true,
+              maxRenderedOptions: 100,
+              defaultKeymap: true,
+              tooltipClass: () => "",
+              optionClass: () => "",
+              aboveCursor: false,
+              icons: true,
+              addToOptions: [],
+              positionInfo: defaultPositionInfo,
+              filterStrict: false,
+              compareCompletions: (a, b) => a.label.localeCompare(b.label),
+              interactionDelay: 75,
+              updateSyncTime: 100
+          }, {
+              defaultKeymap: (a, b) => a && b,
+              closeOnBlur: (a, b) => a && b,
+              icons: (a, b) => a && b,
+              tooltipClass: (a, b) => c => joinClass(a(c), b(c)),
+              optionClass: (a, b) => c => joinClass(a(c), b(c)),
+              addToOptions: (a, b) => a.concat(b),
+              filterStrict: (a, b) => a || b,
+          });
+      }
+  });
+  function joinClass(a, b) {
+      return a ? b ? a + " " + b : a : b;
+  }
+  function defaultPositionInfo(view, list, option, info, space, tooltip) {
+      let rtl = view.textDirection == Direction.RTL, left = rtl, narrow = false;
+      let side = "top", offset, maxWidth;
+      let spaceLeft = list.left - space.left, spaceRight = space.right - list.right;
+      let infoWidth = info.right - info.left, infoHeight = info.bottom - info.top;
+      if (left && spaceLeft < Math.min(infoWidth, spaceRight))
+          left = false;
+      else if (!left && spaceRight < Math.min(infoWidth, spaceLeft))
+          left = true;
+      if (infoWidth <= (left ? spaceLeft : spaceRight)) {
+          offset = Math.max(space.top, Math.min(option.top, space.bottom - infoHeight)) - list.top;
+          maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight);
+      }
+      else {
+          narrow = true;
+          maxWidth = Math.min(400 /* Info.Width */, (rtl ? list.right : space.right - list.left) - 30 /* Info.Margin */);
+          let spaceBelow = space.bottom - list.bottom;
+          if (spaceBelow >= infoHeight || spaceBelow > list.top) { // Below the completion
+              offset = option.bottom - list.top;
+          }
+          else { // Above it
+              side = "bottom";
+              offset = list.bottom - option.top;
+          }
+      }
+      let scaleY = (list.bottom - list.top) / tooltip.offsetHeight;
+      let scaleX = (list.right - list.left) / tooltip.offsetWidth;
+      return {
+          style: `${side}: ${offset / scaleY}px; max-width: ${maxWidth / scaleX}px`,
+          class: "cm-completionInfo-" + (narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right")
+      };
+  }
+
+  function optionContent(config) {
+      let content = config.addToOptions.slice();
+      if (config.icons)
+          content.push({
+              render(completion) {
+                  let icon = document.createElement("div");
+                  icon.classList.add("cm-completionIcon");
+                  if (completion.type)
+                      icon.classList.add(...completion.type.split(/\s+/g).map(cls => "cm-completionIcon-" + cls));
+                  icon.setAttribute("aria-hidden", "true");
+                  return icon;
+              },
+              position: 20
+          });
+      content.push({
+          render(completion, _s, _v, match) {
+              let labelElt = document.createElement("span");
+              labelElt.className = "cm-completionLabel";
+              let label = completion.displayLabel || completion.label, off = 0;
+              for (let j = 0; j < match.length;) {
+                  let from = match[j++], to = match[j++];
+                  if (from > off)
+                      labelElt.appendChild(document.createTextNode(label.slice(off, from)));
+                  let span = labelElt.appendChild(document.createElement("span"));
+                  span.appendChild(document.createTextNode(label.slice(from, to)));
+                  span.className = "cm-completionMatchedText";
+                  off = to;
+              }
+              if (off < label.length)
+                  labelElt.appendChild(document.createTextNode(label.slice(off)));
+              return labelElt;
+          },
+          position: 50
+      }, {
+          render(completion) {
+              if (!completion.detail)
+                  return null;
+              let detailElt = document.createElement("span");
+              detailElt.className = "cm-completionDetail";
+              detailElt.textContent = completion.detail;
+              return detailElt;
+          },
+          position: 80
+      });
+      return content.sort((a, b) => a.position - b.position).map(a => a.render);
+  }
+  function rangeAroundSelected(total, selected, max) {
+      if (total <= max)
+          return { from: 0, to: total };
+      if (selected < 0)
+          selected = 0;
+      if (selected <= (total >> 1)) {
+          let off = Math.floor(selected / max);
+          return { from: off * max, to: (off + 1) * max };
+      }
+      let off = Math.floor((total - selected) / max);
+      return { from: total - (off + 1) * max, to: total - off * max };
+  }
+  class CompletionTooltip {
+      constructor(view, stateField, applyCompletion) {
+          this.view = view;
+          this.stateField = stateField;
+          this.applyCompletion = applyCompletion;
+          this.info = null;
+          this.infoDestroy = null;
+          this.placeInfoReq = {
+              read: () => this.measureInfo(),
+              write: (pos) => this.placeInfo(pos),
+              key: this
+          };
+          this.space = null;
+          this.currentClass = "";
+          let cState = view.state.field(stateField);
+          let { options, selected } = cState.open;
+          let config = view.state.facet(completionConfig);
+          this.optionContent = optionContent(config);
+          this.optionClass = config.optionClass;
+          this.tooltipClass = config.tooltipClass;
+          this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
+          this.dom = document.createElement("div");
+          this.dom.className = "cm-tooltip-autocomplete";
+          this.updateTooltipClass(view.state);
+          this.dom.addEventListener("mousedown", (e) => {
+              let { options } = view.state.field(stateField).open;
+              for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
+                  if (dom.nodeName == "LI" && (match = /-(\d+)$/.exec(dom.id)) && +match[1] < options.length) {
+                      this.applyCompletion(view, options[+match[1]]);
+                      e.preventDefault();
+                      return;
+                  }
+              }
+          });
+          this.dom.addEventListener("focusout", (e) => {
+              let state = view.state.field(this.stateField, false);
+              if (state && state.tooltip && view.state.facet(completionConfig).closeOnBlur &&
+                  e.relatedTarget != view.contentDOM)
+                  view.dispatch({ effects: closeCompletionEffect.of(null) });
+          });
+          this.showOptions(options, cState.id);
+      }
+      mount() { this.updateSel(); }
+      showOptions(options, id) {
+          if (this.list)
+              this.list.remove();
+          this.list = this.dom.appendChild(this.createListBox(options, id, this.range));
+          this.list.addEventListener("scroll", () => {
+              if (this.info)
+                  this.view.requestMeasure(this.placeInfoReq);
+          });
+      }
+      update(update) {
+          var _a;
+          let cState = update.state.field(this.stateField);
+          let prevState = update.startState.field(this.stateField);
+          this.updateTooltipClass(update.state);
+          if (cState != prevState) {
+              let { options, selected, disabled } = cState.open;
+              if (!prevState.open || prevState.open.options != options) {
+                  this.range = rangeAroundSelected(options.length, selected, update.state.facet(completionConfig).maxRenderedOptions);
+                  this.showOptions(options, cState.id);
+              }
+              this.updateSel();
+              if (disabled != ((_a = prevState.open) === null || _a === void 0 ? void 0 : _a.disabled))
+                  this.dom.classList.toggle("cm-tooltip-autocomplete-disabled", !!disabled);
+          }
+      }
+      updateTooltipClass(state) {
+          let cls = this.tooltipClass(state);
+          if (cls != this.currentClass) {
+              for (let c of this.currentClass.split(" "))
+                  if (c)
+                      this.dom.classList.remove(c);
+              for (let c of cls.split(" "))
+                  if (c)
+                      this.dom.classList.add(c);
+              this.currentClass = cls;
+          }
+      }
+      positioned(space) {
+          this.space = space;
+          if (this.info)
+              this.view.requestMeasure(this.placeInfoReq);
+      }
+      updateSel() {
+          let cState = this.view.state.field(this.stateField), open = cState.open;
+          if (open.selected > -1 && open.selected < this.range.from || open.selected >= this.range.to) {
+              this.range = rangeAroundSelected(open.options.length, open.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
+              this.showOptions(open.options, cState.id);
+          }
+          if (this.updateSelectedOption(open.selected)) {
+              this.destroyInfo();
+              let { completion } = open.options[open.selected];
+              let { info } = completion;
+              if (!info)
+                  return;
+              let infoResult = typeof info === "string" ? document.createTextNode(info) : info(completion);
+              if (!infoResult)
+                  return;
+              if ("then" in infoResult) {
+                  infoResult.then(obj => {
+                      if (obj && this.view.state.field(this.stateField, false) == cState)
+                          this.addInfoPane(obj, completion);
+                  }).catch(e => logException(this.view.state, e, "completion info"));
+              }
+              else {
+                  this.addInfoPane(infoResult, completion);
+              }
+          }
+      }
+      addInfoPane(content, completion) {
+          this.destroyInfo();
+          let wrap = this.info = document.createElement("div");
+          wrap.className = "cm-tooltip cm-completionInfo";
+          if (content.nodeType != null) {
+              wrap.appendChild(content);
+              this.infoDestroy = null;
+          }
+          else {
+              let { dom, destroy } = content;
+              wrap.appendChild(dom);
+              this.infoDestroy = destroy || null;
+          }
+          this.dom.appendChild(wrap);
+          this.view.requestMeasure(this.placeInfoReq);
+      }
+      updateSelectedOption(selected) {
+          let set = null;
+          for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
+              if (opt.nodeName != "LI" || !opt.id) {
+                  i--; // A section header
+              }
+              else if (i == selected) {
+                  if (!opt.hasAttribute("aria-selected")) {
+                      opt.setAttribute("aria-selected", "true");
+                      set = opt;
+                  }
+              }
+              else {
+                  if (opt.hasAttribute("aria-selected"))
+                      opt.removeAttribute("aria-selected");
+              }
+          }
+          if (set)
+              scrollIntoView(this.list, set);
+          return set;
+      }
+      measureInfo() {
+          let sel = this.dom.querySelector("[aria-selected]");
+          if (!sel || !this.info)
+              return null;
+          let listRect = this.dom.getBoundingClientRect();
+          let infoRect = this.info.getBoundingClientRect();
+          let selRect = sel.getBoundingClientRect();
+          let space = this.space;
+          if (!space) {
+              let docElt = this.dom.ownerDocument.documentElement;
+              space = { left: 0, top: 0, right: docElt.clientWidth, bottom: docElt.clientHeight };
+          }
+          if (selRect.top > Math.min(space.bottom, listRect.bottom) - 10 ||
+              selRect.bottom < Math.max(space.top, listRect.top) + 10)
+              return null;
+          return this.view.state.facet(completionConfig).positionInfo(this.view, listRect, selRect, infoRect, space, this.dom);
+      }
+      placeInfo(pos) {
+          if (this.info) {
+              if (pos) {
+                  if (pos.style)
+                      this.info.style.cssText = pos.style;
+                  this.info.className = "cm-tooltip cm-completionInfo " + (pos.class || "");
+              }
+              else {
+                  this.info.style.cssText = "top: -1e6px";
+              }
+          }
+      }
+      createListBox(options, id, range) {
+          const ul = document.createElement("ul");
+          ul.id = id;
+          ul.setAttribute("role", "listbox");
+          ul.setAttribute("aria-expanded", "true");
+          ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
+          ul.addEventListener("mousedown", e => {
+              // Prevent focus change when clicking the scrollbar
+              if (e.target == ul)
+                  e.preventDefault();
+          });
+          let curSection = null;
+          for (let i = range.from; i < range.to; i++) {
+              let { completion, match } = options[i], { section } = completion;
+              if (section) {
+                  let name = typeof section == "string" ? section : section.name;
+                  if (name != curSection && (i > range.from || range.from == 0)) {
+                      curSection = name;
+                      if (typeof section != "string" && section.header) {
+                          ul.appendChild(section.header(section));
+                      }
+                      else {
+                          let header = ul.appendChild(document.createElement("completion-section"));
+                          header.textContent = name;
+                      }
+                  }
+              }
+              const li = ul.appendChild(document.createElement("li"));
+              li.id = id + "-" + i;
+              li.setAttribute("role", "option");
+              let cls = this.optionClass(completion);
+              if (cls)
+                  li.className = cls;
+              for (let source of this.optionContent) {
+                  let node = source(completion, this.view.state, this.view, match);
+                  if (node)
+                      li.appendChild(node);
+              }
+          }
+          if (range.from)
+              ul.classList.add("cm-completionListIncompleteTop");
+          if (range.to < options.length)
+              ul.classList.add("cm-completionListIncompleteBottom");
+          return ul;
+      }
+      destroyInfo() {
+          if (this.info) {
+              if (this.infoDestroy)
+                  this.infoDestroy();
+              this.info.remove();
+              this.info = null;
+          }
+      }
+      destroy() {
+          this.destroyInfo();
+      }
+  }
+  function completionTooltip(stateField, applyCompletion) {
+      return (view) => new CompletionTooltip(view, stateField, applyCompletion);
+  }
+  function scrollIntoView(container, element) {
+      let parent = container.getBoundingClientRect();
+      let self = element.getBoundingClientRect();
+      let scaleY = parent.height / container.offsetHeight;
+      if (self.top < parent.top)
+          container.scrollTop -= (parent.top - self.top) / scaleY;
+      else if (self.bottom > parent.bottom)
+          container.scrollTop += (self.bottom - parent.bottom) / scaleY;
+  }
+
+  // Used to pick a preferred option when two options with the same
+  // label occur in the result.
+  function score(option) {
+      return (option.boost || 0) * 100 + (option.apply ? 10 : 0) + (option.info ? 5 : 0) +
+          (option.type ? 1 : 0);
+  }
+  function sortOptions(active, state) {
+      let options = [];
+      let sections = null;
+      let addOption = (option) => {
+          options.push(option);
+          let { section } = option.completion;
+          if (section) {
+              if (!sections)
+                  sections = [];
+              let name = typeof section == "string" ? section : section.name;
+              if (!sections.some(s => s.name == name))
+                  sections.push(typeof section == "string" ? { name } : section);
+          }
+      };
+      let conf = state.facet(completionConfig);
+      for (let a of active)
+          if (a.hasResult()) {
+              let getMatch = a.result.getMatch;
+              if (a.result.filter === false) {
+                  for (let option of a.result.options) {
+                      addOption(new Option(option, a.source, getMatch ? getMatch(option) : [], 1e9 - options.length));
+                  }
+              }
+              else {
+                  let pattern = state.sliceDoc(a.from, a.to), match;
+                  let matcher = conf.filterStrict ? new StrictMatcher(pattern) : new FuzzyMatcher(pattern);
+                  for (let option of a.result.options)
+                      if (match = matcher.match(option.label)) {
+                          let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
+                          addOption(new Option(option, a.source, matched, match.score + (option.boost || 0)));
+                      }
+              }
+          }
+      if (sections) {
+          let sectionOrder = Object.create(null), pos = 0;
+          let cmp = (a, b) => { var _a, _b; return ((_a = a.rank) !== null && _a !== void 0 ? _a : 1e9) - ((_b = b.rank) !== null && _b !== void 0 ? _b : 1e9) || (a.name < b.name ? -1 : 1); };
+          for (let s of sections.sort(cmp)) {
+              pos -= 1e5;
+              sectionOrder[s.name] = pos;
+          }
+          for (let option of options) {
+              let { section } = option.completion;
+              if (section)
+                  option.score += sectionOrder[typeof section == "string" ? section : section.name];
+          }
+      }
+      let result = [], prev = null;
+      let compare = conf.compareCompletions;
+      for (let opt of options.sort((a, b) => (b.score - a.score) || compare(a.completion, b.completion))) {
+          let cur = opt.completion;
+          if (!prev || prev.label != cur.label || prev.detail != cur.detail ||
+              (prev.type != null && cur.type != null && prev.type != cur.type) ||
+              prev.apply != cur.apply || prev.boost != cur.boost)
+              result.push(opt);
+          else if (score(opt.completion) > score(prev))
+              result[result.length - 1] = opt;
+          prev = opt.completion;
+      }
+      return result;
+  }
+  class CompletionDialog {
+      constructor(options, attrs, tooltip, timestamp, selected, disabled) {
+          this.options = options;
+          this.attrs = attrs;
+          this.tooltip = tooltip;
+          this.timestamp = timestamp;
+          this.selected = selected;
+          this.disabled = disabled;
+      }
+      setSelected(selected, id) {
+          return selected == this.selected || selected >= this.options.length ? this
+              : new CompletionDialog(this.options, makeAttrs(id, selected), this.tooltip, this.timestamp, selected, this.disabled);
+      }
+      static build(active, state, id, prev, conf, didSetActive) {
+          if (prev && !didSetActive && active.some(s => s.isPending))
+              return prev.setDisabled();
+          let options = sortOptions(active, state);
+          if (!options.length)
+              return prev && active.some(a => a.isPending) ? prev.setDisabled() : null;
+          let selected = state.facet(completionConfig).selectOnOpen ? 0 : -1;
+          if (prev && prev.selected != selected && prev.selected != -1) {
+              let selectedValue = prev.options[prev.selected].completion;
+              for (let i = 0; i < options.length; i++)
+                  if (options[i].completion == selectedValue) {
+                      selected = i;
+                      break;
+                  }
+          }
+          return new CompletionDialog(options, makeAttrs(id, selected), {
+              pos: active.reduce((a, b) => b.hasResult() ? Math.min(a, b.from) : a, 1e8),
+              create: createTooltip,
+              above: conf.aboveCursor,
+          }, prev ? prev.timestamp : Date.now(), selected, false);
+      }
+      map(changes) {
+          return new CompletionDialog(this.options, this.attrs, Object.assign(Object.assign({}, this.tooltip), { pos: changes.mapPos(this.tooltip.pos) }), this.timestamp, this.selected, this.disabled);
+      }
+      setDisabled() {
+          return new CompletionDialog(this.options, this.attrs, this.tooltip, this.timestamp, this.selected, true);
+      }
+  }
+  class CompletionState {
+      constructor(active, id, open) {
+          this.active = active;
+          this.id = id;
+          this.open = open;
+      }
+      static start() {
+          return new CompletionState(none, "cm-ac-" + Math.floor(Math.random() * 2e6).toString(36), null);
+      }
+      update(tr) {
+          let { state } = tr, conf = state.facet(completionConfig);
+          let sources = conf.override ||
+              state.languageDataAt("autocomplete", cur(state)).map(asSource);
+          let active = sources.map(source => {
+              let value = this.active.find(s => s.source == source) ||
+                  new ActiveSource(source, this.active.some(a => a.state != 0 /* State.Inactive */) ? 1 /* State.Pending */ : 0 /* State.Inactive */);
+              return value.update(tr, conf);
+          });
+          if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
+              active = this.active;
+          let open = this.open, didSet = tr.effects.some(e => e.is(setActiveEffect));
+          if (open && tr.docChanged)
+              open = open.map(tr.changes);
+          if (tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
+              !sameResults(active, this.active) || didSet)
+              open = CompletionDialog.build(active, state, this.id, open, conf, didSet);
+          else if (open && open.disabled && !active.some(a => a.isPending))
+              open = null;
+          if (!open && active.every(a => !a.isPending) && active.some(a => a.hasResult()))
+              active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* State.Inactive */) : a);
+          for (let effect of tr.effects)
+              if (effect.is(setSelectedEffect))
+                  open = open && open.setSelected(effect.value, this.id);
+          return active == this.active && open == this.open ? this : new CompletionState(active, this.id, open);
+      }
+      get tooltip() { return this.open ? this.open.tooltip : null; }
+      get attrs() { return this.open ? this.open.attrs : this.active.length ? baseAttrs : noAttrs; }
+  }
+  function sameResults(a, b) {
+      if (a == b)
+          return true;
+      for (let iA = 0, iB = 0;;) {
+          while (iA < a.length && !a[iA].hasResult())
+              iA++;
+          while (iB < b.length && !b[iB].hasResult())
+              iB++;
+          let endA = iA == a.length, endB = iB == b.length;
+          if (endA || endB)
+              return endA == endB;
+          if (a[iA++].result != b[iB++].result)
+              return false;
+      }
+  }
+  const baseAttrs = {
+      "aria-autocomplete": "list"
+  };
+  const noAttrs = {};
+  function makeAttrs(id, selected) {
+      let result = {
+          "aria-autocomplete": "list",
+          "aria-haspopup": "listbox",
+          "aria-controls": id
+      };
+      if (selected > -1)
+          result["aria-activedescendant"] = id + "-" + selected;
+      return result;
+  }
+  const none = [];
+  function getUpdateType(tr, conf) {
+      if (tr.isUserEvent("input.complete")) {
+          let completion = tr.annotation(pickedCompletion);
+          if (completion && conf.activateOnCompletion(completion))
+              return 4 /* UpdateType.Activate */ | 8 /* UpdateType.Reset */;
+      }
+      let typing = tr.isUserEvent("input.type");
+      return typing && conf.activateOnTyping ? 4 /* UpdateType.Activate */ | 1 /* UpdateType.Typing */
+          : typing ? 1 /* UpdateType.Typing */
+              : tr.isUserEvent("delete.backward") ? 2 /* UpdateType.Backspacing */
+                  : tr.selection ? 8 /* UpdateType.Reset */
+                      : tr.docChanged ? 16 /* UpdateType.ResetIfTouching */ : 0 /* UpdateType.None */;
+  }
+  class ActiveSource {
+      constructor(source, state, explicit = false) {
+          this.source = source;
+          this.state = state;
+          this.explicit = explicit;
+      }
+      hasResult() { return false; }
+      get isPending() { return this.state == 1 /* State.Pending */; }
+      update(tr, conf) {
+          let type = getUpdateType(tr, conf), value = this;
+          if ((type & 8 /* UpdateType.Reset */) || (type & 16 /* UpdateType.ResetIfTouching */) && this.touches(tr))
+              value = new ActiveSource(value.source, 0 /* State.Inactive */);
+          if ((type & 4 /* UpdateType.Activate */) && value.state == 0 /* State.Inactive */)
+              value = new ActiveSource(this.source, 1 /* State.Pending */);
+          value = value.updateFor(tr, type);
+          for (let effect of tr.effects) {
+              if (effect.is(startCompletionEffect))
+                  value = new ActiveSource(value.source, 1 /* State.Pending */, effect.value);
+              else if (effect.is(closeCompletionEffect))
+                  value = new ActiveSource(value.source, 0 /* State.Inactive */);
+              else if (effect.is(setActiveEffect))
+                  for (let active of effect.value)
+                      if (active.source == value.source)
+                          value = active;
+          }
+          return value;
+      }
+      updateFor(tr, type) { return this.map(tr.changes); }
+      map(changes) { return this; }
+      touches(tr) {
+          return tr.changes.touchesRange(cur(tr.state));
+      }
+  }
+  class ActiveResult extends ActiveSource {
+      constructor(source, explicit, limit, result, from, to) {
+          super(source, 3 /* State.Result */, explicit);
+          this.limit = limit;
+          this.result = result;
+          this.from = from;
+          this.to = to;
+      }
+      hasResult() { return true; }
+      updateFor(tr, type) {
+          var _a;
+          if (!(type & 3 /* UpdateType.SimpleInteraction */))
+              return this.map(tr.changes);
+          let result = this.result;
+          if (result.map && !tr.changes.empty)
+              result = result.map(result, tr.changes);
+          let from = tr.changes.mapPos(this.from), to = tr.changes.mapPos(this.to, 1);
+          let pos = cur(tr.state);
+          if (pos > to || !result ||
+              (type & 2 /* UpdateType.Backspacing */) && (cur(tr.startState) == this.from || pos < this.limit))
+              return new ActiveSource(this.source, type & 4 /* UpdateType.Activate */ ? 1 /* State.Pending */ : 0 /* State.Inactive */);
+          let limit = tr.changes.mapPos(this.limit);
+          if (checkValid(result.validFor, tr.state, from, to))
+              return new ActiveResult(this.source, this.explicit, limit, result, from, to);
+          if (result.update &&
+              (result = result.update(result, from, to, new CompletionContext(tr.state, pos, false))))
+              return new ActiveResult(this.source, this.explicit, limit, result, result.from, (_a = result.to) !== null && _a !== void 0 ? _a : cur(tr.state));
+          return new ActiveSource(this.source, 1 /* State.Pending */, this.explicit);
+      }
+      map(mapping) {
+          if (mapping.empty)
+              return this;
+          let result = this.result.map ? this.result.map(this.result, mapping) : this.result;
+          if (!result)
+              return new ActiveSource(this.source, 0 /* State.Inactive */);
+          return new ActiveResult(this.source, this.explicit, mapping.mapPos(this.limit), this.result, mapping.mapPos(this.from), mapping.mapPos(this.to, 1));
+      }
+      touches(tr) {
+          return tr.changes.touchesRange(this.from, this.to);
+      }
+  }
+  function checkValid(validFor, state, from, to) {
+      if (!validFor)
+          return false;
+      let text = state.sliceDoc(from, to);
+      return typeof validFor == "function" ? validFor(text, from, to, state) : ensureAnchor(validFor, true).test(text);
+  }
+  const setActiveEffect = /*@__PURE__*/StateEffect.define({
+      map(sources, mapping) { return sources.map(s => s.map(mapping)); }
+  });
+  const setSelectedEffect = /*@__PURE__*/StateEffect.define();
+  const completionState = /*@__PURE__*/StateField.define({
+      create() { return CompletionState.start(); },
+      update(value, tr) { return value.update(tr); },
+      provide: f => [
+          showTooltip.from(f, val => val.tooltip),
+          EditorView.contentAttributes.from(f, state => state.attrs)
+      ]
+  });
+  function applyCompletion(view, option) {
+      const apply = option.completion.apply || option.completion.label;
+      let result = view.state.field(completionState).active.find(a => a.source == option.source);
+      if (!(result instanceof ActiveResult))
+          return false;
+      if (typeof apply == "string")
+          view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
+      else
+          apply(view, option.completion, result.from, result.to);
+      return true;
+  }
+  const createTooltip = /*@__PURE__*/completionTooltip(completionState, applyCompletion);
+
+  /**
+  Returns a command that moves the completion selection forward or
+  backward by the given amount.
+  */
+  function moveCompletionSelection(forward, by = "option") {
+      return (view) => {
+          let cState = view.state.field(completionState, false);
+          if (!cState || !cState.open || cState.open.disabled ||
+              Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
+              return false;
+          let step = 1, tooltip;
+          if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
+              step = Math.max(2, Math.floor(tooltip.dom.offsetHeight /
+                  tooltip.dom.querySelector("li").offsetHeight) - 1);
+          let { length } = cState.open.options;
+          let selected = cState.open.selected > -1 ? cState.open.selected + step * (forward ? 1 : -1) : forward ? 0 : length - 1;
+          if (selected < 0)
+              selected = by == "page" ? 0 : length - 1;
+          else if (selected >= length)
+              selected = by == "page" ? length - 1 : 0;
+          view.dispatch({ effects: setSelectedEffect.of(selected) });
+          return true;
+      };
+  }
+  /**
+  Accept the current completion.
+  */
+  const acceptCompletion = (view) => {
+      let cState = view.state.field(completionState, false);
+      if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 || cState.open.disabled ||
+          Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
+          return false;
+      return applyCompletion(view, cState.open.options[cState.open.selected]);
+  };
+  /**
+  Explicitly start autocompletion.
+  */
+  const startCompletion = (view) => {
+      let cState = view.state.field(completionState, false);
+      if (!cState)
+          return false;
+      view.dispatch({ effects: startCompletionEffect.of(true) });
+      return true;
+  };
+  /**
+  Close the currently active completion.
+  */
+  const closeCompletion = (view) => {
+      let cState = view.state.field(completionState, false);
+      if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
+          return false;
+      view.dispatch({ effects: closeCompletionEffect.of(null) });
+      return true;
+  };
+  class RunningQuery {
+      constructor(active, context) {
+          this.active = active;
+          this.context = context;
+          this.time = Date.now();
+          this.updates = [];
+          // Note that 'undefined' means 'not done yet', whereas 'null' means
+          // 'query returned null'.
+          this.done = undefined;
+      }
+  }
+  const MaxUpdateCount = 50, MinAbortTime = 1000;
+  const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
+      constructor(view) {
+          this.view = view;
+          this.debounceUpdate = -1;
+          this.running = [];
+          this.debounceAccept = -1;
+          this.pendingStart = false;
+          this.composing = 0 /* CompositionState.None */;
+          for (let active of view.state.field(completionState).active)
+              if (active.isPending)
+                  this.startQuery(active);
+      }
+      update(update) {
+          let cState = update.state.field(completionState);
+          let conf = update.state.facet(completionConfig);
+          if (!update.selectionSet && !update.docChanged && update.startState.field(completionState) == cState)
+              return;
+          let doesReset = update.transactions.some(tr => {
+              let type = getUpdateType(tr, conf);
+              return (type & 8 /* UpdateType.Reset */) || (tr.selection || tr.docChanged) && !(type & 3 /* UpdateType.SimpleInteraction */);
+          });
+          for (let i = 0; i < this.running.length; i++) {
+              let query = this.running[i];
+              if (doesReset ||
+                  query.context.abortOnDocChange && update.docChanged ||
+                  query.updates.length + update.transactions.length > MaxUpdateCount && Date.now() - query.time > MinAbortTime) {
+                  for (let handler of query.context.abortListeners) {
+                      try {
+                          handler();
+                      }
+                      catch (e) {
+                          logException(this.view.state, e);
+                      }
+                  }
+                  query.context.abortListeners = null;
+                  this.running.splice(i--, 1);
+              }
+              else {
+                  query.updates.push(...update.transactions);
+              }
+          }
+          if (this.debounceUpdate > -1)
+              clearTimeout(this.debounceUpdate);
+          if (update.transactions.some(tr => tr.effects.some(e => e.is(startCompletionEffect))))
+              this.pendingStart = true;
+          let delay = this.pendingStart ? 50 : conf.activateOnTypingDelay;
+          this.debounceUpdate = cState.active.some(a => a.isPending && !this.running.some(q => q.active.source == a.source))
+              ? setTimeout(() => this.startUpdate(), delay) : -1;
+          if (this.composing != 0 /* CompositionState.None */)
+              for (let tr of update.transactions) {
+                  if (tr.isUserEvent("input.type"))
+                      this.composing = 2 /* CompositionState.Changed */;
+                  else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
+                      this.composing = 3 /* CompositionState.ChangedAndMoved */;
+              }
+      }
+      startUpdate() {
+          this.debounceUpdate = -1;
+          this.pendingStart = false;
+          let { state } = this.view, cState = state.field(completionState);
+          for (let active of cState.active) {
+              if (active.isPending && !this.running.some(r => r.active.source == active.source))
+                  this.startQuery(active);
+          }
+          if (this.running.length && cState.open && cState.open.disabled)
+              this.debounceAccept = setTimeout(() => this.accept(), this.view.state.facet(completionConfig).updateSyncTime);
+      }
+      startQuery(active) {
+          let { state } = this.view, pos = cur(state);
+          let context = new CompletionContext(state, pos, active.explicit, this.view);
+          let pending = new RunningQuery(active, context);
+          this.running.push(pending);
+          Promise.resolve(active.source(context)).then(result => {
+              if (!pending.context.aborted) {
+                  pending.done = result || null;
+                  this.scheduleAccept();
+              }
+          }, err => {
+              this.view.dispatch({ effects: closeCompletionEffect.of(null) });
+              logException(this.view.state, err);
+          });
+      }
+      scheduleAccept() {
+          if (this.running.every(q => q.done !== undefined))
+              this.accept();
+          else if (this.debounceAccept < 0)
+              this.debounceAccept = setTimeout(() => this.accept(), this.view.state.facet(completionConfig).updateSyncTime);
+      }
+      // For each finished query in this.running, try to create a result
+      // or, if appropriate, restart the query.
+      accept() {
+          var _a;
+          if (this.debounceAccept > -1)
+              clearTimeout(this.debounceAccept);
+          this.debounceAccept = -1;
+          let updated = [];
+          let conf = this.view.state.facet(completionConfig), cState = this.view.state.field(completionState);
+          for (let i = 0; i < this.running.length; i++) {
+              let query = this.running[i];
+              if (query.done === undefined)
+                  continue;
+              this.running.splice(i--, 1);
+              if (query.done) {
+                  let pos = cur(query.updates.length ? query.updates[0].startState : this.view.state);
+                  let limit = Math.min(pos, query.done.from + (query.active.explicit ? 0 : 1));
+                  let active = new ActiveResult(query.active.source, query.active.explicit, limit, query.done, query.done.from, (_a = query.done.to) !== null && _a !== void 0 ? _a : pos);
+                  // Replay the transactions that happened since the start of
+                  // the request and see if that preserves the result
+                  for (let tr of query.updates)
+                      active = active.update(tr, conf);
+                  if (active.hasResult()) {
+                      updated.push(active);
+                      continue;
+                  }
+              }
+              let current = cState.active.find(a => a.source == query.active.source);
+              if (current && current.isPending) {
+                  if (query.done == null) {
+                      // Explicitly failed. Should clear the pending status if it
+                      // hasn't been re-set in the meantime.
+                      let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
+                      for (let tr of query.updates)
+                          active = active.update(tr, conf);
+                      if (!active.isPending)
+                          updated.push(active);
+                  }
+                  else {
+                      // Cleared by subsequent transactions. Restart.
+                      this.startQuery(current);
+                  }
+              }
+          }
+          if (updated.length || cState.open && cState.open.disabled)
+              this.view.dispatch({ effects: setActiveEffect.of(updated) });
+      }
+  }, {
+      eventHandlers: {
+          blur(event) {
+              let state = this.view.state.field(completionState, false);
+              if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
+                  let dialog = state.open && getTooltip(this.view, state.open.tooltip);
+                  if (!dialog || !dialog.dom.contains(event.relatedTarget))
+                      setTimeout(() => this.view.dispatch({ effects: closeCompletionEffect.of(null) }), 10);
+              }
+          },
+          compositionstart() {
+              this.composing = 1 /* CompositionState.Started */;
+          },
+          compositionend() {
+              if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
+                  // Safari fires compositionend events synchronously, possibly
+                  // from inside an update, so dispatch asynchronously to avoid reentrancy
+                  setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
+              }
+              this.composing = 0 /* CompositionState.None */;
+          }
+      }
+  });
+  const windows = typeof navigator == "object" && /*@__PURE__*//Win/.test(navigator.platform);
+  const commitCharacters = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.domEventHandlers({
+      keydown(event, view) {
+          let field = view.state.field(completionState, false);
+          if (!field || !field.open || field.open.disabled || field.open.selected < 0 ||
+              event.key.length > 1 || event.ctrlKey && !(windows && event.altKey) || event.metaKey)
+              return false;
+          let option = field.open.options[field.open.selected];
+          let result = field.active.find(a => a.source == option.source);
+          let commitChars = option.completion.commitCharacters || result.result.commitCharacters;
+          if (commitChars && commitChars.indexOf(event.key) > -1)
+              applyCompletion(view, option);
+          return false;
+      }
+  }));
+
+  const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
+      ".cm-tooltip.cm-tooltip-autocomplete": {
+          "& > ul": {
+              fontFamily: "monospace",
+              whiteSpace: "nowrap",
+              overflow: "hidden auto",
+              maxWidth_fallback: "700px",
+              maxWidth: "min(700px, 95vw)",
+              minWidth: "250px",
+              maxHeight: "10em",
+              height: "100%",
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              "& > li, & > completion-section": {
+                  padding: "1px 3px",
+                  lineHeight: 1.2
+              },
+              "& > li": {
+                  overflowX: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: "pointer"
+              },
+              "& > completion-section": {
+                  display: "list-item",
+                  borderBottom: "1px solid silver",
+                  paddingLeft: "0.5em",
+                  opacity: 0.7
+              }
+          }
+      },
+      "&light .cm-tooltip-autocomplete ul li[aria-selected]": {
+          background: "#17c",
+          color: "white",
+      },
+      "&light .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
+          background: "#777",
+      },
+      "&dark .cm-tooltip-autocomplete ul li[aria-selected]": {
+          background: "#347",
+          color: "white",
+      },
+      "&dark .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
+          background: "#444",
+      },
+      ".cm-completionListIncompleteTop:before, .cm-completionListIncompleteBottom:after": {
+          content: '"···"',
+          opacity: 0.5,
+          display: "block",
+          textAlign: "center"
+      },
+      ".cm-tooltip.cm-completionInfo": {
+          position: "absolute",
+          padding: "3px 9px",
+          width: "max-content",
+          maxWidth: `${400 /* Info.Width */}px`,
+          boxSizing: "border-box",
+          whiteSpace: "pre-line"
+      },
+      ".cm-completionInfo.cm-completionInfo-left": { right: "100%" },
+      ".cm-completionInfo.cm-completionInfo-right": { left: "100%" },
+      ".cm-completionInfo.cm-completionInfo-left-narrow": { right: `${30 /* Info.Margin */}px` },
+      ".cm-completionInfo.cm-completionInfo-right-narrow": { left: `${30 /* Info.Margin */}px` },
+      "&light .cm-snippetField": { backgroundColor: "#00000022" },
+      "&dark .cm-snippetField": { backgroundColor: "#ffffff22" },
+      ".cm-snippetFieldPosition": {
+          verticalAlign: "text-top",
+          width: 0,
+          height: "1.15em",
+          display: "inline-block",
+          margin: "0 -0.7px -.7em",
+          borderLeft: "1.4px dotted #888"
+      },
+      ".cm-completionMatchedText": {
+          textDecoration: "underline"
+      },
+      ".cm-completionDetail": {
+          marginLeft: "0.5em",
+          fontStyle: "italic"
+      },
+      ".cm-completionIcon": {
+          fontSize: "90%",
+          width: ".8em",
+          display: "inline-block",
+          textAlign: "center",
+          paddingRight: ".6em",
+          opacity: "0.6",
+          boxSizing: "content-box"
+      },
+      ".cm-completionIcon-function, .cm-completionIcon-method": {
+          "&:after": { content: "'ƒ'" }
+      },
+      ".cm-completionIcon-class": {
+          "&:after": { content: "'○'" }
+      },
+      ".cm-completionIcon-interface": {
+          "&:after": { content: "'◌'" }
+      },
+      ".cm-completionIcon-variable": {
+          "&:after": { content: "'𝑥'" }
+      },
+      ".cm-completionIcon-constant": {
+          "&:after": { content: "'𝐶'" }
+      },
+      ".cm-completionIcon-type": {
+          "&:after": { content: "'𝑡'" }
+      },
+      ".cm-completionIcon-enum": {
+          "&:after": { content: "'∪'" }
+      },
+      ".cm-completionIcon-property": {
+          "&:after": { content: "'□'" }
+      },
+      ".cm-completionIcon-keyword": {
+          "&:after": { content: "'🔑\uFE0E'" } // Disable emoji rendering
+      },
+      ".cm-completionIcon-namespace": {
+          "&:after": { content: "'▢'" }
+      },
+      ".cm-completionIcon-text": {
+          "&:after": { content: "'abc'", fontSize: "50%", verticalAlign: "middle" }
+      }
+  });
+
+  const defaults = {
+      brackets: ["(", "[", "{", "'", '"'],
+      before: ")]}:;>",
+      stringPrefixes: []
+  };
+  const closeBracketEffect = /*@__PURE__*/StateEffect.define({
+      map(value, mapping) {
+          let mapped = mapping.mapPos(value, -1, MapMode.TrackAfter);
+          return mapped == null ? undefined : mapped;
+      }
+  });
+  const closedBracket = /*@__PURE__*/new class extends RangeValue {
+  };
+  closedBracket.startSide = 1;
+  closedBracket.endSide = -1;
+  const bracketState = /*@__PURE__*/StateField.define({
+      create() { return RangeSet.empty; },
+      update(value, tr) {
+          value = value.map(tr.changes);
+          if (tr.selection) {
+              let line = tr.state.doc.lineAt(tr.selection.main.head);
+              value = value.update({ filter: from => from >= line.from && from <= line.to });
+          }
+          for (let effect of tr.effects)
+              if (effect.is(closeBracketEffect))
+                  value = value.update({ add: [closedBracket.range(effect.value, effect.value + 1)] });
+          return value;
+      }
+  });
+  /**
+  Extension to enable bracket-closing behavior. When a closeable
+  bracket is typed, its closing bracket is immediately inserted
+  after the cursor. When closing a bracket directly in front of a
+  closing bracket inserted by the extension, the cursor moves over
+  that bracket.
+  */
+  function closeBrackets() {
+      return [inputHandler, bracketState];
+  }
+  const definedClosing = "()[]{}<>«»»«［］｛｝";
+  function closing(ch) {
+      for (let i = 0; i < definedClosing.length; i += 2)
+          if (definedClosing.charCodeAt(i) == ch)
+              return definedClosing.charAt(i + 1);
+      return fromCodePoint(ch < 128 ? ch : ch + 1);
+  }
+  function config(state, pos) {
+      return state.languageDataAt("closeBrackets", pos)[0] || defaults;
+  }
+  const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
+  const inputHandler = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, insert) => {
+      if ((android ? view.composing : view.compositionStarted) || view.state.readOnly)
+          return false;
+      let sel = view.state.selection.main;
+      if (insert.length > 2 || insert.length == 2 && codePointSize(codePointAt(insert, 0)) == 1 ||
+          from != sel.from || to != sel.to)
+          return false;
+      let tr = insertBracket(view.state, insert);
+      if (!tr)
+          return false;
+      view.dispatch(tr);
+      return true;
+  });
+  /**
+  Command that implements deleting a pair of matching brackets when
+  the cursor is between them.
+  */
+  const deleteBracketPair = ({ state, dispatch }) => {
+      if (state.readOnly)
+          return false;
+      let conf = config(state, state.selection.main.head);
+      let tokens = conf.brackets || defaults.brackets;
+      let dont = null, changes = state.changeByRange(range => {
+          if (range.empty) {
+              let before = prevChar(state.doc, range.head);
+              for (let token of tokens) {
+                  if (token == before && nextChar(state.doc, range.head) == closing(codePointAt(token, 0)))
+                      return { changes: { from: range.head - token.length, to: range.head + token.length },
+                          range: EditorSelection.cursor(range.head - token.length) };
+              }
+          }
+          return { range: dont = range };
+      });
+      if (!dont)
+          dispatch(state.update(changes, { scrollIntoView: true, userEvent: "delete.backward" }));
+      return !dont;
+  };
+  /**
+  Close-brackets related key bindings. Binds Backspace to
+  [`deleteBracketPair`](https://codemirror.net/6/docs/ref/#autocomplete.deleteBracketPair).
+  */
+  const closeBracketsKeymap = [
+      { key: "Backspace", run: deleteBracketPair }
+  ];
+  /**
+  Implements the extension's behavior on text insertion. If the
+  given string counts as a bracket in the language around the
+  selection, and replacing the selection with it requires custom
+  behavior (inserting a closing version or skipping past a
+  previously-closed bracket), this function returns a transaction
+  representing that custom behavior. (You only need this if you want
+  to programmatically insert brackets—the
+  [`closeBrackets`](https://codemirror.net/6/docs/ref/#autocomplete.closeBrackets) extension will
+  take care of running this for user input.)
+  */
+  function insertBracket(state, bracket) {
+      let conf = config(state, state.selection.main.head);
+      let tokens = conf.brackets || defaults.brackets;
+      for (let tok of tokens) {
+          let closed = closing(codePointAt(tok, 0));
+          if (bracket == tok)
+              return closed == tok ? handleSame(state, tok, tokens.indexOf(tok + tok + tok) > -1, conf)
+                  : handleOpen(state, tok, closed, conf.before || defaults.before);
+          if (bracket == closed && closedBracketAt(state, state.selection.main.from))
+              return handleClose(state, tok, closed);
+      }
+      return null;
+  }
+  function closedBracketAt(state, pos) {
+      let found = false;
+      state.field(bracketState).between(0, state.doc.length, from => {
+          if (from == pos)
+              found = true;
+      });
+      return found;
+  }
+  function nextChar(doc, pos) {
+      let next = doc.sliceString(pos, pos + 2);
+      return next.slice(0, codePointSize(codePointAt(next, 0)));
+  }
+  function prevChar(doc, pos) {
+      let prev = doc.sliceString(pos - 2, pos);
+      return codePointSize(codePointAt(prev, 0)) == prev.length ? prev : prev.slice(1);
+  }
+  function handleOpen(state, open, close, closeBefore) {
+      let dont = null, changes = state.changeByRange(range => {
+          if (!range.empty)
+              return { changes: [{ insert: open, from: range.from }, { insert: close, from: range.to }],
+                  effects: closeBracketEffect.of(range.to + open.length),
+                  range: EditorSelection.range(range.anchor + open.length, range.head + open.length) };
+          let next = nextChar(state.doc, range.head);
+          if (!next || /\s/.test(next) || closeBefore.indexOf(next) > -1)
+              return { changes: { insert: open + close, from: range.head },
+                  effects: closeBracketEffect.of(range.head + open.length),
+                  range: EditorSelection.cursor(range.head + open.length) };
+          return { range: dont = range };
+      });
+      return dont ? null : state.update(changes, {
+          scrollIntoView: true,
+          userEvent: "input.type"
+      });
+  }
+  function handleClose(state, _open, close) {
+      let dont = null, changes = state.changeByRange(range => {
+          if (range.empty && nextChar(state.doc, range.head) == close)
+              return { changes: { from: range.head, to: range.head + close.length, insert: close },
+                  range: EditorSelection.cursor(range.head + close.length) };
+          return dont = { range };
+      });
+      return dont ? null : state.update(changes, {
+          scrollIntoView: true,
+          userEvent: "input.type"
+      });
+  }
+  // Handles cases where the open and close token are the same, and
+  // possibly triple quotes (as in `"""abc"""`-style quoting).
+  function handleSame(state, token, allowTriple, config) {
+      let stringPrefixes = config.stringPrefixes || defaults.stringPrefixes;
+      let dont = null, changes = state.changeByRange(range => {
+          if (!range.empty)
+              return { changes: [{ insert: token, from: range.from }, { insert: token, from: range.to }],
+                  effects: closeBracketEffect.of(range.to + token.length),
+                  range: EditorSelection.range(range.anchor + token.length, range.head + token.length) };
+          let pos = range.head, next = nextChar(state.doc, pos), start;
+          if (next == token) {
+              if (nodeStart(state, pos)) {
+                  return { changes: { insert: token + token, from: pos },
+                      effects: closeBracketEffect.of(pos + token.length),
+                      range: EditorSelection.cursor(pos + token.length) };
+              }
+              else if (closedBracketAt(state, pos)) {
+                  let isTriple = allowTriple && state.sliceDoc(pos, pos + token.length * 3) == token + token + token;
+                  let content = isTriple ? token + token + token : token;
+                  return { changes: { from: pos, to: pos + content.length, insert: content },
+                      range: EditorSelection.cursor(pos + content.length) };
+              }
+          }
+          else if (allowTriple && state.sliceDoc(pos - 2 * token.length, pos) == token + token &&
+              (start = canStartStringAt(state, pos - 2 * token.length, stringPrefixes)) > -1 &&
+              nodeStart(state, start)) {
+              return { changes: { insert: token + token + token + token, from: pos },
+                  effects: closeBracketEffect.of(pos + token.length),
+                  range: EditorSelection.cursor(pos + token.length) };
+          }
+          else if (state.charCategorizer(pos)(next) != CharCategory.Word) {
+              if (canStartStringAt(state, pos, stringPrefixes) > -1 && !probablyInString(state, pos, token, stringPrefixes))
+                  return { changes: { insert: token + token, from: pos },
+                      effects: closeBracketEffect.of(pos + token.length),
+                      range: EditorSelection.cursor(pos + token.length) };
+          }
+          return { range: dont = range };
+      });
+      return dont ? null : state.update(changes, {
+          scrollIntoView: true,
+          userEvent: "input.type"
+      });
+  }
+  function nodeStart(state, pos) {
+      let tree = syntaxTree(state).resolveInner(pos + 1);
+      return tree.parent && tree.from == pos;
+  }
+  function probablyInString(state, pos, quoteToken, prefixes) {
+      let node = syntaxTree(state).resolveInner(pos, -1);
+      let maxPrefix = prefixes.reduce((m, p) => Math.max(m, p.length), 0);
+      for (let i = 0; i < 5; i++) {
+          let start = state.sliceDoc(node.from, Math.min(node.to, node.from + quoteToken.length + maxPrefix));
+          let quotePos = start.indexOf(quoteToken);
+          if (!quotePos || quotePos > -1 && prefixes.indexOf(start.slice(0, quotePos)) > -1) {
+              let first = node.firstChild;
+              while (first && first.from == node.from && first.to - first.from > quoteToken.length + quotePos) {
+                  if (state.sliceDoc(first.to - quoteToken.length, first.to) == quoteToken)
+                      return false;
+                  first = first.firstChild;
+              }
+              return true;
+          }
+          let parent = node.to == pos && node.parent;
+          if (!parent)
+              break;
+          node = parent;
+      }
+      return false;
+  }
+  function canStartStringAt(state, pos, prefixes) {
+      let charCat = state.charCategorizer(pos);
+      if (charCat(state.sliceDoc(pos - 1, pos)) != CharCategory.Word)
+          return pos;
+      for (let prefix of prefixes) {
+          let start = pos - prefix.length;
+          if (state.sliceDoc(start, pos) == prefix && charCat(state.sliceDoc(start - 1, start)) != CharCategory.Word)
+              return start;
+      }
+      return -1;
+  }
+
+  /**
+  Returns an extension that enables autocompletion.
+  */
+  function autocompletion(config = {}) {
+      return [
+          commitCharacters,
+          completionState,
+          completionConfig.of(config),
+          completionPlugin,
+          completionKeymapExt,
+          baseTheme$1
+      ];
+  }
+  /**
+  Basic keybindings for autocompletion.
+
+   - Ctrl-Space (and Alt-\` on macOS): [`startCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.startCompletion)
+   - Escape: [`closeCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.closeCompletion)
+   - ArrowDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true)`
+   - ArrowUp: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(false)`
+   - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
+   - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
+   - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
+  */
+  const completionKeymap = [
+      { key: "Ctrl-Space", run: startCompletion },
+      { mac: "Alt-`", run: startCompletion },
+      { key: "Escape", run: closeCompletion },
+      { key: "ArrowDown", run: /*@__PURE__*/moveCompletionSelection(true) },
+      { key: "ArrowUp", run: /*@__PURE__*/moveCompletionSelection(false) },
+      { key: "PageDown", run: /*@__PURE__*/moveCompletionSelection(true, "page") },
+      { key: "PageUp", run: /*@__PURE__*/moveCompletionSelection(false, "page") },
+      { key: "Enter", run: acceptCompletion }
+  ];
+  const completionKeymapExt = /*@__PURE__*/Prec.highest(/*@__PURE__*/keymap.computeN([completionConfig], state => state.facet(completionConfig).defaultKeymap ? [completionKeymap] : []));
+
   class SelectedDiagnostic {
       constructor(from, to, diagnostic) {
           this.from = from;
@@ -25220,16 +25220,16 @@
       /**
       The parse that this stack is part of @internal
       */
-      p,
+      p, 
       /**
       Holds state, input pos, buffer index triplets for all but the
       top state @internal
       */
-      stack,
+      stack, 
       /**
       The current parse state @internal
       */
-      state,
+      state, 
       // The position at which the next reduce should take place. This
       // can be less than `this.pos` when skipped expressions have been
       // added to the stack (which should be moved outside of the next
@@ -25237,24 +25237,24 @@
       /**
       @internal
       */
-      reducePos,
+      reducePos, 
       /**
       The input position up to which this stack has parsed.
       */
-      pos,
+      pos, 
       /**
       The dynamic score of the stack, including dynamic precedence
       and error-recovery penalties
       @internal
       */
-      score,
+      score, 
       // The output buffer. Holds (type, start, end, size) quads
       // representing nodes created by the parser, where `size` is
       // amount of buffer array entries covered by this node.
       /**
       @internal
       */
-      buffer,
+      buffer, 
       // The base offset of the buffer. When stacks are split, the split
       // instance shared the buffer history with its parent up to
       // `bufferBase`, which is the absolute offset (including the
@@ -25263,15 +25263,15 @@
       /**
       @internal
       */
-      bufferBase,
+      bufferBase, 
       /**
       @internal
       */
-      curContext,
+      curContext, 
       /**
       @internal
       */
-      lookAhead = 0,
+      lookAhead = 0, 
       // A parent stack from which this was split off, if any. This is
       // set up so that it always points to a stack that has some
       // additional buffer content, never to a stack with an equal
@@ -25868,7 +25868,7 @@
       /**
       @internal
       */
-      input,
+      input, 
       /**
       @internal
       */
@@ -25940,7 +25940,7 @@
       Look at a code unit near the stream position. `.peek(0)` equals
       `.next`, `.peek(-1)` gives you the previous character, and so
       on.
-
+      
       Note that looking around during tokenizing creates dependencies
       on potentially far-away content, which may reduce the
       effectiveness incremental parsing—when looking forward—or even
@@ -30629,7 +30629,7 @@
               replacer = undefined;
           }
           const { aliasDuplicateObjects, anchorPrefix, flow, keepUndefined, onTagObj, tag } = options ?? {};
-          const { onAnchor, setAnchors, sourceObjects } = createNodeAnchors(this,
+          const { onAnchor, setAnchors, sourceObjects } = createNodeAnchors(this, 
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           anchorPrefix || 'a');
           const ctx = {
@@ -34944,7 +34944,7 @@
     input.advance();
     while (!isSep(input.next) && charTag(input.tag) != "f") input.advance();
   }
-
+    
   function readQuoted(input, scan) {
     let quote = input.next, lineBreak = false, start = input.pos;
     input.advance();
@@ -38072,9 +38072,9 @@
   	    num >>>= 7;
   	  }
   	  out[offset] = num | 0;
-
+  	  
   	  encode.bytes = offset - oldOffset + 1;
-
+  	  
   	  return out
   	}
   	return encode_1;
@@ -39367,26 +39367,38 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
     return xhrDocumentLoader(url);
   };
 
-  const jsonLdAtTerms = [
-    { label: "@context", type: "keyword", info: "Defines the JSON-LD context" },
-    { label: "@id", type: "keyword", info: "Specifies the unique identifier of an entity" },
-    { label: "@type", type: "keyword", info: "Defines the type of an entity" },
-    { label: "@value", type: "keyword", info: "Represents the value of a node" },
-    { label: "@language", type: "keyword", info: "Specifies the language of a string value" },
-    { label: "@graph", type: "keyword", info: "Represents a named graph" },
-    { label: "@list", type: "keyword", info: "Denotes an ordered list" },
-    { label: "@set", type: "keyword", info: "Denotes an unordered set" },
-    { label: "@reverse", type: "keyword", info: "Defines reverse properties" },
-    { label: "@index", type: "keyword", info: "Specifies an index for ordered data" },
-    { label: "@base", type: "keyword", info: "Defines the base IRI" },
-    { label: "@vocab", type: "keyword", info: "Defines the default vocabulary" },
-    { label: "@container", type: "keyword", info: "Specifies container types for properties" },
-    { label: "@nest", type: "keyword", info: "Allows nesting of properties" },
-    { label: "@prefix", type: "keyword", info: "Defines a prefix mapping" },
-    { label: "@propagate", type: "keyword", info: "Controls context propagation" },
-    { label: "@protected", type: "keyword", info: "Prevents term overrides" },
-    { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" }
-  ];
+  const jsonLdAtTerms = {
+    // JSON-LD terms usable as keys
+    keys: [
+      { label: "@context", type: "keyword", info: "Defines the JSON-LD context", boost: 90 },
+      { label: "@id", type: "keyword", info: "Specifies the unique identifier of an entity", boost: 80 },
+      { label: "@type", type: "keyword", info: "Defines the type of an entity", boost: 70 },
+      { label: "@value", type: "keyword", info: "Represents the value of a node" },
+      { label: "@language", type: "keyword", info: "Specifies the language of a string value" },
+      { label: "@graph", type: "keyword", info: "Represents a named graph" },
+      { label: "@list", type: "keyword", info: "Denotes an ordered list" },
+      { label: "@set", type: "keyword", info: "Denotes an unordered set" },
+      { label: "@reverse", type: "keyword", info: "Defines reverse properties" },
+      { label: "@index", type: "keyword", info: "Specifies an index for ordered data" },
+      { label: "@base", type: "keyword", info: "Defines the base IRI" },
+      { label: "@vocab", type: "keyword", info: "Defines the default vocabulary" },
+      { label: "@container", type: "keyword", info: "Specifies container types for properties" },
+      { label: "@nest", type: "keyword", info: "Allows nesting of properties" },
+      { label: "@prefix", type: "keyword", info: "Defines a prefix mapping" },
+      { label: "@propagate", type: "keyword", info: "Controls context propagation" },
+      { label: "@protected", type: "keyword", info: "Prevents term overrides" },
+      { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" },
+      { label: "@none", type: "keyword", info: "Denote as not part of the index" }
+    ],
+    // JSON-LD terms usable as values
+    values: [
+      { label: "@id", type: "keyword", info: "The value of this term is an IRI.", parent: "@type" },
+      { label: "@json", type: "keyword", info: "Specifies the type as a JSON literal (`rdf:JSON`).", parent: "@type" },
+      { label: "@list", type: "keyword", info: "Denotes an ordered list", parent: "@container" },
+      { label: "@set", type: "keyword", info: "Denotes an unordered set", parent: "@container" },
+      { label: "@none", type: "keyword", info: "", parent: "@type" }
+    ]
+  };
 
   // TODO: the next two functions could probably become a petite-vue component
   function editorListener(docName) {
@@ -39414,6 +39426,96 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
       }
     });
   }
+
+  /**
+   * Gets the nearest property name when the cursor is inside its value
+   * @param {EditorState} state - The current editor state
+   * @param {number} pos - The cursor position
+   * @returns {string|null} - The nearest property name or null if not found
+   */
+  function getNearestPropertyName(state, pos) {
+    let tree = syntaxTree(state).resolve(pos);
+    let node = tree;
+
+    // Traverse upwards to find the closest property name
+    while (node) {
+      if (node.name === "Property") {
+        let keyNode = node.getChild("PropertyName");
+        if (keyNode) {
+          const keyInQuotes = state.sliceDoc(keyNode.from, keyNode.to);
+          return keyInQuotes.slice(1, keyInQuotes.length - 1);
+        }
+      }
+      node = node.parent;
+    }
+
+    return null; // Return null if no property name is found
+  }
+
+  function completeJSONLDTerms(context) {
+    // wrap terms in quotes...sometimes we need that...
+    function termsInQuotes(term) {
+      term.apply = `"${term.label}"`;
+      return term;
+    }
+    const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
+    const nearestProperty = getNearestPropertyName(context.state, context.pos);
+
+    console.log('nearest property name', nearestProperty);
+    console.log(nodeBefore.name, nodeBefore._parent?.name, nodeBefore);
+
+    const textBefore = context.state.sliceDoc(nodeBefore.from, context.pos);
+    const tagBefore = /@\w*$/.exec(textBefore);
+    if (!tagBefore && !context.explicit
+        || (nodeBefore.name === '}' && nodeBefore._parent?.name === 'Object')
+        || (nodeBefore.name === 'JsonText')) {
+      return null;
+    }
+
+    // set the default list of term options
+    let options = jsonLdAtTerms.keys;
+    if (nodeBefore._parent.name === 'Property') {
+      switch (nodeBefore.name) {
+        case 'String':
+        case ':':
+          const termParents = jsonLdAtTerms.values.map((term) => term.parent);
+          if (termParents.indexOf(nearestProperty) > -1) {
+            // limit the term list when we know we can
+            options = jsonLdAtTerms.values.filter((term) => term?.parent === nearestProperty);
+          } else {
+            options = jsonLdAtTerms.values;
+          }
+          if (nodeBefore.name === ':') options.map(termsInQuotes);
+          break;
+        case 'PropertyName':
+          // TODO: not sure why `apply` from termsInQuotes hangs around sometimes
+          // ...but it does...so this removes the `apply` value if present
+          options = jsonLdAtTerms.keys.map((term) => {
+            delete term.apply;
+            return term;
+          });
+          break;
+        case 'Object':
+          // we're not inside of quotation marks...so add them also
+          options = jsonLdAtTerms.keys.map(termsInQuotes);
+          break;
+      }
+    } else if (nodeBefore._parent.name === 'Object') {
+      if (nodeBefore.name === '{' || nodeBefore.name === 'Property') {
+        options = jsonLdAtTerms.keys.map(termsInQuotes);
+      }
+    }
+
+    return {
+      from: tagBefore ? nodeBefore.from + tagBefore.index : context.pos,
+      options
+    };
+  }
+
+  const jsonLdCompletions = jsonLanguage.data.of({
+    autocomplete: completeJSONLDTerms
+  });
+
   function initEditor(id, content, varName) {
     return new EditorView({
       parent: document.getElementById(id),
@@ -39421,9 +39523,9 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
-        json(),
+        jsonLanguage,
         linter(jsonParseLinter()),
-        autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+        jsonLdCompletions,
         editorListener.call(this, varName)
       ]
     });

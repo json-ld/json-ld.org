@@ -1,12 +1,11 @@
 /* globals: jsonld */
 
-import {autocompletion, completeFromList} from '@codemirror/autocomplete';
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
 import {Compartment, EditorState} from '@codemirror/state'
 import {indentWithTab} from '@codemirror/commands';
-import {json, jsonParseLinter} from "@codemirror/lang-json";
-import {StreamLanguage} from '@codemirror/language';
+import {json, jsonLanguage, jsonParseLinter} from "@codemirror/lang-json";
+import {syntaxTree, StreamLanguage} from '@codemirror/language';
 import {ntriples} from '@codemirror/legacy-modes/mode/ntriples';
 import {keymap} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
@@ -41,26 +40,38 @@ jsonld.documentLoader = function(url) {
   return xhrDocumentLoader(url);
 };
 
-const jsonLdAtTerms = [
-  { label: "@context", type: "keyword", info: "Defines the JSON-LD context" },
-  { label: "@id", type: "keyword", info: "Specifies the unique identifier of an entity" },
-  { label: "@type", type: "keyword", info: "Defines the type of an entity" },
-  { label: "@value", type: "keyword", info: "Represents the value of a node" },
-  { label: "@language", type: "keyword", info: "Specifies the language of a string value" },
-  { label: "@graph", type: "keyword", info: "Represents a named graph" },
-  { label: "@list", type: "keyword", info: "Denotes an ordered list" },
-  { label: "@set", type: "keyword", info: "Denotes an unordered set" },
-  { label: "@reverse", type: "keyword", info: "Defines reverse properties" },
-  { label: "@index", type: "keyword", info: "Specifies an index for ordered data" },
-  { label: "@base", type: "keyword", info: "Defines the base IRI" },
-  { label: "@vocab", type: "keyword", info: "Defines the default vocabulary" },
-  { label: "@container", type: "keyword", info: "Specifies container types for properties" },
-  { label: "@nest", type: "keyword", info: "Allows nesting of properties" },
-  { label: "@prefix", type: "keyword", info: "Defines a prefix mapping" },
-  { label: "@propagate", type: "keyword", info: "Controls context propagation" },
-  { label: "@protected", type: "keyword", info: "Prevents term overrides" },
-  { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" }
-];
+const jsonLdAtTerms = {
+  // JSON-LD terms usable as keys
+  keys: [
+    { label: "@context", type: "keyword", info: "Defines the JSON-LD context", boost: 90 },
+    { label: "@id", type: "keyword", info: "Specifies the unique identifier of an entity", boost: 80 },
+    { label: "@type", type: "keyword", info: "Defines the type of an entity", boost: 70 },
+    { label: "@value", type: "keyword", info: "Represents the value of a node" },
+    { label: "@language", type: "keyword", info: "Specifies the language of a string value" },
+    { label: "@graph", type: "keyword", info: "Represents a named graph" },
+    { label: "@list", type: "keyword", info: "Denotes an ordered list" },
+    { label: "@set", type: "keyword", info: "Denotes an unordered set" },
+    { label: "@reverse", type: "keyword", info: "Defines reverse properties" },
+    { label: "@index", type: "keyword", info: "Specifies an index for ordered data" },
+    { label: "@base", type: "keyword", info: "Defines the base IRI" },
+    { label: "@vocab", type: "keyword", info: "Defines the default vocabulary" },
+    { label: "@container", type: "keyword", info: "Specifies container types for properties" },
+    { label: "@nest", type: "keyword", info: "Allows nesting of properties" },
+    { label: "@prefix", type: "keyword", info: "Defines a prefix mapping" },
+    { label: "@propagate", type: "keyword", info: "Controls context propagation" },
+    { label: "@protected", type: "keyword", info: "Prevents term overrides" },
+    { label: "@version", type: "keyword", info: "Specifies the JSON-LD version" },
+    { label: "@none", type: "keyword", info: "Denote as not part of the index" }
+  ],
+  // JSON-LD terms usable as values
+  values: [
+    { label: "@id", type: "keyword", info: "The value of this term is an IRI.", parent: "@type" },
+    { label: "@json", type: "keyword", info: "Specifies the type as a JSON literal (`rdf:JSON`).", parent: "@type" },
+    { label: "@list", type: "keyword", info: "Denotes an ordered list", parent: "@container" },
+    { label: "@set", type: "keyword", info: "Denotes an unordered set", parent: "@container" },
+    { label: "@none", type: "keyword", info: "", parent: "@type" }
+  ]
+};
 
 // TODO: the next two functions could probably become a petite-vue component
 function editorListener(docName) {
@@ -89,6 +100,96 @@ function editorListener(docName) {
     }
   });
 }
+
+/**
+ * Gets the nearest property name when the cursor is inside its value
+ * @param {EditorState} state - The current editor state
+ * @param {number} pos - The cursor position
+ * @returns {string|null} - The nearest property name or null if not found
+ */
+function getNearestPropertyName(state, pos) {
+  let tree = syntaxTree(state).resolve(pos);
+  let node = tree;
+
+  // Traverse upwards to find the closest property name
+  while (node) {
+    if (node.name === "Property") {
+      let keyNode = node.getChild("PropertyName");
+      if (keyNode) {
+        const keyInQuotes = state.sliceDoc(keyNode.from, keyNode.to);
+        return keyInQuotes.slice(1, keyInQuotes.length - 1);
+      }
+    }
+    node = node.parent;
+  }
+
+  return null; // Return null if no property name is found
+}
+
+function completeJSONLDTerms(context) {
+  // wrap terms in quotes...sometimes we need that...
+  function termsInQuotes(term) {
+    term.apply = `"${term.label}"`;
+    return term;
+  }
+  const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
+  const nearestProperty = getNearestPropertyName(context.state, context.pos);
+
+  console.log('nearest property name', nearestProperty);
+  console.log(nodeBefore.name, nodeBefore._parent?.name, nodeBefore);
+
+  const textBefore = context.state.sliceDoc(nodeBefore.from, context.pos);
+  const tagBefore = /@\w*$/.exec(textBefore);
+  if (!tagBefore && !context.explicit
+      || (nodeBefore.name === '}' && nodeBefore._parent?.name === 'Object')
+      || (nodeBefore.name === 'JsonText')) {
+    return null;
+  }
+
+  // set the default list of term options
+  let options = jsonLdAtTerms.keys;
+  if (nodeBefore._parent.name === 'Property') {
+    switch (nodeBefore.name) {
+      case 'String':
+      case ':':
+        const termParents = jsonLdAtTerms.values.map((term) => term.parent);
+        if (termParents.indexOf(nearestProperty) > -1) {
+          // limit the term list when we know we can
+          options = jsonLdAtTerms.values.filter((term) => term?.parent === nearestProperty);
+        } else {
+          options = jsonLdAtTerms.values;
+        }
+        if (nodeBefore.name === ':') options.map(termsInQuotes);
+        break;
+      case 'PropertyName':
+        // TODO: not sure why `apply` from termsInQuotes hangs around sometimes
+        // ...but it does...so this removes the `apply` value if present
+        options = jsonLdAtTerms.keys.map((term) => {
+          delete term.apply;
+          return term;
+        });
+        break;
+      case 'Object':
+        // we're not inside of quotation marks...so add them also
+        options = jsonLdAtTerms.keys.map(termsInQuotes);
+        break;
+    }
+  } else if (nodeBefore._parent.name === 'Object') {
+    if (nodeBefore.name === '{' || nodeBefore.name === 'Property') {
+      options = jsonLdAtTerms.keys.map(termsInQuotes);
+    }
+  }
+
+  return {
+    from: tagBefore ? nodeBefore.from + tagBefore.index : context.pos,
+    options
+  };
+}
+
+const jsonLdCompletions = jsonLanguage.data.of({
+  autocomplete: completeJSONLDTerms
+});
+
 function initEditor(id, content, varName) {
   return new EditorView({
     parent: document.getElementById(id),
@@ -96,9 +197,9 @@ function initEditor(id, content, varName) {
     extensions: [
       basicSetup,
       keymap.of([indentWithTab]),
-      json(),
+      jsonLanguage,
       linter(jsonParseLinter()),
-      autocompletion({override: [completeFromList(jsonLdAtTerms)]}),
+      jsonLdCompletions,
       editorListener.call(this, varName)
     ]
   });
