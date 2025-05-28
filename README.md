@@ -89,6 +89,23 @@ the [Wrangler][] server to emulate the [Cloudflare Pages Functions][] code:
 npm run dev
 ```
 
+Editor Development
+------------------
+
+The new Playground is build using [CodeMirror][] 6 and is integrated into the
+surrounding UI using [petite-vue][].
+
+* `playground/next/index.html` has the HTML and petite-vue markup-level code
+* `playground/next/editor.mjs` contains the JS for setting up CodeMirror and
+  attaching it to the DOM via petite-vue
+
+The `npm run build:editor` command uses [Rollup][] to build the final JS bundle
+at `playground/next/editor.bundle.js` which contains the browser ready JS code.
+
+Only the first two should be edited. However, `editor.bundle.js` should be built
+locally and committed along with the rest of the site to avoid unnecessary build
+time/cost/waste at deployment time.
+
 Website Analytics
 -----------------
 
@@ -110,3 +127,6 @@ The default code can be overridden by setting `ga` to a specific number (ex:
 [Wrangler]: https://developers.cloudflare.com/workers/wrangler/
 [list of users]: https://github.com/json-ld/json-ld.org/wiki/Users-of-JSON-LD
 [playground]: https://json-ld.org/playground/
+[CodeMirror]: https://codemirror.net/
+[petite-vue]: https://github.com/vuejs/petite-vue
+[Rollup]: https://rollupjs.org/
