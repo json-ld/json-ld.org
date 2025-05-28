@@ -39516,6 +39516,64 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
     autocomplete: completeJSONLDTerms
   });
 
+  // Create a decoration that applies a CSS class for JSON‑LD property names
+  const jsonLdPropertyDecoration = Decoration.mark({ class: 'cm-jsonld-property' });
+
+  const jsonLdKeywords = new Set(
+    [].concat(...Object.values(jsonLdAtTerms)).map((term) => term.label));
+
+  /**
+   * A view plugin that scans the document for PropertyName nodes and, if their
+   * content (without quotes) is a JSON‑LD keyword, adds a decoration to style it.
+   */
+  const jsonLdKeywordHighlighter = ViewPlugin.fromClass(class {
+    constructor(view) {
+      this.decorations = this.buildDecorations(view);
+    }
+
+    update(update) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = this.buildDecorations(update.view);
+      }
+    }
+
+    buildDecorations(view) {
+      let builder = new RangeSetBuilder();
+      let tree = syntaxTree(view.state);
+      // Only inspect nodes in the current viewport
+      tree.iterate({
+        from: view.viewport.from,
+        to: view.viewport.to,
+        enter: (node) => {
+          // Look for property names (as defined by lang-json)
+          if (node.name === "PropertyName" || node.name === "String") {
+            let token = view.state.doc.sliceString(node.from, node.to);
+            // Remove the surrounding quotes, if any
+            if (token.startsWith('"') && token.endsWith('"')) {
+              token = token.slice(1, -1);
+            }
+            if (jsonLdKeywords.has(token)) {
+              builder.add(node.from, node.to, jsonLdPropertyDecoration);
+            }
+          }
+        }
+      });
+      return builder.finish();
+    }
+
+    destroy() {}
+  }, {
+    decorations: v => v.decorations
+  });
+
+  // A base theme for our decoration
+  const jsonLdHighlightTheme = EditorView.baseTheme({
+    '.cm-jsonld-property': {
+      color: '#333',
+      fontWeight: 'bold'
+    }
+  });
+
   function initEditor(id, content, varName) {
     return new EditorView({
       parent: document.getElementById(id),
@@ -39524,6 +39582,8 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
         basicSetup,
         keymap.of([indentWithTab]),
         jsonLanguage,
+        jsonLdKeywordHighlighter,
+        jsonLdHighlightTheme,
         linter(jsonParseLinter()),
         jsonLdCompletions,
         editorListener.call(this, varName)
