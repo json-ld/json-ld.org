@@ -2,12 +2,12 @@
 
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
-import {Compartment, EditorState} from '@codemirror/state'
+import {Compartment, EditorState, RangeSetBuilder} from '@codemirror/state'
 import {indentWithTab} from '@codemirror/commands';
 import {json, jsonLanguage, jsonParseLinter} from "@codemirror/lang-json";
 import {syntaxTree, StreamLanguage} from '@codemirror/language';
 import {ntriples} from '@codemirror/legacy-modes/mode/ntriples';
-import {keymap} from '@codemirror/view';
+import {Decoration, keymap, ViewPlugin} from '@codemirror/view';
 import {linter} from '@codemirror/lint';
 import YAML from 'yaml';
 import {yaml} from '@codemirror/lang-yaml';
@@ -190,6 +190,64 @@ const jsonLdCompletions = jsonLanguage.data.of({
   autocomplete: completeJSONLDTerms
 });
 
+// Create a decoration that applies a CSS class for JSON‑LD property names
+const jsonLdPropertyDecoration = Decoration.mark({ class: 'cm-jsonld-property' });
+
+const jsonLdKeywords = new Set(
+  [].concat(...Object.values(jsonLdAtTerms)).map((term) => term.label));
+
+/**
+ * A view plugin that scans the document for PropertyName nodes and, if their
+ * content (without quotes) is a JSON‑LD keyword, adds a decoration to style it.
+ */
+const jsonLdKeywordHighlighter = ViewPlugin.fromClass(class {
+  constructor(view) {
+    this.decorations = this.buildDecorations(view);
+  }
+
+  update(update) {
+    if (update.docChanged || update.viewportChanged) {
+      this.decorations = this.buildDecorations(update.view);
+    }
+  }
+
+  buildDecorations(view) {
+    let builder = new RangeSetBuilder();
+    let tree = syntaxTree(view.state);
+    // Only inspect nodes in the current viewport
+    tree.iterate({
+      from: view.viewport.from,
+      to: view.viewport.to,
+      enter: (node) => {
+        // Look for property names (as defined by lang-json)
+        if (node.name === "PropertyName" || node.name === "String") {
+          let token = view.state.doc.sliceString(node.from, node.to);
+          // Remove the surrounding quotes, if any
+          if (token.startsWith('"') && token.endsWith('"')) {
+            token = token.slice(1, -1);
+          }
+          if (jsonLdKeywords.has(token)) {
+            builder.add(node.from, node.to, jsonLdPropertyDecoration);
+          }
+        }
+      }
+    });
+    return builder.finish();
+  }
+
+  destroy() {}
+}, {
+  decorations: v => v.decorations
+});
+
+// A base theme for our decoration
+const jsonLdHighlightTheme = EditorView.baseTheme({
+  '.cm-jsonld-property': {
+    color: '#333',
+    fontWeight: 'bold'
+  }
+});
+
 function initEditor(id, content, varName) {
   return new EditorView({
     parent: document.getElementById(id),
@@ -198,6 +256,8 @@ function initEditor(id, content, varName) {
       basicSetup,
       keymap.of([indentWithTab]),
       jsonLanguage,
+      jsonLdKeywordHighlighter,
+      jsonLdHighlightTheme,
       linter(jsonParseLinter()),
       jsonLdCompletions,
       editorListener.call(this, varName)
