@@ -39473,8 +39473,8 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
     }
 
     // set the default list of term options
-    let options = jsonLdAtTerms.keys;
-    if (nodeBefore._parent.name === 'Property') {
+    let options = jsonLdAtTerms.keys.map(termsInQuotes);
+    if (nodeBefore._parent?.name === 'Property') {
       switch (nodeBefore.name) {
         case 'String':
         case ':':
@@ -39500,7 +39500,7 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
           options = jsonLdAtTerms.keys.map(termsInQuotes);
           break;
       }
-    } else if (nodeBefore._parent.name === 'Object') {
+    } else if (nodeBefore._parent?.name === 'Object') {
       if (nodeBefore.name === '{' || nodeBefore.name === 'Property') {
         options = jsonLdAtTerms.keys.map(termsInQuotes);
       }
