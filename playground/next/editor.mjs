@@ -147,8 +147,8 @@ function completeJSONLDTerms(context) {
   }
 
   // set the default list of term options
-  let options = jsonLdAtTerms.keys;
-  if (nodeBefore._parent.name === 'Property') {
+  let options = jsonLdAtTerms.keys.map(termsInQuotes);
+  if (nodeBefore._parent?.name === 'Property') {
     switch (nodeBefore.name) {
       case 'String':
       case ':':
@@ -174,7 +174,7 @@ function completeJSONLDTerms(context) {
         options = jsonLdAtTerms.keys.map(termsInQuotes);
         break;
     }
-  } else if (nodeBefore._parent.name === 'Object') {
+  } else if (nodeBefore._parent?.name === 'Object') {
     if (nodeBefore.name === '{' || nodeBefore.name === 'Property') {
       options = jsonLdAtTerms.keys.map(termsInQuotes);
     }
