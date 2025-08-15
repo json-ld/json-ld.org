@@ -1,4 +1,4 @@
-import yaml from 'js-yaml';
+import YAML from 'yaml';
 
 // development host for playground proxy
 const PLAYGROUND_PROXY_HOST = 'http://localhost:8788';
@@ -15,7 +15,7 @@ const drafts = [
 ];
 
 export default async function(eleventyConfig) {
-  eleventyConfig.addDataExtension('yaml', (contents) => yaml.load(contents));
+  eleventyConfig.addDataExtension('yaml', (contents) => YAML.parse(contents));
 
   eleventyConfig.addPassthroughCopy('.htaccess');
   eleventyConfig.addPassthroughCopy('LICENSE.md');
