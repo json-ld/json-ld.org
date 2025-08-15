@@ -539,5 +539,12 @@ window.app = createApp({
       '@context': this.doc['@context']
     };
     setEditorValue(this.contextEditor, this.contextDoc);
+  },
+  gatherHash() {
+    const url = new URL(window.location);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    this.doc = JSON.parse(hash.get('json-ld') || {});
+    setEditorValue(this.mainEditor, this.doc);
+    this.outputTab = hash.get('startTab').slice(4);
   }
 }).mount();
