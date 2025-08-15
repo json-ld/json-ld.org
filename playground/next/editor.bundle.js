@@ -39779,6 +39779,12 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
       const url = new URL(window.location);
       const hash = new URLSearchParams();
       hash.set('json-ld', JSON.stringify(this.doc));
+      if (this.contextDoc && JSON.stringify(this.contextDoc) !== '{}') {
+        hash.set('context', JSON.stringify(this.contextDoc));
+      }
+      if (this.frameDoc && JSON.stringify(this.frameDoc) !== '{}') {
+        hash.set('frame', JSON.stringify(this.frameDoc));
+      }
       hash.set('startTab', `tab-${this.outputTab}`);
       url.hash = hash.toString();
       return url.toString();
