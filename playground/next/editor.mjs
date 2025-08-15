@@ -564,13 +564,13 @@ window.app = createApp({
   },
   gatherHash() {
     const url = new URL(window.location);
-    const hash = new URLSearchParams(url.hash.slice(1));
-    this.contextDoc = JSON.parse(hash.get('context') || {});
+    const hash = new URLSearchParams(url?.hash.slice(1));
+    this.contextDoc = JSON.parse(hash.get('context')) || {};
     setEditorValue(this.contextEditor, this.contextDoc);
-    this.frameDoc = JSON.parse(hash.get('frame') || {});
+    this.frameDoc = JSON.parse(hash.get('frame')) || {};
     setEditorValue(this.frameEditor, this.frameDoc);
-    this.doc = JSON.parse(hash.get('json-ld') || {});
+    this.doc = JSON.parse(hash.get('json-ld')) || {};
     setEditorValue(this.mainEditor, this.doc);
-    this.outputTab = hash.get('startTab').slice(4);
+    this.outputTab = hash.get('startTab')?.slice(4);
   }
 }).mount();
