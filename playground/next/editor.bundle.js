@@ -39775,6 +39775,22 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
       }
       return '';
     },
+    get permalinkURL() {
+      const url = new URL(window.location);
+      const hash = new URLSearchParams();
+      hash.set('json-ld', JSON.stringify(this.doc));
+      hash.set('startTab', `tab-${this.outputTab}`);
+      url.hash = hash.toString();
+      return url.toString();
+    },
+    copyPermalink() {
+      const url = this.permalinkURL;
+      navigator.clipboard.writeText(url).then(() => {
+        console.log('Permalink copied to clipboard:', url);
+      }).catch(err => {
+        console.error('Failed to copy permalink:', err);
+      });
+    },
     get sideDoc() {
       if (this.outputTab === 'framed') {
         return 'frameDoc';
