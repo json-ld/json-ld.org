@@ -39417,7 +39417,7 @@ ${O$2.repeat(r.depth)}}`:r.close="}";break}case f$4.TAG:e+=String(i),e+=a(f$4.PO
         debounce((docName) => {
           // set the global `doc` to the latest string from the editor
           try {
-            const parsed = JSON.parse(changes[changes.length-1]);
+            const parsed = YAML.parse(changes[changes.length-1]);
             this[docName] = parsed;
             this.parseError = '';
           } catch (err) {
