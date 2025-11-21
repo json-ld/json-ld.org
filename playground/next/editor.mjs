@@ -319,6 +319,7 @@ window.app = createApp({
   },
   remoteDocURL: '',
   remoteSideDocURL: '',
+  message: {type: '', text: ''},
   parseError: '',
   inputTab: 'json-ld',
   outputTab: 'expanded',
