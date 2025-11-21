@@ -102,10 +102,6 @@ surrounding UI using [petite-vue][].
 The `npm run build:editor` command uses [Rollup][] to build the final JS bundle
 at `playground/next/editor.bundle.js` which contains the browser ready JS code.
 
-Only the first two should be edited. However, `editor.bundle.js` should be built
-locally and committed along with the rest of the site to avoid unnecessary build
-time/cost/waste at deployment time.
-
 Website Analytics
 -----------------
 

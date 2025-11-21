@@ -3,7 +3,7 @@ import {nodeResolve} from "@rollup/plugin-node-resolve"
 export default {
   input: "./playground/next/editor.mjs",
   output: {
-    file: "./playground/next/editor.bundle.js",
+    file: "./_site/playground/next/editor.bundle.js",
     format: "iife"
   },
   plugins: [
