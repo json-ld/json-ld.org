@@ -562,15 +562,25 @@ window.app = createApp({
     };
     setEditorValue(this.contextEditor, this.contextDoc);
   },
-  gatherHash() {
+  async gatherHash() {
     const url = new URL(window.location);
     const hash = new URLSearchParams(url?.hash.slice(1));
     this.contextDoc = JSON.parse(hash.get('context')) || {};
     setEditorValue(this.contextEditor, this.contextDoc);
     this.frameDoc = JSON.parse(hash.get('frame')) || {};
     setEditorValue(this.frameEditor, this.frameDoc);
-    this.doc = JSON.parse(hash.get('json-ld')) || {};
-    setEditorValue(this.mainEditor, this.doc);
+    // the `json-ld` parameter can be JSON or a URL
+    const jsonLdOrUrl = hash.get('json-ld');
+    try {
+      this.doc = JSON.parse(jsonLdOrUrl);
+      setEditorValue(this.mainEditor, this.doc);
+    } catch {
+      this.remoteDocURL = jsonLdOrUrl;
+      await this.retrieveDoc(this.mainEditor, 'doc', this.remoteDocURL);
+    }
+    if (hash.get('copyContext') === 'true') {
+      this.copyContext();
+    }
     this.outputTab = hash.get('startTab')?.slice(4);
   }
 }).mount();
