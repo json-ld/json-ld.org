@@ -13,6 +13,7 @@ import YAML from 'yaml';
 import {yaml} from '@codemirror/lang-yaml';
 import * as cborld from '@digitalbazaar/cborld';
 import * as cbor2 from 'cbor2';
+import jsonld from 'jsonld';
 
 // Setup JSON-LD documentLoader
 const xhrDocumentLoader = jsonld.documentLoaders.xhr();
