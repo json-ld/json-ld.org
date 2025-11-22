@@ -319,6 +319,7 @@ window.app = createApp({
   },
   remoteDocURL: '',
   remoteSideDocURL: '',
+  message: {type: '', text: ''},
   parseError: '',
   inputTab: 'json-ld',
   outputTab: 'expanded',
@@ -349,6 +350,20 @@ window.app = createApp({
     }
     return '';
   },
+  get permalinkURL() {
+    const url = new URL(window.location);
+    const hash = new URLSearchParams();
+    hash.set('json-ld', JSON.stringify(this.doc));
+    if (this.contextDoc && JSON.stringify(this.contextDoc) !== '{}') {
+      hash.set('context', JSON.stringify(this.contextDoc));
+    }
+    if (this.frameDoc && JSON.stringify(this.frameDoc) !== '{}') {
+      hash.set('frame', JSON.stringify(this.frameDoc));
+    }
+    hash.set('startTab', `tab-${this.outputTab}`);
+    url.hash = hash.toString();
+    return url.toString();
+  },
   get sideDoc() {
     if (this.outputTab === 'framed') {
       return 'frameDoc';
@@ -369,6 +384,14 @@ window.app = createApp({
     } else {
       return 'Context URL';
     }
+  },
+  copyPermalink() {
+    const url = this.permalinkURL;
+    navigator.clipboard.writeText(url).then(() => {
+      console.log('Permalink copied to clipboard:', url);
+    }).catch(err => {
+      console.error('Failed to copy permalink:', err);
+    });
   },
   // methods
   async retrieveDoc(_editor, docVar, url) {
@@ -539,5 +562,26 @@ window.app = createApp({
       '@context': this.doc['@context']
     };
     setEditorValue(this.contextEditor, this.contextDoc);
+  },
+  async gatherHash() {
+    const url = new URL(window.location);
+    const hash = new URLSearchParams(url?.hash.slice(1));
+    this.contextDoc = JSON.parse(hash.get('context')) || {};
+    setEditorValue(this.contextEditor, this.contextDoc);
+    this.frameDoc = JSON.parse(hash.get('frame')) || {};
+    setEditorValue(this.frameEditor, this.frameDoc);
+    // the `json-ld` parameter can be JSON or a URL
+    const jsonLdOrUrl = hash.get('json-ld');
+    try {
+      this.doc = JSON.parse(jsonLdOrUrl);
+      setEditorValue(this.mainEditor, this.doc);
+    } catch {
+      this.remoteDocURL = jsonLdOrUrl;
+      await this.retrieveDoc(this.mainEditor, 'doc', this.remoteDocURL);
+    }
+    if (hash.get('copyContext') === 'true') {
+      this.copyContext();
+    }
+    this.outputTab = hash.get('startTab')?.slice(4);
   }
 }).mount();
