@@ -73,6 +73,8 @@ export default async function(eleventyConfig) {
   }
   eleventyConfig.ignores.add('test-suite');
 
+  eleventyConfig.addWatchTarget('playground/next/index.html');
+
   // setup development proxy to cloudflare pages function server
   if(process.env.ELEVENTY_RUN_MODE === 'serve') {
     eleventyConfig.setServerOptions({
