@@ -32,7 +32,7 @@ A simple example of a JSON object with added semantics::
   "@id": "http://dbpedia.org/resource/John_Lennon",
   "name": "John Lennon",
   "born": "1940-10-09",
-  "spouse": "http://dbpedia.org/resource/Cynthia_Lennon"
+  "spouse": "http://dbpedia.org/resource/Yoko_Ono"
 }
 ```
 
