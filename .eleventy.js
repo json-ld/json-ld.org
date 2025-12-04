@@ -1,3 +1,5 @@
+import markdownItAnchor from 'markdown-it-anchor';
+import markdownItAttrs from 'markdown-it-attrs';
 import YAML from 'yaml';
 
 // development host for playground proxy
@@ -15,6 +17,17 @@ const drafts = [
 ];
 
 export default async function(eleventyConfig) {
+  eleventyConfig.amendLibrary('md', mdLib => {
+    mdLib
+      .set({
+        html: true,
+        linkify: true,
+        typographer: true
+      })
+      .use(markdownItAnchor)
+      .use(markdownItAttrs);
+  });
+
   eleventyConfig.addDataExtension('yaml', (contents) => YAML.parse(contents));
 
   eleventyConfig.addPassthroughCopy('.htaccess');
