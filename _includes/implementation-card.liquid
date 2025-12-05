@@ -5,19 +5,26 @@
       <div class="ui selection list">
         {% if language %}
           {% assign languages = language | split: ',' %}
-          {% assign langExp = nil %}
-          {% for lang in languages %}
-            {% assign prefixed = lang | prepend: "imp.language contains '" | append: "'" %}
-            {% assign langExp = langExp | concat: prefixed %}
+          {% assign imps = implementations | where_exp: 'imp', 'imp.applicationCategory != "CLI"' %}
+          {% for implementation in imps %}
+            {% assign found = false %}
+            {% for implang in implementation.language %}
+              {% for lang in languages %}
+                {% if found == false %}
+                  {% assign found = lang == implang %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+            {% if found == true %}
+              {% include 'implementation-item' %}
+            {% endif %}
           {% endfor %}
-          {% assign expression = langExp | join: ' or ' %}
-          {% assign imps = implementations | where_exp: 'imp', expression | where_exp: 'imp', 'imp.applicationCategory != "CLI"' %}
         {% else %}
           {% assign imps = implementations | where: 'applicationCategory', applicationCategory %}
+          {% for implementation in imps %}
+            {% include 'implementation-item' %}
+          {% endfor %}
         {% endif %}
-        {% for implementation in imps %}
-        {% include 'implementation-item' %}
-        {% endfor %}
       </div>
     </div>
   </div>
