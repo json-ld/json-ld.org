@@ -3,28 +3,30 @@
   <div class="header"><h3>{% if language %}{{ language | split: ',' | join: ' / ' }}{% else %}{{ applicationCategory }}{% endif %}</h3></div>
     <div class="description">
       <div class="ui selection list">
-        {% if language %}
-          {% assign languages = language | split: ',' %}
-          {% assign imps = implementations | where_exp: 'imp', 'imp.applicationCategory != "CLI"' %}
-          {% for implementation in imps %}
-            {% assign found = false %}
-            {% for implang in implementation.language %}
-              {% for lang in languages %}
-                {% if found == false %}
-                  {% assign found = lang == implang %}
-                {% endif %}
-              {% endfor %}
-            {% endfor %}
-            {% if found == true %}
-              {% include 'implementation-item' %}
-            {% endif %}
-          {% endfor %}
-        {% else %}
-          {% assign imps = implementations | where: 'applicationCategory', applicationCategory %}
-          {% for implementation in imps %}
-            {% include 'implementation-item' %}
-          {% endfor %}
-        {% endif %}
+        {% liquid
+          if language
+            assign languages = language | split: ','
+            assign imps = implementations | where_exp: 'imp', 'imp.applicationCategory != "CLI"'
+            for implementation in imps
+              assign found = false
+              for implang in implementation.language
+                for lang in languages
+                  if found == false
+                    assign found = lang == implang
+                  endif
+                endfor
+              endfor
+              if found == true
+                include 'implementation-item'
+              endif
+            endfor
+          else
+            assign imps = implementations | where: 'applicationCategory', applicationCategory
+            for implementation in imps
+              include 'implementation-item'
+            endfor
+          endif
+        %}
       </div>
     </div>
   </div>
