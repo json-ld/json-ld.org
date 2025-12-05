@@ -75,6 +75,8 @@ export default async function(eleventyConfig) {
 
   eleventyConfig.addWatchTarget('playground/next/index.html');
 
+  eleventyConfig.addGlobalData('now', () => new Date());
+
   // setup development proxy to cloudflare pages function server
   if(process.env.ELEVENTY_RUN_MODE === 'serve') {
     eleventyConfig.setServerOptions({
