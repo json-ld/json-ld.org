@@ -573,7 +573,7 @@ window.app = createApp({
     // the `json-ld` parameter can be JSON or a URL
     const jsonLdOrUrl = hash.get('json-ld');
     try {
-      this.doc = JSON.parse(jsonLdOrUrl);
+      this.doc = JSON.parse(jsonLdOrUrl) || this.doc;
       setEditorValue(this.mainEditor, this.doc);
     } catch {
       this.remoteDocURL = jsonLdOrUrl;
@@ -582,6 +582,6 @@ window.app = createApp({
     if (hash.get('copyContext') === 'true') {
       this.copyContext();
     }
-    this.outputTab = hash.get('startTab')?.slice(4);
+    this.outputTab = hash.get('startTab')?.slice(4) || this.outputTab;
   }
 }).mount();
