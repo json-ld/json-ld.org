@@ -333,7 +333,7 @@ window.app = createApp({
     safe: ''
   },
   tabs: {
-    expanded: {icon: 'expanded alternate', label: 'Expanded'},
+    expanded: {icon: 'expand alternate', label: 'Expanded'},
     compacted: {icon: 'compress alternate', label: 'Compacted'},
     flattened: {icon: 'bars', label: 'Flattened'},
     framed: {icon: 'crop alternate', label: 'Framed'},
