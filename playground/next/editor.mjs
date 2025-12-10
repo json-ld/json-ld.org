@@ -395,6 +395,7 @@ window.app = createApp({
   },
   // methods
   async retrieveDoc(_editor, docVar, url) {
+    if (!url) return;
     try {
       const rv = await fetch(url);
       if (!rv.ok) {
