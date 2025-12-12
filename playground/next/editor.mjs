@@ -452,6 +452,7 @@ window.app = createApp({
             '@context': this.doc['@context']
           };
           this.contextDoc = context;
+          setEditorValue(this.sideEditor, this.contextDoc);
         }
         try {
           const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
@@ -468,6 +469,7 @@ window.app = createApp({
             '@context': this.doc['@context']
           };
           this.contextDoc = context;
+          setEditorValue(this.sideEditor, this.contextDoc);
         }
         try {
           const flattened = await jsonld.flatten(this.doc, {'@context': context['@context'] || {}}, this.options);
