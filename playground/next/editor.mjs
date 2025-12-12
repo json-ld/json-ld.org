@@ -136,9 +136,6 @@ function completeJSONLDTerms(context) {
   const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
   const nearestProperty = getNearestPropertyName(context.state, context.pos);
 
-  console.log('nearest property name', nearestProperty);
-  console.log(nodeBefore.name, nodeBefore._parent?.name, nodeBefore);
-
   const textBefore = context.state.sliceDoc(nodeBefore.from, context.pos);
   const tagBefore = /@\w*$/.exec(textBefore);
   if (!tagBefore && !context.explicit
