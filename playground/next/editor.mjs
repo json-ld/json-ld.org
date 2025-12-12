@@ -90,13 +90,21 @@ function editorListener(docName) {
       changes.push(update.state.doc.toString());
       debounce((docName) => {
         // set the global `doc` to the latest string from the editor
-        try {
-          const parsed = JSON.parse(changes[changes.length-1]);
-          this[docName] = parsed;
+        const latestChange = changes[changes.length-1];
+        if (latestChange === '') {
+          this[docName] = '';
           this.parseError = '';
-        } catch (err) {
-          this.parseError = err.message;
-        };
+          setEditorValue(readOnlyEditor, '');
+          return;
+        } else {
+          try {
+            const parsed = JSON.parse(latestChange);
+            this[docName] = parsed;
+            this.parseError = '';
+          } catch (err) {
+            this.parseError = err.message;
+          };
+        }
       }, 1000).call(this, docName);
     }
   });
@@ -135,9 +143,6 @@ function completeJSONLDTerms(context) {
   }
   const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
   const nearestProperty = getNearestPropertyName(context.state, context.pos);
-
-  console.log('nearest property name', nearestProperty);
-  console.log(nodeBefore.name, nodeBefore._parent?.name, nodeBefore);
 
   const textBefore = context.state.sliceDoc(nodeBefore.from, context.pos);
   const tagBefore = /@\w*$/.exec(textBefore);
@@ -252,7 +257,7 @@ const jsonLdHighlightTheme = EditorView.baseTheme({
 function initEditor(id, content, varName) {
   return new EditorView({
     parent: document.getElementById(id),
-    doc: JSON.stringify(content, null, 2),
+    doc: (content === 'object' ? JSON.stringify(content, null, 2) : ''),
     extensions: [
       basicSetup,
       keymap.of([indentWithTab]),
@@ -270,7 +275,7 @@ const language = new Compartment();
 
 const readOnlyEditor = new EditorView({
   parent: document.getElementById('read-only-editor'),
-  doc: `{}`,
+  doc: '',
   extensions: [
     basicSetup,
     language.of(json()),
@@ -305,7 +310,7 @@ function setEditorValue(_editor, doc, lang) {
 }
 
 window.app = createApp({
-  doc: {},
+  doc: '',
   contextDoc: {},
   frameDoc: {},
   tableQuads: {},
@@ -426,6 +431,7 @@ window.app = createApp({
     this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
+    if (!value || !this.doc) return;
     if (value) this.outputTab = value;
     let context = this.contextDoc;
     switch (this.outputTab) {
@@ -446,6 +452,7 @@ window.app = createApp({
             '@context': this.doc['@context']
           };
           this.contextDoc = context;
+          setEditorValue(this.sideEditor, this.contextDoc);
         }
         try {
           const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
@@ -462,6 +469,7 @@ window.app = createApp({
             '@context': this.doc['@context']
           };
           this.contextDoc = context;
+          setEditorValue(this.sideEditor, this.contextDoc);
         }
         try {
           const flattened = await jsonld.flatten(this.doc, {'@context': context['@context'] || {}}, this.options);
@@ -556,7 +564,7 @@ window.app = createApp({
       'frameDoc');
   },
   initMainEditor() {
-    this.mainEditor = initEditor.call(this, 'editor', {}, 'doc');
+    this.mainEditor = initEditor.call(this, 'editor', '', 'doc');
   },
   copyContext() {
     this.contextDoc = {
