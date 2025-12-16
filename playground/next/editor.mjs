@@ -331,7 +331,6 @@ window.app = createApp({
   options: {
     processingMode: '',
     base: '',
-    baseUrl: '',
     compactArrays: true,
     compactToRelative: true,
     rdfDirection: '',
