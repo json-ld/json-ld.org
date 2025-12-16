@@ -93,16 +93,16 @@ function editorListener(docName) {
         const latestChange = changes[changes.length-1];
         if (latestChange === '') {
           this[docName] = '';
-          this.parseError = '';
+          this.parseError = {};
           setEditorValue(readOnlyEditor, '');
           return;
         } else {
           try {
             const parsed = JSON.parse(latestChange);
             this[docName] = parsed;
-            this.parseError = '';
+            this.parseError = {};
           } catch (err) {
-            this.parseError = err.message;
+            this.parseError = err;
           };
         }
       }, 1000).call(this, docName);
@@ -325,7 +325,7 @@ window.app = createApp({
   remoteDocURL: '',
   remoteSideDocURL: '',
   message: {type: '', text: ''},
-  parseError: '',
+  parseError: {},
   inputTab: 'json-ld',
   outputTab: 'expanded',
   options: {
@@ -411,7 +411,7 @@ window.app = createApp({
       this.remoteDocURL = '';
       this.remoteSideDocURL = '';
     } catch (err) {
-      this.parseError = err.message;
+      this.parseError = err;
     }
   },
   async loadExample(file) {
@@ -439,9 +439,9 @@ window.app = createApp({
         try {
           const expanded = await jsonld.expand(this.doc, this.options);
           setEditorValue(readOnlyEditor, expanded);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'compacted':
@@ -456,9 +456,9 @@ window.app = createApp({
         try {
           const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
           setEditorValue(readOnlyEditor, compacted);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'flattened':
@@ -473,18 +473,18 @@ window.app = createApp({
         try {
           const flattened = await jsonld.flatten(this.doc, {'@context': context['@context'] || {}}, this.options);
           setEditorValue(readOnlyEditor, flattened);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'framed':
         try {
           const framed = await jsonld.frame(this.doc, this.frameDoc, this.options);
           setEditorValue(readOnlyEditor, framed);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'nquads':
@@ -495,9 +495,9 @@ window.app = createApp({
             ...this.options
           });
           setEditorValue(readOnlyEditor, output);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'canonized':
@@ -507,9 +507,9 @@ window.app = createApp({
             format: 'application/n-quads', ...this.options
           });
           setEditorValue(readOnlyEditor, output);
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'table':
@@ -517,9 +517,9 @@ window.app = createApp({
         try {
           const output = await jsonld.toRDF(this.doc, this.options);
           this.tableQuads = output;
-          this.parseError = '';
+          this.parseError = {};
         } catch(err) {
-          this.parseError = err.message;
+          this.parseError = err;
         }
         break;
       case 'yamlld':
@@ -543,10 +543,10 @@ window.app = createApp({
           this.cborLD.diagnostics = cbor2.diagnose(this.cborLD.bytes, {
             pretty: true})
           setEditorValue(readOnlyEditor, this.cborLD.diagnostics, 'cbor');
-          this.parseError = '';
+          this.parseError = {};
         } catch (err) {
           // TODO: currently, the editor keeps it's old value...unupdated...
-          this.parseError = err.message;
+          this.parseError = err;
           console.error(err);
         }
         break;
