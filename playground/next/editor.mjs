@@ -335,7 +335,7 @@ window.app = createApp({
     compactArrays: true,
     compactToRelative: true,
     rdfDirection: '',
-    safe: ''
+    safe: false
   },
   tabs: {
     expanded: {icon: 'expand alternate', label: 'Expanded'},
