@@ -330,7 +330,7 @@ window.app = createApp({
   inputTab: 'json-ld',
   outputTab: 'expanded',
   options: {
-    processingMode: '',
+    processingMode: 'json-ld-1.1',
     base: '',
     compactArrays: true,
     compactToRelative: true,
