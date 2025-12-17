@@ -431,7 +431,7 @@ window.app = createApp({
     this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
-    if (!value || !this.doc) return;
+    if (!this.doc) return;
     if (value) this.outputTab = value;
     let context = this.contextDoc;
     switch (this.outputTab) {
