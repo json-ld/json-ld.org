@@ -101,6 +101,7 @@ function editorListener(docName) {
             const parsed = JSON.parse(latestChange);
             this[docName] = parsed;
             this.parseError = {};
+            this.setOutputTab(this.outputTab);
           } catch (err) {
             this.parseError = err;
           };
