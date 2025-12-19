@@ -505,7 +505,7 @@ window.app = createApp({
         // TODO: this should happen elsewhere...like a watcher
         try {
           const output = await jsonld.canonize(this.doc, {
-            format: 'application/n-quads', ...this.options
+            format: 'application/n-quads', ...{...this.options, ...{safe: true}}
           });
           setEditorValue(readOnlyEditor, output);
           this.parseError = {};
