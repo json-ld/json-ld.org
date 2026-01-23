@@ -331,7 +331,7 @@ window.app = createApp({
   outputTab: 'expanded',
   options: {
     processingMode: 'json-ld-1.1',
-    base: '',
+    base: window.location.href,
     compactArrays: true,
     compactToRelative: true,
     rdfDirection: '',
