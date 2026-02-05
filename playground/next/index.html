@@ -230,8 +230,6 @@ title: Next Playground
           </div>
         </form>
       </div>
-    </div>
-    <div class="column" v-show="editorColumns != ''">
       <div class="ui top attached tabular menu">
         <div class="icon item" v-show="outputTab == 'compacted' || outputTab == 'flattened'">
           <i class="arrow alternate circle down outline icon" style="cursor: pointer;"
@@ -261,6 +259,71 @@ title: Next Playground
           @vue:mounted="initFrameEditor()"><!-- replaced by CodeMirror --></div>
       </div>
     </div>
+    <div class="column" v-show="editorColumns != ''">
+      <div class="ui fitted resizable active bottom attached tab segment">
+        <div class="ui very compact divided grid">
+          <div class="column" :class="{'eight wide': outputTab == 'cborld'}">
+            <div v-show="outputTab != 'table'" id="read-only-editor"><!-- replaced by CodeMirror --></div>
+            <table class="ui compact table" style="margin-top: 0"
+              v-show="outputTab == 'table'">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Predicate</th>
+                  <th>Object</th>
+                  <th>Language</th>
+                  <th>Datatype</th>
+                  <th>Graph</th>
+                </tr>
+              </thead>
+              <tr v-for="quad in tableQuads">
+                <td>
+                  <a v-if="quad.subject.termType == 'NamedNode'"
+                    :href="quad.subject.value"
+                    v-text="quad.subject.value"></a>
+                  <span v-else v-text="quad.subject.value"></span>
+                </td>
+                <td>
+                  <a v-if="quad.predicate.termType == 'NamedNode'"
+                    :href="quad.predicate.value"
+                    v-text="quad.predicate.value"></a>
+                  <span v-else v-text="quad.predicate.value"></span>
+                </td>
+                <td>
+                  <a v-if="quad.object.termType == 'NamedNode'"
+                    :href="quad.object.value"
+                    v-text="quad.object.value"></a>
+                  <span v-else v-text="quad.object.value"></span>
+                </td>
+                <td v-text="quad.object.language"></td>
+                <td>
+                  <a v-if="quad.object.datatype"
+                  :href="quad.object.datatype.value"
+                    v-text="quad.object.datatype.value"></a>
+                </td>
+                <td v-text="quad.graph.value"></td>
+              </tr>
+            </table>
+          </div>
+          <div class="eight wide column" v-if="outputTab == 'cborld'">
+            <table class="ui fixed definition table" style="margin-left: -0.25rem">
+              <tr>
+                <td class="three wide">JSON-LD Size</td><td><span v-text="cborLD.jsonldSize"></span> bytes</td>
+              </tr>
+              <tr>
+                <td>CBOR-LD Size</td><td><span v-text="cborLD.size"></span> bytes</td>
+              </tr>
+              <tr>
+                <td>Compression</td><td><span v-text="cborLD.percentage"></span>%</td>
+              </tr>
+              <tr class="top aligned">
+                <td>Hex</td><td v-text="cborLD.hex" style="word-wrap: break-word;"></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- errors -->
   <div class="ui error message" v-show="parseError.message">
@@ -272,69 +335,6 @@ title: Next Playground
   <!-- outputs and renderings -->
   <div class="ui top attached tabular menu">
     <div v-for="(tab, key) in tabs" :class="{ active: outputTab == key, disabled: doc === '' }" class="item" @click="setOutputTab(key)"><i class="icon" :class="tab.icon"></i> <span v-text="tab.label"></span></div>
-  </div>
-  <div class="ui fitted resizable active bottom attached tab segment">
-    <div class="ui very compact divided grid">
-      <div class="column" :class="{'eight wide': outputTab == 'cborld'}">
-        <div v-show="outputTab != 'table'" id="read-only-editor"><!-- replaced by CodeMirror --></div>
-        <table class="ui compact table" style="margin-top: 0"
-          v-show="outputTab == 'table'">
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Predicate</th>
-              <th>Object</th>
-              <th>Language</th>
-              <th>Datatype</th>
-              <th>Graph</th>
-            </tr>
-          </thead>
-          <tr v-for="quad in tableQuads">
-            <td>
-              <a v-if="quad.subject.termType == 'NamedNode'"
-                :href="quad.subject.value"
-                v-text="quad.subject.value"></a>
-              <span v-else v-text="quad.subject.value"></span>
-            </td>
-            <td>
-              <a v-if="quad.predicate.termType == 'NamedNode'"
-                :href="quad.predicate.value"
-                v-text="quad.predicate.value"></a>
-              <span v-else v-text="quad.predicate.value"></span>
-            </td>
-            <td>
-              <a v-if="quad.object.termType == 'NamedNode'"
-                :href="quad.object.value"
-                v-text="quad.object.value"></a>
-              <span v-else v-text="quad.object.value"></span>
-            </td>
-            <td v-text="quad.object.language"></td>
-            <td>
-              <a v-if="quad.object.datatype"
-              :href="quad.object.datatype.value"
-                v-text="quad.object.datatype.value"></a>
-            </td>
-            <td v-text="quad.graph.value"></td>
-          </tr>
-        </table>
-      </div>
-      <div class="eight wide column" v-if="outputTab == 'cborld'">
-        <table class="ui fixed definition table" style="margin-left: -0.25rem">
-          <tr>
-            <td class="three wide">JSON-LD Size</td><td><span v-text="cborLD.jsonldSize"></span> bytes</td>
-          </tr>
-          <tr>
-            <td>CBOR-LD Size</td><td><span v-text="cborLD.size"></span> bytes</td>
-          </tr>
-          <tr>
-            <td>Compression</td><td><span v-text="cborLD.percentage"></span>%</td>
-          </tr>
-          <tr class="top aligned">
-            <td>Hex</td><td v-text="cborLD.hex" style="word-wrap: break-word;"></td>
-          </tr>
-        </table>
-      </div>
-    </div>
   </div>
 </div>
 
