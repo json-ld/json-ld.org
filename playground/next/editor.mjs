@@ -98,7 +98,7 @@ function editorListener(docName) {
           return;
         } else {
           try {
-            const parsed = JSON.parse(latestChange);
+            const parsed = YAML.parse(latestChange);
             this[docName] = parsed;
             this.parseError = {};
             this.setOutputTab(this.outputTab);
@@ -299,7 +299,7 @@ function setEditorValue(_editor, doc, lang) {
         from: 0,
         to: _editor.state.doc.length,
         insert: typeof(doc) === 'object'
-          ? JSON.stringify(doc, null, 2)
+          ? YAML.stringify(doc, null, 2)
           : doc
       },
       // set the correct language
@@ -358,12 +358,12 @@ window.app = createApp({
   get permalinkURL() {
     const url = new URL(window.location);
     const hash = new URLSearchParams();
-    hash.set('json-ld', JSON.stringify(this.doc));
+    hash.set('json-ld', YAML.stringify(this.doc));
     if (this.contextDoc && JSON.stringify(this.contextDoc) !== '{}') {
-      hash.set('context', JSON.stringify(this.contextDoc));
+      hash.set('context', YAML.stringify(this.contextDoc));
     }
     if (this.frameDoc && JSON.stringify(this.frameDoc) !== '{}') {
-      hash.set('frame', JSON.stringify(this.frameDoc));
+      hash.set('frame', YAML.stringify(this.frameDoc));
     }
     hash.set('startTab', `tab-${this.outputTab}`);
     url.hash = hash.toString();
