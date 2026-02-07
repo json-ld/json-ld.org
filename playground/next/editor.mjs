@@ -446,14 +446,6 @@ window.app = createApp({
         }
         break;
       case 'compacted':
-        if (JSON.stringify(context) === '{}' && '@context' in this.doc) {
-          // no context set yet, so copy in the main document's
-          context = {
-            '@context': this.doc['@context']
-          };
-          this.contextDoc = context;
-          setEditorValue(this.sideEditor, this.contextDoc);
-        }
         try {
           const compacted = await jsonld.compact(this.doc, {'@context': context['@context'] || {}}, this.options);
           setEditorValue(readOnlyEditor, compacted);
