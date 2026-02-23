@@ -1,5 +1,3 @@
-/* globals: jsonld */
-
 import {EditorView, basicSetup} from 'codemirror';
 import {createApp} from "petite-vue";
 import {Compartment, EditorState, RangeSetBuilder} from '@codemirror/state'
@@ -14,6 +12,9 @@ import {yaml} from '@codemirror/lang-yaml';
 import * as cborld from '@digitalbazaar/cborld';
 import * as cbor2 from 'cbor2';
 import jsonld from 'jsonld';
+import * as d3 from 'd3';
+import jsonldVis from 'jsonld-vis';
+import 'jsonld-vis/dist/index.css';
 
 // Setup JSON-LD documentLoader
 const xhrDocumentLoader = jsonld.documentLoaders.xhr();
@@ -345,6 +346,7 @@ window.app = createApp({
     nquads: {icon: 'rdf-icon-rdf', label: 'N-Quads'},
     canonized: {icon: 'archive', label: 'Canonized'},
     table: {icon: 'th', label: 'Table'},
+    visualized: {icon: 'project diagram', label: 'Visualized'},
     yamlld: {icon: 'stream', label: 'YAML-LD'},
     cborld: {icon: 'robot', label: 'CBOR-LD'}
   },
@@ -543,6 +545,9 @@ window.app = createApp({
           console.error(err);
         }
         break;
+      case 'visualized':
+        document.getElementById('visualization').innerHTML = '';
+        jsonldVis(d3, this.doc, '#visualization');
       default:
         setEditorValue(readOnlyEditor, {});
     }

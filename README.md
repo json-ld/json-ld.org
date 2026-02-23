@@ -100,7 +100,10 @@ surrounding UI using [petite-vue][].
   attaching it to the DOM via petite-vue
 
 The `npm run build:editor` command uses [esbuild][] to build the final JS bundle
-at `playground/next/editor.bundle.js` which contains the browser ready JS code.
+at `_site/playground/next/editor.bundle.js` which contains the browser ready JS
+code. It will also generates a CSS bundle at
+`_site/playground/next/editor.bundle.css` which contains the styles for the
+editor.
 
 Website Analytics
 -----------------
