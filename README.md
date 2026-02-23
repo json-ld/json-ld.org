@@ -92,14 +92,14 @@ npm run dev
 Editor Development
 ------------------
 
-The new Playground is build using [CodeMirror][] 6 and is integrated into the
+The new Playground is built using [CodeMirror][] 6 and is integrated into the
 surrounding UI using [petite-vue][].
 
 * `playground/next/index.html` has the HTML and petite-vue markup-level code
 * `playground/next/editor.mjs` contains the JS for setting up CodeMirror and
   attaching it to the DOM via petite-vue
 
-The `npm run build:editor` command uses [Rollup][] to build the final JS bundle
+The `npm run build:editor` command uses [esbuild][] to build the final JS bundle
 at `playground/next/editor.bundle.js` which contains the browser ready JS code.
 
 Website Analytics
@@ -125,4 +125,4 @@ The default code can be overridden by setting `ga` to a specific number (ex:
 [playground]: https://json-ld.org/playground/
 [CodeMirror]: https://codemirror.net/
 [petite-vue]: https://github.com/vuejs/petite-vue
-[Rollup]: https://rollupjs.org/
+[esbuild]: https://esbuild.github.io/
