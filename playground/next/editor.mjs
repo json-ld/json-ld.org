@@ -430,7 +430,6 @@ window.app = createApp({
       this.frameDoc = {};
       setEditorValue(this.frameEditor, this.frameDoc);
     }
-    this.setOutputTab(this.outputTab);
   },
   async setOutputTab(value) {
     if (!this.doc) return;
