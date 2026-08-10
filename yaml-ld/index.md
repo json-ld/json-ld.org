@@ -129,7 +129,7 @@ masthead:
 </div>
 
 <p class="ui basic large center aligned segment">
-  In YAML the <code>@</code> character is reserved, so JSON-LD keywords such as
+  In YAML, the <code>@</code> character is reserved, so JSON-LD keywords such as
   <code>@id</code> and <code>@type</code> must be quoted. To keep documents
   unquoted and readable, json-ld.org publishes two convenience contexts that
   alias the keywords away. Add one to your <code>"@context"</code> and rewrite
